@@ -59,7 +59,11 @@ const isEn = lang === 'en';
     line-height: 1.6;
     margin-bottom: var(--space-4);
   }
-  .chart-card > svg {
+  /* :global() is required: the <svg> is emitted by the child chart components
+     (ChartBar/ChartLine/…), so it carries their scope hash, not ChartCard's.
+     A plain `.chart-card > svg` never matched and the charts kept their
+     intrinsic 640px width, overflowing mobile viewports. */
+  .chart-card > :global(svg) {
     width: 100%;
     height: auto;
     display: block;
