@@ -182,13 +182,13 @@ export const QA_CORPUS: QAPair[] = [
     ru: {
       question: "Что за проект Volta?",
       answer:
-        "End-to-end аналитика необанка: funnel, A/B-тест, retention и сегментация одной петлёй на синтетических fintech-данных. Ключевой результат — +5.72pp KYC-конверсии (Z=5.82, p<0.0001), €656K/yr (44× ROI), с CUPED, AA-тестом и Bonferroni.",
+        "End-to-end аналитика необанка на синтетических fintech-данных: 22 проекта — funnel, A/B-тест, retention и сегментация одной петлёй, слой Market & Jobs и валидация RAT v2. Ключевой результат — +5.72pp KYC-конверсии (Z=5.82, p<0.0001), €656K/yr (44× ROI), с CUPED, AA-тестом и Bonferroni.",
       links: [{ label: "Volta", href: "projects/volta/" }],
     },
     en: {
       question: "What is the Volta project?",
       answer:
-        "End-to-end neobank analytics: funnel, A/B test, retention and segmentation in one loop on synthetic fintech data. Key result — +5.72pp KYC conversion (Z=5.82, p<0.0001), €656K/yr (44× ROI), with CUPED, AA-test and Bonferroni.",
+        "End-to-end neobank analytics on synthetic fintech data: 22 projects — funnel, A/B test, retention and segmentation in one loop, plus a Market & Jobs layer and RAT v2 validation. Key result — +5.72pp KYC conversion (Z=5.82, p<0.0001), €656K/yr (44× ROI), with CUPED, AA-test and Bonferroni.",
       links: [{ label: "Volta", href: "en/projects/volta/" }],
     },
   },

@@ -1,6 +1,6 @@
 ---
 title: Volta Neobank — Product Analytics
-description: "Нашёл узкое место в онбординге необанка и закрыл A/B-тестом: +5,72 пп конверсии KYC и €656K в год. 17 аналитических проектов на синтетических данных."
+description: "Нашёл узкое место в онбординге необанка и закрыл A/B-тестом: +5,72 пп конверсии KYC и €656K в год. 22 проекта: воронка → A/B → retention → сегментация → Market & Jobs → RAT v2."
 track: experiments
 hero: images/volta.svg
 impact:
@@ -8,6 +8,8 @@ impact:
   - +9.2pp M3 retention, +€227K/yr incremental LTV
   - 4 data-driven user segments with per-segment monetization strategy
   - CUPED variance reduction + AA-test (type-I = 0.050) + Bonferroni correction
+  - "RAT v2: 5 рисков аудита проверены деньгами — 3 подтверждены, 1 опровергнут по механизму, 1 уточнён"
+  - "22 проекта: 12 аналитических доменов + Market & Jobs (JTBD) + слой валидации RAT v2"
 tools:
   - Python
   - pandas / NumPy
@@ -16,9 +18,11 @@ tools:
   - Matplotlib / Seaborn
   - uv + ruff
 github: https://github.com/NikitaBoyarkin/volta-banking
-updated: 2026-09-05
+updated: 2026-09-20
 date: 2026-08-11
 faq:
+  - question: "Что добавляет слой RAT v2?"
+    answer: "5 рисков аудита проверены деньгами: assisted-онбординг 45+ не окупается (LTV/CAC 0.66, гейт ≥3), FX-гейт достижим только на SOM (~€332M/мес), сегментные офферы дают +3.3…+4.2 пп, запуск якоря держится до ~70K, light-touch win-back 45+ окупается только на 30–90 днях."
   - question: "Где отток в онбординге?"
     answer: "KYC — критическое узкое место: наибольший относительный отток (56.6% step conversion)."
   - question: "Лечит ли progress bar проблему KYC?"
@@ -38,7 +42,7 @@ children:
 caseStudy:
   problem: "Необанк терял пользователей на онбординге, но было непонятно, какой шаг критический и лечит ли его фикс. Изолированные анализы давали локальные числа без продуктовой связи."
   approach: "Четыре проекта одной петлёй discover → validate → measure → optimize: funnel нашёл KYC-бутылочное горло, A/B с CUPED + AA-test + Bonferroni валидировал progress-bar фикс под ship-gate из трёх условий (значимость ∧ lift≥MDE ∧ no SRM), retention подтвердил удержание эффекта, сегментация перевела эффект в деньги."
-  result: "Фикс KYC дал +5.72pp конверсии и €656K/yr (44× ROI), эффект удержался в retention (+9.2pp M3, +€227K/yr LTV), а сегментация показала, что 12% пользователей дают 41% выручки — миграция стоит до +€310K/yr. Воспроизводимая методология защищает от rollout'а статистически-значимых, но бизнес-незначимых изменений."
+  result: "Фикс KYC дал +5.72pp конверсии и €656K/yr (44× ROI), эффект удержался в retention (+9.2pp M3, +€227K/yr LTV), а сегментация показала, что 12% пользователей дают 41% выручки — миграция стоит до +€310K/yr. Репозиторий расширен до 22 проектов, включая слой валидации RAT v2, который проверяет рекомендации аудита деньгами: 3 риска подтверждены, 1 опровергнут, 1 уточнён. Воспроизводимая методология защищает от rollout'а статистически-значимых, но бизнес-незначимых изменений."
   metrics:
     - label: "KYC conversion lift"
       value: "+5.72pp"
@@ -108,11 +112,11 @@ Ship — не конец: эффект проверили на удержани�
 
 ## Досье: расширение репозитория
 
-Репозиторий вырос с 4 core-проектов до **17** (12 аналитических доменов + Market & Jobs). Дополнительные проекты:
+Репозиторий вырос с 4 core-проектов до **22** (12 аналитических доменов + Market & Jobs + слой валидации RAT v2). Дополнительные проекты:
 
 | # | Проект | Ключевой вывод |
 |---|---|---|
-| 5 | **Churn Prediction** | RF +0.03 ROC-AUC над LR; топ-драйвер — неактивность |
+| 5 | **Churn Prediction** | RF +0.03 ROC-AUC над LR; топ-драйвер — частота ошибок устройства |
 | 6 | **RFM Analysis** | 6 lifecycle-сегментов |
 | 7 | **CLV Modeling** | 3 метода: historical / retention-curve / Gamma-Gamma |
 | 8 | **Marketing Attribution** | First/last/linear/Shapley — referral лидирует |
@@ -120,11 +124,30 @@ Ship — не конец: эффект проверили на удержани�
 | 10 | **Spend Analysis** | Категории/каналы, decline rate, месячный тренд |
 | 11 | **Support & Churn** | Churn по тикетам, unresolved, CSAT-бэнды |
 | 12 | **NPS Trends** | Месячный NPS, драйверы, промоутер-микс |
-| 13 | **JTBD × Cohorts** | Dormant = UX-трение (Digital Newcomers 45+), не «нет задачи» |
-| 14 | **Unit Economics** | Travelers теряют €/tx; break-even при FX 1.0%→0.55% |
-| 15 | **Premium Upsell** | Anchor 17% vs Digital Newcomers 45+ 2% — ценность не ложится |
-| 16 | **45+ KYC Deep-Dive** | 45+ lift +0.6pp (ns) vs 35-44 +10pp — трение = доверие, не UX |
-| 17 | **Referral Segments** | Anchor 29.6% vs Digital Newcomers 4.8% — не переносится |
+| 13 | **JTBD × Cohorts** | Dormant = UX-трение (Цифровые новички 45+), не «нет задачи» |
+| 14 | **Unit Economics** | Путешественники теряют €/tx; break-even при FX 1.0%→0.55% |
+| 15 | **Premium Upsell** | Якорь 17% vs Цифровые новички 45+ 2% — ценность не ложится |
+| 16 | **45+ KYC Deep-Dive** | 45+ lift +1.4pp (ns) vs 35-44 +11.0pp — трение = доверие, не UX |
+| 17 | **Referral Segments** | Якорь 29.6% vs Цифровые новички 4.8% — не переносится |
+| 18 | **Assisted CAC vs LTV** | 45+ LTV/CAC 0.66 (гейт ≥3); assisted CAC €120 не окупается — якорь берёт 3.62 лишь на реферале |
+| 19 | **FX Sourcing Feasibility** | Гейт 0.55% достижим только на SOM (~€332M/мес): cold-start, а не «невозможно» |
+| 20 | **Segment Premium Offers** | A/B: +3.3pp 45+, +4.2pp семейные, +3.8pp путешественники (Holm-significant); якорь почти не двигается |
+| 21 | **Anchor Launch CAC** | LTV/CAC ≥3 держится до ~70K; на SOM 1.76× и payback 17 мес — ломается на paid CAC |
+| 22 | **Dormant 45+ Win-back** | Light-touch 30–90d окупается (ROI 2.54 / 1.26); human-звонок ROI 0.40 — kill как массовый канал |
+
+## Слой RAT v2 — валидация собственного аудита
+
+После JTBD-аудита портфолио проверяет **собственные рекомендации**: пять рисков v2 оценены деньгами, а не оставлены мнением. Каждый проект выдаёт гейт ship / pilot / hold / kill.
+
+| # | Риск v2 | Вердикт | Доказательство |
+|---|---------|---------|----------------|
+| 1 | Assisted-онбординг 45+ дороже, чем LTV 45+ | ✅ подтверждён | Project 18: LTV/CAC 45+ = 0.66 (гейт ≥3), payback 50 мес |
+| 2 | FX-cost не удаётся договорить до ≤0.55% | ✅ подтверждён (как cold-start) | Project 19: гейт требует ~€332M/мес, сейчас в 122× меньше |
+| 3 | Сегментные premium-офферы не поднимут gap-сегменты | ⚠️ частично опровергнут | Project 20: +3.3…+4.2pp, Holm-significant — сужает, но не закрывает разрыв |
+| 4 | Paid CAC якоря ломает P&L запуска | ✅ подтверждён | Project 21: LTV/CAC 1.76 на SOM, гейт держится до ~70K |
+| 5 | Assisted-онбординг не возвращает Dormant 45+ | ❌ опровергнут по механизму | Project 22: human +5.3pp, light-touch +2.8pp — барьер был UX; окупается только light-touch 30–90d |
+
+Итог: **3 риска подтверждены, 1 опровергнут, 1 уточнён** — аудит выдержал проверку, а решения получили измеримые гейты. Project 16 (глубокий разбор KYC 45+) — мост между слоями: он показал, что барьер 45+ в доверии, а не в UX, и запустил всю цепочку v2-валидации.
 
 ## Данные и метод
 
@@ -136,9 +159,11 @@ Ship — не конец: эффект проверили на удержани�
 
 2. **A/B (KYC progress bar)** — расчёт размера выборки, SRM-проверка (p=1.00), bootstrap CI, коррекция множественных сравнений (Bonferroni/Holm/BH), AA-test под H₀ (type-I = 0.050), CUPED (control-only θ), sensitivity at MDE. Контроль 55.8% → лечение 61.5%, **+5.72pp**, 95% CI [+3.78%, +7.66%], превышает +5pp MDE. Ship-gate: p<0.05 ∧ lift≥MDE ∧ no SRM → ship. 6/11 наивно-значимых сегментов, 4/11 после Bonferroni.
 
-3. **Retention** — когортные кривые, pre/post Welch t-test + Cohen's d, plan-specific LTV (ARPU × retention decomposition). M1 retention +10pp step-change, M3 +9.2pp.
+3. **Retention** — когортные кривые, pre/post Welch t-test + Cohen's d, plan-specific LTV (ARPU × retention decomposition). M1 retention +11.8pp step-change, M3 +9.2pp.
 
 4. **Segmentation** — StandardScaler + KMeans, data-driven K (marginal-gain elbow, силуэтный plateau K=2–4, коллапс при K=5). Сегменты: Power 12% / Growth 24% / Casual 32% / Dormant 32%. Lorenz: 12% пользователей → 41% выручки; 68% → 92%. Сценарии миграции: +€26K/mo (€310K/yr).
+
+**RAT v2-методы (проекты 18–22):** LTV на пользователя (ARPU × маржа вклада × месяцы удержания) и blended CAC с bootstrap-ДИ, Welch t-test якорь vs 45+; котировки провайдеров ликвидности и лог-интерполяция требуемого объёма; рандомизированный A/B сегментных офферов с поправкой Holm и DiD-взаимодействием сегмент × arm; кривые маржинального CAC по каналам, жадное распределение «сначала дешёвое» и масштаб безубыточности; трёхармный win-back (авто / light-touch / human) с z-тестами и ROI на 10K обработанных.
 
 **Структура кода:** общие `utils/common.py` (`setup()`, `print_section()`, `CONSTANTS`, `data_path()`), `functions + main()` — импорт модуля не запускает анализ. Excel-отчёты через `openpyxl`.
 
@@ -148,7 +173,8 @@ Ship — не конец: эффект проверили на удержани�
 - **M3 retention +9.2pp** → **+€227K/yr** incremental LTV от KYC-фикса.
 - **4 сегмента** с per-segment стратегией и монетизацией до **+€310K/yr** через миграцию.
 - **Воспроизводимая методология** — CUPED, AA-test, Bonferroni, sensitivity at MDE; 4 рекомендованных A/B для валидации стратегии.
-- **17 проектов** — 12 аналитических доменов + Market & Jobs (JTBD): от funnel до referral-сегментов.
+- **22 проекта** — 12 аналитических доменов + Market & Jobs (JTBD) + слой валидации RAT v2: от funnel до win-back дормантов.
+- **Собственные рекомендации проверены деньгами** — слой RAT v2 оценил 5 рисков аудита: 3 подтверждены, 1 опровергнут, 1 уточнён; каждое решение получило гейт ship / pilot / hold / kill.
 
 ## Документация
 
