@@ -77,7 +77,7 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 - **Hero:** two-column editorial layout — identity + pitch + metrics + CTAs on the left, animated dataviz panel on the right (reuses `IntroShader` and floating metric cards).
 - **Navigation:** minimal top-bar with name/logo, Projects, About, Notes (RU) / Writing (EN), language switch, search, contact CTA, theme toggle. Start/Graph/Games removed from the main nav but remain reachable via direct URLs and internal links.
 - **Palette:** keep the existing teal/coral base; add a second `--text-accent-dataviz` token for graph/metric highlights so dataviz reads as information, not as a CTA.
-- **Homepage structure:** editorial top after hero (featured project spotlight + capabilities grid) and a bento grid bottom (career snapshot, knowledge graph, library, notes, arcade, testimonials).
+- **Homepage structure:** editorial top after hero (featured project spotlight) and a bento grid bottom (career snapshot, knowledge graph, library, notes, arcade, testimonials).
 
 ### Files touched
 
@@ -91,7 +91,7 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 
 - Replaced the long `home-stack`/`AudienceBar` dashboard with a focused editorial top + bento bottom on both language homepages.
 - Featured project spotlight surfaces `posthog.md` as the lead case (full loop: metric → hypothesis → experiment → decision).
-- CapabilitiesGrid remains as the skills editorial block.
+- CapabilitiesGrid was removed (ADR-0001); the capabilities signal now lives in the featured project spotlight, the bento stack chips, and the `/projects/` board.
 - Bento grid cells: `CareerSnapshot`, knowledge-graph link, `ReadingBlock`, notes link, arcade link, `Testimonials`.
 - Removed from homepage: `AudienceBar`, `HomeBoard`, `AskMe`, `Manifesto`, `TopicMap`, `ProjectTimeline`, `CollaborationFormats`, `MaterialStrip`, and the inline arcade section. These pages/components remain reachable via direct URLs.
 

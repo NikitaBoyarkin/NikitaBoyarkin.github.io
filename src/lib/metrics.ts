@@ -1,5 +1,5 @@
 // Signature results — single source of truth for the headline numbers shown
-// on the homepage (hero metrics, HomeBoard, CapabilitiesGrid, CareerSnapshot).
+// on the homepage and value page (hero metrics, career snapshot, value page).
 // Authoritative figures come from the CV (rendercv YAML); before 1.3 they were
 // duplicated in 4+ places and drifted (e.g. the bot automation card said
 // "1–2ч" while the CV says "2ч → 5 мин"). Change a number here, not in each
@@ -37,9 +37,9 @@ export const METRICS = {
     // is stale but out of scope for this repo's source of truth.
     projects: 17,
     // Count of self-contained .sql case files in the sql-analytics-case-study
-    // repo (cases/01..25_*.sql). Verified 25 against the repo on 2026-09-18;
-    // must equal the "25 end-to-end SQL case studies" claim in
+    // repo (cases/01..26_*.sql). Verified 26 against the repo on 2026-09-19;
+    // must equal the "26 SQL-кейсов (25 synthetic + 1 real-data)" claim in
     // src/content/projects/sql.md. Guarded by tests/lib/metrics.test.ts.
-    sqlCases: 25,
+    sqlCases: 26,
   },
 } as const;
