@@ -3,6 +3,7 @@ title: "Volta — Поиск аномалий"
 description: "Z-score, IQR и Isolation Forest против ground truth. IF — лучший F1 (50,4%), ловит аномалии суммы, ночных часов и частоты; Z-score точен, но осторожен."
 part: anomalies
 order: 9
+layer: extended
 impact:
   - "IF — лучший F1 (50,4%), 401 детекция"
   - "Z-score precision 80,5% при recall 24,7%"

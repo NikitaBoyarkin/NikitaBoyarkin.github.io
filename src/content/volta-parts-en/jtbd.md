@@ -3,6 +3,7 @@ title: "Volta — JTBD × Cohorts"
 description: "Job segments and behavioral cohorts are not independent (chi² p<0.001): Dormant concentrates in Digital Newcomers 45+ (39.4%) vs Family Budgeters (15.1%)."
 part: jtbd
 order: 13
+layer: market-jobs
 impact:
   - "chi² p<0.001: job segments ≠ cohorts"
   - "Dormant 39.4% among 45+ vs 15.1% among families"

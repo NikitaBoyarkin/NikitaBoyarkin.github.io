@@ -3,6 +3,7 @@ title: "Volta — Funnel Analysis"
 description: "The neobank onboarding funnel: KYC is the bottleneck at 56.6% step conversion, registration loses the most in absolute terms (2,682). Broken down by channel and platform."
 part: funnel
 order: 1
+layer: core
 impact:
   - "KYC Complete — largest relative drop-off (56.6%)"
   - "Registration — largest absolute loss (2,682, 73.2%)"

@@ -3,6 +3,7 @@ title: "Volta — Segment Premium Offers"
 description: "A/B: a segment offer lifts gap segments (+3.3pp 45+, +4.2pp families, +3.8pp travelers) — Holm-significant, but the anchor barely moves."
 part: premium-offers
 order: 20
+layer: rat-v2
 impact:
   - "+3.33pp 45+, +4.16pp families, +3.79pp travelers"
   - "All gap lifts Holm-significant"

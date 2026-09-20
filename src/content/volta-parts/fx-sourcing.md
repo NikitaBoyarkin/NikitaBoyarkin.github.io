@@ -3,6 +3,7 @@ title: "Volta — Feasibility FX-сорсинга"
 description: "Гейт 0,55% достижим только на SOM-масштабе (~€332M/мес, 122× от текущего) — cold-start, а не «невозможно». Лучшее предложение — Interbank Prime 0,745%."
 part: fx-sourcing
 order: 19
+layer: rat-v2
 impact:
   - "Гейт требует ~€332M/мес (122× от текущего)"
   - "~0,20 п.п. скидки на каждый порядок объёма"

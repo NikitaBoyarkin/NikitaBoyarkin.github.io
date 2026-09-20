@@ -3,6 +3,7 @@ title: "Volta — Тренды NPS"
 description: "Месячный NPS держится около нуля; сильнейшие драйверы — app quality (+30,3) и product (+29,4), главный источник недовольства — fees (−59,4)."
 part: nps
 order: 12
+layer: extended
 impact:
   - "NPS около нуля — клиенты нейтральны"
   - "app_quality +30,3 и product +29,4 — вверх"

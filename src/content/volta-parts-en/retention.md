@@ -3,6 +3,7 @@ title: "Volta — Retention & Cohorts"
 description: "Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€227K/yr LTV. Premium LTV is 4.3× Free."
 part: retention
 order: 3
+layer: core
 impact:
   - "M1 retention +11.8pp step-change"
   - "M3 retention +9.2pp"

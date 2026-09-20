@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Phase 0 executed 2026-09-20 (§10). Phases 1–5 open. |
+| Status | Phases 0–1 executed 2026-09-20 (§10). Phases 2–5 open. |
 | Date | 2026-09-20 |
 | Owner | Nikita Boyarkin |
 | Scope | `projects/volta` hub + `volta-parts` (22 → 23) + light-touch entry surfaces and sibling cross-links. No sibling rewrite. |
@@ -362,7 +362,7 @@ page count recorded; screenshots reviewed; `CLAUDE.md` states the parts skeleton
 | Phase | Result |
 |---|---|
 | 0 | **Done 2026-09-20.** RFM `6`→`7`: 10 site edits (`volta.md:138,186`, `projects-en/volta.md:136,184`, `volta-parts/rfm.md:7`, `volta-parts-en/rfm.md:7`, `volta.json:371,372,390,391`) + source (`README.md:34,165,338`, `volta_executive_summary.html:101`, root-cause `volta_rfm_analysis.py:5`). FX `€3M/два порядка`→`€2,7M/~122×`: 4 edits (`fx-sourcing.md:38`, `fx-sourcing-en.md:38`, `volta.json:797,798`). Causal resolved to **+5.72pp** (per `generate_causal_kyc_data.py:18` + `outputs/ab_conversion_comparison.md:9`); fixed the stale `+6.24pp` block in 4 source files (`volta_causal_kyc.py:9`, `volta_segmentation.py:15,930`, `volta_executive_summary.html:61,62,65`, `04_segmentation.ipynb:524`). Baseline re-snapshotted (104 files / 4043 numeric tokens). **Verification:** `audit:content` → 0; `check` → 0/0/0; `build` → 133 pages; source `py_compile` + `.ipynb` JSON OK; no `+6.24pp` / `€716K` / `62.1%` remain. **Scope note:** the PRD listed only the causal docstring; the same stale A/B block lived in 3 more source files — included as the same reconciliation. **Pre-existing & unrelated:** `bun run test` → `tests/lib/metrics.test.ts:39` fails (`portfolio.sqlCases` 25 vs 26 `.sql` cases in the sibling `sql-analytics-case-study`); reproduces with Phase-0 edits stashed. |
-| 1 | — |
+| 1 | **Done 2026-09-20.** `layer` added to `voltaPartSchema` (`src/content.config.ts`) as a **required** enum `core\|extended\|market-jobs\|rat-v2\|causal`; `layer:` inserted into all 44 existing parts by `order` (1–4 core, 5–12 extended, 13–17 market-jobs, 18–22 rat-v2) → **46/46** files (23 RU + 23 EN). New part `causal-kyc` (`order: 23`, `layer: causal`) RU+EN, with DiD numbers extracted **read-only** from the committed `volta_causal_kyc.csv` (M3 ATT +9.09pp, 95% CI [+6.21, +11.96]; activation naive +6.29 → DiD +4.92; pre-trends p 0.29–0.70; placebo ≈ 0; max \|SMD\| 0.157; N = 84,000). Two new charts in `volta.json` (`causal-naive-vs-did`, `causal-recovery`) → 36 charts. `causal-kyc` added to `children` in **both** hubs — required for graph validity: `graph.ts:440` links parts via `children`, so an unlisted part is an orphan and the `graph-invariants` test fails. Baseline re-snapshotted (106 files / 4177 tokens; +2 files, +134 tokens = the new part, not a metric change). **Verification:** `build` → 135 pages (+2); `check` → 0/0/0; new routes exist RU+EN; both charts render; `layer` on 46/46; `audit:content` green; tests 153 pass / 1 pre-existing unrelated fail (`metrics.test.ts:39`). |
 | 2 | — |
 | 3 | — |
 | 4 | — |

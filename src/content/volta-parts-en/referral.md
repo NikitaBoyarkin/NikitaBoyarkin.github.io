@@ -3,6 +3,7 @@ title: "Volta — Referral Segments"
 description: "Referral funnel by JTBD segment: anchor 29.6% vs Digital Newcomers 45+ 4.8% and families 8.6%. The gap opens at accept, not KYC."
 part: referral
 order: 17
+layer: market-jobs
 impact:
   - "Anchor 29.6% vs 45+ 4.8% and families 8.6%"
   - "Gap at accept (78% vs 26% vs 40%)"

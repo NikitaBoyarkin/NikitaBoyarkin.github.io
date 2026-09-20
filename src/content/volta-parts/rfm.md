@@ -3,6 +3,7 @@ title: "Volta — RFM-анализ"
 description: "R/F/M-скоринг 1–5 делит базу на жизненные сегменты от Champions до Lost; recentness и monetary расходятся — «частые, но дешёвые» и «редкие, но крупные»."
 part: rfm
 order: 6
+layer: extended
 impact:
   - "7 жизненных сегментов (Champions→Lost)"
   - "Champions — 23,9% базы с высокими R/F/M"

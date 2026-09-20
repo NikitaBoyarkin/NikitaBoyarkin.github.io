@@ -3,6 +3,7 @@ title: "Volta — Premium-апселл"
 description: "Конверсия Free→Premium концентрируется в якоре (17,3%) и статус-сикерах (41,2%); у Цифровых новичков 45+ всего 1,8% — ценность не переносится."
 part: premium-upsell
 order: 15
+layer: market-jobs
 impact:
   - "Premium Status 41,2%, якорь 17,3%"
   - "Digital Newcomers 45+ 1,8% (z=34, p<0,001)"

@@ -3,6 +3,7 @@ title: "Volta — CLV Modeling"
 description: "Three lifetime-value methods: historical, retention-curve and Gamma-Gamma. The order Power > Growth > Casual > Dormant is robust across all methods."
 part: clv
 order: 7
+layer: extended
 impact:
   - "3 methods: historical / retention-curve / Gamma-Gamma"
   - "Robustly Power > Growth > Casual > Dormant"

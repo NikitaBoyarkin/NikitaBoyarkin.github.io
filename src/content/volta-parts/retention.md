@@ -3,6 +3,7 @@ title: "Volta — Retention и когорты"
 description: "Когортные треугольники показали ступенчатый сдвиг после KYC-фикса: M1 +11,8 п.п., M3 +9,2 п.п. и +€227K/год LTV. LTV Premium в 4,3× выше Free."
 part: retention
 order: 3
+layer: core
 impact:
   - "M1 retention +11,8 п.п. ступенчатый сдвиг"
   - "M3 retention +9,2 п.п."

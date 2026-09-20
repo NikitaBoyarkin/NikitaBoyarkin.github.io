@@ -3,6 +3,7 @@ title: "Volta — Сегментация пользователей"
 description: "KMeans с data-driven K=4: Power 12% дают 41% выручки, 68% — 92%. Сценарии миграции между сегментами стоят до +€310K/год."
 part: segmentation
 order: 4
+layer: core
 impact:
   - "K=4 выбрано из данных (elbow + силуэт)"
   - "12% пользователей → 41% выручки; 68% → 92%"

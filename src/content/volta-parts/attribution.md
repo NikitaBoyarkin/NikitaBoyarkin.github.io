@@ -3,6 +3,7 @@ title: "Volta — Маркетинговая атрибуция"
 description: "First-touch, last-touch, linear и Shapley-атрибуция. Shapley (data-driven) перераспределяет бюджет и ведёт реферал; вывод устойчив к выбору модели."
 part: attribution
 order: 8
+layer: extended
 impact:
   - "4 модели атрибуции, включая Shapley"
   - "Shapley: referral €264K против display €125K"

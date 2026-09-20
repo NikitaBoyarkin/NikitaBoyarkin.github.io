@@ -3,6 +3,7 @@ title: "Volta — User Segmentation"
 description: "KMeans with data-driven K=4: Power 12% drive 41% of revenue, 68% drive 92%. Cross-segment migration is worth up to +€310K/yr."
 part: segmentation
 order: 4
+layer: core
 impact:
   - "K=4 chosen from data (elbow + silhouette)"
   - "12% of users → 41% of revenue; 68% → 92%"

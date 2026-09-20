@@ -3,6 +3,7 @@ title: "Volta — Churn Prediction"
 description: "Random Forest adds +0.03 ROC-AUC over logistic regression; the top churn driver is device-error rate (23.7%), not balance or activity."
 part: churn
 order: 5
+layer: extended
 impact:
   - "RF +0.03 ROC-AUC over LR"
   - "Top driver — device_error_rate (23.7%)"

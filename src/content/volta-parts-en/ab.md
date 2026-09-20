@@ -3,6 +3,7 @@ title: "Volta — KYC Progress-Bar A/B Test"
 description: "A KYC progress bar lifted conversion +5.72pp (Z=5.82, p<0.0001) against a +5pp MDE. CUPED, AA-test and Bonferroni protect the conclusion; +€656K/yr at 44× ROI."
 part: ab
 order: 2
+layer: core
 impact:
   - "+5.72pp KYC conversion (Z=5.82, p<0.0001), above MDE"
   - "Ship-gate: significance ∧ lift≥MDE ∧ no SRM → ship"

@@ -3,6 +3,7 @@ title: "Volta — Marketing Attribution"
 description: "First-touch, last-touch, linear and Shapley attribution. Shapley (data-driven) reallocates budget and leads with referral; the conclusion is robust to model choice."
 part: attribution
 order: 8
+layer: extended
 impact:
   - "4 attribution models, incl. Shapley"
   - "Shapley: referral €264K vs display €125K"

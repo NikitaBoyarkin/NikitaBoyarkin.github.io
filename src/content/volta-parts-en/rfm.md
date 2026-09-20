@@ -3,6 +3,7 @@ title: "Volta — RFM Analysis"
 description: "R/F/M scoring 1–5 splits the base into lifecycle segments from Champions to Lost; recency and monetary diverge — 'frequent but cheap' and 'rare but large'."
 part: rfm
 order: 6
+layer: extended
 impact:
   - "7 lifecycle segments (Champions→Lost)"
   - "Champions — 23.9% of the base with high R/F/M"

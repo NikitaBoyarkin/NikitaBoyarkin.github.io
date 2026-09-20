@@ -3,6 +3,7 @@ title: "Volta — Support & Churn"
 description: "Churn rises with ticket count: 37.1% at zero contacts vs 81.1% at 3+. Support is a measurable retention lever, not just a cost center."
 part: support-churn
 order: 11
+layer: extended
 impact:
   - "Churn 37.1% (0 tickets) → 81.1% (3+)"
   - "Unresolved tickets amplify churn"

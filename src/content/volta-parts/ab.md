@@ -3,6 +3,7 @@ title: "Volta — A/B-тест прогресс-бара KYC"
 description: "Progress-bar в KYC дал +5,72 п.п. конверсии (Z=5,82, p<0,0001) при MDE +5 п.п. CUPED, AA-тест и Bonferroni защищают вывод; +€656K/год при 44× ROI."
 part: ab
 order: 2
+layer: core
 impact:
   - "+5,72 п.п. конверсии KYC (Z=5,82, p<0,0001), выше MDE"
   - "Ship-gate: значимость ∧ lift≥MDE ∧ no SRM → выкатывать"

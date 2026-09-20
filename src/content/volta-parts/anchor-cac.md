@@ -3,6 +3,7 @@ title: "Volta — CAC запуска якоря при масштабе"
 description: "LTV/CAC ≥3 держится только до ~70K пользователей; на SOM падает до 1,76× и payback 17 мес. Ограничение — ёмкость дешёвых каналов, а не бюджет."
 part: anchor-cac
 order: 21
+layer: rat-v2
 impact:
   - "Гейт LTV/CAC ≥3 держится до ~70K"
   - "На SOM 1,76× и payback 17,0 мес"

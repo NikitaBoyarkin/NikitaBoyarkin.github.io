@@ -3,6 +3,7 @@ title: "Volta — Dormant 45+ Win-back"
 description: "Three-arm win-back: human +5.34pp and light-touch +2.77pp vs control. Light-touch pays off at 30–90d (ROI 2.54 / 1.26), human ROI 0.40 — kill as a mass channel."
 part: dormant-winback
 order: 22
+layer: rat-v2
 impact:
   - "human +5.34pp, light-touch +2.77pp"
   - "Light-touch ROI 2.54 (30–60d) and 1.26 (60–90d)"

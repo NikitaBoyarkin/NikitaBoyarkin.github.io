@@ -3,6 +3,7 @@ title: "Volta — Assisted CAC vs LTV"
 description: "Окупается ли trust-трек 45+: LTV/CAC 45+ = 0,66 при гейте ≥3; assisted CAC €120 в ~3× дороже реферала и не окупается (payback 50 мес)."
 part: assisted-cac
 order: 18
+layer: rat-v2
 impact:
   - "45+ LTV/CAC 0,66 (гейт ≥3)"
   - "Якорь проходит 3,62 только на реферале"

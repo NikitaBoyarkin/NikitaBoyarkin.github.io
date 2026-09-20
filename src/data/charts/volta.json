@@ -993,6 +993,63 @@
           "en": "The target track is light-touch only at 30–90 days; human is an escalation for high-value/high-balance."
         }
       ]
+    },
+    {
+      "id": "causal-naive-vs-did",
+      "type": "bar",
+      "title": { "ru": "Naive pre/post против DiD по исходам", "en": "Naive pre/post vs DiD by outcome" },
+      "description": {
+        "ru": "Оценка эффекта KYC-фикса тремя способами: naive pre/post, 2×2 DiD и covariate-adjusted DiD. Pre/post не вычитает общий месячный тренд.",
+        "en": "Three estimates of the KYC-fix effect: naive pre/post, 2×2 DiD, and covariate-adjusted DiD. Pre/post does not net out the shared monthly trend."
+      },
+      "xLabel": { "ru": "Исход", "en": "Outcome" },
+      "yLabel": { "ru": "Эффект, п.п.", "en": "Effect, pp" },
+      "data": {
+        "categories": ["Активация", "M1 retention", "M3 retention"],
+        "series": [
+          { "name": "Naive pre/post", "values": [6.29, 7.59, 7.6] },
+          { "name": "2×2 DiD", "values": [4.99, 7.57, 9.16] },
+          { "name": "Covariate-adjusted DiD", "values": [4.92, 7.49, 9.09] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "M3-удержание: DiD ATT +9,09 п.п. против naive +7,60 п.п. — причинная оценка выше и подтверждает Project 3.",
+          "en": "M3 retention: DiD ATT +9.09pp vs naive +7.60pp — the causal estimate is higher and confirms Project 3."
+        },
+        {
+          "ru": "Активация: naive +6,29 п.п. против DiD +4,92 п.п. — pre/post завышает эффект на ~1,4 п.п.",
+          "en": "Activation: naive +6.29pp vs DiD +4.92pp — pre/post overstates the effect by ~1.4pp."
+        }
+      ]
+    },
+    {
+      "id": "causal-recovery",
+      "type": "bar",
+      "title": { "ru": "Recovery: DiD восстанавливает заложенный эффект", "en": "Recovery: DiD recovers the injected effect" },
+      "description": {
+        "ru": "Заложенный генератором ATT против DiD-оценки: 3/3 95% ДИ накрывают истину — оценщик специфицирован корректно.",
+        "en": "Injected ATT vs the DiD estimate: 3/3 95% CIs cover the truth — the estimator is correctly specified."
+      },
+      "xLabel": { "ru": "Исход", "en": "Outcome" },
+      "yLabel": { "ru": "ATT, п.п.", "en": "ATT, pp" },
+      "data": {
+        "categories": ["Активация", "M1 retention", "M3 retention"],
+        "series": [
+          { "name": "Injected (truth)", "values": [5.7, 8.5, 9.0] },
+          { "name": "Recovered (DiD)", "values": [4.92, 7.49, 9.09] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "DiD-оценки близки к истине: расхождение 0,78 / 1,01 / 0,09 п.п., все ДИ накрывают заложенный эффект.",
+          "en": "DiD estimates are close to the truth: gaps of 0.78 / 1.01 / 0.09 pp, every CI covers the injected effect."
+        },
+        {
+          "ru": "Метод валиден: 3/3 ДИ накрывают истину — дизайн пригоден для реальных данных.",
+          "en": "The method is valid: 3/3 CIs cover the truth — the design is fit for real data."
+        }
+      ]
     }
   ]
 }

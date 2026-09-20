@@ -33,6 +33,7 @@ const voltaPartSchema = z.object({
   description: z.string(),
   part: z.string(),
   order: z.number(),
+  layer: z.enum(['core', 'extended', 'market-jobs', 'rat-v2', 'causal']),
   impact: z.array(z.string()).default([]),
   tools: z.array(z.string()).default([]),
   charts: z.array(z.string()).default([]),

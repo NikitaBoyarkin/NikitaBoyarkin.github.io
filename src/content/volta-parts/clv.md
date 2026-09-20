@@ -3,6 +3,7 @@ title: "Volta — Моделирование CLV"
 description: "Три метода оценки пожизненной ценности: исторический, retention-кривая и Gamma-Gamma. Порядок Power > Growth > Casual > Dormant устойчив ко всем методам."
 part: clv
 order: 7
+layer: extended
 impact:
   - "3 метода: historical / retention-curve / Gamma-Gamma"
   - "Устойчиво Power > Growth > Casual > Dormant"

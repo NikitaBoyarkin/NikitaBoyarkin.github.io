@@ -3,6 +3,7 @@ title: "Volta — Spend Analysis"
 description: "Spend breakdown by category and channel: bills (25.8%) and travel (20.2%) make up nearly half the turnover, groceries is the most frequent category."
 part: spend
 order: 10
+layer: extended
 impact:
   - "Bills 25.8% and travel 20.2% — nearly half the turnover"
   - "Groceries — 18,238 transactions"

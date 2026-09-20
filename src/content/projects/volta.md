@@ -57,6 +57,7 @@ children:
   - premium-offers
   - anchor-cac
   - dormant-winback
+  - causal-kyc
 caseStudy:
   problem: "Необанк терял пользователей на онбординге, но было непонятно, какой шаг критический и лечит ли его фикс. Изолированные анализы давали локальные числа без продуктовой связи."
   approach: "Четыре проекта одной петлёй discover → validate → measure → optimize: funnel нашёл KYC-бутылочное горло, A/B с CUPED + AA-test + Bonferroni валидировал progress-bar фикс под ship-gate из трёх условий (значимость ∧ lift≥MDE ∧ no SRM), retention подтвердил удержание эффекта, сегментация перевела эффект в деньги."

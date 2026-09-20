@@ -3,6 +3,7 @@ title: "Volta — Анализ трат"
 description: "Разбивка трат по категориям и каналам: bills (25,8%) и travel (20,2%) дают почти половину оборота, groceries — самая частая категория."
 part: spend
 order: 10
+layer: extended
 impact:
   - "Bills 25,8% и travel 20,2% — почти половина оборота"
   - "Groceries — 18 238 транзакций"

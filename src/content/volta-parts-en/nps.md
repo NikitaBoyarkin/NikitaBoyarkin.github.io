@@ -3,6 +3,7 @@ title: "Volta — NPS Trends"
 description: "Monthly NPS hovers near zero; the strongest drivers are app quality (+30.3) and product (+29.4), the main source of dissatisfaction is fees (−59.4)."
 part: nps
 order: 12
+layer: extended
 impact:
   - "NPS near zero — customers are neutral"
   - "app_quality +30.3 and product +29.4 — up"

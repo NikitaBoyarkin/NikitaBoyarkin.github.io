@@ -3,6 +3,7 @@ title: "Volta — Anchor Launch CAC at Scale"
 description: "LTV/CAC ≥3 holds only to ~70K users; at SOM it falls to 1.76× and a 17-month payback. The constraint is cheap-channel capacity, not budget."
 part: anchor-cac
 order: 21
+layer: rat-v2
 impact:
   - "LTV/CAC ≥3 gate holds to ~70K"
   - "At SOM 1.76× and 17.0-month payback"

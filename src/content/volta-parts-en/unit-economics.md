@@ -3,6 +3,7 @@ title: "Volta — Traveler Unit Economics"
 description: "Travelers lose €0.45 per €100 FX transaction; break-even needs FX cost cut from 1.00% to 0.55%, otherwise the loss grows with volume."
 part: unit-economics
 order: 14
+layer: market-jobs
 impact:
   - "Margin −€0.45 per €100 FX"
   - "Break-even: FX cost 1.00% → 0.55%"

@@ -3,6 +3,7 @@ title: "Volta — Win-back дормантов 45+"
 description: "Трёхармный win-back: human +5,34 п.п. и light-touch +2,77 п.п. против control. Light-touch окупается на 30–90d (ROI 2,54 / 1,26), human ROI 0,40 — kill как массовый канал."
 part: dormant-winback
 order: 22
+layer: rat-v2
 impact:
   - "human +5,34 п.п., light-touch +2,77 п.п."
   - "Light-touch ROI 2,54 (30–60d) и 1,26 (60–90d)"

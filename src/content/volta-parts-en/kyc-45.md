@@ -3,6 +3,7 @@ title: "Volta — 45+ KYC Deep-Dive"
 description: "Age-sliced A/B HTE: 35–44 +11.0pp and 18–24 +5.3pp, but 45+ +1.4pp (ns). Referral (trust) converts 45+ best — friction is trust, not UX."
 part: kyc-45
 order: 16
+layer: market-jobs
 impact:
   - "35–44 +11.0pp (p<0.001); 45+ +1.4pp (ns)"
   - "45+ in treatment 53.2% vs 25–34 61.2%"

@@ -3,6 +3,7 @@ title: "Volta — Premium Upsell"
 description: "Free→Premium conversion concentrates in the anchor (17.3%) and status-seekers (41.2%); Digital Newcomers 45+ convert just 1.8% — the value prop doesn't transfer."
 part: premium-upsell
 order: 15
+layer: market-jobs
 impact:
   - "Premium Status 41.2%, anchor 17.3%"
   - "Digital Newcomers 45+ 1.8% (z=34, p<0.001)"

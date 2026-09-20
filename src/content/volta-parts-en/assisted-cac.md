@@ -3,6 +3,7 @@ title: "Volta — Assisted CAC vs LTV"
 description: "Does the 45+ trust track pay off: 45+ LTV/CAC = 0.66 against a ≥3 gate; assisted CAC €120 is ~3× referral and doesn't pay back (50-month payback)."
 part: assisted-cac
 order: 18
+layer: rat-v2
 impact:
   - "45+ LTV/CAC 0.66 (gate ≥3)"
   - "Anchor clears 3.62 only via referral"

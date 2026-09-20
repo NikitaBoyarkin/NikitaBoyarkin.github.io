@@ -3,6 +3,7 @@ title: "Volta — Anomaly Detection"
 description: "Z-score, IQR and Isolation Forest against ground truth. IF has the best F1 (50.4%), catching amount, night-hour and frequency anomalies; Z-score is precise but cautious."
 part: anomalies
 order: 9
+layer: extended
 impact:
   - "IF — best F1 (50.4%), 401 detections"
   - "Z-score precision 80.5% at recall 24.7%"
