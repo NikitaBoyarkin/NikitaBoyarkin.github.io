@@ -1,15 +1,17 @@
 // Canonical analytics module (PRD `docs/prd-analytics-instrumentation.md`, REQ-A01–A03).
 //
-// This is the ONLY module that talks to PostHog directly on the client besides
+// This is the ONLY module that talks to PostHog on the client besides
 // `Analytics.astro` (which owns init). Components import `track()` — they must
 // not read the `posthog` global themselves (REQ-A02).
 //
 // Design notes:
-// - `track()` is a safe no-op when PostHog was never initialised, and warns once
-//   in dev. It never throws: analytics must never break the UX.
-// - `posthog-js` is a package-level singleton, so importing it here and calling
-//   `init()` in `Analytics.astro` operate on the same instance.
-import { posthog } from 'posthog-js';
+// - `track()` never throws and never breaks the UX. Before PostHog is attached,
+//   events are buffered (bounded) and flushed by `flushAnalyticsQueue()`; one
+//   dev warning fires.
+// - `posthog-js` is NOT imported here. `Analytics.astro` lazy-loads it after the
+//   first user interaction and hands the instance to `attachPosthog()`, so
+//   consumer chunks (theme toggle, search, filters) stay free of the PostHog
+//   bundle and off the critical path.
 
 export type Locale = 'ru' | 'en';
 
@@ -45,32 +47,67 @@ const DEV =
   typeof import.meta !== 'undefined' &&
   Boolean((import.meta as { env?: { DEV?: boolean } }).env?.DEV);
 
+/** Client type of the `posthog-js` package-level singleton (type-only import). */
+type PostHogClient = typeof import('posthog-js')['posthog'];
+
+/** PostHog instance, attached by `Analytics.astro` once it lazy-loads the SDK. */
+let ph: PostHogClient | null = null;
+
+/** Events captured before PostHog is attached, flushed on attach (bounded). */
+const pending: Array<[string, Record<string, unknown>]> = [];
+const PENDING_MAX = 100;
+
 let warned = false;
+
+/** Hand the initialised PostHog instance to this module (called by Analytics.astro). */
+export function attachPosthog(instance: PostHogClient): void {
+  ph = instance;
+}
+
+/**
+ * Flush events buffered before PostHog was attached. Call after
+ * `registerSuperProperties()` so the flushed events carry the super properties.
+ */
+export function flushAnalyticsQueue(): void {
+  if (!ph) return;
+  const queued = pending.splice(0);
+  for (const [event, props] of queued) {
+    try {
+      ph.capture(event, props);
+    } catch {
+      // Analytics must never break the caller.
+    }
+  }
+}
 
 /** True once PostHog's init has completed on the current page. */
 function isReady(): boolean {
-  return (posthog as unknown as { __loaded?: boolean }).__loaded === true;
+  return ph !== null && (ph as unknown as { __loaded?: boolean }).__loaded === true;
 }
 
 function warnNotReady(): void {
   if (!DEV || warned) return;
   warned = true;
-  console.warn('[analytics] track() called before PostHog init — event dropped.');
+  console.warn(
+    '[analytics] track() called before PostHog attach — event buffered.',
+  );
 }
 
 /**
  * Capture a typed event, or an existing `data-analytics` event name.
- * No-op (and one dev warning) when PostHog was never initialised.
+ * Before PostHog is attached the event is buffered (bounded) and flushed by
+ * `flushAnalyticsQueue()`; one dev warning is emitted.
  */
 export function track<E extends KnownEventName>(event: E, props: AnalyticsEventMap[E]): void;
 export function track(event: string, props?: Record<string, unknown>): void;
 export function track(event: string, props?: Record<string, unknown>): void {
-  if (!isReady()) {
+  if (!ph) {
     warnNotReady();
+    if (pending.length < PENDING_MAX) pending.push([event, props ?? {}]);
     return;
   }
   try {
-    posthog.capture(event, props ?? {});
+    ph.capture(event, props ?? {});
   } catch {
     // Analytics must never break the caller.
   }
@@ -169,7 +206,7 @@ export function firstTouch(): FirstTouch {
  * Called by `Analytics.astro` immediately after `posthog.init()`.
  */
 export function registerSuperProperties(): void {
-  if (!isReady()) return;
+  if (!isReady() || !ph) return;
 
   let audience: string | null = null;
   try {
@@ -186,7 +223,7 @@ export function registerSuperProperties(): void {
   const touch = firstTouch();
 
   try {
-    posthog.register({
+    ph.register({
       locale: localeFromPath(window.location.pathname),
       audience,
       theme: document.documentElement.getAttribute('data-theme') || 'dark',

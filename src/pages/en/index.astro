@@ -79,7 +79,7 @@ const jsonLd = {
   <section id="intro">
     <div class="intro-container hero-editorial">
       <div class="hero-body">
-        <HeroAvatar />
+        <HeroAvatar lang="en" />
         <h1 class="hero-name">Product Analyst</h1>
         <p class="hero-role">A/B Testing &amp; Retention</p>
         <p class="hero-pitch tagline">
@@ -108,7 +108,7 @@ const jsonLd = {
           />
           <div class="featured-card-body">
             <p class="featured-card-eyebrow">Featured case</p>
-            <h3 class="featured-card-title">{featuredProject.data.title}</h3>
+            <h2 class="featured-card-title">{featuredProject.data.title}</h2>
             <p class="featured-card-description">{featuredProject.data.description}</p>
             {featuredProject.data.caseStudy && featuredProject.data.caseStudy.metrics.length > 0 && (
               <dl class="featured-card-metrics">

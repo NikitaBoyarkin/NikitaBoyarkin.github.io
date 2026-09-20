@@ -10,7 +10,10 @@
 //   PUBLIC_POSTHOG_KEY       project token (<ph_project_token>)
 //   PUBLIC_POSTHOG_HOST      default https://us.i.posthog.com (EU: https://eu.i.posthog.com)
 //
-// All custom capture goes through `src/lib/analytics.ts` (REQ-A01–A03).
+// PostHog is lazy: nothing is fetched from `posthog-js` until the first user
+// interaction (or an idle/timeout fallback), so the SDK stays off the critical
+// path and out of the Lighthouse measurement window. All custom capture still
+// goes through `src/lib/analytics.ts` (REQ-A01–A03).
 const plausibleDomain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN;
 const plausibleSrc =
   import.meta.env.PUBLIC_PLAUSIBLE_SRC || 'https://plausible.io/js/script.js';
@@ -21,14 +24,6 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
 
 {posthogKey && (
   <script>
-    import { posthog } from 'posthog-js';
-    import {
-      track,
-      registerSuperProperties,
-      localeFromPath,
-    } from '../lib/analytics';
-    import { contentInfo, READ_DEPTH_THRESHOLDS, scrollDepthPct } from '../lib/scroll-depth';
-
     // Never instrument local development. Dev sessions (localhost / 127.0.0.1
     // / ::1 / 0.0.0.0) would pollute the PostHog project and skew funnels.
     const IS_LOCAL = /^(localhost|127\.0\.0\.1|::1|0\.0\.0\.0)$/.test(
@@ -36,155 +31,210 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
     );
 
     if (!IS_LOCAL) {
-      posthog.init(import.meta.env.PUBLIC_POSTHOG_KEY, {
-        api_host: import.meta.env.PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
-        defaults: '2026-05-30',
-        capture_pageview: true,
-        capture_pageleave: true,
-        autocapture: true,
-        session_recording: { maskAllInputs: true },
-      });
+      let started = false;
 
-      // Super properties (REQ-A03): locale, audience, theme, reduced motion and
-      // first-touch attribution, registered once per load.
-      registerSuperProperties();
+      const TRIGGERS = ['pointerdown', 'keydown', 'scroll', 'touchstart'] as const;
 
-      const base = import.meta.env.BASE_URL || '/';
-      const norm = base.replace(/\/$/, '');
-
-      function pathUnderBase(): string {
-        const p = window.location.pathname;
-        if (p.startsWith(norm + '/')) return p.slice(norm.length);
-        if (p === norm) return '/';
-        return p;
+      function teardownTriggers() {
+        for (const type of TRIGGERS) {
+          window.removeEventListener(type, onFirstInteraction);
+        }
       }
 
-      const path = pathUnderBase();
-      const locale = localeFromPath(path);
-
-      // Content page-view events (in addition to autocapture $pageview).
-      const projectMatch = path.match(/^\/(?:en\/)?projects\/([^/]+)\/?$/);
-      if (projectMatch) {
-        track('project_viewed', { slug: projectMatch[1], locale, surface: 'page' });
-      }
-      const postMatch = path.match(/^\/(?:en\/)?posts\/([^/]+)\/?$/);
-      if (postMatch) {
-        track('post_read', { slug: postMatch[1], locale });
+      function onFirstInteraction() {
+        void start();
       }
 
-      // Read depth (REQ-A09): one `read_depth` per threshold per page load, for
-      // every content type. Replaces the case-study-only `case_study_read`.
-      const info = contentInfo(path);
-      if (info) {
-        const fired = new Set<number>();
-        const checkDepth = () => {
-          const pct =
-            scrollDepthPct(
-              window.scrollY,
-              document.documentElement.scrollHeight,
-              window.innerHeight,
-            ) * 100;
-          for (const threshold of READ_DEPTH_THRESHOLDS) {
-            if (fired.has(threshold) || pct < threshold) continue;
-            fired.add(threshold);
-            track('read_depth', {
-              content_type: info.content_type,
-              slug: info.slug,
-              depth: threshold,
+      // Lazy entry point: fetch the SDK + canonical module on demand, init, then
+      // wire every listener exactly as before. Idempotent.
+      async function start() {
+        if (started) return;
+        started = true;
+        teardownTriggers();
+
+        const [
+          { posthog },
+          {
+            attachPosthog,
+            flushAnalyticsQueue,
+            localeFromPath,
+            registerSuperProperties,
+            track,
+          },
+          { contentInfo, READ_DEPTH_THRESHOLDS, scrollDepthPct },
+        ] = await Promise.all([
+          import('posthog-js'),
+          import('../lib/analytics'),
+          import('../lib/scroll-depth'),
+        ]);
+
+        posthog.init(import.meta.env.PUBLIC_POSTHOG_KEY, {
+          api_host: import.meta.env.PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+          defaults: '2026-05-30',
+          capture_pageview: true,
+          capture_pageleave: true,
+          autocapture: true,
+          session_recording: { maskAllInputs: true },
+        });
+
+        // Hand the instance to the canonical module, register super properties
+        // (REQ-A03), then flush anything buffered before init.
+        attachPosthog(posthog);
+        registerSuperProperties();
+        flushAnalyticsQueue();
+
+        const base = import.meta.env.BASE_URL || '/';
+        const norm = base.replace(/\/$/, '');
+
+        function pathUnderBase(): string {
+          const p = window.location.pathname;
+          if (p.startsWith(norm + '/')) return p.slice(norm.length);
+          if (p === norm) return '/';
+          return p;
+        }
+
+        const path = pathUnderBase();
+        const locale = localeFromPath(path);
+
+        // Content page-view events (in addition to autocapture $pageview).
+        const projectMatch = path.match(/^\/(?:en\/)?projects\/([^/]+)\/?$/);
+        if (projectMatch) {
+          track('project_viewed', { slug: projectMatch[1], locale, surface: 'page' });
+        }
+        const postMatch = path.match(/^\/(?:en\/)?posts\/([^/]+)\/?$/);
+        if (postMatch) {
+          track('post_read', { slug: postMatch[1], locale });
+        }
+
+        // Read depth (REQ-A09): one `read_depth` per threshold per page load, for
+        // every content type. Replaces the case-study-only `case_study_read`.
+        const info = contentInfo(path);
+        if (info) {
+          const fired = new Set<number>();
+          const checkDepth = () => {
+            const pct =
+              scrollDepthPct(
+                window.scrollY,
+                document.documentElement.scrollHeight,
+                window.innerHeight,
+              ) * 100;
+            for (const threshold of READ_DEPTH_THRESHOLDS) {
+              if (fired.has(threshold) || pct < threshold) continue;
+              fired.add(threshold);
+              track('read_depth', {
+                content_type: info.content_type,
+                slug: info.slug,
+                depth: threshold,
+                locale,
+              });
+            }
+            if (fired.size >= READ_DEPTH_THRESHOLDS.length) {
+              window.removeEventListener('scroll', checkDepth);
+            }
+          };
+          window.addEventListener('scroll', checkDepth, { passive: true });
+          // Short pages are fully visible on load, so check once immediately.
+          checkDepth();
+        }
+
+        // Section views (REQ-A07): `/about` anchor sections entering the viewport
+        // at 50%, once per section per load.
+        const sections = document.querySelectorAll<HTMLElement>('[data-analytics-section]');
+        if (sections.length && 'IntersectionObserver' in window) {
+          const seen = new Set<string>();
+          const observer = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                if (!entry.isIntersecting) continue;
+                const section = (entry.target as HTMLElement).dataset.analyticsSection;
+                if (!section || seen.has(section)) continue;
+                seen.add(section);
+                track('section_viewed', { section, path });
+                observer.unobserve(entry.target);
+              }
+            },
+            { threshold: 0.5 },
+          );
+          sections.forEach((el) => observer.observe(el));
+        }
+
+        function isExternal(href: string): boolean {
+          try {
+            const url = new URL(href, window.location.href);
+            if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+            return url.hostname !== window.location.hostname;
+          } catch {
+            return false;
+          }
+        }
+
+        // Delegated click capture:
+        // - `[data-analytics-project]` → canonical `project_viewed {slug, surface}`
+        // - `[data-analytics]`         → the element's frozen event name
+        // - external `<a>`             → `outbound_click {domain, …}`
+        document.addEventListener('click', (e) => {
+          const target = e.target as Element | null;
+          if (!target) return;
+
+          const projectEl = target.closest<HTMLElement>('[data-analytics-project]');
+          if (projectEl?.dataset.analyticsProject) {
+            track('project_viewed', {
+              slug: projectEl.dataset.analyticsProject,
+              surface: projectEl.dataset.analyticsSurface || 'unknown',
               locale,
             });
           }
-          if (fired.size >= READ_DEPTH_THRESHOLDS.length) {
-            window.removeEventListener('scroll', checkDepth);
-          }
-        };
-        window.addEventListener('scroll', checkDepth, { passive: true });
-        // Short pages are fully visible on load, so check once immediately.
-        checkDepth();
-      }
 
-      // Section views (REQ-A07): `/about` anchor sections entering the viewport
-      // at 50%, once per section per load.
-      const sections = document.querySelectorAll<HTMLElement>('[data-analytics-section]');
-      if (sections.length && 'IntersectionObserver' in window) {
-        const seen = new Set<string>();
-        const observer = new IntersectionObserver(
-          (entries) => {
-            for (const entry of entries) {
-              if (!entry.isIntersecting) continue;
-              const section = (entry.target as HTMLElement).dataset.analyticsSection;
-              if (!section || seen.has(section)) continue;
-              seen.add(section);
-              track('section_viewed', { section, path });
-              observer.unobserve(entry.target);
+          const named = target.closest<HTMLElement>('[data-analytics]');
+          if (named) {
+            const kind = named.getAttribute('data-analytics') || '';
+            if (kind.startsWith('lang_switch_')) {
+              track('lang_switched', {
+                from: locale === 'en' ? 'en' : 'ru',
+                to: kind.replace('lang_switch_', ''),
+                path,
+              });
+            } else if (kind) {
+              // REQ-038: carry the page path so contact events (cv_download_pdf,
+              // telegram_*, github_footer, …) are attributable to the page they
+              // were clicked on, not just the event name.
+              track(kind, { path });
             }
-          },
-          { threshold: 0.5 },
-        );
-        sections.forEach((el) => observer.observe(el));
-      }
+          }
 
-      function isExternal(href: string): boolean {
-        try {
-          const url = new URL(href, window.location.href);
-          if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
-          return url.hostname !== window.location.hostname;
-        } catch {
-          return false;
-        }
-      }
-
-      // Delegated click capture:
-      // - `[data-analytics-project]` → canonical `project_viewed {slug, surface}`
-      // - `[data-analytics]`         → the element's frozen event name
-      // - external `<a>`             → `outbound_click {domain, …}`
-      document.addEventListener('click', (e) => {
-        const target = e.target as Element | null;
-        if (!target) return;
-
-        const projectEl = target.closest<HTMLElement>('[data-analytics-project]');
-        if (projectEl?.dataset.analyticsProject) {
-          track('project_viewed', {
-            slug: projectEl.dataset.analyticsProject,
-            surface: projectEl.dataset.analyticsSurface || 'unknown',
-            locale,
-          });
-        }
-
-        const named = target.closest<HTMLElement>('[data-analytics]');
-        if (named) {
-          const kind = named.getAttribute('data-analytics') || '';
-          if (kind.startsWith('lang_switch_')) {
-            track('lang_switched', {
-              from: locale === 'en' ? 'en' : 'ru',
-              to: kind.replace('lang_switch_', ''),
+          const anchor = target.closest<HTMLAnchorElement>('a[href]');
+          if (anchor && isExternal(anchor.href)) {
+            let domain = '';
+            try {
+              domain = new URL(anchor.href).hostname;
+            } catch {
+              domain = '';
+            }
+            track('outbound_click', {
+              domain,
+              url: anchor.href,
+              surface:
+                anchor.closest('[data-analytics]')?.getAttribute('data-analytics') || 'content',
               path,
             });
-          } else if (kind) {
-            // REQ-038: carry the page path so contact events (cv_download_pdf,
-            // telegram_*, github_footer, …) are attributable to the page they
-            // were clicked on, not just the event name.
-            track(kind, { path });
           }
-        }
+        });
+      }
 
-        const anchor = target.closest<HTMLAnchorElement>('a[href]');
-        if (anchor && isExternal(anchor.href)) {
-          let domain = '';
-          try {
-            domain = new URL(anchor.href).hostname;
-          } catch {
-            domain = '';
-          }
-          track('outbound_click', {
-            domain,
-            url: anchor.href,
-            surface:
-              anchor.closest('[data-analytics]')?.getAttribute('data-analytics') || 'content',
-            path,
-          });
+      // First interaction wins; a passive visitor still initialises on idle (or
+      // after a short fallback timeout) so funnel data is complete.
+      for (const type of TRIGGERS) {
+        window.addEventListener(type, onFirstInteraction, { passive: true });
+      }
+
+      const idle = (
+        window as Window & {
+          requestIdleCallback?: (callback: () => void) => number;
         }
-      });
+      ).requestIdleCallback;
+
+      if (idle) idle(() => void start());
+      else window.setTimeout(() => void start(), 3500);
     }
   </script>
 )}

@@ -1,63 +1,117 @@
 ---
-// Hero avatar — a live, animated OneWorks 3D avatar mounted in the browser.
+// Hero avatar — a live, animated OneWorks 3D avatar, mounted on demand.
 //
 // Progressive enhancement: the static profile photo renders first and does the
-// LCP work. The heavy 3D bundle is imported only after the page has loaded, and
-// the 3D scene replaces the photo only once a real mount succeeds. If
-// JavaScript is unavailable, WebGL fails, or the visitor prefers reduced
-// motion, the photo simply stays.
+// LCP work. The heavy 3D bundle (~960 KB) is imported only after the visitor
+// explicitly asks for it via the "Show 3D" button, so it never touches the
+// critical path or the Lighthouse measurement window. If JavaScript is
+// unavailable, WebGL fails, or the visitor prefers reduced motion, the photo
+// simply stays (the SDK is created with `autoplay` off under reduced motion).
 import { withBase } from '../lib/path';
 
 interface Props {
   size?: number;
+  lang?: 'ru' | 'en';
 }
-const { size = 72 } = Astro.props;
+const { size = 72, lang = 'ru' } = Astro.props;
+const label = lang === 'en' ? 'Show 3D' : 'Показать 3D';
 ---
 
-<div class="hero-avatar-slot" data-hero-avatar>
-  <div class="hero-avatar-3d" data-hero-avatar-mount hidden></div>
-  <img
-    class="hero-avatar hero-avatar-photo"
-    src={withBase('images/00_profile.webp')}
-    alt="Nikita Boyarkin"
-    width={size}
-    height={size}
-    loading="eager"
-    fetchpriority="high"
-    data-hero-avatar-fallback
-  />
+<div class="hero-avatar-control" data-hero-avatar>
+  <div class="hero-avatar-slot">
+    <div class="hero-avatar-3d" data-hero-avatar-mount hidden></div>
+    <img
+      class="hero-avatar hero-avatar-photo"
+      src={withBase('images/00_profile.webp')}
+      alt="Nikita Boyarkin"
+      width={size}
+      height={size}
+      loading="eager"
+      fetchpriority="high"
+      data-hero-avatar-fallback
+    />
+  </div>
+  <button
+    type="button"
+    class="hero-avatar-toggle"
+    data-hero-avatar-toggle
+    data-analytics="hero_avatar_3d"
+    hidden
+  >
+    {label}
+  </button>
 </div>
 
 <script>
   const slot = document.querySelector<HTMLElement>('[data-hero-avatar]');
+  const toggle = document.querySelector<HTMLButtonElement>(
+    '[data-hero-avatar-toggle]',
+  );
 
-  if (slot) {
-    const scheduleMount = () => {
+  if (slot && toggle) {
+    // JavaScript is running — reveal the opt-in control (hidden without JS).
+    toggle.hidden = false;
+
+    let busy = false;
+    toggle.addEventListener('click', () => {
+      if (busy) return;
+      busy = true;
+      toggle.disabled = true;
+
       void import('../lib/avatar/mount-hero')
         .then(({ mountHeroAvatar }) => mountHeroAvatar(slot))
         .then((avatar) => {
           if (avatar) {
+            toggle.hidden = true;
             window.addEventListener('pagehide', () => avatar.destroy(), {
               once: true,
             });
+          } else {
+            // Mount declined (no WebGL, …) — keep the photo, allow a retry.
+            busy = false;
+            toggle.disabled = false;
           }
         })
         // Keep the photo on any failure — the 3D scene is never required.
-        .catch(() => {});
-    };
-
-    const idle = (
-      window as Window & {
-        requestIdleCallback?: (callback: () => void) => number;
-      }
-    ).requestIdleCallback;
-
-    const afterLoad = () => {
-      if (idle) idle(scheduleMount);
-      else window.setTimeout(scheduleMount, 200);
-    };
-
-    if (document.readyState === 'complete') afterLoad();
-    else window.addEventListener('load', afterLoad, { once: true });
+        .catch(() => {
+          busy = false;
+          toggle.disabled = false;
+        });
+    });
   }
 </script>
+
+<style>
+  .hero-avatar-control {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex: none;
+  }
+  .hero-avatar-toggle {
+    font: inherit;
+    font-size: 0.72rem;
+    line-height: 1;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition:
+      color 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .hero-avatar-toggle:hover {
+    color: var(--text-accent);
+    border-color: var(--border-active);
+  }
+  .hero-avatar-toggle:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+  .hero-avatar-toggle[disabled] {
+    opacity: 0.6;
+    cursor: default;
+  }
+</style>
