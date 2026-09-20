@@ -1,8 +1,8 @@
 # Spec: Personal Portfolio — NikitaBoyarkin.github.io
 
-> Status: **draft (Phase 1 — Specify)**. This document is the shared source of truth
-> for the project. It describes what the site is, how it is built, how it is verified,
-> and what an agent must not break. Review and approve before it is treated as binding.
+> Status: **approved (Phase 1 — Specify, 2026-09-20)**. This document is the shared source of
+> truth for the project. It describes what the site is, how it is built, how it is verified,
+> and what an agent must not break.
 >
 > Companion documents: `CLAUDE.md` (agent operating guide), `CONTEXT.md` (domain
 > glossary), `DESIGN.md` (visual system), `docs/prd-v*.md` (historical PRDs),
@@ -245,19 +245,24 @@ This project is "done" for a change when all of the following hold:
 
 ## Open Questions
 
-1. **Stale SQL-case count (live inconsistency).** `src/lib/metrics.ts:43` says `sqlCases: 25`
-   and `src/content/projects/sql.md` claims "25 end-to-end SQL case studies", but the sibling
-   `../sql-analytics-case-study/cases/` now holds **26** files
-   (`26_realdata_repeat_concentration.sql`, added 2026-09-19). `tests/lib/metrics.test.ts`
-   currently fails on this. Fix = bump to 26 and update the copy + baseline. Confirm before
-   editing.
-2. **`CapabilitiesGrid.astro` status.** `DESIGN.md` says it "remains as the skills editorial
-   block"; `CONTEXT.md` + `docs/adr/0001-remove-capabilities-grid.md` say it was removed. The
-   file exists with no imports (only a stale comment in `metrics.ts`). Delete the component,
-   or unsubscribe-and-reinstate it? Documentation must be reconciled either way.
-3. **`value` / `whois` IA.** `astro.config.mjs` redirects `/whois/` and `/work-with-me/` into
-   `/about/` anchors, yet `src/pages/value.astro` is live and in the nav. Confirm the intended
-   nav set (Projects / About / Value / Notes) is final, and whether any redirects are stale.
+1. **Stale source-of-truth value (live red test).** `src/lib/metrics.ts:43` says
+   `sqlCases: 25`, but the sibling `../sql-analytics-case-study/cases/` holds **26** `.sql`
+   files (`26_realdata_repeat_concentration.sql`, added 2026-09-19), so
+   `tests/lib/metrics.test.ts:37` fails. Verified: **the site copy is already correct** —
+   `src/content/projects/sql.md` and its EN twin describe "26 SQL cases: 25 synthetic + 1
+   real-data", and only `metrics.ts` is stale. Fix = bump `sqlCases` to 26 and its comment
+   (site copy needs no change). Ask-first only because it is a source-of-truth edit.
+2. **`CapabilitiesGrid.astro` is dead code and its doc is stale.** Verified: `docs/adr/0001`
+   (status `accepted`) + `CONTEXT.md` say the grid was removed from the homepage; the
+   component has **no imports** (the only hit is a stale comment in `src/lib/metrics.ts:2`);
+   `DESIGN.md` line 94 ("CapabilitiesGrid remains…") is the stale claim. Options: delete the
+   orphan component and correct `DESIGN.md` + the `metrics.ts` comment, or leave both. Deleting
+   is a code change → ask first.
+3. **`value` / `whois` IA — resolved, confirm anyway.** Verified: no `whois.astro` page exists
+   (`/whois/` is a redirect-only legacy collapse into `/about/#who`), and `src/pages/value.astro`
+   is live with a nav entry. The current nav set (Projects / About / **Value** / Notes) is
+   therefore internally consistent — no stale redirect found. Flagging only to confirm it is
+   the intended final IA.
 4. **Coverage threshold.** Do we want to pin a minimum coverage number for `src/lib/`, and if
    so, what value?
 5. **Spec scope drift.** Should future feature work append dated sections here, or continue as
