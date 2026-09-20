@@ -7,15 +7,23 @@ import ChartCard from './ChartCard.astro';
 interface Props {
   slug: string;
   lang?: 'ru' | 'en';
+  // Optional filter: render only these chart ids (in this order). Used by the
+  // Volta sub-pages, which pull a subset of the aggregate volta.json payload.
+  ids?: string[];
 }
 
-const { slug, lang = 'ru' } = Astro.props;
+const { slug, lang = 'ru', ids } = Astro.props;
 const payload = loadChartFile(slug);
 const isEn = lang === 'en';
+const charts = payload
+  ? ids && ids.length > 0
+    ? ids.map((id) => payload.charts.find((c) => c.id === id)).filter((c): c is NonNullable<typeof c> => Boolean(c))
+    : payload.charts
+  : [];
 ---
 
 {
-  payload && (
+  payload && charts.length > 0 && (
     <section class="charts-section reveal" aria-label={isEn ? 'Charts' : 'Аналитика'}>
       <h2>{isEn ? 'Charts' : 'Аналитика'}</h2>
       <p class="charts-source">
@@ -23,7 +31,7 @@ const isEn = lang === 'en';
       </p>
 
       <div class="charts-grid">
-        {payload.charts.map((chart) => <ChartCard chart={chart} lang={lang} />)}
+        {charts.map((chart) => <ChartCard chart={chart} lang={lang} />)}
       </div>
     </section>
   )

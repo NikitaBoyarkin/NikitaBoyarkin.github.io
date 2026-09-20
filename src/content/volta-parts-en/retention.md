@@ -1,44 +1,50 @@
 ---
-title: "Volta — Retention & Cohort"
-description: "Cohort retention after the KYC fix: M1 +10pp and M3 +9.2pp, +€227K/year in incremental LTV. The step-change shows up across cohorts, not in the average."
+title: "Volta — Retention & Cohorts"
+description: "Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€227K/yr LTV. Premium LTV is 4.3× Free."
 part: retention
 order: 3
 impact:
-  - "M1 +10pp, M3 +9.2pp retention step-change"
-  - "+€227K/yr incremental LTV"
+  - "M1 retention +11.8pp step-change"
+  - "M3 retention +9.2pp"
+  - "+€227K/yr incremental LTV; Premium LTV 4.3× Free"
 tools:
-  - Python
-  - pandas / NumPy
-  - SciPy / Statsmodels
-  - Matplotlib / Seaborn
+  - "Python"
+  - "pandas / NumPy"
+  - "SciPy / Statsmodels"
+  - "scikit-learn"
+  - "Matplotlib / Seaborn"
+  - "uv + ruff"
+charts:
+  - "cohort-retention-heatmap"
+  - "retention-pre-post"
+  - "retention-free-vs-premium"
 github: https://github.com/NikitaBoyarkin/volta-banking
 ---
 
-# Volta — Retention & Cohort
+# Volta — Retention & Cohorts
 
 ## Context
 
-The third project in the **measure** loop: did the KYC fix's effect hold over time? In-the-moment conversion is not enough — retention is required.
-
-## Hypothesis
-
-The MDE-exceeding lift in KYC conversion persists as +retention at M1 and M3.
+Shipping is not the end: the KYC-fix effect was checked on retention with cohort triangles (signup month × age) instead of 'the average across everyone'.
 
 ## Data & Method
 
-- Cohort retention curves pre/post.
-- **Welch t-test** + **Cohen's d** for the cohort difference.
-- Plan-specific LTV via **ARPU × retention decomposition**.
+- Cohort curves and an M0–M11 retention matrix.
+- Pre/post Welch t-test + Cohen's d, bootstrap CIs at M1/M3/M6.
+- Plan-specific LTV decomposed into ARPU × retention.
 
 ## Findings
 
-- **M1 retention: +10pp** step-change.
-- **M3 retention: +9.2pp** — the effect does not fade.
-- LTV grows through retention decomposition, not only ARPU.
+- Step-change: post-fix cohorts (2024-09+) hold M1 ≈ **61–67%** vs **51–53%** pre-fix.
+- **M3 +9.2pp**; the effect does not fade — the gap persists at M6.
+- **Premium LTV = 4.3× Free** (ARPU 2.66× × retention 1.62×).
+- Portfolio effect: **+€227K/yr** incremental LTV.
 
-## Impact
+## Recommendations
 
-- **+€227K/yr** incremental LTV from the KYC fix — the effect is validated over time, not only at the A/B moment.
+- Target upgrades at high-intent Free users in the first 1–2 months — the biggest lever.
+- Monitor cohort decay, not just average retention.
+- Read the last diagonal cells with care (few observation periods).
 
 ## Documentation
 

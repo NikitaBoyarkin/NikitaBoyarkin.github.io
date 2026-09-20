@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../../../layouts/Base.astro';
+import ChartsSection from '../../../../components/charts/ChartsSection.astro';
 import { withBase } from '../../../../lib/path';
 
 export async function getStaticPaths() {
@@ -98,6 +99,8 @@ const partJsonLd = {
     <article id="project-content">
       <Content />
     </article>
+
+    <ChartsSection slug="volta" ids={part.data.charts} lang="en" />
 
     {
       <section class="post-related reveal reveal-delay-2" aria-label="Other Volta subprojects">

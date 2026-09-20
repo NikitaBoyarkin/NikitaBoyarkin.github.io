@@ -39,6 +39,24 @@ children:
   - ab
   - retention
   - segmentation
+  - churn
+  - rfm
+  - clv
+  - attribution
+  - anomalies
+  - spend
+  - support-churn
+  - nps
+  - jtbd
+  - unit-economics
+  - premium-upsell
+  - kyc-45
+  - referral
+  - assisted-cac
+  - fx-sourcing
+  - premium-offers
+  - anchor-cac
+  - dormant-winback
 caseStudy:
   problem: "The neobank was losing users during onboarding, but it was unclear which step was critical and whether a fix would actually hold. Isolated analyses produced local numbers with no product-level connection."
   approach: "Four projects wired into a single discover → validate → measure → optimize loop: funnel found the KYC bottleneck, an A/B test with CUPED + AA-test + Bonferroni validated a progress-bar fix under a three-condition ship-gate (significance ∧ lift≥MDE ∧ no SRM), retention confirmed the effect held, and segmentation translated it into revenue."

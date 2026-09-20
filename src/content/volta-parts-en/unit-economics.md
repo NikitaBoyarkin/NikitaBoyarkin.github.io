@@ -1,0 +1,54 @@
+---
+title: "Volta — Traveler Unit Economics"
+description: "Travelers lose €0.45 per €100 FX transaction; break-even needs FX cost cut from 1.00% to 0.55%, otherwise the loss grows with volume."
+part: unit-economics
+order: 14
+impact:
+  - "Margin −€0.45 per €100 FX"
+  - "Break-even: FX cost 1.00% → 0.55%"
+  - "The loss grows linearly with volume"
+tools:
+  - "Python"
+  - "pandas / NumPy"
+  - "SciPy / Statsmodels"
+  - "scikit-learn"
+  - "Matplotlib / Seaborn"
+  - "uv + ruff"
+charts:
+  - "traveler-fx-break-even"
+github: https://github.com/NikitaBoyarkin/volta-banking
+---
+
+# Volta — Traveler Unit Economics
+
+## Context
+
+The traveler segment promises a 'fair rate' — we test whether it survives economically.
+
+## Data & Method
+
+- Revenue/cost/margin per transaction by segment.
+- FX break-even (cost vs spread), one-at-a-time sensitivity.
+- Scale projection to SOM.
+
+## Findings
+
+- Net margin is **−€0.45** per €100 FX transaction — a loss on every transaction.
+- Break-even requires FX cost **1.00% → 0.55%**.
+- Raising the spread **0.40% → 0.85%** is possible but breaks the fair-rate promise.
+
+## Recommendations
+
+- Don't scale travel until the unit economics are fixed.
+- Negotiate interbank rates, hedge, introduce a paid travel tier.
+- Test on 10% of the segment, not the whole volume.
+
+## Visualization
+
+![Unit-economics sensitivity](/images/volta/traveler_unit_economics_sensitivity.png)
+
+*Sensitivity of the traveler's blended margin to FX cost.*
+
+## Documentation
+
+- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)

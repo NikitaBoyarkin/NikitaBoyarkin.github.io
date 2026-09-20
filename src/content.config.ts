@@ -35,6 +35,7 @@ const voltaPartSchema = z.object({
   order: z.number(),
   impact: z.array(z.string()).default([]),
   tools: z.array(z.string()).default([]),
+  charts: z.array(z.string()).default([]),
   github: z.url().optional(),
   draft: z.boolean().default(false),
 });
