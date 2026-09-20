@@ -267,3 +267,8 @@ This project is "done" for a change when all of the following hold:
    so, what value?
 5. **Spec scope drift.** Should future feature work append dated sections here, or continue as
    standalone `docs/prd-*.md` documents that link back to this spec?
+6. **Remaining homepage-orphan components (deferred).** Beyond `CapabilitiesGrid` (Open Q2), four
+   more components have zero imports and no route: `Manifesto`, `TopicMap`, `ProjectTimeline`,
+   `CollaborationFormats`. (`HomeBoard`, `Testimonials`, `AudienceBar` are already deleted;
+   `AskMe` and `MaterialStrip` are live.) Deferred out of the Q2 cleanup by decision 2026-09-20 —
+   decide in a later pass whether to sweep them.
