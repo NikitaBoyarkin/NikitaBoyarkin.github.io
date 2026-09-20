@@ -135,7 +135,7 @@ Ship — не конец: эффект проверили на удержани�
 | # | Проект | Ключевой вывод |
 |---|---|---|
 | 5 | **Churn Prediction** | RF +0.03 ROC-AUC над LR; топ-драйвер — частота ошибок устройства |
-| 6 | **RFM Analysis** | 6 lifecycle-сегментов |
+| 6 | **RFM Analysis** | 7 lifecycle-сегментов |
 | 7 | **CLV Modeling** | 3 метода: historical / retention-curve / Gamma-Gamma |
 | 8 | **Marketing Attribution** | First/last/linear/Shapley — referral лидирует |
 | 9 | **Anomaly Detection** | Z-score/IQR/Isolation Forest, скоринг vs ground truth |
@@ -183,7 +183,7 @@ Ship — не конец: эффект проверили на удержани�
 | # | Проект | Ключевой результат |
 |---|--------|--------------------|
 | 5 | **Churn** | RF +0,03 ROC-AUC над LR; драйвер #1 — частота ошибок устройства (23,7%) |
-| 6 | **RFM** | 6 жизненных сегментов (Champions→Lost) с heatmap средних R/F/M |
+| 6 | **RFM** | 7 жизненных сегментов (Champions→Lost) с heatmap средних R/F/M |
 | 7 | **CLV** | 3 метода; устойчиво Power > Growth > Casual > Dormant (Gamma-Gamma €5 166 против €27,7) |
 | 8 | **Атрибуция** | First/last/linear/Shapley; Shapley перераспределяет бюджет и ведёт реферал (€264K) |
 | 9 | **Аномалии** | Z-score/IQR/Isolation Forest; IF лучший F1 (50,4%) |

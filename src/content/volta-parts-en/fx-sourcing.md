@@ -35,7 +35,7 @@ Project 14 established the break-even FX cost (0.55%) but *assumed* such a price
 ## Findings
 
 - The 0.55% gate is reachable at ≈ **€332M/month** — SOM scale (180K travelers).
-- Today's volume (~€3M/mo) is **two orders of magnitude lower**; SOM clears the gate with 1.5× headroom.
+- Today's volume (~€2.7M/mo) is **~122× lower**; SOM clears the gate with 1.5× headroom.
 - **~0.20pp** per order of magnitude; **Interbank Prime 0.745%** is the best provider.
 
 ## Recommendations

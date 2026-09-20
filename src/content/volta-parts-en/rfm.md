@@ -4,7 +4,7 @@ description: "R/F/M scoring 1–5 splits the base into lifecycle segments from C
 part: rfm
 order: 6
 impact:
-  - "6+ lifecycle segments (Champions→Lost)"
+  - "7 lifecycle segments (Champions→Lost)"
   - "Champions — 23.9% of the base with high R/F/M"
   - "Different profiles need different campaigns"
 tools:

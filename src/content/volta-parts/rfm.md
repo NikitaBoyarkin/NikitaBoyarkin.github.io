@@ -4,7 +4,7 @@ description: "R/F/M-скоринг 1–5 делит базу на жизненн
 part: rfm
 order: 6
 impact:
-  - "6+ жизненных сегментов (Champions→Lost)"
+  - "7 жизненных сегментов (Champions→Lost)"
   - "Champions — 23,9% базы с высокими R/F/M"
   - "Разные профили требуют разных кампаний"
 tools:

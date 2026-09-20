@@ -368,8 +368,8 @@
       "type": "cohort-heatmap",
       "title": { "ru": "RFM-профили жизненных сегментов", "en": "RFM profiles of lifecycle segments" },
       "description": {
-        "ru": "Средние R/F/M-скоринги (0–100) по шести жизненным сегментам. Recentness и Monetary расходятся: «частые, но дешёвые» и «редкие, но крупные» — разные сегменты.",
-        "en": "Mean R/F/M scores (0–100) across the six lifecycle segments. Recency and Monetary diverge: 'frequent but cheap' and 'rare but large' are different segments."
+        "ru": "Средние R/F/M-скоринги (0–100) по семи жизненным сегментам. Recentness и Monetary расходятся: «частые, но дешёвые» и «редкие, но крупные» — разные сегменты.",
+        "en": "Mean R/F/M scores (0–100) across the seven lifecycle segments. Recency and Monetary diverge: 'frequent but cheap' and 'rare but large' are different segments."
       },
       "data": {
         "cohorts": ["Champions", "Loyal", "Potential", "Needs Attention", "At Risk", "New", "Lost"],
@@ -387,8 +387,8 @@
       },
       "conclusions": [
         {
-          "ru": "R/F/M-скоринг разделяет базу на 6 сегментов от Champions до Lost.",
-          "en": "R/F/M scoring splits the base into 6 segments from Champions to Lost."
+          "ru": "R/F/M-скоринг разделяет базу на 7 сегментов от Champions до Lost.",
+          "en": "R/F/M scoring splits the base into 7 segments from Champions to Lost."
         },
         {
           "ru": "Champions (23.9% базы) держат высокие все три оси (R 91, F 93, M 93), а New — высокий R (100), но низкие F/M (~30–35).",
@@ -794,8 +794,8 @@
           "en": "The 0.55% gate is reachable at ≈ €332M/month — SOM scale (180K travelers)."
         },
         {
-          "ru": "Сегодняшний объём (~€3 млн/мес) на два порядка ниже — риск v2 #2 это cold-start, а не «невозможно».",
-          "en": "Today's volume (~€3M/month) is two orders of magnitude lower — risk v2 #2 is a cold-start, not 'impossible'."
+          "ru": "Сегодняшний объём (~€2,7 млн/мес) в ~122× ниже — риск v2 #2 это cold-start, а не «невозможно».",
+          "en": "Today's volume (~€2.7M/month) is ~122× lower — risk v2 #2 is a cold-start, not 'impossible'."
         }
       ]
     },

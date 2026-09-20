@@ -133,7 +133,7 @@ The repo has grown from 4 core projects to **22** (12 analytical domains + Marke
 | # | Project | Key finding |
 |---|---|---|
 | 5 | **Churn Prediction** | RF +0.03 ROC-AUC over LR; top driver = device-error rate |
-| 6 | **RFM Analysis** | 6 lifecycle segments |
+| 6 | **RFM Analysis** | 7 lifecycle segments |
 | 7 | **CLV Modeling** | 3 methods: historical / retention-curve / Gamma-Gamma |
 | 8 | **Marketing Attribution** | First/last/linear/Shapley — referral leads |
 | 9 | **Anomaly Detection** | Z-score/IQR/Isolation Forest, scored vs ground truth |
@@ -181,7 +181,7 @@ Bottom line: **3 risks confirmed, 1 refuted, 1 refined** — the audit survived 
 | # | Project | Key result |
 |---|---------|------------|
 | 5 | **Churn** | RF +0.03 ROC-AUC over LR; driver #1 is device-error rate (23.7%) |
-| 6 | **RFM** | 6 lifecycle segments (Champions→Lost) with a mean R/F/M heatmap |
+| 6 | **RFM** | 7 lifecycle segments (Champions→Lost) with a mean R/F/M heatmap |
 | 7 | **CLV** | 3 methods; robustly Power > Growth > Casual > Dormant (Gamma-Gamma €5,166 vs €27.7) |
 | 8 | **Attribution** | First/last/linear/Shapley; Shapley reallocates budget and leads with referral (€264K) |
 | 9 | **Anomalies** | Z-score/IQR/Isolation Forest; IF has the best F1 (50.4%) |

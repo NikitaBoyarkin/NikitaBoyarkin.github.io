@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Decisions settled 2026-09-20 (grilling). Execution not started. |
+| Status | Phase 0 executed 2026-09-20 (§10). Phases 1–5 open. |
 | Date | 2026-09-20 |
 | Owner | Nikita Boyarkin |
 | Scope | `projects/volta` hub + `volta-parts` (22 → 23) + light-touch entry surfaces and sibling cross-links. No sibling rewrite. |
@@ -59,7 +59,7 @@ Audited on 2026-09-20 by direct read of the repo and the local source clone.
 |---|---|---|---|
 | 1 | RFM = **6** segments (`volta.md:138,186`; `projects-en/volta.md:136,184`; `volta-parts/rfm.md:7`; `volta.json` `rfm-heatmap` description + conclusion; source `README.md:34,165,338`; source `presentations/volta_executive_summary.html:101`) | Heatmap `cohorts` has **7** rows | Code `volta_rfm_analysis.py:55–72`: 6 named branches + `default="Needs Attention"` = **7** (replayed: Champions 23.9%, Lost 23.2%, Needs Attention 19.0%, Loyal 12.8%, At Risk 11.5%, Potential 5.4%, New 4.2%). **7 is correct.** |
 | 2 | FX current ≈ **€3M/mo**, gap "**два порядка**" (`volta-parts/fx-sourcing.md:38`, `volta.json:797`) | "~€332M/мес, **122×**" (`volta.md:163,205`; part frontmatter) | Code `volta_fx_sourcing.py`: current = 1000 × €2 729 = **€2.729M**; gate = **€332.36M**; ratio = **121.8× ≈ 122×**. **122× is correct**; "€3M / два порядка" is wrong. |
-| 3 | Causal claim "+**6.24pp** activation" (`volta-banking/scripts/volta_causal_kyc.py` docstring) | "+**5.72pp** KYC conversion" (`volta.md`) and demo "+5.72pp KYC activation lift" | Needs one more check: whether `activated` (causal script) and `kyc conversion` (A/B) are the same outcome or two different ones. If different → label distinctly; if the same → align to the A/B source of truth. |
+| 3 | Causal claim "+**6.24pp** activation" (`volta_causal_kyc.py:9`, `volta_segmentation.py:15,930`, `presentations/volta_executive_summary.html:61,62,65`, `notebooks/04_segmentation.ipynb:524`) | "+**5.72pp** KYC conversion" (`volta.md`; source `README.md:30,133,288,448,480`; `outputs/ab_conversion_comparison.md:9`) | `generate_causal_kyc_data.py:18` declares `activated +0.057` "matches Project 2's +5.72pp activation lift"; the A/B output is 61.54% − 55.82% = **+5.72pp**. **+5.72pp is correct**; the exec summary's stale block (treatment 62.1%, Z=6.35, CI [+4.26,+8.16], +€716K/yr) is from an older run. |
 
 ### 1.3 What is already fine `[V]`
 
@@ -177,8 +177,8 @@ Fix the three contradictions in §1.2 at their source of truth, then re-snapshot
 |---|---|
 | RFM `6` → `7` (and name the 7th: `Needs Attention`) | `src/content/projects/volta.md:138,186`; `src/content/projects-en/volta.md:136,184`; `src/content/volta-parts/rfm.md:7`; `src/data/charts/volta.json` `rfm-heatmap` description + conclusion (RU+EN) |
 | FX `€3M / два порядка` → `€2,7 млн/мес … ~122×` | `src/content/volta-parts/fx-sourcing.md:38`; `src/data/charts/volta.json:797` |
-| Causal `+6.24pp activation` vs `+5.72pp KYC conversion` | Verify against `volta-banking` outputs whether the outcomes differ; label distinctly or align to the A/B source of truth; update the `causal-kyc` copy accordingly |
-| Source-repo `6` → `7` | `volta-banking/README.md:34,165,338`; `volta-banking/presentations/volta_executive_summary.html:101` |
+| Causal `+6.24pp` → `+5.72pp` (source of truth = the A/B output) | `volta-banking/scripts/volta_causal_kyc.py:9`; `volta-banking/scripts/volta_segmentation.py:15,930`; `volta-banking/presentations/volta_executive_summary.html:61,62,65` (treatment 62.1%→61.5%, Z 6.35→5.82, CI [+4.26,+8.16]→[+3.78,+7.66], +€716K/yr→+€656K/yr); `volta-banking/notebooks/04_segmentation.ipynb:524` |
+| Source-repo `6` → `7` | `volta-banking/README.md:34,165,338`; `volta-banking/presentations/volta_executive_summary.html:101`; root-cause docstring `volta-banking/scripts/volta_rfm_analysis.py:5` |
 | Re-snapshot baseline | `bun run audit:content:snapshot` → commit `docs/content-baseline.json` |
 
 **Acceptance:** `bun run audit:content` exits 0 after the re-snapshot; the reconciliation list is
@@ -343,8 +343,7 @@ page count recorded; screenshots reviewed; `CLAUDE.md` states the parts skeleton
 
 ### Source repo (out of the portfolio repo)
 
-`/Users/nikitaboarkin/Desktop/00 ide/00 portfolio/volta-banking` — `README.md`,
-`presentations/volta_executive_summary.html` (RFM `6` → `7`).
+`/Users/nikitaboarkin/Desktop/00 ide/00 portfolio/volta-banking` — `README.md`, `presentations/volta_executive_summary.html` (RFM `6` → `7`); `scripts/volta_causal_kyc.py`, `scripts/volta_segmentation.py`, `notebooks/04_segmentation.ipynb`, `scripts/volta_rfm_analysis.py` (stale `+6.24pp` A/B block → `+5.72pp`).
 
 ### Verified facts this document relies on
 
@@ -362,7 +361,7 @@ page count recorded; screenshots reviewed; `CLAUDE.md` states the parts skeleton
 
 | Phase | Result |
 |---|---|
-| 0 | — |
+| 0 | **Done 2026-09-20.** RFM `6`→`7`: 10 site edits (`volta.md:138,186`, `projects-en/volta.md:136,184`, `volta-parts/rfm.md:7`, `volta-parts-en/rfm.md:7`, `volta.json:371,372,390,391`) + source (`README.md:34,165,338`, `volta_executive_summary.html:101`, root-cause `volta_rfm_analysis.py:5`). FX `€3M/два порядка`→`€2,7M/~122×`: 4 edits (`fx-sourcing.md:38`, `fx-sourcing-en.md:38`, `volta.json:797,798`). Causal resolved to **+5.72pp** (per `generate_causal_kyc_data.py:18` + `outputs/ab_conversion_comparison.md:9`); fixed the stale `+6.24pp` block in 4 source files (`volta_causal_kyc.py:9`, `volta_segmentation.py:15,930`, `volta_executive_summary.html:61,62,65`, `04_segmentation.ipynb:524`). Baseline re-snapshotted (104 files / 4043 numeric tokens). **Verification:** `audit:content` → 0; `check` → 0/0/0; `build` → 133 pages; source `py_compile` + `.ipynb` JSON OK; no `+6.24pp` / `€716K` / `62.1%` remain. **Scope note:** the PRD listed only the causal docstring; the same stale A/B block lived in 3 more source files — included as the same reconciliation. **Pre-existing & unrelated:** `bun run test` → `tests/lib/metrics.test.ts:39` fails (`portfolio.sqlCases` 25 vs 26 `.sql` cases in the sibling `sql-analytics-case-study`); reproduces with Phase-0 edits stashed. |
 | 1 | — |
 | 2 | — |
 | 3 | — |
