@@ -5,19 +5,40 @@
     {
       "id": "onboarding-funnel",
       "type": "funnel",
-      "title": { "ru": "Воронка онбординга Volta", "en": "Volta onboarding funnel" },
+      "title": {
+        "ru": "Воронка онбординга Volta",
+        "en": "Volta onboarding funnel"
+      },
       "description": {
         "ru": "Сквозная воронка онбординга от установки приложения до первой транзакции (10 000 установок). Ширина ступени пропорциональна числу дошедших. KYC Complete — самый низкий step conversion, Registration — самая большая абсолютная потеря.",
         "en": "End-to-end onboarding funnel from app install to first transaction (10,000 installs). Bar width is proportional to the number of users who reached each stage. KYC Complete has the lowest step conversion; Registration loses the most users in absolute terms."
       },
       "data": {
         "stages": [
-          { "label": "App Install", "value": 10000 },
-          { "label": "Registration", "value": 7318 },
-          { "label": "KYC Start", "value": 4917 },
-          { "label": "KYC Complete", "value": 2781 },
-          { "label": "Card Ordered", "value": 1993 },
-          { "label": "First TX", "value": 1269 }
+          {
+            "label": "App Install",
+            "value": 10000
+          },
+          {
+            "label": "Registration",
+            "value": 7318
+          },
+          {
+            "label": "KYC Start",
+            "value": 4917
+          },
+          {
+            "label": "KYC Complete",
+            "value": 2781
+          },
+          {
+            "label": "Card Ordered",
+            "value": 1993
+          },
+          {
+            "label": "First TX",
+            "value": 1269
+          }
         ]
       },
       "conclusions": [
@@ -34,13 +55,22 @@
     {
       "id": "funnel-waterfall",
       "type": "bar",
-      "title": { "ru": "Абсолютный провал воронки по шагам", "en": "Funnel absolute drop-off by step" },
+      "title": {
+        "ru": "Абсолютный провал воронки по шагам",
+        "en": "Funnel absolute drop-off by step"
+      },
       "description": {
         "ru": "Сколько пользователей теряется между двумя соседними шагами онбординга. Абсолютный провал — не то же самое, что относительный: шаг может терять мало в процентах, но много в людях.",
         "en": "Users lost between two adjacent onboarding stages. Absolute drop-off differs from relative: a step can lose few in percentage but many in people."
       },
-      "xLabel": { "ru": "Переход", "en": "Transition" },
-      "yLabel": { "ru": "Потеряно пользователей", "en": "Users lost" },
+      "xLabel": {
+        "ru": "Переход",
+        "en": "Transition"
+      },
+      "yLabel": {
+        "ru": "Потеряно пользователей",
+        "en": "Users lost"
+      },
       "data": {
         "categories": [
           "Install → Registration",
@@ -49,7 +79,18 @@
           "KYC complete → Card ordered",
           "Card ordered → First TX"
         ],
-        "series": [{ "name": "Users lost", "values": [2682, 2401, 2136, 788, 724] }]
+        "series": [
+          {
+            "name": "Users lost",
+            "values": [
+              2682,
+              2401,
+              2136,
+              788,
+              724
+            ]
+          }
+        ]
       },
       "conclusions": [
         {
@@ -69,19 +110,62 @@
     {
       "id": "funnel-age-heatmap",
       "type": "cohort-heatmap",
-      "title": { "ru": "Воронка по возрасту: где копится разрыв", "en": "Funnel by age: where the gap accumulates" },
+      "title": {
+        "ru": "Воронка по возрасту: где копится разрыв",
+        "en": "Funnel by age: where the gap accumulates"
+      },
       "description": {
         "ru": "Сквозная конверсия от установки (%) по возрастным группам на каждом шаге воронки. Разрыв между лучшим и худшим сегментом копится от шага к шагу.",
         "en": "End-to-end conversion from install (%) by age group at each funnel stage. The gap between best and worst segment accumulates step by step."
       },
       "data": {
-        "cohorts": ["18-24", "25-34", "35-44", "45+"],
-        "periods": ["Install", "Registration", "KYC start", "KYC complete", "Card ordered", "First TX"],
+        "cohorts": [
+          "18-24",
+          "25-34",
+          "35-44",
+          "45+"
+        ],
+        "periods": [
+          "Install",
+          "Registration",
+          "KYC start",
+          "KYC complete",
+          "Card ordered",
+          "First TX"
+        ],
         "values": [
-          [100.0, 72.3, 48.5, 27.9, 20.5, 12.4],
-          [100.0, 72.9, 49.1, 27.8, 19.5, 13.1],
-          [100.0, 74.3, 49.7, 27.5, 19.8, 12.6],
-          [100.0, 73.1, 49.6, 28.4, 20.6, 12.2]
+          [
+            100,
+            72.3,
+            48.5,
+            27.9,
+            20.5,
+            12.4
+          ],
+          [
+            100,
+            72.9,
+            49.1,
+            27.8,
+            19.5,
+            13.1
+          ],
+          [
+            100,
+            74.3,
+            49.7,
+            27.5,
+            19.8,
+            12.6
+          ],
+          [
+            100,
+            73.1,
+            49.6,
+            28.4,
+            20.6,
+            12.2
+          ]
         ],
         "unit": "percent"
       },
@@ -99,16 +183,42 @@
     {
       "id": "channel-end-to-end-conversion",
       "type": "bar",
-      "title": { "ru": "Сквозная конверсия по каналам привлечения", "en": "End-to-end conversion by acquisition channel" },
+      "title": {
+        "ru": "Сквозная конверсия по каналам привлечения",
+        "en": "End-to-end conversion by acquisition channel"
+      },
       "description": {
         "ru": "Доля пользователей канала, дошедших от установки до первой транзакции (first_tx). Referral конвертирует лучше всех, paid social — хуже всех. iOS обгоняет Android на каждом шаге воронки.",
         "en": "Share of each channel's users who progressed from install to first transaction (first_tx). Referral converts best, paid social worst. iOS outpaces Android at every funnel stage."
       },
-      "xLabel": { "ru": "Канал", "en": "Channel" },
-      "yLabel": { "ru": "Сквозная конверсия, %", "en": "End-to-end conversion, %" },
+      "xLabel": {
+        "ru": "Канал",
+        "en": "Channel"
+      },
+      "yLabel": {
+        "ru": "Сквозная конверсия, %",
+        "en": "End-to-end conversion, %"
+      },
       "data": {
-        "categories": ["Referral", "Email", "Organic", "App Store", "Paid Social"],
-        "series": [{ "name": "first_tx", "values": [17.8, 16.1, 14.6, 8.2, 6.1] }]
+        "categories": [
+          "Referral",
+          "Email",
+          "Organic",
+          "App Store",
+          "Paid Social"
+        ],
+        "series": [
+          {
+            "name": "first_tx",
+            "values": [
+              17.8,
+              16.1,
+              14.6,
+              8.2,
+              6.1
+            ]
+          }
+        ]
       },
       "conclusions": [
         {
@@ -124,16 +234,36 @@
     {
       "id": "kyc-ab-conversion",
       "type": "bar",
-      "title": { "ru": "A/B: конверсия KYC control vs treatment", "en": "A/B: KYC conversion, control vs treatment" },
+      "title": {
+        "ru": "A/B: конверсия KYC control vs treatment",
+        "en": "A/B: KYC conversion, control vs treatment"
+      },
       "description": {
         "ru": "Первичная метрика эксперимента — завершение KYC (KYC Start → KYC Complete). Гипотеза: разбить KYC на шаги с прогресс-баром. MDE = +5pp; ship-gate: значимость ∧ lift ≥ MDE ∧ no SRM.",
         "en": "Primary metric of the experiment — KYC completion (KYC Start → KYC Complete). Hypothesis: split KYC into steps with a progress bar. MDE = +5pp; ship-gate: significance ∧ lift ≥ MDE ∧ no SRM."
       },
-      "xLabel": { "ru": "Группа", "en": "Group" },
-      "yLabel": { "ru": "Завершение KYC, %", "en": "KYC completion, %" },
+      "xLabel": {
+        "ru": "Группа",
+        "en": "Group"
+      },
+      "yLabel": {
+        "ru": "Завершение KYC, %",
+        "en": "KYC completion, %"
+      },
       "data": {
-        "categories": ["Control", "Treatment"],
-        "series": [{ "name": "kyc_completed", "values": [55.8, 61.5] }]
+        "categories": [
+          "Control",
+          "Treatment"
+        ],
+        "series": [
+          {
+            "name": "kyc_completed",
+            "values": [
+              55.8,
+              61.5
+            ]
+          }
+        ]
       },
       "conclusions": [
         {
@@ -149,17 +279,55 @@
     {
       "id": "ab-power-curve",
       "type": "line",
-      "title": { "ru": "Мощность теста vs MDE", "en": "Test power vs MDE" },
+      "title": {
+        "ru": "Мощность теста vs MDE",
+        "en": "Test power vs MDE"
+      },
       "description": {
         "ru": "Мощность теста как функция минимально детектируемого эффекта при n = 5 000 на группу и базовой конверсии 55.8%. Мощность считается до теста, а не «пост-хок».",
         "en": "Test power as a function of the minimum detectable effect at n = 5,000 per arm and a 55.8% baseline. Power is computed before the test, not post-hoc."
       },
-      "xLabel": { "ru": "MDE, п.п.", "en": "MDE, pp" },
-      "yLabel": { "ru": "Мощность, %", "en": "Power, %" },
+      "xLabel": {
+        "ru": "MDE, п.п.",
+        "en": "MDE, pp"
+      },
+      "yLabel": {
+        "ru": "Мощность, %",
+        "en": "Power, %"
+      },
       "data": {
-        "categories": ["0.5", "1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0", "5.5", "6.0"],
+        "categories": [
+          "0.5",
+          "1.0",
+          "1.5",
+          "2.0",
+          "2.5",
+          "3.0",
+          "3.5",
+          "4.0",
+          "4.5",
+          "5.0",
+          "5.5",
+          "6.0"
+        ],
         "series": [
-          { "name": "Power", "values": [7.3, 17.1, 32.8, 52.3, 71.4, 85.8, 94.3, 98.2, 99.5, 99.9, 100.0, 100.0] }
+          {
+            "name": "Power",
+            "values": [
+              7.3,
+              17.1,
+              32.8,
+              52.3,
+              71.4,
+              85.8,
+              94.3,
+              98.2,
+              99.5,
+              99.9,
+              100,
+              100
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -176,30 +344,212 @@
     {
       "id": "cohort-retention-heatmap",
       "type": "cohort-heatmap",
-      "title": { "ru": "Когортная матрица удержания", "en": "Cohort retention matrix" },
+      "title": {
+        "ru": "Когортная матрица удержания",
+        "en": "Cohort retention matrix"
+      },
       "description": {
         "ru": "Удержание по месяцу регистрации (строки) и возрасту когорты M0–M11 (столбцы). Виден структурный сдвиг после KYC-фикса в сентябре 2024: когорты 2024-09+ держатся выше.",
         "en": "Retention by signup month (rows) and cohort age M0–M11 (columns). A structural shift is visible after the September 2024 KYC fix: cohorts from 2024-09 onward hold higher."
       },
       "data": {
         "cohorts": [
-          "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06",
-          "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12"
+          "2024-01",
+          "2024-02",
+          "2024-03",
+          "2024-04",
+          "2024-05",
+          "2024-06",
+          "2024-07",
+          "2024-08",
+          "2024-09",
+          "2024-10",
+          "2024-11",
+          "2024-12"
         ],
-        "periods": ["M0", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11"],
+        "periods": [
+          "M0",
+          "M1",
+          "M2",
+          "M3",
+          "M4",
+          "M5",
+          "M6",
+          "M7",
+          "M8",
+          "M9",
+          "M10",
+          "M11"
+        ],
         "values": [
-          [100.0, 49.9, 39.5, 32.9, 22.1, 20.4, 21.3, 18.4, 18.0, 15.3, 17.8, 16.6],
-          [100.0, 52.9, 36.3, 31.7, 24.1, 24.8, 20.9, 18.6, 16.6, 19.5, 15.7, 14.1],
-          [100.0, 52.7, 38.8, 31.9, 30.3, 22.2, 20.0, 17.4, 19.2, 19.3, 15.8, 13.3],
-          [100.0, 53.5, 39.1, 29.7, 26.5, 23.2, 21.4, 20.7, 18.5, 18.4, 16.1, 15.6],
-          [100.0, 51.4, 37.1, 29.7, 25.5, 26.0, 19.3, 20.9, 14.6, 16.3, 16.3, 16.2],
-          [100.0, 51.3, 37.1, 32.7, 25.6, 20.5, 18.7, 17.2, 19.0, 17.3, 17.4, 14.2],
-          [100.0, 51.4, 38.9, 29.7, 25.3, 22.2, 18.6, 20.0, 17.1, 17.0, 17.0, 15.9],
-          [100.0, 51.2, 37.8, 27.6, 23.1, 20.4, 19.0, 19.8, 16.2, 16.2, 18.6, 14.3],
-          [100.0, 63.6, 47.1, 40.3, 37.7, 29.6, 31.9, 29.5, 26.8, 24.1, 26.1, 23.9],
-          [100.0, 67.2, 48.5, 39.0, 36.4, 33.4, 33.7, 30.7, 28.7, 29.9, 23.6, 23.7],
-          [100.0, 61.3, 50.3, 40.6, 33.1, 31.0, 31.6, 30.7, 32.0, 32.8, 26.8, 23.0],
-          [100.0, 62.4, 48.2, 39.8, 35.7, 35.1, 31.3, 28.7, 25.9, 23.7, 25.0, 24.9]
+          [
+            100,
+            49.9,
+            39.5,
+            32.9,
+            22.1,
+            20.4,
+            21.3,
+            18.4,
+            18,
+            15.3,
+            17.8,
+            16.6
+          ],
+          [
+            100,
+            52.9,
+            36.3,
+            31.7,
+            24.1,
+            24.8,
+            20.9,
+            18.6,
+            16.6,
+            19.5,
+            15.7,
+            14.1
+          ],
+          [
+            100,
+            52.7,
+            38.8,
+            31.9,
+            30.3,
+            22.2,
+            20,
+            17.4,
+            19.2,
+            19.3,
+            15.8,
+            13.3
+          ],
+          [
+            100,
+            53.5,
+            39.1,
+            29.7,
+            26.5,
+            23.2,
+            21.4,
+            20.7,
+            18.5,
+            18.4,
+            16.1,
+            15.6
+          ],
+          [
+            100,
+            51.4,
+            37.1,
+            29.7,
+            25.5,
+            26,
+            19.3,
+            20.9,
+            14.6,
+            16.3,
+            16.3,
+            16.2
+          ],
+          [
+            100,
+            51.3,
+            37.1,
+            32.7,
+            25.6,
+            20.5,
+            18.7,
+            17.2,
+            19,
+            17.3,
+            17.4,
+            14.2
+          ],
+          [
+            100,
+            51.4,
+            38.9,
+            29.7,
+            25.3,
+            22.2,
+            18.6,
+            20,
+            17.1,
+            17,
+            17,
+            15.9
+          ],
+          [
+            100,
+            51.2,
+            37.8,
+            27.6,
+            23.1,
+            20.4,
+            19,
+            19.8,
+            16.2,
+            16.2,
+            18.6,
+            14.3
+          ],
+          [
+            100,
+            63.6,
+            47.1,
+            40.3,
+            37.7,
+            29.6,
+            31.9,
+            29.5,
+            26.8,
+            24.1,
+            26.1,
+            23.9
+          ],
+          [
+            100,
+            67.2,
+            48.5,
+            39,
+            36.4,
+            33.4,
+            33.7,
+            30.7,
+            28.7,
+            29.9,
+            23.6,
+            23.7
+          ],
+          [
+            100,
+            61.3,
+            50.3,
+            40.6,
+            33.1,
+            31,
+            31.6,
+            30.7,
+            32,
+            32.8,
+            26.8,
+            23
+          ],
+          [
+            100,
+            62.4,
+            48.2,
+            39.8,
+            35.7,
+            35.1,
+            31.3,
+            28.7,
+            25.9,
+            23.7,
+            25,
+            24.9
+          ]
         ],
         "unit": "percent"
       },
@@ -221,18 +571,54 @@
     {
       "id": "retention-pre-post",
       "type": "line",
-      "title": { "ru": "Удержание: когорты до и после KYC-фикса", "en": "Retention: cohorts before and after the KYC fix" },
+      "title": {
+        "ru": "Удержание: когорты до и после KYC-фикса",
+        "en": "Retention: cohorts before and after the KYC fix"
+      },
       "description": {
         "ru": "Среднее удержание когорт до фикса (2024-01..2024-08) против когорт после (2024-09..2024-12). Пост-фикс когорты держат более высокую кривую от M1 до M6 — эффект не выцветает.",
         "en": "Average retention of pre-fix cohorts (2024-01..2024-08) vs post-fix cohorts (2024-09..2024-12). Post-fix cohorts hold a higher curve from M1 to M6 — the effect does not fade."
       },
-      "xLabel": { "ru": "Месяц с регистрации", "en": "Months since signup" },
-      "yLabel": { "ru": "Удержание, %", "en": "Retention, %" },
+      "xLabel": {
+        "ru": "Месяц с регистрации",
+        "en": "Months since signup"
+      },
+      "yLabel": {
+        "ru": "Удержание, %",
+        "en": "Retention, %"
+      },
       "data": {
-        "categories": ["M1", "M2", "M3", "M4", "M5", "M6"],
+        "categories": [
+          "M1",
+          "M2",
+          "M3",
+          "M4",
+          "M5",
+          "M6"
+        ],
         "series": [
-          { "name": "Pre-fix", "values": [51.8, 38.1, 30.7, 25.3, 22.5, 19.9] },
-          { "name": "Post-fix", "values": [63.6, 48.5, 39.9, 35.7, 32.3, 32.1] }
+          {
+            "name": "Pre-fix",
+            "values": [
+              51.8,
+              38.1,
+              30.7,
+              25.3,
+              22.5,
+              19.9
+            ]
+          },
+          {
+            "name": "Post-fix",
+            "values": [
+              63.6,
+              48.5,
+              39.9,
+              35.7,
+              32.3,
+              32.1
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -249,20 +635,106 @@
     {
       "id": "retention-free-vs-premium",
       "type": "line",
-      "title": { "ru": "Кривые удержания Free vs Premium", "en": "Retention curves, Free vs Premium" },
+      "title": {
+        "ru": "Кривые удержания Free vs Premium",
+        "en": "Retention curves, Free vs Premium"
+      },
       "description": {
         "ru": "Доля активных пользователей по месяцам для тарифов Free и Premium до и после KYC-фикса. Premium удерживаются заметно лучше на всём горизонте.",
         "en": "Active-user share by month for Free and Premium plans before/after the KYC fix. Premium retains markedly better across the horizon."
       },
-      "xLabel": { "ru": "Месяц с активации", "en": "Months since activation" },
-      "yLabel": { "ru": "Удержание, %", "en": "Retention, %" },
+      "xLabel": {
+        "ru": "Месяц с активации",
+        "en": "Months since activation"
+      },
+      "yLabel": {
+        "ru": "Удержание, %",
+        "en": "Retention, %"
+      },
       "data": {
-        "categories": ["M0", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11"],
+        "categories": [
+          "M0",
+          "M1",
+          "M2",
+          "M3",
+          "M4",
+          "M5",
+          "M6",
+          "M7",
+          "M8",
+          "M9",
+          "M10",
+          "M11"
+        ],
         "series": [
-          { "name": "Free pre-fix", "values": [100.0, 52.0, 38.0, 31.0, 26.0, 23.0, 21.0, 19.0, 18.0, 17.0, 16.0, 15.0] },
-          { "name": "Free post-fix", "values": [100.0, 64.0, 49.0, 41.0, 36.0, 33.0, 31.0, 29.0, 28.0, 27.0, 26.0, 25.0] },
-          { "name": "Premium pre-fix", "values": [100.0, 78.0, 70.0, 65.0, 61.0, 58.0, 55.0, 53.0, 51.0, 50.0, 49.0, 48.0] },
-          { "name": "Premium post-fix", "values": [100.0, 82.0, 75.0, 70.0, 66.0, 63.0, 60.0, 58.0, 56.0, 55.0, 54.0, 53.0] }
+          {
+            "name": "Free pre-fix",
+            "values": [
+              100,
+              52,
+              38,
+              31,
+              26,
+              23,
+              21,
+              19,
+              18,
+              17,
+              16,
+              15
+            ]
+          },
+          {
+            "name": "Free post-fix",
+            "values": [
+              100,
+              64,
+              49,
+              41,
+              36,
+              33,
+              31,
+              29,
+              28,
+              27,
+              26,
+              25
+            ]
+          },
+          {
+            "name": "Premium pre-fix",
+            "values": [
+              100,
+              78,
+              70,
+              65,
+              61,
+              58,
+              55,
+              53,
+              51,
+              50,
+              49,
+              48
+            ]
+          },
+          {
+            "name": "Premium post-fix",
+            "values": [
+              100,
+              82,
+              75,
+              70,
+              66,
+              63,
+              60,
+              58,
+              56,
+              55,
+              54,
+              53
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -283,18 +755,48 @@
     {
       "id": "segmentation-size-vs-revenue",
       "type": "bar",
-      "title": { "ru": "Сегменты: доля пользователей vs доля выручки", "en": "Segments: user share vs revenue share" },
+      "title": {
+        "ru": "Сегменты: доля пользователей vs доля выручки",
+        "en": "Segments: user share vs revenue share"
+      },
       "description": {
         "ru": "KMeans-сегментация (StandardScaler + data-driven K=4). Сравнение доли пользователей и доли месячной выручки по сегментам. Power Users — 12% пользователей, но ~41% выручки.",
         "en": "KMeans segmentation (StandardScaler + data-driven K=4). Comparing each segment's share of users vs share of monthly revenue. Power Users — 12% of users but ~41% of revenue."
       },
-      "xLabel": { "ru": "Сегмент", "en": "Segment" },
-      "yLabel": { "ru": "Доля, %", "en": "Share, %" },
+      "xLabel": {
+        "ru": "Сегмент",
+        "en": "Segment"
+      },
+      "yLabel": {
+        "ru": "Доля, %",
+        "en": "Share, %"
+      },
       "data": {
-        "categories": ["Power", "Growth", "Casual", "Dormant"],
+        "categories": [
+          "Power",
+          "Growth",
+          "Casual",
+          "Dormant"
+        ],
         "series": [
-          { "name": "Users", "values": [12.0, 24.0, 32.0, 32.0] },
-          { "name": "Revenue", "values": [40.5, 32.9, 18.8, 7.8] }
+          {
+            "name": "Users",
+            "values": [
+              12,
+              24,
+              32,
+              32
+            ]
+          },
+          {
+            "name": "Revenue",
+            "values": [
+              40.5,
+              32.9,
+              18.8,
+              7.8
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -311,16 +813,40 @@
     {
       "id": "segmentation-pareto-cumulative",
       "type": "line",
-      "title": { "ru": "Кумулятивная концентрация выручки (Лоренц)", "en": "Cumulative revenue concentration (Lorenz)" },
+      "title": {
+        "ru": "Кумулятивная концентрация выручки (Лоренц)",
+        "en": "Cumulative revenue concentration (Lorenz)"
+      },
       "description": {
         "ru": "Кумулятивная доля месячной выручки по сегментам, отсортированным по вкладу. Порог 80% выручки достигается на третьем сегменте.",
         "en": "Cumulative share of monthly revenue across segments sorted by contribution. The 80% revenue threshold is reached by the third segment."
       },
-      "xLabel": { "ru": "Сегмент (по вкладу)", "en": "Segment (by contribution)" },
-      "yLabel": { "ru": "Кумулятивная выручка, %", "en": "Cumulative revenue, %" },
+      "xLabel": {
+        "ru": "Сегмент (по вкладу)",
+        "en": "Segment (by contribution)"
+      },
+      "yLabel": {
+        "ru": "Кумулятивная выручка, %",
+        "en": "Cumulative revenue, %"
+      },
       "data": {
-        "categories": ["Power", "Growth", "Casual", "Dormant"],
-        "series": [{ "name": "Cumulative revenue", "values": [40.5, 73.4, 92.2, 100.0] }]
+        "categories": [
+          "Power",
+          "Growth",
+          "Casual",
+          "Dormant"
+        ],
+        "series": [
+          {
+            "name": "Cumulative revenue",
+            "values": [
+              40.5,
+              73.4,
+              92.2,
+              100
+            ]
+          }
+        ]
       },
       "conclusions": [
         {
@@ -336,20 +862,47 @@
     {
       "id": "churn-feature-importance",
       "type": "bar",
-      "title": { "ru": "Драйверы оттока: важность признаков", "en": "Churn drivers: feature importance" },
+      "title": {
+        "ru": "Драйверы оттока: важность признаков",
+        "en": "Churn drivers: feature importance"
+      },
       "description": {
         "ru": "Важность признаков Random Forest (топ-8) для прогноза оттока. RF даёт +0.03 ROC-AUC над логистической регрессией.",
         "en": "Random Forest feature importance (top 8) for churn prediction. RF adds +0.03 ROC-AUC over logistic regression."
       },
-      "xLabel": { "ru": "Признак", "en": "Feature" },
-      "yLabel": { "ru": "Важность, %", "en": "Importance, %" },
+      "xLabel": {
+        "ru": "Признак",
+        "en": "Feature"
+      },
+      "yLabel": {
+        "ru": "Важность, %",
+        "en": "Importance, %"
+      },
       "data": {
         "categories": [
-          "device_error_rate", "usage_frequency", "days_since_last_activity",
-          "avg_transaction_value", "age", "customer_tenure_months", "support_tickets", "channel_google_play"
+          "device_error_rate",
+          "usage_frequency",
+          "days_since_last_activity",
+          "avg_transaction_value",
+          "age",
+          "customer_tenure_months",
+          "support_tickets",
+          "channel_google_play"
         ],
         "series": [
-          { "name": "RF importance", "values": [23.7, 18.7, 16.5, 11.2, 9.2, 9.2, 6.9, 1.3] }
+          {
+            "name": "RF importance",
+            "values": [
+              23.7,
+              18.7,
+              16.5,
+              11.2,
+              9.2,
+              9.2,
+              6.9,
+              1.3
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -366,22 +919,65 @@
     {
       "id": "rfm-heatmap",
       "type": "cohort-heatmap",
-      "title": { "ru": "RFM-профили жизненных сегментов", "en": "RFM profiles of lifecycle segments" },
+      "title": {
+        "ru": "RFM-профили жизненных сегментов",
+        "en": "RFM profiles of lifecycle segments"
+      },
       "description": {
         "ru": "Средние R/F/M-скоринги (0–100) по семи жизненным сегментам. Recentness и Monetary расходятся: «частые, но дешёвые» и «редкие, но крупные» — разные сегменты.",
         "en": "Mean R/F/M scores (0–100) across the seven lifecycle segments. Recency and Monetary diverge: 'frequent but cheap' and 'rare but large' are different segments."
       },
       "data": {
-        "cohorts": ["Champions", "Loyal", "Potential", "Needs Attention", "At Risk", "New", "Lost"],
-        "periods": ["R", "F", "M"],
+        "cohorts": [
+          "Champions",
+          "Loyal",
+          "Potential",
+          "Needs Attention",
+          "At Risk",
+          "New",
+          "Lost"
+        ],
+        "periods": [
+          "R",
+          "F",
+          "M"
+        ],
         "values": [
-          [91.0, 93.0, 93.0],
-          [51.0, 87.0, 87.0],
-          [80.0, 31.0, 37.0],
-          [71.0, 50.0, 51.0],
-          [31.0, 63.0, 55.0],
-          [100.0, 30.0, 35.0],
-          [28.0, 30.0, 31.0]
+          [
+            91,
+            93,
+            93
+          ],
+          [
+            51,
+            87,
+            87
+          ],
+          [
+            80,
+            31,
+            37
+          ],
+          [
+            71,
+            50,
+            51
+          ],
+          [
+            31,
+            63,
+            55
+          ],
+          [
+            100,
+            30,
+            35
+          ],
+          [
+            28,
+            30,
+            31
+          ]
         ],
         "unit": "percent"
       },
@@ -403,19 +999,57 @@
     {
       "id": "clv-by-method",
       "type": "bar",
-      "title": { "ru": "CLV по трём методам", "en": "CLV by three methods" },
+      "title": {
+        "ru": "CLV по трём методам",
+        "en": "CLV by three methods"
+      },
       "description": {
         "ru": "Пожизненная ценность по сегментам, оценённая тремя методами: исторический, retention-кривая и Gamma-Gamma. Порядок Power > Growth > Casual > Dormant устойчив.",
         "en": "Customer lifetime value by segment, estimated three ways: historical, retention-curve and Gamma-Gamma. The order Power > Growth > Casual > Dormant is robust."
       },
-      "xLabel": { "ru": "Сегмент", "en": "Segment" },
-      "yLabel": { "ru": "CLV, €", "en": "CLV, €" },
+      "xLabel": {
+        "ru": "Сегмент",
+        "en": "Segment"
+      },
+      "yLabel": {
+        "ru": "CLV, €",
+        "en": "CLV, €"
+      },
       "data": {
-        "categories": ["Power", "Growth", "Casual", "Dormant"],
+        "categories": [
+          "Power",
+          "Growth",
+          "Casual",
+          "Dormant"
+        ],
         "series": [
-          { "name": "Historical", "values": [1678, 238, 37, 4.7] },
-          { "name": "Retention-curve", "values": [5069, 644, 107, 13.8] },
-          { "name": "Gamma-Gamma", "values": [5166, 694, 133, 27.7] }
+          {
+            "name": "Historical",
+            "values": [
+              1678,
+              238,
+              37,
+              4.7
+            ]
+          },
+          {
+            "name": "Retention-curve",
+            "values": [
+              5069,
+              644,
+              107,
+              13.8
+            ]
+          },
+          {
+            "name": "Gamma-Gamma",
+            "values": [
+              5166,
+              694,
+              133,
+              27.7
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -432,20 +1066,71 @@
     {
       "id": "attribution-models",
       "type": "bar",
-      "title": { "ru": "Атрибуция: четыре модели", "en": "Attribution: four models" },
+      "title": {
+        "ru": "Атрибуция: четыре модели",
+        "en": "Attribution: four models"
+      },
       "description": {
         "ru": "Выручка по каналам под first-touch, last-touch, linear и Shapley-атрибуцией (в €K). Shapley (data-driven) перераспределяет бюджет относительно эвристик.",
         "en": "Channel revenue under first-touch, last-touch, linear and Shapley attribution (€K). Shapley (data-driven) reallocates budget relative to the heuristics."
       },
-      "xLabel": { "ru": "Канал", "en": "Channel" },
-      "yLabel": { "ru": "Выручка, €K", "en": "Revenue, €K" },
+      "xLabel": {
+        "ru": "Канал",
+        "en": "Channel"
+      },
+      "yLabel": {
+        "ru": "Выручка, €K",
+        "en": "Revenue, €K"
+      },
       "data": {
-        "categories": ["Referral", "Paid social", "Organic", "Email", "Display"],
+        "categories": [
+          "Referral",
+          "Paid social",
+          "Organic",
+          "Email",
+          "Display"
+        ],
         "series": [
-          { "name": "First-touch", "values": [228.0, 211.4, 203.7, 193.7, 179.2] },
-          { "name": "Last-touch", "values": [218.1, 220.6, 200.9, 194.7, 181.8] },
-          { "name": "Linear", "values": [226.0, 213.4, 203.6, 194.1, 178.9] },
-          { "name": "Shapley", "values": [263.7, 235.9, 210.3, 181.1, 125.0] }
+          {
+            "name": "First-touch",
+            "values": [
+              228,
+              211.4,
+              203.7,
+              193.7,
+              179.2
+            ]
+          },
+          {
+            "name": "Last-touch",
+            "values": [
+              218.1,
+              220.6,
+              200.9,
+              194.7,
+              181.8
+            ]
+          },
+          {
+            "name": "Linear",
+            "values": [
+              226,
+              213.4,
+              203.6,
+              194.1,
+              178.9
+            ]
+          },
+          {
+            "name": "Shapley",
+            "values": [
+              263.7,
+              235.9,
+              210.3,
+              181.1,
+              125
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -462,19 +1147,53 @@
     {
       "id": "anomaly-detection",
       "type": "bar",
-      "title": { "ru": "Детекторы аномалий: precision / recall / F1", "en": "Anomaly detectors: precision / recall / F1" },
+      "title": {
+        "ru": "Детекторы аномалий: precision / recall / F1",
+        "en": "Anomaly detectors: precision / recall / F1"
+      },
       "description": {
         "ru": "Сравнение трёх детекторов по метрикам против ground truth: Z-score, IQR и Isolation Forest. IF — лучший F1.",
         "en": "Three detectors compared against ground truth: Z-score, IQR and Isolation Forest. IF has the best F1."
       },
-      "xLabel": { "ru": "Метод", "en": "Method" },
-      "yLabel": { "ru": "Метрика, %", "en": "Metric, %" },
+      "xLabel": {
+        "ru": "Метод",
+        "en": "Method"
+      },
+      "yLabel": {
+        "ru": "Метрика, %",
+        "en": "Metric, %"
+      },
       "data": {
-        "categories": ["Z-score", "IQR", "Isolation Forest"],
+        "categories": [
+          "Z-score",
+          "IQR",
+          "Isolation Forest"
+        ],
         "series": [
-          { "name": "Precision", "values": [80.5, 50.7, 50.4] },
-          { "name": "Recall", "values": [24.7, 28.7, 50.4] },
-          { "name": "F1", "values": [37.8, 36.6, 50.4] }
+          {
+            "name": "Precision",
+            "values": [
+              80.5,
+              50.7,
+              50.4
+            ]
+          },
+          {
+            "name": "Recall",
+            "values": [
+              24.7,
+              28.7,
+              50.4
+            ]
+          },
+          {
+            "name": "F1",
+            "values": [
+              37.8,
+              36.6,
+              50.4
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -491,17 +1210,51 @@
     {
       "id": "spend-by-category",
       "type": "bar",
-      "title": { "ru": "Траты по категориям", "en": "Spend by category" },
+      "title": {
+        "ru": "Траты по категориям",
+        "en": "Spend by category"
+      },
       "description": {
         "ru": "Общая сумма трат (€) по десяти категориям транзакций. Bills и travel — крупнейшие категории по объёму.",
         "en": "Total spend (€) across ten transaction categories. Bills and travel are the largest by volume."
       },
-      "xLabel": { "ru": "Категория", "en": "Category" },
-      "yLabel": { "ru": "Траты, €K", "en": "Spend, €K" },
+      "xLabel": {
+        "ru": "Категория",
+        "en": "Category"
+      },
+      "yLabel": {
+        "ru": "Траты, €K",
+        "en": "Spend, €K"
+      },
       "data": {
-        "categories": ["bills", "travel", "groceries", "shopping", "dining", "cash", "transport", "health", "p2p", "entertainment"],
+        "categories": [
+          "bills",
+          "travel",
+          "groceries",
+          "shopping",
+          "dining",
+          "cash",
+          "transport",
+          "health",
+          "p2p",
+          "entertainment"
+        ],
         "series": [
-          { "name": "Total spend", "values": [1390.0, 1088.5, 834.7, 801.1, 336.1, 278.5, 198.9, 175.9, 145.7, 142.7] }
+          {
+            "name": "Total spend",
+            "values": [
+              1390,
+              1088.5,
+              834.7,
+              801.1,
+              336.1,
+              278.5,
+              198.9,
+              175.9,
+              145.7,
+              142.7
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -518,16 +1271,40 @@
     {
       "id": "cs-churn-by-tickets",
       "type": "bar",
-      "title": { "ru": "Отток по числу тикетов поддержки", "en": "Churn by support-ticket count" },
+      "title": {
+        "ru": "Отток по числу тикетов поддержки",
+        "en": "Churn by support-ticket count"
+      },
       "description": {
         "ru": "Доля ушедших пользователей в разрезе числа обращений в поддержку. Больше тикетов — выше отток, что связывает качество поддержки с удержанием.",
         "en": "Share of churned users by number of support contacts. More tickets — higher churn, linking support quality to retention."
       },
-      "xLabel": { "ru": "Тикетов на пользователя", "en": "Tickets per user" },
-      "yLabel": { "ru": "Отток, %", "en": "Churn, %" },
+      "xLabel": {
+        "ru": "Тикетов на пользователя",
+        "en": "Tickets per user"
+      },
+      "yLabel": {
+        "ru": "Отток, %",
+        "en": "Churn, %"
+      },
       "data": {
-        "categories": ["0", "1", "2", "3+"],
-        "series": [{ "name": "Churn rate", "values": [37.1, 46.3, 65.2, 81.1] }]
+        "categories": [
+          "0",
+          "1",
+          "2",
+          "3+"
+        ],
+        "series": [
+          {
+            "name": "Churn rate",
+            "values": [
+              37.1,
+              46.3,
+              65.2,
+              81.1
+            ]
+          }
+        ]
       },
       "conclusions": [
         {
@@ -543,22 +1320,68 @@
     {
       "id": "nps-monthly",
       "type": "line",
-      "title": { "ru": "NPS по месяцам", "en": "NPS by month" },
+      "title": {
+        "ru": "NPS по месяцам",
+        "en": "NPS by month"
+      },
       "description": {
         "ru": "Месячный NPS по 18 месяцам опросов (2024-07 … 2025-12). NPS колеблется около нуля — клиенты в основном нейтральны, а не промоутеры.",
         "en": "Monthly NPS across 18 survey months (2024-07 … 2025-12). NPS hovers around zero — customers are mostly neutral rather than promoters."
       },
-      "xLabel": { "ru": "Месяц", "en": "Month" },
-      "yLabel": { "ru": "NPS", "en": "NPS" },
+      "xLabel": {
+        "ru": "Месяц",
+        "en": "Month"
+      },
+      "yLabel": {
+        "ru": "NPS",
+        "en": "NPS"
+      },
       "labelEvery": 3,
       "data": {
         "categories": [
-          "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12",
-          "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06",
-          "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"
+          "2024-07",
+          "2024-08",
+          "2024-09",
+          "2024-10",
+          "2024-11",
+          "2024-12",
+          "2025-01",
+          "2025-02",
+          "2025-03",
+          "2025-04",
+          "2025-05",
+          "2025-06",
+          "2025-07",
+          "2025-08",
+          "2025-09",
+          "2025-10",
+          "2025-11",
+          "2025-12"
         ],
         "series": [
-          { "name": "NPS", "values": [0.5, 9.4, -1.8, 12.9, 10.3, 9.4, 6.9, 7.5, -0.9, -1.1, 5.5, 5.1, 0.3, 6.3, 8.3, 2.8, 6.7, 6.3] }
+          {
+            "name": "NPS",
+            "values": [
+              0.5,
+              9.4,
+              -1.8,
+              12.9,
+              10.3,
+              9.4,
+              6.9,
+              7.5,
+              -0.9,
+              -1.1,
+              5.5,
+              5.1,
+              0.3,
+              6.3,
+              8.3,
+              2.8,
+              6.7,
+              6.3
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -575,16 +1398,44 @@
     {
       "id": "nps-drivers",
       "type": "bar",
-      "title": { "ru": "NPS по драйверам", "en": "NPS by driver" },
+      "title": {
+        "ru": "NPS по драйверам",
+        "en": "NPS by driver"
+      },
       "description": {
         "ru": "NPS в разрезе драйверов опроса. App quality и product тянут вверх, fees и onboarding — вниз.",
         "en": "NPS by survey driver. App quality and product pull up; fees and onboarding pull down."
       },
-      "xLabel": { "ru": "Драйвер", "en": "Driver" },
-      "yLabel": { "ru": "NPS", "en": "NPS" },
+      "xLabel": {
+        "ru": "Драйвер",
+        "en": "Driver"
+      },
+      "yLabel": {
+        "ru": "NPS",
+        "en": "NPS"
+      },
       "data": {
-        "categories": ["app_quality", "product", "trust", "support", "onboarding", "fees"],
-        "series": [{ "name": "NPS", "values": [30.3, 29.4, 12.5, 9.2, -23.6, -59.4] }]
+        "categories": [
+          "app_quality",
+          "product",
+          "trust",
+          "support",
+          "onboarding",
+          "fees"
+        ],
+        "series": [
+          {
+            "name": "NPS",
+            "values": [
+              30.3,
+              29.4,
+              12.5,
+              9.2,
+              -23.6,
+              -59.4
+            ]
+          }
+        ]
       },
       "conclusions": [
         {
@@ -600,20 +1451,59 @@
     {
       "id": "jtbd-cohort-heatmap",
       "type": "cohort-heatmap",
-      "title": { "ru": "JTBD-сегмент × поведенческая когорта", "en": "JTBD segment × behavioral cohort" },
+      "title": {
+        "ru": "JTBD-сегмент × поведенческая когорта",
+        "en": "JTBD segment × behavioral cohort"
+      },
       "description": {
         "ru": "Доля каждой поведенческой когорты внутри JTBD-сегмента (%). Job-сегменты и когорты не независимы: Dormant концентрируется в Digital Newcomers 45+.",
         "en": "Share of each behavioral cohort within a JTBD segment (%). Job segments and cohorts are not independent: Dormant concentrates in Digital Newcomers 45+."
       },
       "data": {
-        "cohorts": ["Young Professionals", "Digital Newcomers 45+", "Travelers", "Family Budgeters", "Premium Status"],
-        "periods": ["Power", "Growth", "Casual", "Dormant"],
+        "cohorts": [
+          "Young Professionals",
+          "Digital Newcomers 45+",
+          "Travelers",
+          "Family Budgeters",
+          "Premium Status"
+        ],
+        "periods": [
+          "Power",
+          "Growth",
+          "Casual",
+          "Dormant"
+        ],
         "values": [
-          [30.4, 40.1, 24.5, 5.0],
-          [1.8, 15.6, 43.3, 39.4],
-          [24.2, 40.3, 30.6, 5.1],
-          [7.8, 30.5, 46.7, 15.1],
-          [55.4, 30.3, 11.3, 3.1]
+          [
+            30.4,
+            40.1,
+            24.5,
+            5
+          ],
+          [
+            1.8,
+            15.6,
+            43.3,
+            39.4
+          ],
+          [
+            24.2,
+            40.3,
+            30.6,
+            5.1
+          ],
+          [
+            7.8,
+            30.5,
+            46.7,
+            15.1
+          ],
+          [
+            55.4,
+            30.3,
+            11.3,
+            3.1
+          ]
         ],
         "unit": "percent"
       },
@@ -635,17 +1525,41 @@
     {
       "id": "traveler-fx-break-even",
       "type": "bar",
-      "title": { "ru": "Юнит-экономика FX-операции на €100", "en": "Unit economics of a €100 FX transaction" },
+      "title": {
+        "ru": "Юнит-экономика FX-операции на €100",
+        "en": "Unit economics of a €100 FX transaction"
+      },
       "description": {
         "ru": "Выручка и издержки одной FX-операции на €100 для тревел-сегмента. Выручка — спред и интерчейндж; издержки — FX-cost и обработка.",
         "en": "Revenue and cost components of a single €100 FX transaction for the traveler segment. Revenue is spread and interchange; costs are FX cost and processing."
       },
-      "xLabel": { "ru": "Компонент", "en": "Component" },
-      "yLabel": { "ru": "€ на €100 операции", "en": "€ per €100 transaction" },
+      "xLabel": {
+        "ru": "Компонент",
+        "en": "Component"
+      },
+      "yLabel": {
+        "ru": "€ на €100 операции",
+        "en": "€ per €100 transaction"
+      },
       "data": {
-        "categories": ["FX spread", "Interchange", "FX cost", "Processing / support", "Net margin"],
+        "categories": [
+          "FX spread",
+          "Interchange",
+          "FX cost",
+          "Processing / support",
+          "Net margin"
+        ],
         "series": [
-          { "name": "€ per €100", "values": [0.4, 0.3, -1.0, -0.15, -0.45] }
+          {
+            "name": "€ per €100",
+            "values": [
+              0.4,
+              0.3,
+              -1,
+              -0.15,
+              -0.45
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -662,17 +1576,41 @@
     {
       "id": "premium-upsell-by-segment",
       "type": "bar",
-      "title": { "ru": "Конверсия Free→Premium по JTBD-сегментам", "en": "Free→Premium conversion by JTBD segment" },
+      "title": {
+        "ru": "Конверсия Free→Premium по JTBD-сегментам",
+        "en": "Free→Premium conversion by JTBD segment"
+      },
       "description": {
         "ru": "Доля конвертировавших в Premium по сегментам. Апселл концентрируется в якоре и статус-сикерах; gap-сегменты почти не конвертят.",
         "en": "Premium conversion rate by segment. Upsell concentrates in the anchor and status-seekers; gap segments barely convert."
       },
-      "xLabel": { "ru": "Сегмент", "en": "Segment" },
-      "yLabel": { "ru": "Конверсия, %", "en": "Conversion, %" },
+      "xLabel": {
+        "ru": "Сегмент",
+        "en": "Segment"
+      },
+      "yLabel": {
+        "ru": "Конверсия, %",
+        "en": "Conversion, %"
+      },
       "data": {
-        "categories": ["Premium Status", "Young Professionals", "Travelers", "Family Budgeters", "Digital Newcomers 45+"],
+        "categories": [
+          "Premium Status",
+          "Young Professionals",
+          "Travelers",
+          "Family Budgeters",
+          "Digital Newcomers 45+"
+        ],
         "series": [
-          { "name": "Free→Premium", "values": [41.2, 17.25, 11.9, 4.66, 1.79] }
+          {
+            "name": "Free→Premium",
+            "values": [
+              41.2,
+              17.25,
+              11.9,
+              4.66,
+              1.79
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -689,17 +1627,39 @@
     {
       "id": "kyc-lift-by-age",
       "type": "bar",
-      "title": { "ru": "Лифт KYC-фикса по возрасту (HTE)", "en": "KYC-fix lift by age (HTE)" },
+      "title": {
+        "ru": "Лифт KYC-фикса по возрасту (HTE)",
+        "en": "KYC-fix lift by age (HTE)"
+      },
       "description": {
         "ru": "Гетерогенный эффект прогресс-бара KYC по возрастным группам (treatment − control, п.п.). Фикс работает для 18–44, но не для 45+.",
         "en": "Heterogeneous effect of the KYC progress bar by age group (treatment − control, pp). The fix works for 18–44 but not for 45+."
       },
-      "xLabel": { "ru": "Возраст", "en": "Age" },
-      "yLabel": { "ru": "Лифт, п.п.", "en": "Lift, pp" },
+      "xLabel": {
+        "ru": "Возраст",
+        "en": "Age"
+      },
+      "yLabel": {
+        "ru": "Лифт, п.п.",
+        "en": "Lift, pp"
+      },
       "data": {
-        "categories": ["18-24", "25-34", "35-44", "45+"],
+        "categories": [
+          "18-24",
+          "25-34",
+          "35-44",
+          "45+"
+        ],
         "series": [
-          { "name": "Lift", "values": [5.3, 3.1, 11.0, 1.4] }
+          {
+            "name": "Lift",
+            "values": [
+              5.3,
+              3.1,
+              11,
+              1.4
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -716,18 +1676,51 @@
     {
       "id": "referral-conversion-by-segment",
       "type": "bar",
-      "title": { "ru": "Реферальная конверсия по сегментам", "en": "Referral conversion by segment" },
+      "title": {
+        "ru": "Реферальная конверсия по сегментам",
+        "en": "Referral conversion by segment"
+      },
       "description": {
         "ru": "Сквозная реферальная конверсия (sent→accepted→KYC→first-tx, %) и доля принятия приглашения по JTBD-сегментам. Разрыв открывается на шаге accept.",
         "en": "End-to-end referral conversion (sent→accepted→KYC→first-tx, %) and invite-acceptance rate by JTBD segment. The gap opens at the accept step."
       },
-      "xLabel": { "ru": "Сегмент", "en": "Segment" },
-      "yLabel": { "ru": "%", "en": "%" },
+      "xLabel": {
+        "ru": "Сегмент",
+        "en": "Segment"
+      },
+      "yLabel": {
+        "ru": "%",
+        "en": "%"
+      },
       "data": {
-        "categories": ["Premium Status", "Young Professionals", "Travelers", "Family Budgeters", "Digital Newcomers 45+"],
+        "categories": [
+          "Premium Status",
+          "Young Professionals",
+          "Travelers",
+          "Family Budgeters",
+          "Digital Newcomers 45+"
+        ],
         "series": [
-          { "name": "Overall conversion", "values": [36.0, 29.65, 21.35, 8.59, 4.78] },
-          { "name": "Accept rate", "values": [85.4, 78.1, 67.3, 40.1, 25.5] }
+          {
+            "name": "Overall conversion",
+            "values": [
+              36,
+              29.65,
+              21.35,
+              8.59,
+              4.78
+            ]
+          },
+          {
+            "name": "Accept rate",
+            "values": [
+              85.4,
+              78.1,
+              67.3,
+              40.1,
+              25.5
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -744,21 +1737,69 @@
     {
       "id": "assisted-ltv-cac",
       "type": "bar",
-      "title": { "ru": "Assisted CAC vs LTV по сегментам и каналам", "en": "Assisted CAC vs LTV by segment and channel" },
+      "title": {
+        "ru": "Assisted CAC vs LTV по сегментам и каналам",
+        "en": "Assisted CAC vs LTV by segment and channel"
+      },
       "description": {
         "ru": "LTV/CAC по трём сегментам и пяти каналам привлечения. Красный гейт — 3.0. Assisted-онбординг даёт лучший retention, но дорогой CAC.",
         "en": "LTV/CAC across three segments and five acquisition channels. The red gate is 3.0. Assisted onboarding gives the best retention but a costly CAC."
       },
-      "xLabel": { "ru": "Сегмент", "en": "Segment" },
-      "yLabel": { "ru": "LTV/CAC", "en": "LTV/CAC" },
+      "xLabel": {
+        "ru": "Сегмент",
+        "en": "Segment"
+      },
+      "yLabel": {
+        "ru": "LTV/CAC",
+        "en": "LTV/CAC"
+      },
       "data": {
-        "categories": ["Young Professionals", "Digital Newcomers 45+", "Family Budgeters"],
+        "categories": [
+          "Young Professionals",
+          "Digital Newcomers 45+",
+          "Family Budgeters"
+        ],
         "series": [
-          { "name": "Referral", "values": [3.625, 1.718, 2.123] },
-          { "name": "In-app", "values": [2.284, 1.102, 1.354] },
-          { "name": "Partner", "values": [1.654, 0.773, 0.952] },
-          { "name": "Paid social", "values": [1.081, 0.562, 0.619] },
-          { "name": "Assisted", "values": [0.769, 0.406, 0.484] }
+          {
+            "name": "Referral",
+            "values": [
+              3.625,
+              1.718,
+              2.123
+            ]
+          },
+          {
+            "name": "In-app",
+            "values": [
+              2.284,
+              1.102,
+              1.354
+            ]
+          },
+          {
+            "name": "Partner",
+            "values": [
+              1.654,
+              0.773,
+              0.952
+            ]
+          },
+          {
+            "name": "Paid social",
+            "values": [
+              1.081,
+              0.562,
+              0.619
+            ]
+          },
+          {
+            "name": "Assisted",
+            "values": [
+              0.769,
+              0.406,
+              0.484
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -775,17 +1816,49 @@
     {
       "id": "fx-sourcing-volume",
       "type": "line",
-      "title": { "ru": "FX-cost vs месячный объём", "en": "FX cost vs monthly volume" },
+      "title": {
+        "ru": "FX-cost vs месячный объём",
+        "en": "FX cost vs monthly volume"
+      },
       "description": {
         "ru": "Лучшая достижимая цена FX (интербанк + хедж) как функция месячного объёма. Гейт 0.55% из Project 14. Кривая лог-линейна: каждый порядок объёма даёт ~0.20 п.п. скидки.",
         "en": "Best achievable FX price (interbank + hedge) as a function of monthly volume. The 0.55% gate from Project 14. The curve is log-linear: each order of magnitude yields ~0.20 pp."
       },
-      "xLabel": { "ru": "Месячный объём, €", "en": "Monthly volume, €" },
-      "yLabel": { "ru": "Эффективный FX-cost, %", "en": "Effective FX cost, %" },
+      "xLabel": {
+        "ru": "Месячный объём, €",
+        "en": "Monthly volume, €"
+      },
+      "yLabel": {
+        "ru": "Эффективный FX-cost, %",
+        "en": "Effective FX cost, %"
+      },
       "data": {
-        "categories": ["1M", "2.5M", "5M", "10M", "25M", "50M", "100M", "250M", "500M"],
+        "categories": [
+          "1M",
+          "2.5M",
+          "5M",
+          "10M",
+          "25M",
+          "50M",
+          "100M",
+          "250M",
+          "500M"
+        ],
         "series": [
-          { "name": "Best effective cost", "values": [1.107, 1.048, 0.971, 0.910, 0.812, 0.745, 0.675, 0.583, 0.502] }
+          {
+            "name": "Best effective cost",
+            "values": [
+              1.107,
+              1.048,
+              0.971,
+              0.91,
+              0.812,
+              0.745,
+              0.675,
+              0.583,
+              0.502
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -802,18 +1875,54 @@
     {
       "id": "fx-provider-ranking",
       "type": "bar",
-      "title": { "ru": "Рейтинг FX-провайдеров", "en": "FX provider ranking" },
+      "title": {
+        "ru": "Рейтинг FX-провайдеров",
+        "en": "FX provider ranking"
+      },
       "description": {
         "ru": "Эффективная цена (интербанк + хедж) по шести провайдерам ликвидности при объёме €50M. Разброс ~0.1–0.3 п.п. сопоставим с объёмной скидкой.",
         "en": "Effective cost (interbank + hedge) across six liquidity providers at €50M volume. The ~0.1–0.3 pp spread is comparable to the volume discount."
       },
-      "xLabel": { "ru": "Провайдер", "en": "Provider" },
-      "yLabel": { "ru": "Эффективная цена, %", "en": "Effective cost, %" },
+      "xLabel": {
+        "ru": "Провайдер",
+        "en": "Provider"
+      },
+      "yLabel": {
+        "ru": "Эффективная цена, %",
+        "en": "Effective cost, %"
+      },
       "data": {
-        "categories": ["Interbank Prime", "Fintech Liquidity", "Prime Broker A", "Global FX Desk", "Regional Bank", "Aggregator X"],
+        "categories": [
+          "Interbank Prime",
+          "Fintech Liquidity",
+          "Prime Broker A",
+          "Global FX Desk",
+          "Regional Bank",
+          "Aggregator X"
+        ],
         "series": [
-          { "name": "Quoted", "values": [0.694, 0.764, 0.790, 0.806, 0.924, 1.011] },
-          { "name": "Hedging", "values": [0.052, 0.051, 0.049, 0.050, 0.051, 0.048] }
+          {
+            "name": "Quoted",
+            "values": [
+              0.694,
+              0.764,
+              0.79,
+              0.806,
+              0.924,
+              1.011
+            ]
+          },
+          {
+            "name": "Hedging",
+            "values": [
+              0.052,
+              0.051,
+              0.049,
+              0.05,
+              0.051,
+              0.048
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -830,18 +1939,48 @@
     {
       "id": "premium-offers-conversion",
       "type": "bar",
-      "title": { "ru": "Сегментные premium-офферы: конверсия control vs treatment", "en": "Segment premium offers: conversion, control vs treatment" },
+      "title": {
+        "ru": "Сегментные premium-офферы: конверсия control vs treatment",
+        "en": "Segment premium offers: conversion, control vs treatment"
+      },
       "description": {
         "ru": "Рандомизированный A/B: generic-апселл (control) против сегментного оффера (treatment) на четырёх сегментах. Treatment поднимает gap-сегменты, но не дотягивает до якоря.",
         "en": "Randomized A/B: generic upsell (control) vs segment offer (treatment) across four segments. Treatment lifts gap segments but does not reach the anchor."
       },
-      "xLabel": { "ru": "Сегмент", "en": "Segment" },
-      "yLabel": { "ru": "Конверсия в Premium, %", "en": "Premium conversion, %" },
+      "xLabel": {
+        "ru": "Сегмент",
+        "en": "Segment"
+      },
+      "yLabel": {
+        "ru": "Конверсия в Premium, %",
+        "en": "Premium conversion, %"
+      },
       "data": {
-        "categories": ["Young Professionals", "Digital Newcomers 45+", "Family Budgeters", "Travelers"],
+        "categories": [
+          "Young Professionals",
+          "Digital Newcomers 45+",
+          "Family Budgeters",
+          "Travelers"
+        ],
         "series": [
-          { "name": "Control (generic)", "values": [18.62, 1.61, 4.42, 8.78] },
-          { "name": "Treatment (segment)", "values": [19.49, 4.95, 8.58, 12.57] }
+          {
+            "name": "Control (generic)",
+            "values": [
+              18.62,
+              1.61,
+              4.42,
+              8.78
+            ]
+          },
+          {
+            "name": "Treatment (segment)",
+            "values": [
+              19.49,
+              4.95,
+              8.58,
+              12.57
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -858,17 +1997,39 @@
     {
       "id": "premium-offers-lift",
       "type": "bar",
-      "title": { "ru": "Сегментные premium-офферы: лифт treatment", "en": "Segment premium offers: treatment lift" },
+      "title": {
+        "ru": "Сегментные premium-офферы: лифт treatment",
+        "en": "Segment premium offers: treatment lift"
+      },
       "description": {
         "ru": "Лифт treatment против control по сегментам (п.п.). Gap-сегменты дают лифт в 3–5 раз больше якоря.",
         "en": "Treatment lift over control by segment (pp). Gap segments yield 3–5× the anchor's lift."
       },
-      "xLabel": { "ru": "Сегмент", "en": "Segment" },
-      "yLabel": { "ru": "Лифт, п.п.", "en": "Lift, pp" },
+      "xLabel": {
+        "ru": "Сегмент",
+        "en": "Segment"
+      },
+      "yLabel": {
+        "ru": "Лифт, п.п.",
+        "en": "Lift, pp"
+      },
       "data": {
-        "categories": ["Young Professionals", "Digital Newcomers 45+", "Family Budgeters", "Travelers"],
+        "categories": [
+          "Young Professionals",
+          "Digital Newcomers 45+",
+          "Family Budgeters",
+          "Travelers"
+        ],
         "series": [
-          { "name": "Lift", "values": [0.86, 3.33, 4.16, 3.78] }
+          {
+            "name": "Lift",
+            "values": [
+              0.86,
+              3.33,
+              4.16,
+              3.78
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -885,17 +2046,43 @@
     {
       "id": "anchor-ltv-cac-vs-scale",
       "type": "line",
-      "title": { "ru": "Запуск якоря: LTV/CAC vs масштаб", "en": "Anchor launch: LTV/CAC vs scale" },
+      "title": {
+        "ru": "Запуск якоря: LTV/CAC vs масштаб",
+        "en": "Anchor launch: LTV/CAC vs scale"
+      },
       "description": {
         "ru": "Blended LTV/CAC по мере масштабирования запуска якоря 25–34 (жадное распределение «сначала дешёвое»). Гейт 3.0 держится только до ~70K пользователей.",
         "en": "Blended LTV/CAC as the anchor 25–34 launch scales (cheap-first greedy allocation). The 3.0 gate holds only to ~70K users."
       },
-      "xLabel": { "ru": "Масштаб запуска, пользователи", "en": "Launch scale, users" },
-      "yLabel": { "ru": "LTV/CAC", "en": "LTV/CAC" },
+      "xLabel": {
+        "ru": "Масштаб запуска, пользователи",
+        "en": "Launch scale, users"
+      },
+      "yLabel": {
+        "ru": "LTV/CAC",
+        "en": "LTV/CAC"
+      },
       "data": {
-        "categories": ["10K", "40K", "50K", "75K", "120K", "225K"],
+        "categories": [
+          "10K",
+          "40K",
+          "50K",
+          "75K",
+          "120K",
+          "225K"
+        ],
         "series": [
-          { "name": "Blended LTV/CAC", "values": [5.0, 3.499, 3.3, 2.941, 2.456, 1.762] }
+          {
+            "name": "Blended LTV/CAC",
+            "values": [
+              5,
+              3.499,
+              3.3,
+              2.941,
+              2.456,
+              1.762
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -912,18 +2099,51 @@
     {
       "id": "anchor-marginal-cac",
       "type": "bar",
-      "title": { "ru": "Маржинальный CAC якоря по каналам", "en": "Anchor marginal CAC by channel" },
+      "title": {
+        "ru": "Маржинальный CAC якоря по каналам",
+        "en": "Anchor marginal CAC by channel"
+      },
       "description": {
         "ru": "Диапазон маржинального CAC (€) и ёмкость (пользователи) по каналам привлечения якоря. Ёмкость дешёвых каналов исчерпывается первой.",
         "en": "Marginal CAC range (€) and capacity (users) by acquisition channel for the anchor. Cheap-channel capacity runs out first."
       },
-      "xLabel": { "ru": "Канал", "en": "Channel" },
-      "yLabel": { "ru": "Маржинальный CAC, €", "en": "Marginal CAC, €" },
+      "xLabel": {
+        "ru": "Канал",
+        "en": "Channel"
+      },
+      "yLabel": {
+        "ru": "Маржинальный CAC, €",
+        "en": "Marginal CAC, €"
+      },
       "data": {
-        "categories": ["Referral", "In-app", "Partner", "Paid social", "Assisted"],
+        "categories": [
+          "Referral",
+          "In-app",
+          "Partner",
+          "Paid social",
+          "Assisted"
+        ],
         "series": [
-          { "name": "CAC min", "values": [17.98, 29.9, 48.55, 57.87, 119.32] },
-          { "name": "CAC max", "values": [60.93, 83.04, 133.76, 367.64, 266.86] }
+          {
+            "name": "CAC min",
+            "values": [
+              17.98,
+              29.9,
+              48.55,
+              57.87,
+              119.32
+            ]
+          },
+          {
+            "name": "CAC max",
+            "values": [
+              60.93,
+              83.04,
+              133.76,
+              367.64,
+              266.86
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -940,19 +2160,57 @@
     {
       "id": "dormant-reactivation",
       "type": "bar",
-      "title": { "ru": "Win-back дормантов 45+: реактивация по arm × глубине", "en": "Dormant 45+ win-back: reactivation by arm × depth" },
+      "title": {
+        "ru": "Win-back дормантов 45+: реактивация по arm × глубине",
+        "en": "Dormant 45+ win-back: reactivation by arm × depth"
+      },
       "description": {
         "ru": "60-дневная реактивация (%) для трёх arm (control / light-touch / human) по четырём корзинам дормантности. Assisted-реактивация работает, сильнее всего на недавно уснувших.",
         "en": "60-day reactivation (%) for three arms (control / light-touch / human) across four dormancy buckets. Assisted reactivation works, strongest for the recently dormant."
       },
-      "xLabel": { "ru": "Глубина дормантности", "en": "Dormancy depth" },
-      "yLabel": { "ru": "Реактивация, %", "en": "Reactivation, %" },
+      "xLabel": {
+        "ru": "Глубина дормантности",
+        "en": "Dormancy depth"
+      },
+      "yLabel": {
+        "ru": "Реактивация, %",
+        "en": "Reactivation, %"
+      },
       "data": {
-        "categories": ["30-60d", "60-90d", "90-180d", "180d+"],
+        "categories": [
+          "30-60d",
+          "60-90d",
+          "90-180d",
+          "180d+"
+        ],
         "series": [
-          { "name": "Control (automated)", "values": [8.47, 5.7, 3.0, 1.57] },
-          { "name": "Light-touch", "values": [14.43, 9.07, 4.8, 1.5] },
-          { "name": "Human-assisted", "values": [19.83, 12.07, 5.93, 2.27] }
+          {
+            "name": "Control (automated)",
+            "values": [
+              8.47,
+              5.7,
+              3,
+              1.57
+            ]
+          },
+          {
+            "name": "Light-touch",
+            "values": [
+              14.43,
+              9.07,
+              4.8,
+              1.5
+            ]
+          },
+          {
+            "name": "Human-assisted",
+            "values": [
+              19.83,
+              12.07,
+              5.93,
+              2.27
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -969,18 +2227,48 @@
     {
       "id": "dormant-roi",
       "type": "bar",
-      "title": { "ru": "Win-back дормантов 45+: ROI по arm × глубине", "en": "Dormant 45+ win-back: ROI by arm × depth" },
+      "title": {
+        "ru": "Win-back дормантов 45+: ROI по arm × глубине",
+        "en": "Dormant 45+ win-back: ROI by arm × depth"
+      },
       "description": {
         "ru": "ROI (восстановленный LTV / прирост затрат) на 10 000 обработанных по arm и глубине дормантности. ROI=1 — окупаемость.",
         "en": "ROI (recovered LTV / incremental cost) per 10,000 treated by arm and dormancy depth. ROI=1 is break-even."
       },
-      "xLabel": { "ru": "Глубина дормантности", "en": "Dormancy depth" },
-      "yLabel": { "ru": "ROI", "en": "ROI" },
+      "xLabel": {
+        "ru": "Глубина дормантности",
+        "en": "Dormancy depth"
+      },
+      "yLabel": {
+        "ru": "ROI",
+        "en": "ROI"
+      },
       "data": {
-        "categories": ["30-60d", "60-90d", "90-180d", "180d+"],
+        "categories": [
+          "30-60d",
+          "60-90d",
+          "90-180d",
+          "180d+"
+        ],
         "series": [
-          { "name": "Light-touch", "values": [2.54, 1.26, 0.56, -0.02] },
-          { "name": "Human-assisted", "values": [0.92, 0.45, 0.17, 0.03] }
+          {
+            "name": "Light-touch",
+            "values": [
+              2.54,
+              1.26,
+              0.56,
+              -0.02
+            ]
+          },
+          {
+            "name": "Human-assisted",
+            "values": [
+              0.92,
+              0.45,
+              0.17,
+              0.03
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -997,19 +2285,53 @@
     {
       "id": "causal-naive-vs-did",
       "type": "bar",
-      "title": { "ru": "Naive pre/post против DiD по исходам", "en": "Naive pre/post vs DiD by outcome" },
+      "title": {
+        "ru": "Naive pre/post против DiD по исходам",
+        "en": "Naive pre/post vs DiD by outcome"
+      },
       "description": {
         "ru": "Оценка эффекта KYC-фикса тремя способами: naive pre/post, 2×2 DiD и covariate-adjusted DiD. Pre/post не вычитает общий месячный тренд.",
         "en": "Three estimates of the KYC-fix effect: naive pre/post, 2×2 DiD, and covariate-adjusted DiD. Pre/post does not net out the shared monthly trend."
       },
-      "xLabel": { "ru": "Исход", "en": "Outcome" },
-      "yLabel": { "ru": "Эффект, п.п.", "en": "Effect, pp" },
+      "xLabel": {
+        "ru": "Исход",
+        "en": "Outcome"
+      },
+      "yLabel": {
+        "ru": "Эффект, п.п.",
+        "en": "Effect, pp"
+      },
       "data": {
-        "categories": ["Активация", "M1 retention", "M3 retention"],
+        "categories": [
+          "Активация",
+          "M1 retention",
+          "M3 retention"
+        ],
         "series": [
-          { "name": "Naive pre/post", "values": [6.29, 7.59, 7.6] },
-          { "name": "2×2 DiD", "values": [4.99, 7.57, 9.16] },
-          { "name": "Covariate-adjusted DiD", "values": [4.92, 7.49, 9.09] }
+          {
+            "name": "Naive pre/post",
+            "values": [
+              6.29,
+              7.59,
+              7.6
+            ]
+          },
+          {
+            "name": "2×2 DiD",
+            "values": [
+              4.99,
+              7.57,
+              9.16
+            ]
+          },
+          {
+            "name": "Covariate-adjusted DiD",
+            "values": [
+              4.92,
+              7.49,
+              9.09
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -1026,18 +2348,45 @@
     {
       "id": "causal-recovery",
       "type": "bar",
-      "title": { "ru": "Recovery: DiD восстанавливает заложенный эффект", "en": "Recovery: DiD recovers the injected effect" },
+      "title": {
+        "ru": "Recovery: DiD восстанавливает заложенный эффект",
+        "en": "Recovery: DiD recovers the injected effect"
+      },
       "description": {
         "ru": "Заложенный генератором ATT против DiD-оценки: 3/3 95% ДИ накрывают истину — оценщик специфицирован корректно.",
         "en": "Injected ATT vs the DiD estimate: 3/3 95% CIs cover the truth — the estimator is correctly specified."
       },
-      "xLabel": { "ru": "Исход", "en": "Outcome" },
-      "yLabel": { "ru": "ATT, п.п.", "en": "ATT, pp" },
+      "xLabel": {
+        "ru": "Исход",
+        "en": "Outcome"
+      },
+      "yLabel": {
+        "ru": "ATT, п.п.",
+        "en": "ATT, pp"
+      },
       "data": {
-        "categories": ["Активация", "M1 retention", "M3 retention"],
+        "categories": [
+          "Активация",
+          "M1 retention",
+          "M3 retention"
+        ],
         "series": [
-          { "name": "Injected (truth)", "values": [5.7, 8.5, 9.0] },
-          { "name": "Recovered (DiD)", "values": [4.92, 7.49, 9.09] }
+          {
+            "name": "Injected (truth)",
+            "values": [
+              5.7,
+              8.5,
+              9
+            ]
+          },
+          {
+            "name": "Recovered (DiD)",
+            "values": [
+              4.92,
+              7.49,
+              9.09
+            ]
+          }
         ]
       },
       "conclusions": [
@@ -1050,6 +2399,3481 @@
           "en": "The method is valid: 3/3 CIs cover the truth — the design is fit for real data."
         }
       ]
+    },
+    {
+      "id": "segmentation-pca-scatter",
+      "type": "scatter",
+      "title": {
+        "ru": "Сегменты в PCA-проекции",
+        "en": "Segments in PCA projection"
+      },
+      "description": {
+        "ru": "240 точек (по 60 на сегмент) в пространстве первых двух главных компонент: Power и Casual расходятся по PC1, Growth и Dormant перекрываются по PC2.",
+        "en": "240 points (60 per segment) in the space of the first two principal components: Power and Casual separate along PC1, Growth and Dormant overlap along PC2."
+      },
+      "xLabel": {
+        "ru": "PC1",
+        "en": "PC1"
+      },
+      "yLabel": {
+        "ru": "PC2",
+        "en": "PC2"
+      },
+      "conclusions": [
+        {
+          "ru": "K=4 подтверждён данными: силуэт держится 0,499 → 0,480 на K=2–4 и падает до 0,353 на K=5.",
+          "en": "K=4 is data-driven: silhouette holds 0.499 → 0.480 for K=2–4 and drops to 0.353 at K=5."
+        },
+        {
+          "ru": "Power и Casual разнесены по PC1, Growth и Dormant пересекаются — границы сегментов мягкие.",
+          "en": "Power and Casual separate along PC1; Growth and Dormant overlap — segment boundaries are soft."
+        }
+      ],
+      "data": {
+        "points": [
+          {
+            "x": -0.653,
+            "y": -1.362,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.246,
+            "y": -1.485,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.487,
+            "y": -0.064,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.219,
+            "y": -0.705,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.429,
+            "y": 0.104,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.309,
+            "y": -0.468,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.965,
+            "y": -0.541,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.23,
+            "y": -1.045,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.763,
+            "y": -1.394,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.288,
+            "y": -1.111,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.936,
+            "y": -0.748,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.91,
+            "y": -0.679,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.686,
+            "y": -1.299,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.966,
+            "y": -0.336,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.156,
+            "y": -1.323,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.167,
+            "y": -0.804,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.258,
+            "y": -1.335,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.811,
+            "y": -0.053,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.179,
+            "y": -1.124,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.798,
+            "y": -0.972,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.716,
+            "y": -1.215,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.394,
+            "y": -0.926,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.253,
+            "y": -0.628,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.28,
+            "y": -0.781,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.465,
+            "y": -0.662,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.615,
+            "y": -0.694,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.951,
+            "y": -0.911,
+            "label": "Casual Users"
+          },
+          {
+            "x": -2.245,
+            "y": -1.508,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.285,
+            "y": -0.881,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.27,
+            "y": -1.03,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.477,
+            "y": -1.022,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.804,
+            "y": -1.295,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.582,
+            "y": -0.929,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.294,
+            "y": -0.995,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.731,
+            "y": -1.18,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.537,
+            "y": -0.781,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.71,
+            "y": -0.462,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.189,
+            "y": -0.667,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.533,
+            "y": -0.818,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.033,
+            "y": -0.641,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.089,
+            "y": -1.661,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.181,
+            "y": -1.168,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.587,
+            "y": -1.047,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.764,
+            "y": -0.114,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.211,
+            "y": -1.967,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.996,
+            "y": -0.516,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.777,
+            "y": -1.048,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.797,
+            "y": -1.646,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.615,
+            "y": -1.404,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.46,
+            "y": -1.541,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.004,
+            "y": -1.062,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.691,
+            "y": -1.229,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.091,
+            "y": -1.133,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.21,
+            "y": -1.468,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.496,
+            "y": -1.515,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.696,
+            "y": -0.88,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.808,
+            "y": -1.629,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.052,
+            "y": -1.957,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.599,
+            "y": -1.087,
+            "label": "Casual Users"
+          },
+          {
+            "x": -0.998,
+            "y": -0.56,
+            "label": "Casual Users"
+          },
+          {
+            "x": -1.14,
+            "y": 1.048,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.54,
+            "y": 0.625,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -2.199,
+            "y": 0.601,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.774,
+            "y": 1.062,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.541,
+            "y": 1.605,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.661,
+            "y": 1.068,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.927,
+            "y": 0.451,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -2.086,
+            "y": 0.709,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.29,
+            "y": 1.464,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.78,
+            "y": 0.928,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.758,
+            "y": 0.762,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.149,
+            "y": 0.808,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.842,
+            "y": 1.696,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.541,
+            "y": 0.687,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.79,
+            "y": 1.407,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.576,
+            "y": 1.09,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.419,
+            "y": 1.119,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.762,
+            "y": 1.284,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.843,
+            "y": 1.931,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.714,
+            "y": 0.151,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.462,
+            "y": 0.262,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.451,
+            "y": 1.123,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.72,
+            "y": 1.112,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.83,
+            "y": 0.464,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.082,
+            "y": 1.793,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.321,
+            "y": 1.03,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.401,
+            "y": 0.775,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -2.007,
+            "y": 0.884,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.718,
+            "y": 1.971,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.027,
+            "y": 0.785,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.226,
+            "y": 1.384,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -2.149,
+            "y": 1.33,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.734,
+            "y": 0.994,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.572,
+            "y": 1.323,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.472,
+            "y": 0.841,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.64,
+            "y": 0.111,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.895,
+            "y": 1.378,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.574,
+            "y": 0.957,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.492,
+            "y": 1.378,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.605,
+            "y": 0.645,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.775,
+            "y": 1.119,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.469,
+            "y": 0.817,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -2.009,
+            "y": 0.404,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.972,
+            "y": 0.368,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.232,
+            "y": 1.714,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.644,
+            "y": 1.101,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.999,
+            "y": 1.003,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.559,
+            "y": 0.738,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.843,
+            "y": 0.03,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.398,
+            "y": 1.016,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.77,
+            "y": 1.503,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.483,
+            "y": 1.171,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -2.127,
+            "y": 1.076,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -2.02,
+            "y": 0.877,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.286,
+            "y": 0.963,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.881,
+            "y": 0.349,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.52,
+            "y": 0.223,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -0.987,
+            "y": 1.431,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.22,
+            "y": 1.092,
+            "label": "Dormant Users"
+          },
+          {
+            "x": -1.834,
+            "y": 0.538,
+            "label": "Dormant Users"
+          },
+          {
+            "x": 0.897,
+            "y": -1.21,
+            "label": "Growth Users"
+          },
+          {
+            "x": 2.397,
+            "y": -1.412,
+            "label": "Growth Users"
+          },
+          {
+            "x": 0.661,
+            "y": -0.097,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.463,
+            "y": -1.027,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.337,
+            "y": -0.363,
+            "label": "Growth Users"
+          },
+          {
+            "x": 2.297,
+            "y": 0.208,
+            "label": "Growth Users"
+          },
+          {
+            "x": 0.918,
+            "y": -0.915,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.475,
+            "y": -0.275,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.39,
+            "y": -0.7,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.561,
+            "y": -0.175,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.624,
+            "y": -1.031,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.527,
+            "y": 0.324,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.567,
+            "y": -0.592,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.353,
+            "y": -0.592,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.629,
+            "y": -0.418,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.601,
+            "y": -0.021,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.818,
+            "y": -0.442,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.209,
+            "y": -0.352,
+            "label": "Growth Users"
+          },
+          {
+            "x": 2.185,
+            "y": -0.191,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.505,
+            "y": -0.69,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.956,
+            "y": -0.593,
+            "label": "Growth Users"
+          },
+          {
+            "x": 2.078,
+            "y": -0.127,
+            "label": "Growth Users"
+          },
+          {
+            "x": 2.053,
+            "y": -0.411,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.393,
+            "y": -0.721,
+            "label": "Growth Users"
+          },
+          {
+            "x": 2.019,
+            "y": 0.139,
+            "label": "Growth Users"
+          },
+          {
+            "x": 0.711,
+            "y": -0.466,
+            "label": "Growth Users"
+          },
+          {
+            "x": 2.008,
+            "y": -0.933,
+            "label": "Growth Users"
+          },
+          {
+            "x": 0.916,
+            "y": 0.247,
+            "label": "Growth Users"
+          },
+          {
+            "x": 0.539,
+            "y": 0.169,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.022,
+            "y": -0.47,
+            "label": "Growth Users"
+          },
+          {
+            "x": 0.672,
+            "y": 0.006,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.803,
+            "y": 0.19,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.527,
+            "y": -0.595,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.712,
+            "y": -0.614,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.642,
+            "y": 0.246,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.489,
+            "y": 0.055,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.238,
+            "y": -0.196,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.187,
+            "y": 0.033,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.612,
+            "y": -1.178,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.385,
+            "y": -0.617,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.372,
+            "y": -0.118,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.489,
+            "y": -1.146,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.077,
+            "y": -1.076,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.246,
+            "y": 0.019,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.159,
+            "y": -0.649,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.033,
+            "y": -0.408,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.976,
+            "y": -1.046,
+            "label": "Growth Users"
+          },
+          {
+            "x": 0.552,
+            "y": -0.125,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.062,
+            "y": -0.777,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.447,
+            "y": -0.565,
+            "label": "Growth Users"
+          },
+          {
+            "x": 0.811,
+            "y": -0.234,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.094,
+            "y": -0.485,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.25,
+            "y": 0.14,
+            "label": "Growth Users"
+          },
+          {
+            "x": 0.69,
+            "y": 0.049,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.849,
+            "y": -0.609,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.231,
+            "y": -1.138,
+            "label": "Growth Users"
+          },
+          {
+            "x": 0.451,
+            "y": -0.004,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.659,
+            "y": -1.586,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.166,
+            "y": 0.152,
+            "label": "Growth Users"
+          },
+          {
+            "x": 1.281,
+            "y": -0.645,
+            "label": "Growth Users"
+          },
+          {
+            "x": 4.68,
+            "y": -0.055,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.575,
+            "y": 1.453,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.267,
+            "y": 0.707,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.968,
+            "y": 0.258,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.96,
+            "y": 0.928,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.414,
+            "y": 0.425,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.683,
+            "y": 1.333,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.514,
+            "y": 0.747,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.49,
+            "y": 0.8,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.619,
+            "y": 0.446,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.812,
+            "y": 0.864,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.49,
+            "y": 0.783,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.062,
+            "y": 0.642,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.022,
+            "y": 1.285,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.149,
+            "y": -0.068,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.952,
+            "y": 0.467,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.591,
+            "y": 0.756,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.904,
+            "y": 0.084,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.669,
+            "y": -0.002,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.984,
+            "y": 0.549,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.08,
+            "y": 0.691,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.229,
+            "y": 1.275,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.67,
+            "y": 0.416,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.568,
+            "y": 1.006,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.489,
+            "y": 0.81,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.111,
+            "y": 0.743,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.98,
+            "y": 0.338,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.735,
+            "y": 0.947,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.625,
+            "y": -0.415,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.923,
+            "y": 1.073,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.818,
+            "y": 0.864,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.527,
+            "y": 0.825,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.205,
+            "y": 0.632,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.824,
+            "y": 0.335,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.162,
+            "y": 0.982,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.078,
+            "y": 0.444,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.949,
+            "y": 0.225,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.654,
+            "y": 0.548,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.708,
+            "y": 1.012,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.674,
+            "y": 0.883,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.288,
+            "y": 0.099,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.695,
+            "y": 0.711,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.433,
+            "y": 0.638,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.282,
+            "y": 0.656,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.255,
+            "y": 0.852,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.614,
+            "y": 0.83,
+            "label": "Power Users"
+          },
+          {
+            "x": 3.772,
+            "y": 0.78,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.208,
+            "y": 0.339,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.184,
+            "y": -0.119,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.903,
+            "y": 0.569,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.809,
+            "y": -0.021,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.02,
+            "y": 1.041,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.023,
+            "y": -0.588,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.252,
+            "y": 0.571,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.703,
+            "y": 1.228,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.385,
+            "y": 0.685,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.082,
+            "y": 0.561,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.935,
+            "y": 0.82,
+            "label": "Power Users"
+          },
+          {
+            "x": 4.291,
+            "y": 0.756,
+            "label": "Power Users"
+          },
+          {
+            "x": 5.545,
+            "y": 0.573,
+            "label": "Power Users"
+          }
+        ]
+      }
+    },
+    {
+      "id": "segmentation-k-selection",
+      "type": "line",
+      "title": {
+        "ru": "Выбор K — локоть и силуэт",
+        "en": "K selection — elbow and silhouette"
+      },
+      "description": {
+        "ru": "Инерция нормирована к K=2 (1,0 = максимум); силуэт дан в исходной шкале. Локоть между K=4 и K=5, силуэт держится на плато до K=4.",
+        "en": "Inertia is normalised to K=2 (1.0 = maximum); silhouette is on its own scale. The elbow sits between K=4 and K=5, the silhouette plateau holds to K=4."
+      },
+      "xLabel": {
+        "ru": "K",
+        "en": "K"
+      },
+      "labelEvery": 1,
+      "conclusions": [
+        {
+          "ru": "Падение инерции ломается между K=4 и K=5 (0,345 → 0,328) — дальше кластеры дробятся без выигрыша.",
+          "en": "The inertia drop breaks between K=4 and K=5 (0.345 → 0.328) — splitting further adds no gain."
+        },
+        {
+          "ru": "Силуэт плато K=2–4 (0,499 → 0,480) и коллапс на K=5 (0,353) подтверждают K=4.",
+          "en": "The silhouette plateaus K=2–4 (0.499 → 0.480) and collapses at K=5 (0.353), confirming K=4."
+        }
+      ],
+      "data": {
+        "categories": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "series": [
+          {
+            "name": "Silhouette",
+            "values": [
+              0.499,
+              0.485,
+              0.48,
+              0.353,
+              0.29,
+              0.201,
+              0.198
+            ]
+          },
+          {
+            "name": "Inertia (norm.)",
+            "values": [
+              1,
+              0.579,
+              0.345,
+              0.328,
+              0.312,
+              0.3,
+              0.289
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "churn-roc-curves",
+      "type": "line",
+      "title": {
+        "ru": "ROC-кривые churn-моделей",
+        "en": "Churn model ROC curves"
+      },
+      "description": {
+        "ru": "True Positive Rate против False Positive Rate для логистической регрессии и Random Forest на тестовой выборке (25% данных).",
+        "en": "True Positive Rate vs False Positive Rate for logistic regression and Random Forest on the hold-out set (25% of data)."
+      },
+      "xLabel": {
+        "ru": "False Positive Rate",
+        "en": "False Positive Rate"
+      },
+      "yLabel": {
+        "ru": "True Positive Rate",
+        "en": "True Positive Rate"
+      },
+      "labelEvery": 4,
+      "conclusions": [
+        {
+          "ru": "Random Forest обгоняет логистическую регрессию на +0,03 ROC-AUC — нелинейность добавляет сигнал.",
+          "en": "Random Forest beats logistic regression by +0.03 ROC-AUC — the non-linearity adds signal."
+        },
+        {
+          "ru": "При FPR ≈ 0,10 Random Forest ловит 37% оттока, логистическая регрессия — 50%: выигрыш RF в площади под кривой, а не в каждой точке.",
+          "en": "At FPR ≈ 0.10 Random Forest catches 37% of churn, logistic regression 50%: the RF edge is in the area under the curve, not any single point."
+        }
+      ],
+      "data": {
+        "categories": [
+          "0.00",
+          "0.01",
+          "0.03",
+          "0.04",
+          "0.06",
+          "0.08",
+          "0.10",
+          "0.12",
+          "0.14",
+          "0.17",
+          "0.19",
+          "0.22",
+          "0.25",
+          "0.28",
+          "0.33",
+          "0.37",
+          "0.41",
+          "0.46",
+          "0.51",
+          "0.57",
+          "0.65",
+          "0.71",
+          "0.78",
+          "0.86",
+          "1.00"
+        ],
+        "series": [
+          {
+            "name": "Logistic Regression",
+            "values": [
+              0,
+              0.1716,
+              0.2685,
+              0.3405,
+              0.4054,
+              0.4532,
+              0.4984,
+              0.5383,
+              0.573,
+              0.6123,
+              0.6418,
+              0.6798,
+              0.7086,
+              0.742,
+              0.7708,
+              0.7937,
+              0.8206,
+              0.8494,
+              0.8716,
+              0.8933,
+              0.9155,
+              0.9391,
+              0.9581,
+              0.979,
+              1
+            ]
+          },
+          {
+            "name": "Random Forest",
+            "values": [
+              0,
+              0.0478,
+              0.127,
+              0.2089,
+              0.2711,
+              0.3196,
+              0.3726,
+              0.4309,
+              0.4859,
+              0.5232,
+              0.554,
+              0.6012,
+              0.649,
+              0.6929,
+              0.7315,
+              0.7662,
+              0.8075,
+              0.8376,
+              0.8657,
+              0.8939,
+              0.924,
+              0.9502,
+              0.981,
+              0.9941,
+              1
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "churn-shap-importance",
+      "type": "bar",
+      "title": {
+        "ru": "SHAP-важность драйверов оттока",
+        "en": "SHAP importance of churn drivers"
+      },
+      "description": {
+        "ru": "Средний |SHAP| по 500 пользователям: вклад признака в прогноз оттока в единицах логита.",
+        "en": "Mean |SHAP| over 500 users: each feature’s contribution to the churn prediction, in logit units."
+      },
+      "yLabel": {
+        "ru": "mean |SHAP|",
+        "en": "mean |SHAP|"
+      },
+      "conclusions": [
+        {
+          "ru": "device_error_rate — главный драйвер (0,150 mean |SHAP|), в 1,5× выше второго признака.",
+          "en": "device_error_rate is the top driver (0.150 mean |SHAP|), 1.5× the next feature."
+        },
+        {
+          "ru": "Частота ошибок устройства и дни без активности (0,102) вместе дают больше, чем поддержка и частота использования.",
+          "en": "Device errors and days-since-activity (0.102) outweigh support tickets and usage frequency combined."
+        }
+      ],
+      "data": {
+        "categories": [
+          "device_error_rate",
+          "days_since_last_activity",
+          "support_tickets",
+          "usage_frequency",
+          "customer_tenure_months",
+          "avg_transaction_value",
+          "is_premium",
+          "channel_website"
+        ],
+        "series": [
+          {
+            "name": "mean |SHAP|",
+            "values": [
+              0.1501,
+              0.1023,
+              0.0859,
+              0.0812,
+              0.035,
+              0.014,
+              0.0135,
+              0.011
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "anomaly-hour-amount",
+      "type": "scatter",
+      "title": {
+        "ru": "Аномалии: час × сумма",
+        "en": "Anomalies: hour × amount"
+      },
+      "description": {
+        "ru": "380 транзакций (260 нормальных + 120 аномальных по ground truth) в координатах «час суток × сумма (log10 €)».",
+        "en": "380 transactions (260 normal + 120 ground-truth anomalies) plotted as hour-of-day × amount (log10 €)."
+      },
+      "xLabel": {
+        "ru": "Час суток",
+        "en": "Hour of day"
+      },
+      "yLabel": {
+        "ru": "sum (log10 €)",
+        "en": "amount (log10 €)"
+      },
+      "conclusions": [
+        {
+          "ru": "Аномалии группируются ночью и на крупных суммах — Isolation Forest ловит 50,4% F1.",
+          "en": "Anomalies cluster at night and at large amounts — Isolation Forest reaches 50.4% F1."
+        },
+        {
+          "ru": "Часть аномалий — «мелкие, но нетипичные по времени»: одной суммы мало, Isolation Forest делает 401 детекцию.",
+          "en": "Some anomalies are “small but unusual in time”: amount alone is not enough — Isolation Forest makes 401 detections."
+        }
+      ],
+      "data": {
+        "points": [
+          {
+            "x": 14,
+            "y": 2.176,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 0.874,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.728,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.813,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.561,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 2.524,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.263,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 2.178,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.929,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.5,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.453,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.383,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.836,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.339,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.692,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.107,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.66,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 2.445,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 1,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.713,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.696,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 1.39,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.15,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 0.989,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.299,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.72,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.796,
+            "label": "Normal"
+          },
+          {
+            "x": 10,
+            "y": 2.421,
+            "label": "Normal"
+          },
+          {
+            "x": 10,
+            "y": 1.92,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 2.432,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 1.785,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.18,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.907,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.294,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.377,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.988,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 1.9,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.345,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.614,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.539,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.255,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.537,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 1.649,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.627,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.422,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 1.185,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.622,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.561,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.461,
+            "label": "Normal"
+          },
+          {
+            "x": 10,
+            "y": 1.144,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 0.836,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.577,
+            "label": "Normal"
+          },
+          {
+            "x": 10,
+            "y": 1.089,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.415,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.263,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.783,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 1.179,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.634,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 2.043,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 2.089,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 2.049,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.665,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.029,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.973,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.655,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 1.532,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.911,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 1.667,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.638,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.391,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.96,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.216,
+            "label": "Normal"
+          },
+          {
+            "x": 10,
+            "y": 2.084,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 1.608,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.739,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.908,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.896,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.291,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.309,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.595,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 1.347,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.515,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 1.282,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.337,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 2.141,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 1.623,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.882,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.095,
+            "label": "Normal"
+          },
+          {
+            "x": 10,
+            "y": 2.445,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.906,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.877,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.243,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.558,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.75,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.097,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.732,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.741,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.346,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 0.766,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.759,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.439,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.557,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.277,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 2.188,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.479,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.477,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.386,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 2.027,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.573,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.573,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.615,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.256,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.879,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.74,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.623,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.242,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.294,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.513,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 1.1,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.409,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.405,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 2.279,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.737,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.513,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 1.433,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.289,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.758,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.198,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.346,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 0.957,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 2.031,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.72,
+            "label": "Normal"
+          },
+          {
+            "x": 10,
+            "y": 0.732,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 1.593,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.641,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 2.142,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.86,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.829,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.701,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 0.942,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.628,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.239,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.329,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.515,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.314,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 2.197,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.716,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.184,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.834,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.36,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.229,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 1.908,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 0.717,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.605,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 0.941,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.746,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 1.87,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.249,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 0.685,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.586,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.331,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.468,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.604,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 2.276,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.791,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 1.758,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.989,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 1.984,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.658,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.027,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.583,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.97,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 1.587,
+            "label": "Normal"
+          },
+          {
+            "x": 10,
+            "y": 1.616,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.345,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 0.983,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 1.134,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.779,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.353,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.768,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.145,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.195,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 0.73,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 2.044,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 0.958,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.259,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.503,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 2.086,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.184,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.579,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.779,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.553,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.71,
+            "label": "Normal"
+          },
+          {
+            "x": 10,
+            "y": 1.041,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.373,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.923,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.579,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 0.675,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 0.927,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 2.323,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.84,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 2.624,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.738,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.851,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 2.26,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 0.864,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.194,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.707,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.601,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.633,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 0.96,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.983,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.477,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.317,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.257,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.458,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.529,
+            "label": "Normal"
+          },
+          {
+            "x": 20,
+            "y": 1.542,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.15,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.977,
+            "label": "Normal"
+          },
+          {
+            "x": 10,
+            "y": 1.754,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.69,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.341,
+            "label": "Normal"
+          },
+          {
+            "x": 9,
+            "y": 1.279,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.348,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.23,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.556,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.56,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.064,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 0.716,
+            "label": "Normal"
+          },
+          {
+            "x": 10,
+            "y": 2.029,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.626,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.473,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.85,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.106,
+            "label": "Normal"
+          },
+          {
+            "x": 19,
+            "y": 1.821,
+            "label": "Normal"
+          },
+          {
+            "x": 10,
+            "y": 1.324,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.698,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.663,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.568,
+            "label": "Normal"
+          },
+          {
+            "x": 17,
+            "y": 1.458,
+            "label": "Normal"
+          },
+          {
+            "x": 16,
+            "y": 1.003,
+            "label": "Normal"
+          },
+          {
+            "x": 15,
+            "y": 1.321,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.835,
+            "label": "Normal"
+          },
+          {
+            "x": 21,
+            "y": 0.627,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.592,
+            "label": "Normal"
+          },
+          {
+            "x": 18,
+            "y": 1.187,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.544,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.505,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 2.121,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.219,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.684,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 0.826,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.823,
+            "label": "Normal"
+          },
+          {
+            "x": 8,
+            "y": 1.861,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.538,
+            "label": "Normal"
+          },
+          {
+            "x": 13,
+            "y": 1.605,
+            "label": "Normal"
+          },
+          {
+            "x": 14,
+            "y": 1.107,
+            "label": "Normal"
+          },
+          {
+            "x": 12,
+            "y": 1.355,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.728,
+            "label": "Normal"
+          },
+          {
+            "x": 11,
+            "y": 1.103,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 1.807,
+            "label": "Anomaly"
+          },
+          {
+            "x": 2,
+            "y": 1.929,
+            "label": "Anomaly"
+          },
+          {
+            "x": 1,
+            "y": 1.822,
+            "label": "Anomaly"
+          },
+          {
+            "x": 2,
+            "y": 1.083,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 1.386,
+            "label": "Anomaly"
+          },
+          {
+            "x": 14,
+            "y": 2.561,
+            "label": "Anomaly"
+          },
+          {
+            "x": 3,
+            "y": 1.334,
+            "label": "Anomaly"
+          },
+          {
+            "x": 12,
+            "y": 2.697,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 1.785,
+            "label": "Anomaly"
+          },
+          {
+            "x": 14,
+            "y": 2.412,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 1.212,
+            "label": "Anomaly"
+          },
+          {
+            "x": 10,
+            "y": 2.178,
+            "label": "Anomaly"
+          },
+          {
+            "x": 21,
+            "y": 1.407,
+            "label": "Anomaly"
+          },
+          {
+            "x": 9,
+            "y": 1.219,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 2.094,
+            "label": "Anomaly"
+          },
+          {
+            "x": 13,
+            "y": 2.718,
+            "label": "Anomaly"
+          },
+          {
+            "x": 18,
+            "y": 3.049,
+            "label": "Anomaly"
+          },
+          {
+            "x": 11,
+            "y": 2.117,
+            "label": "Anomaly"
+          },
+          {
+            "x": 16,
+            "y": 1.324,
+            "label": "Anomaly"
+          },
+          {
+            "x": 3,
+            "y": 1.469,
+            "label": "Anomaly"
+          },
+          {
+            "x": 3,
+            "y": 1.647,
+            "label": "Anomaly"
+          },
+          {
+            "x": 11,
+            "y": 1.796,
+            "label": "Anomaly"
+          },
+          {
+            "x": 15,
+            "y": 0.838,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 1.585,
+            "label": "Anomaly"
+          },
+          {
+            "x": 2,
+            "y": 1.902,
+            "label": "Anomaly"
+          },
+          {
+            "x": 11,
+            "y": 2.821,
+            "label": "Anomaly"
+          },
+          {
+            "x": 18,
+            "y": 2.372,
+            "label": "Anomaly"
+          },
+          {
+            "x": 12,
+            "y": 1.39,
+            "label": "Anomaly"
+          },
+          {
+            "x": 3,
+            "y": 0.869,
+            "label": "Anomaly"
+          },
+          {
+            "x": 16,
+            "y": 1.375,
+            "label": "Anomaly"
+          },
+          {
+            "x": 11,
+            "y": 1.189,
+            "label": "Anomaly"
+          },
+          {
+            "x": 2,
+            "y": 1.202,
+            "label": "Anomaly"
+          },
+          {
+            "x": 19,
+            "y": 1.779,
+            "label": "Anomaly"
+          },
+          {
+            "x": 13,
+            "y": 1.582,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 1.891,
+            "label": "Anomaly"
+          },
+          {
+            "x": 1,
+            "y": 1.477,
+            "label": "Anomaly"
+          },
+          {
+            "x": 18,
+            "y": 3.514,
+            "label": "Anomaly"
+          },
+          {
+            "x": 12,
+            "y": 2.686,
+            "label": "Anomaly"
+          },
+          {
+            "x": 13,
+            "y": 1.692,
+            "label": "Anomaly"
+          },
+          {
+            "x": 8,
+            "y": 1.475,
+            "label": "Anomaly"
+          },
+          {
+            "x": 2,
+            "y": 1.357,
+            "label": "Anomaly"
+          },
+          {
+            "x": 3,
+            "y": 1.644,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 0.787,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 1.367,
+            "label": "Anomaly"
+          },
+          {
+            "x": 17,
+            "y": 3.228,
+            "label": "Anomaly"
+          },
+          {
+            "x": 21,
+            "y": 2.28,
+            "label": "Anomaly"
+          },
+          {
+            "x": 10,
+            "y": 1.563,
+            "label": "Anomaly"
+          },
+          {
+            "x": 14,
+            "y": 1.363,
+            "label": "Anomaly"
+          },
+          {
+            "x": 2,
+            "y": 1.341,
+            "label": "Anomaly"
+          },
+          {
+            "x": 11,
+            "y": 1.969,
+            "label": "Anomaly"
+          },
+          {
+            "x": 15,
+            "y": 2.929,
+            "label": "Anomaly"
+          },
+          {
+            "x": 18,
+            "y": 1.881,
+            "label": "Anomaly"
+          },
+          {
+            "x": 18,
+            "y": 2.594,
+            "label": "Anomaly"
+          },
+          {
+            "x": 3,
+            "y": 1.73,
+            "label": "Anomaly"
+          },
+          {
+            "x": 13,
+            "y": 1.777,
+            "label": "Anomaly"
+          },
+          {
+            "x": 15,
+            "y": 2.734,
+            "label": "Anomaly"
+          },
+          {
+            "x": 11,
+            "y": 3.503,
+            "label": "Anomaly"
+          },
+          {
+            "x": 18,
+            "y": 2.357,
+            "label": "Anomaly"
+          },
+          {
+            "x": 8,
+            "y": 2.866,
+            "label": "Anomaly"
+          },
+          {
+            "x": 11,
+            "y": 1.47,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 1.337,
+            "label": "Anomaly"
+          },
+          {
+            "x": 19,
+            "y": 2.2,
+            "label": "Anomaly"
+          },
+          {
+            "x": 8,
+            "y": 2.678,
+            "label": "Anomaly"
+          },
+          {
+            "x": 2,
+            "y": 1.451,
+            "label": "Anomaly"
+          },
+          {
+            "x": 17,
+            "y": 2.786,
+            "label": "Anomaly"
+          },
+          {
+            "x": 17,
+            "y": 2.578,
+            "label": "Anomaly"
+          },
+          {
+            "x": 3,
+            "y": 1.24,
+            "label": "Anomaly"
+          },
+          {
+            "x": 11,
+            "y": 2.77,
+            "label": "Anomaly"
+          },
+          {
+            "x": 1,
+            "y": 1.463,
+            "label": "Anomaly"
+          },
+          {
+            "x": 9,
+            "y": 0.573,
+            "label": "Anomaly"
+          },
+          {
+            "x": 16,
+            "y": 1.384,
+            "label": "Anomaly"
+          },
+          {
+            "x": 19,
+            "y": 0.848,
+            "label": "Anomaly"
+          },
+          {
+            "x": 19,
+            "y": 2.746,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 2.159,
+            "label": "Anomaly"
+          },
+          {
+            "x": 12,
+            "y": 1.319,
+            "label": "Anomaly"
+          },
+          {
+            "x": 17,
+            "y": 2.684,
+            "label": "Anomaly"
+          },
+          {
+            "x": 8,
+            "y": 1.8,
+            "label": "Anomaly"
+          },
+          {
+            "x": 18,
+            "y": 1.856,
+            "label": "Anomaly"
+          },
+          {
+            "x": 12,
+            "y": 2.602,
+            "label": "Anomaly"
+          },
+          {
+            "x": 21,
+            "y": 3.626,
+            "label": "Anomaly"
+          },
+          {
+            "x": 18,
+            "y": 1.758,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 1.922,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 1.442,
+            "label": "Anomaly"
+          },
+          {
+            "x": 11,
+            "y": 1.709,
+            "label": "Anomaly"
+          },
+          {
+            "x": 8,
+            "y": 1.423,
+            "label": "Anomaly"
+          },
+          {
+            "x": 12,
+            "y": 2.494,
+            "label": "Anomaly"
+          },
+          {
+            "x": 17,
+            "y": 2.782,
+            "label": "Anomaly"
+          },
+          {
+            "x": 14,
+            "y": 1.926,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 1.59,
+            "label": "Anomaly"
+          },
+          {
+            "x": 16,
+            "y": 0.94,
+            "label": "Anomaly"
+          },
+          {
+            "x": 15,
+            "y": 1.573,
+            "label": "Anomaly"
+          },
+          {
+            "x": 9,
+            "y": 2.807,
+            "label": "Anomaly"
+          },
+          {
+            "x": 19,
+            "y": 0.959,
+            "label": "Anomaly"
+          },
+          {
+            "x": 11,
+            "y": 2.733,
+            "label": "Anomaly"
+          },
+          {
+            "x": 10,
+            "y": 2.985,
+            "label": "Anomaly"
+          },
+          {
+            "x": 14,
+            "y": 2.428,
+            "label": "Anomaly"
+          },
+          {
+            "x": 21,
+            "y": 3.222,
+            "label": "Anomaly"
+          },
+          {
+            "x": 2,
+            "y": 1.18,
+            "label": "Anomaly"
+          },
+          {
+            "x": 13,
+            "y": 2.022,
+            "label": "Anomaly"
+          },
+          {
+            "x": 11,
+            "y": 1.432,
+            "label": "Anomaly"
+          },
+          {
+            "x": 19,
+            "y": 1.731,
+            "label": "Anomaly"
+          },
+          {
+            "x": 1,
+            "y": 1.771,
+            "label": "Anomaly"
+          },
+          {
+            "x": 10,
+            "y": 2.364,
+            "label": "Anomaly"
+          },
+          {
+            "x": 20,
+            "y": 1.887,
+            "label": "Anomaly"
+          },
+          {
+            "x": 18,
+            "y": 2.264,
+            "label": "Anomaly"
+          },
+          {
+            "x": 9,
+            "y": 1.28,
+            "label": "Anomaly"
+          },
+          {
+            "x": 18,
+            "y": 2.675,
+            "label": "Anomaly"
+          },
+          {
+            "x": 19,
+            "y": 1.514,
+            "label": "Anomaly"
+          },
+          {
+            "x": 18,
+            "y": 2.664,
+            "label": "Anomaly"
+          },
+          {
+            "x": 21,
+            "y": 1.624,
+            "label": "Anomaly"
+          },
+          {
+            "x": 12,
+            "y": 1.362,
+            "label": "Anomaly"
+          },
+          {
+            "x": 0,
+            "y": 1.225,
+            "label": "Anomaly"
+          },
+          {
+            "x": 19,
+            "y": 1.247,
+            "label": "Anomaly"
+          },
+          {
+            "x": 17,
+            "y": 1.521,
+            "label": "Anomaly"
+          },
+          {
+            "x": 20,
+            "y": 1.195,
+            "label": "Anomaly"
+          },
+          {
+            "x": 17,
+            "y": 1.426,
+            "label": "Anomaly"
+          },
+          {
+            "x": 10,
+            "y": 2.15,
+            "label": "Anomaly"
+          },
+          {
+            "x": 9,
+            "y": 1.735,
+            "label": "Anomaly"
+          },
+          {
+            "x": 8,
+            "y": 2.618,
+            "label": "Anomaly"
+          }
+        ]
+      }
+    },
+    {
+      "id": "traveler-fx-sensitivity",
+      "type": "line",
+      "title": {
+        "ru": "Чувствительность юнит-экономики к FX",
+        "en": "Unit economics sensitivity to FX"
+      },
+      "description": {
+        "ru": "Blended-маржа путешественника на транзакцию (€) при однофакторном изменении FX-cost и FX-spread.",
+        "en": "Traveler blended margin per transaction (€) as FX cost and FX spread vary one at a time."
+      },
+      "xLabel": {
+        "ru": "Ставка (%)",
+        "en": "Rate (%)"
+      },
+      "yLabel": {
+        "ru": "Маржа на tx (€)",
+        "en": "Margin per tx (€)"
+      },
+      "labelEvery": 1,
+      "conclusions": [
+        {
+          "ru": "FX-cost пересекает ноль при ≈0,55% — достижимо переговорами, поэтому это и есть гейт масштабирования.",
+          "en": "FX cost crosses zero at ≈0.55% — reachable by negotiation, which is exactly why it is the scaling gate."
+        },
+        {
+          "ru": "При ставке 1,0% маржа −0,44 €/tx по сценарию FX-cost и +0,21 € по FX-spread — исход зависит от рычага.",
+          "en": "At a 1.0% rate the margin is −0.44 €/tx under FX cost and +0.21 € under FX spread — the lever decides the sign."
+        }
+      ],
+      "data": {
+        "categories": [
+          "0.4",
+          "0.5",
+          "0.6",
+          "0.7",
+          "0.8",
+          "0.9",
+          "1"
+        ],
+        "series": [
+          {
+            "name": "FX cost %",
+            "values": [
+              0.2092,
+              0.1017,
+              -0.0058,
+              -0.1132,
+              -0.2207,
+              -0.3282,
+              -0.4357
+            ]
+          },
+          {
+            "name": "FX spread %",
+            "values": [
+              -0.4357,
+              -0.3282,
+              -0.2207,
+              -0.1132,
+              -0.0058,
+              0.1017,
+              0.2092
+            ]
+          }
+        ]
+      }
     }
   ]
 }

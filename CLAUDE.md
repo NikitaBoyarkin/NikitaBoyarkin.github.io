@@ -150,7 +150,23 @@ Each project is a Markdown file with frontmatter:
 
 ### Volta parts (`volta-parts` / `volta-parts-en`)
 
-Sub-projects of the Volta neobank narrative: `funnel`, `ab`, `retention`, `segmentation`. Schema: `title`, `description`, `part`, `order`, `impact`, `tools`, `github` (optional), `draft`.
+Sub-projects of the Volta neobank narrative (23 RU + 23 EN): the core loop (`funnel`, `ab`,
+`retention`, `segmentation`), the extended portfolio (5–12), `market-jobs` (13–17), the `rat-v2`
+validation layer (18–22) and `causal-kyc` (23). Schema: `title`, `description`, `part`, `order`,
+`layer` (required enum `core | extended | market-jobs | rat-v2 | causal`), `impact`, `tools`,
+`charts` (chart ids from `src/data/charts/volta.json`), `github` (optional), `draft`.
+
+**Parts dossier skeleton** (H2 order; a documented exception to the project skeleton below):
+`Контекст → Данные и метод → Выводы → Рекомендации → Документация`
+(`Context → Data & Method → Findings → Recommendations → Documentation`). Fold any one-off
+`Визуализация` / `Visualization` block into `Данные и метод`; evidence ships as native charts
+(see `charts:`), not embedded PNGs.
+
+**Hub map** — `src/content/projects/volta.md` (and its EN twin) carries the grouped map of all
+parts between `<!-- volta-map:start -->` / `<!-- volta-map:end -->`. It is **generated** from the
+parts collections by `bun run volta:map` (`scripts/gen-volta-map.mjs`); re-run it after adding or
+renaming a part. The hub itself shows a curated 6-chart evidence set (`HUB_CHART_IDS` in
+`src/pages/projects/[slug].astro`); every other Volta chart lives on its part page.
 
 ### Posts
 

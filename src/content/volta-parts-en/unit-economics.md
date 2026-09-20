@@ -17,6 +17,7 @@ tools:
   - "uv + ruff"
 charts:
   - "traveler-fx-break-even"
+  - "traveler-fx-sensitivity"
 github: https://github.com/NikitaBoyarkin/volta-banking
 ---
 
@@ -43,12 +44,6 @@ The traveler segment promises a 'fair rate' — we test whether it survives econ
 - Don't scale travel until the unit economics are fixed.
 - Negotiate interbank rates, hedge, introduce a paid travel tier.
 - Test on 10% of the segment, not the whole volume.
-
-## Visualization
-
-![Unit-economics sensitivity](/images/volta/traveler_unit_economics_sensitivity.png)
-
-*Sensitivity of the traveler's blended margin to FX cost.*
 
 ## Documentation
 

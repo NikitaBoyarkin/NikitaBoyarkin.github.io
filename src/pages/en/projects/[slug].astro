@@ -9,6 +9,7 @@ import { withBase } from '../../../lib/path';
 import { formatDate } from '../../../lib/date';
 import { buildGraph, mergePostsForLocale, subgraphAround } from '../../../lib/graph';
 import { TOPICS } from '../../../lib/topics';
+import { PROJECT_ORDER } from '../../../lib/projects';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects-en', (p) => !p.data.draft);
@@ -26,14 +27,26 @@ const { Content } = await render(project);
 const slug = project.id.replace(/\.md$/, '');
 const caseStudy = project.data.caseStudy;
 
-// Next / prev within the ordered project list.
-const ORDER = ['volta', 'sql', 'rfm', 'cohort', 'bot', 'scrolly', 'garden', 'site'];
-const ordered = [...allProjects].sort(
-  (a, b) => ORDER.indexOf(a.id.replace(/\.md$/, '')) - ORDER.indexOf(b.id.replace(/\.md$/, '')),
-);
+// Next / prev within the ordered project list. Order comes from the shared
+// PROJECT_ORDER so it can never drift from the home board / headline list.
+const rank = (id: string) => {
+  const i = PROJECT_ORDER.indexOf(id.replace(/\.md$/, ''));
+  return i === -1 ? PROJECT_ORDER.length : i;
+};
+const ordered = [...allProjects].sort((a, b) => rank(a.id) - rank(b.id));
 const idx = ordered.findIndex((p) => p.id === project.id);
 const prev = idx > 0 ? ordered[idx - 1] : null;
 const next = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null;
+
+// Curated evidence set on the flagship hub (see prd-volta-structure D10).
+const HUB_CHART_IDS = [
+  'onboarding-funnel',
+  'kyc-ab-conversion',
+  'cohort-retention-heatmap',
+  'retention-pre-post',
+  'segmentation-size-vs-revenue',
+  'segmentation-pareto-cumulative',
+];
 
 // Resolve related paths like /posts/<slug>/ and /projects/<slug>/ into { href, title }.
 // Posts stay RU-only (root); project links are EN-prefixed.
@@ -54,13 +67,6 @@ const related = (project.data.related ?? [])
         ? withBase(`en/projects/${s}/`)
         : withBase(`posts/${s}/`);
     return { href, title: found.title };
-  })
-  .filter((x): x is { href: string; title: string } => x !== null);
-
-const children = (project.data.children ?? [])
-  .map((c) => {
-    const found = allParts.find((p) => p.data.part === c);
-    return found ? { href: withBase(`en/projects/${slug}/${c}/`), title: found.data.title } : null;
   })
   .filter((x): x is { href: string; title: string } => x !== null);
 
@@ -209,7 +215,7 @@ const pageJsonLd = {
       )
     }
 
-    <ChartsSection slug={slug} lang="en" />
+    <ChartsSection slug={slug} ids={slug === 'volta' ? HUB_CHART_IDS : undefined} lang="en" />
 
     {
       (prev || next) && (
@@ -227,19 +233,6 @@ const pageJsonLd = {
             </a>
           )}
         </nav>
-      )
-    }
-
-    {
-      children.length > 0 && (
-        <section class="post-related reveal reveal-delay-1" aria-label="Detailed breakdowns">
-          <h2>Detailed breakdowns</h2>
-          <ul>
-            {children.map((c) => (
-              <li><a href={c.href}>{c.title}</a></li>
-            ))}
-          </ul>
-        </section>
       )
     }
 

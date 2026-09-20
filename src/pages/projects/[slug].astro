@@ -9,6 +9,7 @@ import { withBase } from '../../lib/path';
 import { formatDate } from '../../lib/date';
 import { buildGraph, subgraphAround } from '../../lib/graph';
 import { TOPICS } from '../../lib/topics';
+import { PROJECT_ORDER } from '../../lib/projects';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects', (p) => !p.data.draft);
@@ -25,14 +26,28 @@ const { Content } = await render(project);
 const slug = project.id.replace(/\.md$/, '');
 const caseStudy = project.data.caseStudy;
 
-// Next / prev within the ordered project list (P3.11).
-const ORDER = ['volta', 'sql', 'rfm', 'cohort', 'bot', 'scrolly', 'garden', 'site'];
-const ordered = [...allProjects].sort(
-  (a, b) => ORDER.indexOf(a.id.replace(/\.md$/, '')) - ORDER.indexOf(b.id.replace(/\.md$/, '')),
-);
+// Next / prev within the ordered project list (P3.11). Order comes from the
+// shared PROJECT_ORDER so it can never drift from the home board / headline list.
+const rank = (id: string) => {
+  const i = PROJECT_ORDER.indexOf(id.replace(/\.md$/, ''));
+  return i === -1 ? PROJECT_ORDER.length : i;
+};
+const ordered = [...allProjects].sort((a, b) => rank(a.id) - rank(b.id));
 const idx = ordered.findIndex((p) => p.id === project.id);
 const prev = idx > 0 ? ordered[idx - 1] : null;
 const next = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null;
+
+// Curated evidence set on the flagship hub: the 4 evidence charts + the 2
+// segmentation charts. Every other Volta chart lives on its own part page
+// (PRD prd-volta-structure D10 / Phase 2).
+const HUB_CHART_IDS = [
+  'onboarding-funnel',
+  'kyc-ab-conversion',
+  'cohort-retention-heatmap',
+  'retention-pre-post',
+  'segmentation-size-vs-revenue',
+  'segmentation-pareto-cumulative',
+];
 
 // Резолвим related-пути вида /posts/<slug>/ и /projects/<slug>/ в { href, title }
 const lookup = new Map<string, { kind: string; title: string }>();
@@ -47,13 +62,6 @@ const related = (project.data.related ?? [])
     const s = p.replace(/^\//, '').replace(/\/$/, '').replace(/^(posts|projects)\//, '');
     const found = lookup.get(s);
     return found ? { href: withBase(`${found.kind}/${s}/`), title: found.title } : null;
-  })
-  .filter((x): x is { href: string; title: string } => x !== null);
-
-const children = (project.data.children ?? [])
-  .map((c) => {
-    const found = allParts.find((p) => p.data.part === c);
-    return found ? { href: withBase(`projects/${slug}/${c}/`), title: found.data.title } : null;
   })
   .filter((x): x is { href: string; title: string } => x !== null);
 
@@ -198,7 +206,7 @@ const pageJsonLd = {
       )
     }
 
-    <ChartsSection slug={slug} lang="ru" />
+    <ChartsSection slug={slug} ids={slug === 'volta' ? HUB_CHART_IDS : undefined} lang="ru" />
 
     {
       (prev || next) && (
@@ -216,19 +224,6 @@ const pageJsonLd = {
             </a>
           )}
         </nav>
-      )
-    }
-
-    {
-      children.length > 0 && (
-        <section class="post-related reveal reveal-delay-1" aria-label="Подробные разборы">
-          <h2>Подробные разборы</h2>
-          <ul>
-            {children.map((c) => (
-              <li><a href={c.href}>{c.title}</a></li>
-            ))}
-          </ul>
-        </section>
       )
     }
 

@@ -17,6 +17,7 @@ tools:
   - "uv + ruff"
 charts:
   - "traveler-fx-break-even"
+  - "traveler-fx-sensitivity"
 github: https://github.com/NikitaBoyarkin/volta-banking
 ---
 
@@ -43,12 +44,6 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 - Не масштабировать тревел до починки юнит-экономики.
 - Договариваться об интербанковских ставках, хеджировать, вводить платный тревел-тир.
 - Тестировать на 10% сегмента, а не на всём объёме.
-
-## Визуализация
-
-![Чувствительность юнит-экономики](/images/volta/traveler_unit_economics_sensitivity.png)
-
-*Чувствительность blended-маржи путешественника к FX-cost.*
 
 ## Документация
 

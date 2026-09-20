@@ -17,6 +17,8 @@ tools:
   - "uv + ruff"
 charts:
   - "churn-feature-importance"
+  - "churn-roc-curves"
+  - "churn-shap-importance"
 github: https://github.com/NikitaBoyarkin/volta-banking
 ---
 
@@ -29,7 +31,13 @@ Churn is not only a marketing problem: we need to know what actually drives leav
 ## Data & Method
 
 - Logistic regression vs Random Forest, ROC-AUC and feature importance.
-- SHAP summary and local breakdown of a single prediction.
+- SHAP summary (mean |SHAP|) and local breakdown of a single prediction.
+
+### Local SHAP
+
+![SHAP breakdown of a single prediction](/images/volta/churn_shap_local.png)
+
+*Why one specific user is high risk: each feature's contribution.*
 
 ## Findings
 
@@ -42,20 +50,6 @@ Churn is not only a marketing problem: we need to know what actually drives leav
 - Route churn prevention into product reliability and support, not just offers.
 - Use SHAP for targeted risk scoring.
 - Monitor device-error rate as a retention guardrail metric.
-
-## Visualization
-
-![Churn ROC curves](/images/volta/churn_roc_curve.png)
-
-*ROC curves for logistic regression and Random Forest; RF +0.03 AUC.*
-
-![SHAP summary](/images/volta/churn_shap_summary.png)
-
-*SHAP summary: feature contributions to the churn prediction.*
-
-![SHAP local](/images/volta/churn_shap_local.png)
-
-*SHAP breakdown of a single prediction.*
 
 ## Documentation
 

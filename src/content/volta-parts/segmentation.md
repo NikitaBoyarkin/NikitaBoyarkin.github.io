@@ -18,6 +18,8 @@ tools:
 charts:
   - "segmentation-size-vs-revenue"
   - "segmentation-pareto-cumulative"
+  - "segmentation-pca-scatter"
+  - "segmentation-k-selection"
 github: https://github.com/NikitaBoyarkin/volta-banking
 ---
 
@@ -30,7 +32,7 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 ## Данные и метод
 
 - StandardScaler + KMeans, K из данных (marginal-gain elbow, валидация силуэтом).
-- PCA-проекция и силуэт по кластерам.
+- PCA-проекция сегментов и кривые выбора K (инерция + силуэт), посчитанные в коде, а не картинкой.
 - Концентрация по Лоренцу и сценарии миграции между сегментами.
 
 ## Выводы
@@ -45,16 +47,6 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 - Защищать Power, апгрейдить Growth/Casual, вернуть Dormant.
 - Строить стратегию по вероятностям, а не по жёстким ярлыкам (границы мягкие).
 - Валидировать стратегию 4 рекомендованными A/B-тестами.
-
-## Визуализация
-
-![PCA-проекция сегментов](/images/volta/segmentation_pca_scatter.png)
-
-*K=4 сегмента в PCA-проекции.*
-
-![Выбор K](/images/volta/segmentation_k_selection.png)
-
-*Data-driven выбор K: elbow и силуэт (плато K=2–4, коллапс на K=5).*
 
 ## Документация
 

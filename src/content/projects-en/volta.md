@@ -1,6 +1,6 @@
 ---
 title: Volta Neobank — Product Analytics
-description: "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €656K/year. 22 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2."
+description: "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €656K/year. 23 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2 → causal."
 track: experiments
 hero: images/volta.svg
 impact:
@@ -8,8 +8,9 @@ impact:
   - +9.2pp M3 retention, +€227K/yr incremental LTV
   - 4 data-driven user segments with per-segment monetization strategy
   - CUPED variance reduction + AA-test (type-I = 0.050) + Bonferroni correction
+  - "DiD check: the KYC fix causally lifted M3 retention by +9.09pp (95% CI [+6.21, +11.96])"
   - "RAT v2: 5 audit risks priced in money — 3 confirmed, 1 refuted by mechanism, 1 refined"
-  - "22 projects: 12 analytical domains + Market & Jobs (JTBD) + the RAT v2 validation layer"
+  - "23 projects: 12 analytical domains + Market & Jobs (JTBD) + the RAT v2 validation layer + causal"
 tools:
   - Python
   - pandas / NumPy
@@ -29,7 +30,7 @@ faq:
   - question: "Does the progress bar fix the KYC problem?"
     answer: "Yes: +5.72pp lift (p<0.0001), 95% CI [+3.78%, +7.66%], above the +5pp MDE → ship."
   - question: "Did the effect hold?"
-    answer: "Yes: +9.2pp M3 retention, +€227K/yr incremental LTV."
+    answer: "Yes: +9.2pp M3 retention, +€227K/yr incremental LTV. A DiD check confirms causality: ATT +9.09pp (95% CI [+6.21, +11.96])."
   - question: "Who are the users, how to monetize?"
     answer: "4 segments (Power 12% / Growth 24% / Casual 32% / Dormant 32%) with per-segment strategy; migration worth up to +€310K/yr."
 related:
@@ -60,8 +61,8 @@ children:
   - causal-kyc
 caseStudy:
   problem: "The neobank was losing users during onboarding, but it was unclear which step was critical and whether a fix would actually hold. Isolated analyses produced local numbers with no product-level connection."
-  approach: "Four projects wired into a single discover → validate → measure → optimize loop: funnel found the KYC bottleneck, an A/B test with CUPED + AA-test + Bonferroni validated a progress-bar fix under a three-condition ship-gate (significance ∧ lift≥MDE ∧ no SRM), retention confirmed the effect held, and segmentation translated it into revenue."
-  result: "The KYC fix delivered +5.72pp conversion and €656K/yr (44× ROI), the effect held in retention (+9.2pp M3, +€227K/yr LTV), and segmentation showed 12% of users drive 41% of revenue — migration is worth up to +€310K/yr. The repo has grown to 22 projects, including a RAT v2 validation layer that prices the audit's own recommendations: 3 risks confirmed, 1 refuted, 1 refined. The reproducible methodology protects against shipping statistically-significant but business-insignificant changes."
+  approach: "Four projects wired into a single discover → validate → measure → optimize loop: funnel found the KYC bottleneck, an A/B test with CUPED + AA-test + Bonferroni validated a progress-bar fix under a three-condition ship-gate (significance ∧ lift≥MDE ∧ no SRM), retention confirmed the effect held, and segmentation translated it into revenue. A DiD analysis separated the causal effect from the background trend."
+  result: "The KYC fix delivered +5.72pp conversion and €656K/yr (44× ROI), the effect held in retention (+9.2pp M3, +€227K/yr LTV), and segmentation showed 12% of users drive 41% of revenue — migration is worth up to +€310K/yr. The repo has grown to 23 projects, including a RAT v2 validation layer that prices the audit's own recommendations (3 risks confirmed, 1 refuted, 1 refined) and a DiD causal check. The reproducible methodology protects against shipping statistically-significant but business-insignificant changes."
   metrics:
     - label: "KYC conversion lift"
       value: "+5.72pp"
@@ -81,6 +82,7 @@ caseStudy:
 - **Fix:** a KYC progress bar lifted conversion **+5.72pp** (p < 0.0001), above the +5pp MDE.
 - **Money:** **€656K/yr** business impact at 44× ROI.
 - **Retention:** the effect held — **+9.2pp** M3 retention, **+€227K/yr** incremental LTV.
+- **Causality:** a DiD check confirms the fix *caused* the shift: M3 retention **+9.09pp** (95% CI [+6.21, +11.96]).
 
 ## The Case
 
@@ -88,7 +90,53 @@ caseStudy:
 
 We answered it with four projects wired into a single **discover → validate → measure → optimize** loop. Each project is a piece of evidence that narrows the case. All data is synthetic, generated deterministically (seed), and reproduced from code: any conclusion can be re-checked by re-running, not taken on faith.
 
-## Evidence #1 — Funnel: where the leak is
+## Project map
+
+23 sub-projects, grouped by the layers of the **discover → validate → measure → optimize** loop. Every row is a result-first finding and a link to its case file.
+
+<!-- volta-map:start -->
+### Core — the discover → validate → measure → optimize loop
+
+- [Funnel Analysis](funnel/) — The neobank onboarding funnel: KYC is the bottleneck at 56.6% step conversion, registration loses the most in absolute terms (2,682). Broken down by channel and platform.
+- [KYC Progress-Bar A/B Test](ab/) — A KYC progress bar lifted conversion +5.72pp (Z=5.82, p<0.0001) against a +5pp MDE. CUPED, AA-test and Bonferroni protect the conclusion; +€656K/yr at 44× ROI.
+- [Retention & Cohorts](retention/) — Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€227K/yr LTV. Premium LTV is 4.3× Free.
+- [User Segmentation](segmentation/) — KMeans with data-driven K=4: Power 12% drive 41% of revenue, 68% drive 92%. Cross-segment migration is worth up to +€310K/yr.
+
+### Extended — expanded portfolio
+
+- [Churn Prediction](churn/) — Random Forest adds +0.03 ROC-AUC over logistic regression; the top churn driver is device-error rate (23.7%), not balance or activity.
+- [RFM Analysis](rfm/) — R/F/M scoring 1–5 splits the base into lifecycle segments from Champions to Lost; recency and monetary diverge — 'frequent but cheap' and 'rare but large'.
+- [CLV Modeling](clv/) — Three lifetime-value methods: historical, retention-curve and Gamma-Gamma. The order Power > Growth > Casual > Dormant is robust across all methods.
+- [Marketing Attribution](attribution/) — First-touch, last-touch, linear and Shapley attribution. Shapley (data-driven) reallocates budget and leads with referral; the conclusion is robust to model choice.
+- [Anomaly Detection](anomalies/) — Z-score, IQR and Isolation Forest against ground truth. IF has the best F1 (50.4%), catching amount, night-hour and frequency anomalies; Z-score is precise but cautious.
+- [Spend Analysis](spend/) — Spend breakdown by category and channel: bills (25.8%) and travel (20.2%) make up nearly half the turnover, groceries is the most frequent category.
+- [Support & Churn](support-churn/) — Churn rises with ticket count: 37.1% at zero contacts vs 81.1% at 3+. Support is a measurable retention lever, not just a cost center.
+- [NPS Trends](nps/) — Monthly NPS hovers near zero; the strongest drivers are app quality (+30.3) and product (+29.4), the main source of dissatisfaction is fees (−59.4).
+
+### Market & Jobs — JTBD segments
+
+- [JTBD × Cohorts](jtbd/) — Job segments and behavioral cohorts are not independent (chi² p<0.001): Dormant concentrates in Digital Newcomers 45+ (39.4%) vs Family Budgeters (15.1%).
+- [Traveler Unit Economics](unit-economics/) — Travelers lose €0.45 per €100 FX transaction; break-even needs FX cost cut from 1.00% to 0.55%, otherwise the loss grows with volume.
+- [Premium Upsell](premium-upsell/) — Free→Premium conversion concentrates in the anchor (17.3%) and status-seekers (41.2%); Digital Newcomers 45+ convert just 1.8% — the value prop doesn't transfer.
+- [45+ KYC Deep-Dive](kyc-45/) — Age-sliced A/B HTE: 35–44 +11.0pp and 18–24 +5.3pp, but 45+ +1.4pp (ns). Referral (trust) converts 45+ best — friction is trust, not UX.
+- [Referral Segments](referral/) — Referral funnel by JTBD segment: anchor 29.6% vs Digital Newcomers 45+ 4.8% and families 8.6%. The gap opens at accept, not KYC.
+
+### RAT v2 — pricing the audit in money
+
+- [Assisted CAC vs LTV](assisted-cac/) — Does the 45+ trust track pay off: 45+ LTV/CAC = 0.66 against a ≥3 gate; assisted CAC €120 is ~3× referral and doesn't pay back (50-month payback).
+- [FX Sourcing Feasibility](fx-sourcing/) — The 0.55% gate is reachable only at SOM scale (~€332M/mo, 122× today) — a cold-start, not 'impossible'. Best quote is Interbank Prime at 0.745%.
+- [Segment Premium Offers](premium-offers/) — A/B: a segment offer lifts gap segments (+3.3pp 45+, +4.2pp families, +3.8pp travelers) — Holm-significant, but the anchor barely moves.
+- [Anchor Launch CAC at Scale](anchor-cac/) — LTV/CAC ≥3 holds only to ~70K users; at SOM it falls to 1.76× and a 17-month payback. The constraint is cheap-channel capacity, not budget.
+- [Dormant 45+ Win-back](dormant-winback/) — Three-arm win-back: human +5.34pp and light-touch +2.77pp vs control. Light-touch pays off at 30–90d (ROI 2.54 / 1.26), human ROI 0.40 — kill as a mass channel.
+
+### Causal — causal validation
+
+- [Causal Validation of KYC (DiD)](causal-kyc/) — A DiD test shows the KYC fix causally lifted M3 retention by +9.09pp (95% CI [+6.21, +11.96]) — flat pre-trends, placebo ≈ 0, max |SMD| 0.157 < 0.2.
+<!-- volta-map:end -->
+
+## Evidence #1–4
+
+### Evidence #1 — Funnel: where the leak is
 
 The first piece of evidence is the onboarding funnel down to the first productive action. The main leak was in **KYC** — the verification step: the largest relative drop-off (56.6% step conversion). Registration loses more in absolute terms (2,682 users, 73.2% step conv), but KYC is more expensive: the user has already made it halfway and still leaves.
 
@@ -96,7 +144,7 @@ Hypothesis: the form is too long and there is no intermediate confirmation.
 
 → [Funnel Analysis — case file](funnel/)
 
-## Evidence #2 — A/B: does the fix work
+### Evidence #2 — A/B: does the fix work
 
 A snapshot is not proof: we validated the funnel finding as an experiment, not a slice. Hypothesis: split KYC into steps with a progress bar.
 
@@ -111,13 +159,15 @@ Verdict: control 55.8% → treatment 61.5%, **+5.72pp**, p < 0.0001, 95% CI [+3.
 
 → [A/B Testing — case file](ab/)
 
-## Evidence #3 — Retention: does the effect hold
+### Evidence #3 — Retention: does the effect hold
 
 Shipping is not the end: we checked the effect on retention with cohort triangles (signup month × age) instead of "the average across everyone". Along the diagonal: cohorts with the new onboarding hold **M3 retention at +9.2pp** over older cohorts → **+€227K/yr incremental LTV**. The new onboarding improves both the first week (faster time-to-value) and month 3 (less churn after the "honeymoon"). Without triangles, this conclusion would hide behind the average.
 
-→ [Retention & Cohort — case file](retention/)
+A separate **DiD check** separated the causal effect from background trends: M3 retention **+9.09pp** (95% CI [+6.21, +11.96]), flat pre-trends (p = 0.29–0.70), placebo ≈ 0, max |SMD| 0.157.
 
-## Evidence #4 — Segmentation: who pays
+→ [Retention & Cohort — case file](retention/) · [Causal Validation (DiD) — case file](causal-kyc/)
+
+### Evidence #4 — Segmentation: who pays
 
 The effect held — the remaining question was who these users are and how to monetize them. StandardScaler + KMeans, data-driven K: **4 segments** — Power 12% / Growth 24% / Casual 32% / Dormant 32%. Lorenz: 12% of users drive 41% of revenue; 68% → 92%. Migration scenarios: up to **+€310K/yr**.
 
@@ -125,32 +175,20 @@ The effect held — the remaining question was who these users are and how to mo
 
 ## The Verdict
 
-A loop of four projects beats isolated analyses: the KYC fix found in the funnel was validated in the A/B test, confirmed in retention, and translated into money through segmentation. The core is the **three-condition ship-gate** (significance ∧ lift ≥ MDE ∧ no SRM): it protects against shipping statistically-significant but business-insignificant changes. Order matters more than numbers: calibrate the instrument first (AA-test, CUPED), then conclude.
+A loop of four projects beats isolated analyses: the KYC fix found in the funnel was validated in the A/B test, confirmed in retention, and translated into money through segmentation. The core is the **three-condition ship-gate** (significance ∧ lift ≥ MDE ∧ no SRM): it protects against shipping statistically-significant but business-insignificant changes.
 
-## Case File: repository expansion
+Order matters more than numbers: calibrate the instrument first (AA-test, CUPED), then conclude. Causality is checked separately with DiD, not left as correlation.
 
-The repo has grown from 4 core projects to **22** (12 analytical domains + Market & Jobs + the RAT v2 validation layer). Additional projects:
+## Other projects
 
-| # | Project | Key finding |
-|---|---|---|
-| 5 | **Churn Prediction** | RF +0.03 ROC-AUC over LR; top driver = device-error rate |
-| 6 | **RFM Analysis** | 7 lifecycle segments |
-| 7 | **CLV Modeling** | 3 methods: historical / retention-curve / Gamma-Gamma |
-| 8 | **Marketing Attribution** | First/last/linear/Shapley — referral leads |
-| 9 | **Anomaly Detection** | Z-score/IQR/Isolation Forest, scored vs ground truth |
-| 10 | **Spend Analysis** | Category/channel breakdown, decline rate, monthly trend |
-| 11 | **Support & Churn** | Churn by tickets, unresolved, CSAT band |
-| 12 | **NPS Trends** | Monthly NPS, drivers, promoter mix |
-| 13 | **JTBD × Cohorts** | Dormant = UX friction (Digital Newcomers 45+), not "no job" |
-| 14 | **Unit Economics** | Travelers lose €/tx; break-even needs FX cost 1.0%→0.55% |
-| 15 | **Premium Upsell** | Anchor 17% vs Digital Newcomers 45+ 2% — value prop doesn't land |
-| 16 | **45+ KYC Deep-Dive** | 45+ lift +1.4pp (ns) vs 35-44 +11.0pp — friction is trust, not UX |
-| 17 | **Referral Segments** | Anchor 29.6% vs Digital Newcomers 4.8% — value prop doesn't transfer |
-| 18 | **Assisted CAC vs LTV** | 45+ LTV/CAC 0.66 (gate ≥3); assisted CAC €120 doesn't pay off — the anchor clears 3.62 only via referral |
-| 19 | **FX Sourcing Feasibility** | The 0.55% gate is reachable only at SOM scale (~€332M/mo): a cold-start, not "impossible" |
-| 20 | **Segment Premium Offers** | A/B: +3.3pp 45+, +4.2pp families, +3.8pp travelers (Holm-significant); the anchor barely moves |
-| 21 | **Anchor Launch CAC** | LTV/CAC ≥3 holds only to ~70K; at SOM 1.76× and 17-month payback — breaks on paid CAC |
-| 22 | **Dormant 45+ Win-back** | Light-touch 30–90d pays off (ROI 2.54 / 1.26); human calls at ROI 0.40 — kill as a mass channel |
+Volta is the flagship, not the only case: each layer of the loop rests on a separate discipline, broken down in the sibling portfolio projects.
+
+- [SQL Analytics Case Study](../sql/) — window functions, cohorts and retention analytics in SQL.
+- [Cohort Retention Analysis](../cohort/) — reading cohort triangles, and why the average lies.
+- [Churn Prediction & Uplift](../churn/) — churn forecasting and uplift modelling.
+- [RFM Segmentation](../rfm/) — segmentation by recency, frequency and money.
+- [Causal Inference](../causal/) — DiD and estimating causal effects without randomization.
+- [A/B Testing in banking](../ab/) — CUPED, AA-test and a ship-gate on a real experiment.
 
 ## The RAT v2 Layer — validating the audit itself
 
@@ -164,83 +202,11 @@ After the JTBD audit, the portfolio tests **its own recommendations**: five v2 r
 | 4 | The anchor's paid CAC breaks launch P&L | ✅ confirmed | Project 21: LTV/CAC 1.76 at SOM, the gate holds only to ~70K |
 | 5 | Assisted onboarding doesn't bring back Dormant 45+ | ❌ refuted by mechanism | Project 22: human +5.3pp, light-touch +2.8pp — the barrier was UX; only light-touch 30–90d pays off |
 
-Bottom line: **3 risks confirmed, 1 refuted, 1 refined** — the audit survived the check and every decision got a measurable gate. Project 16 (the 45+ KYC deep-dive) bridges the layers: it showed the 45+ barrier is trust, not UX, and set off the whole v2 validation chain.
+Bottom line: **3 risks confirmed, 1 refuted, 1 refined** — the audit survived the check and every decision got a measurable gate. Project 16 (the 45+ KYC deep-dive) bridges the layers: it showed the 45+ barrier is trust, not UX, and set off the whole v2 validation chain. The causal layer (Project 23) is an independent check of the flagship's central claim.
 
-## Key results by project
+## Recommendations & gates
 
-### Projects 1–4 — the core loop
-
-| # | Project | Key result |
-|---|---------|------------|
-| 1 | **Funnel** | Registration is the largest absolute loss (2,682 users, 73.2%); KYC Complete the largest relative one (56.6%); referral +11.7 pp over paid social; iOS 13.6% vs Android 11.7% |
-| 2 | **A/B (KYC)** | +5.72 pp (Z=5.82, p<0.0001), 95% CI [+3.78%, +7.66%]; no SRM; CUPED + AA-test + Bonferroni; +€656K/yr (44× ROI) |
-| 3 | **Retention** | M1 +11.8 pp step-change; M3 +9.2 pp; Premium LTV 4.3× Free; +€227K/yr LTV |
-| 4 | **Segmentation** | K=4 from data; Power 12% → 41% of revenue; 68% → 92%; migration +€310K/yr |
-
-### Projects 5–12 — extended portfolio
-
-| # | Project | Key result |
-|---|---------|------------|
-| 5 | **Churn** | RF +0.03 ROC-AUC over LR; driver #1 is device-error rate (23.7%) |
-| 6 | **RFM** | 7 lifecycle segments (Champions→Lost) with a mean R/F/M heatmap |
-| 7 | **CLV** | 3 methods; robustly Power > Growth > Casual > Dormant (Gamma-Gamma €5,166 vs €27.7) |
-| 8 | **Attribution** | First/last/linear/Shapley; Shapley reallocates budget and leads with referral (€264K) |
-| 9 | **Anomalies** | Z-score/IQR/Isolation Forest; IF has the best F1 (50.4%) |
-| 10 | **Spend** | Bills 25.8% and travel 20.2% — nearly half the turnover; groceries is the most frequent |
-| 11 | **Support & churn** | Churn 37.1% (0 tickets) → 81.1% (3+); unresolved tickets amplify it |
-| 12 | **NPS** | Monthly NPS near zero; app_quality +30.3, fees −59.4 |
-
-### Projects 13–17 — Market & Jobs (JTBD)
-
-- **Project 13 — JTBD × cohorts:** chi-square p<0.001 — job segments ≠ cohorts; Dormant 39.4% among Digital Newcomers 45+ vs 15.1% among Family Budgeters; dormancy is driven by UX friction.
-- **Project 14 — Unit economics:** travelers lose €0.45 per €100 FX; break-even needs FX cost 1.00%→0.55%; the loss grows with volume.
-- **Project 15 — Premium upsell:** conversion concentrates in the anchor (17.3%) and status-seekers (41.2%); 45+ 1.8% (z=34, p<0.001) — the upsell doesn't transfer.
-- **Project 16 — 45+ KYC deep-dive:** 35–44 +11.0 pp (p<0.001) and 18–24 +5.3 pp vs 45+ +1.4 pp (ns); referral (trust) converts 45+ best (64.1%) — friction is trust, not UX.
-- **Project 17 — Referral segments:** anchor 29.6% vs 45+ 4.8% and families 8.6% (chi² p<0.001); the gap opens at accept (78% vs 26% vs 40%).
-
-### Projects 18–22 — the RAT v2 validation layer
-
-- **Project 18 — Assisted CAC vs LTV:** 45+ LTV/CAC = 0.66 (gate ≥3), assisted CAC €120 doesn't pay off (50-month payback); the anchor clears 3.62 only via referral.
-- **Project 19 — FX sourcing:** the 0.55% gate is reachable only at SOM scale (~€332M/mo, 122× today) — a cold-start; best quote is Interbank Prime at 0.745%.
-- **Project 20 — Segment premium offers:** +3.33 pp 45+, +4.16 pp families, +3.79 pp travelers (Holm-significant); the anchor +0.86 pp — narrows but doesn't close the gap.
-- **Project 21 — Anchor launch CAC:** LTV/CAC ≥3 holds only to ~70K; at SOM 1.76× and 17.0-month payback; the constraint is cheap-channel capacity.
-- **Project 22 — Dormant 45+ win-back:** human +5.34 pp, light-touch +2.77 pp; light-touch pays off at 30–90d (ROI 2.54 / 1.26), human ROI 0.40 — kill as a mass channel.
-
-## Visualizations
-
-Charts for every project are rendered in the **Charts** section below. Special charts that don't reduce to bar/line/funnel/cohort are shown here.
-
-![Segment PCA projection](/images/volta/segmentation_pca_scatter.png)
-
-*K=4 segments in PCA projection; K chosen by elbow + silhouette.*
-
-![K selection](/images/volta/segmentation_k_selection.png)
-
-*Data-driven K selection: marginal-gain elbow and silhouette (plateau K=2–4, collapse at K=5).*
-
-![Churn ROC curves](/images/volta/churn_roc_curve.png)
-
-*ROC curves for logistic regression and Random Forest; RF +0.03 AUC.*
-
-![Churn SHAP summary](/images/volta/churn_shap_summary.png)
-
-*SHAP summary: feature contributions to the churn prediction.*
-
-![Churn SHAP local](/images/volta/churn_shap_local.png)
-
-*SHAP breakdown of a single prediction.*
-
-![Anomaly detection](/images/volta/anomaly_detections.png)
-
-*Anomalies: amount × night hours; Isolation Forest catches hidden clusters.*
-
-![Unit-economics sensitivity](/images/volta/traveler_unit_economics_sensitivity.png)
-
-*Sensitivity of the traveler's blended margin to FX cost.*
-
-## Business recommendations
-
-A summary of decisions across all 22 projects: what to do, on what evidence, under which gate, with what caveat.
+A summary of decisions across all 23 projects: what to do, on what evidence, under which gate, with what caveat.
 
 **1. Onboarding & KYC — remove the main bottleneck**
 
@@ -298,19 +264,24 @@ A summary of decisions across all 22 projects: what to do, on what evidence, und
 
 4. **Segmentation** — StandardScaler + KMeans, data-driven K (marginal-gain elbow, silhouette plateau K=2–4, collapse at K=5). Segments: Power 12% / Growth 24% / Casual 32% / Dormant 32%. Lorenz: 12% of users → 41% of revenue; 68% → 92%. Migration scenarios: +€26K/mo (€310K/yr).
 
-**RAT v2 methods (projects 18–22):** LTV per user (ARPU × contribution margin × retention months) and blended CAC with bootstrap CIs, Welch t-test anchor vs 45+; liquidity-provider quotes and log-interpolation of the required volume; a randomized A/B of segment offers with Holm correction and a segment × arm (DiD) interaction; marginal-CAC curves by channel, cheap-first greedy allocation and the break-even scale; a three-arm win-back (auto / light-touch / human) with z-tests and ROI per 10K treated.
+5. **Causal (DiD)** — naive pre/post vs difference-in-differences: treated = in-app KYC, comparison = partner, cutoff 2024-09. 2×2 DiD + covariate-adjusted with cohort-clustered SE, parallel-trends check, placebo outcome, SMD/overlap. ATT on M3 retention +9.09pp (95% CI [+6.21, +11.96]); naive overstates activation (+6.29pp vs DiD +4.92pp).
+
+**RAT v2 methods (projects 18–22):** LTV per user (ARPU × contribution margin × retention months) and blended CAC with bootstrap CIs, Welch t-test anchor vs 45+; liquidity-provider quotes and log-interpolation of the required volume.
+
+A randomized A/B of segment offers with Holm correction and a segment × arm (DiD) interaction; marginal-CAC curves by channel, cheap-first greedy allocation and the break-even scale; a three-arm win-back (auto / light-touch / human) with z-tests and ROI per 10K treated.
 
 **Code structure:** shared `utils/common.py` (`setup()`, `print_section()`, `CONSTANTS`, `data_path()`), `functions + main()` — importing a module does not run the analysis. Excel reports via `openpyxl`.
 
 ## Impact
 
 - **KYC conversion +5.72pp** (p<0.0001, exceeds MDE) → business impact **€656K/yr** (44× ROI on €15K dev cost).
-- **M3 retention +9.2pp** → **+€227K/yr** incremental LTV from the KYC fix.
+- **M3 retention +9.2pp** → **+€227K/yr** incremental LTV from the KYC fix; DiD confirms causality (ATT +9.09pp).
 - **4 segments** with per-segment strategy and up to **+€310K/yr** monetization via migration.
-- **Reproducible methodology** — CUPED, AA-test, Bonferroni, sensitivity at MDE; 4 recommended A/B tests to validate the strategy.
-- **22 projects** — 12 analytical domains + Market & Jobs (JTBD) + the RAT v2 validation layer: from funnel to dormant win-back.
+- **Reproducible methodology** — CUPED, AA-test, Bonferroni, DiD, sensitivity at MDE; 4 recommended A/B tests to validate the strategy.
+- **23 projects** — 12 analytical domains + Market & Jobs (JTBD) + the RAT v2 validation layer + causal: from funnel to dormant win-back.
 - **The portfolio's own recommendations, priced** — the RAT v2 layer assessed 5 audit risks: 3 confirmed, 1 refuted, 1 refined; every decision got a ship / pilot / hold / kill gate.
 
 ## Documentation
 
 - [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [Interactive demo](/demos/volta/index.html) — the project KPI dashboard.

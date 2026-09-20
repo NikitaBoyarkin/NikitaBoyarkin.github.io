@@ -17,6 +17,7 @@ tools:
   - "uv + ruff"
 charts:
   - "anomaly-detection"
+  - "anomaly-hour-amount"
 github: https://github.com/NikitaBoyarkin/volta-banking
 ---
 
@@ -42,12 +43,6 @@ Fraud/anomalies are a heavily imbalanced problem: detectors must be compared hon
 - IF for broad screening, Z-score for high-precision alerts.
 - Monitor the 'night hours × large amount' clusters.
 - Calibrate the threshold to the acceptable false-positive rate.
-
-## Visualization
-
-![Anomaly detection](/images/volta/anomaly_detections.png)
-
-*Anomalies: amount × night hours; Isolation Forest catches hidden clusters.*
 
 ## Documentation
 

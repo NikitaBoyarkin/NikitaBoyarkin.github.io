@@ -28,7 +28,8 @@
     "sync:gh:candidates": "bun run scripts/sync-github-projects.mjs --candidates",
     "sync:activity": "bun run scripts/sync-github-activity.mjs",
     "audit:content": "bun run scripts/content-drift-audit.mjs",
-    "audit:content:snapshot": "bun run scripts/content-drift-audit.mjs --snapshot"
+    "audit:content:snapshot": "bun run scripts/content-drift-audit.mjs --snapshot",
+    "volta:map": "bun run scripts/gen-volta-map.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

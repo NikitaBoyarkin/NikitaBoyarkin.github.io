@@ -16,9 +16,25 @@ const { part, allParts } = Astro.props;
 const { Content } = await render(part);
 const slug = part.data.part;
 
-const siblings = allParts
-  .filter((p) => p.data.part !== slug)
-  .sort((a, b) => a.data.order - b.data.order);
+const LAYER_LABELS: Record<string, string> = {
+  core: 'Core',
+  extended: 'Extended',
+  'market-jobs': 'Market & Jobs',
+  'rat-v2': 'RAT v2',
+  causal: 'Causal',
+};
+const LAYER_ORDER = ['core', 'extended', 'market-jobs', 'rat-v2', 'causal'];
+
+const ordered = [...allParts].sort((a, b) => a.data.order - b.data.order);
+const idx = ordered.findIndex((p) => p.data.part === slug);
+const prev = idx > 0 ? ordered[idx - 1] : null;
+const next = idx < ordered.length - 1 ? ordered[idx + 1] : null;
+
+const groups = LAYER_ORDER.map((key) => ({
+  key,
+  label: LAYER_LABELS[key],
+  parts: ordered.filter((p) => p.data.layer === key),
+})).filter((g) => g.parts.length > 0);
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
 const partJsonLd = {
@@ -50,7 +66,12 @@ const partJsonLd = {
   <div class="container reveal">
     <a class="back" href={withBase('projects/volta/')}>← Volta Neobank</a>
 
+    <p class="part-layer">
+      {LAYER_LABELS[part.data.layer]} · проект {part.data.order} из {ordered.length}
+    </p>
     <h1>{part.data.title}</h1>
+
+    <p class="part-summary">{part.data.description}</p>
 
     <div class="project-meta">
       {
@@ -103,15 +124,84 @@ const partJsonLd = {
     <ChartsSection slug="volta" ids={part.data.charts} lang="ru" />
 
     {
-      <section class="post-related reveal reveal-delay-2" aria-label="Другие подпроекты Volta">
-        <h2>Другие подпроекты Volta</h2>
-        <ul>
-          <li><a href={withBase('projects/volta/')}>Обзор Volta</a></li>
-          {siblings.map((s) => (
-            <li><a href={withBase(`projects/volta/${s.data.part}/`)}>{s.data.title}</a></li>
-          ))}
-        </ul>
+      (prev || next) && (
+        <nav class="prev-next" aria-label="Другие подпроекты Volta">
+          {prev && (
+            <a class="pn-link pn-prev" href={withBase(`projects/volta/${prev.data.part}/`)}>
+              <span class="pn-dir">← Предыдущий</span>
+              <span class="pn-title">{prev.data.title}</span>
+            </a>
+          )}
+          {next && (
+            <a class="pn-link pn-next" href={withBase(`projects/volta/${next.data.part}/`)}>
+              <span class="pn-dir">Следующий →</span>
+              <span class="pn-title">{next.data.title}</span>
+            </a>
+          )}
+        </nav>
+      )
+    }
+
+    {
+      <section class="post-related reveal reveal-delay-2" aria-label="Карта подпроектов Volta">
+        <h2>Карта подпроектов Volta</h2>
+        <a class="part-map-hub" href={withBase('projects/volta/')}>Обзор Volta →</a>
+        {groups.map((g) => (
+          <div class="part-map-group">
+            <h3>{g.label}</h3>
+            <ul>
+              {g.parts.map((s) =>
+                s.data.part === slug ? (
+                  <li>
+                    <span class="part-map-current" aria-current="page">{s.data.title}</span>
+                  </li>
+                ) : (
+                  <li>
+                    <a href={withBase(`projects/volta/${s.data.part}/`)}>{s.data.title}</a>
+                  </li>
+                ),
+              )}
+            </ul>
+          </div>
+        ))}
       </section>
     }
   </div>
 </Base>
+
+<style>
+  .part-layer {
+    margin: var(--space-4) 0 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-accent);
+  }
+  .part-summary {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--text-normal);
+    border-left: 3px solid var(--text-accent);
+    padding-left: var(--space-4);
+    margin: var(--space-4) 0 var(--space-6);
+  }
+  .part-map-hub {
+    display: inline-block;
+    margin-bottom: var(--space-4);
+    font-size: 0.9rem;
+    color: var(--text-accent);
+    text-decoration: none;
+  }
+  .part-map-group h3 {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: var(--space-4) 0 var(--space-2);
+  }
+  .part-map-current {
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+</style>

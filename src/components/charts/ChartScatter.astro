@@ -1,6 +1,10 @@
 ---
 // Scatter plot. Build-time static SVG with native <title> tooltips.
+// Points may carry a `label` (a group); when two or more groups are present the
+// points are coloured by group and a legend is drawn. Single-group scatters
+// keep the original one-colour rendering.
 import type { ChartObject } from '../../lib/charts';
+import { CHART_PALETTE } from '../../lib/charts';
 import { area, ticksFor, linearScale, fmt } from '../../lib/chart-svg';
 
 interface Props {
@@ -12,7 +16,10 @@ const { chart, lang } = Astro.props;
 const data = chart.data;
 const points = data.points;
 
-const a = area(640, 300, 54, 14, 18, 54);
+const groups = [...new Set(points.map((p) => p.label).filter((l): l is string => Boolean(l)))];
+const hasLegend = groups.length > 1;
+
+const a = area(640, 300, 54, 14, hasLegend ? 34 : 18, 54);
 const xs = points.map((p) => p.x);
 const ys = points.map((p) => p.y);
 const padX = (Math.max(...xs) - Math.min(...xs)) * 0.08 || 1;
@@ -26,6 +33,12 @@ const xTicks = ticksFor(xMax - xMin, 4).map((t) => xMin + t);
 const yTicks = ticksFor(yMax - yMin, 4).map((t) => yMin + t);
 const sx = linearScale(xMin, xMax, a.ml, a.ml + a.pw);
 const sy = linearScale(yMin, yMax, a.ml + a.ph, a.ml);
+
+const colorFor = (label?: string) => {
+  if (!hasLegend || !label) return 'var(--text-accent-dataviz)';
+  const gi = groups.indexOf(label);
+  return CHART_PALETTE[gi % CHART_PALETTE.length];
+};
 
 const ariaLabel = `${chart.title[lang]}. ${chart.description[lang]}`;
 const xLabel = chart.xLabel?.[lang];
@@ -70,7 +83,7 @@ const yLabel = chart.yLabel?.[lang];
     {points.map((p) => (
       <g>
         <title>{`${p.label ?? ''} x=${fmt(p.x)}, y=${fmt(p.y)}`}</title>
-        <circle cx={sx(p.x)} cy={sy(p.y)} r={4.5} fill="var(--text-accent-dataviz)" class="dot" />
+        <circle cx={sx(p.x)} cy={sy(p.y)} r={4.5} fill={colorFor(p.label)} class="dot" />
       </g>
     ))}
   </g>
@@ -84,6 +97,19 @@ const yLabel = chart.yLabel?.[lang];
     <text x={10} y={a.ml + 10} class="axis-caption" transform={`rotate(-90 10 ${a.ml + 10})`}>
       {yLabel}
     </text>
+  )}
+
+  {hasLegend && (
+    <g class="legend">
+      {groups.map((g, j) => (
+        <g transform={`translate(${a.ml + j * 150}, 12)`}>
+          <circle cx={6} cy={-2} r={5} fill={CHART_PALETTE[j % CHART_PALETTE.length]} />
+          <text x={16} y={2} class="legend-label">
+            {g}
+          </text>
+        </g>
+      ))}
+    </g>
   )}
 </svg>
 
@@ -101,6 +127,11 @@ const yLabel = chart.yLabel?.[lang];
   .axis-caption {
     fill: var(--text-muted);
     font-size: 11px;
+    font-family: var(--font-sans);
+  }
+  .legend-label {
+    fill: var(--text-normal);
+    font-size: 12px;
     font-family: var(--font-sans);
   }
   .dot {

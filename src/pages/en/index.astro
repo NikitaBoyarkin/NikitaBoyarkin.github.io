@@ -110,18 +110,52 @@ const jsonLd = {
             <p class="featured-card-eyebrow">Featured case</p>
             <h3 class="featured-card-title">{featuredProject.data.title}</h3>
             <p class="featured-card-description">{featuredProject.data.description}</p>
+            {featuredProject.data.caseStudy && featuredProject.data.caseStudy.metrics.length > 0 && (
+              <dl class="featured-card-metrics">
+                {featuredProject.data.caseStudy.metrics.slice(0, 3).map((m: { label: string; value: string }) => (
+                  <div>
+                    <dt>{m.value}</dt>
+                    <dd>{m.label}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
             <div class="bento-chip-list">
               {featuredProject.data.tools?.slice(0, 5).map((tool: string) => (
                 <span class="bento-chip">{tool}</span>
               ))}
             </div>
-            <a
-              class="featured-card-link"
-              href={withBase(`en/projects/${featuredProject.id.replace(/\.md$/, '')}/`)}
-              data-analytics="featured_project"
-            >
-              Read the case →
-            </a>
+            <div class="featured-card-actions">
+              <a
+                class="featured-card-link"
+                href={withBase(`en/projects/${featuredProject.id.replace(/\.md$/, '')}/`)}
+                data-analytics="featured_project"
+              >
+                Read the case →
+              </a>
+              {featuredProject.data.demo && (
+                <a
+                  class="featured-card-chip"
+                  href={featuredProject.data.demo.startsWith('http') ? featuredProject.data.demo : withBase(featuredProject.data.demo)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-analytics="featured_demo"
+                >
+                  Demo
+                </a>
+              )}
+              {featuredProject.data.github && !featuredProject.data.private && (
+                <a
+                  class="featured-card-chip"
+                  href={featuredProject.data.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-analytics="featured_github"
+                >
+                  GitHub
+                </a>
+              )}
+            </div>
           </div>
         </article>
       </div>

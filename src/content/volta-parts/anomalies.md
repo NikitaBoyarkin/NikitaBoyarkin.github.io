@@ -17,6 +17,7 @@ tools:
   - "uv + ruff"
 charts:
   - "anomaly-detection"
+  - "anomaly-hour-amount"
 github: https://github.com/NikitaBoyarkin/volta-banking
 ---
 
@@ -42,12 +43,6 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 - IF — для широкого скрининга, Z-score — для высокоточных алертов.
 - Мониторить кластеры «ночные часы × крупная сумма».
 - Калибровать порог под допустимый уровень ложных срабатываний.
-
-## Визуализация
-
-![Детекция аномалий](/images/volta/anomaly_detections.png)
-
-*Аномалии: сумма × ночные часы; Isolation Forest ловит скрытые кластеры.*
 
 ## Документация
 

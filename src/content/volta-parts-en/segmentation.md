@@ -18,6 +18,8 @@ tools:
 charts:
   - "segmentation-size-vs-revenue"
   - "segmentation-pareto-cumulative"
+  - "segmentation-pca-scatter"
+  - "segmentation-k-selection"
 github: https://github.com/NikitaBoyarkin/volta-banking
 ---
 
@@ -30,7 +32,7 @@ The effect held — the remaining question was who these users are and how to mo
 ## Data & Method
 
 - StandardScaler + KMeans, K from data (marginal-gain elbow, silhouette validation).
-- PCA projection and per-cluster silhouette.
+- PCA projection of segments and K-selection curves (inertia + silhouette), computed in code rather than shipped as a picture.
 - Lorenz concentration and cross-segment migration scenarios.
 
 ## Findings
@@ -45,16 +47,6 @@ The effect held — the remaining question was who these users are and how to mo
 - Defend Power, upgrade Growth/Casual, win back Dormant.
 - Build strategy on probabilities, not hard labels (boundaries are soft).
 - Validate the strategy with the 4 recommended A/B tests.
-
-## Visualization
-
-![Segment PCA projection](/images/volta/segmentation_pca_scatter.png)
-
-*K=4 segments in PCA projection.*
-
-![K selection](/images/volta/segmentation_k_selection.png)
-
-*Data-driven K selection: elbow and silhouette (plateau K=2–4, collapse at K=5).*
 
 ## Documentation
 
