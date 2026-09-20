@@ -6,7 +6,7 @@ import { withBase } from '../../../lib/path';
 
 <Base
   title="Projects | Nikita Boyarkin"
-  description="Project catalog in product analytics: A/B tests, retention, dashboards. Cards can be reordered and shuffled."
+  description="Project catalog in product analytics: A/B tests, retention, dashboards. Filter by category and tool, with full-width project sections."
   canonical={withBase('en/projects/')}
   activeNav="projects"
   lang="en"
@@ -16,10 +16,11 @@ import { withBase } from '../../../lib/path';
     <h1 class="page-title reveal">Projects</h1>
 
     <p class="reveal page-intro" style="color: var(--text-muted); margin-bottom: var(--space-4); max-width: 60ch;">
-      Project catalog by category. Drag a card by its three dots to reorder, or hit “Shuffle”.
-      The order is stored locally in your browser.
+      Pick a category to see its projects full-width, and filter by tool.
+      Reorder cards inside a category by dragging the three dots (or with ↑/↓) —
+      the order is stored locally in your browser.
     </p>
 
-    <ProjectBoard heading="Project catalog" />
+    <ProjectBoard heading="Project catalog" collection="projects-en" linkPrefix="en/" />
   </div>
 </Base>

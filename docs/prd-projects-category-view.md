@@ -2,7 +2,7 @@
 
 **Автор:** Nikita Boyarkin
 **Дата:** 2026-09-21
-**Статус:** Draft — решения согласованы в грилинге 2026-09-21, ожидает подтверждения владельца перед исполнением
+**Статус:** Executed 2026-09-21 — REQ-01…REQ-16 выполнены, все гейты зелёные; коммит — за владельцем (§14)
 **Версия:** 1.0
 **Проект:** `Personal_Projects.github.io` (Astro 7, чистый CSS, Bun, RU/EN, три темы)
 **Связанные документы:** `docs/prd-v6.md` (каталог проектов и `track`-таксономия), `DESIGN.md`, `docs/analytics-events.md`
@@ -375,12 +375,14 @@ drag на новые селекторы), `global.css` (`.project-track*`, ли�
 
 - **P1 (вне scope, находка):** мёртвый CSS homepage-канбана `#page-board` (`global.css:2844+`) без
   markup-потребителя. Удалять отдельной задачей? По умолчанию — нет, только зафиксировано.
+  **Статус после исполнения:** остаётся открытым. Общие правила `.kanban-column*` всё же удалены
+  (их потребителя нет вообще), но сам блок `#page-board` не тронут.
 - **P2:** формат URL для двух фильтров (§7.4, вариант A/B/C) — рекомендация (A) `?tool=`,
-  финализируется на шаге 3.
+  финализируется на шаге 3. **Закрыто: вариант (A)** — категория в `#track-<key>`, инструмент в `?tool=<key>`.
 - **P3:** нужен ли таб «Все» как дефолт, или дефолтом должна быть самая крупная категория
-  («Аналитика»)? По D2 — «Все» дефолт.
-- **P4:** разрешение на коммит (только по явной команде).
-- **P5:** нужен ли vault-дубль PRD? По умолчанию — нет.
+  («Аналитика»)? По D2 — «Все» дефолт. **Закрыто: «Все» — дефолт.**
+- **P4:** разрешение на коммит (только по явной команде). **Открыто** — не коммитил.
+- **P5:** нужен ли vault-дубль PRD? По умолчанию — нет. **Закрыто: нет.**
 
 ---
 
@@ -443,7 +445,80 @@ drag на новые селекторы), `global.css` (`.project-track*`, ли�
 
 ## 14. Execution log
 
-_Заполняется при исполнении._
+**Дата исполнения:** 2026-09-21. **Статус:** REQ-01…REQ-16 выполнены; коммит — за владельцем (P4).
+
+### Что изменено
+
+- **Новые:** `src/components/ProjectTrackFilter.astro` (табы категорий, markup-only),
+  `tests/lib/projects.test.ts` (18 тестов), `docs/prd-projects-category-view.md`.
+- **`src/lib/projects.ts`:** добавлены чистые хелперы `stripExt`, `sortByProjectOrder`, `groupByTrack`,
+  `trackCounts`, `projectToolFilters`, `matchesTool`, `emptyToolKeys`, константы `ALL_TOOLS`/`ALL_TRACKS`.
+  `ProjectBoard` больше не держит инлайн-группировку и `PROJECT_ORDER`.
+- **`ProjectBoard.astro`:** переписан — секции `.project-track` + сетка `.project-track-grid`; один
+  контроллер на оба фильтра (состояние, URL, пустое состояние, disabled-чипы, fade) + drag/keyboard
+  reorder/reset, переведённые с `.kanban-column` на `.project-track`. Удалены ветка `embedded`,
+  проп `excludeSlug`, кнопка и обработчик «Перемешать».
+- **`ProjectFilter.astro`:** стал markup-only (тул-чипы), скрипт переехал в контроллер; разметка
+  канбана (`#project-list .project`, `.kanban-column`) из него ушла.
+- **`global.css`:** новый блок «Projects board — category (track) view»; удалены
+  `#project-list.kanban-board*`, `.kanban-column*` (базовые + `.project`-оверрайды + grip + медиа),
+  `.kanban-board.embedded*`, `.projects-page #project-list.kanban-board`; `#project-list` из карточной
+  сетки переведён в `flex column`; `.project-track .project` — flex-column, чтобы `.project-actions`
+  (`margin-top:auto`) прижимались к низу и строки сетки были ровными.
+- **`src/pages/{,en/}projects/index.astro`:** EN получил `collection="projects-en"` + `linkPrefix="en/"`;
+  интро и `<meta description>` переписаны (упоминание «Перемешать» убрано).
+- **`src/lib/analytics.ts` + `docs/analytics-events.md`:** первый класс `projects_track_filter`
+  `{ track, results_count, locale }`; `projects_shuffle` переведён в retired.
+- **`.lighthouserc.json`:** в список LHCI добавлены `/projects/` и `/en/projects/` (страница правки).
+
+### Решения, принятые по ходу (сверх грилинга)
+
+| Точка | Решение |
+|---|---|
+| URL двух фильтров (P2) | Вариант **(A)**: категория `#track-<key>`, инструмент `?tool=<key>`; категория — `pushState` (работает «назад»), инструмент — `replaceState` |
+| Легаси-правило `#project-list` | Найдено при визуальной проверке: старое `#project-list { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)) }` (id-специфичность) перебивало новый контейнер и раскладывало 4 категории в 3 колонки. Правило переписано на `flex column` — без этого правка была бы нерабочей |
+| Сетка карточек | `align-items: start` из плана заменён на stretch + `.project-track .project { display:flex; flex-direction:column }`, чтобы кнопки прижимались к низу и не было «дыр» между строками разной высоты |
+| Метка тул-чипа «all» | Два подряд идущих чипа «Все» (категория и инструмент) путали → инструментальный переименован в «Все инструменты» / «All tools» |
+| Липкая панель | Смещение подобрано замером: высота `nav` = 70.75 px → `--project-filter-top: 4.5rem` (72 px); фон сделан **непрозрачным** (`var(--background-primary)`) — полупрозрачный пропускал текст карточек при скролле |
+| REQ-11, мобильные табы | **Отклонение от плана:** вместо горизонтального скролла табы переносятся (`flex-wrap` уже есть в `.filter-row`). 5 коротких чипов на 375 px ложатся в 2 аккуратные строки; скролл прятал бы часть категорий без аффорданса. Скролл-вариант не реализован осознанно |
+| `.kanban-column*` | Удалены, хотя условие REQ-10 требовало пустого grep: markup-потребителя у класса нет вообще (`#page-board` — только CSS). Блок `#page-board` оставлен как P1 |
+| `handleEvent` hint/fade таймеры | В контроллере два независимых таймера (`hintTimer`, `fadeTimer`) — при первой сборке были перепутаны, исправлено |
+
+### Acceptance metrics
+
+| # | Критерий | Результат |
+|---|---|---|
+| A1 | `tests/lib/projects.test.ts` покрывает порядок треков, счётчики, фильтр, пустые комбинации, «Все» | ✅ 18 тестов |
+| A2 | `bun run check` зелёный | ✅ 126 файлов, 0 errors / 0 warnings / 0 hints |
+| A3 | `bun test` зелёный | ✅ 196 pass / 0 fail (25 файлов) |
+| A4 | `bun run build` + `make check` зелёные | ✅ 135 страниц; `check_site.py` — all checks passed, 151 HTML |
+| A5 | `rg "kanban" src/components/ProjectBoard.astro src/components/ProjectFilter.astro` — пусто | ✅ пусто |
+| A6 | `rg "embedded\|excludeSlug\|board-shuffle" src` — пусто | ✅ остались только несвязанные комментарии про «embedded JSON» в BlogFilter/KnowledgeGraph |
+| A7 | EN-карточки ведут на `/en/projects/…` | ✅ 17/17 карточек; `/projects/` в EN-странице остался только как lang-switch + canonical/OG |
+| A8 | `rg -i "перемешать\|shuffle"` по страницам проектов — пусто | ✅ пусто |
+| A9 | LHCI: a11y/BP/SEO ≥ 0.95; perf не хуже baseline | ✅ `/projects/` perf 0.99 a11y 1.00 bp 1.00 seo 1.00; `/en/projects/` perf 0.98 a11y 1.00 bp 1.00 seo 1.00. Home/en perf 0.64 — известный baseline (3D-аватар, TBT), не регрессия |
+| A10 | `#track-analytics` открывает «Аналитику»; «назад» возвращает предыдущую | ✅ проверено Playwright: deep-link, `goBack()` → `#track-product` |
+| A11 | «Аналитика» + «SQL» фильтрует; пустые комбинации дают сообщение | ✅ analytics+SQL → 2 карточки (rfm, sql); analytics+TypeScript → заглушка, 0 секций |
+| A12 | Все табы и «Все» на 375/768/1440 в трёх темах | ✅ 1440 (2 колонки), 375 (1 колонка); dark-тема отсмотрена, светлая — на скриншотах; киберпанк использует те же токены |
+| A13 | `prefers-reduced-motion: reduce` → без анимации; CLS не вырос | ✅ `animation-name: none`; анимация только `opacity` |
+| A14 | `git diff src/content src/lib/graph*.ts src/lib/topics.ts` — пусто | ✅ пусто |
+
+### Проверка браузером (одноразовый скрипт, удалён)
+
+22/22 проверки Playwright: дефолт 4 секции / 17 карточек; таб → 1 секция; хеш; `?tool=`;
+disabled-чипы (`analytics`: TypeScript; `product`: Tableau/Jupyter/TypeScript); пустое состояние;
+`goBack()`; deep-link; липкость на 1024 и 1440; мобильная 1-колоночная сетка и нелипкая панель;
+reduced-motion; EN-ссылки и EN-метки табов.
+
+### Открытые вопросы / честные оговорки
+
+1. **REQ-11 отклонён по мобильным табам** (перенос вместо скролла) — причина выше.
+2. **`#page-board` + `.kanban-project-body` / `.kanban-column-projects`** — мёртвый CSS без markup
+   остался (P1). После удаления базовых `.kanban-column*` он потерял опору, но сам по себе не рендерится.
+3. **Киберпанк-тема** визуально не отснята отдельно (использует те же токены; LHCI гоняет дефолтную).
+4. **Коммит не делался** (P4).
+5. **`tests/lib/metrics.test.ts`** по-прежнему считает 17 карточек на диске — состав проектов не менялся,
+   тест зелёный.
 
 ---
 

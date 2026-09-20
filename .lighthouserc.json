@@ -8,6 +8,8 @@
         "http://localhost:4321/en/",
         "http://localhost:4321/writing/",
         "http://localhost:4321/topics/",
+        "http://localhost:4321/projects/",
+        "http://localhost:4321/en/projects/",
         "http://localhost:4321/projects/volta/"
       ],
       "numberOfRuns": 1,

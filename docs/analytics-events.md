@@ -23,6 +23,7 @@ Canonical event taxonomy for the portfolio, per
 | `search_no_results` | `{ query, results_count: 0, locale }` | a search with 0 results | `SearchBox.astro` |
 | `read_depth` | `{ content_type, slug, depth, locale }` | scroll crosses 25/50/75/100% (`content_type ∈ {post, case_study, note}`) | `Analytics.astro` |
 | `filter_applied` | `{ tag, results_count, surface }` | a writing-page filter chip is applied (`surface ∈ {writing, notes}`) | `BlogFilter.astro` |
+| `projects_track_filter` | `{ track, results_count, locale }` | a project category tab is selected (`track` is the taxonomy key or `all`) | `ProjectBoard.astro` |
 
 ### Super properties (registered once per load, PRD §4.2)
 
@@ -52,7 +53,7 @@ These keep their historical names (they are the slider for the "hard naming" cas
 | `ask_me_open` | `AskMe.astro` |
 | `headline_all_projects`, `headline_demo_<slug>`, `headline_github_<slug>`, `more_project_<slug>` | `HeadlineCases.astro` |
 | `project_demo_<slug>`, `project_github_<slug>` | `ProjectCard.astro` |
-| `projects_shuffle`, `projects_reset` | `ProjectBoard.astro` |
+| `projects_reset` | `ProjectBoard.astro` |
 | `game_selected`, `game_started`, `game_over`, `game_win`, `daily_completed`, `best_broken`, `sig_reached`, `experiment_started`, `milestone`, `contact_click` | `public/games/**` |
 | `lang_switch_ru`, `lang_switch_en` | `LangSwitch.astro` (mapped to `lang_switched`) |
 
@@ -78,6 +79,7 @@ tracking off; PRD Phase A4).
 | `telegram_board`, `github_board`, `linkedin_board` | removed | `HomeBoard.astro` is imported by no page (PRD §4.6) |
 | `hero_cta_click`, `hero_cta_exposure` | doc-only removal | A/B flag deactivated 2026-09-15; code already gone (PRD §4.6) |
 | `hero_cv`, `cv_footer`, `cv_pdf_footer`, `cv_source_github` | removed | CV unified into one "CV" download button → `cv_download_pdf` (2026-09-19); `/cv/` page deleted |
+| `projects_shuffle` | removed | "Shuffle" button deleted with the category-view rewrite (2026-09-21); random order fought `PROJECT_ORDER` |
 
 Historical rows for every retired/removed event stay in PostHog and must not be
 deleted (PRD §0 rule 3).

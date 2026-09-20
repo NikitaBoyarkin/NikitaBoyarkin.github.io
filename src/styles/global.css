@@ -1382,10 +1382,12 @@ nav ul.links a[aria-current="page"] {
   border-radius: var(--radius-full);
 }
 
+/* Projects board container — one full-width section per category, stacked.
+   (Was a card grid before the kanban era; the board owns this id.) */
 #project-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
 }
 
 .project {
@@ -1898,10 +1900,6 @@ footer p {
   .photo-placeholder {
     width: 250px;
     height: 250px;
-  }
-
-  #project-list {
-    grid-template-columns: 1fr;
   }
 
   #toc {
@@ -2669,68 +2667,70 @@ button:focus-visible {
 }
 
 /* ============================================================
-   Kanban board — projects section as a kanban board.
-   Layout inspired by kanbannotebook.vercel.app: full-width board
-   (breaks out of the 1000px body), columns snap-scroll on mobile
-   and sit side-by-side on desktop. Reuses existing theme tokens
-   only, so the contrast-gate stays green.
+   Projects board — category (track) view.
+   One full-width section per category; the category tabs show a
+   single section at a time ("All" shows every section). Cards sit
+   in a responsive grid. Reuses existing theme tokens only, so the
+   contrast-gate stays green.
    ============================================================ */
 
-/* Board container: centered on the viewport, up to 1400px wide.
-   The body is max-width 1000px, so we break out via left:50% +
-   translateX(-50%) (body is position:relative and centered). */
-#project-list.kanban-board {
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(1400px, calc(100vw - 2 * var(--space-5)));
+/* Tabs + tool chips + reorder tools, stacked in one bar that sticks
+   under the site nav on desktop. */
+.project-filter-bar {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-5);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding-bottom: var(--space-3);
-  scrollbar-width: none;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-6);
 }
-#project-list.kanban-board::-webkit-scrollbar {
+
+.project-filter-bar .filter-row {
+  margin-bottom: 0;
+}
+
+.filter-count {
+  display: inline-block;
+  margin-left: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-accent);
+  background: color-mix(in srgb, var(--text-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-accent) 30%, transparent);
+  border-radius: var(--radius-full);
+  padding: 0 0.4rem;
+  vertical-align: middle;
+}
+
+.filter-tag:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.project-track[hidden] {
   display: none;
 }
 
-/* Column — mobile: full-width snap panel; desktop: equal share. */
-.kanban-column {
-  flex: 0 0 85vw;
-  min-width: 85vw;
-  max-width: 85vw;
-  display: flex;
-  flex-direction: column;
-  background: color-mix(in srgb, var(--background-secondary) 60%, transparent);
-  border: 1px solid var(--border-color);
-  border-top: 3px solid var(--text-accent);
-  border-radius: var(--radius-xl);
-  padding: var(--space-4);
-  scroll-snap-align: start;
-}
-
-.kanban-column-header {
+.project-track-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
-  padding: 0 var(--space-1) var(--space-3);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-5);
   border-bottom: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
 }
 
-.kanban-column-title {
+.project-track-title {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  margin: 0;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.25rem;
   letter-spacing: -0.01em;
   color: var(--text-normal);
 }
 
-.kanban-column-title::before {
+.project-track-title::before {
   content: '';
   width: 8px;
   height: 8px;
@@ -2739,7 +2739,7 @@ button:focus-visible {
   flex-shrink: 0;
 }
 
-.kanban-column-count {
+.project-track-count {
   font-size: 0.78rem;
   font-weight: 600;
   line-height: 1;
@@ -2751,54 +2751,70 @@ button:focus-visible {
   white-space: nowrap;
 }
 
-.kanban-column-body {
+.project-track-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-5);
+}
+
+/* Cards stretch to their row height and pin their actions to the bottom, so a
+   grid of uneven descriptions still reads as a tidy board instead of a
+   masonry of holes. */
+.project-track .project {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding-top: var(--space-3);
 }
 
-/* Cards as compact sticky notes (scoped to the board; topic pages
-   keep the base grid-card look via the shared .project class). */
-.kanban-column .project {
-  padding: var(--space-4);
-  border-radius: var(--radius-lg);
+.project-empty {
+  color: var(--text-muted);
+  text-align: center;
+  margin: var(--space-6) 0;
 }
 
-.kanban-column .project:hover {
-  transform: translateY(-3px);
+/* Category switch: a short fade, opacity only (no layout shift). */
+#project-list.is-filtering .project-track:not([hidden]) {
+  animation: project-track-fade 0.15s ease-out;
 }
 
-.kanban-column .project img {
-  height: 110px;
-  border-radius: var(--radius-md);
-  margin-bottom: var(--space-3);
+@keyframes project-track-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.kanban-column .project h3 {
-  font-size: 1.05rem;
-  margin-bottom: var(--space-2);
+@media (max-width: 480px) {
+  .project-track-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.kanban-column .project p {
-  font-size: 0.875rem;
-  margin-bottom: var(--space-3);
+@media (prefers-reduced-motion: reduce) {
+  #project-list.is-filtering .project-track {
+    animation: none;
+  }
 }
 
-.kanban-column .project .Impact {
-  font-size: 0.78rem;
-  margin-bottom: var(--space-3);
-}
-
-.kanban-column .project-tool {
-  font-size: 0.72rem;
+/* Sticky filter bar on desktop, tucked under the sticky site nav. Opaque on
+   purpose — a translucent bar let card text ghost through while scrolling. */
+@media (min-width: 1024px) {
+  .project-filter-bar {
+    position: sticky;
+    top: var(--project-filter-top, 4.5rem);
+    z-index: var(--z-float);
+    padding: var(--space-3) 0;
+    background: var(--background-primary);
+    border-bottom: 1px solid color-mix(in srgb, var(--border-color) 45%, transparent);
+  }
 }
 
 /* Grip handle — hidden outside the board, subtle three dots inside. */
 .project-grip {
   display: none;
 }
-.kanban-column .project .project-grip {
+.project-track .project .project-grip {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -2807,32 +2823,16 @@ button:focus-visible {
   margin-bottom: var(--space-2);
   opacity: 0.55;
   border-bottom: 1px dashed color-mix(in srgb, var(--border-color) 60%, transparent);
+  cursor: grab;
+}
+.project-track .project .project-grip:active {
+  cursor: grabbing;
 }
 .project-grip span {
   width: 4px;
   height: 4px;
   border-radius: 50%;
   background: var(--text-muted);
-}
-
-/* Desktop: columns share the row, no inner scroll. */
-@media (min-width: 640px) {
-  .kanban-column {
-    flex: 0 0 55vw;
-    min-width: 55vw;
-    max-width: 55vw;
-  }
-}
-
-@media (min-width: 1100px) {
-  #project-list.kanban-board {
-    overflow-x: visible;
-  }
-  .kanban-column {
-    flex: 1 1 0;
-    min-width: 0;
-    max-width: none;
-  }
 }
 
 /* ============================================================
@@ -2887,47 +2887,6 @@ button:focus-visible {
     flex: 0 0 320px;
     min-width: 320px;
     max-width: 320px;
-  }
-}
-
-/* Embedded 4-track board inside the Проекты column: no break-out, fills width. */
-#project-list.kanban-board.embedded {
-  position: static;
-  left: auto;
-  transform: none;
-  width: auto;
-  flex: 1 1 0;
-  min-width: 0;
-  overflow: visible;
-  scroll-snap-type: none;
-  padding-bottom: 0;
-  gap: var(--space-4);
-}
-#project-list.kanban-board.embedded .kanban-column {
-  scroll-snap-align: none;
-}
-
-@media (max-width: 1099px) {
-  #project-list.kanban-board.embedded {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  #project-list.kanban-board.embedded .kanban-column {
-    flex: 0 0 auto;
-    min-width: 0;
-    max-width: none;
-  }
-}
-
-@media (min-width: 1100px) {
-  #project-list.kanban-board.embedded {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-  #project-list.kanban-board.embedded .kanban-column {
-    flex: 1 1 0;
-    min-width: 0;
-    max-width: none;
   }
 }
 
@@ -3279,7 +3238,7 @@ button:focus-visible {
 }
 
 /* ============================================================
-   Project board — drag & drop reorder + shuffle tools
+   Project board — drag & drop reorder tools
    ============================================================ */
 .project-board-tools {
   align-items: center;
@@ -3303,13 +3262,6 @@ button:focus-visible {
 .project.drag-over {
   outline: 2px dashed var(--text-accent);
   outline-offset: 3px;
-}
-
-.kanban-column .project .project-grip {
-  cursor: grab;
-}
-.kanban-column .project .project-grip:active {
-  cursor: grabbing;
 }
 
 /* Knowledge graph page: intro + legend grid under the heading. */
@@ -3357,7 +3309,7 @@ button:focus-visible {
   }
 }
 
-/* Compact projects-page header on small screens so the kanban board peeks above the fold. */
+/* Compact projects-page header on small screens so the board peeks above the fold. */
 @media (max-width: 640px) {
   .projects-page .page-title {
     font-size: 1.75rem;
@@ -3377,9 +3329,5 @@ button:focus-visible {
   .projects-page .project-board-tools {
     margin-bottom: var(--space-4);
     gap: var(--space-3);
-  }
-
-  .projects-page #project-list.kanban-board {
-    padding-bottom: 0;
   }
 }

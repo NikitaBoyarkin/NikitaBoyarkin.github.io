@@ -1,86 +1,30 @@
 ---
+// Tool chips for the projects board. Markup only — ProjectBoard's controller
+// script owns the filtering, the empty-state handling and the disabled chips.
+import { projectToolFilters } from '../lib/projects';
+
 interface Props {
   lang?: 'ru' | 'en';
 }
 const { lang = 'ru' } = Astro.props;
-const allLabel = lang === 'en' ? 'All' : 'Все';
-const tools = [
-  { key: 'all', label: allLabel },
-  { key: 'python', label: 'Python' },
-  { key: 'sql', label: 'SQL' },
-  { key: 'tableau', label: 'Tableau' },
-  { key: 'jupyter', label: 'Jupyter' },
-  { key: 'typescript', label: 'TypeScript' },
-];
+const tools = projectToolFilters(lang);
 ---
 
-<div class="filter-row project-filter reveal reveal-delay-1">
+<div
+  class="filter-row project-filter reveal reveal-delay-1"
+  role="group"
+  aria-label={lang === 'en' ? 'Filter by tool' : 'Фильтр по инструменту'}
+>
   {
-    tools.map((t) => (
+    tools.map((tool) => (
       <button
-        class={`filter-tag ${t.key === 'all' ? 'active' : ''}`}
-        data-filter={t.key}
-        aria-pressed={t.key === 'all' ? 'true' : 'false'}
+        class={`filter-tag ${tool.key === 'all' ? 'active' : ''}`}
+        data-tool-filter={tool.key}
+        aria-pressed={tool.key === 'all' ? 'true' : 'false'}
         type="button"
       >
-        {t.label}
+        {tool.label}
       </button>
     ))
   }
 </div>
-<span class="visually-hidden" role="status" id="project-filter-status"></span>
-
-<script>
-  const filterTags = document.querySelectorAll('.project-filter .filter-tag');
-  const cards = document.querySelectorAll('#project-list .project');
-  const statusEl = document.getElementById('project-filter-status');
-  const isEn = document.documentElement.lang === 'en';
-  const statusText = (n: number, filter: string) =>
-    isEn
-      ? filter === 'all' ? `${n} projects shown` : `${n} projects with ${filter}`
-      : filter === 'all' ? `Показано проектов: ${n}` : `Показано проектов с ${filter}: ${n}`;
-
-  function applyFilter(filter: string) {
-    filterTags.forEach((t) => {
-      const isActive = (t as HTMLElement).dataset.filter === filter;
-      t.classList.toggle('active', isActive);
-      t.setAttribute('aria-pressed', String(isActive));
-    });
-    cards.forEach((card) => {
-      const el = card as HTMLElement;
-      const techs = (el.dataset.tools || '').toLowerCase();
-      el.style.display = filter === 'all' || techs.includes(filter) ? '' : 'none';
-    });
-    // Kanban mode: hide columns that end up with no visible cards.
-    document.querySelectorAll('#project-list.kanban-board .kanban-column').forEach((col) => {
-      const colEl = col as HTMLElement;
-      const hasVisible = Array.from(colEl.querySelectorAll('.project')).some(
-        (c) => (c as HTMLElement).style.display !== 'none',
-      );
-      colEl.style.display = hasVisible ? '' : 'none';
-    });
-    const visible = Array.from(cards).filter((c) => (c as HTMLElement).style.display !== 'none').length;
-    if (statusEl) statusEl.textContent = statusText(visible, filter);
-  }
-
-  filterTags.forEach((tag) => {
-    const btn = tag as HTMLElement;
-    btn.addEventListener('click', () => {
-      const filter = btn.dataset.filter || 'all';
-      applyFilter(filter);
-      const hash = filter === 'all' ? '' : `#tool-${filter}`;
-      if (location.hash !== hash) {
-        history.replaceState(null, '', `${location.pathname}${location.search}${hash}`);
-      }
-    });
-  });
-
-  // Restore filter from URL hash on load (#tool-<key>).
-  const initial = location.hash.replace(/^#tool-/, '');
-  if (initial) {
-    const match = Array.from(filterTags).find(
-      (t) => (t as HTMLElement).dataset.filter === initial,
-    );
-    if (match) applyFilter(initial);
-  }
-</script>

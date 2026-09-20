@@ -2,138 +2,251 @@
 import { getCollection } from 'astro:content';
 import ProjectCard from './ProjectCard.astro';
 import ProjectFilter from './ProjectFilter.astro';
-import { PROJECT_ORDER, projectTracks } from '../lib/projects';
+import ProjectTrackFilter from './ProjectTrackFilter.astro';
+import { groupByTrack, projectTracks, sortByProjectOrder, trackCounts } from '../lib/projects';
 
 interface Props {
-  excludeSlug?: string;
   collection?: 'projects' | 'projects-en';
   linkPrefix?: string;
   heading?: string;
-  /** Render the 4 tracks without the outer <section>/<h2>/<ProjectFilter>,
-   *  for embedding inside a kanban column on the homepage board. */
-  embedded?: boolean;
 }
-const { excludeSlug, collection = 'projects', linkPrefix = '', heading = 'Projects', embedded = false } = Astro.props;
+const { collection = 'projects', linkPrefix = '', heading = 'Projects' } = Astro.props;
 const lang: 'ru' | 'en' = linkPrefix.startsWith('en/') ? 'en' : 'ru';
 
-const TRACKS = projectTracks(lang);
+const projects = sortByProjectOrder(await getCollection(collection, (p) => !p.data.draft));
 
-const projects = (await getCollection(collection, (p) => !p.data.draft))
-  .filter((p) => p.id.replace(/\.md$/, '') !== excludeSlug)
-  .sort(
-    (a, b) =>
-      PROJECT_ORDER.indexOf(a.id.replace(/\.md$/, '')) - PROJECT_ORDER.indexOf(b.id.replace(/\.md$/, '')),
-  );
-
-const byTrack = TRACKS.map((track) => ({
-  ...track,
-  projects: projects.filter((p) => p.data.track === track.key),
-})).filter((track) => track.projects.length > 0);
+const grouped = groupByTrack(
+  projects.map((project) => ({ track: project.data.track, project })),
+  lang,
+);
+const counts = trackCounts(
+  projects.map((project) => ({ track: project.data.track })),
+  lang,
+);
+const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[track.key] ?? 0 }));
 ---
 
-{
-  embedded ? (
-    <div id="project-list" class="kanban-board embedded">
-      {
-        byTrack.map((track) => (
-          <div class="kanban-column" data-track={track.key}>
-            <div class="kanban-column-header">
-              <span class="kanban-column-title">{track.label}</span>
-              <span class="kanban-column-count">{track.projects.length}</span>
-            </div>
-            <div class="kanban-column-body">
-              {
-                track.projects.map((project) => (
-                  <ProjectCard
-                    slug={project.id.replace(/\.md$/, '')}
-                    title={project.data.title}
-                    description={project.data.description}
-                    image={project.data.hero}
-                    impact={project.data.impact}
-                    tools={project.data.tools}
-                    github={project.data.github}
-                    demo={project.data.demo}
-                    private={project.data.private}
-                    linkPrefix={linkPrefix}
-                    lang={lang}
-                    draggable
-                  />
-                ))
-              }
-            </div>
-          </div>
-        ))
-      }
+<section id="projects" class="reveal reveal-delay-2">
+  <h2>{heading}</h2>
+
+  <div class="project-filter-bar">
+    <ProjectTrackFilter lang={lang} tracks={tracks} total={projects.length} />
+    <ProjectFilter lang={lang} />
+    <div class="filter-row project-board-tools reveal reveal-delay-1">
+      <button class="filter-tag" id="board-reset" data-analytics="projects_reset" type="button">
+        {lang === 'en' ? 'Reset order' : 'Сбросить порядок'}
+      </button>
+      <span
+        id="board-hint"
+        class="board-hint"
+        role="status"
+        aria-live="polite"
+        data-saved={lang === 'en' ? 'Order saved' : 'Порядок сохранён'}
+        data-reset={lang === 'en' ? 'Reset to default' : 'Порядок сброшен'}></span>
     </div>
-  ) : (
-    <section id="projects" class="reveal reveal-delay-2">
-      <h2>{heading}</h2>
-      <ProjectFilter lang={lang} />
-      <div class="filter-row project-board-tools reveal reveal-delay-1">
-        <button class="filter-tag" id="board-shuffle" data-analytics="projects_shuffle" type="button">
-          {lang === 'en' ? 'Shuffle' : 'Перемешать'}
-        </button>
-        <button class="filter-tag" id="board-reset" data-analytics="projects_reset" type="button">
-          {lang === 'en' ? 'Reset order' : 'Сбросить порядок'}
-        </button>
-        <span id="board-hint" class="board-hint" role="status" aria-live="polite"
-          data-saved={lang === 'en' ? 'Order saved' : 'Порядок сохранён'}
-          data-shuffled={lang === 'en' ? 'Shuffled' : 'Перемешано'}
-          data-reset={lang === 'en' ? 'Reset to default' : 'Порядок сброшен'}></span>
-      </div>
-      <div id="project-list" class="kanban-board">
-        {
-          byTrack.map((track) => (
-            <div class="kanban-column" data-track={track.key}>
-              <div class="kanban-column-header">
-                <span class="kanban-column-title">{track.label}</span>
-                <span class="kanban-column-count">{track.projects.length}</span>
-              </div>
-              <div class="kanban-column-body">
-                {
-                  track.projects.map((project) => (
-                    <ProjectCard
-                      slug={project.id.replace(/\.md$/, '')}
-                      title={project.data.title}
-                      description={project.data.description}
-                      image={project.data.hero}
-                      impact={project.data.impact}
-                      tools={project.data.tools}
-                      github={project.data.github}
-                      demo={project.data.demo}
-                      private={project.data.private}
-                      linkPrefix={linkPrefix}
-                      lang={lang}
-                      draggable
-                    />
-                  ))
-                }
-              </div>
-            </div>
-          ))
-        }
-      </div>
-    </section>
-  )
-}
+  </div>
+
+  <span class="visually-hidden" role="status" id="project-filter-status"></span>
+  <p id="project-empty" class="project-empty" hidden>
+    {lang === 'en'
+      ? 'No projects with this tool in this category.'
+      : 'В этой категории нет проектов с этим инструментом.'}
+  </p>
+
+  <div id="project-list" class="project-tracks">
+    {
+      grouped.map((track) => (
+        <section class="project-track" data-track={track.key}>
+          <div class="project-track-header">
+            <h3 class="project-track-title">{track.label}</h3>
+            <span class="project-track-count">{track.projects.length}</span>
+          </div>
+          <div class="project-track-grid">
+            {track.projects.map(({ project }) => (
+              <ProjectCard
+                slug={project.id.replace(/\.md$/, '')}
+                title={project.data.title}
+                description={project.data.description}
+                image={project.data.hero}
+                impact={project.data.impact}
+                tools={project.data.tools}
+                github={project.data.github}
+                demo={project.data.demo}
+                private={project.data.private}
+                linkPrefix={linkPrefix}
+                lang={lang}
+                draggable
+              />
+            ))}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</section>
 
 <script>
-  // Drag & drop + shuffle for the kanban project board.
-  // Per-language order persisted in localStorage; DOM-only, no rebuild needed.
+  import { track } from '../lib/analytics';
+  import { ALL_TOOLS, ALL_TRACKS, emptyToolKeys, matchesTool } from '../lib/projects';
+
+  // One controller for the whole board: category tabs + tool chips share the
+  // same state, so they filter, sync the URL and toggle empty/disabled states
+  // together. Reorder (drag / keyboard / reset) is layered on top.
   const board = document.getElementById('project-list');
   if (board) {
-    const root: HTMLElement = board;
-    const storageKey = 'project-order-' + (document.documentElement.lang || 'ru');
+    const root = board as HTMLElement;
+    const lang: 'ru' | 'en' = document.documentElement.lang === 'en' ? 'en' : 'ru';
+    const storageKey = `project-order-${lang}`;
     const hintEl = document.getElementById('board-hint');
-    const shuffleBtn = document.getElementById('board-shuffle');
     const resetBtn = document.getElementById('board-reset');
-    let hintTimer: ReturnType<typeof setTimeout> | undefined;
+    const emptyEl = document.getElementById('project-empty');
+    const statusEl = document.getElementById('project-filter-status');
 
-    const colProjects = (col: HTMLElement): HTMLElement[] =>
-      Array.from(col.querySelectorAll<HTMLElement>(':scope > .kanban-column-body > .project'));
-    const colKey = (col: HTMLElement): string => col.dataset.track || '';
-    const colBody = (col: HTMLElement): HTMLElement | null =>
-      col.querySelector<HTMLElement>('.kanban-column-body');
+    const sections = Array.from(root.querySelectorAll<HTMLElement>('.project-track'));
+    const trackBtns = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('.project-track-filter [data-track-filter]'),
+    );
+    const toolBtns = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('.project-filter [data-tool-filter]'),
+    );
+
+    const cardsIn = (el: HTMLElement): HTMLElement[] =>
+      Array.from(el.querySelectorAll<HTMLElement>('.project'));
+    const toolsOf = (card: HTMLElement): string[] =>
+      (card.dataset.tools || '').split(',').filter(Boolean);
+    const sectionFor = (key: string): HTMLElement | undefined =>
+      sections.find((section) => section.dataset.track === key);
+
+    let activeTrack = ALL_TRACKS;
+    let activeTool = ALL_TOOLS;
+
+    function statusText(n: number): string {
+      return lang === 'en' ? `${n} projects shown` : `Показано проектов: ${n}`;
+    }
+
+    // Apply both filters; returns the number of visible cards.
+    function apply(): number {
+      let visible = 0;
+      for (const section of sections) {
+        const inTrack = activeTrack === ALL_TRACKS || section.dataset.track === activeTrack;
+        let shown = 0;
+        for (const card of cardsIn(section)) {
+          const ok = inTrack && matchesTool(toolsOf(card), activeTool);
+          card.style.display = ok ? '' : 'none';
+          if (ok) shown += 1;
+        }
+        // A track is hidden when it is not selected, or when the tool filter
+        // leaves nothing in it.
+        section.hidden = !inTrack || shown === 0;
+        visible += shown;
+      }
+
+      for (const btn of trackBtns) {
+        const isActive = (btn.dataset.trackFilter || ALL_TRACKS) === activeTrack;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
+      }
+      for (const btn of toolBtns) {
+        const isActive = (btn.dataset.toolFilter || ALL_TOOLS) === activeTool;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
+      }
+
+      // Disable tool chips that cannot match inside the active category so a
+      // click never lands on an empty board. The active chip stays operable.
+      const scope =
+        activeTrack === ALL_TRACKS
+          ? sections.flatMap(cardsIn)
+          : cardsIn(sectionFor(activeTrack) ?? root);
+      const emptyKeys = emptyToolKeys(
+        scope.map((card) => ({ tools: toolsOf(card) })),
+        lang,
+      );
+      for (const btn of toolBtns) {
+        const key = btn.dataset.toolFilter || ALL_TOOLS;
+        const disabled = key !== ALL_TOOLS && key !== activeTool && emptyKeys.includes(key);
+        btn.disabled = disabled;
+        btn.setAttribute('aria-disabled', String(disabled));
+      }
+
+      if (emptyEl) emptyEl.hidden = visible > 0;
+      if (statusEl) statusEl.textContent = statusText(visible);
+      return visible;
+    }
+
+    let fadeTimer: ReturnType<typeof setTimeout> | undefined;
+    function flash(): void {
+      root.classList.remove('is-filtering');
+      void root.offsetWidth; // restart the animation on every change
+      root.classList.add('is-filtering');
+      if (fadeTimer) clearTimeout(fadeTimer);
+      fadeTimer = setTimeout(() => root.classList.remove('is-filtering'), 220);
+    }
+
+    // --- URL: category in #track-<key>, tool in ?tool=<key> ---
+    function readUrl(): void {
+      const params = new URLSearchParams(location.search);
+      const tool = params.get('tool') || ALL_TOOLS;
+      activeTool = toolBtns.some((btn) => btn.dataset.toolFilter === tool) ? tool : ALL_TOOLS;
+
+      const hash = location.hash.replace(/^#/, '');
+      const track = hash.startsWith('track-') ? hash.slice('track-'.length) : '';
+      activeTrack = trackBtns.some((btn) => btn.dataset.trackFilter === track)
+        ? track
+        : ALL_TRACKS;
+    }
+
+    function urlFor(track: string, tool: string): string {
+      const params = new URLSearchParams(location.search);
+      if (tool === ALL_TOOLS) params.delete('tool');
+      else params.set('tool', tool);
+      const query = params.toString();
+      const hash = track === ALL_TRACKS ? '' : `#track-${track}`;
+      return `${location.pathname}${query ? `?${query}` : ''}${hash}`;
+    }
+
+    for (const btn of trackBtns) {
+      btn.addEventListener('click', () => {
+        const next = btn.dataset.trackFilter || ALL_TRACKS;
+        if (next === activeTrack) return;
+        activeTrack = next;
+        const visible = apply();
+        flash();
+        history.pushState({ track: activeTrack }, '', urlFor(activeTrack, activeTool));
+        track('projects_track_filter', {
+          track: activeTrack,
+          results_count: visible,
+          locale: lang,
+        });
+      });
+    }
+
+    for (const btn of toolBtns) {
+      btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        const next = btn.dataset.toolFilter || ALL_TOOLS;
+        if (next === activeTool) return;
+        activeTool = next;
+        apply();
+        flash();
+        history.replaceState(null, '', urlFor(activeTrack, activeTool));
+      });
+    }
+
+    window.addEventListener('popstate', () => {
+      readUrl();
+      apply();
+      flash();
+    });
+
+    // --- Reorder: drag, keyboard (ArrowUp/Down) and reset, per track ---
+    const trackOf = (el: HTMLElement): HTMLElement | null =>
+      el.closest<HTMLElement>('.project-track');
+    const gridOf = (track: HTMLElement | null): HTMLElement | null =>
+      track ? track.querySelector<HTMLElement>('.project-track-grid') : null;
+    const gridCards = (track: HTMLElement): HTMLElement[] =>
+      Array.from(track.querySelectorAll<HTMLElement>(':scope > .project-track-grid > .project'));
+    const trackKey = (track: HTMLElement): string => track.dataset.track || '';
 
     function readOrder(): Record<string, string[]> {
       try {
@@ -156,38 +269,41 @@ const byTrack = TRACKS.map((track) => ({
 
     function currentOrder(): Record<string, string[]> {
       const order: Record<string, string[]> = {};
-      root.querySelectorAll<HTMLElement>('.kanban-column').forEach((col) => {
-        order[colKey(col)] = colProjects(col).map((c) => c.dataset.slug || '').filter(Boolean);
-      });
+      for (const track of sections) {
+        order[trackKey(track)] = gridCards(track)
+          .map((card) => card.dataset.slug || '')
+          .filter(Boolean);
+      }
       return order;
     }
 
-    function reorderColumnTo(col: HTMLElement, slugs: string[]): void {
-      const body = colBody(col);
-      if (!body) return;
+    function reorderTrackTo(track: HTMLElement, slugs: string[]): void {
+      const grid = gridOf(track);
+      if (!grid) return;
       const bySlug = new Map<string, HTMLElement>();
-      colProjects(col).forEach((c) => bySlug.set(c.dataset.slug || '', c));
+      for (const card of gridCards(track)) bySlug.set(card.dataset.slug || '', card);
       const frag = document.createDocumentFragment();
-      slugs.forEach((slug) => {
+      for (const slug of slugs) {
         const el = bySlug.get(slug);
         if (el) frag.appendChild(el);
-      });
-      // Cards not listed in `slugs` (e.g. new project not yet in saved order) keep their DOM order.
-      colProjects(col).forEach((c) => {
-        if (!slugs.includes(c.dataset.slug || '')) frag.appendChild(c);
-      });
-      body.appendChild(frag);
+      }
+      // Cards not listed in `slugs` (e.g. a new project) keep their DOM order.
+      for (const card of gridCards(track)) {
+        if (!slugs.includes(card.dataset.slug || '')) frag.appendChild(card);
+      }
+      grid.appendChild(frag);
     }
 
-    // Capture the Astro-rendered (canonical) order BEFORE applying any saved order,
-    // so "Reset" can restore it without a page reload.
+    // Capture the Astro-rendered order before applying any saved order, so
+    // "Reset" can restore it without a page reload.
     const canonicalOrder = currentOrder();
     const savedOrder = readOrder();
-    root.querySelectorAll<HTMLElement>('.kanban-column').forEach((col) => {
-      const slugs = savedOrder[colKey(col)];
-      if (slugs && slugs.length) reorderColumnTo(col, slugs);
-    });
+    for (const track of sections) {
+      const slugs = savedOrder[trackKey(track)];
+      if (slugs && slugs.length) reorderTrackTo(track, slugs);
+    }
 
+    let hintTimer: ReturnType<typeof setTimeout> | undefined;
     function showHint(msg: string): void {
       if (!hintEl) return;
       hintEl.textContent = msg;
@@ -198,13 +314,12 @@ const byTrack = TRACKS.map((track) => ({
       }, 1600);
     }
 
-    // --- Drag & drop (desktop): reorder cards within a column ---
     let dragEl: HTMLElement | null = null;
     let dragKey = '';
 
     function clearDrag(): void {
       if (dragEl) dragEl.classList.remove('dragging');
-      root.querySelectorAll('.project.drag-over').forEach((c) => c.classList.remove('drag-over'));
+      root.querySelectorAll('.project.drag-over').forEach((card) => card.classList.remove('drag-over'));
       dragEl = null;
       dragKey = '';
     }
@@ -218,7 +333,7 @@ const byTrack = TRACKS.map((track) => ({
         return;
       }
       dragEl = card;
-      dragKey = card.closest<HTMLElement>('.kanban-column')?.dataset.track || '';
+      dragKey = trackOf(card)?.dataset.track || '';
       try {
         if (e.dataTransfer) {
           e.dataTransfer.effectAllowed = 'move';
@@ -234,11 +349,7 @@ const byTrack = TRACKS.map((track) => ({
       if (!dragEl) return;
       e.preventDefault();
       const card = (e.target as HTMLElement).closest<HTMLElement>('.project');
-      if (
-        card &&
-        card !== dragEl &&
-        card.closest<HTMLElement>('.kanban-column')?.dataset.track === dragKey
-      ) {
+      if (card && card !== dragEl && trackOf(card)?.dataset.track === dragKey) {
         card.classList.add('drag-over');
       }
     });
@@ -251,21 +362,17 @@ const byTrack = TRACKS.map((track) => ({
       if (!dragEl) return;
       e.preventDefault();
       const target = (e.target as HTMLElement).closest<HTMLElement>('.project');
-      if (
-        target &&
-        target !== dragEl &&
-        target.closest<HTMLElement>('.kanban-column')?.dataset.track === dragKey
-      ) {
-        const body = colBody(target.closest<HTMLElement>('.kanban-column') as HTMLElement);
-        if (body) {
+      if (target && target !== dragEl && trackOf(target)?.dataset.track === dragKey) {
+        const grid = gridOf(trackOf(target));
+        if (grid) {
           const rect = target.getBoundingClientRect();
           const after = e.clientY > rect.top + rect.height / 2;
           if (after) {
             const next = target.nextElementSibling as HTMLElement | null;
-            if (next) body.insertBefore(dragEl, next);
-            else body.appendChild(dragEl);
+            if (next) grid.insertBefore(dragEl, next);
+            else grid.appendChild(dragEl);
           } else {
-            body.insertBefore(dragEl, target);
+            grid.insertBefore(dragEl, target);
           }
           writeOrder(currentOrder());
           showHint(hintEl?.dataset.saved || 'Saved');
@@ -276,20 +383,17 @@ const byTrack = TRACKS.map((track) => ({
 
     root.addEventListener('dragend', clearDrag);
 
-    // --- Keyboard reorder (WCAG 2.1.1 / 2.5.7): ArrowUp/ArrowDown moves the
-    // focused card within its column. Drag is a pointer progressive enhancement;
-    // Shuffle/Reset remain alternate bulk paths. ---
+    // Keyboard reorder (WCAG 2.1.1 / 2.5.7): ArrowUp/ArrowDown moves the
+    // focused card within its track. Drag stays the pointer enhancement.
     root.addEventListener('keydown', (e) => {
       if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-      // Only drive the card when the card itself is focused (keyboard path),
-      // never from a link/button inside it — those keep their own behavior.
       const target = e.target as HTMLElement;
       const card = target.closest<HTMLElement>('.project');
       if (!card || !root.contains(card) || target !== card) return;
-      const col = card.closest<HTMLElement>('.kanban-column');
-      const body = colBody(col as HTMLElement);
-      if (!col || !body) return;
-      const items = colProjects(col);
+      const track = trackOf(card);
+      const grid = gridOf(track);
+      if (!track || !grid) return;
+      const items = gridCards(track);
       const idx = items.indexOf(card);
       if (idx < 0) return;
       const delta = e.key === 'ArrowDown' ? 1 : -1;
@@ -299,45 +403,27 @@ const byTrack = TRACKS.map((track) => ({
       const targetCard = items[next];
       if (delta > 0) {
         const after = targetCard.nextElementSibling as HTMLElement | null;
-        if (after) body.insertBefore(card, after);
-        else body.appendChild(card);
+        if (after) grid.insertBefore(card, after);
+        else grid.appendChild(card);
       } else {
-        body.insertBefore(card, targetCard);
+        grid.insertBefore(card, targetCard);
       }
       writeOrder(currentOrder());
       showHint(hintEl?.dataset.saved || 'Saved');
       card.focus(); // stay on the card so repeated moves work
     });
 
-    // --- Shuffle: randomize within every column ---
-    shuffleBtn?.addEventListener('click', () => {
-      root.querySelectorAll<HTMLElement>('.kanban-column').forEach((col) => {
-        const items = colProjects(col);
-        for (let i = items.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [items[i], items[j]] = [items[j], items[i]];
-        }
-        const body = colBody(col);
-        if (!body) return;
-        const frag = document.createDocumentFragment();
-        items.forEach((el) => frag.appendChild(el));
-        body.appendChild(frag);
-      });
-      writeOrder(currentOrder());
-      showHint(hintEl?.dataset.shuffled || 'Shuffled');
-    });
-
-    // --- Reset: restore the canonical PROJECT_ORDER ---
     resetBtn?.addEventListener('click', () => {
       try {
         localStorage.removeItem(storageKey);
       } catch {
         /* ignore */
       }
-      root.querySelectorAll<HTMLElement>('.kanban-column').forEach((col) => {
-        reorderColumnTo(col, canonicalOrder[colKey(col)] || []);
-      });
+      for (const track of sections) reorderTrackTo(track, canonicalOrder[trackKey(track)] || []);
       showHint(hintEl?.dataset.reset || 'Reset');
     });
+
+    readUrl();
+    apply();
   }
 </script>

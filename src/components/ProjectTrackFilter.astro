@@ -1,0 +1,48 @@
+---
+// Category (track) tabs for the projects board. Markup only — the behaviour
+// (filtering, hash sync, analytics) lives in ProjectBoard's controller script,
+// which owns both filters so their state stays in one place.
+import { ALL_TRACKS } from '../lib/projects';
+
+interface Track {
+  key: string;
+  label: string;
+  count: number;
+}
+
+interface Props {
+  lang?: 'ru' | 'en';
+  tracks: Track[];
+  total: number;
+}
+
+const { lang = 'ru', tracks, total } = Astro.props;
+const allLabel = lang === 'en' ? 'All' : 'Все';
+---
+
+<div
+  class="filter-row project-track-filter reveal reveal-delay-1"
+  role="group"
+  aria-label={lang === 'en' ? 'Project category' : 'Категория проектов'}
+>
+  <button
+    class="filter-tag active"
+    data-track-filter={ALL_TRACKS}
+    aria-pressed="true"
+    type="button"
+  >
+    {allLabel} <span class="filter-count">{total}</span>
+  </button>
+  {
+    tracks.map((track) => (
+      <button
+        class="filter-tag"
+        data-track-filter={track.key}
+        aria-pressed="false"
+        type="button"
+      >
+        {track.label} <span class="filter-count">{track.count}</span>
+      </button>
+    ))
+  }
+</div>

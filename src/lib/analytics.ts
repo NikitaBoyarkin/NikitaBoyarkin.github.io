@@ -39,6 +39,7 @@ export interface AnalyticsEventMap {
   search_no_results: { query: string; results_count: number; locale: Locale };
   read_depth: { content_type: ContentType; slug: string; depth: number; locale: Locale };
   filter_applied: { tag: string; results_count: number; surface: 'writing' | 'notes' };
+  projects_track_filter: { track: string; results_count: number; locale: Locale };
 }
 
 export type KnownEventName = keyof AnalyticsEventMap;
