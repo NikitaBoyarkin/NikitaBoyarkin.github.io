@@ -1,9 +1,8 @@
 # Spec: Homepage Performance (RU + EN)
 
-> Status: **draft (Phase 1 — Specify)**. Feature spec for the homepage-performance cycle.
-> Inherits the project-wide contract from `docs/SPEC.md` (stack, commands, structure, code
-> style, testing, boundaries) — this document specifies only the change. Review and approve
-> before Phase 2 (Plan).
+> Status: **approved (Phase 1 — Specify, 2026-09-20)**. Feature spec for the homepage-performance
+> cycle. Inherits the project-wide contract from `docs/SPEC.md` (stack, commands, structure, code
+> style, testing, boundaries) — this document specifies only the change.
 
 ## Objective
 
@@ -148,12 +147,13 @@ Reuse `withBase()` for any URL. No new dependencies. Match file-local convention
 
 ## Open Questions
 
-1. **Opt-in affordance:** a dedicated "Показать 3D" button, or clicking the photo, or a
-   small badge? (Phase 2 design call.)
-2. **PostHog strategy:** the minimum that keeps event fidelity — `requestIdleCallback` with a
-   timeout, or first-interaction, or `posthog-js`'s built-in lazy config? Confirm acceptable
-   delay for `$pageview`.
-3. ~~Is the 3D avatar worth keeping at all?~~ **Resolved 2026-09-20: kept.** It remains a feature
-   (opt-in); no dependency/dead-code cleanup is scheduled by this cycle.
-4. **Where do future cycle specs live** — this `docs/spec-*.md` pattern, or `docs/prd-*.md`?
-   (Carried over from `docs/SPEC.md` Open Q5.)
+All resolved 2026-09-20 (defaults accepted):
+
+1. ~~Opt-in affordance~~ → an explicit **«Показать 3D» button** under the photo — an accessible
+   `<button>` (visible label, keyboard reachable), not a bare click on the image.
+2. ~~PostHog strategy~~ → load on **first interaction** with an `idle`/timeout fallback. A delay
+   in `$pageview` is acceptable; the tracked event set is unchanged.
+3. ~~Keep the 3D avatar?~~ → **kept** (opt-in); no dependency/dead-code cleanup scheduled.
+4. ~~Where cycle specs live~~ → **`docs/spec-*.md`** (this pattern).
+
+No blocking open questions remain; the spec is approved and ready for Phase 2 (Plan).
