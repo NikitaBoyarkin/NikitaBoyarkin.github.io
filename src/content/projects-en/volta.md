@@ -147,6 +147,124 @@ After the JTBD audit, the portfolio tests **its own recommendations**: five v2 r
 
 Bottom line: **3 risks confirmed, 1 refuted, 1 refined** — the audit survived the check and every decision got a measurable gate. Project 16 (the 45+ KYC deep-dive) bridges the layers: it showed the 45+ barrier is trust, not UX, and set off the whole v2 validation chain.
 
+## Key results by project
+
+### Projects 1–4 — the core loop
+
+| # | Project | Key result |
+|---|---------|------------|
+| 1 | **Funnel** | Registration is the largest absolute loss (2,682 users, 73.2%); KYC Complete the largest relative one (56.6%); referral +11.7 pp over paid social; iOS 13.6% vs Android 11.7% |
+| 2 | **A/B (KYC)** | +5.72 pp (Z=5.82, p<0.0001), 95% CI [+3.78%, +7.66%]; no SRM; CUPED + AA-test + Bonferroni; +€656K/yr (44× ROI) |
+| 3 | **Retention** | M1 +11.8 pp step-change; M3 +9.2 pp; Premium LTV 4.3× Free; +€227K/yr LTV |
+| 4 | **Segmentation** | K=4 from data; Power 12% → 41% of revenue; 68% → 92%; migration +€310K/yr |
+
+### Projects 5–12 — extended portfolio
+
+| # | Project | Key result |
+|---|---------|------------|
+| 5 | **Churn** | RF +0.03 ROC-AUC over LR; driver #1 is device-error rate (23.7%) |
+| 6 | **RFM** | 6 lifecycle segments (Champions→Lost) with a mean R/F/M heatmap |
+| 7 | **CLV** | 3 methods; robustly Power > Growth > Casual > Dormant (Gamma-Gamma €5,166 vs €27.7) |
+| 8 | **Attribution** | First/last/linear/Shapley; Shapley reallocates budget and leads with referral (€264K) |
+| 9 | **Anomalies** | Z-score/IQR/Isolation Forest; IF has the best F1 (50.4%) |
+| 10 | **Spend** | Bills 25.8% and travel 20.2% — nearly half the turnover; groceries is the most frequent |
+| 11 | **Support & churn** | Churn 37.1% (0 tickets) → 81.1% (3+); unresolved tickets amplify it |
+| 12 | **NPS** | Monthly NPS near zero; app_quality +30.3, fees −59.4 |
+
+### Projects 13–17 — Market & Jobs (JTBD)
+
+- **Project 13 — JTBD × cohorts:** chi-square p<0.001 — job segments ≠ cohorts; Dormant 39.4% among Digital Newcomers 45+ vs 15.1% among Family Budgeters; dormancy is driven by UX friction.
+- **Project 14 — Unit economics:** travelers lose €0.45 per €100 FX; break-even needs FX cost 1.00%→0.55%; the loss grows with volume.
+- **Project 15 — Premium upsell:** conversion concentrates in the anchor (17.3%) and status-seekers (41.2%); 45+ 1.8% (z=34, p<0.001) — the upsell doesn't transfer.
+- **Project 16 — 45+ KYC deep-dive:** 35–44 +11.0 pp (p<0.001) and 18–24 +5.3 pp vs 45+ +1.4 pp (ns); referral (trust) converts 45+ best (64.1%) — friction is trust, not UX.
+- **Project 17 — Referral segments:** anchor 29.6% vs 45+ 4.8% and families 8.6% (chi² p<0.001); the gap opens at accept (78% vs 26% vs 40%).
+
+### Projects 18–22 — the RAT v2 validation layer
+
+- **Project 18 — Assisted CAC vs LTV:** 45+ LTV/CAC = 0.66 (gate ≥3), assisted CAC €120 doesn't pay off (50-month payback); the anchor clears 3.62 only via referral.
+- **Project 19 — FX sourcing:** the 0.55% gate is reachable only at SOM scale (~€332M/mo, 122× today) — a cold-start; best quote is Interbank Prime at 0.745%.
+- **Project 20 — Segment premium offers:** +3.33 pp 45+, +4.16 pp families, +3.79 pp travelers (Holm-significant); the anchor +0.86 pp — narrows but doesn't close the gap.
+- **Project 21 — Anchor launch CAC:** LTV/CAC ≥3 holds only to ~70K; at SOM 1.76× and 17.0-month payback; the constraint is cheap-channel capacity.
+- **Project 22 — Dormant 45+ win-back:** human +5.34 pp, light-touch +2.77 pp; light-touch pays off at 30–90d (ROI 2.54 / 1.26), human ROI 0.40 — kill as a mass channel.
+
+## Visualizations
+
+Charts for every project are rendered in the **Charts** section below. Special charts that don't reduce to bar/line/funnel/cohort are shown here.
+
+![Segment PCA projection](/images/volta/segmentation_pca_scatter.png)
+
+*K=4 segments in PCA projection; K chosen by elbow + silhouette.*
+
+![K selection](/images/volta/segmentation_k_selection.png)
+
+*Data-driven K selection: marginal-gain elbow and silhouette (plateau K=2–4, collapse at K=5).*
+
+![Churn ROC curves](/images/volta/churn_roc_curve.png)
+
+*ROC curves for logistic regression and Random Forest; RF +0.03 AUC.*
+
+![Churn SHAP summary](/images/volta/churn_shap_summary.png)
+
+*SHAP summary: feature contributions to the churn prediction.*
+
+![Churn SHAP local](/images/volta/churn_shap_local.png)
+
+*SHAP breakdown of a single prediction.*
+
+![Anomaly detection](/images/volta/anomaly_detections.png)
+
+*Anomalies: amount × night hours; Isolation Forest catches hidden clusters.*
+
+![Unit-economics sensitivity](/images/volta/traveler_unit_economics_sensitivity.png)
+
+*Sensitivity of the traveler's blended margin to FX cost.*
+
+## Business recommendations
+
+A summary of decisions across all 22 projects: what to do, on what evidence, under which gate, with what caveat.
+
+**1. Onboarding & KYC — remove the main bottleneck**
+
+- Roll out the KYC progress bar to 100% (Project 2: +5.72 pp, p<0.0001, +€656K/yr at 44× ROI).
+- Simplify registration (Project 1: −2,682 users) — A/B on removing the phone field.
+- A separate trust track for 45+, but not UX-only (Project 16: 45+ +1.4 pp ns vs +11.0 pp for 35–44).
+
+**2. Unit economics & scaling — don't scale what loses money**
+
+- Don't scale travel until FX cost ≤0.55% (Project 14/19: margin −€0.45; the gate needs ~€332M/mo — a cold-start).
+- The anchor 25–34 is the growth point, but plan only to ~70K (Project 21: LTV/CAC ≥3 only to 70K; 1.76 at SOM).
+- Grow cheap-channel capacity (referral, in-app) instead of increasing paid budget.
+
+**3. Monetization & segments — defend the core, fix the gap**
+
+- Defend Power (12% → 41% of revenue) and upgrade Growth/Casual; Dormant (8%) is the win-back target.
+- Launch segment premium offers (+3.3…+4.2 pp, Project 20), planning for the residual gap.
+- Premium status is margin to defend (41% conversion, 12% → 41% of revenue), not a growth channel.
+
+**4. Retention & reactivation — economics over reach**
+
+- Light-touch win-back only at 30–90 days (Project 22: ROI 2.54 / 1.26); human is an escalation for high-value.
+- Prevent churn through reliability: the top driver is device-error rate (Project 5).
+- Premium LTV is 4.3× Free (Project 3) — target high-intent Free in the first 1–2 months.
+
+**5. Trust & channels — don't copy the anchor playbook**
+
+- Don't scale referral beyond the anchor (Project 17: 29.6% vs 4.8%) — segment incentives first.
+- Assisted onboarding pays off only below the current €120 CAC (Project 18: 45+ LTV/CAC 0.66, 50-month payback).
+- Provider choice + a long hedge is the second-strongest discount after volume (Project 19).
+
+**6. Decision gates (ship / pilot / hold / kill)**
+
+| Initiative | Evidence | Gate | Decision |
+|------------|----------|------|----------|
+| KYC progress bar | Project 2: +5.72 pp, p<0.0001 | p<0.05, lift≥MDE, no SRM | **Ship 100%** |
+| Segment premium offers | Project 20: +3.3…+4.2 pp, Holm | lift>0 after correction | **Ship** (residual gap) |
+| Light-touch win-back 30–90d | Project 22: ROI 2.54 / 1.26 | ROI ≥ 1 | **Ship** narrowly at 30–90d |
+| Assisted trust track 45+ | Project 18: LTV/CAC 0.66, 50-month payback | LTV/CAC ≥ 3, payback ≤ 12 mo | **Hold** — cut CAC |
+| Scaling travel | Project 14/19: margin <0, gate €332M/mo | FX cost ≤ 0.55% | **Hold** — pilot at 10% |
+| Anchor launch to SOM | Project 21: LTV/CAC 1.76 at SOM | LTV/CAC ≥ 3 | **Hold** — to 70K |
+| Human win-back calls | Project 22: ROI 0.40 | ROI ≥ 1 | **Kill** as a mass channel |
+
 ## Data & Method
 
 **Data:** synthetic, seeded generators (`generate_*.py`) → reproducible CSVs. The funnel dataset is committed; the rest are generated on demand.

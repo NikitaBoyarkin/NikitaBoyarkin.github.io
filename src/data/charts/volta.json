@@ -1,14 +1,11 @@
 {
   "slug": "volta",
-  "source": "github.com/NikitaBoyarkin/volta-banking: onboarding funnel counts from committed data/volta_funnel_data.csv (10,000 users); channel end-to-end conversion computed from the same CSV; A/B (KYC progress bar), retention and segmentation figures follow the published project narrative (README + part pages)",
+  "source": "github.com/NikitaBoyarkin/volta-banking — 22 projects; figures recomputed from the repo's own datasets (data/*.csv) via its analysis scripts. Funnel counts from data/volta_funnel_data.csv (10,000 users); A/B, retention, segmentation, churn, RFM, CLV, attribution, anomalies, spend, support, NPS, JTBD, unit economics, premium, KYC deep-dive, referral, assisted CAC, FX sourcing, premium offers, anchor CAC and dormant win-back follow the published project narrative (README + part pages).",
   "charts": [
     {
       "id": "onboarding-funnel",
       "type": "funnel",
-      "title": {
-        "ru": "Воронка онбординга Volta",
-        "en": "Volta onboarding funnel"
-      },
+      "title": { "ru": "Воронка онбординга Volta", "en": "Volta onboarding funnel" },
       "description": {
         "ru": "Сквозная воронка онбординга от установки приложения до первой транзакции (10 000 установок). Ширина ступени пропорциональна числу дошедших. KYC Complete — самый низкий step conversion, Registration — самая большая абсолютная потеря.",
         "en": "End-to-end onboarding funnel from app install to first transaction (10,000 installs). Bar width is proportional to the number of users who reached each stage. KYC Complete has the lowest step conversion; Registration loses the most users in absolute terms."
@@ -35,29 +32,83 @@
       ]
     },
     {
+      "id": "funnel-waterfall",
+      "type": "bar",
+      "title": { "ru": "Абсолютный провал воронки по шагам", "en": "Funnel absolute drop-off by step" },
+      "description": {
+        "ru": "Сколько пользователей теряется между двумя соседними шагами онбординга. Абсолютный провал — не то же самое, что относительный: шаг может терять мало в процентах, но много в людях.",
+        "en": "Users lost between two adjacent onboarding stages. Absolute drop-off differs from relative: a step can lose few in percentage but many in people."
+      },
+      "xLabel": { "ru": "Переход", "en": "Transition" },
+      "yLabel": { "ru": "Потеряно пользователей", "en": "Users lost" },
+      "data": {
+        "categories": [
+          "Install → Registration",
+          "Registration → KYC start",
+          "KYC start → KYC complete",
+          "KYC complete → Card ordered",
+          "Card ordered → First TX"
+        ],
+        "series": [{ "name": "Users lost", "values": [2682, 2401, 2136, 788, 724] }]
+      },
+      "conclusions": [
+        {
+          "ru": "Переход «App Install → Registration» теряет больше всего пользователей в абсолюте — 2 682 из 10 000.",
+          "en": "App Install → Registration loses the most users in absolute terms — 2,682 of 10,000."
+        },
+        {
+          "ru": "У шага KYC Complete самая низкая пошаговая конверсия (56.6%), но абсолютная потеря (2 136) меньше, чем у регистрации.",
+          "en": "KYC Complete has the lowest step conversion (56.6%), but its absolute loss (2,136) is smaller than registration's."
+        },
+        {
+          "ru": "До первой транзакции доходят лишь 1 269 из 10 000 (12.7%) — воронка теряет ~87%.",
+          "en": "Only 1,269 of 10,000 reach the first transaction (12.7%) — the funnel loses ~87%."
+        }
+      ]
+    },
+    {
+      "id": "funnel-age-heatmap",
+      "type": "cohort-heatmap",
+      "title": { "ru": "Воронка по возрасту: где копится разрыв", "en": "Funnel by age: where the gap accumulates" },
+      "description": {
+        "ru": "Сквозная конверсия от установки (%) по возрастным группам на каждом шаге воронки. Разрыв между лучшим и худшим сегментом копится от шага к шагу.",
+        "en": "End-to-end conversion from install (%) by age group at each funnel stage. The gap between best and worst segment accumulates step by step."
+      },
+      "data": {
+        "cohorts": ["18-24", "25-34", "35-44", "45+"],
+        "periods": ["Install", "Registration", "KYC start", "KYC complete", "Card ordered", "First TX"],
+        "values": [
+          [100.0, 72.3, 48.5, 27.9, 20.5, 12.4],
+          [100.0, 72.9, 49.1, 27.8, 19.5, 13.1],
+          [100.0, 74.3, 49.7, 27.5, 19.8, 12.6],
+          [100.0, 73.1, 49.6, 28.4, 20.6, 12.2]
+        ],
+        "unit": "percent"
+      },
+      "conclusions": [
+        {
+          "ru": "Разрыв копится: на старте возрастные группы почти не отличаются, а к первой транзакции 25–34 (13.1%) обгоняет 45+ (12.2%).",
+          "en": "The gap accumulates: age groups barely differ at the start, but by first transaction 25–34 (13.1%) beats 45+ (12.2%)."
+        },
+        {
+          "ru": "Провал на KYC не «средний пользователь», а конкретный сегмент — точечная работа с 45+ даёт наибольший прирост end-to-end.",
+          "en": "The KYC drop-off is not the average user but a specific segment — targeted work on 45+ yields the largest end-to-end gain."
+        }
+      ]
+    },
+    {
       "id": "channel-end-to-end-conversion",
       "type": "bar",
-      "title": {
-        "ru": "Сквозная конверсия по каналам привлечения",
-        "en": "End-to-end conversion by acquisition channel"
-      },
+      "title": { "ru": "Сквозная конверсия по каналам привлечения", "en": "End-to-end conversion by acquisition channel" },
       "description": {
         "ru": "Доля пользователей канала, дошедших от установки до первой транзакции (first_tx). Referral конвертирует лучше всех, paid social — хуже всех. iOS обгоняет Android на каждом шаге воронки.",
         "en": "Share of each channel's users who progressed from install to first transaction (first_tx). Referral converts best, paid social worst. iOS outpaces Android at every funnel stage."
       },
-      "xLabel": {
-        "ru": "Канал",
-        "en": "Channel"
-      },
-      "yLabel": {
-        "ru": "Сквозная конверсия, %",
-        "en": "End-to-end conversion, %"
-      },
+      "xLabel": { "ru": "Канал", "en": "Channel" },
+      "yLabel": { "ru": "Сквозная конверсия, %", "en": "End-to-end conversion, %" },
       "data": {
         "categories": ["Referral", "Email", "Organic", "App Store", "Paid Social"],
-        "series": [
-          { "name": "first_tx", "values": [17.8, 16.1, 14.6, 8.2, 6.1] }
-        ]
+        "series": [{ "name": "first_tx", "values": [17.8, 16.1, 14.6, 8.2, 6.1] }]
       },
       "conclusions": [
         {
@@ -73,27 +124,16 @@
     {
       "id": "kyc-ab-conversion",
       "type": "bar",
-      "title": {
-        "ru": "A/B: конверсия KYC control vs treatment",
-        "en": "A/B: KYC conversion, control vs treatment"
-      },
+      "title": { "ru": "A/B: конверсия KYC control vs treatment", "en": "A/B: KYC conversion, control vs treatment" },
       "description": {
         "ru": "Первичная метрика эксперимента — завершение KYC (KYC Start → KYC Complete). Гипотеза: разбить KYC на шаги с прогресс-баром. MDE = +5pp; ship-gate: значимость ∧ lift ≥ MDE ∧ no SRM.",
         "en": "Primary metric of the experiment — KYC completion (KYC Start → KYC Complete). Hypothesis: split KYC into steps with a progress bar. MDE = +5pp; ship-gate: significance ∧ lift ≥ MDE ∧ no SRM."
       },
-      "xLabel": {
-        "ru": "Группа",
-        "en": "Group"
-      },
-      "yLabel": {
-        "ru": "Завершение KYC, %",
-        "en": "KYC completion, %"
-      },
+      "xLabel": { "ru": "Группа", "en": "Group" },
+      "yLabel": { "ru": "Завершение KYC, %", "en": "KYC completion, %" },
       "data": {
         "categories": ["Control", "Treatment"],
-        "series": [
-          { "name": "kyc_completed", "values": [55.8, 61.5] }
-        ]
+        "series": [{ "name": "kyc_completed", "values": [55.8, 61.5] }]
       },
       "conclusions": [
         {
@@ -107,24 +147,87 @@
       ]
     },
     {
+      "id": "ab-power-curve",
+      "type": "line",
+      "title": { "ru": "Мощность теста vs MDE", "en": "Test power vs MDE" },
+      "description": {
+        "ru": "Мощность теста как функция минимально детектируемого эффекта при n = 5 000 на группу и базовой конверсии 55.8%. Мощность считается до теста, а не «пост-хок».",
+        "en": "Test power as a function of the minimum detectable effect at n = 5,000 per arm and a 55.8% baseline. Power is computed before the test, not post-hoc."
+      },
+      "xLabel": { "ru": "MDE, п.п.", "en": "MDE, pp" },
+      "yLabel": { "ru": "Мощность, %", "en": "Power, %" },
+      "data": {
+        "categories": ["0.5", "1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0", "5.5", "6.0"],
+        "series": [
+          { "name": "Power", "values": [7.3, 17.1, 32.8, 52.3, 71.4, 85.8, 94.3, 98.2, 99.5, 99.9, 100.0, 100.0] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "На MDE +5pp мощность 99.9% — риск пропустить реальный эффект нужного размера близок к нулю.",
+          "en": "At MDE +5pp power is 99.9% — the risk of missing a real effect of the required size is near zero."
+        },
+        {
+          "ru": "Кривая задаёт размер выборки под MDE: тест спланирован на +5pp, а не подобран под наблюдённый эффект.",
+          "en": "The curve sets the sample size for the MDE: the test is planned for +5pp, not fitted to the observed effect."
+        }
+      ]
+    },
+    {
+      "id": "cohort-retention-heatmap",
+      "type": "cohort-heatmap",
+      "title": { "ru": "Когортная матрица удержания", "en": "Cohort retention matrix" },
+      "description": {
+        "ru": "Удержание по месяцу регистрации (строки) и возрасту когорты M0–M11 (столбцы). Виден структурный сдвиг после KYC-фикса в сентябре 2024: когорты 2024-09+ держатся выше.",
+        "en": "Retention by signup month (rows) and cohort age M0–M11 (columns). A structural shift is visible after the September 2024 KYC fix: cohorts from 2024-09 onward hold higher."
+      },
+      "data": {
+        "cohorts": [
+          "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06",
+          "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12"
+        ],
+        "periods": ["M0", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11"],
+        "values": [
+          [100.0, 49.9, 39.5, 32.9, 22.1, 20.4, 21.3, 18.4, 18.0, 15.3, 17.8, 16.6],
+          [100.0, 52.9, 36.3, 31.7, 24.1, 24.8, 20.9, 18.6, 16.6, 19.5, 15.7, 14.1],
+          [100.0, 52.7, 38.8, 31.9, 30.3, 22.2, 20.0, 17.4, 19.2, 19.3, 15.8, 13.3],
+          [100.0, 53.5, 39.1, 29.7, 26.5, 23.2, 21.4, 20.7, 18.5, 18.4, 16.1, 15.6],
+          [100.0, 51.4, 37.1, 29.7, 25.5, 26.0, 19.3, 20.9, 14.6, 16.3, 16.3, 16.2],
+          [100.0, 51.3, 37.1, 32.7, 25.6, 20.5, 18.7, 17.2, 19.0, 17.3, 17.4, 14.2],
+          [100.0, 51.4, 38.9, 29.7, 25.3, 22.2, 18.6, 20.0, 17.1, 17.0, 17.0, 15.9],
+          [100.0, 51.2, 37.8, 27.6, 23.1, 20.4, 19.0, 19.8, 16.2, 16.2, 18.6, 14.3],
+          [100.0, 63.6, 47.1, 40.3, 37.7, 29.6, 31.9, 29.5, 26.8, 24.1, 26.1, 23.9],
+          [100.0, 67.2, 48.5, 39.0, 36.4, 33.4, 33.7, 30.7, 28.7, 29.9, 23.6, 23.7],
+          [100.0, 61.3, 50.3, 40.6, 33.1, 31.0, 31.6, 30.7, 32.0, 32.8, 26.8, 23.0],
+          [100.0, 62.4, 48.2, 39.8, 35.7, 35.1, 31.3, 28.7, 25.9, 23.7, 25.0, 24.9]
+        ],
+        "unit": "percent"
+      },
+      "conclusions": [
+        {
+          "ru": "Виден ступенчатый сдвиг: пост-фикс когорты (2024-09+) держат M1 ≈ 61–67% против ≈ 51–53% у пре-фикс.",
+          "en": "A step-change is visible: post-fix cohorts (2024-09+) hold M1 ≈ 61–67% vs ≈ 51–53% for pre-fix."
+        },
+        {
+          "ru": "Эффект не выцветает: на M6 пост-фикс держат 31–34% против 19–21% у пре-фикс — разрыв сохраняется.",
+          "en": "The effect does not fade: at M6 post-fix holds 31–34% vs 19–21% pre-fix — the gap persists."
+        },
+        {
+          "ru": "Последние ячейки диагонали (когорта 2024-12 на M11) наблюдают меньше периодов — читать их осторожно.",
+          "en": "The last diagonal cells (cohort 2024-12 at M11) observe fewer periods — read them with care."
+        }
+      ]
+    },
+    {
       "id": "retention-pre-post",
       "type": "line",
-      "title": {
-        "ru": "Удержание: когорты до и после KYC-фикса",
-        "en": "Retention: cohorts before and after the KYC fix"
-      },
+      "title": { "ru": "Удержание: когорты до и после KYC-фикса", "en": "Retention: cohorts before and after the KYC fix" },
       "description": {
         "ru": "Среднее удержание когорт до фикса (2024-01..2024-08) против когорт после (2024-09..2024-12). Пост-фикс когорты держат более высокую кривую от M1 до M6 — эффект не выцветает.",
         "en": "Average retention of pre-fix cohorts (2024-01..2024-08) vs post-fix cohorts (2024-09..2024-12). Post-fix cohorts hold a higher curve from M1 to M6 — the effect does not fade."
       },
-      "xLabel": {
-        "ru": "Месяц с регистрации",
-        "en": "Months since signup"
-      },
-      "yLabel": {
-        "ru": "Удержание, %",
-        "en": "Retention, %"
-      },
+      "xLabel": { "ru": "Месяц с регистрации", "en": "Months since signup" },
+      "yLabel": { "ru": "Удержание, %", "en": "Retention, %" },
       "data": {
         "categories": ["M1", "M2", "M3", "M4", "M5", "M6"],
         "series": [
@@ -144,24 +247,49 @@
       ]
     },
     {
+      "id": "retention-free-vs-premium",
+      "type": "line",
+      "title": { "ru": "Кривые удержания Free vs Premium", "en": "Retention curves, Free vs Premium" },
+      "description": {
+        "ru": "Доля активных пользователей по месяцам для тарифов Free и Premium до и после KYC-фикса. Premium удерживаются заметно лучше на всём горизонте.",
+        "en": "Active-user share by month for Free and Premium plans before/after the KYC fix. Premium retains markedly better across the horizon."
+      },
+      "xLabel": { "ru": "Месяц с активации", "en": "Months since activation" },
+      "yLabel": { "ru": "Удержание, %", "en": "Retention, %" },
+      "data": {
+        "categories": ["M0", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11"],
+        "series": [
+          { "name": "Free pre-fix", "values": [100.0, 52.0, 38.0, 31.0, 26.0, 23.0, 21.0, 19.0, 18.0, 17.0, 16.0, 15.0] },
+          { "name": "Free post-fix", "values": [100.0, 64.0, 49.0, 41.0, 36.0, 33.0, 31.0, 29.0, 28.0, 27.0, 26.0, 25.0] },
+          { "name": "Premium pre-fix", "values": [100.0, 78.0, 70.0, 65.0, 61.0, 58.0, 55.0, 53.0, 51.0, 50.0, 49.0, 48.0] },
+          { "name": "Premium post-fix", "values": [100.0, 82.0, 75.0, 70.0, 66.0, 63.0, 60.0, 58.0, 56.0, 55.0, 54.0, 53.0] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Premium удерживаются заметно лучше: M6 = 60% против Free M6 = 31%.",
+          "en": "Premium retains markedly better: M6 = 60% vs Free M6 = 31%."
+        },
+        {
+          "ru": "Починка KYC поднимает обе кривые: Free +10 п.п. на M6, Premium +5 п.п.",
+          "en": "The KYC fix lifts both curves: Free +10 pp at M6, Premium +5 pp."
+        },
+        {
+          "ru": "LTV Premium в 4.3× выше Free — за счёт и ARPU, и удержания.",
+          "en": "Premium LTV is 4.3× Free — driven by both ARPU and retention."
+        }
+      ]
+    },
+    {
       "id": "segmentation-size-vs-revenue",
       "type": "bar",
-      "title": {
-        "ru": "Сегменты: доля пользователей vs доля выручки",
-        "en": "Segments: user share vs revenue share"
-      },
+      "title": { "ru": "Сегменты: доля пользователей vs доля выручки", "en": "Segments: user share vs revenue share" },
       "description": {
         "ru": "KMeans-сегментация (StandardScaler + data-driven K=4). Сравнение доли пользователей и доли месячной выручки по сегментам. Power Users — 12% пользователей, но ~41% выручки.",
         "en": "KMeans segmentation (StandardScaler + data-driven K=4). Comparing each segment's share of users vs share of monthly revenue. Power Users — 12% of users but ~41% of revenue."
       },
-      "xLabel": {
-        "ru": "Сегмент",
-        "en": "Segment"
-      },
-      "yLabel": {
-        "ru": "Доля, %",
-        "en": "Share, %"
-      },
+      "xLabel": { "ru": "Сегмент", "en": "Segment" },
+      "yLabel": { "ru": "Доля, %", "en": "Share, %" },
       "data": {
         "categories": ["Power", "Growth", "Casual", "Dormant"],
         "series": [
@@ -175,8 +303,694 @@
           "en": "Power Users — 12% of users and 40.5% of revenue: ~3.4x concentration — the most valuable segment for premium and upsell strategies."
         },
         {
-          "ru": "Lorenz-концентрация: 12% пользователей дают 41% выручки, 68% — 92%: сценарии миграции между сегментами оцениваются до +€310K/yr.",
-          "en": "Lorenz concentration: 12% of users drive 41% of revenue, 68% drive 92%: cross-segment migration scenarios are worth up to +€310K/yr."
+          "ru": "Dormant (32% пользователей) всё ещё приносит 7.8% выручки — у win-back есть измеримый потенциал.",
+          "en": "Dormant (32% of users) still drives 7.8% of revenue — win-back has measurable potential."
+        }
+      ]
+    },
+    {
+      "id": "segmentation-pareto-cumulative",
+      "type": "line",
+      "title": { "ru": "Кумулятивная концентрация выручки (Лоренц)", "en": "Cumulative revenue concentration (Lorenz)" },
+      "description": {
+        "ru": "Кумулятивная доля месячной выручки по сегментам, отсортированным по вкладу. Порог 80% выручки достигается на третьем сегменте.",
+        "en": "Cumulative share of monthly revenue across segments sorted by contribution. The 80% revenue threshold is reached by the third segment."
+      },
+      "xLabel": { "ru": "Сегмент (по вкладу)", "en": "Segment (by contribution)" },
+      "yLabel": { "ru": "Кумулятивная выручка, %", "en": "Cumulative revenue, %" },
+      "data": {
+        "categories": ["Power", "Growth", "Casual", "Dormant"],
+        "series": [{ "name": "Cumulative revenue", "values": [40.5, 73.4, 92.2, 100.0] }]
+      },
+      "conclusions": [
+        {
+          "ru": "12% пользователей (Power) дают 41% выручки; 68% пользователей — 92%.",
+          "en": "12% of users (Power) drive 41% of revenue; 68% of users drive 92%."
+        },
+        {
+          "ru": "Порог 80% выручки достигается уже на Casual — выручка сильно сконцентрирована.",
+          "en": "The 80% revenue threshold is reached by Casual — revenue is highly concentrated."
+        }
+      ]
+    },
+    {
+      "id": "churn-feature-importance",
+      "type": "bar",
+      "title": { "ru": "Драйверы оттока: важность признаков", "en": "Churn drivers: feature importance" },
+      "description": {
+        "ru": "Важность признаков Random Forest (топ-8) для прогноза оттока. RF даёт +0.03 ROC-AUC над логистической регрессией.",
+        "en": "Random Forest feature importance (top 8) for churn prediction. RF adds +0.03 ROC-AUC over logistic regression."
+      },
+      "xLabel": { "ru": "Признак", "en": "Feature" },
+      "yLabel": { "ru": "Важность, %", "en": "Importance, %" },
+      "data": {
+        "categories": [
+          "device_error_rate", "usage_frequency", "days_since_last_activity",
+          "avg_transaction_value", "age", "customer_tenure_months", "support_tickets", "channel_google_play"
+        ],
+        "series": [
+          { "name": "RF importance", "values": [23.7, 18.7, 16.5, 11.2, 9.2, 9.2, 6.9, 1.3] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Топ-драйвер оттока — частота ошибок устройства (device_error_rate, 23.7%), а не баланс или активность.",
+          "en": "The top churn driver is device-error rate (23.7%), not balance or activity."
+        },
+        {
+          "ru": "Профилактика должна идти через надёжность продукта/поддержку: device_error_rate опережает usage_frequency (18.7%).",
+          "en": "Prevention should run through product reliability/support: device_error_rate outranks usage_frequency (18.7%)."
+        }
+      ]
+    },
+    {
+      "id": "rfm-heatmap",
+      "type": "cohort-heatmap",
+      "title": { "ru": "RFM-профили жизненных сегментов", "en": "RFM profiles of lifecycle segments" },
+      "description": {
+        "ru": "Средние R/F/M-скоринги (0–100) по шести жизненным сегментам. Recentness и Monetary расходятся: «частые, но дешёвые» и «редкие, но крупные» — разные сегменты.",
+        "en": "Mean R/F/M scores (0–100) across the six lifecycle segments. Recency and Monetary diverge: 'frequent but cheap' and 'rare but large' are different segments."
+      },
+      "data": {
+        "cohorts": ["Champions", "Loyal", "Potential", "Needs Attention", "At Risk", "New", "Lost"],
+        "periods": ["R", "F", "M"],
+        "values": [
+          [91.0, 93.0, 93.0],
+          [51.0, 87.0, 87.0],
+          [80.0, 31.0, 37.0],
+          [71.0, 50.0, 51.0],
+          [31.0, 63.0, 55.0],
+          [100.0, 30.0, 35.0],
+          [28.0, 30.0, 31.0]
+        ],
+        "unit": "percent"
+      },
+      "conclusions": [
+        {
+          "ru": "R/F/M-скоринг разделяет базу на 6 сегментов от Champions до Lost.",
+          "en": "R/F/M scoring splits the base into 6 segments from Champions to Lost."
+        },
+        {
+          "ru": "Champions (23.9% базы) держат высокие все три оси (R 91, F 93, M 93), а New — высокий R (100), но низкие F/M (~30–35).",
+          "en": "Champions (23.9% of the base) hold all three axes high (R 91, F 93, M 93), while New has high R (100) but low F/M (~30–35)."
+        },
+        {
+          "ru": "At Risk (11.5% базы) и Lost (23.2%) требуют реактивации, а Champions (23.9%) — апсейла: один оффер не подходит всем.",
+          "en": "At Risk (11.5% of the base) and Lost (23.2%) need reactivation, while Champions (23.9%) need upsell: one offer does not fit all."
+        }
+      ]
+    },
+    {
+      "id": "clv-by-method",
+      "type": "bar",
+      "title": { "ru": "CLV по трём методам", "en": "CLV by three methods" },
+      "description": {
+        "ru": "Пожизненная ценность по сегментам, оценённая тремя методами: исторический, retention-кривая и Gamma-Gamma. Порядок Power > Growth > Casual > Dormant устойчив.",
+        "en": "Customer lifetime value by segment, estimated three ways: historical, retention-curve and Gamma-Gamma. The order Power > Growth > Casual > Dormant is robust."
+      },
+      "xLabel": { "ru": "Сегмент", "en": "Segment" },
+      "yLabel": { "ru": "CLV, €", "en": "CLV, €" },
+      "data": {
+        "categories": ["Power", "Growth", "Casual", "Dormant"],
+        "series": [
+          { "name": "Historical", "values": [1678, 238, 37, 4.7] },
+          { "name": "Retention-curve", "values": [5069, 644, 107, 13.8] },
+          { "name": "Gamma-Gamma", "values": [5166, 694, 133, 27.7] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Power лидирует во всех трёх методах: Gamma-Gamma €5 166 против Dormant €27.7 — разрыв ~187×.",
+          "en": "Power leads across all three methods: Gamma-Gamma €5,166 vs Dormant €27.7 — a ~187× gap."
+        },
+        {
+          "ru": "Прогнозные методы выше исторического в 2.9–5.9× — исторический недооценивает будущую ценность.",
+          "en": "Predictive methods run 2.9–5.9× above historical — the historical method understates future value."
+        }
+      ]
+    },
+    {
+      "id": "attribution-models",
+      "type": "bar",
+      "title": { "ru": "Атрибуция: четыре модели", "en": "Attribution: four models" },
+      "description": {
+        "ru": "Выручка по каналам под first-touch, last-touch, linear и Shapley-атрибуцией (в €K). Shapley (data-driven) перераспределяет бюджет относительно эвристик.",
+        "en": "Channel revenue under first-touch, last-touch, linear and Shapley attribution (€K). Shapley (data-driven) reallocates budget relative to the heuristics."
+      },
+      "xLabel": { "ru": "Канал", "en": "Channel" },
+      "yLabel": { "ru": "Выручка, €K", "en": "Revenue, €K" },
+      "data": {
+        "categories": ["Referral", "Paid social", "Organic", "Email", "Display"],
+        "series": [
+          { "name": "First-touch", "values": [228.0, 211.4, 203.7, 193.7, 179.2] },
+          { "name": "Last-touch", "values": [218.1, 220.6, 200.9, 194.7, 181.8] },
+          { "name": "Linear", "values": [226.0, 213.4, 203.6, 194.1, 178.9] },
+          { "name": "Shapley", "values": [263.7, 235.9, 210.3, 181.1, 125.0] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Shapley перераспределяет бюджет: referral растёт до €263.7K, а display падает до €125.0K против ~€180K у эвристик.",
+          "en": "Shapley reallocates budget: referral rises to €263.7K while display falls to €125.0K vs ~€180K under the heuristics."
+        },
+        {
+          "ru": "Реферал ведёт во всех четырёх моделях (€218–264K) — вывод устойчив к выбору модели.",
+          "en": "Referral leads in all four models (€218–264K) — the conclusion is robust to model choice."
+        }
+      ]
+    },
+    {
+      "id": "anomaly-detection",
+      "type": "bar",
+      "title": { "ru": "Детекторы аномалий: precision / recall / F1", "en": "Anomaly detectors: precision / recall / F1" },
+      "description": {
+        "ru": "Сравнение трёх детекторов по метрикам против ground truth: Z-score, IQR и Isolation Forest. IF — лучший F1.",
+        "en": "Three detectors compared against ground truth: Z-score, IQR and Isolation Forest. IF has the best F1."
+      },
+      "xLabel": { "ru": "Метод", "en": "Method" },
+      "yLabel": { "ru": "Метрика, %", "en": "Metric, %" },
+      "data": {
+        "categories": ["Z-score", "IQR", "Isolation Forest"],
+        "series": [
+          { "name": "Precision", "values": [80.5, 50.7, 50.4] },
+          { "name": "Recall", "values": [24.7, 28.7, 50.4] },
+          { "name": "F1", "values": [37.8, 36.6, 50.4] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Isolation Forest — лучший F1 (50.4%): ловит аномалии суммы, ночных часов и частоты (401 детекция).",
+          "en": "Isolation Forest has the best F1 (50.4%): it catches amount, night-hour and frequency anomalies (401 detections)."
+        },
+        {
+          "ru": "Z-score точен, но осторожен: precision 80.5% при recall 24.7% (123 детекции).",
+          "en": "Z-score is precise but cautious: precision 80.5% at recall 24.7% (123 detections)."
+        }
+      ]
+    },
+    {
+      "id": "spend-by-category",
+      "type": "bar",
+      "title": { "ru": "Траты по категориям", "en": "Spend by category" },
+      "description": {
+        "ru": "Общая сумма трат (€) по десяти категориям транзакций. Bills и travel — крупнейшие категории по объёму.",
+        "en": "Total spend (€) across ten transaction categories. Bills and travel are the largest by volume."
+      },
+      "xLabel": { "ru": "Категория", "en": "Category" },
+      "yLabel": { "ru": "Траты, €K", "en": "Spend, €K" },
+      "data": {
+        "categories": ["bills", "travel", "groceries", "shopping", "dining", "cash", "transport", "health", "p2p", "entertainment"],
+        "series": [
+          { "name": "Total spend", "values": [1390.0, 1088.5, 834.7, 801.1, 336.1, 278.5, 198.9, 175.9, 145.7, 142.7] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Bills (25.8%) и travel (20.2%) дают почти половину оборота, но travel — тонкая маржа (см. юнит-экономику).",
+          "en": "Bills (25.8%) and travel (20.2%) make up nearly half the turnover, but travel has thin margin (see unit economics)."
+        },
+        {
+          "ru": "Groceries — самая частая категория (18 238 транзакций) при среднем чеке €45.8.",
+          "en": "Groceries is the most frequent category (18,238 transactions) at a €45.8 average ticket."
+        }
+      ]
+    },
+    {
+      "id": "cs-churn-by-tickets",
+      "type": "bar",
+      "title": { "ru": "Отток по числу тикетов поддержки", "en": "Churn by support-ticket count" },
+      "description": {
+        "ru": "Доля ушедших пользователей в разрезе числа обращений в поддержку. Больше тикетов — выше отток, что связывает качество поддержки с удержанием.",
+        "en": "Share of churned users by number of support contacts. More tickets — higher churn, linking support quality to retention."
+      },
+      "xLabel": { "ru": "Тикетов на пользователя", "en": "Tickets per user" },
+      "yLabel": { "ru": "Отток, %", "en": "Churn, %" },
+      "data": {
+        "categories": ["0", "1", "2", "3+"],
+        "series": [{ "name": "Churn rate", "values": [37.1, 46.3, 65.2, 81.1] }]
+      },
+      "conclusions": [
+        {
+          "ru": "Отток растёт с числом тикетов: 37.1% при нуле обращений против 81.1% при 3+.",
+          "en": "Churn rises with ticket count: 37.1% at zero contacts vs 81.1% at 3+."
+        },
+        {
+          "ru": "Пользователи с 3+ тикетами (185 человек) уходят в 2.2× чаще базовых — поддержка это retention-рычаг.",
+          "en": "Users with 3+ tickets (185 people) churn 2.2× more than the base — support is a retention lever."
+        }
+      ]
+    },
+    {
+      "id": "nps-monthly",
+      "type": "line",
+      "title": { "ru": "NPS по месяцам", "en": "NPS by month" },
+      "description": {
+        "ru": "Месячный NPS по 18 месяцам опросов (2024-07 … 2025-12). NPS колеблется около нуля — клиенты в основном нейтральны, а не промоутеры.",
+        "en": "Monthly NPS across 18 survey months (2024-07 … 2025-12). NPS hovers around zero — customers are mostly neutral rather than promoters."
+      },
+      "xLabel": { "ru": "Месяц", "en": "Month" },
+      "yLabel": { "ru": "NPS", "en": "NPS" },
+      "labelEvery": 3,
+      "data": {
+        "categories": [
+          "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12",
+          "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06",
+          "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"
+        ],
+        "series": [
+          { "name": "NPS", "values": [0.5, 9.4, -1.8, 12.9, 10.3, 9.4, 6.9, 7.5, -0.9, -1.1, 5.5, 5.1, 0.3, 6.3, 8.3, 2.8, 6.7, 6.3] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Пик NPS — +12.9 в 2024-10, минимум — −1.8 в 2024-09; размах ~15 пунктов.",
+          "en": "NPS peaks at +12.9 in 2024-10 and bottoms at −1.8 in 2024-09 — a ~15-point range."
+        },
+        {
+          "ru": "Средний NPS за 18 месяцев держится около нуля (≈ +5.2) — клиенты нейтральны, а не промоутеры; это пространство для роста.",
+          "en": "Average NPS over 18 months hovers near zero (≈ +5.2) — customers are neutral rather than promoters; this is room to grow."
+        }
+      ]
+    },
+    {
+      "id": "nps-drivers",
+      "type": "bar",
+      "title": { "ru": "NPS по драйверам", "en": "NPS by driver" },
+      "description": {
+        "ru": "NPS в разрезе драйверов опроса. App quality и product тянут вверх, fees и onboarding — вниз.",
+        "en": "NPS by survey driver. App quality and product pull up; fees and onboarding pull down."
+      },
+      "xLabel": { "ru": "Драйвер", "en": "Driver" },
+      "yLabel": { "ru": "NPS", "en": "NPS" },
+      "data": {
+        "categories": ["app_quality", "product", "trust", "support", "onboarding", "fees"],
+        "series": [{ "name": "NPS", "values": [30.3, 29.4, 12.5, 9.2, -23.6, -59.4] }]
+      },
+      "conclusions": [
+        {
+          "ru": "App quality (+30.3) и product (+29.4) — сильнейшие драйверы; fees (−59.4) — главный источник недовольства.",
+          "en": "App quality (+30.3) and product (+29.4) are the strongest drivers; fees (−59.4) is the main source of dissatisfaction."
+        },
+        {
+          "ru": "Onboarding (−23.6) тянет NPS вниз — согласуется с KYC-узким местом из Project 1.",
+          "en": "Onboarding (−23.6) drags NPS down — consistent with the KYC bottleneck from Project 1."
+        }
+      ]
+    },
+    {
+      "id": "jtbd-cohort-heatmap",
+      "type": "cohort-heatmap",
+      "title": { "ru": "JTBD-сегмент × поведенческая когорта", "en": "JTBD segment × behavioral cohort" },
+      "description": {
+        "ru": "Доля каждой поведенческой когорты внутри JTBD-сегмента (%). Job-сегменты и когорты не независимы: Dormant концентрируется в Digital Newcomers 45+.",
+        "en": "Share of each behavioral cohort within a JTBD segment (%). Job segments and cohorts are not independent: Dormant concentrates in Digital Newcomers 45+."
+      },
+      "data": {
+        "cohorts": ["Young Professionals", "Digital Newcomers 45+", "Travelers", "Family Budgeters", "Premium Status"],
+        "periods": ["Power", "Growth", "Casual", "Dormant"],
+        "values": [
+          [30.4, 40.1, 24.5, 5.0],
+          [1.8, 15.6, 43.3, 39.4],
+          [24.2, 40.3, 30.6, 5.1],
+          [7.8, 30.5, 46.7, 15.1],
+          [55.4, 30.3, 11.3, 3.1]
+        ],
+        "unit": "percent"
+      },
+      "conclusions": [
+        {
+          "ru": "Хи-квадрат: JTBD-сегмент × когорта НЕ независимы (p<0.001) — job-сегменты ≠ когорты.",
+          "en": "Chi-square: JTBD segment × cohort are NOT independent (p<0.001) — job segments ≠ cohorts."
+        },
+        {
+          "ru": "Dormant концентрируется в Digital Newcomers 45+ (39.4%) против Family Budgeters (15.1%) — z-тест на две доли значим.",
+          "en": "Dormant concentrates in Digital Newcomers 45+ (39.4%) vs Family Budgeters (15.1%) — the two-proportion z-test is significant."
+        },
+        {
+          "ru": "Следствие для 39.4% Dormant у 45+: рычаг удержания — assisted-онбординг и упрощение UX, а не принятие оттока.",
+          "en": "Implication for the 39.4% Dormant among 45+: the retention lever is assisted onboarding and UX simplification, not accepting churn."
+        }
+      ]
+    },
+    {
+      "id": "traveler-fx-break-even",
+      "type": "bar",
+      "title": { "ru": "Юнит-экономика FX-операции на €100", "en": "Unit economics of a €100 FX transaction" },
+      "description": {
+        "ru": "Выручка и издержки одной FX-операции на €100 для тревел-сегмента. Выручка — спред и интерчейндж; издержки — FX-cost и обработка.",
+        "en": "Revenue and cost components of a single €100 FX transaction for the traveler segment. Revenue is spread and interchange; costs are FX cost and processing."
+      },
+      "xLabel": { "ru": "Компонент", "en": "Component" },
+      "yLabel": { "ru": "€ на €100 операции", "en": "€ per €100 transaction" },
+      "data": {
+        "categories": ["FX spread", "Interchange", "FX cost", "Processing / support", "Net margin"],
+        "series": [
+          { "name": "€ per €100", "values": [0.4, 0.3, -1.0, -0.15, -0.45] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Чистая маржа −€0.45 с каждых €100 FX-операции: тревел-сегмент теряет на каждой транзакции.",
+          "en": "Net margin is −€0.45 per €100 FX transaction: the traveler segment loses on every transaction."
+        },
+        {
+          "ru": "Безубыточность требует снизить FX-cost с 1.00% до 0.55% — иначе убыток растёт линейно с объёмом.",
+          "en": "Break-even requires cutting FX cost from 1.00% to 0.55% — otherwise the loss grows linearly with volume."
+        }
+      ]
+    },
+    {
+      "id": "premium-upsell-by-segment",
+      "type": "bar",
+      "title": { "ru": "Конверсия Free→Premium по JTBD-сегментам", "en": "Free→Premium conversion by JTBD segment" },
+      "description": {
+        "ru": "Доля конвертировавших в Premium по сегментам. Апселл концентрируется в якоре и статус-сикерах; gap-сегменты почти не конвертят.",
+        "en": "Premium conversion rate by segment. Upsell concentrates in the anchor and status-seekers; gap segments barely convert."
+      },
+      "xLabel": { "ru": "Сегмент", "en": "Segment" },
+      "yLabel": { "ru": "Конверсия, %", "en": "Conversion, %" },
+      "data": {
+        "categories": ["Premium Status", "Young Professionals", "Travelers", "Family Budgeters", "Digital Newcomers 45+"],
+        "series": [
+          { "name": "Free→Premium", "values": [41.2, 17.25, 11.9, 4.66, 1.79] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Конверсия концентрируется: Premium Status 41.2% и якорь 17.3% против Digital Newcomers 45+ 1.8% (z=34, p<0.001).",
+          "en": "Conversion concentrates: Premium Status 41.2% and the anchor 17.3% vs Digital Newcomers 45+ 1.8% (z=34, p<0.001)."
+        },
+        {
+          "ru": "Разрыв сохраняется внутри каждой когорты (Power 26% против Dormant 2%) — один апселл не подходит всем.",
+          "en": "The gap persists within every cohort (Power 26% vs Dormant 2%) — one upsell does not fit all."
+        }
+      ]
+    },
+    {
+      "id": "kyc-lift-by-age",
+      "type": "bar",
+      "title": { "ru": "Лифт KYC-фикса по возрасту (HTE)", "en": "KYC-fix lift by age (HTE)" },
+      "description": {
+        "ru": "Гетерогенный эффект прогресс-бара KYC по возрастным группам (treatment − control, п.п.). Фикс работает для 18–44, но не для 45+.",
+        "en": "Heterogeneous effect of the KYC progress bar by age group (treatment − control, pp). The fix works for 18–44 but not for 45+."
+      },
+      "xLabel": { "ru": "Возраст", "en": "Age" },
+      "yLabel": { "ru": "Лифт, п.п.", "en": "Lift, pp" },
+      "data": {
+        "categories": ["18-24", "25-34", "35-44", "45+"],
+        "series": [
+          { "name": "Lift", "values": [5.3, 3.1, 11.0, 1.4] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "35–44 +11.0 п.п. (p<0.001) и 18–24 +5.3 п.п. (p<0.05) — лифт значим; 45+ +1.4 п.п. (p=0.59, ns) — фикс не закрывает 45+.",
+          "en": "35–44 +11.0 pp (p<0.001) and 18–24 +5.3 pp (p<0.05) — the lift is significant; 45+ +1.4 pp (p=0.59, ns) — the fix does not close 45+."
+        },
+        {
+          "ru": "Разрыв 45+ сохраняется и в treatment: 45+ 53.2% против 25–34 61.2% (chi² p<0.001) — трение в доверии, не в UX.",
+          "en": "The 45+ gap persists in treatment too: 45+ 53.2% vs 25–34 61.2% (chi² p<0.001) — friction is trust, not UX."
+        }
+      ]
+    },
+    {
+      "id": "referral-conversion-by-segment",
+      "type": "bar",
+      "title": { "ru": "Реферальная конверсия по сегментам", "en": "Referral conversion by segment" },
+      "description": {
+        "ru": "Сквозная реферальная конверсия (sent→accepted→KYC→first-tx, %) и доля принятия приглашения по JTBD-сегментам. Разрыв открывается на шаге accept.",
+        "en": "End-to-end referral conversion (sent→accepted→KYC→first-tx, %) and invite-acceptance rate by JTBD segment. The gap opens at the accept step."
+      },
+      "xLabel": { "ru": "Сегмент", "en": "Segment" },
+      "yLabel": { "ru": "%", "en": "%" },
+      "data": {
+        "categories": ["Premium Status", "Young Professionals", "Travelers", "Family Budgeters", "Digital Newcomers 45+"],
+        "series": [
+          { "name": "Overall conversion", "values": [36.0, 29.65, 21.35, 8.59, 4.78] },
+          { "name": "Accept rate", "values": [85.4, 78.1, 67.3, 40.1, 25.5] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Якорь 29.6% против Digital Newcomers 45+ 4.8% и Family Budgeters 8.6% — chi² p<0.001, z якорь vs gap = 43.3.",
+          "en": "Anchor 29.6% vs Digital Newcomers 45+ 4.8% and Family Budgeters 8.6% — chi² p<0.001, z anchor vs gap = 43.3."
+        },
+        {
+          "ru": "Разрыв открывается на accept (78% против 26% против 40%), а не на KYC — ценность «приведи друга» не заходит вне якоря.",
+          "en": "The gap opens at accept (78% vs 26% vs 40%), not at KYC — the 'refer a friend' value prop does not land outside the anchor."
+        }
+      ]
+    },
+    {
+      "id": "assisted-ltv-cac",
+      "type": "bar",
+      "title": { "ru": "Assisted CAC vs LTV по сегментам и каналам", "en": "Assisted CAC vs LTV by segment and channel" },
+      "description": {
+        "ru": "LTV/CAC по трём сегментам и пяти каналам привлечения. Красный гейт — 3.0. Assisted-онбординг даёт лучший retention, но дорогой CAC.",
+        "en": "LTV/CAC across three segments and five acquisition channels. The red gate is 3.0. Assisted onboarding gives the best retention but a costly CAC."
+      },
+      "xLabel": { "ru": "Сегмент", "en": "Segment" },
+      "yLabel": { "ru": "LTV/CAC", "en": "LTV/CAC" },
+      "data": {
+        "categories": ["Young Professionals", "Digital Newcomers 45+", "Family Budgeters"],
+        "series": [
+          { "name": "Referral", "values": [3.625, 1.718, 2.123] },
+          { "name": "In-app", "values": [2.284, 1.102, 1.354] },
+          { "name": "Partner", "values": [1.654, 0.773, 0.952] },
+          { "name": "Paid social", "values": [1.081, 0.562, 0.619] },
+          { "name": "Assisted", "values": [0.769, 0.406, 0.484] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Якорь проходит гейт ≥3 только через реферал: LTV/CAC 3.62; 45+ не проходит ни на одном канале (assisted 0.41).",
+          "en": "The anchor clears the ≥3 gate only via referral: LTV/CAC 3.62; 45+ clears no channel (assisted 0.41)."
+        },
+        {
+          "ru": "Assisted-онбординг даёт лучший retention (churn ×0.75), но CAC €120 перекрывает выигрыш на 45+ (payback 50 мес).",
+          "en": "Assisted onboarding gives the best retention (churn ×0.75), but the €120 CAC outweighs the gain for 45+ (50-month payback)."
+        }
+      ]
+    },
+    {
+      "id": "fx-sourcing-volume",
+      "type": "line",
+      "title": { "ru": "FX-cost vs месячный объём", "en": "FX cost vs monthly volume" },
+      "description": {
+        "ru": "Лучшая достижимая цена FX (интербанк + хедж) как функция месячного объёма. Гейт 0.55% из Project 14. Кривая лог-линейна: каждый порядок объёма даёт ~0.20 п.п. скидки.",
+        "en": "Best achievable FX price (interbank + hedge) as a function of monthly volume. The 0.55% gate from Project 14. The curve is log-linear: each order of magnitude yields ~0.20 pp."
+      },
+      "xLabel": { "ru": "Месячный объём, €", "en": "Monthly volume, €" },
+      "yLabel": { "ru": "Эффективный FX-cost, %", "en": "Effective FX cost, %" },
+      "data": {
+        "categories": ["1M", "2.5M", "5M", "10M", "25M", "50M", "100M", "250M", "500M"],
+        "series": [
+          { "name": "Best effective cost", "values": [1.107, 1.048, 0.971, 0.910, 0.812, 0.745, 0.675, 0.583, 0.502] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Гейт 0.55% достижим при объёме ≈ €332 млн/мес — это SOM-масштаб (180K путешественников).",
+          "en": "The 0.55% gate is reachable at ≈ €332M/month — SOM scale (180K travelers)."
+        },
+        {
+          "ru": "Сегодняшний объём (~€3 млн/мес) на два порядка ниже — риск v2 #2 это cold-start, а не «невозможно».",
+          "en": "Today's volume (~€3M/month) is two orders of magnitude lower — risk v2 #2 is a cold-start, not 'impossible'."
+        }
+      ]
+    },
+    {
+      "id": "fx-provider-ranking",
+      "type": "bar",
+      "title": { "ru": "Рейтинг FX-провайдеров", "en": "FX provider ranking" },
+      "description": {
+        "ru": "Эффективная цена (интербанк + хедж) по шести провайдерам ликвидности при объёме €50M. Разброс ~0.1–0.3 п.п. сопоставим с объёмной скидкой.",
+        "en": "Effective cost (interbank + hedge) across six liquidity providers at €50M volume. The ~0.1–0.3 pp spread is comparable to the volume discount."
+      },
+      "xLabel": { "ru": "Провайдер", "en": "Provider" },
+      "yLabel": { "ru": "Эффективная цена, %", "en": "Effective cost, %" },
+      "data": {
+        "categories": ["Interbank Prime", "Fintech Liquidity", "Prime Broker A", "Global FX Desk", "Regional Bank", "Aggregator X"],
+        "series": [
+          { "name": "Quoted", "values": [0.694, 0.764, 0.790, 0.806, 0.924, 1.011] },
+          { "name": "Hedging", "values": [0.052, 0.051, 0.049, 0.050, 0.051, 0.048] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Interbank Prime дешевле всех: эффективная цена 0.745% против 1.059% у Aggregator X — разрыв 0.31 п.п.",
+          "en": "Interbank Prime is cheapest: effective cost 0.745% vs 1.059% at Aggregator X — a 0.31 pp gap."
+        },
+        {
+          "ru": "Хедж — заметная часть цены (0.048–0.052 п.п.); оптимум — лучший провайдер + длинный хедж.",
+          "en": "Hedging is a material part of the price (0.048–0.052 pp); the optimum is the best provider plus a long hedge."
+        }
+      ]
+    },
+    {
+      "id": "premium-offers-conversion",
+      "type": "bar",
+      "title": { "ru": "Сегментные premium-офферы: конверсия control vs treatment", "en": "Segment premium offers: conversion, control vs treatment" },
+      "description": {
+        "ru": "Рандомизированный A/B: generic-апселл (control) против сегментного оффера (treatment) на четырёх сегментах. Treatment поднимает gap-сегменты, но не дотягивает до якоря.",
+        "en": "Randomized A/B: generic upsell (control) vs segment offer (treatment) across four segments. Treatment lifts gap segments but does not reach the anchor."
+      },
+      "xLabel": { "ru": "Сегмент", "en": "Segment" },
+      "yLabel": { "ru": "Конверсия в Premium, %", "en": "Premium conversion, %" },
+      "data": {
+        "categories": ["Young Professionals", "Digital Newcomers 45+", "Family Budgeters", "Travelers"],
+        "series": [
+          { "name": "Control (generic)", "values": [18.62, 1.61, 4.42, 8.78] },
+          { "name": "Treatment (segment)", "values": [19.49, 4.95, 8.58, 12.57] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Treatment поднимает gap-сегменты: 45+ 1.6%→5.0%, семейные 4.4%→8.6%, путешественники 8.8%→12.6% — все значимы после Holm.",
+          "en": "Treatment lifts gap segments: 45+ 1.6%→5.0%, families 4.4%→8.6%, travelers 8.8%→12.6% — all Holm-significant."
+        },
+        {
+          "ru": "Якорь почти не двигается (+0.86 п.п.): 45+ treatment (5.0%) всё ещё ~3.8× ниже generic-оффера якоря (18.6%).",
+          "en": "The anchor barely moves (+0.86 pp): 45+ treatment (5.0%) is still ~3.8× below the anchor's generic offer (18.6%)."
+        }
+      ]
+    },
+    {
+      "id": "premium-offers-lift",
+      "type": "bar",
+      "title": { "ru": "Сегментные premium-офферы: лифт treatment", "en": "Segment premium offers: treatment lift" },
+      "description": {
+        "ru": "Лифт treatment против control по сегментам (п.п.). Gap-сегменты дают лифт в 3–5 раз больше якоря.",
+        "en": "Treatment lift over control by segment (pp). Gap segments yield 3–5× the anchor's lift."
+      },
+      "xLabel": { "ru": "Сегмент", "en": "Segment" },
+      "yLabel": { "ru": "Лифт, п.п.", "en": "Lift, pp" },
+      "data": {
+        "categories": ["Young Professionals", "Digital Newcomers 45+", "Family Budgeters", "Travelers"],
+        "series": [
+          { "name": "Lift", "values": [0.86, 3.33, 4.16, 3.78] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Gap-сегменты дают лифт в 3–5× больше якоря: +3.33 п.п. 45+, +4.16 п.п. семейные, +3.79 п.п. путешественники против +0.86 п.п. у якоря.",
+          "en": "Gap segments yield 3–5× the anchor's lift: +3.33 pp 45+, +4.16 pp families, +3.79 pp travelers vs +0.86 pp at the anchor."
+        },
+        {
+          "ru": "Оффер даёт +3.3…+4.2 п.п. там, где generic провалился, но сужает разрыв, а не закрывает его — «серебряной пули» нет.",
+          "en": "The offer adds +3.3…+4.2 pp where generic failed, but narrows the gap rather than closing it — there is no silver bullet."
+        }
+      ]
+    },
+    {
+      "id": "anchor-ltv-cac-vs-scale",
+      "type": "line",
+      "title": { "ru": "Запуск якоря: LTV/CAC vs масштаб", "en": "Anchor launch: LTV/CAC vs scale" },
+      "description": {
+        "ru": "Blended LTV/CAC по мере масштабирования запуска якоря 25–34 (жадное распределение «сначала дешёвое»). Гейт 3.0 держится только до ~70K пользователей.",
+        "en": "Blended LTV/CAC as the anchor 25–34 launch scales (cheap-first greedy allocation). The 3.0 gate holds only to ~70K users."
+      },
+      "xLabel": { "ru": "Масштаб запуска, пользователи", "en": "Launch scale, users" },
+      "yLabel": { "ru": "LTV/CAC", "en": "LTV/CAC" },
+      "data": {
+        "categories": ["10K", "40K", "50K", "75K", "120K", "225K"],
+        "series": [
+          { "name": "Blended LTV/CAC", "values": [5.0, 3.499, 3.3, 2.941, 2.456, 1.762] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Гейт LTV/CAC ≥3 держится только до ≈70K пользователей; на SOM (225K) падает до 1.76 и payback 17.0 месяцев.",
+          "en": "The LTV/CAC ≥3 gate holds only to ≈70K users; at SOM (225K) it falls to 1.76 with a 17.0-month payback."
+        },
+        {
+          "ru": "Ограничение — ёмкость дешёвых каналов, а не бюджет: blended CAC растёт €20.5 (10K) → €52.5 (SOM).",
+          "en": "The constraint is cheap-channel capacity, not budget: blended CAC rises €20.5 (10K) → €52.5 (SOM)."
+        }
+      ]
+    },
+    {
+      "id": "anchor-marginal-cac",
+      "type": "bar",
+      "title": { "ru": "Маржинальный CAC якоря по каналам", "en": "Anchor marginal CAC by channel" },
+      "description": {
+        "ru": "Диапазон маржинального CAC (€) и ёмкость (пользователи) по каналам привлечения якоря. Ёмкость дешёвых каналов исчерпывается первой.",
+        "en": "Marginal CAC range (€) and capacity (users) by acquisition channel for the anchor. Cheap-channel capacity runs out first."
+      },
+      "xLabel": { "ru": "Канал", "en": "Channel" },
+      "yLabel": { "ru": "Маржинальный CAC, €", "en": "Marginal CAC, €" },
+      "data": {
+        "categories": ["Referral", "In-app", "Partner", "Paid social", "Assisted"],
+        "series": [
+          { "name": "CAC min", "values": [17.98, 29.9, 48.55, 57.87, 119.32] },
+          { "name": "CAC max", "values": [60.93, 83.04, 133.76, 367.64, 266.86] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Реферал дешёвый (€18→61), но ёмкость мала (~40K); paid social даёт объём (200K), но маржинальный CAC растёт до €368.",
+          "en": "Referral is cheap (€18→61) but low-capacity (~40K); paid social gives volume (200K) but marginal CAC rises to €368."
+        },
+        {
+          "ru": "Ёмкость дешёвых каналов (referral 40K + in-app 120K) — ограничение, а не бюджет: assisted €119–267 при ёмкости 20K.",
+          "en": "Cheap-channel capacity (referral 40K + in-app 120K) is the constraint, not budget: assisted €119–267 at 20K capacity."
+        }
+      ]
+    },
+    {
+      "id": "dormant-reactivation",
+      "type": "bar",
+      "title": { "ru": "Win-back дормантов 45+: реактивация по arm × глубине", "en": "Dormant 45+ win-back: reactivation by arm × depth" },
+      "description": {
+        "ru": "60-дневная реактивация (%) для трёх arm (control / light-touch / human) по четырём корзинам дормантности. Assisted-реактивация работает, сильнее всего на недавно уснувших.",
+        "en": "60-day reactivation (%) for three arms (control / light-touch / human) across four dormancy buckets. Assisted reactivation works, strongest for the recently dormant."
+      },
+      "xLabel": { "ru": "Глубина дормантности", "en": "Dormancy depth" },
+      "yLabel": { "ru": "Реактивация, %", "en": "Reactivation, %" },
+      "data": {
+        "categories": ["30-60d", "60-90d", "90-180d", "180d+"],
+        "series": [
+          { "name": "Control (automated)", "values": [8.47, 5.7, 3.0, 1.57] },
+          { "name": "Light-touch", "values": [14.43, 9.07, 4.8, 1.5] },
+          { "name": "Human-assisted", "values": [19.83, 12.07, 5.93, 2.27] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Assisted-реактивация работает: human +5.34 п.п. и light-touch +2.77 п.п. против control в целом (оба значимы).",
+          "en": "Assisted reactivation works: human +5.34 pp and light-touch +2.77 pp vs control overall (both significant)."
+        },
+        {
+          "ru": "Сильнее всего на 30–60d (human +11.37 п.п.); на 180d+ эффект почти исчезает.",
+          "en": "Strongest at 30–60d (human +11.37 pp); at 180d+ the effect nearly vanishes."
+        }
+      ]
+    },
+    {
+      "id": "dormant-roi",
+      "type": "bar",
+      "title": { "ru": "Win-back дормантов 45+: ROI по arm × глубине", "en": "Dormant 45+ win-back: ROI by arm × depth" },
+      "description": {
+        "ru": "ROI (восстановленный LTV / прирост затрат) на 10 000 обработанных по arm и глубине дормантности. ROI=1 — окупаемость.",
+        "en": "ROI (recovered LTV / incremental cost) per 10,000 treated by arm and dormancy depth. ROI=1 is break-even."
+      },
+      "xLabel": { "ru": "Глубина дормантности", "en": "Dormancy depth" },
+      "yLabel": { "ru": "ROI", "en": "ROI" },
+      "data": {
+        "categories": ["30-60d", "60-90d", "90-180d", "180d+"],
+        "series": [
+          { "name": "Light-touch", "values": [2.54, 1.26, 0.56, -0.02] },
+          { "name": "Human-assisted", "values": [0.92, 0.45, 0.17, 0.03] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Light-touch окупается на 30–60d (ROI 2.54) и 60–90d (ROI 1.26), дальше — нет; human не окупается нигде (overall 0.40).",
+          "en": "Light-touch pays off at 30–60d (ROI 2.54) and 60–90d (ROI 1.26), beyond that it does not; human never pays off (overall 0.40)."
+        },
+        {
+          "ru": "Целевой трек — light-touch только на 30–90 дней; human — эскалация для high-value/high-balance.",
+          "en": "The target track is light-touch only at 30–90 days; human is an escalation for high-value/high-balance."
         }
       ]
     }
