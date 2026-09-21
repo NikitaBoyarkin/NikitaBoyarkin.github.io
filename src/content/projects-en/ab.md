@@ -5,7 +5,7 @@ track: experiments
 hero: images/ab.svg
 impact:
   - "15 modules, each calibrated by simulation: Type I error ≈ α, power curves"
-  - "CUPED: SE shrinks by ~corr(X,Y)²"
+  - "CUPED drops variance by ρ², so the standard error by ~ρ"
   - "Naive peeking inflates Type I error — Pocock/OBF and mSPRT keep it under control"
   - "Delta method gives the correct SE for ratio metrics (CTR, RPC) — the naive per-unit t-test is biased"
   - "End-to-end pipeline: SRM → CUPED → delta-method CTR → per-segment ATE + BH → novelty check"
@@ -28,16 +28,16 @@ caseStudy:
     - label: "Type I error checks"
       value: "A/A per method"
     - label: "SE reduction (CUPED)"
-      value: "~corr(X,Y)²"
+      value: "≈ ρ at variance −ρ²"
     - label: "Peeking control"
       value: "Pocock/OBF, mSPRT"
 ---
 
 # A/B Testing Methodology Toolkit
 
-## Context
+## Goal
 
-An A/B testing method is only as good as its Type I error under the null and its power under a real effect. Rather than trusting asymptotic promises, each module simulates the pipeline end-to-end and reports the empirical rates.
+An A/B testing method is only as good as its Type I error under the null and its power under a real effect. In practice those promises are rarely checked: naive peeking, a wrong SE for ratio metrics, and multiple testing silently break decisions. The toolkit implements 15 methods from the primary literature and calibrates each one by simulation instead of trusting asymptotics.
 
 ## Data & Method
 
@@ -48,7 +48,7 @@ An A/B testing method is only as good as its Type I error under the null and its
 | `srm_test.py` | Sample Ratio Mismatch (χ²) | catches bucketing/traffic bugs before any downstream test |
 | `sample_size.py` | Fixed-horizon sizing | n/arm for proportions and means |
 | `delta_method_ratio.py` | Ratio metrics (CTR, RPC) | correct SE for ΣY/ΣX; the naive per-unit t-test is biased |
-| `cuped.py` | Variance reduction | SE shrinks by ~corr(X,Y)² using pre-period data |
+| `cuped.py` | Variance reduction | variance ↓ by ρ², SE by ~ρ, using pre-period data |
 | `group_sequential.py` | Alpha-spending boundaries | Pocock/OBF control Type I while naive peeking inflates it |
 | `msprt_always_valid.py` | Always-valid p-values | mSPRT lets you peek and stop any time, validly |
 | `sequential_ratio.py` | Sequential ratio metrics | delta-method + mSPRT for CTR under continuous monitoring |
@@ -65,7 +65,15 @@ An A/B testing method is only as good as its Type I error under the null and its
 
 `scripts/run_full_pipeline.py` ties the modules into one realistic flow on synthetic data: SRM check → CUPED → delta-method CTR test → per-segment ATE with BH correction → novelty check → a markdown report in `outputs/report.md`.
 
-### Testing Philosophy
+### Run
+
+```bash
+uv sync --all-groups
+uv run pytest                 # calibration test suite
+uv run python scripts/run_full_pipeline.py   # end-to-end demo → outputs/report.md
+```
+
+## Result
 
 The `tests/` suite re-runs every calibration with assertions:
 
@@ -75,20 +83,9 @@ The `tests/` suite re-runs every calibration with assertions:
 - the naive per-unit ratio SE is inaccurate, the delta-method SE is accurate;
 - correctness on known-answer fixtures (SRM splits, segment uplifts, etc.).
 
-### Run
+## Limitations
 
-```bash
-uv sync --all-groups
-uv run pytest                 # calibration test suite
-uv run python scripts/run_full_pipeline.py   # end-to-end demo → outputs/report.md
-```
-
-## Impact
-
-- **15 calibrated modules** — from SRM to switchback, each with an A/A null check.
-- **Checked numbers** — Type I ≈ α, coverage ≈ 95%, peeking controlled.
-- **Unbiased ratio metrics** — delta method instead of the naive per-unit t-test.
-- **Cohesive pipeline** — from SRM check to per-segment ATEs and a novelty check.
+The numbers come from simulations with a known DGP, not production traffic: calibration confirms the implementation is correct, but it does not guarantee that real data satisfies the assumptions. This is a set of tools, not a substitute for a sound experiment design.
 
 ## Documentation
 

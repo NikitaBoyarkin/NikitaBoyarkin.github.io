@@ -80,15 +80,37 @@ caseStudy:
 
 - **Problem:** KYC was the onboarding bottleneck — the largest relative drop-off (56.6% step conversion).
 - **Fix:** a KYC progress bar lifted conversion **+5.72pp** (p < 0.0001), above the +5pp MDE.
-- **Money:** **€656K/yr** business impact at 44× ROI.
+- **Money:** modelled business impact **€656K/yr** at 44× ROI.
 - **Retention:** the effect held — **+9.2pp** M3 retention, **+€227K/yr** incremental LTV.
 - **Causality:** a DiD check confirms the fix *caused* the shift: M3 retention **+9.09pp** (95% CI [+6.21, +11.96]).
 
-## The Case
+## Goal
 
 «Volta» is a fictional neobank that was losing users during onboarding. Marketing saw traffic, product saw activation, support saw tickets. Every team had its own number — and none of them explained where the money was leaking. We started with one question: **which onboarding step is critical?**
 
 We answered it with four projects wired into a single **discover → validate → measure → optimize** loop. Each project is a piece of evidence that narrows the case. All data is synthetic, generated deterministically (seed), and reproduced from code: any conclusion can be re-checked by re-running, not taken on faith.
+
+## Data & Method
+
+**Data:** synthetic, seeded generators (`generate_*.py`) → reproducible CSVs. The funnel dataset is committed; the rest are generated on demand.
+
+**Per-project methodology:**
+
+1. **Funnel** — step conversion, absolute/relative drop-off, Chi-square test across channels. Registration loses the most users in absolute terms (2,682, 73.2% step conv); KYC Complete has the largest relative drop-off (56.6% step conv). Referral converts 11.7pp better than paid social; iOS beats Android at every step (13.6% vs 11.7% end-to-end).
+
+2. **A/B (KYC progress bar)** — sample size calculation, SRM check (p=1.00), bootstrap CI, multiple-comparison correction (Bonferroni/Holm/BH), AA-test under H₀ (type-I = 0.050), CUPED (control-only θ), sensitivity at MDE. Control 55.8% → treatment 61.5%, **+5.72pp**, 95% CI [+3.78%, +7.66%], exceeds the +5pp MDE. Ship-gate: p<0.05 ∧ lift≥MDE ∧ no SRM → ship. 6/11 naively-significant segments, 4/11 after Bonferroni.
+
+3. **Retention** — cohort curves, pre/post Welch t-test + Cohen's d, plan-specific LTV (ARPU × retention decomposition). M1 retention +11.8pp step-change, M3 +9.2pp.
+
+4. **Segmentation** — StandardScaler + KMeans, data-driven K (marginal-gain elbow, silhouette plateau K=2–4, collapse at K=5). Segments: Power 12% / Growth 24% / Casual 32% / Dormant 32%. Lorenz: 12% of users → 41% of revenue; 68% → 92%. Migration scenarios: +€26K/mo (€310K/yr).
+
+5. **Causal (DiD)** — naive pre/post vs difference-in-differences: treated = in-app KYC, comparison = partner, cutoff 2024-09. 2×2 DiD + covariate-adjusted with cohort-clustered SE, parallel-trends check, placebo outcome, SMD/overlap. ATT on M3 retention +9.09pp (95% CI [+6.21, +11.96]); naive overstates activation (+6.29pp vs DiD +4.92pp).
+
+**RAT v2 methods (projects 18–22):** LTV per user (ARPU × contribution margin × retention months) and blended CAC with bootstrap CIs, Welch t-test anchor vs 45+; liquidity-provider quotes and log-interpolation of the required volume.
+
+A randomized A/B of segment offers with Holm correction and a segment × arm (DiD) interaction; marginal-CAC curves by channel, cheap-first greedy allocation and the break-even scale; a three-arm win-back (auto / light-touch / human) with z-tests and ROI per 10K treated.
+
+**Code structure:** shared `utils/common.py` (`setup()`, `print_section()`, `CONSTANTS`, `data_path()`), `functions + main()` — importing a module does not run the analysis. Excel reports via `openpyxl`.
 
 ## Project map
 
@@ -173,23 +195,6 @@ The effect held — the remaining question was who these users are and how to mo
 
 → [User Segmentation — case file](segmentation/)
 
-## The Verdict
-
-A loop of four projects beats isolated analyses: the KYC fix found in the funnel was validated in the A/B test, confirmed in retention, and translated into money through segmentation. The core is the **three-condition ship-gate** (significance ∧ lift ≥ MDE ∧ no SRM): it protects against shipping statistically-significant but business-insignificant changes.
-
-Order matters more than numbers: calibrate the instrument first (AA-test, CUPED), then conclude. Causality is checked separately with DiD, not left as correlation.
-
-## Other projects
-
-Volta is the flagship, not the only case: each layer of the loop rests on a separate discipline, broken down in the sibling portfolio projects.
-
-- [SQL Analytics Case Study](../sql/) — window functions, cohorts and retention analytics in SQL.
-- [Cohort Retention Analysis](../cohort/) — reading cohort triangles, and why the average lies.
-- [Churn Prediction & Uplift](../churn/) — churn forecasting and uplift modelling.
-- [RFM Segmentation](../rfm/) — segmentation by recency, frequency and money.
-- [Causal Inference](../causal/) — DiD and estimating causal effects without randomization.
-- [A/B Testing in banking](../ab/) — CUPED, AA-test and a ship-gate on a real experiment.
-
 ## The RAT v2 Layer — validating the audit itself
 
 After the JTBD audit, the portfolio tests **its own recommendations**: five v2 risks are priced in money rather than left as opinion. Every project returns a ship / pilot / hold / kill gate.
@@ -222,9 +227,9 @@ A summary of decisions across all 23 projects: what to do, on what evidence, und
 
 **3. Monetization & segments — defend the core, fix the gap**
 
-- Defend Power (12% → 41% of revenue) and upgrade Growth/Casual; Dormant (8%) is the win-back target.
+- Defend Power (12% → 41% of revenue) and upgrade Growth/Casual; Dormant (32% of users, 7.8% of revenue) is the win-back target.
 - Launch segment premium offers (+3.3…+4.2 pp, Project 20), planning for the residual gap.
-- Premium status is margin to defend (41% conversion, 12% → 41% of revenue), not a growth channel.
+- Premium status is margin to defend (41.2% status-seeker conversion), not a growth channel.
 
 **4. Retention & reactivation — economics over reach**
 
@@ -250,36 +255,24 @@ A summary of decisions across all 23 projects: what to do, on what evidence, und
 | Anchor launch to SOM | Project 21: LTV/CAC 1.76 at SOM | LTV/CAC ≥ 3 | **Hold** — to 70K |
 | Human win-back calls | Project 22: ROI 0.40 | ROI ≥ 1 | **Kill** as a mass channel |
 
-## Data & Method
+## The Verdict
 
-**Data:** synthetic, seeded generators (`generate_*.py`) → reproducible CSVs. The funnel dataset is committed; the rest are generated on demand.
+A loop of four projects beats isolated analyses: the KYC fix found in the funnel was validated in the A/B test, confirmed in retention, and translated into money through segmentation. The core is the **three-condition ship-gate** (significance ∧ lift ≥ MDE ∧ no SRM): it protects against shipping statistically-significant but business-insignificant changes. Order matters more than numbers: calibrate the instrument first (AA-test, CUPED), then conclude. Causality is checked separately with DiD, not left as correlation.
 
-**Per-project methodology:**
+## Limitations
 
-1. **Funnel** — step conversion, absolute/relative drop-off, Chi-square test across channels. Registration loses the most users in absolute terms (2,682, 73.2% step conv); KYC Complete has the largest relative drop-off (56.6% step conv). Referral converts 11.7pp better than paid social; iOS beats Android at every step (13.6% vs 11.7% end-to-end).
+Volta is a fictional bank and all data is synthetic and seeded: the figures (€656K/yr, 44× ROI, +9.2pp) show **the correctness of the methodology on a modelled product**, not a real launch result. ROI is computed against a €15K dev cost without subtracting margin, so it is an upper bound. The RAT v2 layer prices the portfolio's own recommendations, but on the same synthetic assumptions.
 
-2. **A/B (KYC progress bar)** — sample size calculation, SRM check (p=1.00), bootstrap CI, multiple-comparison correction (Bonferroni/Holm/BH), AA-test under H₀ (type-I = 0.050), CUPED (control-only θ), sensitivity at MDE. Control 55.8% → treatment 61.5%, **+5.72pp**, 95% CI [+3.78%, +7.66%], exceeds the +5pp MDE. Ship-gate: p<0.05 ∧ lift≥MDE ∧ no SRM → ship. 6/11 naively-significant segments, 4/11 after Bonferroni.
+## Other projects
 
-3. **Retention** — cohort curves, pre/post Welch t-test + Cohen's d, plan-specific LTV (ARPU × retention decomposition). M1 retention +11.8pp step-change, M3 +9.2pp.
+Volta is the flagship, not the only case: each layer of the loop rests on a separate discipline, broken down in the sibling portfolio projects.
 
-4. **Segmentation** — StandardScaler + KMeans, data-driven K (marginal-gain elbow, silhouette plateau K=2–4, collapse at K=5). Segments: Power 12% / Growth 24% / Casual 32% / Dormant 32%. Lorenz: 12% of users → 41% of revenue; 68% → 92%. Migration scenarios: +€26K/mo (€310K/yr).
-
-5. **Causal (DiD)** — naive pre/post vs difference-in-differences: treated = in-app KYC, comparison = partner, cutoff 2024-09. 2×2 DiD + covariate-adjusted with cohort-clustered SE, parallel-trends check, placebo outcome, SMD/overlap. ATT on M3 retention +9.09pp (95% CI [+6.21, +11.96]); naive overstates activation (+6.29pp vs DiD +4.92pp).
-
-**RAT v2 methods (projects 18–22):** LTV per user (ARPU × contribution margin × retention months) and blended CAC with bootstrap CIs, Welch t-test anchor vs 45+; liquidity-provider quotes and log-interpolation of the required volume.
-
-A randomized A/B of segment offers with Holm correction and a segment × arm (DiD) interaction; marginal-CAC curves by channel, cheap-first greedy allocation and the break-even scale; a three-arm win-back (auto / light-touch / human) with z-tests and ROI per 10K treated.
-
-**Code structure:** shared `utils/common.py` (`setup()`, `print_section()`, `CONSTANTS`, `data_path()`), `functions + main()` — importing a module does not run the analysis. Excel reports via `openpyxl`.
-
-## Impact
-
-- **KYC conversion +5.72pp** (p<0.0001, exceeds MDE) → business impact **€656K/yr** (44× ROI on €15K dev cost).
-- **M3 retention +9.2pp** → **+€227K/yr** incremental LTV from the KYC fix; DiD confirms causality (ATT +9.09pp).
-- **4 segments** with per-segment strategy and up to **+€310K/yr** monetization via migration.
-- **Reproducible methodology** — CUPED, AA-test, Bonferroni, DiD, sensitivity at MDE; 4 recommended A/B tests to validate the strategy.
-- **23 projects** — 12 analytical domains + Market & Jobs (JTBD) + the RAT v2 validation layer + causal: from funnel to dormant win-back.
-- **The portfolio's own recommendations, priced** — the RAT v2 layer assessed 5 audit risks: 3 confirmed, 1 refuted, 1 refined; every decision got a ship / pilot / hold / kill gate.
+- [SQL Analytics Case Study](../sql/) — window functions, cohorts and retention analytics in SQL.
+- [Cohort Retention Analysis](../cohort/) — reading cohort triangles, and why the average lies.
+- [Churn Prediction & Uplift](../churn/) — churn forecasting and uplift modelling.
+- [RFM Segmentation](../rfm/) — segmentation by recency, frequency and money.
+- [Causal Inference](../causal/) — DiD and estimating causal effects without randomization.
+- [A/B Testing in banking](../ab/) — CUPED, AA-test and a ship-gate on a real experiment.
 
 ## Documentation
 

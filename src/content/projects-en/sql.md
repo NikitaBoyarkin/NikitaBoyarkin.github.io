@@ -36,9 +36,9 @@ caseStudy:
 
 # SQL Analytics Case Study
 
-## Context
+## Goal
 
-A take-home format: 25 end-to-end SQL cases on a synthetic product dataset **plus one real-data case** on UCI Online Retail II. Each case is one self-contained `.sql` file with the question and approach in a leading comment. No server, no credentials — a single command builds the data and a DuckDB database. Plus a **dbt layer** (staging → marts, 17 tests) on the same database.
+A take-home format: prove SQL skill on product tasks when there is no production data, and textbook exercises do not demonstrate systems thinking. 25 end-to-end cases on a synthetic product dataset **plus one real-data case** on UCI Online Retail II. Each case is one self-contained `.sql` file with the question and approach in a leading comment. No server, no credentials — a single command builds the data and a DuckDB database. Plus a **dbt layer** (staging → marts, 17 tests) on the same database.
 
 ## Data & Method
 
@@ -101,11 +101,9 @@ cd dbt && uv run dbt build --profiles-dir .   # dbt: models + 17 tests
 
 The runner prints the case question, executes the SQL against `data/analytics.duckdb`, and renders the result as a table. The charted report is published to GitHub Pages automatically on every push.
 
-## Findings
+## Result
 
-Each case covers a specific window-function pattern that shows up in real product tasks. The findings are honest rather than engineered:
-
-Three teaser signals (numbers pinned to `cases.md`):
+Each case covers a specific window-function pattern, and the findings are honest rather than engineered. Three teaser signals (numbers pinned to `cases.md`):
 
 - the funnel drops **54%** at add-to-cart → checkout;
 - retention falls from **~21%** (D1) to **~5%** (D30) — the leak is the onboarding window;
@@ -115,20 +113,14 @@ Also:
 
 - RFM degenerates into a recency story; the top decile delivers only 22% of revenue (no whales);
 - logo churn climbs to ~15%/month even as MRR compounds;
+- sessionization reproduces 80k pre-assigned sessions at **99.6%** fidelity;
 - **real data flips the conclusion**: on UCI Online Retail II, 72.4% of customers repeat and the top 15% drive 65% of revenue — same SQL, opposite business answer.
 
-Splitting question and SQL in one file plus regression invariants makes the cases self-checking.
+Splitting question and SQL in one file plus regression invariants makes the cases self-checking: 43 pytest tests and 17 dbt tests keep `cases.md` and the code in sync, and `dbt build` is green in CI.
 
-## Impact
+## Limitations
 
-- **26 self-contained SQL cases** — from funnel to RFM, each with its own window pattern.
-- **dbt layer on DuckDB** — staging → marts (fct_funnel, fct_retention, fct_mrr), 17 dbt tests including golden answers; `dbt build` green in CI.
-- **Real-data case** — the same pattern on 1M+ real rows (UCI Online Retail II, CC BY 4.0): 72.4% repeat vs 3.5% synthetic.
-- **Sessionization with validation** — a 30-min gap reproduces 80k pre-assigned sessions at 99.6% fidelity.
-- **Additive data without breaking golden answers** — seed=43 on a separate RNG stream.
-- **DuckDB with no infrastructure** — one command builds data and database.
-- **Per-case regression tests** — 43 pytest tests (invariants + golden answers) keep `cases.md` and the code in sync.
-- **Live report** — GitHub Pages refreshes on every push.
+25 of 26 cases are synthetic: their numbers describe the shape of generated data, not a real product's behavior. Case 26 on UCI Online Retail II shows how far the conclusion can flip on real data (72.4% repeat vs 3.5%) — that is the honest boundary of applicability: the SQL patterns transfer, the specific metrics do not.
 
 ## Documentation
 

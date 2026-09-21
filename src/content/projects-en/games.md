@@ -39,9 +39,9 @@ caseStudy:
 
 # Browser Mini-Games — Analytics Arcade
 
-## Context
+## Goal
 
-Analytics concepts — p-values, retention, funnels — are abstract. Typical demos are passive dashboards. Mini-games turn concepts into mechanics: you play, and you 'feel' why p < 0.05 matters, what a retention day is, and where the funnel bottleneck sits.
+Analytics concepts — p-values, retention, funnels — are abstract: a recruiter or student can't 'feel' them from text, and passive dashboards don't provide an interactive experience. Mini-games turn concepts into mechanics: you play, and you understand why p < 0.05 matters, what a retention day is, and where the funnel bottleneck sits.
 
 ## Data & Method
 
@@ -83,12 +83,13 @@ npm run build        # production build → dist/
 python3 sync_games.py --dry-run   # preview sync to portfolio
 ```
 
-## Impact
+## Result
 
-- **10 games, 7 analytics** — concepts → mechanics → intuition.
-- **Zero-dependency** — one file = the whole game, no build or server.
-- **Phone + desktop** — swipe/tap and keyboard/mouse, 3 themes.
-- **Tracking & conversion** — `game_selected` + CTA → contact.
+10 games work on phone (swipe/tap) and desktop (keyboard/mouse), open from a single file with no server. Analytics games are a learning tool: concept → mechanic → intuition. Portfolio sync is automatic, and Playwright smoke tests catch load failures.
+
+## Limitations
+
+The games simplify statistics into intuition and do not replace real analysis: the mechanic shows the idea of a p-value or retention, not a valid computation. Zero-dependency means one file per game — code is not shared across games, so any change is made by hand in each file.
 
 ## Documentation
 

@@ -23,13 +23,9 @@ related:
 
 # Cohort Analysis Dashboard
 
-## Context
+## Goal
 
-Cohort retention and LTV analysis on synthetic data: user retention, churn curves, and revenue/LTV by acquisition cohort. A Python pipeline (pandas + matplotlib/seaborn) plus an export ready to load into Tableau. Data is synthetic, deterministic (seed=42), reproduced from code.
-
-## Hypothesis
-
-If we split users into cohorts by first-activation month and build a retention matrix + retention curves + ARPU/LTV, the churn speed per cohort becomes visible, along with where monetization drops faster than retention.
+Cohort retention and LTV analysis on synthetic data: user retention, churn curves, and revenue by acquisition cohort. Average retention hides the dynamics, and LTV without an observation-age correction misleads. The task is to build a matrix that shows where churn speed is higher and where monetization drops faster than retention. A Python pipeline (pandas + matplotlib/seaborn) plus a Tableau-ready export; data is synthetic and deterministic (seed=42), reproduced from code.
 
 ## Data & Method
 
@@ -61,16 +57,13 @@ If we split users into cohorts by first-activation month and build a retention m
 
 **Tableau heatmap:** Columns = `period`, Rows = `cohort_label`, Marks = Square, Color = AVG(`is_active`), Text = `% of Total` per row.
 
-## Findings
+## Result
 
-The cohort view matters more than average retention: it shows not only churn speed but also monetization compared to retention. LTV of younger cohorts is understated due to short history — compare LTV correctly only at equal cohort "age." Key improvements: `cohort_month` is derived from `join_date` (not a separate random field), period 0 = 100% by convention, and NaNs are masked in the heatmap instead of rendering `nan%`.
+The cohort view matters more than average retention: it exposes churn speed and where monetization diverges from it. The key methodological choices — `cohort_month` is derived from `join_date` (not a separate random field), period 0 = 100% by convention, and NaNs are masked in the heatmap instead of rendering `nan%`.
 
-## Impact
+## Limitations
 
-- **Cohort retention matrix** with triangular decay — shows the month a cohort loses activity.
-- **ARPU / LTV by cohort** with a correct observation-age caveat.
-- **Tableau-ready export** — CSV + `.hyper` extract, with a view-build instruction.
-- **Reproducible pipeline** — `uv` + `pyproject.toml` + `.python-version`, seed=42.
+LTV of younger cohorts is understated due to short history — compare LTV correctly only at equal cohort "age." The data is synthetic, so the numbers illustrate the method, not the behavior of a real product.
 
 ## Documentation
 
