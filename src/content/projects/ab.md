@@ -5,7 +5,7 @@ track: experiments
 hero: images/ab.svg
 impact:
   - "15 модулей, каждый откалиброван симуляцией: Type I error ≈ α, power-кривые"
-  - "CUPED: SE сжимается в ~corr(X,Y)² раз"
+  - "CUPED снижает дисперсию на ρ², то есть SE — примерно в ρ раз"
   - "Наивный peeking раздувает Type I error — Pocock/OBF и mSPRT держат его под контролем"
   - "Delta-method даёт корректный SE для ratio-метрик (CTR, RPC) — наивный per-unit t-test смещён"
   - "End-to-end pipeline: SRM → CUPED → delta-method CTR → сегментные ATE + BH → novelty check"
@@ -27,17 +27,17 @@ caseStudy:
       value: "15"
     - label: "Проверок Type I error"
       value: "A/A для каждого"
-    - label: "SE reduction (CUPED)"
-      value: "~corr(X,Y)²"
+    - label: "Снижение SE (CUPED)"
+      value: "≈ ρ при дисперсии −ρ²"
     - label: "Контроль peeking"
       value: "Pocock/OBF, mSPRT"
 ---
 
 # A/B Testing Methodology Toolkit
 
-## Контекст
+## Задача
 
-Метод A/B-теста настолько же хорош, насколько хороши его ошибки первого рода под нулевой гипотезой и мощность под реальным эффектом. Вместо того чтобы доверять асимптотическим обещаниям, каждый модуль этого тулкита симулирует пайплайн end-to-end и сообщает эмпирические частоты.
+Метод A/B-теста хорош ровно настолько, насколько хороши его ошибка первого рода под нулевой гипотезой и мощность под реальным эффектом. На практике эти обещания редко проверяют: наивный peeking, неправильный SE для ratio-метрик и множественное тестирование молча ломают решения. Тулкит реализует 15 методов из первичной литературы и калибрует каждый симуляцией — вместо веры в асимптотику.
 
 ## Данные и метод
 
@@ -48,7 +48,7 @@ caseStudy:
 | `srm_test.py` | Sample Ratio Mismatch (χ²) | ловит бакинг-баги до любых downstream-тестов |
 | `sample_size.py` | Fixed-horizon sizing | n/arm для пропорций и средних |
 | `delta_method_ratio.py` | Ratio-метрики (CTR, RPC) | корректный SE для ΣY/ΣX; наивный per-unit t-test смещён |
-| `cuped.py` | Variance reduction | SE ↓ в ~corr(X,Y)² за счёт pre-period |
+| `cuped.py` | Variance reduction | дисперсия ↓ на ρ², SE — примерно в ρ раз, за счёт pre-period |
 | `group_sequential.py` | Alpha-spending границы | Pocock/OBF держат Type I, пока наивный peeking его раздувает |
 | `msprt_always_valid.py` | Always-valid p-values | mSPRT позволяет смотреть и останавливаться когда угодно |
 | `sequential_ratio.py` | Sequential ratio-метрики | delta-method + mSPRT для CTR под мониторингом |
@@ -65,7 +65,15 @@ caseStudy:
 
 `scripts/run_full_pipeline.py` связывает модули в один реалистичный сценарий на синтетических данных: SRM check → CUPED → delta-method CTR test → per-segment ATE с BH-коррекцией → novelty check → markdown-отчёт в `outputs/report.md`.
 
-### Философия тестирования
+### Запуск
+
+```bash
+uv sync --all-groups
+uv run pytest                 # calibration test suite
+uv run python scripts/run_full_pipeline.py   # end-to-end demo → outputs/report.md
+```
+
+## Результат
 
 Тестовый набор перепрогоняет каждую калибровку с ассертами:
 
@@ -75,20 +83,9 @@ caseStudy:
 - наивный per-unit SE для ratio-метрик неточен, delta-method точен;
 - корректность на known-answer фикстурах (SRM splits, сегментные uplift-ы).
 
-### Запуск
+## Ограничения
 
-```bash
-uv sync --all-groups
-uv run pytest                 # calibration test suite
-uv run python scripts/run_full_pipeline.py   # end-to-end demo → outputs/report.md
-```
-
-## Эффект
-
-- **15 калиброванных модулей** — от SRM до switchback, каждый с A/A-проверкой.
-- **Числа проверены** — Type I ≈ α, coverage ≈ 95%, контроль peeking.
-- **Ratio-метрики без смещения** — delta-method вместо наивного per-unit t-test.
-- **Связный pipeline** — от SRM-проверки до сегментных ATE и novelty check.
+Числа получены на симуляциях с заданным DGP, а не на прод-трафике: калибровка подтверждает корректность реализации, но не гарантирует, что реальные данные удовлетворяют её допущениям. Это набор инструментов, а не замена продуманному дизайну эксперимента.
 
 ## Документация
 

@@ -5,9 +5,9 @@ track: engineering
 hero: images/site.svg
 impact:
   - Astro 7 + TypeScript + Markdown content collections
-  - Dark/light theme with no-flash inline script
+  - Тёмная/светлая тема без flash
   - RSS, sitemap, robots, JSON-LD, OG/Twitter meta
-  - Base-path-aware URLs for GitHub Pages hosting
+  - Base-path-aware URL для хостинга на GitHub Pages
 tools:
   - Astro
   - TypeScript
@@ -23,38 +23,31 @@ related:
 
 # This Portfolio Site
 
-## Контекст
+## Задача
 
-Нужно статическое портфолио, где контент (проекты, посты) редактируется в Markdown, а не в разметке компонентов. Хостинг — GitHub Pages как user site (репозиторий `NikitaBoyarkin.github.io`, отдаётся из корня домена). Деплой — по push, без ручной сборки.
-
-## Гипотеза
-
-Если взять Astro с content collections и Zod-схемой frontmatter, контент и представление разделятся: новые проекты/посты — это новый `.md` файл, без правки компонентов. Базовый путь и мета-теги (OG, JSON-LD, sitemap, RSS) настраиваются один раз.
+Нужно статическое портфолио, где контент (проекты, посты) редактируется в Markdown, а не в разметке компонентов. Хостинг — GitHub Pages как user site (репозиторий `NikitaBoyarkin.github.io`, отдаётся из корня домена), деплой — по push, без ручной сборки. Контент и представление должны разделиться: новый проект — это новый `.md` файл, без правки компонентов.
 
 ## Данные и метод
 
-**Стек:** Astro 7, TypeScript, Markdown content collections (`src/content/{projects,posts}/`), Zod-схемы в `src/content/config.ts`.
+**Стек:** Astro 7, TypeScript, Markdown content collections (`src/content/{projects,posts}/`), Zod-схемы в `src/content.config.ts`.
 
 **Архитектура:**
 
 - **Content collections** — каждый проект/пост = Markdown + frontmatter; Zod валидирует поля на сборке.
 - **Базовый путь** — `withBase()` из `src/lib/path.ts` применяет `base` ко всем внутренним ссылкам и картинкам (сейчас сайт отдаётся из корня, `base: '/'`).
-- **Тема** — inline-скрипт в `<head>` читает `localStorage`/`prefers-color-scheme` и ставит `data-theme` до первой paints (без flash); CSS custom properties реактивны.
+- **Тема** — inline-скрипт в `<head>` читает `localStorage`/`prefers-color-scheme` и ставит `data-theme` до первой отрисовки (без flash); CSS custom properties реактивны.
 - **SEO** — `sitemap.xml`, `robots.txt`, `rss.xml`, JSON-LD, OG/Twitter meta, canonical.
 - **Деплой** — GitHub Actions собирает `dist/` и публикует на Pages по push в `master`.
 
 **Валидация:** `scripts/check_site.py` проверяет обязательные страницы, внутренние ссылки, профиль-картинку и ассеты в `index.html`.
 
-## Что нашли
+## Результат
 
-Astro content collections с Zod — это контракт между контентом и представлением: невалидный frontmatter ломает сборку, а не деплой. `withBase()` инкапсулирует базовый путь GitHub Pages — ни одна ссылка не хардкодит базу. Разделение «контент = `.md`, представление = `.astro`» означает, что добавление проекта не требует правки кода.
+Content collections с Zod — это контракт между контентом и представлением: невалидный frontmatter ломает сборку, а не деплой. `withBase()` инкапсулирует базовый путь GitHub Pages — ни одна ссылка не хардкодит базу. Разделение «контент = `.md`, представление = `.astro`» означает, что добавление проекта не требует правки кода.
 
-## Эффект
+## Ограничения
 
-- **Astro 7 + TypeScript + Markdown content collections** — контент редактируется в `.md`, валидируется Zod.
-- **Dark/light тема без flash** — inline-скрипт до первого paints.
-- **SEO-полный** — RSS, sitemap, robots, JSON-LD, OG/Twitter meta, canonical.
-- **Base-path-aware URLs** — `withBase()` для GitHub Pages, без хардкода.
+Это витрина под конкретный хостинг: GitHub Pages как user site и `base: '/'`. Переезд на project-страницу или другой хостинг потребует правок `withBase()` и деплой-воркфлоу. Валидация покрывает структуру и ссылки, но не контент.
 
 ## Документация
 

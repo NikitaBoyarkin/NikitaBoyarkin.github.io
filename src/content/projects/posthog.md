@@ -4,11 +4,11 @@ description: "SaaS-продукт, инструментированный PostHo
 track: product
 hero: images/posthog.svg
 impact:
-  - Typed event catalog (single source of truth) + PostHog capture/identify/group with PII scrubbing
-  - Feature flag → onboarding A/B variant; A/B analysis with chi-square, uplift, Wilson CI + SRM check
-  - Day-N cohort retention, time-to-convert, revenue/LTV, first-feature → upgrade conversion
-  - The same metrics as SQL (BI / interview reference) + interactive Streamlit dashboard
-  - CI (pytest + ruff) + Docker + render.yaml for one-click deploy
+  - Типизированный каталог событий (единый источник правды) + PostHog capture/identify/group со скрабингом PII
+  - Feature-flag → A/B-вариант онбординга; анализ A/B с χ², uplift, Wilson CI и проверкой SRM
+  - Day-N cohort retention, time-to-convert, revenue/LTV, конверсия first-feature → upgrade
+  - Те же метрики на SQL (для BI и интервью) + интерактивный Streamlit-дашборд
+  - CI (pytest + ruff) + Docker + render.yaml для one-click deploy
 tools:
   - Python
   - PostHog
@@ -39,9 +39,9 @@ caseStudy:
 
 # TaskFlow — PostHog Product Analytics Pipeline
 
-## Контекст
+## Задача
 
-Большинство аналитических портфолио начинаются с готового CSV. Этот проект начинается раньше — с инструментирования приложения — и проходит весь цикл: генерация трафика, захват событий, анализ, дашборд и деплой.
+Большинство аналитических портфолио начинаются с готового CSV. Этот проект начинается раньше — с инструментирования приложения: определить события без утечек PII, довести их до аналитического инструмента и превратить сырые события в решения. Пайплайн проходит весь цикл — генерация трафика, захват событий, анализ, дашборд и деплой.
 
 ## Данные и метод
 
@@ -63,16 +63,13 @@ dashboard/          interactive Streamlit dashboard
 - **SQL-зеркало:** те же метрики как SQL — референс для BI и собеседований.
 - **Инженерка:** pytest + ruff в CI, Dockerfile, render.yaml для one-click deploy.
 
-## Что нашли
+## Результат
 
-Ценность — в полноте цикла. Типизированный каталог событий и скрабинг PII — это та дисциплина, которая отличает production-инструментацию от демо: события определены в одном месте, PII не утекает, а метрики воспроизводимы и в Python, и в SQL.
+Ценность — в полноте цикла. Типизированный каталог событий и скрабинг PII отделяют production-инструментацию от демо: события определены в одном месте, PII не утекает, а метрики воспроизводимы и в Python, и в SQL. Один репозиторий покрывает весь lifecycle аналитики — instrument → generate → analyze → dashboard → deploy.
 
-## Эффект
+## Ограничения
 
-- **Полный lifecycle** — instrument → generate → analyze → dashboard → deploy в одном репо.
-- **7 анализов** — funnel, cohort, A/B, revenue/LTV, time-to-convert, feature-usage, SQL-зеркало.
-- **A/B с SRM-check** — chi-square + uplift + Wilson CI.
-- **Production-готовность** — CI, Docker, render.yaml.
+Трафик генерирует симулятор, а не реальные пользователи, поэтому числа анализов иллюстрируют корректность пайплайна, а не продуктовые инсайты. Ценность — в дисциплине инструментирования и в полном цикле, где каждый шаг воспроизводим.
 
 ## Документация
 
