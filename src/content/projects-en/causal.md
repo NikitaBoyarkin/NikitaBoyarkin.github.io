@@ -22,19 +22,6 @@ date: 2026-09-18
 related:
   - /projects/ab/
   - /posts/churn-uplift-discount/
-caseStudy:
-  problem: "A standard two-sample t-test answers only 'does the treatment work on average' and ignores the pre-period. As a result, experiments need more traffic than necessary, and retention offers go to everyone while only part of the users respond. The project needs methods that reduce variance and estimate the effect at the individual-user level."
-  approach: "CUPED: Y_adj = Y − θ·(X − mean(X)), with θ = Cov(Y,X)/Var(X) — the same expected ATE with variance ~(1 − ρ²). Two LightGBM uplift learners: a T-learner (one model per arm) and an S-learner (treatment as a feature), uplift = P(t=1) − P(t=0). Evaluation: AUUC, Qini, uplift@20%, rank correlation with the latent τ, and per-segment recovery; all implemented from scratch on LightGBM, without causalml/econml."
-  result: "CUPED leaves the point estimate unchanged (0.270 -> 0.276, within noise) but shrinks the standard error by ~26% and narrows the 95% CI by 1.35x — an experiment that needed 10k users per arm now needs ~5.6k. Both learners beat random on every metric; the model recovers that new users respond ~10x more than returning users, the signal a discount campaign would act on."
-  metrics:
-    - label: "SE reduction"
-      value: "−26%"
-    - label: "95% CI narrowing"
-      value: "1.35x"
-    - label: "Users per arm"
-      value: "10k → 5.6k"
-    - label: "corr(τ), S-learner"
-      value: "0.66"
 ---
 
 # Causal / Uplift — CUPED and Individual Treatment Effects

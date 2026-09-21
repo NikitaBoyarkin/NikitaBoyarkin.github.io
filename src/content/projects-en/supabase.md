@@ -19,19 +19,6 @@ updated: 2026-09-15
 private: true
 related:
   - /projects/streamlit/
-caseStudy:
-  problem: "A dashboard on synthetic data proves analytics skills, but it does not show how analytics lives inside a real multi-tenant product: auth, per-tenant data isolation, an ingest path, and experiment results computed where the data lives."
-  approach: "Reused the UI from streamlit-app but swapped the data layer from an in-memory generator to Supabase Postgres. RLS is enabled on every table so a user sees only their org's rows; an Edge Function validates an API key (stored as SHA-256) and inserts events via a security-definer function. Analytics live in SQL views (funnel, cohort, MRR, DAU, channel conversion) and the A/B result is computed in the DB (v_results) with the chi-square test run on top."
-  result: "One repo demonstrates the full path: instrument → ingest → isolate → analyze → experiment. The concluded A/B shows control 32.1% vs treatment 37.2% (p = 0.0034), and the security model means the dashboard is safe to expose to real users, not just to run locally."
-  metrics:
-    - label: "A/B lift"
-      value: "+5.1pp"
-    - label: "p-value"
-      value: "0.0034"
-    - label: "RLS isolation"
-      value: "all tables"
-    - label: "Ingest"
-      value: "Edge Function"
 ---
 
 # Product Analytics + A/B on Supabase

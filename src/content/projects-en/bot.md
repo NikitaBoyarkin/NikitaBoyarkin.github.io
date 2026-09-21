@@ -19,19 +19,6 @@ updated: 2025-06-19
 demo: demos/telegram/index.html
 related:
   - /posts/telegram-reporting-bot/
-caseStudy:
-  problem: "The weekly report was assembled by hand: the analyst pulled metrics from several sources, refreshed a dashboard, exported screenshots and posted them to the team chat. It took 1–2 hours, often slipped, and depended on one person."
-  approach: "Moved report assembly into a Telegram bot: a cron scheduler, SQL queries against the mart, a template with a KPI table and sparklines, and a delta to the previous week. Reliability is built into the architecture — error handling, logging and fallback notifications when a source fails, because silent bot failures destroy trust in metrics faster than the time savings grow."
-  result: "Manual assembly of 1–2h is replaced by an automatic cron: metrics arrive on schedule in one format, the team sees the same numbers, and the analyst owns interpretation instead of copying. Fallback notifications keep trust in the metrics when sources fail."
-  metrics:
-    - label: "Report time"
-      value: "1–2h → 0"
-    - label: "Delivery"
-      value: "on schedule"
-    - label: "Format"
-      value: "KPI + sparklines"
-    - label: "Silent-fail guard"
-      value: "fallback"
 ---
 
 # Reporting Automation Telegram Bot

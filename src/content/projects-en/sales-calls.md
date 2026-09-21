@@ -17,19 +17,6 @@ github: https://github.com/NikitaBoyarkin/sales-calls-dashboard
 updated: 2026-06-16
 related:
   - /projects/streamlit/
-caseStudy:
-  problem: "An outbound call flow is a funnel with big drop-off at early steps, but the production export does not answer the key question: which step the bot loses the client on, and what to fix — the script, the timing, or bot quality."
-  approach: "The step a conversation reached is determined deterministically from markers in the bot's scripted replies (greeting → offer → meeting → qualification). The step-1 drop reason and the client reaction type are text heuristics; no LLM is used in the pipeline, but an llm_labels.csv hook is provided to strengthen reaction labeling. The dashboard breaks the funnel into weighted contact loss, engagement by hour/day, and bot defects, with drill-down into drop-off transcripts."
-  result: "One minute to an answer to 'where the bot loses the client': a funnel with typed main leak, a growth point, and a first A/B scenario. Labeling is deterministic and reproducible, and the dataset is synthetic — safe for a public demo deploy."
-  metrics:
-    - label: "Calls (synthetic)"
-      value: "16,891"
-    - label: "Funnel steps"
-      value: "4"
-    - label: "Labeling"
-      value: "deterministic"
-    - label: "LLM in pipeline"
-      value: "no (hook exists)"
 ---
 
 # Sales Calls Analytics Dashboard

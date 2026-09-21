@@ -18,19 +18,6 @@ github: https://github.com/NikitaBoyarkin/ab_test
 updated: 2026-09-07
 related:
   - /projects/volta/
-caseStudy:
-  problem: "A/B testing methods are sold on asymptotic promises, but nobody checks the Type I error under the null or the power under a real effect. Naive peeking, wrong SEs for ratio metrics, and multiple testing silently break decisions."
-  approach: "Each module is implemented from the primary literature and calibrated by simulation: an A/A null check for Type I error ≈ α and a power curve under a real effect. 15 topics are covered — SRM, sizing, CUPED, delta method, alpha spending (Pocock/OBF), mSPRT, sequential ratio, Bayesian A/B, bootstrap BCa, HTE, Bonferroni/BH, novelty/primacy, switchback. All wired into an end-to-end pipeline: SRM → CUPED → CTR test → per-segment ATE with BH → novelty check → report."
-  result: "The numbers are checked, not assumed: the test suite asserts Type I error ≈ α for every method, ≈95% CI coverage for bootstrap, peeking control for always-valid/alpha-spending, delta-method accuracy for ratio metrics, and correctness on known-answer fixtures."
-  metrics:
-    - label: "Modules"
-      value: "15"
-    - label: "Type I error checks"
-      value: "A/A per method"
-    - label: "SE reduction (CUPED)"
-      value: "≈ ρ at variance −ρ²"
-    - label: "Peeking control"
-      value: "Pocock/OBF, mSPRT"
 ---
 
 # A/B Testing Methodology Toolkit

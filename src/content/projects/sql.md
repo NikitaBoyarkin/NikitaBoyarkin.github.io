@@ -19,19 +19,6 @@ tools:
 github: https://github.com/NikitaBoyarkin/sql-analytics-case-study
 updated: 2026-09-19
 demo: https://nikitaboyarkin.github.io/sql-analytics-case-study/
-caseStudy:
-  problem: "Аналитику нужно показать владение SQL на продуктовых задачах, но продакшен-данных нет, а учебные задачи не демонстрируют системное мышление. Как доказать, что SQL — рабочий инструмент, а не набор заученных синтаксисов?"
-  approach: "26 end-to-end кейсов: 25 на синтетическом датасете (seed=42, ~183k событий, 20k signups) + 1 на реальных данных UCI Online Retail II. Каждый кейс — один самодостаточный .sql файл с вопросом и подходом в leading-комментарии. DuckDB — одна команда строит данные и базу, без сервера и кредов. Regression-тесты с детерминированными инвариантами защищают SQL от регрессий. Второй батч (churn, refunds, Pareto, anomaly detection, upsell conversion) добавлен на отдельном RNG-потоке (seed=43) — числа первых 20 кейсов не изменились. Плюс dbt-слой (staging → marts, 17 тестов) и real-data таблица, загружаемая из закоммиченного parquet."
-  result: "26 кейсов от funnel до RFM: sessionization с валидацией против ground truth (99.6%), lifecycle-композиция, revenue-retention-треугольник, in-SQL z-test для A/B, MAD-анализ аномалий, dbt-паритет по числам и real-data кейс, где тот же SQL даёт противоположный бизнес-вывод (72.4% repeat vs 3.5%). Кейсы самопроверяемы: pytest + dbt подтверждают, что SQL продолжает давать ожидаемые метрики. Отчёт публикуется на GitHub Pages автоматически."
-  metrics:
-    - label: "SQL-кейсов"
-      value: "26"
-    - label: "Событий в датасете"
-      value: "~183k"
-    - label: "Real-data строк"
-      value: "1.07M"
-    - label: "Тестов (pytest + dbt)"
-      value: "43 + 17"
 ---
 
 # SQL Analytics Case Study

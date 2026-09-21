@@ -19,19 +19,6 @@ tools:
 github: https://github.com/NikitaBoyarkin/sql-analytics-case-study
 updated: 2026-09-19
 demo: https://nikitaboyarkin.github.io/sql-analytics-case-study/
-caseStudy:
-  problem: "An analyst needs to show SQL skill on product tasks, but there is no production data, and textbook exercises do not demonstrate systems thinking. How do you prove SQL is a working tool rather than a set of memorised syntax?"
-  approach: "26 end-to-end cases: 25 on a synthetic dataset (seed=42, ~183k events, 20k signups) plus 1 on the real UCI Online Retail II data. Each case is one self-contained .sql file with the question and approach in a leading comment. DuckDB builds the data and the database in one command, with no server or credentials. Regression tests with deterministic invariants protect the SQL from regressions. A second batch (churn, refunds, Pareto, anomaly detection, upsell conversion) was added on a separate RNG stream (seed=43) — the first 20 cases' numbers did not change. Plus a dbt layer (staging → marts, 17 tests) and a real-data table loaded from a committed parquet."
-  result: "26 cases from funnel to RFM: sessionization validated against ground truth (99.6%), lifecycle composition, a revenue-retention triangle, an in-SQL z-test for A/B, MAD anomaly analysis, dbt parity on the same numbers, and a real-data case where the same SQL yields the opposite business conclusion (72.4% repeat vs 3.5%). The cases are self-checking: pytest + dbt confirm the SQL keeps returning the expected metrics. The report is published to GitHub Pages automatically."
-  metrics:
-    - label: "SQL cases"
-      value: "26"
-    - label: "Dataset events"
-      value: "~183k"
-    - label: "Real-data rows"
-      value: "1.07M"
-    - label: "Tests (pytest + dbt)"
-      value: "43 + 17"
 ---
 
 # SQL Analytics Case Study

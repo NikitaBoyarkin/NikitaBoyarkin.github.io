@@ -22,19 +22,6 @@ related:
   - /projects/cohort/
   - /projects/sql/
   - /posts/cohort-retention-guide/
-caseStudy:
-  problem: "Аналитические концепции — p-value, retention, воронки — абстрактны: рекрутер или студент не «прочувствует» их из текста, а пассивные дашборды не дают интерактивного опыта."
-  approach: "Каждая игра — self-contained SVG: HTML, CSS и JS в одном файле, zero-dependency, без сборки. Аналитические игры превращают концепции в механику: A/B Test — собирай данные, пока p < 0.05; Funnel Drop — лови падающих юзеров; Cohort Catch — лови Returning, избегай Churned; SQL Query — выбери токен, завершающий запрос; Retention Day — угадай день удержания. Хаб на Astro, темы dark/light/cyberpunk, PostHog-трекинг."
-  result: "10 игр работают на телефоне (swipe/tap) и десктопе (keyboard/mouse), открываются из одного файла без сервера. Аналитические игры — обучающий инструмент: концепция → механика → интуиция. Синк в портфолио автоматический (sync_games.py), smoke-тесты на Playwright."
-  metrics:
-    - label: "Игр"
-      value: "10"
-    - label: "Аналитических"
-      value: "7"
-    - label: "Зависимостей"
-      value: "0"
-    - label: "Платформы"
-      value: "phone + desktop"
 ---
 
 # Browser Mini-Games — Analytics Arcade

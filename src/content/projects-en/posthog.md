@@ -22,19 +22,6 @@ updated: 2026-09-15
 private: true
 related:
   - /projects/supabase/
-caseStudy:
-  problem: "Product analytics is usually shown on a cleaned CSV. The hard part — instrumenting a real app, capturing the right events without PII leaks, getting them into a tool, and turning raw events into decisions — stays invisible."
-  approach: "Built a demo SaaS (FastAPI + Jinja2) with server-side PostHog capture over a typed event catalog (single source of truth), a PostHog wrapper that scrubs PII, and a feature flag driving an onboarding A/B. A simulator generates 30 days of realistic funnel traffic; analysis scripts turn the pulled events into funnel, cohort retention, A/B (chi-square + uplift + Wilson CI + SRM check), revenue/LTV, time-to-convert, and feature-usage → upgrade. The same metrics are written as SQL for BI/interview use, plus an interactive Streamlit dashboard."
-  result: "One repo covers the full analytics lifecycle — instrument, generate, analyze, dashboard, deploy — with CI (pytest + ruff), Docker, and render.yaml for one-click deploy. The typed event catalog and PII scrubbing show the discipline that separates a demo from production instrumentation."
-  metrics:
-    - label: "Analyses"
-      value: "7"
-    - label: "A/B SRM-check"
-      value: "yes"
-    - label: "CI"
-      value: "pytest + ruff"
-    - label: "Deploy"
-      value: "Docker + Render"
 ---
 
 # TaskFlow — PostHog Product Analytics Pipeline

@@ -21,19 +21,6 @@ updated: 2026-09-18
 date: 2026-09-18
 related:
   - /posts/churn-uplift-discount/
-caseStudy:
-  problem: "Churn models are often evaluated in a way that does not match how they are used: a random train/test split puts a user's future activity into training, and AUC does not answer the question the model exists for — whom in the top risk bucket should we act on. The project needs a model whose evaluation setup matches production."
-  approach: "Features are computed as-of a snapshot date: recency, activity in 7/14/30-day windows, tenure, recent trend, average sessions, plus categorical channel/device/country/plan. The leakage-free label defines churn as no activity in [snapshot, snapshot+30d] for a user who was active in the prior 30 days. The split is chronological (train 2024-01-15 -> val 2024-02-15 -> test 2024-03-15); a random split would be silent leakage. The decision metric is recall@top-decile and lift@top-decile, not AUC; SHAP comes from LightGBM's native TreeSHAP, with no shap package."
-  result: "On the test snapshot LightGBM and the logistic baseline are nearly tied on AUC (0.904 vs 0.917), but LightGBM is meaningfully better calibrated (Brier 0.068 vs 0.099). Within the top 10% riskiest users the model catches 53% of real churners — a 3.07x lift over random. A strong recency feature keeps the lift modest; the value of the project is the leakage-free setup and the business metric."
-  metrics:
-    - label: "Recall@top-10%"
-      value: "0.53"
-    - label: "Lift@top-10%"
-      value: "3.07x"
-    - label: "ROC-AUC"
-      value: "0.904"
-    - label: "Brier"
-      value: "0.068"
 ---
 
 # Churn Prediction — Leakage-Free Retention Model

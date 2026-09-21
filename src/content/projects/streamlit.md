@@ -18,19 +18,6 @@ updated: 2026-08-14
 private: true
 related:
   - /projects/supabase/
-caseStudy:
-  problem: "На собеседованиях по product-аналитике ожидают рассуждений по всей AARRR-рамке — acquisition, activation, retention, revenue — но большинство портфолио показывают одну метрику изолированно."
-  approach: "Собрал multipage Streamlit-дашборд на одном синтетическом SaaS-датасете (8 000 пользователей, детерминированный seed = 42), разделяемом между страницами через @st.cache_data — датасет идентичен между запусками. Каждая страница отвечает на один AARRR-вопрос: Overview (KPI, DAU, signup, конверсия по каналам), Funnel (5-шаговый drop-off), Retention (cohort-heatmap), Revenue (MRR/ARPU/churn), Segments (конверсия и ARPU по сегменту/каналу/стране/устройству)."
-  result: "Одно self-contained приложение позволяет рекрутеру пройти весь AARRR-сюжет на одном согласованном датасете. Детерминированный seed делает числа воспроизводимыми, а тот же UI позже переиспользован как слой презентации для full-stack Supabase-проекта — изменился только слой данных."
-  metrics:
-    - label: "Пользователей"
-      value: "8 000"
-    - label: "Страниц"
-      value: "5"
-    - label: "Seed"
-      value: "42 (детермин.)"
-    - label: "Воспроизводимость"
-      value: "да"
 ---
 
 # Product Analytics Dashboard (Streamlit)

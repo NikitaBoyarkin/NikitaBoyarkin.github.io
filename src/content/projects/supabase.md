@@ -19,19 +19,6 @@ updated: 2026-09-15
 private: true
 related:
   - /projects/streamlit/
-caseStudy:
-  problem: "Дашборд на синтетических данных доказывает аналитические навыки, но не показывает, как аналитика живёт внутри реального multi-tenant продукта: аутентификация, изоляция данных по тенантам, путь инжеста и экспериментальные результаты, считающиеся там же, где лежат данные."
-  approach: "Переиспользовал UI из streamlit-app, но заменил слой данных: вместо генератора в памяти — Supabase Postgres. На каждой таблице включён RLS, пользователь видит только строки своей организации; Edge Function валидирует API-ключ (хранится как SHA-256) и вставляет события через security-definer функцию. Аналитика живёт в SQL-views (funnel, cohort, MRR, DAU, channel conversion), а результат A/B считается прямо в базе (v_results) — χ²-тест запускается поверх."
-  result: "Один репозиторий демонстрирует весь путь: instrument → ingest → isolate → analyze → experiment. Завершённый A/B даёт control 32.1% vs treatment 37.2% (p = 0.0034), а модель безопасности означает, что дашборд безопасно показывать реальным пользователям, а не только запускать локально."
-  metrics:
-    - label: "A/B lift"
-      value: "+5.1pp"
-    - label: "p-value"
-      value: "0.0034"
-    - label: "RLS-изоляция"
-      value: "все таблицы"
-    - label: "Ingest"
-      value: "Edge Function"
 ---
 
 # Product Analytics + A/B on Supabase

@@ -83,17 +83,6 @@ const shortLine = (p: (typeof projects)[number]) =>
               </h3>
               <p class="case-card-desc">{p.data.description}</p>
 
-              {p.data.caseStudy && p.data.caseStudy.metrics.length > 0 && (
-                <dl class="case-card-metrics">
-                  {p.data.caseStudy.metrics.slice(0, 3).map((m) => (
-                    <div>
-                      <dt>{m.value}</dt>
-                      <dd>{m.label}</dd>
-                    </div>
-                  ))}
-                </dl>
-              )}
-
               <div class="case-card-actions">
                 <a
                   class="case-card-open"
@@ -264,33 +253,6 @@ const shortLine = (p: (typeof projects)[number]) =>
     color: var(--text-muted);
     line-height: 1.65;
     font-size: 0.92rem;
-  }
-  .case-card-metrics {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-3);
-    margin: 0;
-    padding: var(--space-3) 0;
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-  }
-  .case-card-metrics div {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    min-width: 0;
-  }
-  .case-card-metrics dt {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--text-normal);
-    letter-spacing: -0.01em;
-  }
-  .case-card-metrics dd {
-    margin: 0;
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    line-height: 1.3;
   }
   .case-card-actions {
     display: flex;

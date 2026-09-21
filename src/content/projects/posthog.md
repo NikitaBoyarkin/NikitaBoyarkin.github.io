@@ -22,19 +22,6 @@ updated: 2026-09-15
 private: true
 related:
   - /projects/supabase/
-caseStudy:
-  problem: "Product-аналитику обычно показывают на очищенном CSV. Трудная часть — инструментировать реальное приложение, ловить правильные события без утечек PII, попадать в аналитический инструмент и превращать сырые события в решения — остаётся невидимой."
-  approach: "Собрал демо-SaaS (FastAPI + Jinja2) с server-side PostHog-capture поверх типизированного каталога событий (единственный источник правды), обёртки PostHog, скрабящей PII, и feature-flag, управляющего A/B-вариантом онбординга. Симулятор генерирует 30 дней реалистичного funnel-трафика; скрипты анализа превращают события в funnel, cohort retention, A/B (chi-square + uplift + Wilson CI + SRM check), revenue/LTV, time-to-convert и feature-usage → upgrade. Те же метрики записаны как SQL для BI/interview, плюс интерактивный Streamlit-дашборд."
-  result: "Один репозиторий покрывает весь lifecycle аналитики — instrument, generate, analyze, dashboard, deploy — с CI (pytest + ruff), Docker и render.yaml для one-click deploy. Типизированный каталог событий и скрабинг PII показывают дисциплину, отличающую демо от production-инструментации."
-  metrics:
-    - label: "Анализов"
-      value: "7"
-    - label: "A/B SRM-check"
-      value: "да"
-    - label: "CI"
-      value: "pytest + ruff"
-    - label: "Deploy"
-      value: "Docker + Render"
 ---
 
 # TaskFlow — PostHog Product Analytics Pipeline

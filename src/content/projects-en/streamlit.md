@@ -18,19 +18,6 @@ updated: 2026-08-14
 private: true
 related:
   - /projects/supabase/
-caseStudy:
-  problem: "Product analytics interviews expect reasoning across the whole AARRR frame — acquisition, activation, retention, revenue — but most portfolio pieces show one metric in isolation."
-  approach: "Built a multipage Streamlit dashboard on one synthetic SaaS dataset (8,000 users, deterministic seed = 42) shared across pages via @st.cache_data, so the dataset is identical across runs. Each page answers one AARRR question: Overview (KPIs, DAU, signups, channel conversion), Funnel (5-step drop-off), Retention (cohort heatmap), Revenue (MRR/ARPU/churn), Segments (conversion and ARPU by segment/channel/country/device)."
-  result: "A single self-contained app lets a reviewer click through the full AARRR story on one consistent dataset. The deterministic seed makes the numbers reproducible, and the same UI was later reused as the presentation layer for the Supabase full-stack project — only the data layer changed."
-  metrics:
-    - label: "Users"
-      value: "8,000"
-    - label: "Pages"
-      value: "5"
-    - label: "Seed"
-      value: "42 (deterministic)"
-    - label: "Reproducible"
-      value: "yes"
 ---
 
 # Product Analytics Dashboard (Streamlit)
