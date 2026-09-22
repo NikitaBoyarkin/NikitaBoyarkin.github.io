@@ -127,6 +127,12 @@
   --space-16: 4rem;
   --space-20: 5rem;
 
+  /* Page gutter — the body's own inline padding. Full-bleed elements
+     (`.nav-mobile`) cancel it with an equal negative margin, so the two must
+     move together: hardcoding one and not the other overflows the viewport.
+     Narrow screens override it next to the body's other breakpoint rules. */
+  --page-pad: var(--space-5);
+
   /* Radii */
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -202,7 +208,7 @@ body {
   font-size: 16px;
   max-width: 1000px;
   margin: 0 auto;
-  padding: var(--space-5);
+  padding: var(--page-pad);
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
@@ -407,8 +413,8 @@ body.nav-open .nav-scrim {
   position: sticky;
   top: 0;
   z-index: var(--z-dialog);
-  margin-block: calc(-1 * var(--space-5)) var(--space-4);
-  margin-inline: calc(-1 * var(--space-5));
+  margin-block: calc(-1 * var(--page-pad)) var(--space-4);
+  margin-inline: calc(-1 * var(--page-pad));
   padding: var(--space-4) var(--space-5);
   background-color: color-mix(in srgb, var(--background-primary) 88%, transparent);
   border-bottom: 1px solid var(--border-color);
@@ -1895,8 +1901,8 @@ footer p {
 }
 
 @media (max-width: 768px) {
-  body {
-    padding: 15px;
+  :root {
+    --page-pad: 15px;
   }
 
   .intro-container {
