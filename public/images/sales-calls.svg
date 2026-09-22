@@ -1,85 +1,46 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sales calls analytics dashboard: four-step funnel with drop-off, engagement by hour, and KPI cards">
   <defs>
-    <linearGradient id="sbg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#1c2026"/>
-      <stop offset="1" stop-color="#242a33"/>
+    <linearGradient id="sales-calls-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f2a2b"/>
+      <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
-    <linearGradient id="sacc" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fb923c"/>
-      <stop offset="1" stop-color="#f97316"/>
+    <linearGradient id="sales-calls-accent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff8569"/>
+      <stop offset="1" stop-color="#ff6643"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#sbg)"/>
+  <rect width="1200" height="600" fill="url(#sales-calls-bg)"/>
 
-  <!-- title -->
-  <text x="80" y="64" fill="#9fb2bd" font-family="SF Mono, Monaco, monospace" font-size="21" letter-spacing="1">SALES CALLS · AI-OBZVON ANALYTICS</text>
-  <text x="80" y="92" fill="#fb923c" font-family="SF Mono, Monaco, monospace" font-size="15">funnel → where the bot loses the client → what to fix</text>
+  <text x="120" y="150" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">AI SALES CALLS</text>
+  <text x="120" y="215" fill="#ff8569" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">4-step funnel &#183; drop-off</text>
 
-  <!-- KPI cards -->
-  <g transform="translate(80,120)" font-family="SF Mono, Monaco, monospace">
-    <rect x="0" y="0" width="170" height="74" rx="10" fill="#2a313c" stroke="#3a4553" stroke-width="1"/>
-    <text x="14" y="26" fill="#9fb2bd" font-size="12">Звонков</text>
-    <text x="14" y="58" fill="#fff" font-size="24" font-weight="700">16,891</text>
-    <rect x="190" y="0" width="170" height="74" rx="10" fill="#2a313c" stroke="#3a4553" stroke-width="1"/>
-    <text x="14" y="26" fill="#9fb2bd" font-size="12">Шагов воронки</text>
-    <text x="14" y="58" fill="url(#sacc)" font-size="24" font-weight="700">4</text>
-    <rect x="380" y="0" width="200" height="74" rx="10" fill="#2a313c" stroke="#3a4553" stroke-width="1"/>
-    <text x="14" y="26" fill="#9fb2bd" font-size="12">Разметка</text>
-    <text x="14" y="58" fill="#fff" font-size="19" font-weight="700">детермин.</text>
+  <!-- funnel -->
+  <rect x="120" y="240" width="640" height="60" rx="6" fill="#ff6643"/>
+  <text x="152" y="284" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Приветствие</text>
+
+  <rect x="160" y="320" width="560" height="60" rx="6" fill="#ff8569"/>
+  <text x="192" y="364" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Оффер</text>
+
+  <rect x="200" y="400" width="480" height="60" rx="6" fill="#ffa68a"/>
+  <text x="232" y="444" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Встреча</text>
+
+  <rect x="240" y="480" width="400" height="60" rx="6" fill="#234044" stroke="#ffa68a" stroke-width="4"/>
+  <text x="272" y="524" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Квалификация</text>
+
+  <!-- engagement panel -->
+  <rect x="800" y="180" width="320" height="360" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
+  <text x="832" y="250" fill="#ff8569" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">CALLS</text>
+  <text x="832" y="306" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">16,891</text>
+
+  <g fill="url(#sales-calls-accent)">
+    <rect x="832" y="450" width="24" height="50" rx="6"/>
+    <rect x="868" y="420" width="24" height="80" rx="6"/>
+    <rect x="904" y="390" width="24" height="110" rx="6"/>
+    <rect x="940" y="350" width="24" height="150" rx="6"/>
+    <rect x="976" y="370" width="24" height="130" rx="6"/>
+    <rect x="1012" y="410" width="24" height="90" rx="6"/>
+    <rect x="1048" y="440" width="24" height="60" rx="6"/>
   </g>
-
-  <!-- funnel: 4 steps with drop-off -->
-  <g transform="translate(80,260)" font-family="SF Mono, Monaco, monospace">
-    <text x="0" y="-10" fill="#fb923c" font-size="15">funnel · reached_step</text>
-    <rect x="0" y="0" width="520" height="34" rx="4" fill="url(#sacc)"/>
-    <text x="12" y="23" fill="#fff" font-size="13">1 · Приветствие + согласие</text>
-    <rect x="40" y="44" width="440" height="34" rx="4" fill="#d97706" opacity="0.9"/>
-    <text x="52" y="67" fill="#fff" font-size="13">2 · Оффер</text>
-    <rect x="95" y="88" width="330" height="34" rx="4" fill="#b45309" opacity="0.85"/>
-    <text x="107" y="111" fill="#fff" font-size="13">3 · Встреча</text>
-    <rect x="150" y="132" width="220" height="34" rx="4" fill="#92400e" opacity="0.8"/>
-    <text x="162" y="155" fill="#fff" font-size="13">4 · Квалификация</text>
-  </g>
-
-  <!-- where we lose on step 1 -->
-  <g transform="translate(80,450)" font-family="SF Mono, Monaco, monospace" font-size="13" fill="#9fb2bd">
-    <text x="0" y="0" fill="#fb923c" font-size="15">main leak · step 1 types</text>
-    <text x="0" y="26">молчание / сброс / отказ</text>
-    <text x="0" y="46">взвешенная потеря контактов</text>
-    <text x="0" y="66">reactions → что чинить в скрипте</text>
-  </g>
-
-  <!-- engagement by hour bar chart -->
-  <g transform="translate(700,140)">
-    <text x="0" y="-8" fill="#fb923c" font-family="SF Mono, Monaco, monospace" font-size="15">engagement by hour</text>
-    <g fill="url(#sacc)">
-      <rect x="0" y="150" width="22" height="20"/>
-      <rect x="28" y="140" width="22" height="30"/>
-      <rect x="56" y="120" width="22" height="50"/>
-      <rect x="84" y="95" width="22" height="75"/>
-      <rect x="112" y="70" width="22" height="100"/>
-      <rect x="140" y="55" width="22" height="115"/>
-      <rect x="168" y="110" width="22" height="60"/>
-      <rect x="196" y="130" width="22" height="40"/>
-    </g>
-    <line x1="0" y1="170" x2="230" y2="170" stroke="#3a4553" stroke-width="2"/>
-    <text x="0" y="195" fill="#9fb2bd" font-size="12">9   11   13   15   17   19</text>
-  </g>
-
-  <!-- bot quality -->
-  <g transform="translate(980,140)" font-family="SF Mono, Monaco, monospace" font-size="13" fill="#9fb2bd">
-    <text x="0" y="-8" fill="#fb923c" font-size="15">bot quality</text>
-    <circle cx="10" cy="22" r="6" fill="#ef4444"/>
-    <text x="24" y="26">баг отрасли</text>
-    <circle cx="10" cy="52" r="6" fill="#f59e0b"/>
-    <text x="24" y="56">зацикливание</text>
-    <circle cx="10" cy="82" r="6" fill="#fb923c"/>
-    <text x="24" y="86">dead air</text>
-    <text x="0" y="118" font-size="12">🔎 drill-down</text>
-    <text x="0" y="138" font-size="12">транскрипты обрывов</text>
-  </g>
-
-  <!-- footer -->
-  <text x="80" y="560" fill="#9fb2bd" font-family="SF Mono, Monaco, monospace" font-size="14">разметка по маркерам скрипта · без LLM в пайплайне · llm_labels.csv hook</text>
+  <rect x="832" y="500" width="240" height="6" fill="#3f3f46"/>
 </svg>

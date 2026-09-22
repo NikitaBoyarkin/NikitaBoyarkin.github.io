@@ -1,12 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <style>
-    .cell { fill: #0f2a2b; }
-    .mono { fill: #ff8569; }
+    /* Compact favicon variant of the nav mark: at 16px the nav's coral ring
+       and coral letters merge into one blob, so the fill carries the accent
+       and the lettermark is knocked out of it instead. */
+    .cell { fill: #ff8569; }
+    .mono { fill: #0f2a2b; }
     @media (prefers-color-scheme: light) {
-      .cell { fill: #f4efca; }
-      .mono { fill: #a8331a; }
+      .cell { fill: #a8331a; }
+      .mono { fill: #f4efca; }
     }
   </style>
   <path class="cell" d="M96 50 73 89.8 27 89.8 4 50 27 10.2 73 10.2Z"/>
-  <text class="mono" x="50" y="61" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.5" text-anchor="middle">NB</text>
+  <text class="mono" x="50" y="65" font-family="Inter, system-ui, sans-serif" font-size="42" font-weight="800" letter-spacing="-2" text-anchor="middle">NB</text>
 </svg>

@@ -1,59 +1,41 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Astro portfolio site: code window with component islands and content collections">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="site-bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0f2a2b"/>
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="site-accent" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ff8569"/>
       <stop offset="1" stop-color="#ff6643"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#bg)"/>
+  <rect width="1200" height="600" fill="url(#site-bg)"/>
 
   <!-- code window -->
-  <g>
-    <rect x="80" y="80" width="640" height="440" rx="14" fill="#1a3435" stroke="#3f3f46" stroke-width="2"/>
-    <rect x="80" y="80" width="640" height="48" rx="14" fill="#234044"/>
-    <circle cx="112" cy="104" r="8" fill="#ef4444"/>
-    <circle cx="140" cy="104" r="8" fill="#fbbf24"/>
-    <circle cx="168" cy="104" r="8" fill="#22c55e"/>
+  <rect x="80" y="80" width="640" height="440" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
+  <circle cx="132" cy="124" r="12" fill="#ff6643"/>
+  <circle cx="180" cy="124" r="12" fill="#ff8569"/>
+  <circle cx="228" cy="124" r="12" fill="#ffa68a"/>
+  <rect x="80" y="168" width="640" height="8" fill="url(#site-accent)"/>
 
-    <g font-family="SF Mono, Monaco, monospace" font-size="20">
-      <text x="112" y="170" fill="#71717a">---</text>
-      <text x="112" y="200" fill="#ff8569">title:</text>
-      <text x="200" y="200" fill="#e4e4e7">Project</text>
-      <text x="112" y="230" fill="#ff8569">hero:</text>
-      <text x="200" y="230" fill="#ffa68a">images/x.svg</text>
-      <text x="112" y="260" fill="#ff8569">tools:</text>
-      <text x="200" y="260" fill="#e4e4e7">[Astro, TS]</text>
-      <text x="112" y="290" fill="#71717a">---</text>
-      <text x="112" y="340" fill="#a1a1aa">&lt;Base</text>
-      <text x="112" y="370" fill="#ff8569">  lang=</text>
-      <text x="240" y="370" fill="#ffa68a">"ru"</text>
-      <text x="112" y="400" fill="#a1a1aa">/&gt;</text>
-    </g>
-  </g>
+  <text x="128" y="290" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">ASTRO SITE</text>
+  <text x="128" y="370" fill="#a1a1aa" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">hero: images/site.svg</text>
+  <text x="128" y="430" fill="#a1a1aa" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">content collections</text>
 
-  <!-- island cards (rendered output) -->
-  <g>
-    <rect x="780" y="80" width="340" height="120" rx="12" fill="#234044" stroke="#3f3f46" stroke-width="2"/>
-    <rect x="780" y="80" width="340" height="8" fill="url(#accent)"/>
-    <rect x="800" y="110" width="200" height="14" rx="4" fill="#e4e4e7"/>
-    <rect x="800" y="138" width="280" height="10" rx="4" fill="#a1a1aa"/>
-    <rect x="800" y="160" width="160" height="10" rx="4" fill="#a1a1aa"/>
+  <!-- island cards -->
+  <rect x="800" y="80" width="320" height="180" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
+  <rect x="832" y="124" width="200" height="20" rx="6" fill="#ff8569"/>
+  <rect x="832" y="164" width="256" height="20" rx="6" fill="#e4e4e7"/>
+  <rect x="832" y="204" width="160" height="20" rx="6" fill="#a1a1aa"/>
 
-    <rect x="780" y="220" width="340" height="120" rx="12" fill="#234044" stroke="#3f3f46" stroke-width="2"/>
-    <rect x="780" y="220" width="340" height="8" fill="url(#accent)" opacity="0.7"/>
-    <rect x="800" y="250" width="180" height="14" rx="4" fill="#e4e4e7"/>
-    <rect x="800" y="278" width="260" height="10" rx="4" fill="#a1a1aa"/>
-    <rect x="800" y="300" width="140" height="10" rx="4" fill="#a1a1aa"/>
+  <rect x="800" y="300" width="320" height="180" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
+  <rect x="832" y="344" width="180" height="20" rx="6" fill="#ffa68a"/>
+  <rect x="832" y="384" width="240" height="20" rx="6" fill="#e4e4e7"/>
+  <rect x="832" y="424" width="140" height="20" rx="6" fill="#a1a1aa"/>
 
-    <!-- Astro logo-ish mark -->
-    <g transform="translate(950,430)" opacity="0.95">
-      <path d="M0,90 L40,0 L80,90 L60,90 L40,40 L20,90 Z" fill="url(#accent)"/>
-      <rect x="32" y="70" width="16" height="16" fill="#0f2a2b"/>
-    </g>
+  <!-- Astro mark -->
+  <g transform="translate(1056,490)">
+    <path d="M0,50 L22,0 L44,50 L33,50 L22,22 L11,50 Z" fill="#ff6643"/>
   </g>
 </svg>

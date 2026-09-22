@@ -1,56 +1,38 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CUPED narrows the confidence interval and uplift recovers the segment effect">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="causal-bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0f2a2b"/>
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="causal-accent" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ff8569"/>
       <stop offset="1" stop-color="#ff6643"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#bg)"/>
+  <rect width="1200" height="600" fill="url(#causal-bg)"/>
 
-  <!-- CUPED: same ATE, narrower CI -->
-  <g font-family="SF Mono, Monaco, monospace">
-    <text x="90" y="110" font-size="22" font-weight="bold" fill="#ff8569" letter-spacing="1">CUPED — same ATE, smaller SE</text>
+  <line x1="600" y1="100" x2="600" y2="520" stroke="#234044" stroke-width="4"/>
 
-    <!-- baseline -->
-    <text x="90" y="196" font-size="15" fill="#a1a1aa">Naive</text>
-    <line x1="200" y1="190" x2="200" y2="212" stroke="#3b1210"/>
-    <rect x="230" y="186" width="230" height="30" rx="6" fill="#3f3f46"/>
-    <rect x="230" y="186" width="230" height="30" rx="6" fill="none" stroke="#71717a" stroke-width="1.5"/>
-    <text x="490" y="207" font-size="15" fill="#a1a1aa">CI 0.076</text>
+  <g font-family="Inter, system-ui, sans-serif">
+    <!-- CUPED: same ATE, narrower CI -->
+    <text x="80" y="140" font-size="64" font-weight="700" letter-spacing="1" fill="#ff8569">CUPED</text>
 
-    <!-- CUPED -->
-    <text x="90" y="276" font-size="15" fill="#ff8569">CUPED</text>
-    <line x1="215" y1="270" x2="215" y2="292" stroke="#ff8569"/>
-    <rect x="245" y="266" width="170" height="30" rx="6" fill="url(#accent)"/>
-    <text x="445" y="287" font-size="15" font-weight="bold" fill="#ff8569">CI 0.057 · SE −26%</text>
+    <text x="80" y="220" font-size="44" font-weight="600" fill="#e4e4e7">naive</text>
+    <rect x="80" y="240" width="300" height="80" rx="6" fill="#3f3f46"/>
+    <text x="400" y="295" font-size="40" font-weight="500" fill="#a1a1aa">0.076</text>
 
-    <line x1="120" y1="330" x2="1140" y2="330" stroke="#234044" stroke-width="1"/>
-    <text x="120" y="356" font-size="13" fill="#71717a">10k → 5.6k users / arm at the same power</text>
-  </g>
+    <text x="80" y="400" font-size="44" font-weight="600" fill="#e4e4e7">cuped</text>
+    <rect x="80" y="420" width="225" height="80" rx="6" fill="url(#causal-accent)"/>
+    <text x="325" y="475" font-size="40" font-weight="500" fill="#ffa68a">0.057</text>
 
-  <!-- Uplift recovery by segment -->
-  <g font-family="SF Mono, Monaco, monospace">
-    <text x="90" y="440" font-size="20" font-weight="bold" fill="#ff8569" letter-spacing="1">Uplift — recovery by segment</text>
+    <!-- Uplift recovery by segment -->
+    <text x="640" y="140" font-size="64" font-weight="700" letter-spacing="1" fill="#ff8569">Uplift</text>
 
-    <!-- new: truth / T / S -->
-    <text x="150" y="500" font-size="14" fill="#a1a1aa">new</text>
-    <rect x="150" y="510" width="190" height="22" rx="5" fill="url(#accent)"/>
-    <text x="350" y="527" font-size="13" fill="#ff8569">truth 0.110</text>
+    <text x="640" y="220" font-size="44" font-weight="600" fill="#e4e4e7">new</text>
+    <rect x="640" y="240" width="300" height="80" rx="6" fill="url(#causal-accent)"/>
 
-    <rect x="520" y="510" width="218" height="22" rx="5" fill="url(#accent)" opacity="0.7"/>
-    <text x="748" y="527" font-size="13" fill="#a1a1aa">T 0.126</text>
-
-    <rect x="860" y="510" width="207" height="22" rx="5" fill="url(#accent)" opacity="0.5"/>
-    <text x="1077" y="527" font-size="13" fill="#a1a1aa">S 0.120</text>
-
-    <!-- returning: tiny bars -->
-    <text x="150" y="566" font-size="14" fill="#a1a1aa">returning</text>
-    <rect x="150" y="574" width="17" height="16" rx="5" fill="#3f3f46"/>
-    <text x="350" y="586" font-size="13" fill="#71717a">truth 0.010 · ~10× smaller</text>
+    <text x="640" y="400" font-size="44" font-weight="600" fill="#e4e4e7">returning</text>
+    <rect x="640" y="420" width="30" height="80" rx="6" fill="#3f3f46"/>
   </g>
 </svg>
