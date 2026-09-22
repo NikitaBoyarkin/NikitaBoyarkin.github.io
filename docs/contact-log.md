@@ -25,7 +25,7 @@ round must never be counted as the same thing.
 | `source` | Where the contact came from | `linkedin`, `hh`, `telegram`, `github`, `referral`, `direct`, `other` |
 | `company` | Hiring company / employer | free text |
 | `segment` | Target segment (PRD v7 §1.1 ranking) | `1` = product teams w/ experimentation, `2` = retention/growth, `3` = seed–Series A first analyst, `4` = remote-first EN, `5` = data/analytics agencies, `other` |
-| `stage` | Funnel stage reached | `contact`, `screening`, `interview`, `final`, `offer`, `rejected` |
+| `stage` | Funnel stage reached | `application`, `contact`, `screening`, `interview`, `final`, `offer`, `rejected` |
 | `evidence` | Artefact proving the stage (message link, calendar invite, email ID, call notes) | free text / link |
 | `next action` | The single next thing to do | free text, or `—` |
 
@@ -33,6 +33,7 @@ round must never be counted as the same thing.
 
 | Stage | Definition |
 |---|---|
+| `application` | An **outbound** application was sent to a live listing (hh response, direct company form). `evidence` = the listing URL. This is the only stage that is not inbound — it counts toward the PRD v8 outreach gate, and nothing else does. |
 | `contact` | First inbound message from a recruiter / hiring manager (Telegram DM, LinkedIn InMail or connection-with-note, hh response, reply to a probe). Excludes repeats in the same thread, peer/community messages, and outbound outreach. |
 | `screening` | A screening step happened or is booked — HR call, screening form, test invite. |
 | `interview` | A substantive interview happened or is booked with the hiring side. |
@@ -62,6 +63,9 @@ This is what makes the contact → screening rate computable.
   from this log — applications that produced a `screening` row ÷ 20.
 - **Channel comparison (V3.2):** on day 30, name the `source` with the best `contact → screening`
   rate. Judge on stages, not on clicks.
+- **PRD v8 outreach gate:** condition A = **20 `application` rows**; condition B = **10 `contact`
+  rows escalated to a real conversation**. Thresholds in `docs/prd-v8.md` §3. Count them
+  separately — an application is not a conversation.
 
 ## Rules
 
