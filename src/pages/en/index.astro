@@ -1,7 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
 import HeroMetrics from '../../components/HeroMetrics.astro';
-import HeroCta from '../../components/HeroCta.astro';
 import HeroAvatar from '../../components/HeroAvatar.astro';
 import CareerSnapshot from '../../components/CareerSnapshot.astro';
 import ReadingBlock from '../../components/ReadingBlock.astro';
@@ -90,12 +89,6 @@ const jsonLd = {
         </p>
 
         <HeroMetrics lang="en" />
-
-        <p class="cta-row">
-          <HeroCta lang="en" />
-          <a class="button button-secondary" href={withBase('en/contact/')} data-analytics="hero_contact">Get in touch</a>
-          <a class="button button-secondary" href={withBase('CV-Nikita-Boyarkin.pdf')} download data-analytics="cv_download_pdf">CV</a>
-        </p>
       </div>
 
       <div class="hero-visual">

@@ -75,7 +75,7 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 - **Theme:** system preference by default, manual toggle in nav, `prefers-reduced-motion` respected.
 - **Typography:** keep self-hosted Inter for UI/body; add a system serif/display stack (`--font-display`) for the hero name and major headings.
 - **Hero:** two-column editorial layout — identity + pitch + metrics + CTAs on the left, animated dataviz panel on the right (floating metric cards over a mesh-gradient backdrop).
-- **Navigation:** minimal top-bar with name/logo, Projects, About, Notes (RU) / Writing (EN), language switch, search, contact CTA, theme toggle. Start/Graph/Games removed from the main nav but remain reachable via direct URLs and internal links.
+- **Navigation:** a left rail (≥1100px) carrying name/logo, the primary links (Projects, About, Value, Writing), language switch, search, contact CTA and theme toggle; below 1100px the same panel becomes an off-canvas drawer opened from a sticky top bar that holds the brand and the ☰/✕ trigger. Start/Graph/Games removed from the main nav but remain reachable via direct URLs and internal links.
 - **Palette:** keep the existing teal/coral base; add a second `--text-accent-dataviz` token for graph/metric highlights so dataviz reads as information, not as a CTA.
 - **Homepage structure:** editorial top after hero (featured project spotlight) and a bento grid bottom (career snapshot, knowledge graph, library, notes, arcade, testimonials).
 
@@ -268,10 +268,14 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 
 ## Layout
 
-- The body is centered at a fixed max width with modest padding; the kanban board is the only element that breaks out, to a wider viewport-capped width.
+- The body spans the viewport; at ≥1100px it reserves `--rail-total` on the inline start for the fixed nav rail, and the reading column stays centred at a 960px measure inside the remaining space.
+- Below 1100px the nav is an off-canvas drawer over a scrim, opened from a sticky top bar; the panel holds the page scroll only while it is open.
+- The kanban board is the only element that breaks out of the reading column, to a wider viewport-capped width — it centres on the content column, not the viewport, so it never slides under the rail.
 - Project grids use auto-fit with a minimum card width so cards reflow without media queries.
 - Post content is capped at a comfortable reading measure; intro paragraphs are narrower.
-- The nav is sticky with a backdrop blur over a translucent background — it must stay legible over scrolling content.
+- The rail utility cluster (language, search, contacts CTA, theme) sits directly under the brand, above the primary links — the search dropdown opens downward from its toggle, so it needs the headroom the rail's bottom edge could not give it.
+- The search dropdown anchors to the left edge of its toggle and opens rightward; on the rail it overhangs into the content column, and the rail stops clipping only while the panel is open. Inside the mobile drawer the panel fits the drawer width instead of overhanging a box that would cut it.
+- The rail is opaque with a single inline-end hairline. Blur belongs to the mobile bar, which does have content scrolling under it.
 
 ## Elevation & Depth
 
