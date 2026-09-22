@@ -82,24 +82,21 @@ bun run sync:activity
 │   │   ├── Base.astro        # nav, footer, fonts, meta, theme, PostHog, lang/counterpartHref
 │   │   └── Post.astro        # blog post wrapper
 │   ├── components/
-│   │   ├── ProjectCard.astro / ProjectBoard.astro / ProjectFilter.astro / ProjectSpotlight.astro
-│   │   ├── HomeBoard.astro    # homepage 3-column kanban: Профиль | Проекты | Сейчас в работе (embeds ProjectSpotlight)
+│   │   ├── ProjectCard.astro / ProjectBoard.astro / ProjectFilter.astro
 │   │   ├── BlogCard.astro / BlogFilter.astro
-│   │   ├── CaseStudy.astro   # problem/approach/result/metrics block for projects
 │   │   ├── InnerTOC.astro    # client-side TOC + scrollspy
-│   │   ├── IntroShader.astro # Paper mesh gradient background
 │   │   ├── TopicMap.astro / KnowledgeGraph.astro / Graph (graph.astro)
 │   │   ├── CollaborationFormats.astro / MaterialStrip.astro
 │   │   ├── LangSwitch.astro  # RU/EN toggle (uses counterpartHref)
 │   │   ├── SearchBox.astro   # client-side search over search-index.json
 │   │   └── Analytics.astro   # PostHog (inert until PUBLIC_POSTHOG_KEY env var is set) + custom events (project_viewed, post_read, lang_switched)
 │   ├── pages/
-│   │   ├── index.astro / about.astro / now.astro / cv.astro / contact.astro
-│   │   ├── writing.astro / guides.astro / notes.astro / start.astro / graph.astro
+│   │   ├── index.astro / about.astro / value.astro / contact.astro / graph.astro
+│   │   ├── writing/ / notes/          # section directories, not single pages
 │   │   ├── projects/[slug].astro   # RU project pages
 │   │   ├── posts/[slug].astro      # blog post pages
 │   │   ├── topics/                 # topic pages
-│   │   ├── en/                     # EN mirror: index, about, start, graph, writing, contact, projects/[slug].astro, posts/[slug].astro
+│   │   ├── en/                     # EN mirror: index, about, value, graph, writing, contact, projects/[slug].astro, posts/[slug].astro
 │   │   ├── 404.astro
 │   │   ├── robots.txt.ts / rss.xml.ts / search-index.json.ts / graph.json.ts / graph-en.json.ts
 │   │   ├── llms.txt.ts + .well-known/llms.txt.ts   # share one generator (src/lib/llms-txt.ts) — llms.txt for LLM/AI-search citability; robots.txt explicitly allows known AI crawlers
@@ -145,7 +142,6 @@ Each project is a Markdown file with frontmatter:
 | `demo` | Path/URL to a live demo (optional) |
 | `related` | Array of internal links to related project/post pages |
 | `children` | Array of child sub-project slugs (used by Volta) |
-| `caseStudy` | Optional `{ problem, approach, result, metrics: [{label, value}] }` block rendered by `CaseStudy.astro` |
 | `draft` | If `true`, omitted from the build |
 
 ### Volta parts (`volta-parts` / `volta-parts-en`)
@@ -301,7 +297,6 @@ delegated listener in `Analytics.astro`. Existing attributes: `project_view_*`,
 `project_demo_*`, `project_github_*` (ProjectCard), `cv_download_pdf` (every "CV" download button — hero, footer, contact, about, value, career snapshot),
 `telegram_deeplink` (contact «написать с контекстом»),
 `github_hero` / `linkedin_hero` (hero CTA row),
-`telegram_board` / `github_board` / `linkedin_board` (HomeBoard profile column),
 `telegram_contact` (contact main Telegram link),
 `telegram_header` / `github_footer` / `linkedin_footer` / `telegram_footer` /
 `writing_footer` (Base), `search_open`

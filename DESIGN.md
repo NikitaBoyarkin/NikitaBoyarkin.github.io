@@ -74,7 +74,7 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 - **Scope:** Hero + navigation + design tokens (Phase 1); homepage restructure into editorial top + bento bottom (Phase 2).
 - **Theme:** system preference by default, manual toggle in nav, `prefers-reduced-motion` respected.
 - **Typography:** keep self-hosted Inter for UI/body; add a system serif/display stack (`--font-display`) for the hero name and major headings.
-- **Hero:** two-column editorial layout — identity + pitch + metrics + CTAs on the left, animated dataviz panel on the right (reuses `IntroShader` and floating metric cards).
+- **Hero:** two-column editorial layout — identity + pitch + metrics + CTAs on the left, animated dataviz panel on the right (floating metric cards over a mesh-gradient backdrop).
 - **Navigation:** minimal top-bar with name/logo, Projects, About, Notes (RU) / Writing (EN), language switch, search, contact CTA, theme toggle. Start/Graph/Games removed from the main nav but remain reachable via direct URLs and internal links.
 - **Palette:** keep the existing teal/coral base; add a second `--text-accent-dataviz` token for graph/metric highlights so dataviz reads as information, not as a CTA.
 - **Homepage structure:** editorial top after hero (featured project spotlight) and a bento grid bottom (career snapshot, knowledge graph, library, notes, arcade, testimonials).
@@ -89,11 +89,14 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 
 ### Phase 2 (completed)
 
-- Replaced the long `home-stack`/`AudienceBar` dashboard with a focused editorial top + bento bottom on both language homepages.
+- Replaced the long `home-stack` dashboard and its audience-toggle bar with a focused editorial top + bento bottom on both language homepages.
 - Featured project spotlight surfaces `posthog.md` as the lead case (full loop: metric → hypothesis → experiment → decision).
 - CapabilitiesGrid was removed (ADR-0001); the capabilities signal now lives in the featured project spotlight, the bento stack chips, and the `/projects/` board.
 - Bento grid cells: `CareerSnapshot`, knowledge-graph link, `ReadingBlock`, notes link, arcade link, `Testimonials`.
-- Removed from homepage: `AudienceBar`, `HomeBoard`, `AskMe`, `Manifesto`, `TopicMap`, `ProjectTimeline`, `CollaborationFormats`, `MaterialStrip`, and the inline arcade section. These pages/components remain reachable via direct URLs.
+- Removed from the homepage: the audience-toggle bar, the 3-column homepage kanban, and the A/B case-study block. Those components were deleted (PRD v6 / the case-study refactor) — no route renders them and they are reachable at no URL.
+- Still reachable via direct URLs (dropped from nav, not from the build): `/graph`, and the static arcade assets under `public/games/`.
+- **Known debt — unused components.** On disk but imported by nothing: `Manifesto`, `TopicMap`, `ProjectTimeline`, `CollaborationFormats` (~487 lines). Delete or re-link in navigation — task P3-2 in `docs/prd-v8-tasks.md`.
+- **Known debt — orphan dependency.** `@paper-design/shaders` has had no consumer since the shader hero background was retired; recorded in `docs/prd-hero-banner-brand-polish.md` «Открытые вопросы» §2. Removal is task P3-3.
 
 ### Phase 3 (completed)
 
@@ -150,8 +153,6 @@ Application budget: dominant 55–65% of any screen, secondary 25–35%, accent 
 **Scoped exceptions** (raw hex outside the token system, by technical necessity — not palette drift):
 - `Base.astro` `theme-color` meta + `THEME_COLORS` JS map — meta content cannot be a CSS variable; values mirror the dominant 60% per theme.
 - `graph.ts` — the knowledge graph uses a categorical data-viz palette (~20 hues for node categories), a separate domain from the UI palette.
-- `cv.astro` — a print-only CV page with its own scoped `:root` (`--ink`, `--muted`, `--accent #c63d1f`, `--line`, `--bg`) optimized for print contrast on white. `#c63d1f` is a deliberate print accent, not the UI coral; the scoped `:root` confines it to `/cv`.
-- `AudienceBar.astro` — the pressed audience toggle overrides `--button-ink` to `#fff` in light theme: the dark brick accent `#a8331a` would give dark ink ~2.6:1, white lifts it to ~7.6:1 (WCAG 1.4.3). The only raw-hex override on a button-ink site.
 
 ## Brand source of truth
 
