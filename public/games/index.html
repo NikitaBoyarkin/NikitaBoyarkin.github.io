@@ -156,16 +156,16 @@ Games run client-side as self-contained SVG.
     // Hub retention state: best-score badges + daily challenge strip.
     (function () {
       var GAMES = [
-        { key: "snake", label: "🐍 Snake", target: "200 pts" },
-        { key: "2048", label: "🔢 2048", target: "tile 512+" },
-        { key: "pong", label: "🏓 Pong", target: "win" },
-        { key: "abtest", label: "🧪 A/B Test", target: "sig ≤ 12 taps" },
-        { key: "funnel", label: "🔻 Funnel Drop", target: "25 caught" },
-        { key: "cohort", label: "📊 Cohort Catch", target: "25 kept" },
-        { key: "sql", label: "🧩 SQL Query", target: "perfect round (6/6)" },
-        { key: "metric", label: "🃏 Metric Match", target: "solve the board" },
-        { key: "retention", label: "📅 Retention Day", target: "perfect round (6/6)" },
-        { key: "bottleneck", label: "🔍 Funnel Bottleneck", target: "perfect round (6/6)" },
+        { key: "snake", file: "snake", label: "🐍 Snake", target: "200 pts" },
+        { key: "2048", file: "2048", label: "🔢 2048", target: "tile 512+" },
+        { key: "pong", file: "pong", label: "🏓 Pong", target: "win" },
+        { key: "abtest", file: "ab-test", label: "🧪 A/B Test", target: "sig ≤ 12 taps" },
+        { key: "funnel", file: "funnel-drop", label: "🔻 Funnel Drop", target: "25 caught" },
+        { key: "cohort", file: "cohort-catch", label: "📊 Cohort Catch", target: "25 kept" },
+        { key: "sql", file: "sql-query", label: "🧩 SQL Query", target: "perfect round (6/6)" },
+        { key: "metric", file: "metric-match", label: "🃏 Metric Match", target: "solve the board" },
+        { key: "retention", file: "retention-day", label: "📅 Retention Day", target: "perfect round (6/6)" },
+        { key: "bottleneck", file: "funnel-bottleneck", label: "🔍 Funnel Bottleneck", target: "perfect round (6/6)" },
       ];
 
       function lsGet(k, d) {
@@ -213,7 +213,7 @@ Games run client-side as self-contained SVG.
           st.textContent =
             streak > 1 ? "🔥 " + streak + "-day streak" : "🔥 streak started";
         } else {
-          st.innerHTML = '<a href="' + d.key + '.svg">Play →</a>';
+          st.innerHTML = '<a href="' + d.file + '.svg">Play →</a>';
         }
       }
     })();

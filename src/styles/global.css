@@ -349,8 +349,12 @@ p {
 
 /* Navigation — a left rail at ≥1100px, an off-canvas drawer below it.
    The panel is fixed in both states: as a rail it is always on screen, as a
-   drawer it is translated out and pulled back by `body.nav-open`. */
-nav {
+   drawer it is translated out and pulled back by `body.nav-open`.
+
+   Scoped to `#site-nav`: a bare `nav` selector also matched the in-content
+   <nav> elements (.prev-next, .pagination, .about-jump) and turned them into
+   fixed, z-index-1200 drawer panels. */
+#site-nav {
   position: fixed;
   inset-block: 0;
   inset-inline-start: 0;
@@ -372,7 +376,7 @@ nav {
   transition: transform 0.25s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
-body.nav-open nav {
+body.nav-open #site-nav {
   transform: translateX(0);
 }
 
@@ -2243,6 +2247,12 @@ button:focus-visible {
   gap: var(--space-4);
   margin: var(--space-10) 0;
 }
+/* First/last item in a sequence has only one neighbour: auto-placement would
+   drop the lone card into the left column even when it is the "next" link,
+   leaving its right-aligned text in a left-hand box. Pin it to its own column. */
+.pn-next:only-child {
+  grid-column: 2;
+}
 .pn-link {
   display: flex;
   flex-direction: column;
@@ -2275,6 +2285,10 @@ button:focus-visible {
 @media (max-width: 600px) {
   .prev-next {
     grid-template-columns: 1fr;
+  }
+  /* Single column: the pinned column would spawn a phantom second track. */
+  .pn-next:only-child {
+    grid-column: 1;
   }
 }
 
@@ -3393,7 +3407,7 @@ button:focus-visible {
     padding-inline-start: var(--rail-total);
   }
 
-  nav {
+  #site-nav {
     width: var(--rail-w);
     transform: none;
   }
@@ -3403,7 +3417,7 @@ button:focus-visible {
      edge. `overflow: visible` only while the panel is open — the rail keeps
      its scroll for the short-viewport case, and the dropdown is absolute so it
      scrolls with the rail's content rather than being cut off. */
-  nav:has(.search-panel:not([hidden])) {
+  #site-nav:has(.search-panel:not([hidden])) {
     overflow: visible;
   }
 

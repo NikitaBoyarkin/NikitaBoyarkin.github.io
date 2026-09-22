@@ -3,7 +3,7 @@
 // Build-time static SVG, themed via CSS variables. Native <title> tooltips.
 import type { ChartObject } from '../../lib/charts';
 import { CHART_PALETTE } from '../../lib/charts';
-import { area, axisTicks, linearScale, fmt } from '../../lib/chart-svg';
+import { area, axisTicks, linearScale, fmt, round } from '../../lib/chart-svg';
 
 interface Props {
   chart: ChartObject & { type: 'bar' | 'histogram' };
@@ -21,9 +21,21 @@ const k = series.length;
 const xLabel = chart.xLabel?.[lang];
 const H = n > 1 ? 300 : 240;
 const a = area(640, H, 54, 14, series.length > 1 ? 34 : 18, xLabel ? 72 : 54);
-const max = Math.max(0, ...series.flatMap((s) => s.values));
-const { ticks, top } = axisTicks(max, 4);
-const y = linearScale(0, top, a.ml + a.ph, a.ml);
+// Delta bars can fall below zero (e.g. "NPS по драйверам": −23.6, −59.4). The
+// axis then needs a zero baseline inside the plot: extend it downward by whole
+// steps of the same nice increment used above zero. Without it `height` comes
+// out negative — an invalid SVG attribute, so the bar silently disappears.
+const values = series.flatMap((s) => s.values);
+const max = Math.max(0, ...values);
+const min = Math.min(0, ...values);
+const { ticks: posTicks, top } = axisTicks(max, 4);
+const step = posTicks.length > 1 ? posTicks[1] - posTicks[0] : top;
+const floor = min < 0 ? -Math.ceil(-min / step) * step : 0;
+const ticks =
+  min < 0
+    ? Array.from({ length: Math.round((top - floor) / step) + 1 }, (_, i) => round(floor + i * step))
+    : posTicks;
+const y = linearScale(floor, top, a.ml + a.ph, a.ml);
 const gw = a.pw / n;
 const bw = Math.min((gw * 0.66) / k, 44);
 const xc = (i: number) => a.ml + gw * i + gw / 2;
@@ -67,13 +79,14 @@ const labelEvery = chart.labelEvery ?? 1;
     {series.map((s, j) =>
       s.values.map((v, i) => {
         const bx = xc(i) - (k * bw) / 2 + j * bw;
-        const bh = y(0) - y(v);
+        const y0 = y(0);
+        const bh = Math.abs(y0 - y(v));
         return (
           <g>
             <title>{`${categories[i]} — ${s.name}: ${fmt(v)}`}</title>
             <rect
               x={bx}
-              y={y(v)}
+              y={v >= 0 ? y(v) : y0}
               width={bw}
               height={bh}
               rx={3}
@@ -81,7 +94,7 @@ const labelEvery = chart.labelEvery ?? 1;
               class="bar"
             />
             {showValues && (
-              <text x={bx + bw / 2} y={y(v) - 4} text-anchor="middle" class="value-label">
+              <text x={bx + bw / 2} y={v >= 0 ? y(v) - 4 : y(v) + 12} text-anchor="middle" class="value-label">
                 {fmt(v)}
               </text>
             )}
