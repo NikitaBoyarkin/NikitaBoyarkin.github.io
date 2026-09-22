@@ -70,8 +70,8 @@ bun run sync:activity
 │   ├── og/                   # generated OG images
 │   └── fonts/                # self-hosted Inter variable font (subsets; see @font-face in global.css)
 ├── src/
-│   ├── content/              # Markdown content collections (schema in config.ts)
-│   │   ├── config.ts         # Zod schemas: projects, projects-en, volta-parts, volta-parts-en, posts
+│   ├── content.config.ts     # Zod schemas (Content Layer): projects, projects-en, volta-parts, volta-parts-en, posts
+│   ├── content/              # Markdown content collections (schema lives in ../content.config.ts)
 │   │   ├── projects/         # RU project markdown (one file per project)
 │   │   ├── projects-en/      # EN project markdown (mirror)
 │   │   ├── volta-parts/      # RU Volta sub-projects (funnel, ab, retention, segmentation)
@@ -124,7 +124,7 @@ bun run sync:activity
 
 ## Content Collections
 
-Schemas are defined with Zod in `src/content/config.ts`.
+Schemas are defined with Zod in `src/content.config.ts` (Content Layer, Astro v5+).
 
 ### Projects (`projects` RU, `projects-en` EN)
 
