@@ -1,0 +1,241 @@
+---
+// «Доказательства» — evidence band right under the hero. The homepage already
+// states its results numerically (see src/lib/metrics.ts); this band attaches
+// the chart that backs each one. Charts are the same build-time SVG components
+// the project pages use — no D3, no client rendering, and no runtime at all:
+// each row renders its text and its figure side by side in the HTML.
+//
+// Numbers are never retyped by hand: they come from METRICS, or from the chart
+// payload the panel actually shows. A missing file or a renamed chart id fails
+// the build, mirroring the contract on project pages.
+import ChartCard from './charts/ChartCard.astro';
+import { loadChartFile, type ChartObject } from '../lib/charts';
+import { METRICS as SIG } from '../lib/metrics';
+
+interface Props {
+  lang?: 'ru' | 'en';
+}
+const { lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+function pick(slug: string, id: string): ChartObject {
+  const file = loadChartFile(slug);
+  if (!file) throw new Error(`ProofBand: src/data/charts/${slug}.json is missing`);
+  const chart = file.charts.find((c) => c.id === id);
+  if (!chart) throw new Error(`ProofBand: ${slug}.json has no chart "${id}"`);
+  return chart;
+}
+
+// volta.json is 157 KB / 42 charts — load it twice but render only the two
+// picked cards, never the whole file.
+const abChart = pick('volta', 'kyc-ab-conversion');
+const cohortChart = pick('cohort', 'cohort-retention-heatmap');
+const rfmChart = pick('rfm', 'revenue-share-by-segment');
+const funnelChart = pick('volta', 'onboarding-funnel');
+
+const { abKyc, retention, rfm } = SIG;
+
+// Funnel endpoints read off the chart's own payload rather than hardcoded.
+const funnelStages = funnelChart.type === 'funnel' ? funnelChart.data.stages : [];
+const nf = new Intl.NumberFormat(isEn ? 'en-US' : 'ru-RU');
+const funnelIn = nf.format(funnelStages[0]?.value ?? 0);
+const funnelOut = nf.format(funnelStages[funnelStages.length - 1]?.value ?? 0);
+
+const I18N = {
+  heading: isEn ? 'Evidence' : 'Доказательства',
+  lead: isEn
+    ? 'Four results that can be re-checked — code, methodology and numbers are open.'
+    : 'Четыре результата, которые можно перепроверить — код, методология и числа открыты.',
+  aria: isEn ? 'Key results with charts' : 'Ключевые результаты с графиками',
+};
+
+type Step = {
+  num: string;
+  title: string;
+  text: string;
+  chips: string[];
+  chart: ChartObject;
+};
+
+const STEPS: Step[] = [
+  {
+    num: '01',
+    title: isEn ? 'Experiment' : 'Эксперимент',
+    text: isEn
+      ? 'Split KYC into steps with a progress bar, then tested it against control. Primary metric is KYC completion; the ship-gate demanded significance and a pass over the pre-registered MDE.'
+      : 'KYC разбили на шаги с прогресс-баром и проверили против контроля. Первичная метрика — завершение KYC; ship-gate требовал значимости и выхода за предзарегистрированный MDE.',
+    chips: [
+      isEn ? `+${abKyc.deltaPp} pp` : `+${abKyc.deltaPp} п.п.`,
+      isEn ? `€${abKyc.annualEurK}K/yr` : `€${abKyc.annualEurK}K в год`,
+    ],
+    chart: abChart,
+  },
+  {
+    num: '02',
+    title: isEn ? 'Retention' : 'Удержание',
+    text: isEn
+      ? 'Retention by join cohort, month over month. The matrix shows where each cohort flattens — and what one more retained month is worth.'
+      : 'Удержание по когорте прихода, месяц за месяцем. Матрица показывает, где кривая выравнивается и сколько стоит ещё один удержанный месяц.',
+    chips: [
+      isEn ? `+${retention.deltaPp} pp M3` : `+${retention.deltaPp} п.п. M3`,
+      isEn ? `€${retention.ltvEurK}K LTV` : `€${retention.ltvEurK}K LTV`,
+    ],
+    chart: cohortChart,
+  },
+  {
+    num: '03',
+    title: isEn ? 'Segmentation' : 'Сегментация',
+    text: isEn
+      ? 'RFM splits clients by recency, frequency and monetary value. Reprioritising the four key segments moved their share of revenue from the baseline to the shipped figure.'
+      : 'RFM делит клиентов по давности, частоте и сумме. Переприоритизация четырёх ключевых сегментов изменила их долю в выручке.',
+    chips: [
+      `${rfm.revenueBeforePct}% → ${rfm.revenueAfterPct}%`,
+      isEn ? '4 key segments' : '4 ключевых сегмента',
+    ],
+    chart: rfmChart,
+  },
+  {
+    num: '04',
+    title: isEn ? 'Funnel' : 'Воронка',
+    text: isEn
+      ? 'End-to-end onboarding funnel, from install to first transaction. Bar width is proportional to the users who reached each stage.'
+      : 'Сквозная воронка онбординга, от установки до первой транзакции. Ширина ступени пропорциональна числу дошедших.',
+    chips: [`${funnelIn} → ${funnelOut}`, isEn ? 'install → first TX' : 'установка → первая TX'],
+    chart: funnelChart,
+  },
+];
+---
+
+<section id="proof" class="proof" aria-label={I18N.aria}>
+  <header class="proof-head reveal">
+    <h2>{I18N.heading}</h2>
+    <p class="proof-lead">{I18N.lead}</p>
+  </header>
+
+  <div class="proof-rows">
+    {
+      STEPS.map((s, i) => (
+        <article class={`proof-row reveal reveal-delay-${i + 1}`}>
+          <div class="proof-step">
+            <span class="proof-step-num">{s.num}</span>
+            <h3 class="proof-step-title">{s.title}</h3>
+            <p class="proof-step-text">{s.text}</p>
+            <div class="proof-chips">
+              {s.chips.map((c) => (
+                <span class="proof-chip">{c}</span>
+              ))}
+            </div>
+          </div>
+          <div class="proof-figure">
+            <ChartCard chart={s.chart} lang={lang} variant="viz" />
+          </div>
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .proof {
+    margin: var(--space-16) 0;
+  }
+  .proof-head h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: var(--space-3);
+    color: var(--text-normal);
+  }
+  .proof-lead {
+    color: var(--text-muted);
+    max-width: 60ch;
+    margin-bottom: var(--space-10);
+  }
+
+  .proof-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  /* One row per result: its text and its own chart, side by side. No shared
+     panel, no swapping — each figure sits next to the claim it backs, so the
+     two read in parallel. */
+  .proof-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    align-items: start;
+  }
+  /* Hanging numeral: the number sits in its own gutter, everything else is
+     offset from the column edge instead of running flush against it. Grid
+     rather than absolute positioning, so the numeral stays in flow and keeps
+     its alignment with the first line of the title at every width. */
+  .proof-step {
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    column-gap: var(--space-3);
+    row-gap: var(--space-2);
+  }
+  .proof-step-num {
+    grid-column: 1;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-accent);
+  }
+  .proof-step-title {
+    grid-column: 2;
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-normal);
+  }
+  .proof-step-text {
+    grid-column: 2;
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+    max-width: 52ch;
+  }
+  .proof-chips {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+  }
+  /* Accent-tinted chips: they land in the 10% bucket, which has headroom,
+     rather than adding muted-text area to the already-tight 30% bucket. */
+  .proof-chip {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-accent);
+    background: color-mix(in srgb, var(--text-accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--text-accent) 28%, transparent);
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+  }
+
+  /* ---- desktop: text | chart per row, and the figure holds while its own
+     step scrolls past ---- */
+  @media (min-width: 1024px) {
+    .proof-row {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: var(--space-10);
+    }
+    /* Sticks only for the length of its own row, so a short step never leaves
+       a hole where the next chart would have started. */
+    .proof-figure {
+      position: sticky;
+      /* clears the fixed nav, same offset the project filter bar uses */
+      top: 5.5rem;
+    }
+    .proof-step-text {
+      max-width: 46ch;
+    }
+  }
+</style>

@@ -6,6 +6,7 @@ import CareerSnapshot from '../components/CareerSnapshot.astro';
 import ReadingBlock from '../components/ReadingBlock.astro';
 import MaterialStrip from '../components/MaterialStrip.astro';
 import HeadlineCases from '../components/HeadlineCases.astro';
+import ProofBand from '../components/ProofBand.astro';
 import { getCollection } from 'astro:content';
 import { withBase } from '../lib/path';
 
@@ -145,6 +146,9 @@ const jsonLd = {
     </div>
   </section>
 
+  <!-- EVIDENCE BAND — the hero's numbers, backed by the charts behind them -->
+  <ProofBand lang="ru" />
+
   <!-- HEADLINE PROOF — three deep case studies + compressed list (PRD v6 S2.6) -->
   <HeadlineCases lang="ru" />
 
@@ -161,7 +165,7 @@ const jsonLd = {
       </div>
 
       <!-- Stack -->
-      <div class="bento-cell bento-cell-wide" tabindex="-1">
+      <div class="bento-cell bento-cell-wide reveal reveal-delay-1" tabindex="-1">
         <h3 class="bento-cell-title">Стек</h3>
         <p class="bento-cell-heading">Инструменты и технологии</p>
         <div class="stack-groups">
@@ -191,7 +195,7 @@ const jsonLd = {
       </div>
 
       <!-- Knowledge graph -->
-      <div class="bento-cell bento-cell-wide" tabindex="-1">
+      <div class="bento-cell bento-cell-wide reveal reveal-delay-2" tabindex="-1">
         <h3 class="bento-cell-title">Граф знаний</h3>
         <p class="bento-cell-heading">Исследуй связи</p>
         <p class="bento-cell-text">
@@ -203,7 +207,7 @@ const jsonLd = {
       </div>
 
       <!-- Notes -->
-      <div class="bento-cell bento-cell-wide" tabindex="-1">
+      <div class="bento-cell bento-cell-wide reveal reveal-delay-3" tabindex="-1">
         <h3 class="bento-cell-title">Заметки</h3>
         <p class="bento-cell-heading">Продуктовая аналитика в заметках</p>
         <p class="bento-cell-text">
@@ -215,7 +219,7 @@ const jsonLd = {
       </div>
 
       <!-- Reading / library -->
-      <div class="bento-cell bento-cell-wide" tabindex="-1">
+      <div class="bento-cell bento-cell-wide reveal reveal-delay-4" tabindex="-1">
         <ReadingBlock lang="ru" />
       </div>
     </div>
