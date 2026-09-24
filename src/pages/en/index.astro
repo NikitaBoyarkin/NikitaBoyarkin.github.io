@@ -1,12 +1,12 @@
 ---
 import Base from '../../layouts/Base.astro';
 import HeroMetrics from '../../components/HeroMetrics.astro';
-import HeroCta from '../../components/HeroCta.astro';
 import HeroAvatar from '../../components/HeroAvatar.astro';
 import CareerSnapshot from '../../components/CareerSnapshot.astro';
 import ReadingBlock from '../../components/ReadingBlock.astro';
 import MaterialStrip from '../../components/MaterialStrip.astro';
 import HeadlineCases from '../../components/HeadlineCases.astro';
+import ProofBand from '../../components/ProofBand.astro';
 import { getCollection } from 'astro:content';
 import { withBase } from '../../lib/path';
 
@@ -90,12 +90,6 @@ const jsonLd = {
         </p>
 
         <HeroMetrics lang="en" />
-
-        <p class="cta-row">
-          <HeroCta lang="en" />
-          <a class="button button-secondary" href={withBase('en/contact/')} data-analytics="hero_contact">Get in touch</a>
-          <a class="button button-secondary" href={withBase('CV-Nikita-Boyarkin.pdf')} download data-analytics="cv_download_pdf">CV</a>
-        </p>
       </div>
 
       <div class="hero-visual">
@@ -110,16 +104,6 @@ const jsonLd = {
             <p class="featured-card-eyebrow">Featured case</p>
             <h2 class="featured-card-title">{featuredProject.data.title}</h2>
             <p class="featured-card-description">{featuredProject.data.description}</p>
-            {featuredProject.data.caseStudy && featuredProject.data.caseStudy.metrics.length > 0 && (
-              <dl class="featured-card-metrics">
-                {featuredProject.data.caseStudy.metrics.slice(0, 3).map((m: { label: string; value: string }) => (
-                  <div>
-                    <dt>{m.value}</dt>
-                    <dd>{m.label}</dd>
-                  </div>
-                ))}
-              </dl>
-            )}
             <div class="bento-chip-list">
               {featuredProject.data.tools?.slice(0, 5).map((tool: string) => (
                 <span class="bento-chip">{tool}</span>
@@ -162,6 +146,9 @@ const jsonLd = {
     </div>
   </section>
 
+  <!-- EVIDENCE BAND — the hero's numbers, backed by the charts behind them -->
+  <ProofBand lang="en" />
+
   <!-- HEADLINE PROOF — three deep case studies + compressed list (PRD v6 S2.6) -->
   <HeadlineCases lang="en" />
 
@@ -178,7 +165,7 @@ const jsonLd = {
       </div>
 
       <!-- Stack -->
-      <div class="bento-cell bento-cell-wide" tabindex="-1">
+      <div class="bento-cell bento-cell-wide reveal reveal-delay-1" tabindex="-1">
         <h3 class="bento-cell-title">Stack</h3>
         <p class="bento-cell-heading">Tools and technologies</p>
         <div class="stack-groups">
@@ -208,7 +195,7 @@ const jsonLd = {
       </div>
 
       <!-- Knowledge graph -->
-      <div class="bento-cell bento-cell-wide" tabindex="-1">
+      <div class="bento-cell bento-cell-wide reveal reveal-delay-2" tabindex="-1">
         <h3 class="bento-cell-title">Knowledge graph</h3>
         <p class="bento-cell-heading">Explore the connections</p>
         <p class="bento-cell-text">
@@ -220,7 +207,7 @@ const jsonLd = {
       </div>
 
       <!-- Notes -->
-      <div class="bento-cell bento-cell-wide" tabindex="-1">
+      <div class="bento-cell bento-cell-wide reveal reveal-delay-3" tabindex="-1">
         <h3 class="bento-cell-title">Notes</h3>
         <p class="bento-cell-heading">Product analytics in writing</p>
         <p class="bento-cell-text">
@@ -232,7 +219,7 @@ const jsonLd = {
       </div>
 
       <!-- Reading / library -->
-      <div class="bento-cell bento-cell-wide" tabindex="-1">
+      <div class="bento-cell bento-cell-wide reveal reveal-delay-4" tabindex="-1">
         <ReadingBlock lang="en" />
       </div>
     </div>

@@ -11,15 +11,21 @@ import ChartScatter from './ChartScatter.astro';
 interface Props {
   chart: ChartObject;
   lang: 'ru' | 'en';
+  // 'full' (default) is the project-page card: everything in place.
+  // 'viz' is the embedded form used by the homepage evidence band, where the
+  // surrounding narrative already carries the description and takeaways — it
+  // renders the title + chart only, so the two never repeat each other.
+  variant?: 'full' | 'viz';
 }
 
-const { chart, lang } = Astro.props;
+const { chart, lang, variant = 'full' } = Astro.props;
 const isEn = lang === 'en';
+const isViz = variant === 'viz';
 ---
 
-<section class="chart-card" id={`chart-${chart.id}`}>
+<section class:list={['chart-card', { 'is-viz': isViz }]} id={`chart-${chart.id}`}>
   <h3 class="chart-title">{chart.title[lang]}</h3>
-  <p class="chart-description">{chart.description[lang]}</p>
+  {!isViz && <p class="chart-description">{chart.description[lang]}</p>}
 
   {
     (chart.type === 'bar' || chart.type === 'histogram') && <ChartBar chart={chart} lang={lang} />
@@ -29,16 +35,18 @@ const isEn = lang === 'en';
   {chart.type === 'funnel' && <ChartFunnel chart={chart} lang={lang} />}
   {chart.type === 'scatter' && <ChartScatter chart={chart} lang={lang} />}
 
-  <div class="chart-conclusions">
-    <span class="chart-conclusions-label">
-      {isEn ? 'Key takeaways' : 'Выводы'}
-    </span>
-    <ul>
-      {chart.conclusions.map((c) => (
-        <li>{c[lang]}</li>
-      ))}
-    </ul>
-  </div>
+  {
+    !isViz && (
+      <div class="chart-conclusions">
+        <span class="chart-conclusions-label">{isEn ? 'Key takeaways' : 'Выводы'}</span>
+        <ul>
+          {chart.conclusions.map((c) => (
+            <li>{c[lang]}</li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
 </section>
 
 <style>
@@ -58,6 +66,14 @@ const isEn = lang === 'en';
     font-size: 0.92rem;
     line-height: 1.6;
     margin-bottom: var(--space-4);
+  }
+  /* Embedded form: the title reads as a chart caption, not a section head. */
+  .chart-card.is-viz {
+    padding: var(--space-4);
+  }
+  .chart-card.is-viz .chart-title {
+    font-size: 0.95rem;
+    margin-bottom: var(--space-3);
   }
   /* :global() is required: the <svg> is emitted by the child chart components
      (ChartBar/ChartLine/…), so it carries their scope hash, not ChartCard's.

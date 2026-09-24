@@ -16,14 +16,6 @@ const projectSchema = z.object({
   date: z.coerce.date().optional(),
   updated: z.coerce.date().optional(),
   faq: z.array(z.object({ question: z.string(), answer: z.string() })).default([]),
-  caseStudy: z
-    .object({
-      problem: z.string(),
-      approach: z.string(),
-      result: z.string(),
-      metrics: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
-    })
-    .optional(),
   draft: z.boolean().default(false),
   private: z.boolean().default(false),
 });

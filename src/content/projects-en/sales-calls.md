@@ -17,26 +17,13 @@ github: https://github.com/NikitaBoyarkin/sales-calls-dashboard
 updated: 2026-06-16
 related:
   - /projects/streamlit/
-caseStudy:
-  problem: "An outbound call flow is a funnel with big drop-off at early steps, but the production export does not answer the key question: which step the bot loses the client on, and what to fix — the script, the timing, or bot quality."
-  approach: "The step a conversation reached is determined deterministically from markers in the bot's scripted replies (greeting → offer → meeting → qualification). The step-1 drop reason and the client reaction type are text heuristics; no LLM is used in the pipeline, but an llm_labels.csv hook is provided to strengthen reaction labeling. The dashboard breaks the funnel into weighted contact loss, engagement by hour/day, and bot defects, with drill-down into drop-off transcripts."
-  result: "One minute to an answer to 'where the bot loses the client': a funnel with typed main leak, a growth point, and a first A/B scenario. Labeling is deterministic and reproducible, and the dataset is synthetic — safe for a public demo deploy."
-  metrics:
-    - label: "Calls (synthetic)"
-      value: "16,891"
-    - label: "Funnel steps"
-      value: "4"
-    - label: "Labeling"
-      value: "deterministic"
-    - label: "LLM in pipeline"
-      value: "no (hook exists)"
 ---
 
 # Sales Calls Analytics Dashboard
 
-## Context
+## Goal
 
-An AI call flow is a funnel: greeting → offer → meeting → qualification. The production export stores the calls but does not say which step the bot loses the client on. The goal is to turn the raw export into an answer in a minute: where the drop-off is, for what reasons, when to call, and what to fix.
+An AI call flow is a funnel: greeting → offer → meeting → qualification. The production export stores the calls but does not say which step the bot loses the client on. The goal is to turn the raw export into an answer in a minute: where the drop-off is, for what reasons, when to call, and what to fix — the script, the timing, or bot quality.
 
 ## Data & Method
 
@@ -75,12 +62,13 @@ python3 -m venv .venv
 .venv/bin/streamlit run app.py
 ```
 
-## Impact
+## Result
 
-- **A minute to an answer** — which step loses the client and what to fix.
-- **Deterministic labeling** — reproducible, no LLM in the critical path.
-- **A growth point** — weighted contact loss and a first A/B scenario.
-- **Safe demo** — synthetic data, free public deployment.
+The dashboard gives an answer in a minute: which step loses the client and what to fix. Labeling is deterministic and reproducible, with no LLM in the critical path, so the numbers can be checked. The funnel yields a growth point — weighted contact loss and a first A/B scenario.
+
+## Limitations
+
+The dataset is synthetic and the step labels come from a templated script's markers: on a live bot with freer replies the heuristics would need revision. The value of the card is the method of breaking down an export on safe data, not the specific funnel values.
 
 ## Documentation
 

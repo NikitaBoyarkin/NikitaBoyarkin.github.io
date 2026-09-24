@@ -4,7 +4,7 @@
 // switching, reload, and navigation between pages (MPA — each page load re-runs
 // the head script, so persistence must come from localStorage).
 //
-// Requires `npm run build` first (reads dist/*.html).
+// Requires `bun run build` first (reads dist/*.html).
 
 import { describe, it, expect, beforeAll } from "bun:test";
 import { JSDOM } from 'jsdom';
@@ -42,7 +42,7 @@ interface Harness {
 
 function setup(htmlPath: string, savedTheme: string | null, prefersDark = false): Harness {
   const file = resolve(DIST, htmlPath);
-  if (!existsSync(file)) throw new Error(`built page missing: ${htmlPath} — run npm run build first`);
+  if (!existsSync(file)) throw new Error(`built page missing: ${htmlPath} — run bun run build first`);
   const html = readFileSync(file, 'utf8');
   const dom = new JSDOM(html, {
     url: 'https://example.com/Personal_Projects.github.io/',
@@ -96,7 +96,7 @@ function setup(htmlPath: string, savedTheme: string | null, prefersDark = false)
 describe('theme (built HTML, real inline scripts)', () => {
   beforeAll(() => {
     if (!existsSync(resolve(DIST, 'index.html'))) {
-      throw new Error('dist/ missing — run `npm run build` before this test');
+      throw new Error('dist/ missing — run `bun run build` before this test');
     }
   });
 

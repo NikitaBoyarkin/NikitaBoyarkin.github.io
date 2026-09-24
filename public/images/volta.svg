@@ -1,57 +1,39 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Volta Neobank analytics: funnel, A/B test, retention, segmentation">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="volta-bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0f2a2b"/>
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="volta-accent" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ff8569"/>
       <stop offset="1" stop-color="#ff6643"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#bg)"/>
+  <rect width="1200" height="600" fill="url(#volta-bg)"/>
 
-  <!-- faint grid -->
-  <g stroke="#234044" stroke-width="1">
-    <line x1="0" y1="150" x2="1200" y2="150"/>
-    <line x1="0" y1="300" x2="1200" y2="300"/>
-    <line x1="0" y1="450" x2="1200" y2="450"/>
-    <line x1="300" y1="0" x2="300" y2="600"/>
-    <line x1="600" y1="0" x2="600" y2="600"/>
-    <line x1="900" y1="0" x2="900" y2="600"/>
-  </g>
+  <!-- funnel -->
+  <text x="290" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7" text-anchor="middle">FUNNEL</text>
+  <polygon points="80,180 500,180 440,240 140,240" fill="url(#volta-accent)" opacity="0.95"/>
+  <polygon points="140,260 440,260 400,320 180,320" fill="url(#volta-accent)" opacity="0.75"/>
+  <polygon points="180,340 400,340 360,400 220,400" fill="url(#volta-accent)" opacity="0.55"/>
+  <polygon points="220,420 360,420 330,480 250,480" fill="url(#volta-accent)" opacity="0.38"/>
 
-  <!-- Funnel: 4 descending trapezoids (left half) -->
-  <g>
-    <polygon points="60,90 540,90 500,180 100,180" fill="url(#accent)" opacity="0.95"/>
-    <polygon points="100,195 500,195 460,285 140,285" fill="url(#accent)" opacity="0.75"/>
-    <polygon points="140,300 460,300 420,390 180,390" fill="url(#accent)" opacity="0.55"/>
-    <polygon points="180,405 420,405 380,495 220,495" fill="url(#accent)" opacity="0.38"/>
-  </g>
+  <!-- A/B split bars -->
+  <rect x="580" y="280" width="80" height="200" rx="6" fill="#3f3f46"/>
+  <rect x="700" y="200" width="80" height="280" rx="6" fill="url(#volta-accent)"/>
+  <text x="620" y="540" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#a1a1aa" text-anchor="middle">A</text>
+  <text x="740" y="540" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#ff8569" text-anchor="middle">B</text>
 
-  <!-- A/B split bars (center) -->
-  <g>
-    <rect x="640" y="120" width="70" height="240" fill="#3f3f46"/>
-    <rect x="730" y="80" width="70" height="280" fill="url(#accent)"/>
-    <line x1="675" y1="360" x2="675" y2="380" stroke="#a1a1aa" stroke-width="2"/>
-    <line x1="765" y1="360" x2="765" y2="380" stroke="#a1a1aa" stroke-width="2"/>
-    <text x="675" y="400" font-family="SF Mono, Monaco, monospace" font-size="18" fill="#a1a1aa" text-anchor="middle">A</text>
-    <text x="765" y="400" font-family="SF Mono, Monaco, monospace" font-size="18" fill="#ff8569" text-anchor="middle">B</text>
-  </g>
+  <!-- retention curves -->
+  <text x="940" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7" text-anchor="middle">RETENTION</text>
+  <polyline points="820,420 880,340 940,290 1000,262 1060,248 1120,240" fill="none" stroke="#ff8569" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="820,420 880,370 940,340 1000,322 1060,312 1120,306" fill="none" stroke="#3f3f46" stroke-width="4" stroke-dasharray="12 10" stroke-linecap="round" stroke-linejoin="round"/>
 
-  <!-- Retention curve (right) -->
-  <polyline points="850,470 910,360 970,300 1030,270 1090,255 1150,248"
-    fill="none" stroke="#ff8569" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <polyline points="850,470 910,420 970,390 1030,372 1090,362 1150,358"
-    fill="none" stroke="#3f3f46" stroke-width="3" stroke-dasharray="6 6" stroke-linecap="round"/>
-
-  <!-- Segmentation cluster (bottom-right) -->
-  <g>
-    <circle cx="880" cy="540" r="14" fill="#ff6643"/>
-    <circle cx="920" cy="525" r="11" fill="#ff8569"/>
-    <circle cx="955" cy="545" r="9" fill="#ffa68a"/>
-    <circle cx="990" cy="530" r="8" fill="#3f3f46"/>
-    <circle cx="1025" cy="548" r="7" fill="#ff8569" opacity="0.6"/>
-  </g>
+  <!-- segmentation cluster -->
+  <circle cx="900" cy="470" r="14" fill="#ff6643"/>
+  <circle cx="950" cy="455" r="11" fill="#ff8569"/>
+  <circle cx="995" cy="475" r="9" fill="#ffa68a"/>
+  <circle cx="1035" cy="460" r="8" fill="#3f3f46"/>
+  <circle cx="1070" cy="478" r="7" fill="#ff8569"/>
 </svg>

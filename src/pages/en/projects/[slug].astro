@@ -2,7 +2,6 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import InnerTOC from '../../../components/InnerTOC.astro';
-import CaseStudy from '../../../components/CaseStudy.astro';
 import ProjectGraph from '../../../components/ProjectGraph.astro';
 import ChartsSection from '../../../components/charts/ChartsSection.astro';
 import { withBase } from '../../../lib/path';
@@ -25,7 +24,6 @@ export async function getStaticPaths() {
 const { project, allPosts, allProjects, allParts, postsEn } = Astro.props;
 const { Content } = await render(project);
 const slug = project.id.replace(/\.md$/, '');
-const caseStudy = project.data.caseStudy;
 
 // Next / prev within the ordered project list. Order comes from the shared
 // PROJECT_ORDER so it can never drift from the home board / headline list.
@@ -201,19 +199,6 @@ const pageJsonLd = {
     <article id="project-content">
       <Content />
     </article>
-
-    {
-      caseStudy && (
-        <CaseStudy
-          problem={caseStudy.problem}
-          approach={caseStudy.approach}
-          result={caseStudy.result}
-          metrics={caseStudy.metrics}
-          heading="Case study"
-          lang="en"
-        />
-      )
-    }
 
     <ChartsSection slug={slug} ids={slug === 'volta' ? HUB_CHART_IDS : undefined} lang="en" />
 

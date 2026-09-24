@@ -18,7 +18,7 @@
  * The `description:` field is excluded (decision D20 in docs/prd-readability.md):
  * Phase 1 rewrites descriptions to a 120-200 char result-first spec, which
  * necessarily changes which narrative numbers appear there. Everything else —
- * bodies, `impact`, `caseStudy`, `faq`, titles, `excerpt` — stays frozen.
+ * bodies, `impact`, `faq`, titles, `excerpt` — stays frozen.
  *
  * Markdown ordered-list markers (`1.`, `2)`) are stripped as formatting, not
  * content: converting a numbered list to bullets is a valid readability edit.

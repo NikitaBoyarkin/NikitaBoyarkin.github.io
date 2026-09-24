@@ -22,26 +22,13 @@ related:
   - /projects/cohort/
   - /projects/sql/
   - /posts/cohort-triangles-retention/
-caseStudy:
-  problem: "Analytics concepts — p-values, retention, funnels — are abstract: a recruiter or student can't 'feel' them from text, and passive dashboards don't provide an interactive experience."
-  approach: "Each game is a self-contained SVG: HTML, CSS and JS in one file, zero-dependency, no build step. Analytics games turn concepts into mechanics: A/B Test — collect data until p < 0.05; Funnel Drop — catch falling users; Cohort Catch — catch Returning, dodge Churned; SQL Query — pick the token that completes the query; Retention Day — pick the right retention day. Hub on Astro, dark/light/cyberpunk themes, PostHog tracking."
-  result: "10 games work on phone (swipe/tap) and desktop (keyboard/mouse), open from a single file with no server. Analytics games are a learning tool: concept → mechanic → intuition. Portfolio sync is automatic (sync_games.py), smoke tests on Playwright."
-  metrics:
-    - label: "Games"
-      value: "10"
-    - label: "Analytics"
-      value: "7"
-    - label: "Dependencies"
-      value: "0"
-    - label: "Platforms"
-      value: "phone + desktop"
 ---
 
 # Browser Mini-Games — Analytics Arcade
 
-## Context
+## Goal
 
-Analytics concepts — p-values, retention, funnels — are abstract. Typical demos are passive dashboards. Mini-games turn concepts into mechanics: you play, and you 'feel' why p < 0.05 matters, what a retention day is, and where the funnel bottleneck sits.
+Analytics concepts — p-values, retention, funnels — are abstract: a recruiter or student can't 'feel' them from text, and passive dashboards don't provide an interactive experience. Mini-games turn concepts into mechanics: you play, and you understand why p < 0.05 matters, what a retention day is, and where the funnel bottleneck sits.
 
 ## Data & Method
 
@@ -83,12 +70,13 @@ npm run build        # production build → dist/
 python3 sync_games.py --dry-run   # preview sync to portfolio
 ```
 
-## Impact
+## Result
 
-- **10 games, 7 analytics** — concepts → mechanics → intuition.
-- **Zero-dependency** — one file = the whole game, no build or server.
-- **Phone + desktop** — swipe/tap and keyboard/mouse, 3 themes.
-- **Tracking & conversion** — `game_selected` + CTA → contact.
+10 games work on phone (swipe/tap) and desktop (keyboard/mouse), open from a single file with no server. Analytics games are a learning tool: concept → mechanic → intuition. Portfolio sync is automatic, and Playwright smoke tests catch load failures.
+
+## Limitations
+
+The games simplify statistics into intuition and do not replace real analysis: the mechanic shows the idea of a p-value or retention, not a valid computation. Zero-dependency means one file per game — code is not shared across games, so any change is made by hand in each file.
 
 ## Documentation
 

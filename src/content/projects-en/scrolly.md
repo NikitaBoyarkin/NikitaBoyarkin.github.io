@@ -23,15 +23,9 @@ related:
 
 # Scrolly English Speaking
 
-## Context
+## Goal
 
-Workplace conversations in English (standups, syncs, interviews) are a weak spot for many Russian-speaking specialists at A2–B1: the grammar is there, but coherent speech and real-time reactions stall. A textbook doesn't help much: no context, no visuals, no link between phrases and situation.
-
-The task is to build not an article but an interactive guide, where a narrative leads the reader through workplace-conversation scenes and visualizations show how the workflow, tools, and progress metrics are structured.
-
-## Hypothesis
-
-If we deliver the material as scrollytelling — text in the left column, visualizations in the right, switched on scroll via IntersectionObserver — the reader sees a connected story, not a list of tips. Decoupling content (MDX narrative) from visuals (data modules + D3 renderers) makes the guide easy to extend: a new scene is a new data file + MDX, with no rendering changes.
+Workplace conversations in English (standups, syncs, interviews) are a weak spot for many Russian-speaking specialists at A2–B1: the grammar is there, but coherent speech and real-time reactions stall. A textbook doesn't help much: no context, no visuals, no link between phrases and situation. The task is to build not an article but an interactive guide, where a narrative leads the reader through workplace-conversation scenes and visualizations show how the workflow, tools, and progress metrics are structured.
 
 ## Data & Method
 
@@ -46,16 +40,13 @@ If we deliver the material as scrollytelling — text in the left column, visual
 
 **Content model:** MDX frontmatter (`configId`, `metadata`, `theme`) is safely merged on top of the trusted data module. Hero/footer HTML always from `data/*.ts`, never from frontmatter.
 
-## Findings
+## Result
 
-The power of scrollytelling is synchronizing narrative and visualization: the reader reaches a paragraph and at that moment the chart on the right changes. This holds attention better than a static article with pictures. Splitting MDX and data modules solves the core pain of static sites — mixing text and logic: the narrative stays editable in Markdown, and the visualizations stay typed in TypeScript.
+Synchronizing narrative and visualization holds attention better than a static article with pictures: the reader reaches a paragraph and at that moment the chart on the right changes. Splitting MDX and data modules solves the core pain of static sites — mixing text and logic: the narrative stays editable in Markdown, and the visualizations stay typed in TypeScript. A new scene is a new data file + MDX, with no rendering changes.
 
-## Impact
+## Limitations
 
-- **Scrollytelling narrative** — 2-column layout, viz panels switch on scroll via IntersectionObserver.
-- **D3 visualizations** — workflow, tools, bars, resources, metrics, calendar, checklist.
-- **Content/visuals decoupled** — MDX narrative + trusted data modules; frontmatter safely merged, hero/footer HTML only from data.
-- **Dark/light theme + reduced-motion** — accessibility and reading comfort.
+The guide targets A2–B1 and covers workplace scenarios, not general English; the material is the author's and has not been reviewed by a methodologist. Decoupling content from data modules guards against frontmatter injection, but not against the content itself.
 
 ## Documentation
 

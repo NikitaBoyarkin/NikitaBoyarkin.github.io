@@ -24,9 +24,9 @@ related:
 
 # Python Analytics Playground
 
-## Context
+## Goal
 
-In product analytics, most tasks start the same way: load an export, clean it, look at distributions and correlations, show charts. This project turns that routine into reusable modules — so every new analysis starts not from scratch, but from a tested foundation.
+In product analytics, most tasks start the same way: load an export, clean it, look at distributions and correlations, show charts. This project turns that routine into reusable modules — so every new analysis starts not from scratch, but from a tested foundation you can hand to teammates and extend without fear of breaking it.
 
 ## Data & Method
 
@@ -48,16 +48,13 @@ uv run pytest                          # tests + coverage (≥80%)
 uv run python -m python_analytics      # end-to-end pipeline
 ```
 
-## Findings
+## Result
 
-The key difference from one-off analysis scripts is **structure and testability**: modules are small and single-purpose, requirements are documented in a PRD, and tests keep coverage ≥80%. This makes the tool "product-grade": you can hand it to teammates, extend it, and not fear breaking it.
+The key difference from one-off analysis scripts is structure and testability: modules are small and single-purpose, requirements are documented in a PRD, and tests keep coverage ≥80%. You can extend the tool and not fear breaking existing behavior.
 
-## Impact
+## Limitations
 
-- **Reusability** — a starting point for every new analysis instead of a from-scratch script.
-- **Coverage ≥80%** — changes don't silently break existing behavior.
-- **PRD tracing** — each module maps to a requirement, tests verify requirements.
-- **uv tooling** — reproducible environment with no dependency drift.
+The pipeline targets tabular CSVs and a basic EDA set — it is not a framework for arbitrary pipelines. The ≥80% coverage applies to the package modules, not to user analyses built on top of them.
 
 ## Documentation
 

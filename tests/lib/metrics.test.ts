@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { METRICS } from '../../src/lib/metrics';
@@ -25,8 +25,11 @@ describe('METRICS drift guard (S1.8)', () => {
   const here = dirname(fileURLToPath(import.meta.url));
   // Site repo root = tests/lib -> ../.. ; project cards live under it.
   const siteRoot = join(here, '..', '..');
-  // SQL case repo is a sibling of the site repo under the same portfolio dir.
-  const sqlCasesDir = join(siteRoot, '..', 'sql-analytics-case-study', 'cases');
+  // SQL case repo is a sibling of the site repo under the same portfolio dir
+  // (local dev). CI checks the site repo out alone, so the workflow checks the
+  // public case-study repo out into `vendor/` and points SQL_CASES_DIR at it.
+  const sqlCasesDir =
+    process.env.SQL_CASES_DIR ?? join(siteRoot, '..', 'sql-analytics-case-study', 'cases');
 
   it('portfolio.projects matches the count of RU project cards on disk', () => {
     const cards = readdirSync(join(siteRoot, 'src', 'content', 'projects'))
@@ -35,6 +38,9 @@ describe('METRICS drift guard (S1.8)', () => {
   });
 
   it('portfolio.sqlCases matches the count of .sql case files in sql-analytics-case-study', () => {
+    // Fail loudly rather than skipping: a guard that cannot see its evidence
+    // must go red, not silently pass.
+    expect(existsSync(sqlCasesDir)).toBe(true);
     const cases = readdirSync(sqlCasesDir).filter((f) => f.endsWith('.sql'));
     expect(METRICS.portfolio.sqlCases as number).toBe(cases.length);
   });

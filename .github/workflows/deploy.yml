@@ -19,9 +19,22 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Evidence for the METRICS drift guard (tests/lib/metrics.test.ts): the
+      # sibling sql-analytics-case-study repo, checked out below.
+      SQL_CASES_DIR: ${{ github.workspace }}/vendor/sql-analytics-case-study/cases
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # The site repo is checked out alone, so the drift guard cannot see the
+      # sibling case-study repo it counts .sql files from. Fetch that public
+      # repo into `vendor/` (kept out of git) instead of weakening the guard.
+      - name: Checkout SQL case-study repo (drift-guard evidence)
+        uses: actions/checkout@v4
+        with:
+          repository: NikitaBoyarkin/sql-analytics-case-study
+          path: vendor/sql-analytics-case-study
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -39,6 +52,9 @@ jobs:
 
       - name: Type-check
         run: bun run check
+
+      - name: Unit tests
+        run: bun run test
 
       - name: Build site
         env:

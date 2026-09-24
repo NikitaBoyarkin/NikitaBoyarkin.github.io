@@ -23,17 +23,13 @@ related:
 
 # This Portfolio Site
 
-## Context
+## Goal
 
-A static portfolio was needed where content (projects, posts) is edited in Markdown rather than component markup. Hosting is GitHub Pages as a user site (repository `NikitaBoyarkin.github.io`, served from the domain root). Deploy is push-triggered, with no manual build.
-
-## Hypothesis
-
-If we take Astro with content collections and a Zod frontmatter schema, content and presentation separate: new projects/posts are a new `.md` file, with no component edits. The base path and meta tags (OG, JSON-LD, sitemap, RSS) are configured once.
+A static portfolio where content (projects, posts) is edited in Markdown rather than component markup. Hosting is GitHub Pages as a user site (repository `NikitaBoyarkin.github.io`, served from the domain root), deploy is push-triggered with no manual build. Content and presentation must separate: a new project is a new `.md` file, with no component edits.
 
 ## Data & Method
 
-**Stack:** Astro 7, TypeScript, Markdown content collections (`src/content/{projects,posts}/`), Zod schemas in `src/content/config.ts`.
+**Stack:** Astro 7, TypeScript, Markdown content collections (`src/content/{projects,posts}/`), Zod schemas in `src/content.config.ts`.
 
 **Architecture:**
 
@@ -45,16 +41,13 @@ If we take Astro with content collections and a Zod frontmatter schema, content 
 
 **Validation:** `scripts/check_site.py` checks required pages, internal links, the profile image, and assets in `index.html`.
 
-## Findings
+## Result
 
-Astro content collections with Zod are a contract between content and presentation: invalid frontmatter breaks the build, not the deploy. `withBase()` encapsulates the GitHub Pages base path — no link hardcodes the base. The "content = `.md`, presentation = `.astro`" split means adding a project requires no code changes.
+Content collections with Zod are a contract between content and presentation: invalid frontmatter breaks the build, not the deploy. `withBase()` encapsulates the GitHub Pages base path — no link hardcodes the base. The "content = `.md`, presentation = `.astro`" split means adding a project requires no code changes.
 
-## Impact
+## Limitations
 
-- **Astro 7 + TypeScript + Markdown content collections** — content edited in `.md`, validated by Zod.
-- **Dark/light theme without flash** — inline script before first paint.
-- **Full SEO** — RSS, sitemap, robots, JSON-LD, OG/Twitter meta, canonical.
-- **Base-path-aware URLs** — `withBase()` for GitHub Pages, no hardcoding.
+The site is built for one hosting setup: GitHub Pages as a user site with `base: '/'`. Moving to a project page or another host would require changes to `withBase()` and the deploy workflow. Validation covers structure and links, not content.
 
 ## Documentation
 

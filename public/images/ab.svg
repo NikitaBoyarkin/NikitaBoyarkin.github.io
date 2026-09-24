@@ -1,47 +1,35 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A/B testing methodology toolkit: control and treatment distributions with power region, plus calibration stats">
   <defs>
-    <linearGradient id="abg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#10242a"/><stop offset="1" stop-color="#16303a"/></linearGradient>
-    <linearGradient id="ac1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#14b8a6"/></linearGradient>
-    <linearGradient id="ac2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#94a3b8"/><stop offset="1" stop-color="#64748b"/></linearGradient>
-    <linearGradient id="pow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+    <linearGradient id="ab-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f2a2b"/>
+      <stop offset="1" stop-color="#1a3435"/>
+    </linearGradient>
+    <linearGradient id="ab-accent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff8569"/>
+      <stop offset="1" stop-color="#ff6643"/>
+    </linearGradient>
   </defs>
-  <rect width="1200" height="600" fill="url(#abg)"/>
-  <text x="80" y="64" fill="#9fb8bf" font-family="SF Mono, Monaco, monospace" font-size="21" letter-spacing="1">A/B TESTING · METHODOLOGY TOOLKIT</text>
-  <text x="80" y="92" fill="#5eead4" font-family="SF Mono, Monaco, monospace" font-size="15">calibrated by simulation — numbers checked, not assumed</text>
-  <path d="M 250.0 311.8 L 254.9 311.7 L 259.9 311.6 L 264.8 311.4 L 269.8 311.2 L 274.7 311.0 L 279.7 310.7 L 284.6 310.3 L 289.6 309.8 L 294.5 309.2 L 299.4 308.4 L 304.4 307.5 L 309.3 306.3 L 314.3 304.9 L 319.2 303.3 L 324.2 301.3 L 329.1 299.0 L 334.0 296.3 L 339.0 293.1 L 343.9 289.5 L 348.9 285.3 L 353.8 280.6 L 358.8 275.2 L 363.7 269.3 L 368.7 262.8 L 373.6 255.6 L 378.5 247.9 L 383.5 239.5 L 388.4 230.6 L 393.4 221.3 L 398.3 211.6 L 403.3 201.6 L 408.2 191.4 L 413.1 181.1 L 418.1 171.0 L 423.0 161.1 L 428.0 151.6 L 432.9 142.6 L 437.9 134.4 L 442.8 127.0 L 447.8 120.6 L 452.7 115.3 L 457.6 111.3 L 462.6 108.6 L 467.5 107.2 L 472.5 107.2 L 477.4 108.6 L 482.4 111.3 L 487.3 115.3 L 492.2 120.6 L 497.2 127.0 L 502.1 134.4 L 507.1 142.6 L 512.0 151.6 L 517.0 161.1 L 521.9 171.0 L 526.9 181.1 L 531.8 191.4 L 536.7 201.6 L 541.7 211.6 L 546.6 221.3 L 551.6 230.6 L 556.5 239.5 L 561.5 247.9 L 566.4 255.6 L 571.3 262.8 L 576.3 269.3 L 581.2 275.2 L 586.2 280.6 L 591.1 285.3 L 596.1 289.5 L 601.0 293.1 L 606.0 296.3 L 610.9 299.0 L 615.8 301.3 L 620.8 303.3 L 625.7 304.9 L 630.7 306.3 L 635.6 307.5 L 640.6 308.4 L 645.5 309.2 L 650.4 309.8 L 655.4 310.3 L 660.3 310.7 L 665.3 311.0 L 670.2 311.2 L 675.2 311.4 L 680.1 311.6 L 685.1 311.7 L 690.0 311.8 L 690.0 310 L 250.0 310 Z" fill="url(#ac2)" opacity="0.5"/>
-  <path d="M 400.0 311.8 L 404.9 311.7 L 409.9 311.6 L 414.8 311.4 L 419.8 311.2 L 424.7 311.0 L 429.7 310.7 L 434.6 310.3 L 439.6 309.8 L 444.5 309.2 L 449.4 308.4 L 454.4 307.5 L 459.3 306.3 L 464.3 304.9 L 469.2 303.3 L 474.2 301.3 L 479.1 299.0 L 484.0 296.3 L 489.0 293.1 L 493.9 289.5 L 498.9 285.3 L 503.8 280.6 L 508.8 275.2 L 513.7 269.3 L 518.7 262.8 L 523.6 255.6 L 528.5 247.9 L 533.5 239.5 L 538.4 230.6 L 543.4 221.3 L 548.3 211.6 L 553.3 201.6 L 558.2 191.4 L 563.1 181.1 L 568.1 171.0 L 573.0 161.1 L 578.0 151.6 L 582.9 142.6 L 587.9 134.4 L 592.8 127.0 L 597.8 120.6 L 602.7 115.3 L 607.6 111.3 L 612.6 108.6 L 617.5 107.2 L 622.5 107.2 L 627.4 108.6 L 632.4 111.3 L 637.3 115.3 L 642.2 120.6 L 647.2 127.0 L 652.1 134.4 L 657.1 142.6 L 662.0 151.6 L 667.0 161.1 L 671.9 171.0 L 676.9 181.1 L 681.8 191.4 L 686.7 201.6 L 691.7 211.6 L 696.6 221.3 L 701.6 230.6 L 706.5 239.5 L 711.5 247.9 L 716.4 255.6 L 721.3 262.8 L 726.3 269.3 L 731.2 275.2 L 736.2 280.6 L 741.1 285.3 L 746.1 289.5 L 751.0 293.1 L 756.0 296.3 L 760.9 299.0 L 765.8 301.3 L 770.8 303.3 L 775.7 304.9 L 780.7 306.3 L 785.6 307.5 L 790.6 308.4 L 795.5 309.2 L 800.4 309.8 L 805.4 310.3 L 810.3 310.7 L 815.3 311.0 L 820.2 311.2 L 825.2 311.4 L 830.1 311.6 L 835.1 311.7 L 840.0 311.8 L 840.0 310 L 400.0 310 Z" fill="url(#ac1)" opacity="0.85"/>
-  <line x1="545" y1="118" x2="545" y2="312" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="6 5" opacity="0.8"/>
-  <text x="552" y="132" fill="#e2e8f0" font-family="SF Mono, Monaco, monospace" font-size="13">decision boundary</text>
-  <path d="M 548.3 211.6 L 553.3 201.6 L 558.2 191.4 L 563.1 181.1 L 568.1 171.0 L 573.0 161.1 L 578.0 151.6 L 582.9 142.6 L 587.9 134.4 L 592.8 127.0 L 597.8 120.6 L 602.7 115.3 L 607.6 111.3 L 612.6 108.6 L 617.5 107.2 L 622.5 107.2 L 627.4 108.6 L 632.4 111.3 L 637.3 115.3 L 642.2 120.6 L 647.2 127.0 L 652.1 134.4 L 657.1 142.6 L 662.0 151.6 L 667.0 161.1 L 671.9 171.0 L 676.9 181.1 L 681.8 191.4 L 686.7 201.6 L 691.7 211.6 L 696.6 221.3 L 701.6 230.6 L 706.5 239.5 L 711.5 247.9 L 716.4 255.6 L 721.3 262.8 L 726.3 269.3 L 731.2 275.2 L 736.2 280.6 L 741.1 285.3 L 746.1 289.5 L 751.0 293.1 L 756.0 296.3 L 760.9 299.0 L 765.8 301.3 L 770.8 303.3 L 775.7 304.9 L 780.7 306.3 L 785.6 307.5 L 790.6 308.4 L 795.5 309.2 L 800.4 309.8 L 805.4 310.3 L 810.3 310.7 L 815.3 311.0 L 820.2 311.2 L 825.2 311.4 L 830.1 311.6 L 835.1 311.7 L 840.0 311.8 L 840.0 312 L 548.3 312 Z" fill="url(#pow)" opacity="0.65"/>
-  <text x="700" y="150" fill="#fbbf24" font-family="SF Mono, Monaco, monospace" font-size="15">power = 1 − β</text>
-  <text x="400" y="345" fill="#cbd5e1" font-family="SF Mono, Monaco, monospace" font-size="14">control</text>
-  <text x="575" y="345" fill="#5eead4" font-family="SF Mono, Monaco, monospace" font-size="14">treatment</text>
-  <text x="430" y="290" fill="#cbd5e1" font-family="SF Mono, Monaco, monospace" font-size="13">A/A null → Type I ≈ 0.05</text>
-  <g transform="translate(845,150)" font-family="SF Mono, Monaco, monospace">
-    <rect x="0" y="6" width="270" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="22" fill="#5eead4" font-size="13" font-weight="700">SRM</text>
-    <text x="12" y="37" fill="#9fb8bf" font-size="11">χ² bucketing check</text>
-    <rect x="0" y="42" width="270" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="58" fill="#5eead4" font-size="13" font-weight="700">CUPED</text>
-    <text x="12" y="73" fill="#9fb8bf" font-size="11">SE ↓ ~ corr(X,Y)²</text>
-    <rect x="0" y="78" width="270" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="94" fill="#5eead4" font-size="13" font-weight="700">delta-method</text>
-    <text x="12" y="109" fill="#9fb8bf" font-size="11">ratio SE (CTR, RPC)</text>
-    <rect x="0" y="114" width="270" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="130" fill="#5eead4" font-size="13" font-weight="700">mSPRT</text>
-    <text x="12" y="145" fill="#9fb8bf" font-size="11">always-valid p-values</text>
-    <rect x="0" y="150" width="270" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="166" fill="#5eead4" font-size="13" font-weight="700">Pocock / OBF</text>
-    <text x="12" y="181" fill="#9fb8bf" font-size="11">alpha spending</text>
-    <rect x="0" y="186" width="270" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="202" fill="#5eead4" font-size="13" font-weight="700">bootstrap BCa</text>
-    <text x="12" y="217" fill="#9fb8bf" font-size="11">CI coverage ≈ 95%</text>
-    <rect x="0" y="222" width="270" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="238" fill="#5eead4" font-size="13" font-weight="700">HTE + BH</text>
-    <text x="12" y="253" fill="#9fb8bf" font-size="11">segments, corrected</text>
-    <rect x="0" y="258" width="270" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="274" fill="#5eead4" font-size="13" font-weight="700">switchback</text>
-    <text x="12" y="289" fill="#9fb8bf" font-size="11">cluster-robust SE</text>
-  </g>
-  <text x="80" y="560" fill="#9fb8bf" font-family="SF Mono, Monaco, monospace" font-size="14">pipeline: SRM check → CUPED → delta-method CTR → per-segment ATE + BH → novelty check</text>
+
+  <rect width="1200" height="600" fill="url(#ab-bg)"/>
+
+  <text x="80" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7">A/B TESTING</text>
+
+  <!-- control distribution -->
+  <polygon points="80,435 100,432 120,426 140,418 160,407 180,392 200,372 220,350 240,325 260,300 280,276 300,257 320,244 340,240 360,244 380,257 400,276 420,300 440,325 460,350 480,372 500,392 520,407 540,418 560,426 580,432 600,435 620,437 640,439 660,439 680,440 700,440 720,440 740,440 760,440 780,440 800,440 820,440 840,440 860,440 860,440 80,440" fill="#a1a1aa" opacity="0.18"/>
+
+  <!-- treatment distribution -->
+  <polygon points="80,440 100,440 120,440 140,440 160,440 180,440 200,440 220,440 240,439 260,438 280,436 300,433 320,428 340,421 360,409 380,393 400,372 420,345 440,314 460,279 480,244 500,211 520,184 540,166 560,160 580,166 600,184 620,211 640,244 660,279 680,314 700,345 720,372 740,393 760,409 780,421 800,428 820,433 840,436 860,438 860,440 80,440" fill="url(#ab-accent)" opacity="0.22"/>
+
+  <!-- power region: treatment mass right of the decision boundary -->
+  <polygon points="580,166 600,184 620,211 640,244 660,279 680,314 700,345 720,372 740,393 760,409 780,421 800,428 820,433 840,436 860,438 860,440 580,440" fill="#ff6643" opacity="0.5"/>
+
+  <polyline points="80,435 100,432 120,426 140,418 160,407 180,392 200,372 220,350 240,325 260,300 280,276 300,257 320,244 340,240 360,244 380,257 400,276 420,300 440,325 460,350 480,372 500,392 520,407 540,418 560,426 580,432 600,435 620,437 640,439 660,439 680,440 700,440 720,440 740,440 760,440 780,440 800,440 820,440 840,440 860,440" fill="none" stroke="#a1a1aa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="80,440 100,440 120,440 140,440 160,440 180,440 200,440 220,440 240,439 260,438 280,436 300,433 320,428 340,421 360,409 380,393 400,372 420,345 440,314 460,279 480,244 500,211 520,184 540,166 560,160 580,166 600,184 620,211 640,244 660,279 680,314 700,345 720,372 740,393 760,409 780,421 800,428 820,433 840,436 860,438" fill="none" stroke="url(#ab-accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- decision boundary -->
+  <line x1="580" y1="170" x2="580" y2="440" stroke="#e4e4e7" stroke-width="4" stroke-dasharray="12 10"/>
+
+  <text x="650" y="430" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#e4e4e7" text-anchor="middle">POWER</text>
+  <text x="300" y="530" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#a1a1aa" text-anchor="middle">CONTROL</text>
+  <text x="800" y="530" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#ff8569" text-anchor="middle">TREATMENT</text>
 </svg>

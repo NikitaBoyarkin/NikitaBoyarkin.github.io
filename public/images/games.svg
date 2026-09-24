@@ -1,66 +1,45 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Browser mini-games analytics arcade: gamepad with analytics game chips">
   <defs>
-    <linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#10242a"/><stop offset="1" stop-color="#16303a"/></linearGradient>
-    <linearGradient id="gc1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#14b8a6"/></linearGradient>
-    <linearGradient id="gpow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+    <linearGradient id="games-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f2a2b"/>
+      <stop offset="1" stop-color="#1a3435"/>
+    </linearGradient>
+    <linearGradient id="games-accent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff8569"/>
+      <stop offset="1" stop-color="#ff6643"/>
+    </linearGradient>
   </defs>
-  <rect width="1200" height="600" fill="url(#gg)"/>
-  <text x="80" y="64" fill="#9fb8bf" font-family="SF Mono, Monaco, monospace" font-size="21" letter-spacing="1">BROWSER MINI-GAMES · ANALYTICS ARCADE</text>
-  <text x="80" y="92" fill="#5eead4" font-family="SF Mono, Monaco, monospace" font-size="15">self-contained SVGs — zero deps, no build step</text>
+
+  <rect width="1200" height="600" fill="url(#games-bg)"/>
+
+  <text x="120" y="150" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">MINI-GAMES</text>
+  <text x="120" y="230" fill="#ff8569" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">10 games &#183; 7 analytics</text>
 
   <!-- gamepad -->
-  <g transform="translate(120,150)">
-    <rect x="40" y="60" width="280" height="200" rx="30" fill="#1c3a42" stroke="#2b525e" stroke-width="2"/>
-    <!-- d-pad -->
-    <rect x="100" y="130" width="26" height="64" rx="7" fill="url(#gc1)"/>
-    <rect x="87" y="143" width="52" height="38" rx="7" fill="url(#gc1)"/>
-    <!-- buttons -->
-    <circle cx="240" cy="120" r="17" fill="url(#gpow)"/>
-    <circle cx="278" cy="120" r="17" fill="url(#gpow)"/>
-    <circle cx="240" cy="158" r="17" fill="url(#gpow)"/>
-    <circle cx="278" cy="158" r="17" fill="url(#gpow)"/>
-    <!-- start/select -->
-    <rect x="130" y="210" width="34" height="9" rx="4" fill="#64748b"/>
-    <rect x="180" y="210" width="34" height="9" rx="4" fill="#64748b"/>
-    <!-- play triangle -->
-    <polygon points="180,96 180,128 206,112" fill="#5eead4" opacity="0.9"/>
+  <g>
+    <rect x="120" y="280" width="400" height="240" rx="30" fill="#234044" stroke="#3f3f46" stroke-width="6"/>
+    <rect x="248" y="340" width="44" height="116" rx="8" fill="#ff8569"/>
+    <rect x="212" y="372" width="116" height="44" rx="8" fill="#ff8569"/>
+    <circle cx="420" cy="372" r="26" fill="#ff6643"/>
+    <circle cx="472" cy="372" r="26" fill="#ff6643"/>
+    <circle cx="420" cy="424" r="26" fill="#ff6643"/>
+    <circle cx="472" cy="424" r="26" fill="#ff6643"/>
+    <rect x="200" y="470" width="64" height="20" rx="6" fill="#3f3f46"/>
+    <rect x="280" y="470" width="64" height="20" rx="6" fill="#3f3f46"/>
   </g>
-  <text x="160" y="420" fill="#cbd5e1" font-family="SF Mono, Monaco, monospace" font-size="14">swipe / tap · keyboard / mouse</text>
 
   <!-- game chips -->
-  <g transform="translate(480,150)" font-family="SF Mono, Monaco, monospace">
-    <!-- col 1 -->
-    <rect x="0" y="0" width="250" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="16" fill="#5eead4" font-size="13" font-weight="700">A/B Test</text>
-    <text x="12" y="31" fill="#9fb8bf" font-size="11">collect until p &lt; 0.05</text>
-    <rect x="0" y="36" width="250" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="52" fill="#5eead4" font-size="13" font-weight="700">Funnel Drop</text>
-    <text x="12" y="67" fill="#9fb8bf" font-size="11">catch falling users</text>
-    <rect x="0" y="72" width="250" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="88" fill="#5eead4" font-size="13" font-weight="700">Cohort Catch</text>
-    <text x="12" y="103" fill="#9fb8bf" font-size="11">catch Returning, dodge Churned</text>
-    <rect x="0" y="108" width="250" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="124" fill="#5eead4" font-size="13" font-weight="700">SQL Query</text>
-    <text x="12" y="139" fill="#9fb8bf" font-size="11">pick the completing token</text>
-    <rect x="0" y="144" width="250" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="10" y="160" fill="#5eead4" font-size="13" font-weight="700">Retention Day</text>
-    <text x="12" y="175" fill="#9fb8bf" font-size="11">pick the right retention day</text>
-    <!-- col 2 -->
-    <rect x="270" y="0" width="250" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="280" y="16" fill="#5eead4" font-size="13" font-weight="700">Metric Match</text>
-    <text x="282" y="31" fill="#9fb8bf" font-size="11">match metric pairs</text>
-    <rect x="270" y="36" width="250" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="280" y="52" fill="#5eead4" font-size="13" font-weight="700">Funnel Bottleneck</text>
-    <text x="282" y="67" fill="#9fb8bf" font-size="11">find the biggest drop</text>
-    <rect x="270" y="72" width="250" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="280" y="88" fill="#94a3b8" font-size="13" font-weight="700">Snake</text>
-    <text x="282" y="103" fill="#9fb8bf" font-size="11">arcade</text>
-    <rect x="270" y="108" width="250" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="280" y="124" fill="#94a3b8" font-size="13" font-weight="700">Pong</text>
-    <text x="282" y="139" fill="#9fb8bf" font-size="11">arcade</text>
-    <rect x="270" y="144" width="250" height="30" rx="6" fill="#1c3a42" stroke="#2b525e" stroke-width="1"/>
-    <text x="280" y="160" fill="#94a3b8" font-size="13" font-weight="700">2048</text>
-    <text x="282" y="175" fill="#9fb8bf" font-size="11">arcade</text>
+  <g>
+    <rect x="680" y="280" width="400" height="60" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
+    <circle cx="716" cy="310" r="10" fill="#ff8569"/>
+    <text x="744" y="322" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">A/B Test</text>
+
+    <rect x="680" y="360" width="400" height="60" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
+    <circle cx="716" cy="390" r="10" fill="#ff8569"/>
+    <text x="744" y="402" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Funnel Drop</text>
+
+    <rect x="680" y="440" width="400" height="60" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
+    <circle cx="716" cy="470" r="10" fill="#ff8569"/>
+    <text x="744" y="482" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Cohort Catch</text>
   </g>
-  <text x="80" y="560" fill="#9fb8bf" font-family="SF Mono, Monaco, monospace" font-size="14">10 games · 7 analytics · zero-dependency · phone + desktop · PostHog-tracked</text>
 </svg>

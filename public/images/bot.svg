@@ -1,54 +1,41 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Telegram reporting bot: chat bubbles with weekly KPI metrics">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="bot-bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0f2a2b"/>
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="bot-accent" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ff8569"/>
       <stop offset="1" stop-color="#ff6643"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#bg)"/>
+  <rect width="1200" height="600" fill="url(#bot-bg)"/>
 
-  <!-- Telegram paper-plane mark, top-right -->
-  <g transform="translate(960,90)" opacity="0.95">
-    <circle cx="60" cy="60" r="56" fill="url(#accent)"/>
-    <path d="M88,38 L34,58 Q28,60 30,64 L42,72 L48,92 Q49,98 55,96 L66,84 L84,98 Q90,102 92,94 L100,44 Q101,36 88,38 Z"
-      fill="#0f2a2b"/>
-    <path d="M84,52 L48,72 M84,52 L60,86" stroke="#0f2a2b" stroke-width="0" fill="none"/>
+  <!-- Telegram paper-plane mark -->
+  <g transform="translate(940,80)">
+    <circle cx="60" cy="60" r="60" fill="url(#bot-accent)"/>
+    <path d="M88,38 L34,58 Q28,60 30,64 L42,72 L48,92 Q49,98 55,96 L66,84 L84,98 Q90,102 92,94 L100,44 Q101,36 88,38 Z" fill="#0f2a2b"/>
   </g>
 
-  <!-- chat bubble 1 (incoming KPI table) -->
-  <g>
-    <rect x="80" y="120" width="520" height="150" rx="16" fill="#234044"/>
-    <rect x="80" y="120" width="6" height="150" fill="url(#accent)"/>
-    <g fill="#e4e4e7" font-family="SF Mono, Monaco, monospace" font-size="20">
-      <text x="110" y="160">DAU  12,480   +8.2%</text>
-      <text x="110" y="195">ARPU €3.41    +1.4%</text>
-      <text x="110" y="230">Conv 4.7%     +0.3pp</text>
-    </g>
-  </g>
+  <!-- KPI chat bubble -->
+  <rect x="80" y="80" width="620" height="320" rx="18" fill="#234044"/>
+  <rect x="104" y="112" width="8" height="256" rx="6" fill="url(#bot-accent)"/>
+  <text x="144" y="165" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">WEEKLY KPI</text>
+  <text x="144" y="245" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">DAU 12,480 +8.2%</text>
+  <text x="144" y="305" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">ARPU 3.41 EUR +1.4%</text>
+  <text x="144" y="365" fill="#a1a1aa" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">Conv 4.7% +0.3pp</text>
 
-  <!-- chat bubble 2 (sparkline) -->
-  <g>
-    <rect x="80" y="300" width="420" height="120" rx="16" fill="#234044"/>
-    <polyline points="110,390 160,360 210,370 260,330 310,340 360,300 410,310 460,290"
-      fill="none" stroke="#ff8569" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    <g fill="#3f3f46">
-      <rect x="110" y="395" width="30" height="15"/>
-      <rect x="160" y="365" width="30" height="15"/>
-      <rect x="210" y="375" width="30" height="15"/>
-      <rect x="260" y="335" width="30" height="15"/>
-    </g>
-  </g>
+  <!-- sparkline bubble -->
+  <rect x="80" y="440" width="520" height="100" rx="18" fill="#234044"/>
+  <polyline points="120,515 180,490 240,500 300,470 360,480 420,458 480,470 540,452"
+    fill="none" stroke="#ff8569" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
 
-  <!-- cron clock, bottom-right -->
-  <g transform="translate(960,410)" opacity="0.9">
-    <circle cx="60" cy="60" r="44" fill="none" stroke="#ff8569" stroke-width="5"/>
-    <line x1="60" y1="60" x2="60" y2="30" stroke="#ff8569" stroke-width="4" stroke-linecap="round"/>
-    <line x1="60" y1="60" x2="84" y2="60" stroke="#ff8569" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="60" cy="60" r="4" fill="#ff8569"/>
+  <!-- cron clock -->
+  <g transform="translate(940,400)">
+    <circle cx="60" cy="60" r="60" fill="none" stroke="#ff8569" stroke-width="8"/>
+    <line x1="60" y1="60" x2="60" y2="24" stroke="#ff8569" stroke-width="8" stroke-linecap="round"/>
+    <line x1="60" y1="60" x2="96" y2="60" stroke="#ff8569" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="60" cy="60" r="8" fill="#ff8569"/>
   </g>
 </svg>

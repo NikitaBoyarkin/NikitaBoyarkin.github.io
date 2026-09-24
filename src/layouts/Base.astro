@@ -63,6 +63,8 @@ const t = {
   navAbout: isEn ? 'About' : 'Обо мне',
   navValue: isEn ? 'Value' : 'Ценность',
   navContact: isEn ? 'Contact' : 'Контакты',
+  navOpen: isEn ? 'Open menu' : 'Открыть меню',
+  navClose: isEn ? 'Close menu' : 'Закрыть меню',
   footerWriting: isEn ? 'Writing' : 'Статьи',
   themeTitle: isEn ? 'Theme: dark / light / cyberpunk' : 'Тема: тёмная / светлая / киберпанк',
   themeLabel: isEn ? 'Theme: ' : 'Тема: ',
@@ -183,7 +185,14 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
   <body>
     <a href="#main" class="skip-link">{t.skip}</a>
 
-    <nav aria-label={isEn ? 'Main navigation' : 'Основная навигация'}>
+    {
+      /* Below 1100px the navigation is an off-canvas drawer, so the trigger has
+         to live outside it — a control inside a translated panel scrolls away
+         with the panel. The bar carries the brand for the closed state; the
+         rail carries its own copy above 1100px (the duplicate mark is
+         deliberate: one of the two is always `display: none`). */
+    }
+    <header class="nav-mobile">
       <a href={homeHref} class="nav-brand">
         <svg class="nav-logo" aria-hidden="true" viewBox="0 0 100 100" width="28" height="28">
           <path class="cell" d="M96 50 73 89.8 27 89.8 4 50 27 10.2 73 10.2Z"/>
@@ -191,26 +200,44 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         </svg>
         <b>Nikita Boyarkin</b>
       </a>
+      <button id="nav-toggle" class="nav-toggle" type="button" aria-label={t.navOpen} aria-expanded="false" aria-controls="nav-links" data-label-open={t.navOpen} data-label-close={t.navClose} data-icon-menu={NAV_MENU} data-icon-close={NAV_CLOSE}>
+        <MorphIcon id="nav-icon" icon={NAV_MENU} spring="snappy" reducedMotion="user" size={20} />
+      </button>
+    </header>
+
+    <nav id="site-nav" aria-label={isEn ? 'Main navigation' : 'Основная навигация'}>
+      <a href={homeHref} class="nav-brand">
+        <svg class="nav-logo" aria-hidden="true" viewBox="0 0 100 100" width="28" height="28">
+          <path class="cell" d="M96 50 73 89.8 27 89.8 4 50 27 10.2 73 10.2Z"/>
+          <text class="mono" x="50" y="61" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.5" text-anchor="middle">NB</text>
+        </svg>
+        <b>Nikita Boyarkin</b>
+      </a>
+      {/* Utilities sit above the primary links: the search dropdown opens
+          downward from its toggle, and at the rail's bottom edge there was no
+          room for it. The three compact controls share one row — search and
+          theme side by side — and the contact CTA keeps the full rail width. */}
+      <div class="nav-aux">
+        <div class="nav-tools">
+          {counterpartHref && <LangSwitch locale={lang} counterpartHref={counterpartHref} />}
+          <SearchBox lang={lang} />
+          <button id="theme-toggle" class="theme-toggle" aria-label={`${t.themeLabel}dark${t.themeCycle}`} data-theme-label={t.themeLabel} data-theme-cycle={t.themeCycle} type="button" title={t.themeTitle} data-icon-dark={THEME_MOON} data-icon-light={THEME_SUN} data-icon-cyber={THEME_CYBER}>
+            <MorphIcon id="theme-icon" icon={THEME_MOON} spring="snappy" reducedMotion="user" size={18} />
+          </button>
+        </div>
+        <a class="button nav-cta" href={contactHref}>{t.navContact}</a>
+        <a class="button button-secondary nav-cta" href={withBase('CV-Nikita-Boyarkin.pdf')} download data-analytics="cv_download_pdf">CV</a>
+      </div>
+
       <ul class="links" id="nav-links">
         <li><a href={projectsHref} class={activeNav === 'projects' ? 'active' : ''} aria-current={activeNav === 'projects' ? 'page' : undefined}>{t.navProjects}</a></li>
         <li><a href={aboutHref} class={activeNav === 'about' ? 'active' : ''} aria-current={activeNav === 'about' ? 'page' : undefined}>{t.navAbout}</a></li>
         <li><a href={valueHref} class={activeNav === 'value' ? 'active' : ''} aria-current={activeNav === 'value' ? 'page' : undefined}>{t.navValue}</a></li>
         <li><a href={notesHref} class={activeNav === 'writing' ? 'active' : ''} aria-current={activeNav === 'writing' ? 'page' : undefined}>{t.navNotes}</a></li>
       </ul>
-
-      <button id="nav-toggle" class="nav-toggle" type="button" aria-label={isEn ? 'Menu' : 'Меню'} aria-expanded="false" aria-controls="nav-links" data-icon-menu={NAV_MENU} data-icon-close={NAV_CLOSE}>
-        <MorphIcon id="nav-icon" icon={NAV_MENU} spring="snappy" reducedMotion="user" size={20} />
-      </button>
-
-      <div class="nav-aux">
-        {counterpartHref && <LangSwitch locale={lang} counterpartHref={counterpartHref} />}
-        <SearchBox lang={lang} />
-        <a class="button nav-cta" href={contactHref}>{t.navContact}</a>
-        <button id="theme-toggle" class="theme-toggle" aria-label={`${t.themeLabel}dark${t.themeCycle}`} data-theme-label={t.themeLabel} data-theme-cycle={t.themeCycle} type="button" title={t.themeTitle} data-icon-dark={THEME_MOON} data-icon-light={THEME_SUN} data-icon-cyber={THEME_CYBER}>
-          <MorphIcon id="theme-icon" icon={THEME_MOON} spring="snappy" reducedMotion="user" size={18} />
-        </button>
-      </div>
     </nav>
+
+    <div class="nav-scrim" id="nav-scrim"></div>
 
     <main id="main" tabindex="-1">
       <slot />
@@ -314,29 +341,54 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         });
       })();
 
-      // Mobile nav toggle — collapses the links behind a hamburger that morphs
-      // to ✕ while open (the icon morph is driven by assigning .icon).
+      // Off-canvas navigation. Below 1100px the rail is a drawer that slides in
+      // from the left; the toggle lives in the mobile bar and morphs ☰ → ✕.
+      // At ≥1100px the rail is always visible, so the drawer state is cleared
+      // and the panel is taken out of the a11y tree only while it is hidden.
       (function () {
         const toggle = document.getElementById('nav-toggle');
         const links = document.getElementById('nav-links');
-        if (!toggle || !links) return;
+        const nav = document.getElementById('site-nav');
+        const scrim = document.getElementById('nav-scrim');
+        if (!toggle || !links || !nav) return;
         const icon = document.getElementById('nav-icon');
         const MENU = toggle.dataset.iconMenu;
         const CLOSE = toggle.dataset.iconClose;
+        const LABEL_OPEN = toggle.dataset.labelOpen || 'Menu';
+        const LABEL_CLOSE = toggle.dataset.labelClose || 'Close';
+        const drawerMq = window.matchMedia('(max-width: 1099px)');
+
+        const isOpen = () => document.body.classList.contains('nav-open');
+
+        // A drawer that is off-screen is still focusable — inert it while
+        // closed so keyboard/AT users never tab into translated-away links.
+        function syncInert() {
+          if (drawerMq.matches && !isOpen()) nav.setAttribute('inert', '');
+          else nav.removeAttribute('inert');
+        }
+
         function setOpen(open) {
+          document.body.classList.toggle('nav-open', open);
           links.classList.toggle('open', open);
           toggle.setAttribute('aria-expanded', String(open));
+          toggle.setAttribute('aria-label', open ? LABEL_CLOSE : LABEL_OPEN);
           if (icon && (open ? CLOSE : MENU)) icon.icon = open ? CLOSE : MENU;
-          // Move focus into the revealed menu: the links precede the toggle in
+          syncInert();
+          // Move focus into the revealed drawer: the links precede the trigger in
           // the DOM, so without this a keyboard user tabs straight past the menu
-          // into .nav-aux on mobile (WCAG 2.4.3 Focus Order).
+          // (WCAG 2.4.3 Focus Order).
           if (open) links.querySelector('a')?.focus();
         }
-        toggle.addEventListener('click', () => setOpen(!links.classList.contains('open')));
+
+        toggle.addEventListener('click', () => setOpen(!isOpen()));
         links.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+        scrim?.addEventListener('click', () => setOpen(false));
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') setOpen(false);
         });
+        // Crossing the breakpoint must never leave the page scroll-locked.
+        drawerMq.addEventListener('change', () => setOpen(false));
+        syncInert();
       })();
 
     </script>
@@ -356,10 +408,23 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <slot name="scripts" />
 
     <style>
+      /* Rail utility block: language / search / theme share one row, and the
+         contact CTA spans the rail below it. It no longer pins itself to the
+         rail's bottom — the search dropdown had no room to open there.
+         `.nav-tools` is also the search dropdown's containing block, so the
+         panel is measured against the row, not against the 32px toggle. */
       .nav-aux {
         display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-3);
+      }
+
+      .nav-tools {
+        position: relative;
+        display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: var(--space-3);
       }
     </style>
   </body>

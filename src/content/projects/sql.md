@@ -4,11 +4,11 @@ description: "26 SQL-кейсов: 25 на синтетическом датас
 track: analytics
 hero: images/sql.svg
 impact:
-  - 26 self-contained SQL cases (funnel → RFM) + 1 real-data case
-  - dbt model layer on DuckDB (staging → marts, 17 dbt tests)
-  - Regression tests with deterministic invariants per case
-  - Synthetic deterministic data (seed=42 + additive seed=43) + UCI Online Retail II
-  - Live interactive report on GitHub Pages
+  - 26 self-contained SQL-кейсов (funnel → RFM) + 1 real-data кейс
+  - dbt-слой на DuckDB (staging → marts, 17 dbt-тестов)
+  - Regression-тесты с детерминированными инвариантами на каждый кейс
+  - Синтетика seed=42 (+ аддитивный seed=43) и UCI Online Retail II
+  - Живой интерактивный отчёт на GitHub Pages
 tools:
   - SQL
   - dbt
@@ -19,26 +19,13 @@ tools:
 github: https://github.com/NikitaBoyarkin/sql-analytics-case-study
 updated: 2026-09-19
 demo: https://nikitaboyarkin.github.io/sql-analytics-case-study/
-caseStudy:
-  problem: "Аналитику нужно показать владение SQL на продуктовых задачах, но продакшен-данных нет, а учебные задачи не демонстрируют системное мышление. Как доказать, что SQL — рабочий инструмент, а не набор заученных синтаксисов?"
-  approach: "26 end-to-end кейсов: 25 на синтетическом датасете (seed=42, ~183k событий, 20k signups) + 1 на реальных данных UCI Online Retail II. Каждый кейс — один самодостаточный .sql файл с вопросом и подходом в leading-комментарии. DuckDB — одна команда строит данные и базу, без сервера и кредов. Regression-тесты с детерминированными инвариантами защищают SQL от регрессий. Второй батч (churn, refunds, Pareto, anomaly detection, upsell conversion) добавлен на отдельном RNG-потоке (seed=43) — числа первых 20 кейсов не изменились. Плюс dbt-слой (staging → marts, 17 тестов) и real-data таблица, загружаемая из закоммиченного parquet."
-  result: "26 кейсов от funnel до RFM: sessionization с валидацией против ground truth (99.6%), lifecycle-композиция, revenue-retention-треугольник, in-SQL z-test для A/B, MAD-анализ аномалий, dbt-паритет по числам и real-data кейс, где тот же SQL даёт противоположный бизнес-вывод (72.4% repeat vs 3.5%). Кейсы самопроверяемы: pytest + dbt подтверждают, что SQL продолжает давать ожидаемые метрики. Отчёт публикуется на GitHub Pages автоматически."
-  metrics:
-    - label: "SQL-кейсов"
-      value: "26"
-    - label: "Событий в датасете"
-      value: "~183k"
-    - label: "Real-data строк"
-      value: "1.07M"
-    - label: "Тестов (pytest + dbt)"
-      value: "43 + 17"
 ---
 
 # SQL Analytics Case Study
 
-## Контекст
+## Задача
 
-Take-home–формат: 25 end-to-end SQL-кейсов на синтетическом продуктовом датасете **плюс один real-data кейс** на UCI Online Retail II. Каждый кейс — один самодостаточный `.sql` файл с вопросом и подходом в leading-комментарии. Без сервера, без кредов — одна команда строит данные и базу DuckDB. Дополнительно — **dbt-слой** (staging → marts, 17 тестов) на той же базе.
+Take-home–формат: показать владение SQL на продуктовых задачах, когда продакшен-данных нет, а учебные задачи не демонстрируют системное мышление. 25 end-to-end кейсов на синтетическом продуктовом датасете **плюс один real-data кейс** на UCI Online Retail II. Каждый кейс — один самодостаточный `.sql` файл с вопросом и подходом в leading-комментарии. Без сервера, без кредов — одна команда строит данные и базу DuckDB. Дополнительно — **dbt-слой** (staging → marts, 17 тестов) на той же базе.
 
 ## Данные и метод
 
@@ -101,11 +88,9 @@ cd dbt && uv run dbt build --profiles-dir .   # dbt: модели + 17 тест�
 
 Runner печатает вопрос кейса, выполняет SQL против `data/analytics.duckdb`, рендерит результат таблицей. Отчёт с графиками публикуется на GitHub Pages автоматически при push.
 
-## Что нашли
+## Результат
 
-Каждый кейс покрывает конкретный оконно-функциональный паттерн. Ключевые находки честные, а не подогнанные:
-
-Три сигнала из teaser (числа сверены с `cases.md`):
+Каждый кейс покрывает конкретный оконно-функциональный паттерн, а находки — честные, а не подогнанные. Три сигнала из teaser (числа сверены с `cases.md`):
 
 - воронка теряет **54%** на шаге add-to-cart → checkout;
 - retention падает с **~21%** (D1) до **~5%** (D30) — утечка в onboarding-окне;
@@ -115,20 +100,14 @@ Runner печатает вопрос кейса, выполняет SQL прот
 
 - RFM вырождается в recency-историю; топ-дециль даёт лишь 22% выручки (нет «китов»);
 - лого-churn растёт до ~15%/мес при растущем MRR;
+- sessionization воспроизводит 80k предразмеченных сессий с точностью **99.6%**;
 - **real data переворачивает вывод**: на UCI Online Retail II 72.4% клиентов возвращаются, а топ-15% дают 65% выручки — тот же SQL, противоположный бизнес-вывод.
 
-Расхождение вопрос/подход в одном файле + regression-инварианты делают кейсы самопроверяемыми.
+Расхождение вопрос/подход в одном файле + regression-инварианты делают кейсы самопроверяемыми: 43 pytest-теста и 17 dbt-тестов держат `cases.md` и код в синхроне, `dbt build` зелёный в CI.
 
-## Эффект
+## Ограничения
 
-- **26 самодостаточных SQL-кейсов** — от funnel до RFM, каждый со своим оконным паттерном.
-- **dbt-слой на DuckDB** — staging → marts (fct_funnel, fct_retention, fct_mrr), 17 dbt-тестов включая golden-answers; `dbt build` зелёный в CI.
-- **Real-data кейс** — тот же паттерн на 1M+ реальных строк (UCI Online Retail II, CC BY 4.0): 72.4% repeat против 3.5% синтетики.
-- **Sessionization с валидацией** — 30-min gap воспроизводит 80k pre-assigned sessions с точностью 99.6%.
-- **Аддитивные данные без поломки золотых ответов** — seed=43 на отдельном RNG-потоке.
-- **DuckDB без инфраструктуры** — одна команда строит данные и базу.
-- **Regression-тесты на кейс** — 43 pytest-теста (инварианты + golden-answers) держат `cases.md` и код в синхроне.
-- **Живой отчёт** — GitHub Pages обновляется на каждый push.
+25 из 26 кейсов — синтетика: их числа описывают форму сгенерированных данных, а не поведение реального продукта. Кейс 26 на UCI Online Retail II показывает, насколько вывод может перевернуться на реальных данных (72.4% repeat против 3.5%), и это честная граница применимости — паттерны SQL переносятся, конкретные метрики нет.
 
 ## Документация
 

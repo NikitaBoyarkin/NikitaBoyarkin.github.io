@@ -19,26 +19,13 @@ updated: 2026-09-15
 private: true
 related:
   - /projects/streamlit/
-caseStudy:
-  problem: "A dashboard on synthetic data proves analytics skills, but it does not show how analytics lives inside a real multi-tenant product: auth, per-tenant data isolation, an ingest path, and experiment results computed where the data lives."
-  approach: "Reused the UI from streamlit-app but swapped the data layer from an in-memory generator to Supabase Postgres. RLS is enabled on every table so a user sees only their org's rows; an Edge Function validates an API key (stored as SHA-256) and inserts events via a security-definer function. Analytics live in SQL views (funnel, cohort, MRR, DAU, channel conversion) and the A/B result is computed in the DB (v_results) with the chi-square test run on top."
-  result: "One repo demonstrates the full path: instrument → ingest → isolate → analyze → experiment. The concluded A/B shows control 32.1% vs treatment 37.2% (p = 0.0034), and the security model means the dashboard is safe to expose to real users, not just to run locally."
-  metrics:
-    - label: "A/B lift"
-      value: "+5.1pp"
-    - label: "p-value"
-      value: "0.0034"
-    - label: "RLS isolation"
-      value: "all tables"
-    - label: "Ingest"
-      value: "Edge Function"
 ---
 
 # Product Analytics + A/B on Supabase
 
-## Context
+## Goal
 
-Most analytics portfolios show metrics on a clean CSV. This project closes a different gap — how analytics embeds into a real multi-tenant product: auth, per-org data isolation, an event ingest path, and an experiment whose result is computed in the database, not in a notebook.
+Most analytics portfolios show metrics on a clean CSV. The hard part stays invisible: how analytics embeds into a real multi-tenant product — auth, per-org data isolation, an event ingest path, and an experiment whose result is computed in the database, not in a notebook.
 
 ## Data & Method
 
@@ -60,16 +47,13 @@ dashboard        (supabase-py, anon key)                      analytics + experi
 
 Every table has Row Level Security enabled. A user only ever sees rows of their organization — the dashboard is safe to expose to real users, not just to run locally.
 
-## Findings
+## Result
 
-The key point: analytics is computed where the data lives. SQL views and `v_results` mean metrics and experiment results are consistent across any client that connects to the database — dashboard, BI tool, or ad-hoc SQL all see the same numbers.
+Analytics is computed where the data lives: SQL views and `v_results` mean metrics and experiment results are consistent across any client that connects to the database — dashboard, BI tool, or ad-hoc SQL all see the same numbers. The concluded A/B shows control 32.1% vs treatment 37.2%, **+5.1pp** at p = 0.0034 (χ²).
 
-## Impact
+## Limitations
 
-- **Full-stack path** — instrument → ingest → isolate → analyze → experiment in one repo.
-- **Concluded A/B** — control 32.1% vs treatment 37.2%, **p = 0.0034** (chi-square), +5.1pp lift.
-- **RLS on every table** — the dashboard is safe to expose to real users.
-- **Reused UI** — the presentation layer is taken from streamlit-app; only the data layer changed.
+The A/B events are seeded, so the value is not the effect size itself but the fact that the experiment is computed in the database, isolated per tenant, and reproducible by any client. There is no product story behind the numbers — this demonstrates architecture, not a real launch result.
 
 ## Documentation
 

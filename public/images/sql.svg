@@ -1,45 +1,48 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SQL analytics case study: tables, queries, window functions">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="sql-bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0f2a2b"/>
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="sql-accent" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ff8569"/>
       <stop offset="1" stop-color="#ff6643"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#bg)"/>
+  <rect width="1200" height="600" fill="url(#sql-bg)"/>
 
-  <!-- table grid -->
-  <g stroke="#3f3f46" stroke-width="1.5">
-    <rect x="80" y="80" width="1040" height="440" fill="none"/>
-    <line x1="80" y1="140" x2="1120" y2="140"/>
-    <line x1="80" y1="200" x2="1120" y2="200"/>
-    <line x1="80" y1="260" x2="1120" y2="260"/>
-    <line x1="80" y1="320" x2="1120" y2="320"/>
-    <line x1="80" y1="380" x2="1120" y2="380"/>
-    <line x1="80" y1="440" x2="1120" y2="440"/>
-    <line x1="320" y1="80" x2="320" y2="520"/>
-    <line x1="560" y1="80" x2="560" y2="520"/>
-    <line x1="800" y1="80" x2="800" y2="520"/>
+  <text x="600" y="120" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7" text-anchor="middle">WINDOW FUNCTIONS</text>
+
+  <!-- result grid: header row + 3 data rows -->
+  <g fill="url(#sql-accent)" opacity="0.25">
+    <rect x="140" y="180" width="220" height="60" rx="6"/>
+    <rect x="400" y="180" width="220" height="60" rx="6"/>
+    <rect x="660" y="180" width="220" height="60" rx="6"/>
+  </g>
+  <g fill="#234044" opacity="0.6">
+    <rect x="140" y="260" width="220" height="60" rx="6"/>
+    <rect x="400" y="260" width="220" height="60" rx="6"/>
+    <rect x="140" y="340" width="220" height="60" rx="6"/>
+    <rect x="660" y="340" width="220" height="60" rx="6"/>
+    <rect x="400" y="420" width="220" height="60" rx="6"/>
+    <rect x="660" y="420" width="220" height="60" rx="6"/>
   </g>
 
-  <!-- header row accent -->
-  <rect x="80" y="80" width="1040" height="60" fill="url(#accent)" opacity="0.18"/>
-  <line x1="80" y1="140" x2="1120" y2="140" stroke="#ff8569" stroke-width="2.5"/>
+  <!-- highlighted query results -->
+  <rect x="660" y="260" width="220" height="60" rx="6" fill="#ff6643" opacity="0.55"/>
+  <rect x="400" y="340" width="220" height="60" rx="6" fill="url(#sql-accent)" opacity="0.45"/>
+  <rect x="140" y="420" width="220" height="60" rx="6" fill="#ff6643" opacity="0.4"/>
 
-  <!-- highlighted cells (a query result) -->
-  <rect x="80" y="200" width="240" height="60" fill="#ff6643" opacity="0.35"/>
-  <rect x="560" y="320" width="240" height="60" fill="#ff8569" opacity="0.28"/>
-  <rect x="800" y="380" width="320" height="60" fill="#ff6643" opacity="0.22"/>
+  <text x="770" y="305" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#e4e4e7" text-anchor="middle">RANK()</text>
+  <text x="510" y="385" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#e4e4e7" text-anchor="middle">LAG()</text>
+  <text x="250" y="465" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#e4e4e7" text-anchor="middle">SUM()</text>
 
-  <!-- DuckDB duck-ish mark, top-right corner -->
-  <g transform="translate(1010,470)" opacity="0.9">
-    <ellipse cx="50" cy="30" rx="46" ry="22" fill="url(#accent)"/>
+  <!-- duck mark -->
+  <g transform="translate(950,380)">
+    <ellipse cx="50" cy="30" rx="46" ry="22" fill="url(#sql-accent)"/>
     <circle cx="86" cy="20" r="14" fill="#ff8569"/>
-    <circle cx="90" cy="18" r="2.5" fill="#0f2a2b"/>
-    <polygon points="100,20 118,24 100,30" fill="#fbbf24"/>
+    <circle cx="90" cy="18" r="3" fill="#0f2a2b"/>
+    <polygon points="100,20 118,24 100,30" fill="#ffa68a"/>
   </g>
 </svg>

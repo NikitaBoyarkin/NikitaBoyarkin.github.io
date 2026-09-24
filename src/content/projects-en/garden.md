@@ -22,35 +22,29 @@ related:
 
 # Digital Garden
 
-## Context
+## Goal
 
-Knowledge as chronological posts ages quickly and loses connections. A digital garden is the opposite of a blog: notes are not ordered by date but linked with `[[wikilinks]]`, have maturity stages (seedling → evergreen), and evolve over time. The task: publish a personal Zettelkasten as a static site with a link graph.
-
-## Hypothesis
-
-If we publish notes through Quartz v4 with backlinks, graph view, and full-text search, the reader sees not isolated texts but a network of ideas — and can navigate by meaning, not chronology. That is closer to how thoughts are actually structured than a post feed.
+Knowledge as chronological posts ages quickly and loses connections. A digital garden is the opposite of a blog: notes are not ordered by date but linked with `[[wikilinks]]`, have maturity stages (seedling → evergreen), and evolve over time. The task: publish a personal Zettelkasten as a static site where the reader sees a network of ideas and navigates by meaning, not chronology.
 
 ## Data & Method
 
 **Content model:** atomic notes in Obsidian-flavored Markdown. Each note is one idea, with YAML frontmatter, tags, and `[[wikilinks]]` to neighboring concepts.
 
 **Quartz v4:**
+
 - TypeScript plugins for rendering — extensibility out of the box.
 - Backlinks: each note shows everyone that links to it.
 - Graph view: a visualization of the note graph (nodes = notes, edges = links).
 - Full-text search, popover preview on `[[wikilink]]` hover.
 - Static output — host on GitHub Pages, no server.
 
-## Findings
+## Result
 
 The power of a digital garden is in the links, not the individual notes. Backlinks turn a note into a "node" and show which contexts include it. The graph turns note accumulation into a navigable structure: topic clusters and isolated islands are visible. A chronological blog answers "when"; a garden answers "how is this connected."
 
-## Impact
+## Limitations
 
-- **Linked-notes Zettelkasten** — backlinks + graph view instead of a post feed.
-- **Atomic evergreen notes** — content matures instead of aging by date.
-- **Quartz v4 on TypeScript** — static output, extensible plugins, no server.
-- **Obsidian-flavored Markdown → public site** — one source, two consumption paths.
+The garden is a personal tool, not a product: notes are immature by definition, some stay seedlings, and the links reflect the author's thinking rather than a finished system. That makes the site more honest than a blog, but also less predictable for an outside reader.
 
 ## Documentation
 

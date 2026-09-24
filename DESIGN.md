@@ -74,8 +74,8 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 - **Scope:** Hero + navigation + design tokens (Phase 1); homepage restructure into editorial top + bento bottom (Phase 2).
 - **Theme:** system preference by default, manual toggle in nav, `prefers-reduced-motion` respected.
 - **Typography:** keep self-hosted Inter for UI/body; add a system serif/display stack (`--font-display`) for the hero name and major headings.
-- **Hero:** two-column editorial layout — identity + pitch + metrics + CTAs on the left, animated dataviz panel on the right (reuses `IntroShader` and floating metric cards).
-- **Navigation:** minimal top-bar with name/logo, Projects, About, Notes (RU) / Writing (EN), language switch, search, contact CTA, theme toggle. Start/Graph/Games removed from the main nav but remain reachable via direct URLs and internal links.
+- **Hero:** two-column editorial layout — identity + pitch + metrics + CTAs on the left, animated dataviz panel on the right (floating metric cards over a mesh-gradient backdrop).
+- **Navigation:** a left rail (≥1100px) carrying name/logo, the primary links (Projects, About, Value, Writing), language switch, search, contact CTA and theme toggle; below 1100px the same panel becomes an off-canvas drawer opened from a sticky top bar that holds the brand and the ☰/✕ trigger. Start/Graph/Games removed from the main nav but remain reachable via direct URLs and internal links.
 - **Palette:** keep the existing teal/coral base; add a second `--text-accent-dataviz` token for graph/metric highlights so dataviz reads as information, not as a CTA.
 - **Homepage structure:** editorial top after hero (featured project spotlight) and a bento grid bottom (career snapshot, knowledge graph, library, notes, arcade, testimonials).
 
@@ -89,11 +89,14 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 
 ### Phase 2 (completed)
 
-- Replaced the long `home-stack`/`AudienceBar` dashboard with a focused editorial top + bento bottom on both language homepages.
+- Replaced the long `home-stack` dashboard and its audience-toggle bar with a focused editorial top + bento bottom on both language homepages.
 - Featured project spotlight surfaces `posthog.md` as the lead case (full loop: metric → hypothesis → experiment → decision).
 - CapabilitiesGrid was removed (ADR-0001); the capabilities signal now lives in the featured project spotlight, the bento stack chips, and the `/projects/` board.
 - Bento grid cells: `CareerSnapshot`, knowledge-graph link, `ReadingBlock`, notes link, arcade link, `Testimonials`.
-- Removed from homepage: `AudienceBar`, `HomeBoard`, `AskMe`, `Manifesto`, `TopicMap`, `ProjectTimeline`, `CollaborationFormats`, `MaterialStrip`, and the inline arcade section. These pages/components remain reachable via direct URLs.
+- Removed from the homepage: the audience-toggle bar, the 3-column homepage kanban, and the A/B case-study block. Those components were deleted (PRD v6 / the case-study refactor) — no route renders them and they are reachable at no URL.
+- Still reachable via direct URLs (dropped from nav, not from the build): `/graph`, and the static arcade assets under `public/games/`.
+- **Known debt — unused components.** On disk but imported by nothing: `Manifesto`, `TopicMap`, `ProjectTimeline`, `CollaborationFormats` (~487 lines). Delete or re-link in navigation — task P3-2 in `docs/prd-v8-tasks.md`.
+- **Known debt — orphan dependency.** `@paper-design/shaders` has had no consumer since the shader hero background was retired; recorded in `docs/prd-hero-banner-brand-polish.md` «Открытые вопросы» §2. Removal is task P3-3.
 
 ### Phase 3 (completed)
 
@@ -150,8 +153,6 @@ Application budget: dominant 55–65% of any screen, secondary 25–35%, accent 
 **Scoped exceptions** (raw hex outside the token system, by technical necessity — not palette drift):
 - `Base.astro` `theme-color` meta + `THEME_COLORS` JS map — meta content cannot be a CSS variable; values mirror the dominant 60% per theme.
 - `graph.ts` — the knowledge graph uses a categorical data-viz palette (~20 hues for node categories), a separate domain from the UI palette.
-- `cv.astro` — a print-only CV page with its own scoped `:root` (`--ink`, `--muted`, `--accent #c63d1f`, `--line`, `--bg`) optimized for print contrast on white. `#c63d1f` is a deliberate print accent, not the UI coral; the scoped `:root` confines it to `/cv`.
-- `AudienceBar.astro` — the pressed audience toggle overrides `--button-ink` to `#fff` in light theme: the dark brick accent `#a8331a` would give dark ink ~2.6:1, white lifts it to ~7.6:1 (WCAG 1.4.3). The only raw-hex override on a button-ink site.
 
 ## Brand source of truth
 
@@ -267,10 +268,14 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 
 ## Layout
 
-- The body is centered at a fixed max width with modest padding; the kanban board is the only element that breaks out, to a wider viewport-capped width.
+- The body spans the viewport; at ≥1100px it reserves `--rail-total` on the inline start for the fixed nav rail, and the reading column stays centred at a 960px measure inside the remaining space.
+- Below 1100px the nav is an off-canvas drawer over a scrim, opened from a sticky top bar; the panel holds the page scroll only while it is open.
+- The kanban board is the only element that breaks out of the reading column, to a wider viewport-capped width — it centres on the content column, not the viewport, so it never slides under the rail.
 - Project grids use auto-fit with a minimum card width so cards reflow without media queries.
 - Post content is capped at a comfortable reading measure; intro paragraphs are narrower.
-- The nav is sticky with a backdrop blur over a translucent background — it must stay legible over scrolling content.
+- The rail utility cluster (language, search, contacts CTA, theme) sits directly under the brand, above the primary links — the search dropdown opens downward from its toggle, so it needs the headroom the rail's bottom edge could not give it.
+- The search dropdown anchors to the left edge of its toggle and opens rightward; on the rail it overhangs into the content column, and the rail stops clipping only while the panel is open. Inside the mobile drawer the panel fits the drawer width instead of overhanging a box that would cut it.
+- The rail is opaque with a single inline-end hairline. Blur belongs to the mobile bar, which does have content scrolling under it.
 
 ## Elevation & Depth
 

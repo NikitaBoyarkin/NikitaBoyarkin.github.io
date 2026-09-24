@@ -44,12 +44,31 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b sync/github-metadata
+
+          # The bot branch is a fixed name, so it usually already exists
+          # (previous run, or auto-delete not yet applied). `-B` moves it
+          # instead of failing, and the push force-with-lease after a fetch
+          # replaces the previous run's commit — a plain push would be
+          # non-fast-forward and would abort the whole workflow.
+          git fetch origin --prune
+          git checkout -B sync/github-metadata
           git add src/content
           git commit -m "chore: sync project metadata from GitHub API"
-          git push origin sync/github-metadata
-          gh pr create --base master --head sync/github-metadata \
-            --title "chore: sync project metadata from GitHub API" \
-            --body "Automated sync of \`updated:\` / \`private:\` frontmatter from the GitHub API (weekly)."
+          if git ls-remote --exit-code --heads origin sync/github-metadata >/dev/null 2>&1; then
+            git push --force-with-lease origin HEAD:sync/github-metadata
+          else
+            git push origin HEAD:sync/github-metadata
+          fi
+
+          # An open PR already tracks this branch; pushing updated it. Only
+          # create one when there is none, otherwise `gh pr create` errors out
+          # and fails the run.
+          if [ -z "$(gh pr list --head sync/github-metadata --state open --json number -q '.[0].number')" ]; then
+            gh pr create --base master --head sync/github-metadata \
+              --title "chore: sync project metadata from GitHub API" \
+              --body "Automated sync of \`updated:\` / \`private:\` frontmatter from the GitHub API (weekly)."
+          else
+            echo "PR for sync/github-metadata is already open — branch updated."
+          fi
         env:
           GITHUB_TOKEN: ${{ github.token }}

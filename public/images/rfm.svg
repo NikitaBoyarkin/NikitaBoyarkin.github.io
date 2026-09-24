@@ -1,44 +1,30 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="RFM segmentation: Recency, Frequency, Monetary value bars by segment">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="rfm-bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0f2a2b"/>
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="rfm-accent" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ff8569"/>
       <stop offset="1" stop-color="#ff6643"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#bg)"/>
+  <rect width="1200" height="600" fill="url(#rfm-bg)"/>
 
-  <g stroke="#234044" stroke-width="1">
-    <line x1="0" y1="500" x2="1200" y2="500"/>
-    <line x1="120" y1="60" x2="120" y2="500"/>
-  </g>
+  <text x="600" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7" text-anchor="middle">RFM SEGMENTS</text>
 
-  <!-- RFM segment bars: Champions / Loyal / Potential / At-Risk / Hibernating -->
-  <g>
-    <rect x="180" y="120" width="120" height="380" fill="url(#accent)"/>
-    <rect x="360" y="200" width="120" height="300" fill="url(#accent)" opacity="0.82"/>
-    <rect x="540" y="250" width="120" height="250" fill="url(#accent)" opacity="0.66"/>
-    <rect x="720" y="320" width="120" height="180" fill="url(#accent)" opacity="0.5"/>
-    <rect x="900" y="380" width="120" height="120" fill="#3f3f46"/>
-  </g>
+  <!-- axis -->
+  <line x1="100" y1="480" x2="1100" y2="480" stroke="#234044" stroke-width="4"/>
 
-  <!-- 3D R/F/M axis ticks -->
-  <g font-family="SF Mono, Monaco, monospace" font-size="14" fill="#a1a1aa">
-    <text x="100" y="130" text-anchor="end">R</text>
-    <text x="100" y="260" text-anchor="end">F</text>
-    <text x="100" y="390" text-anchor="end">M</text>
-  </g>
+  <!-- RFM score by segment, descending -->
+  <rect x="130" y="180" width="140" height="300" rx="6" fill="url(#rfm-accent)"/>
+  <rect x="380" y="240" width="140" height="240" rx="6" fill="url(#rfm-accent)" opacity="0.82"/>
+  <rect x="630" y="300" width="140" height="180" rx="6" fill="url(#rfm-accent)" opacity="0.62"/>
+  <rect x="880" y="360" width="140" height="120" rx="6" fill="#3f3f46"/>
 
-  <!-- segment dots -->
-  <g>
-    <circle cx="240" cy="95" r="6" fill="#ffa68a"/>
-    <circle cx="420" cy="175" r="5" fill="#ff8569"/>
-    <circle cx="600" cy="225" r="5" fill="#ff8569" opacity="0.7"/>
-    <circle cx="780" cy="295" r="4" fill="#a1a1aa"/>
-    <circle cx="960" cy="355" r="4" fill="#3f3f46"/>
-  </g>
+  <text x="200" y="540" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#e4e4e7" text-anchor="middle">CHAMPIONS</text>
+  <text x="450" y="540" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#e4e4e7" text-anchor="middle">LOYAL</text>
+  <text x="700" y="540" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#a1a1aa" text-anchor="middle">AT-RISK</text>
+  <text x="950" y="540" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#a1a1aa" text-anchor="middle">HIBERNATING</text>
 </svg>

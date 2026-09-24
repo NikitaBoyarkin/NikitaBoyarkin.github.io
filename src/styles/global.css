@@ -127,12 +127,24 @@
   --space-16: 4rem;
   --space-20: 5rem;
 
+  /* Page gutter — the body's own inline padding. Full-bleed elements
+     (`.nav-mobile`) cancel it with an equal negative margin, so the two must
+     move together: hardcoding one and not the other overflows the viewport.
+     Narrow screens override it next to the body's other breakpoint rules. */
+  --page-pad: var(--space-5);
+
   /* Radii */
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
+
+  /* Left navigation rail (≥1100px). Below that the same panel is an
+     off-canvas drawer and --rail-total is not applied. */
+  --rail-w: 240px;
+  --rail-gap: var(--space-6);
+  --rail-total: calc(var(--rail-w) + var(--rail-gap));
 
   /* Z-index scale — fixed tokens, no bare layer numbers */
   --z-decor: -1;
@@ -196,7 +208,7 @@ body {
   font-size: 16px;
   max-width: 1000px;
   margin: 0 auto;
-  padding: var(--space-5);
+  padding: var(--page-pad);
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
@@ -341,38 +353,73 @@ p {
   }
 }
 
-/* Navigation — editorial site header: flat, minimal, sticky */
-nav {
+/* Navigation — a left rail at ≥1100px, an off-canvas drawer below it.
+   The panel is fixed in both states: as a rail it is always on screen, as a
+   drawer it is translated out and pulled back by `body.nav-open`.
+
+   Scoped to `#site-nav`: a bare `nav` selector also matched the in-content
+   <nav> elements (.prev-next, .pagination, .about-jump) and turned them into
+   fixed, z-index-1200 drawer panels. */
+#site-nav {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: min(320px, 86vw);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-4) 0;
-  margin-bottom: var(--space-4);
-  border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 0;
-  background-color: color-mix(
-    in srgb,
-    var(--background-primary) 88%,
-    transparent
-  );
-  z-index: var(--z-sticky);
-  backdrop-filter: blur(14px) saturate(1.1);
-  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-5);
+  padding: var(--space-5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background-color: var(--background-primary);
+  border: 0;
+  border-inline-end: 1px solid var(--border-color);
   border-radius: 0;
-  border: 0 solid transparent;
-  border-bottom-width: 1px;
   box-shadow: none;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  z-index: var(--z-dialog);
+  transform: translateX(-100%);
+  transition: transform 0.25s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
-nav.scrolled {
-  background-color: color-mix(
-    in srgb,
-    var(--background-primary) 96%,
-    transparent
-  );
-  border-color: color-mix(in srgb, var(--border-color) 70%, transparent);
+body.nav-open #site-nav {
+  transform: translateX(0);
+}
+
+/* Scrim sits between the page and the drawer; the mobile bar stays above it so
+   the ☰ → ✕ control is still hittable while the drawer is open. */
+.nav-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  z-index: var(--z-overlay);
+  transition: opacity 0.25s ease;
+}
+
+body.nav-open .nav-scrim {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Mobile / tablet bar — brand + drawer trigger. Full-bleed: the negative
+   margins cancel body's padding so the sticky bar has no gap above it. */
+.nav-mobile {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-dialog);
+  margin-block: calc(-1 * var(--page-pad)) var(--space-4);
+  margin-inline: calc(-1 * var(--page-pad));
+  padding: var(--space-4) var(--space-5);
+  background-color: color-mix(in srgb, var(--background-primary) 88%, transparent);
+  border-bottom: 1px solid var(--border-color);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  backdrop-filter: blur(14px) saturate(1.1);
 }
 
 /* Nav Brand — name + logo, no decorative accent on the wordmark */
@@ -466,9 +513,16 @@ nav.scrolled {
 
 nav ul.links {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
+  flex-wrap: nowrap;
   list-style: none;
-  gap: 0.25rem;
+  gap: var(--space-1);
+}
+
+/* Full-width hit area — the rail reads as a list of rows, not a pill row. */
+nav ul.links a {
+  display: block;
 }
 
 nav ul.links a {
@@ -1180,38 +1234,6 @@ nav ul.links a[aria-current="page"] {
   margin: 0;
 }
 
-.featured-card-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
-  width: 100%;
-  margin: 0;
-  padding: var(--space-3) 0;
-  border-top: 1px solid var(--border-color);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.featured-card-metrics div {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.featured-card-metrics dt {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-normal);
-  letter-spacing: -0.01em;
-}
-
-.featured-card-metrics dd {
-  margin: 0;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  line-height: 1.3;
-}
-
 .featured-card-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1879,8 +1901,8 @@ footer p {
 }
 
 @media (max-width: 768px) {
-  body {
-    padding: 15px;
+  :root {
+    --page-pad: 15px;
   }
 
   .intro-container {
@@ -2231,6 +2253,12 @@ button:focus-visible {
   gap: var(--space-4);
   margin: var(--space-10) 0;
 }
+/* First/last item in a sequence has only one neighbour: auto-placement would
+   drop the lone card into the left column even when it is the "next" link,
+   leaving its right-aligned text in a left-hand box. Pin it to its own column. */
+.pn-next:only-child {
+  grid-column: 2;
+}
 .pn-link {
   display: flex;
   flex-direction: column;
@@ -2264,6 +2292,10 @@ button:focus-visible {
   .prev-next {
     grid-template-columns: 1fr;
   }
+  /* Single column: the pinned column would spawn a phantom second track. */
+  .pn-next:only-child {
+    grid-column: 1;
+  }
 }
 
 /* Telegram link in nav-aux */
@@ -2291,9 +2323,9 @@ button:focus-visible {
    ============================================================ */
 
 /* ---------- Search ---------- */
-.search {
-  position: relative;
-}
+/* `.search` is deliberately NOT positioned: the dropdown's containing block is
+   `.nav-tools`, the lang / search / theme row (see Base.astro). Anchoring to
+   `.search` would size the panel against a 32px flex item instead of the row. */
 .search-toggle {
   display: inline-flex;
   align-items: center;
@@ -2311,10 +2343,14 @@ button:focus-visible {
   transform: scale(1.1);
   border-color: var(--text-accent);
 }
+/* Anchored to the toggle's LEFT edge, not its right: a 420px panel pinned to
+   `right: 0` inside a 200px rail hung off the left edge of the viewport and was
+   clipped by the rail. Opening rightward keeps the input and the panel's own
+   left border visible. */
 .search-panel {
   position: absolute;
   top: calc(100% + 0.5rem);
-  right: 0;
+  left: 0;
   width: min(420px, 90vw);
   background: var(--background-secondary);
   border: 1px solid var(--border-color);
@@ -2660,9 +2696,6 @@ button:focus-visible {
   }
   .strip-card-featured {
     flex-basis: 280px;
-  }
-  .search-panel {
-    right: -20px;
   }
 }
 
@@ -3329,5 +3362,90 @@ button:focus-visible {
   .projects-page .project-board-tools {
     margin-bottom: var(--space-4);
     gap: var(--space-3);
+  }
+}
+
+/* ============================================================
+   Navigation layout — left rail (≥1100px) vs off-canvas drawer (<1100px).
+   Declared last so it overrides the earlier nav blocks at equal specificity,
+   without inflating selectors.
+   ============================================================ */
+
+@media (max-width: 1099px) {
+  .nav-mobile {
+    display: flex;
+  }
+
+  /* The trigger belongs to the bar, not the drawer: a control inside a panel
+     that is translated off-screen would travel with it. */
+  .nav-toggle {
+    display: inline-flex;
+    position: static;
+    top: auto;
+    right: auto;
+  }
+
+  /* Always laid out — the drawer's own transform is what hides it, so the
+     ☰/✕ morph keeps a stable element to open and close. */
+  nav ul.links {
+    display: flex;
+  }
+
+  body.nav-open {
+    overflow: hidden;
+  }
+
+  /* The drawer is 320px wide, so a 420px panel overhanging it would be cut by
+     the drawer's own scroll box. Fit the panel to the drawer instead — the
+     containing block (.nav-tools) already spans the drawer's content width,
+     and the drawer keeps its scroll while the results are open. */
+  nav .search-panel {
+    left: 0;
+    right: 0;
+    width: auto;
+  }
+}
+
+@media (min-width: 1100px) {
+  body {
+    max-width: none;
+    margin: 0;
+    padding-inline-start: var(--rail-total);
+  }
+
+  #site-nav {
+    width: var(--rail-w);
+    transform: none;
+  }
+
+  /* The rail is 240px but the search dropdown is 420px: it opens rightward,
+     over the content column, and the rail must stop clipping it at its own
+     edge. `overflow: visible` only while the panel is open — the rail keeps
+     its scroll for the short-viewport case, and the dropdown is absolute so it
+     scrolls with the rail's content rather than being cut off. */
+  #site-nav:has(.search-panel:not([hidden])) {
+    overflow: visible;
+  }
+
+  .nav-mobile,
+  .nav-scrim {
+    display: none;
+  }
+
+  /* The reading column keeps its previous 960px measure, centred in the space
+     right of the rail; the footer hairline follows the same width. */
+  main,
+  footer {
+    max-width: 960px;
+    margin-inline: auto;
+  }
+
+  /* The kanban board breaks out of the reading column and must centre on the
+     *content* column, not the viewport: `left` resolves against body (the
+     positioned ancestor), so half the rail offset has to be added back. */
+  #page-board {
+    left: calc(50% + (var(--rail-total) - var(--space-5)) / 2);
+    transform: translateX(-50%);
+    width: min(1900px, calc(100vw - var(--rail-total) - var(--space-5)));
   }
 }

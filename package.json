@@ -11,6 +11,7 @@
     "astro": "astro",
     "check": "astro check && tsc --noEmit -p tsconfig.tests.json",
     "test": "bun test tests/lib",
+    "test:built": "bun test tests/built",
     "coverage": "bun test tests/lib --coverage",
     "serve-dist": "bun run scripts/serve-dist.mjs",
     "verify:writing-filter": "bun run scripts/verify-writing-filter.mjs",
