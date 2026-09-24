@@ -128,17 +128,16 @@ bun run preview      # serve the production build
 
 ## Verification
 
-Run this quartet after every content or component change. All green = safe to commit.
+Run this triad after every content or component change. All green = safe to commit.
 
 ```bash
 bun run build        # Astro build
 bun run check        # astro check + tsc --noEmit on tests
-make check           # python3 scripts/check_site.py — validates the built dist/
-bun test             # bun:test unit suite (tests/lib/)
+make check           # tests + test:built + check_site.py — validates the built dist/
 bun run coverage     # same suite with coverage
 ```
 
-`make check` is not a type check — it inspects the **built output** and fails on:
+`make check` is not a type check — it runs the test suite (`test`, then `test:built`) and then inspects the **built output**, failing on:
 
 - missing required pages
 - internal links that do not resolve to a file in `dist/`
@@ -302,7 +301,7 @@ Three workflows in `.github/workflows/`:
 
 | Workflow | Trigger | Does |
 |---|---|---|
-| `deploy.yml` | push / PR to `master` \| `main` | install → **GitHub drift gate** (`sync:gh`, exits 1) → `bun run check` → build → `make check` → Lighthouse CI → deploy `dist/` to Pages |
+| `deploy.yml` | push / PR to `master` \| `main` | install → **GitHub drift gate** (`sync:gh`, exits 1) → `bun run check` → `bun run test` → build → `make check` (tests + `test:built` + `check_site.py`) → Lighthouse CI → deploy `dist/` to Pages |
 | `sync-github.yml` | weekly | runs `sync:gh:apply` and opens a PR with the changes |
 | `github-activity.yml` | daily | refreshes `github-activity.json`; commits only when the payload changed |
 

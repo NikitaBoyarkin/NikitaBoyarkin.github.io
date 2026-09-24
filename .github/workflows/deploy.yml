@@ -40,6 +40,9 @@ jobs:
       - name: Type-check
         run: bun run check
 
+      - name: Unit tests
+        run: bun run test
+
       - name: Build site
         env:
           PUBLIC_POSTHOG_KEY: ${{ secrets.PUBLIC_POSTHOG_KEY }}
