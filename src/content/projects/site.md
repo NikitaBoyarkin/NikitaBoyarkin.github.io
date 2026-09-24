@@ -14,7 +14,7 @@ tools:
   - Markdown
   - CSS custom properties
 github: https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io
-updated: 2026-09-16
+updated: 2026-09-20
 related:
   - /projects/garden/
   - /projects/scrolly/
