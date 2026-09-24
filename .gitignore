@@ -112,3 +112,6 @@ lhci-reports/
 # Build cache (graphify-out) — generated, must not be tracked
 src/graphify-out/cache/
 
+# CI-only sibling checkouts (drift-guard evidence) — never committed
+vendor/
+
