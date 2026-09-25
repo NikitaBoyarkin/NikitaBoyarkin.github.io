@@ -1,6 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
+import ContactForm from '../components/ContactForm.astro';
 import { withBase } from '../lib/path';
+import { CAL_BOOKING_URL } from '../lib/contact';
 
 // Telegram deep-link: pre-fills the message so the first contact carries context.
 const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent('Привет! Обсудим продуктовую аналитику / роли аналитика.')}`;
@@ -9,11 +11,24 @@ const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent('Приве�
 <Base title="Контакты | Nikita Boyarkin" description="Связаться с Никитой Бояркиным — продуктовая аналитика, A/B-тестирование, сотрудничество." activeNav="contact" canonical={withBase('contact/')} lang="ru">
   <section class="contact-section reveal">
     <h1 class="contact-title">Связаться</h1>
-    <div class="board-card" style="max-width: 60ch;">
-      <p class="contact-text">
-        Хотите обсудить product-аналитику, A/B-тестирование или формат сотрудничества — я открыт к разговорам.
-        Открыт к Data / Product Analyst ролям.
-      </p>
+    <p class="contact-text">
+      Хотите обсудить product-аналитику, A/B-тестирование или формат сотрудничества — я открыт к разговорам.
+      Открыт к Data / Product Analyst ролям.
+    </p>
+
+    <ContactForm locale="ru" />
+
+    <p class="contact-note">
+      Отправляя форму, вы соглашаетесь на обработку указанных данных для ответа на обращение.
+      Имя, контакт и текст сообщения хранятся в защищённой базе; IP не сохраняется.
+    </p>
+
+    <p style="margin-top: var(--space-6);">
+      <a href={CAL_BOOKING_URL} class="button button-secondary" target="_blank" rel="noopener noreferrer" data-analytics="booking_click">Записаться на 15 минут</a>
+    </p>
+
+    <div class="board-card" style="max-width: 60ch; margin-top: var(--space-8);">
+      <h2 class="look-title">Другие способы связи</h2>
       <a href="https://t.me/lofinibo" class="contact-email" data-analytics="telegram_contact" target="_blank" rel="noopener noreferrer">Telegram: @lofinibo</a>
       <p style="margin-top: var(--space-2);">
         <a href={tgDeepLink} data-analytics="telegram_deeplink" target="_blank" rel="noopener noreferrer">Написать с контекстом →</a>
@@ -84,6 +99,15 @@ const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent('Приве�
       font-weight: 600;
       color: var(--text-normal);
       line-height: 1.5;
+    }
+    /* Personal-data note under the form. Deliberately plain text: it names no
+       policy page, because there is no `/privacy/` route to link to. */
+    .contact-note {
+      margin: var(--space-3) 0 0;
+      max-width: 60ch;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--text-muted);
     }
   </style>
 

@@ -25,6 +25,8 @@
 | 17 | SearchBox (header) | «Поиск» (открывает панель) | `search_open` | — (панель) |
 | 18 | ProjectCard | «Смотреть» / «Demo» / «GitHub» | `project_view_<slug>` / `project_demo_<slug>` / `project_github_<slug>` | внутренние + внешние |
 | 19 | HeadlineCases (главная, PRD v6 S2.6) | 3 кейса + сжатый список 14 | `headline_case_<slug>` / `headline_demo_<slug>` / `headline_github_<slug>` / `headline_all_projects` / `more_project_<slug>` | внутренние проекты + внешние артефакты |
+| 20 | contact.astro (форма, RU+EN) | «Отправить» / «Send» | `contact_submit` (успех); `contact_form_error` с `reason` при отказе | `POST {CONTACT_ENDPOINT}` (Supabase Edge Function `contact`) |
+| 21 | contact.astro (под формой, RU+EN) | «Записаться на 15 минут» / «Book 15 minutes» | `booking_click` | `CAL_BOOKING_URL` (Cal.com) |
 
 ## Гэпы, найденные аудитом
 
@@ -92,3 +94,20 @@ All CV entry points collapsed to a single "CV" button that downloads the PDF
 
 The `CV-Nikita-Boyarkin.pdf` `Disallow` in `robots.txt` is unchanged. Historical
 rows for the removed events stay in PostHog.
+
+## Форма связи + запись звонка (2026-09-26)
+
+Основной путь контакта — форма на `/contact` и `/en/contact` (строки 20–21).
+Telegram, LinkedIn и GitHub остались как вторичные опции в блоке «Другие способы связи»;
+ни одна существующая ссылка не удалена.
+
+| Что | Где | Значение |
+|---|---|---|
+| Endpoint формы | `src/lib/contact.ts` | `CONTACT_ENDPOINT` — **placeholder `PROJECT_REF`**, заменить в Phase 0 |
+| Ссылка на звонок | `src/lib/contact.ts` | `CAL_BOOKING_URL` — **placeholder `USERNAME`**, заменить в Phase 0 |
+| Лимиты полей | `src/lib/contact.ts` | `CONTACT_LIMITS` — зеркало CHECK-констрейнтов `contact_messages` |
+| Honeypot | `src/components/ContactForm.astro` | поле `website`, off-screen (`position: absolute; left: -9999px`), `tabindex="-1"` |
+
+Оба placeholder'а — константы, а не env-переменные: отсутствующая в CI env-переменная
+падает **молча** (это уже случилось с `PUBLIC_BEACON_ENDPOINT`), а константа видна в ревью.
+Без JS форма отправляется нативно (`method="post"`), HTML-ответ отдаёт Edge Function.

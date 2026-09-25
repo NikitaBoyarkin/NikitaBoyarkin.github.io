@@ -1,0 +1,13 @@
+# Supabase CLI config for the site's contact-form backend.
+#
+# `project_id` names the local dev stack; the hosted project is linked per machine
+# (`supabase link --project-ref <ref>`), so no ref or key is committed here.
+
+project_id = "nikitaboyarkin-contact"
+
+[functions.contact]
+# The form posts straight from the browser — there is no JWT to present, and the
+# site ships no Supabase key at all. The security boundary is RLS on
+# public.contact_messages (enabled, zero policies), so only this function,
+# running as service_role, can insert.
+verify_jwt = false

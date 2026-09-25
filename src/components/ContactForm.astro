@@ -1,0 +1,487 @@
+---
+// Contact form island — zero dependencies, no framework, no third-party JS.
+//
+// The markup is a real `<form method="post">` pointing at the Edge Function, so
+// with JS off the browser posts natively and gets back the function's own HTML
+// answer. The bundled script only *enhances*: inline validation, a JSON submit
+// that keeps the visitor on the page, and analytics.
+//
+// `locale` is stamped as a data attribute instead of using `define:vars`, which
+// would force the script to be inlined and give up the type-checked bundled
+// build (the same trade-off `AskMe.astro` makes).
+import { CONTACT_ENDPOINT, CONTACT_HONEYPOT_FIELD, CONTACT_LIMITS } from '../lib/contact';
+
+interface Props {
+  locale: 'ru' | 'en';
+}
+
+const { locale } = Astro.props;
+const isEn = locale === 'en';
+
+// Fallback channel offered when the request cannot leave the browser. Same
+// handle the rest of the site uses; kept local so the island has no page-level
+// dependency beyond the lib.
+const TELEGRAM_URL = 'https://t.me/lofinibo';
+
+const t = {
+  name: isEn ? 'Name' : 'Имя',
+  contact: isEn ? 'Email or Telegram' : 'Email или Telegram',
+  company: isEn ? 'Company' : 'Компания',
+  message: isEn ? 'Message' : 'Сообщение',
+  optional: isEn ? 'optional' : 'необязательно',
+  requiredMark: isEn ? 'required' : 'обязательно',
+  submit: isEn ? 'Send' : 'Отправить',
+  sending: isEn ? 'Sending…' : 'Отправляем…',
+  telegram: isEn ? 'Write on Telegram →' : 'Написать в Telegram →',
+};
+
+// Strings the script needs at runtime. Serialised once into `data-i18n` rather
+// than duplicated in the bundle — one source for the copy, and no import of the
+// whole dictionary into the client chunk.
+const clientI18n = {
+  submit: t.submit,
+  sending: t.sending,
+  errContact: isEn
+    ? 'Enter an email or a Telegram handle (at least 3 characters).'
+    : 'Укажите email или Telegram (минимум 3 символа).',
+  errMessage: isEn
+    ? 'Describe your request (at least 5 characters).'
+    : 'Опишите запрос (минимум 5 символов).',
+  errValidation: isEn ? 'Please check the highlighted fields.' : 'Проверьте выделенные поля.',
+  errRate: isEn
+    ? 'Too many messages — please try again later.'
+    : 'Слишком много сообщений, попробуйте позже.',
+  errServer: isEn
+    ? 'Something went wrong on my side — please try again.'
+    : 'Что-то сломалось на моей стороне — попробуйте ещё раз.',
+  errNetwork: isEn
+    ? 'No connection. Check your network, or write to me on Telegram:'
+    : 'Нет связи. Проверьте сеть или напишите в Telegram:',
+};
+---
+
+<div class="contact-form-block" data-i18n={JSON.stringify(clientI18n)}>
+  <form
+    class="contact-form board-card"
+    id="contact-form"
+    method="post"
+    action={CONTACT_ENDPOINT}
+    data-endpoint={CONTACT_ENDPOINT}
+    data-locale={locale}
+  >
+    <div class="contact-field">
+      <label class="contact-label" for="cf-name">
+        {t.name} <span class="contact-flag">{t.optional}</span>
+      </label>
+      <input
+        class="contact-input"
+        id="cf-name"
+        name="name"
+        type="text"
+        autocomplete="name"
+        maxlength={CONTACT_LIMITS.name}
+      />
+      <p class="contact-error" id="cf-name-error" aria-live="polite"></p>
+    </div>
+
+    <div class="contact-field">
+      <label class="contact-label" for="cf-contact">
+        {t.contact} <span class="contact-flag">{t.requiredMark}</span>
+      </label>
+      {/* type="text", not type="email": a Telegram handle is a valid answer and
+          type="email" would reject it on the native (no-JS) path. */}
+      <input
+        class="contact-input"
+        id="cf-contact"
+        name="contact"
+        type="text"
+        autocomplete="email"
+        required
+        minlength="3"
+        maxlength={CONTACT_LIMITS.contact}
+      />
+      <p class="contact-error" id="cf-contact-error" aria-live="polite"></p>
+    </div>
+
+    <div class="contact-field">
+      <label class="contact-label" for="cf-company">
+        {t.company} <span class="contact-flag">{t.optional}</span>
+      </label>
+      <input
+        class="contact-input"
+        id="cf-company"
+        name="company"
+        type="text"
+        autocomplete="organization"
+        maxlength={CONTACT_LIMITS.company}
+      />
+      <p class="contact-error" id="cf-company-error" aria-live="polite"></p>
+    </div>
+
+    <div class="contact-field">
+      <label class="contact-label" for="cf-message">
+        {t.message} <span class="contact-flag">{t.requiredMark}</span>
+      </label>
+      <textarea
+        class="contact-input contact-textarea"
+        id="cf-message"
+        name="message"
+        rows="6"
+        required
+        minlength="5"
+        maxlength={CONTACT_LIMITS.message}></textarea>
+      <p class="contact-error" id="cf-message-error" aria-live="polite"></p>
+    </div>
+
+    <input type="hidden" name="locale" value={locale} />
+    <input type="hidden" name="source" value="direct" />
+
+    {/* Honeypot: off-screen rather than display:none, because many bots skip
+        fields that are hidden but happily fill positioned ones. aria-hidden
+        keeps the whole block out of the accessibility tree, and tabindex="-1"
+        keeps it out of the tab order — a focusable node inside an aria-hidden
+        subtree would be an accessibility violation. */}
+    <div class="contact-honeypot" aria-hidden="true">
+      <label for="cf-website">Website</label>
+      <input
+        id="cf-website"
+        name={CONTACT_HONEYPOT_FIELD}
+        type="text"
+        tabindex="-1"
+        autocomplete="off"
+      />
+    </div>
+
+    <button class="button contact-submit" id="contact-submit" type="submit">
+      {t.submit}
+    </button>
+
+    {/* Kept in the DOM and always rendered: a live region that is display:none
+        (or `hidden`) when empty is not reliably announced when it later gains
+        text. It is an empty, zero-height paragraph until there is news. */}
+    <p class="contact-status" id="contact-status" role="status" aria-live="polite"></p>
+
+    <p class="contact-fallback" id="contact-fallback" hidden>
+      <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">{t.telegram}</a>
+    </p>
+  </form>
+
+  <p class="contact-success" id="contact-success" role="status" tabindex="-1" hidden>
+    {isEn ? "Thanks — I'll reply within a day." : 'Спасибо — я отвечу в течение дня.'}
+  </p>
+</div>
+
+<style>
+  /* No flex `gap` on the form: an empty live region or error still consumes a
+     gap on both sides, which would leave a stray half-space under every input.
+     Explicit margins put space where it belongs and only when it is earned. */
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    max-width: 60ch;
+    padding: var(--space-6);
+  }
+
+  /* `[hidden]` is a UA-sheet `display: none` and loses to any author `display`,
+     so the flex display above must be turned off explicitly when the script
+     swaps the form out. */
+  .contact-form[hidden] {
+    display: none;
+  }
+
+  /* An interactive surface that lifts under the pointer reads as a glitch; keep
+     the board-card's border highlight and drop its lift. */
+  .contact-form.board-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .contact-field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .contact-field + .contact-field {
+    margin-top: var(--space-4);
+  }
+
+  .contact-label {
+    margin-bottom: var(--space-2);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-normal);
+  }
+
+  .contact-flag {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .contact-input {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--background-tertiary);
+    color: var(--text-normal);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .contact-input:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+    border-color: var(--border-active);
+  }
+
+  .contact-input[aria-invalid='true'] {
+    border-color: var(--text-accent);
+  }
+
+  .contact-textarea {
+    resize: vertical;
+    min-height: 8rem;
+  }
+
+  .contact-error {
+    margin: 0;
+  }
+
+  .contact-error:not(:empty) {
+    margin-top: var(--space-2);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--text-accent);
+  }
+
+  .contact-submit {
+    align-self: flex-start;
+    margin-top: var(--space-5);
+  }
+
+  .contact-submit:disabled {
+    opacity: 0.6;
+    cursor: progress;
+    transform: none;
+  }
+
+  .contact-status {
+    margin: 0;
+  }
+
+  .contact-status:not(:empty) {
+    margin-top: var(--space-3);
+    font-size: 0.9rem;
+    color: var(--text-accent);
+  }
+
+  .contact-fallback {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .contact-fallback:not([hidden]) {
+    margin-top: var(--space-2);
+  }
+
+  .contact-fallback[hidden] {
+    display: none;
+  }
+
+  .contact-success {
+    margin: 0;
+    padding: var(--space-6);
+    max-width: 60ch;
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--text-accent);
+    border-radius: var(--radius-lg);
+    font-size: 1.05rem;
+    color: var(--text-normal);
+  }
+
+  .contact-success[hidden] {
+    display: none;
+  }
+
+  .contact-success:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+
+  /* Off-screen, not display:none — see the markup comment. */
+  .contact-honeypot {
+    position: absolute;
+    top: auto;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  import { track } from '../lib/analytics';
+  import { validateContact } from '../lib/contact';
+
+  // Wrapped in init(): an ES module cannot `return` at top level, so every early
+  // bail-out lives inside a function (same shape as SearchBox.astro).
+  function init() {
+    const found = document.getElementById('contact-form') as HTMLFormElement | null;
+    if (!found) return;
+    // Re-bound as non-nullable: the narrowing above does not survive into the
+    // hoisted function declarations below, which TypeScript cannot prove run
+    // after the guard.
+    const form: HTMLFormElement = found;
+
+    const block = form.closest('.contact-form-block') as HTMLElement | null;
+    const locale: 'ru' | 'en' = form.dataset.locale === 'en' ? 'en' : 'ru';
+    const endpoint = form.dataset.endpoint || form.action;
+    const i18n = JSON.parse(block?.dataset.i18n || '{}') as Record<string, string>;
+
+    const submit = document.getElementById('contact-submit') as HTMLButtonElement | null;
+    const status = document.getElementById('contact-status');
+    const success = document.getElementById('contact-success');
+    const fallback = document.getElementById('contact-fallback');
+
+    const FIELDS = ['name', 'contact', 'company', 'message'] as const;
+    const fieldEl = (field: string) =>
+      form.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[name="${field}"]`);
+    const errorEl = (field: string) => document.getElementById(`cf-${field}-error`);
+
+    // The island owns validation once it runs: native constraint bubbles fire
+    // before the submit handler and would pre-empt the inline errors. With JS
+    // off, `required` / `minlength` / `maxlength` are still the only gate.
+    form.noValidate = true;
+
+    function clearError(field: string): void {
+      const el = errorEl(field);
+      if (el) el.textContent = '';
+      const input = fieldEl(field);
+      // aria-describedby is only meaningful while there is something to
+      // describe, so it is added and removed together with the message.
+      input?.removeAttribute('aria-describedby');
+      input?.removeAttribute('aria-invalid');
+    }
+
+    function setError(field: string, message: string): void {
+      const el = errorEl(field);
+      if (el) el.textContent = message;
+      const input = fieldEl(field);
+      if (input) {
+        input.setAttribute('aria-describedby', `cf-${field}-error`);
+        input.setAttribute('aria-invalid', 'true');
+      }
+    }
+
+    function setBusy(busy: boolean): void {
+      if (submit) {
+        submit.disabled = busy;
+        submit.textContent = busy ? i18n.sending : i18n.submit;
+      }
+      form.setAttribute('aria-busy', busy ? 'true' : 'false');
+    }
+
+    function showFailure(reason: 'rate_limited' | 'server' | 'network'): void {
+      if (status) {
+        status.textContent =
+          reason === 'rate_limited'
+            ? i18n.errRate
+            : reason === 'network'
+              ? i18n.errNetwork
+              : i18n.errServer;
+      }
+      // A dead network is the one failure the visitor cannot retry their way
+      // out of, so that is where a second channel is worth offering.
+      if (fallback) fallback.hidden = reason !== 'network';
+    }
+
+    function showSuccess(): void {
+      form.hidden = true;
+      if (success) {
+        success.hidden = false;
+        // Move focus so the outcome is announced instead of the form silently
+        // vanishing under the pointer.
+        success.focus();
+      }
+    }
+
+    async function submitPayload(value: {
+      name: string;
+      contact: string;
+      company: string;
+      message: string;
+    }): Promise<void> {
+      const honeypot = fieldEl('website')?.value ?? '';
+
+      setBusy(true);
+      if (status) status.textContent = '';
+      if (fallback) fallback.hidden = true;
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            ...value,
+            locale,
+            source: 'direct',
+            // Sent verbatim: the function, not the client, decides what a
+            // non-empty honeypot means.
+            website: honeypot,
+          }),
+        });
+
+        if (res.ok) {
+          showSuccess();
+          track('contact_submit', { locale });
+          return;
+        }
+
+        const reason = res.status === 429 ? 'rate_limited' : 'server';
+        showFailure(reason);
+        track('contact_form_error', { locale, reason });
+      } catch {
+        showFailure('network');
+        track('contact_form_error', { locale, reason: 'network' });
+      } finally {
+        // Typed values are never cleared: a failed send must not cost the
+        // visitor their message.
+        setBusy(false);
+      }
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (submit?.disabled) return;
+
+      const data = new FormData(form);
+      const result = validateContact({
+        name: String(data.get('name') ?? ''),
+        contact: String(data.get('contact') ?? ''),
+        company: String(data.get('company') ?? ''),
+        message: String(data.get('message') ?? ''),
+      });
+
+      for (const field of FIELDS) clearError(field);
+
+      if (!result.ok) {
+        for (const field of result.fields) {
+          setError(field, field === 'contact' ? i18n.errContact : i18n.errMessage);
+        }
+        if (status) status.textContent = i18n.errValidation;
+        if (fallback) fallback.hidden = true;
+        fieldEl(result.fields[0])?.focus();
+        track('contact_form_error', { locale, reason: 'validation' });
+        return;
+      }
+
+      void submitPayload(result.value);
+    });
+  }
+
+  init();
+</script>

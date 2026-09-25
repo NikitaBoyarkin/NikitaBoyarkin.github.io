@@ -28,6 +28,8 @@
     "sync:gh:apply": "bun run scripts/sync-github-projects.mjs --apply",
     "sync:gh:candidates": "bun run scripts/sync-github-projects.mjs --candidates",
     "sync:activity": "bun run scripts/sync-github-activity.mjs",
+    "sync:contacts": "bun run scripts/sync-contact-log.mjs",
+    "sync:contacts:apply": "bun run scripts/sync-contact-log.mjs --apply",
     "audit:content": "bun run scripts/content-drift-audit.mjs",
     "audit:content:snapshot": "bun run scripts/content-drift-audit.mjs --snapshot",
     "volta:map": "bun run scripts/gen-volta-map.mjs"

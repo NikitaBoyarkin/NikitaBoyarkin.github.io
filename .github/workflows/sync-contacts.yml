@@ -1,0 +1,61 @@
+name: Sync contact log
+
+on:
+  schedule:
+    - cron: '23 4 * * *' # daily ~04:23 UTC, after the GitHub activity sync
+  workflow_dispatch:
+  push:
+    branches: [master, main]
+    paths:
+      - 'scripts/sync-contact-log.mjs'
+      - '.github/workflows/sync-contacts.yml'
+
+concurrency:
+  group: contact-log
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+# Workflow-level env may read secrets; a job-level `if` may not. The guard below
+# keeps the cron green until the Supabase project exists, and arms itself the
+# moment the secret is added — no edit to this file needed.
+env:
+  HAS_SUPABASE: ${{ secrets.SUPABASE_URL != '' }}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+          cache: bun
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Append new form submissions to the contact log
+        if: ${{ env.HAS_SUPABASE == 'true' }}
+        run: bun run sync:contacts:apply
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Skip notice
+        if: ${{ env.HAS_SUPABASE != 'true' }}
+        run: echo "::notice::SUPABASE_URL secret is not set — contact log sync skipped."
+
+      - name: Commit log
+        if: ${{ env.HAS_SUPABASE == 'true' }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: |
+            chore: sync contact log [skip ci]
+
+            Co-Authored-By: Claude Code <noreply@anthropic.com>
+          file_pattern: 'docs/contact-log.md'

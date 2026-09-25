@@ -24,6 +24,13 @@ Canonical event taxonomy for the portfolio, per
 | `read_depth` | `{ content_type, slug, depth, locale }` | scroll crosses 25/50/75/100% (`content_type ∈ {post, case_study, note}`) | `Analytics.astro` |
 | `filter_applied` | `{ tag, results_count, surface }` | a writing-page filter chip is applied (`surface ∈ {writing, notes}`) | `BlogFilter.astro` |
 | `projects_track_filter` | `{ track, results_count, locale }` | a project category tab is selected (`track` is the taxonomy key or `all`) | `ProjectBoard.astro` |
+| `contact_submit` | `{ locale }` | the contact form was submitted and the Edge Function accepted it | `ContactForm.astro` (only on `res.ok`) |
+| `contact_form_error` | `{ locale, reason }` | a contact-form submission failed (`reason ∈ {validation, rate_limited, server, network}`) | `ContactForm.astro` |
+| `booking_click` | `{ path }` | the 15-minute booking CTA is clicked | `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
+
+> `booking_click` carries `{ path }`, not `{ locale }`: the delegated handler owns
+> every `[data-analytics]` CTA and attaches the same props to all of them. The
+> locale is recoverable from the event's URL (`/en/contact/` vs `/contact/`).
 
 ### Super properties (registered once per load, PRD §4.2)
 

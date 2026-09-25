@@ -40,6 +40,16 @@ export interface AnalyticsEventMap {
   read_depth: { content_type: ContentType; slug: string; depth: number; locale: Locale };
   filter_applied: { tag: string; results_count: number; surface: 'writing' | 'notes' };
   projects_track_filter: { track: string; results_count: number; locale: Locale };
+  contact_submit: { locale: Locale };
+  contact_form_error: {
+    locale: Locale;
+    reason: 'validation' | 'rate_limited' | 'server' | 'network';
+  };
+  // Props mirror the delegated [data-analytics] handler in Analytics.astro, which
+  // attaches `{ path }` to every named CTA — declaring `{ locale }` here would be
+  // a type map that lies about what ships. Locale is still recoverable in PostHog
+  // from the event's URL (/en/contact/ vs /contact/).
+  booking_click: { path: string };
 }
 
 export type KnownEventName = keyof AnalyticsEventMap;
