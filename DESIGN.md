@@ -290,7 +290,7 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 - The colour is one token per theme (`--wallpaper-line`) applied through a `mask` over a theme-independent tile (`--wallpaper-tile`), rather than three baked-in data URIs that would drift apart. It follows the dataviz teal, not the coral action accent: the grid is chart language, not an interactive affordance.
 - Alpha stays tiny (0.07 dark and light, 0.10 cyberpunk). The lattice is texture on the 60% surface — never a second surface, and never strong enough to read as a card or panel.
 - It is a fixed layer, not `background-attachment: fixed` on `body`, which would repaint the whole pattern on every scroll frame.
-- Removed in `@media print` and `@media (forced-colors: active)`: paper wants no screen texture, and a tinted lattice over a user-chosen high-contrast palette is noise.
+- Removed in `@media print`, `@media (forced-colors: active)` and `@media (prefers-contrast: more)`: paper wants no screen texture, and a tinted lattice over a user-chosen high-contrast palette is noise. Someone who asked the OS for stronger contrast gets the clean surface too.
 
 ## Shapes
 

@@ -2169,7 +2169,7 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: var(--z-decor);
   pointer-events: none;
   background-color: var(--wallpaper-line);
   -webkit-mask-image: var(--wallpaper-tile);
@@ -2178,11 +2178,24 @@ body::before {
   mask-size: 42px 24px;
   -webkit-mask-repeat: repeat;
   mask-repeat: repeat;
+  /* Centred, not top-left: the layer spans the whole viewport while the content
+     is a centred 1000px column, so an origin at 0 0 would phase the left and
+     right gutters differently. Centring makes the lattice symmetric about the
+     column it sits behind. */
+  -webkit-mask-position: center;
+  mask-position: center;
 }
 
 /* Forced-colours drops background images but not masks — a tinted lattice over
-   a user-chosen high-contrast palette is noise, so opt out entirely. */
+   a user-chosen high-contrast palette is noise, so opt out entirely. The same
+   reasoning covers a user who asked the OS for stronger contrast directly. */
 @media (forced-colors: active) {
+  body::before {
+    display: none;
+  }
+}
+
+@media (prefers-contrast: more) {
   body::before {
     display: none;
   }
