@@ -75,6 +75,18 @@ const counterpartUrl = counterpartHref ? `${siteUrl}${counterpartHref}` : null;
 const ruAltUrl = isEn ? counterpartUrl : pageUrl;
 const enAltUrl = isEn ? pageUrl : counterpartUrl;
 
+// Site-level JSON-LD, emitted on every page. No `SearchAction`: the search box
+// is a client-side filter over /search-index.json with no addressable query
+// URL, and advertising a template that 404s is worse than advertising none.
+const websiteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Nikita Boyarkin',
+  url: `${siteUrl}${withBase('/')}`,
+  inLanguage: isEn ? 'en' : 'ru',
+  author: { '@type': 'Person', name: 'Nikita Boyarkin', url: `${siteUrl}${withBase('/')}` },
+};
+
 // Theme-toggle icons (lucide-style stroke paths, 24×24). Moved to plain
 // `d` strings so morphicons can animate between them without a lucide dep.
 const THEME_MOON = 'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z';
@@ -97,13 +109,21 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     {relPrev && <link rel="prev" href={relPrev} />}
     {relNext && <link rel="next" href={relNext} />}
 
-    {counterpartUrl && ruAltUrl && <link rel="alternate" hreflang="ru" href={ruAltUrl} />}
-    {counterpartUrl && enAltUrl && <link rel="alternate" hreflang="en" href={enAltUrl} />}
-    {counterpartUrl && ruAltUrl && <link rel="alternate" hreflang="x-default" href={ruAltUrl} />}
+    {ruAltUrl && <link rel="alternate" hreflang="ru" href={ruAltUrl} />}
+    {enAltUrl && <link rel="alternate" hreflang="en" href={enAltUrl} />}
+    {/* x-default falls back to the page itself: a page with no counterpart is
+        still the only version of itself, and emitting nothing tells crawlers
+        the page opts out of i18n entirely. */}
+    <link rel="alternate" hreflang="x-default" href={ruAltUrl ?? pageUrl} />
 
     <link rel="icon" type="image/svg+xml" href={faviconUrl} />
     <link rel="apple-touch-icon" href={faviconUrl} />
-    <link rel="alternate" type="application/rss+xml" title="Nikita Boyarkin — Writing" href={withBase('rss.xml')} />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={isEn ? 'Nikita Boyarkin — Writing' : 'Nikita Boyarkin — Заметки'}
+      href={withBase(isEn ? 'en/rss.xml' : 'rss.xml')}
+    />
 
     {
       /* LCP: preload the font subsets used above the fold so the hero `h1`
@@ -143,6 +163,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
       )
     }
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
 
     <script is:inline>
       // Prevent theme flash: apply saved or preferred theme before first paint.

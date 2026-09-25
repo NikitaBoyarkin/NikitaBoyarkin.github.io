@@ -19,10 +19,11 @@ interface Entry {
 const slugOf = (id: string) => id.replace(/\.md$/, "");
 
 export async function GET() {
-  const [ruProjects, enProjects, posts] = await Promise.all([
+  const [ruProjects, enProjects, posts, enPosts] = await Promise.all([
     getCollection("projects", (p) => !p.data.draft),
     getCollection("projects-en", (p) => !p.data.draft),
     getCollection("posts", (p) => !p.data.draft),
+    getCollection("posts-en", (p) => !p.data.draft),
   ]);
 
   const entries: Entry[] = [
@@ -56,6 +57,17 @@ export async function GET() {
       tags: p.data.tags ?? [],
       tools: [],
       href: withBase(`posts/${slugOf(p.id)}/`),
+      date: p.data.date.toISOString(),
+      image: p.data.image ? withBase(p.data.image) : null,
+    })),
+    ...enPosts.map<Entry>((p) => ({
+      type: "post",
+      locale: "en",
+      title: p.data.title,
+      desc: p.data.excerpt,
+      tags: p.data.tags ?? [],
+      tools: [],
+      href: withBase(`en/posts/${slugOf(p.id)}/`),
       date: p.data.date.toISOString(),
       image: p.data.image ? withBase(p.data.image) : null,
     })),

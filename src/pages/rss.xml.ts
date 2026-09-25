@@ -10,9 +10,9 @@ export async function GET(context: APIContext) {
   );
 
   return rss({
-    title: "Nikita Boyarkin — Writing",
+    title: "Nikita Boyarkin — Заметки",
     description:
-      "Articles on product analytics, A/B testing, and data science by Nikita Boyarkin.",
+      "Статьи по продуктовой аналитике, A/B-тестам и Data Science — Никита Бояркин.",
     site: context.site ?? "https://nikitaboyarkin.github.io",
     items: posts.map((post) => ({
       title: post.data.title,
@@ -21,6 +21,6 @@ export async function GET(context: APIContext) {
       link: `${BASE}/posts/${post.id.replace(/\.md$/, "")}/`,
       categories: [post.data.category, ...post.data.tags],
     })),
-    customData: `<language>en-us</language><lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`,
+    customData: `<language>ru-ru</language><lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`,
   });
 }
