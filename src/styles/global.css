@@ -1856,6 +1856,53 @@ footer p {
   font-style: italic;
 }
 
+/* Content tables — a hairline on every cell, so wide comparison tables read as
+   a grid instead of loose columns. Both content roots are covered: the tables
+   come from Markdown (28 collection files), and the only pages rendering them
+   are project pages (#project-content) and posts (.post-content). Colours are
+   the per-theme --table-* tokens, so the grid re-tints with dark / light /
+   cyberpunk; no new hex, which keeps contrast-gate.js on its token inputs. */
+#project-content table,
+.post-content table {
+  width: 100%;
+  margin: 1.5rem 0;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+#project-content th,
+#project-content td,
+.post-content th,
+.post-content td {
+  /* --table-border alone is a hairline within ~1.1:1 of the page in the light
+     theme, where a literal grid disappears into the cream. Tinting the muted
+     text colour reads at ~1.9–2.1:1 across dark / light / cyberpunk;
+     --table-border stays as the fallback for engines without color-mix(). */
+  border: 1px solid var(--table-border);
+  border-color: color-mix(in srgb, var(--text-muted) 40%, transparent);
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+#project-content thead th,
+.post-content thead th {
+  background: var(--table-header-background);
+  color: var(--text-normal);
+  font-weight: 600;
+}
+
+/* Cells hold plain text, but a raw-HTML cell can carry a <p> — keep the
+   «красная строка» and the justified tracking out of the grid. */
+#project-content td p,
+.post-content td p {
+  margin-bottom: 0;
+  text-indent: 0;
+  text-align: left;
+}
+
 /* Inner TOC for project pages */
 #inner-toc {
   position: fixed;
