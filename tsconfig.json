@@ -3,5 +3,5 @@
   "compilerOptions": {
     "types": []
   },
-  "exclude": ["dist", "tests", "monitoring", "supabase"]
+  "exclude": ["dist", "tests", "monitoring"]
 }
