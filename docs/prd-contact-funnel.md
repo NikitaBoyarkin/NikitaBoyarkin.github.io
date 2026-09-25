@@ -35,7 +35,7 @@
 
 ```
 браузер ──POST──> Edge Function (verify_jwt = false)
-  ContactForm.astro         supabase/functions/contact/index.ts
+  ContactForm.astro         portfolio-contact-backend (отдельный репо)
   action = CONTACT_ENDPOINT  ├─ honeypot (website) → 200 fake-ok, тихо
   + fetch-энхансмент         ├─ валидация + caps      → 400
     инлайн «спасибо»         ├─ rate-limit по ip_hash → 429
@@ -85,9 +85,9 @@
 
 | Файл | Что |
 |---|---|
-| `supabase/config.toml` | `[functions.contact] verify_jwt = false` |
-| `supabase/migrations/20260926000000_contact_messages.sql` | таблица `contact_messages`, RLS on + 0 политик, `check`-констрейнты длин, индексы по `created_at` и `(ip_hash, created_at)` |
-| `supabase/functions/contact/index.ts` | 205 строк: honeypot → тихий 200, валидация → 400, rate-limit → 429, insert → 502 при сбое, Telegram fire-and-forget, HTML/JSON по `Accept`, CORS на всех ответах |
+| `portfolio-contact-backend/supabase/config.toml` | `[functions.contact] verify_jwt = false` |
+| `portfolio-contact-backend/supabase/migrations/20260926000000_contact_messages.sql` | таблица `contact_messages`, RLS on + 0 политик, `check`-констрейнты длин, индексы по `created_at` и `(ip_hash, created_at)` |
+| `portfolio-contact-backend/supabase/functions/contact/index.ts` | 205 строк: honeypot → тихий 200, валидация → 400, rate-limit → 429, insert → 502 при сбое, Telegram fire-and-forget, HTML/JSON по `Accept`, CORS на всех ответах |
 | `src/lib/contact.ts` | `CONTACT_ENDPOINT`, `CAL_BOOKING_URL`, `CONTACT_LIMITS`, `validateContact()` |
 | `src/components/ContactForm.astro` | остров: honeypot off-screen, `aria-live` ошибки, инлайн-успех, `track()` |
 | `src/pages/contact.astro`, `src/pages/en/contact.astro` | форма primary, Telegram/LinkedIn вторичны, booking-CTA, ПДн-строка |
@@ -96,7 +96,7 @@
 | `scripts/sync-contact-log.mjs` | append-only синк: `--dry-run` по умолчанию, `--apply` для записи |
 | `.github/workflows/sync-contacts.yml` | cron 04:23 UTC + `workflow_dispatch`, `contents: write`, самовзводится при появлении секрета |
 | `tests/lib/contact.test.ts`, `tests/lib/sync-contact-log.test.ts`, `tests/built/contact.test.ts` | 9 + 12 + 10 тестов |
-| `package.json`, `.env.example`, `tsconfig.json` | `sync:contacts(:apply)`, `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`, exclude `supabase` |
+| `package.json`, `.env.example` | `sync:contacts(:apply)`, `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` |
 
 ### 5.1 Верификация
 
@@ -118,6 +118,7 @@
 - [ ] **3. Telegram-бот** (@BotFather) → токен; написать боту `/start`, чтобы у DM был chat id.
 - [ ] **4. Задеплоить backend:**
       ```bash
+      cd ../portfolio-contact-backend   # backend живёт в своём репозитории
       supabase link --project-ref <ref>
       supabase db push
       supabase secrets set TELEGRAM_BOT_TOKEN=… TELEGRAM_CHAT_ID=… IP_SALT=…
@@ -162,7 +163,7 @@
 | Дедуп по 8 hex-символам id, записанным в `evidence` | Удалил строку руками → следующий синк вернёт её | Если лог начнут чистить вручную — state-файл с id |
 | `segment` всегда `other` | Форма не знает целевой сегмент | Правится руками; при потоке — выпадающий список в форме |
 | Rate-limit по `ip_hash`, fail-open при сбое подсчёта | Хиккап PostgREST пропускает лишнюю заявку | Осознанно: иначе сбойный lookup глотает реальное сообщение |
-| `supabase` в `exclude` tsconfig | Функция не типизируется в CI (проверена отдельным `tsc --strict`) | При росте функции — отдельный `deno check` в workflow |
+| Backend вынесен в другой репозиторий (2026-09-26) | Длины живут в трёх местах (`CONTACT_LIMITS`, `index.ts`, `CHECK`) и расходятся молча | Ловится только ревью; при росте — тест на синк |
 | Booking — ссылка, не embed | В PostHog виден только клик, не факт встречи | Если booking-конверсия станет метрикой — Cal.com webhook |
 | Нет капчи | При целевом спаме — ручная чистка таблицы | При >10 спам-заявках/нед |
 
