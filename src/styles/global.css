@@ -114,6 +114,20 @@
      read as information, not as interactive calls-to-action. */
   --text-accent-dataviz: #4ecdc4;
 
+  /* Wallpaper — the honeycomb lattice behind every page (DESIGN.md). Alpha is
+     deliberately tiny: the grid is texture on the 60% surface, never a second
+     surface, so it must not read as a card or a panel. The colour follows the
+     dataviz teal, not the coral action accent, so the lattice stays in the
+     chart/graph language instead of promising interactivity. */
+  --wallpaper-line: rgba(78, 205, 196, 0.07);
+
+  /* The repeat unit itself is theme-independent — the colour comes from
+     --wallpaper-line above via `mask`, so one tile serves all three themes
+     instead of three near-identical baked-in data URIs drifting apart.
+     Geometry is the nav-logo hexagon: flat top/bottom edges, vertices left and
+     right, R = 14px, so the rectangular repeat unit is exactly 3R × √3R. */
+  --wallpaper-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='24' viewBox='0 0 42 24'%3E%3Cpath d='M35 12 28 24 14 24 7 12 14 0 28 0Z' fill='none' stroke='%23fff'/%3E%3Cpath d='M0 12h7M35 12h7' fill='none' stroke='%23fff'/%3E%3C/svg%3E");
+
   /* Spacing scale */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -187,6 +201,9 @@
   --border-active: #a8331a;
   --text-accent-dataviz: #0d7377;
 
+  /* Wallpaper line — the light-theme adaptation: same teal family, on cream. */
+  --wallpaper-line: rgba(13, 115, 119, 0.07);
+
   --shadow-color: rgba(0, 0, 0, 0.08);
 }
 
@@ -201,7 +218,10 @@
 }
 
 body {
-  background-color: var(--background-primary);
+  /* Transparent on purpose: the page colour now sits on `html` so the
+     wallpaper layer below (`body::before`) is not painted over. Same value,
+     one level up — nothing moves. */
+  background-color: transparent;
   color: var(--text-normal);
   font-family: var(--font-sans);
   line-height: 1.6;
@@ -2119,6 +2139,11 @@ footer p {
     color: black !important;
   }
 
+  /* Paper is the point of a printout; the lattice is screen texture. */
+  body::before {
+    display: none !important;
+  }
+
   a {
     color: black !important;
     text-decoration: underline !important;
@@ -2128,6 +2153,39 @@ footer p {
 /* Smooth scroll behavior */
 html {
   scroll-behavior: smooth;
+  /* The page colour lives on the root so `body` can stay transparent. */
+  background-color: var(--background-primary);
+}
+
+/* Wallpaper: a flat-top honeycomb lattice behind every page (DESIGN.md).
+   A fixed, pointer-transparent layer rather than a `background-attachment:
+   fixed` on `body`, because the latter repaints the whole pattern on every
+   scroll frame; this one is rasterised once and composited.
+   The hexagons share edges at this exact repeat unit, so the tiling is
+   seamless — proven by pixel-diffing the rendered tile against a
+   lattice-generated reference, not by eye (a 1px error here reads as a visible
+   seam every 42px across the whole site). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--wallpaper-line);
+  -webkit-mask-image: var(--wallpaper-tile);
+  mask-image: var(--wallpaper-tile);
+  -webkit-mask-size: 42px 24px;
+  mask-size: 42px 24px;
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+}
+
+/* Forced-colours drops background images but not masks — a tinted lattice over
+   a user-chosen high-contrast palette is noise, so opt out entirely. */
+@media (forced-colors: active) {
+  body::before {
+    display: none;
+  }
 }
 
 /* Selection color */
@@ -2181,6 +2239,10 @@ button:focus-visible {
   --button-ink: #1a1a1a;                     /* dark ink on magenta button (5.44:1, AA) */
   --border-active: #ff8569;
   --text-accent-dataviz: #4ecdc4;
+
+  /* Wallpaper line — neon lattice on near-black. Stepped up from the dark
+     theme's 0.07: the same alpha disappears against #0a0a12. */
+  --wallpaper-line: rgba(78, 205, 196, 0.1);
 
   --shadow-color: rgba(255, 133, 105, 0.15);
 }

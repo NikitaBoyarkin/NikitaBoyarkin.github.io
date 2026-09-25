@@ -283,6 +283,15 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 - Cards lift more than buttons; buttons get an accent-tinted shadow.
 - Reveal animations use the shared easing with a downward translate; stagger via the delay classes.
 
+## Wallpaper
+
+- Every page sits on a flat-top honeycomb lattice, drawn as a fixed, pointer-transparent layer (`body::before`) behind the content. Because of it, the page colour lives on `html` and `body` is transparent — the same value, one level up, so nothing shifts.
+- Geometry is the nav-logo hexagon (flat top/bottom edges, vertices left/right) at R = 14px, so the rectangular repeat unit is exactly `3R × √3R` = `42 × 24`. At that unit the hexagons share edges; a 1px error would read as a visible seam every 42px across the whole site, so the tile is verified by pixel-diffing it against a lattice-generated reference rather than by eye.
+- The colour is one token per theme (`--wallpaper-line`) applied through a `mask` over a theme-independent tile (`--wallpaper-tile`), rather than three baked-in data URIs that would drift apart. It follows the dataviz teal, not the coral action accent: the grid is chart language, not an interactive affordance.
+- Alpha stays tiny (0.07 dark and light, 0.10 cyberpunk). The lattice is texture on the 60% surface — never a second surface, and never strong enough to read as a card or panel.
+- It is a fixed layer, not `background-attachment: fixed` on `body`, which would repaint the whole pattern on every scroll frame.
+- Removed in `@media print` and `@media (forced-colors: active)`: paper wants no screen texture, and a tinted lattice over a user-chosen high-contrast palette is noise.
+
 ## Shapes
 
 - Radii scale from small to full; cards use the largest corner, buttons the medium, badges and count pills the full.
