@@ -23,16 +23,20 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Anomaly Detection
 
-## Context
+## Situation
 
 Fraud/anomalies are a heavily imbalanced problem: detectors must be compared honestly against ground truth.
 
-## Data & Method
+## Task
+
+My job was to compare the fraud and anomaly detectors honestly against ground truth, given how imbalanced the problem is and how easily the scores mislead.
+
+## Actions
 
 - Features: amount, hour, frequency.
 - Z-score, IQR, Isolation Forest; precision/recall/F1 against truth.
 
-## Findings
+## Result
 
 - **Isolation Forest** has the best F1 (**50.4%**, 401 detections).
 - **Z-score** is precise but cautious: precision **80.5%** at recall **24.7%** (123 detections).

@@ -22,17 +22,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Premium Upsell
 
-## Context
+## Situation
 
 The second Market & Jobs project: does the upsell found in the anchor transfer to new segments.
 
-## Data & Method
+## Task
+
+My job in the market and jobs layer was to check whether the upsell that worked for the anchor segment carries over to segments outside it.
+
+## Actions
 
 - Free→Premium conversion by JTBD segment and cohort.
 - Chi² + z-test (anchor vs gap), driver importance (logistic regression).
 - Offer-channel effect and top upgrade reason by segment.
 
-## Findings
+## Result
 
 - Conversion concentrates: **Premium Status 41.2%**, anchor **17.3%** vs **Digital Newcomers 45+ 1.8%** (z=34, p<0.001).
 - The gap persists within every cohort (Power 26% vs Dormant 2%).

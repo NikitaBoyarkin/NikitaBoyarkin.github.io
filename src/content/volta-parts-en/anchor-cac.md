@@ -23,17 +23,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Anchor Launch CAC at Scale
 
-## Context
+## Situation
 
 The 25–34 anchor is the growth point, but does the launch scale economically when taken to SOM.
 
-## Data & Method
+## Task
+
+I owned the question of whether the anchor segment stays economically viable once the launch is scaled to the serviceable market.
+
+## Actions
 
 - Marginal-CAC curves by channel (saturation).
 - Cheap-first greedy allocation, blended LTV/CAC and payback vs scale.
 - Break-even scale, channel-mix and capacity analysis.
 
-## Findings
+## Result
 
 - The LTV/CAC ≥3 gate holds only to ≈ **70K** users (31% of SOM).
 - At SOM (225K): **LTV/CAC 1.76×**, **17.0-month** payback — both gates fail; the marginal SOM user costs **€80**.

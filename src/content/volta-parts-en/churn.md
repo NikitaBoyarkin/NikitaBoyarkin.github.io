@@ -24,11 +24,15 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Churn Prediction
 
-## Context
+## Situation
 
 Churn is not only a marketing problem: we need to know what actually drives leaving in order to pick a lever.
 
-## Data & Method
+## Task
+
+My job was to find out what actually drives customers to leave, since churn is not only a marketing problem and the right lever has to be picked first.
+
+## Actions
 
 - Logistic regression vs Random Forest, ROC-AUC and feature importance.
 - SHAP summary (mean |SHAP|) and local breakdown of a single prediction.
@@ -39,7 +43,7 @@ Churn is not only a marketing problem: we need to know what actually drives leav
 
 *Why one specific user is high risk: each feature's contribution.*
 
-## Findings
+## Result
 
 - Random Forest adds **+0.03 ROC-AUC** over LR — a modest but robust gain.
 - Top driver is **device-error rate (23.7%)**, then usage_frequency (18.7%) and days_since_last_activity (16.5%).

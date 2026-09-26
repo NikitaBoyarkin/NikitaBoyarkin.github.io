@@ -26,11 +26,15 @@ related:
 
 # TaskFlow — PostHog Product Analytics Pipeline
 
-## Goal
+## Situation
 
 Most analytics portfolios start with a ready-made CSV. This project starts earlier — with instrumenting an application: define events without PII leaks, get them into the analytics tool, and turn raw events into decisions. The pipeline runs the whole cycle — generate traffic, capture events, analyze, dashboard, and deploy.
 
-## Data & Method
+## Task
+
+I needed to work from instrumentation rather than a handed-over export, so I owned the event plan, the capture path, and the analysis and dashboard that turn raw events into decisions.
+
+## Actions
 
 ### Pipeline
 

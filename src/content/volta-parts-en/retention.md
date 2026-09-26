@@ -24,17 +24,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Retention & Cohorts
 
-## Context
+## Situation
 
 Shipping is not the end: the KYC-fix effect was checked on retention with cohort triangles (signup month × age) instead of 'the average across everyone'.
 
-## Data & Method
+## Task
+
+I owned the retention check after the KYC fix shipped, reading the effect through cohort triangles by signup month and age instead of one average across the base.
+
+## Actions
 
 - Cohort curves and an M0–M11 retention matrix.
 - Pre/post Welch t-test + Cohen's d, bootstrap CIs at M1/M3/M6.
 - Plan-specific LTV decomposed into ARPU × retention.
 
-## Findings
+## Result
 
 - Step-change: post-fix cohorts (2024-09+) hold M1 ≈ **61–67%** vs **51–53%** pre-fix.
 - **M3 +9.2pp**; the effect does not fade — the gap persists at M6.

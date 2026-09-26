@@ -25,11 +25,15 @@ related:
 
 # Churn Prediction — Leakage-Free Retention Model
 
-## Goal
+## Situation
 
 A churn model for a subscription product. The difficulty is not the algorithm but the discipline: features must be computed as-of a snapshot date, the target must be a future inactivity window, and the split must be chronological. A random train/test split puts a user's future activity into training and their past into test: the model shows a pretty number that production never delivers. The project exists to eliminate that leakage — the same principle as A/B analysis: no future in the moment being modelled.
 
-## Data & Method
+## Task
+
+I needed a churn model whose offline score would survive contact with production, so I owned the as-of feature build, the future inactivity target, and the chronological split that keep the future out of the training moment.
+
+## Actions
 
 The data is synthetic and deterministic (seed = 42): 12,000 users sign up between Jun 2023 and Jan 2024, a channel-driven tenure (exponential lifetime) and a plan-driven daily activity probability; activity decays slightly approaching churn, giving a churn rate of ~16% per snapshot.
 

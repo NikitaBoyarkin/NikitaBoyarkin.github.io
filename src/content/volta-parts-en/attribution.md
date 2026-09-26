@@ -22,16 +22,20 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Marketing Attribution
 
-## Context
+## Situation
 
 Different attribution models give different answers about which channel 'brings' revenue — we compare them on the same data.
 
-## Data & Method
+## Task
+
+I needed to settle which channel can be credited with revenue, so I owned the side-by-side run of the competing attribution models on one dataset.
+
+## Actions
 
 - Journey dataset (touch_order × channel × revenue).
 - First-touch, last-touch, linear and Shapley attribution.
 
-## Findings
+## Result
 
 - Referral leads in all four models (**€218–264K**).
 - Shapley reallocates: referral rises to **€263.7K**, display falls to **€125.0K** vs ~€180K under the heuristics.

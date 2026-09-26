@@ -22,16 +22,20 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — RFM Analysis
 
-## Context
+## Situation
 
 We need a simple, interpretable customer-value layer complementing cluster segmentation.
 
-## Data & Method
+## Task
+
+I needed a value layer that stays simple and interpretable, so I owned adding it as a complement to the cluster segmentation.
+
+## Actions
 
 - R/F/M quintile scoring → lifecycle tiers.
 - Heatmap of mean R/F/M by segment.
 
-## Findings
+## Result
 
 - R/F/M scoring splits the base into lifecycle segments from **Champions** to **Lost**.
 - **Champions (23.9%)** hold all three axes high (R 91, F 93, M 93); **New** has high R (100) but low F/M (~30–35).

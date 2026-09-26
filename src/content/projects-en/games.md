@@ -26,11 +26,15 @@ related:
 
 # Browser Mini-Games — Analytics Arcade
 
-## Goal
+## Situation
 
 Analytics concepts — p-values, retention, funnels — are abstract: a recruiter or student can't 'feel' them from text, and passive dashboards don't provide an interactive experience. Mini-games turn concepts into mechanics: you play, and you understand why p < 0.05 matters, what a retention day is, and where the funnel bottleneck sits.
 
-## Data & Method
+## Task
+
+I needed statistical ideas to be learned by playing rather than by reading, so I owned the mini-games that turn p-values, retention days, and funnels into mechanics the player has to work through.
+
+## Actions
 
 ### Games
 

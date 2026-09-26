@@ -21,11 +21,15 @@ related:
 
 # Sales Calls Analytics Dashboard
 
-## Goal
+## Situation
 
 An AI call flow is a funnel: greeting → offer → meeting → qualification. The production export stores the calls but does not say which step the bot loses the client on. The goal is to turn the raw export into an answer in a minute: where the drop-off is, for what reasons, when to call, and what to fix — the script, the timing, or bot quality.
 
-## Data & Method
+## Task
+
+I needed the call export to name the step where the bot loses people, so I owned the analysis that maps the drop-off, its reasons, and the fix across script, timing, and bot quality.
+
+## Actions
 
 ### What the dashboard shows
 

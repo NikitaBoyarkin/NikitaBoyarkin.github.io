@@ -22,16 +22,20 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Spend Analysis
 
-## Context
+## Situation
 
 Where and on what customers spend — the basis for cashback and offer strategy.
 
-## Data & Method
+## Task
+
+I needed to establish where and on what customers spend, so I owned the spending layer that the cashback and offer strategy is built on.
+
+## Actions
 
 - Spend aggregation by category/channel/merchant.
 - Decline rate by category, monthly trend.
 
-## Findings
+## Result
 
 - **Bills (25.8%)** and **travel (20.2%)** are the largest categories; together nearly half the turnover.
 - **Groceries** is the most frequent (18,238 transactions, €45.8 average ticket).

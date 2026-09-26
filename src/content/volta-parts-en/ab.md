@@ -23,18 +23,22 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — KYC Progress-Bar A/B Test
 
-## Context
+## Situation
 
 Validating the funnel finding: a snapshot is not proof, so the hypothesis (split KYC into steps with a progress bar) was tested as an experiment.
 
-## Data & Method
+## Task
+
+I needed to show that the onboarding snapshot held up under a controlled test, so I owned the experiment that split KYC into steps with a progress bar.
+
+## Actions
 
 - Sample-size calculation for the MDE, SRM check (p=1.00), bootstrap CI.
 - **CUPED** with 'sessions before the test' as covariate (control-only θ).
 - **AA-test** under H₀ (type-I = 0.050) and multiple-comparison correction (Bonferroni/Holm/BH).
 - Sensitivity at the MDE (not post-hoc power).
 
-## Findings
+## Result
 
 - Control **55.8%** → treatment **61.5%**: **+5.72pp**, 95% CI [+3.78%, +7.66%], p<0.0001 — above the +5pp MDE.
 - No SRM; covariate balance confirmed.

@@ -23,11 +23,15 @@ related:
 
 # Scrolly English Speaking
 
-## Goal
+## Situation
 
 Workplace conversations in English (standups, syncs, interviews) are a weak spot for many Russian-speaking specialists at A2–B1: the grammar is there, but coherent speech and real-time reactions stall. A textbook doesn't help much: no context, no visuals, no link between phrases and situation. The task is to build not an article but an interactive guide, where a narrative leads the reader through workplace-conversation scenes and visualizations show how the workflow, tools, and progress metrics are structured.
 
-## Data & Method
+## Task
+
+I needed learners to practice workplace English inside a real situation rather than from a textbook, so I owned the interactive guide, its narrative scenes, and the visuals that carry the context.
+
+## Actions
 
 **Stack:** Astro 6 (`output: static`) + MDX + Tailwind v4 (via `@tailwindcss/vite`), D3 v7 for visualizations, Shiki (`nord` theme) for code, `@astrojs/sitemap`. Deploy to GitHub Pages subpath, Node 22.
 

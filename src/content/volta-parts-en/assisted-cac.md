@@ -22,17 +22,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Assisted CAC vs LTV
 
-## Context
+## Situation
 
 The first RAT v2 validation project: the v1 recommendation 'a separate trust track for 45+' is tested in money.
 
-## Data & Method
+## Task
+
+I owned the first check in the validation round that put the earlier recommendation — a separate trust track for the senior segment — to a money test.
+
+## Actions
 
 - LTV per user (ARPU × contribution margin × retention months).
 - Blended CAC by segment × channel, LTV/CAC with bootstrap CIs, payback.
 - Welch t-test anchor vs 45+ on assisted LTV.
 
-## Findings
+## Result
 
 - The **anchor** clears the ≥3 gate only via referral: LTV/CAC **3.62**.
 - **45+** clears no channel: assisted **0.41**; blended 45+ **0.66**.

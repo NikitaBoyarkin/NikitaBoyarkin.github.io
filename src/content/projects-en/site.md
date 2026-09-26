@@ -23,11 +23,15 @@ related:
 
 # This Portfolio Site
 
-## Goal
+## Situation
 
 A static portfolio where content (projects, posts) is edited in Markdown rather than component markup. Hosting is GitHub Pages as a user site (repository `NikitaBoyarkin.github.io`, served from the domain root), deploy is push-triggered with no manual build. Content and presentation must separate: a new project is a new `.md` file, with no component edits.
 
-## Data & Method
+## Task
+
+I needed publishing a project to be a content change and not a code change, so I owned the setup where a new Markdown file is enough and the deploy follows from a push.
+
+## Actions
 
 **Stack:** Astro 7, TypeScript, Markdown content collections (`src/content/{projects,posts}/`), Zod schemas in `src/content.config.ts`.
 

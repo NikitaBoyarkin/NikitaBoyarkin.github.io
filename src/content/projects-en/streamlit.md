@@ -22,11 +22,15 @@ related:
 
 # Product Analytics Dashboard (Streamlit)
 
-## Goal
+## Situation
 
 An analytics portfolio should show the whole AARRR cycle on one consistent dataset, not one metric in isolation. This dashboard is a self-contained app: data is generated deterministically, the metrics reproduce across runs, and the same UI later became the presentation layer for the Supabase full-stack project.
 
-## Data & Method
+## Task
+
+I needed the portfolio to show the full acquisition-to-retention cycle on one dataset, so I owned the app, its deterministic data generation, and the reproducible metric layer underneath.
+
+## Actions
 
 **Data:** a synthetic SaaS dataset, 8,000 users, Jan 2024 – Jun 2025. Generated in-memory with a deterministic seed = 42 and cached via `@st.cache_data` — the dataset is identical across runs and shared across pages within a session.
 

@@ -22,11 +22,15 @@ related:
 
 # Digital Garden
 
-## Goal
+## Situation
 
 Knowledge as chronological posts ages quickly and loses connections. A digital garden is the opposite of a blog: notes are not ordered by date but linked with `[[wikilinks]]`, have maturity stages (seedling → evergreen), and evolve over time. The task: publish a personal Zettelkasten as a static site where the reader sees a network of ideas and navigates by meaning, not chronology.
 
-## Data & Method
+## Task
+
+I needed my notes to stay connected instead of sliding down a timeline, so I owned the static site where ideas surface through wikilinks and maturity stages rather than post dates.
+
+## Actions
 
 **Content model:** atomic notes in Obsidian-flavored Markdown. Each note is one idea, with YAML frontmatter, tags, and `[[wikilinks]]` to neighboring concepts.
 

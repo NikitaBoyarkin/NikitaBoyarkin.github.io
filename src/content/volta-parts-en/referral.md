@@ -22,17 +22,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Referral Segments
 
-## Context
+## Situation
 
 Referral is the best funnel channel. We test whether it scales beyond the anchor.
 
-## Data & Method
+## Task
+
+Since referral is the strongest channel in the funnel, my job was to find out whether it holds up outside the anchor segment.
+
+## Actions
 
 - Referral funnel (sent→accepted→KYC→first-tx) by JTBD segment.
 - Chi² segment × status, two-proportion z-test anchor vs gap.
 - Channel effect within gap segments.
 
-## Findings
+## Result
 
 - **Anchor 29.6%** vs **45+ 4.8%** and **families 8.6%** (chi² p<0.001, z=43.3).
 - The gap opens at **accept** (78% vs 26% vs 40%), not at KYC.

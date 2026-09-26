@@ -25,17 +25,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Funnel Analysis
 
-## Context
+## Situation
 
 The first project in the **discover** loop: find where the fictional neobank «Volta» loses users in onboarding. Data is synthetic, seeded generator → reproducible CSV.
 
-## Data & Method
+## Task
+
+My job was to open the discover loop by locating exactly where onboarding loses users, working on a synthetic dataset built for reproducible runs.
+
+## Actions
 
 - Step conversion and absolute/relative drop-off at each funnel step (Install → Registration → KYC → Card → First TX).
 - Chi-square test for acquisition-channel differences.
 - Platform (iOS vs Android) and channel (referral vs paid social) comparison at each step.
 
-## Findings
+## Result
 
 - **KYC Complete** — largest relative drop-off: **56.6% step conversion** (2,781 of 4,917).
 - **Registration** — largest absolute loss: **2,682 users, 73.2% step conv**.

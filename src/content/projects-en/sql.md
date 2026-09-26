@@ -23,11 +23,15 @@ demo: https://nikitaboyarkin.github.io/sql-analytics-case-study/
 
 # SQL Analytics Case Study
 
-## Goal
+## Situation
 
 A take-home format: prove SQL skill on product tasks when there is no production data, and textbook exercises do not demonstrate systems thinking. 25 end-to-end cases on a synthetic product dataset **plus one real-data case** on UCI Online Retail II. Each case is one self-contained `.sql` file with the question and approach in a leading comment. No server, no credentials — a single command builds the data and a DuckDB database. Plus a **dbt layer** (staging → marts, 17 tests) on the same database.
 
-## Data & Method
+## Task
+
+I needed to demonstrate end-to-end SQL thinking without production data, so I owned the self-contained case files, the single-command data and database build, and the dbt layer that models them.
+
+## Actions
 
 **Data model** (synthetic, seed=42, deterministic):
 

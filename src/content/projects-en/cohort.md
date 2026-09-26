@@ -23,11 +23,15 @@ related:
 
 # Cohort Analysis Dashboard
 
-## Goal
+## Situation
 
 Cohort retention and LTV analysis on synthetic data: user retention, churn curves, and revenue by acquisition cohort. Average retention hides the dynamics, and LTV without an observation-age correction misleads. The task is to build a matrix that shows where churn speed is higher and where monetization drops faster than retention. A Python pipeline (pandas + matplotlib/seaborn) plus a Tableau-ready export; data is synthetic and deterministic (seed=42), reproduced from code.
 
-## Data & Method
+## Task
+
+I needed retention and lifetime value to be readable per acquisition cohort rather than as a single average, so I owned the pipeline that turns synthetic data into a retention and revenue matrix ready for Tableau.
+
+## Actions
 
 **Data model** — one row = "user × observation month":
 

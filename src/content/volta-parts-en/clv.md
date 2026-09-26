@@ -22,15 +22,19 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — CLV Modeling
 
-## Context
+## Situation
 
 To set CAC ceilings and retention priorities we need an estimate of future value, not just past revenue.
 
-## Data & Method
+## Task
+
+I needed a forward-looking value estimate rather than a backward-looking revenue total, so I owned the basis for setting CAC ceilings and retention priorities.
+
+## Actions
 
 - Historical CLV (actuals), retention-curve (power-fit), probabilistic Gamma-Gamma.
 
-## Findings
+## Result
 
 - The order **Power > Growth > Casual > Dormant** is robust across all three methods.
 - Gamma-Gamma: **Power €5,166** vs **Dormant €27.7** — a ~187× gap.

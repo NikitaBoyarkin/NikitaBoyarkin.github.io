@@ -23,11 +23,15 @@ related:
 
 # Product Analytics + A/B on Supabase
 
-## Goal
+## Situation
 
 Most analytics portfolios show metrics on a clean CSV. The hard part stays invisible: how analytics embeds into a real multi-tenant product — auth, per-org data isolation, an event ingest path, and an experiment whose result is computed in the database, not in a notebook.
 
-## Data & Method
+## Task
+
+I needed to show analytics living inside a real product rather than beside one, so I owned the multi-tenant setup: auth, per-organization isolation, the event ingest path, and the experiment result computed in the database.
+
+## Actions
 
 ### Architecture
 

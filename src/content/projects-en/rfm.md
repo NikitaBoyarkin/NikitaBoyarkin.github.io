@@ -20,11 +20,15 @@ related:
 
 # RFM Analysis of Bank Clients
 
-## Goal
+## Situation
 
 The bank accumulates client transaction data, but marketing campaigns ran "flat": the same offer for everyone. The task is to split the client base into homogeneous segments along three dimensions — **Recency** (when the last purchase happened), **Frequency** (operation count), and **Monetary** (total revenue) — and build a separate retention and growth strategy for each group.
 
-## Data & Method
+## Task
+
+I needed campaigns to stop sending the same offer to every client, so I owned the split of the client base along recency, frequency, and monetary value, and the separate retention strategy that follows for each group.
+
+## Actions
 
 **Data:** client transaction history, including operation date, amount, and transaction type.
 

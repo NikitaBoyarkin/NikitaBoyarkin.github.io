@@ -23,17 +23,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Traveler Unit Economics
 
-## Context
+## Situation
 
 The traveler segment promises a 'fair rate' — we test whether it survives economically.
 
-## Data & Method
+## Task
+
+I needed to know whether the traveler segment's promise of a fair rate survives economically, so I owned the unit economics behind it.
+
+## Actions
 
 - Revenue/cost/margin per transaction by segment.
 - FX break-even (cost vs spread), one-at-a-time sensitivity.
 - Scale projection to SOM.
 
-## Findings
+## Result
 
 - Net margin is **−€0.45** per €100 FX transaction — a loss on every transaction.
 - Break-even requires FX cost **1.00% → 0.55%**.

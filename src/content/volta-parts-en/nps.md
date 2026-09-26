@@ -23,16 +23,20 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — NPS Trends
 
-## Context
+## Situation
 
 Are customers promoters or neutrals? And which drivers move NPS.
 
-## Data & Method
+## Task
+
+I needed to see where customers sit between promoter and neutral, and my job was to find which drivers actually move the score.
+
+## Actions
 
 - Monthly NPS across 18 survey months.
 - NPS by driver and promoter mix.
 
-## Findings
+## Result
 
 - NPS hovers near zero: peak **+12.9** (2024-10), bottom **−1.8** (2024-09).
 - **app_quality +30.3** and **product +29.4** are the strongest drivers; **fees −59.4** is the main source of dissatisfaction.

@@ -23,11 +23,15 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Causal Validation of KYC (DiD)
 
-## Context
+## Situation
 
 Project 3 showed the KYC fix coincided with better retention, but a pre/post Welch t-test is a correlation, not a causal estimate: it ignores the shared monthly trend. This project tests the same claim with a difference-in-differences design against a flow the fix did not touch.
 
-## Data & Method
+## Task
+
+I owned the move from correlation to a causal estimate for the KYC fix: I needed a difference-in-differences design against a flow the fix did not touch, not the earlier before-and-after test.
+
+## Actions
 
 - Design: treated — in-app KYC (subject to the progress bar), comparison — partner KYC (agent-assisted; the fix does not apply), cutoff 2024-09.
 - N = 84,000 (50,400 treated / 33,600 comparison), 24 registration cohorts (2023-01 … 2024-12).
@@ -35,7 +39,7 @@ Project 3 showed the KYC fix coincided with better retention, but a pre/post Wel
 - Diagnostics: parallel trends (pre-period gap slope), a placebo at a fake 2024-01 cutoff, covariate balance (SMD), propensity overlap.
 - The data is synthetic: the generator injects a known ATT (+5.7 / +8.5 / +9.0 pp), so this is a methods demonstration — the estimator must recover the effect.
 
-## Findings
+## Result
 
 - **M3 retention: DiD ATT +9.09pp** (95% CI [+6.21, +11.96], p<0.001) — the causal estimate matches Project 3 (+9.2pp).
 - **Activation: naive +6.29pp → DiD +4.92pp** (95% CI [+4.07, +5.77]) — pre/post overstates the effect because it does not net out the shared trend.

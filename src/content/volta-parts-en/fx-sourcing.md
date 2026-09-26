@@ -23,17 +23,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — FX Sourcing Feasibility
 
-## Context
+## Situation
 
 Project 14 established the break-even FX cost (0.55%) but *assumed* such a price is buyable. This project models liquidity-provider quotes.
 
-## Data & Method
+## Task
+
+The preceding project set the break-even FX cost but only assumed it was buyable, so my job was to model what liquidity providers actually quote.
+
+## Actions
 
 - Provider quotes: interbank log-linear in volume, hedge cost falls with term.
 - Required volume for the gate (log-interpolation).
 - Provider ranking (quote vs hedge), hedge-term effect.
 
-## Findings
+## Result
 
 - The 0.55% gate is reachable at ≈ **€332M/month** — SOM scale (180K travelers).
 - Today's volume (~€2.7M/mo) is **~122× lower**; SOM clears the gate with 1.5× headroom.

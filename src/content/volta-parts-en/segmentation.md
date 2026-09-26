@@ -25,17 +25,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — User Segmentation
 
-## Context
+## Situation
 
 The effect held — the remaining question was who these users are and how to monetize them.
 
-## Data & Method
+## Task
+
+With the effect confirmed, my job was to establish who these users actually are and which of their traits open a monetization path.
+
+## Actions
 
 - StandardScaler + KMeans, K from data (marginal-gain elbow, silhouette validation).
 - PCA projection of segments and K-selection curves (inertia + silhouette), computed in code rather than shipped as a picture.
 - Lorenz concentration and cross-segment migration scenarios.
 
-## Findings
+## Result
 
 - **K=4**: Power 12% / Growth 24% / Casual 32% / Dormant 32% (sizes derived from data).
 - **Power** drive **41%** of revenue on 12% of users; **68%** → **92%**.

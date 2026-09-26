@@ -22,17 +22,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — JTBD × Cohorts
 
-## Context
+## Situation
 
 The first Market & Jobs project: do job segments (JTBD) match the behavioral cohorts from segmentation.
 
-## Data & Method
+## Task
+
+I opened the market and jobs layer by checking whether segments defined by the job to be done line up with the behavioral cohorts that segmentation produced.
+
+## Actions
 
 - Cross-table JTBD segment × cohort.
 - Chi-square for independence, two-proportion z-test for Dormant.
 - UX-friction contrast (support tickets, KYC duration).
 
-## Findings
+## Result
 
 - Chi-square: JTBD segment × cohort are **NOT independent (p<0.001)**.
 - **Dormant 39.4%** among Digital Newcomers 45+ vs **15.1%** among Family Budgeters (z-test significant).

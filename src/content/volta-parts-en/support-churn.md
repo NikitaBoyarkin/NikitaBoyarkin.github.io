@@ -22,16 +22,20 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Support & Churn
 
-## Context
+## Situation
 
 We test whether a bad support experience drives churn and whether it can be influenced.
 
-## Data & Method
+## Task
+
+My job was to check whether a poor support experience actually drives churn, and whether that link is something the team can act on.
+
+## Actions
 
 - Ticket–churn merge per user.
 - Churn by ticket count, by unresolved, by CSAT band.
 
-## Findings
+## Result
 
 - Churn rises with ticket count: **37.1%** (0) → **46.3%** (1) → **65.2%** (2) → **81.1%** (3+).
 - Users with 3+ tickets churn **2.2×** more than the base.

@@ -23,17 +23,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Dormant 45+ Win-back
 
-## Context
+## Situation
 
 The last RAT v2 project: Project 13 argued that 45+ dormancy is a UX barrier. We test whether assisted reactivation recovers these dormant users and whether it pays off.
 
-## Data & Method
+## Task
+
+I owned the closing check of the validation round: whether assisted reactivation actually brings dormant senior users back, and whether that effort pays for itself.
+
+## Actions
 
 - Three-arm randomized win-back: automated / light-touch / human.
 - Four dormancy buckets; z-tests by arm and bucket with Holm correction.
 - ROI per 10K treated, targeting boundary, break-even LTV.
 
-## Findings
+## Result
 
 - Mechanism confirmed: **human +5.34pp** and **light-touch +2.77pp** vs control (both significant); strongest at 30–60d (human **+11.37pp**).
 - Economics refine it: light-touch pays off at **30–60d (ROI 2.54)** and **60–90d (1.26)**; human loses money everywhere (**overall 0.40**).

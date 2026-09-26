@@ -23,17 +23,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — Segment Premium Offers
 
-## Context
+## Situation
 
 Project 15 showed the generic upsell doesn't transfer and recommended segment offers — but that was untested. This project tests generic (control) vs segment (treatment).
 
-## Data & Method
+## Task
+
+The preceding project recommended segment offers but left them untested, so I owned the head-to-head test of the generic upsell against the segment offer.
+
+## Actions
 
 - Randomized A/B, sample-size/SRM checks.
 - z-test by segment with 95% CIs, Holm correction.
 - Segment × arm interaction (DiD), residual-gap analysis.
 
-## Findings
+## Result
 
 - Treatment lifts gap segments: **45+ 1.6%→5.0%**, **families 4.4%→8.6%**, **travelers 8.8%→12.6%** — all Holm-significant.
 - The anchor barely moves (**+0.86pp**): it's already served by the generic offer.

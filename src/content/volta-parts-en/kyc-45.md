@@ -22,17 +22,21 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 # Volta — 45+ KYC Deep-Dive
 
-## Context
+## Situation
 
 The KYC fix lifted conversion overall — but does it close the 45+ segment specifically, which dropped off the funnel the most.
 
-## Data & Method
+## Task
+
+With the overall lift confirmed, my job was to isolate the senior segment — the one that fell out of the funnel hardest — and see whether the KYC fix closes it too.
+
+## Actions
 
 - Age-sliced A/B HTE of KYC (two-proportion z-test).
 - 45+ vs 25–34 KYC completion by channel.
 - Chi-square age × completion within treatment.
 
-## Findings
+## Result
 
 - **35–44 +11.0pp** (p<0.001) and **18–24 +5.3pp** (p<0.05) — significant; **45+ +1.4pp** (p=0.59, ns) — the fix does not close 45+.
 - The 45+ gap persists in treatment: **53.2% vs 61.2%** for 25–34 (chi² p<0.001).

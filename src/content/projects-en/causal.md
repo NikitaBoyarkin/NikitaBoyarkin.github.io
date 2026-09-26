@@ -26,11 +26,15 @@ related:
 
 # Causal / Uplift — CUPED and Individual Treatment Effects
 
-## Goal
+## Situation
 
 A standard two-sample t-test answers only "does the treatment work on average" and ignores the pre-period. Experiments therefore ask for more traffic than they need, and retention offers go to everyone while only part of the audience responds. The project closes both gaps: CUPED reduces variance using a pre-period covariate, and uplift modeling estimates the individual treatment effect (ITE). Both run on a synthetic randomized experiment with a known heterogeneous effect, so the estimates can be checked against ground truth.
 
-## Data & Method
+## Task
+
+I needed the experiment to read both the average effect and who actually responds, so I owned the variance reduction and the uplift estimation, and checked both against a synthetic run with known ground truth.
+
+## Actions
 
 Synthetic, deterministic data (seed = 42), 20,000 users in a randomized experiment:
 

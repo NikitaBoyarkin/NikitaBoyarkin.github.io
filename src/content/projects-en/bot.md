@@ -23,11 +23,15 @@ related:
 
 # Reporting Automation Telegram Bot
 
-## Goal
+## Situation
 
 Every week an analyst manually gathered metrics from several sources, refreshed a dashboard, exported screenshots, and posted them to the team chat. The process took 1–2 hours, was often delayed, and depended on a single person. The task is to move report assembly into a bot that fetches data and sends it on a schedule, so the team gets metrics regularly and in one format.
 
-## Data & Method
+## Task
+
+I needed to take the weekly report off a single person's hands, so I owned the bot that fetches the numbers on a schedule and posts them to the team in one consistent format.
+
+## Actions
 
 **Data:** product metrics from a database (SQL), external APIs, and ready-made Tableau dashboards.
 

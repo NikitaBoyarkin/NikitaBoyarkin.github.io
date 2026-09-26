@@ -71,13 +71,17 @@ children:
 - **Retention:** the effect held — **+9.2pp** M3 retention, **+€227K/yr** incremental LTV.
 - **Causality:** a DiD check confirms the fix *caused* the shift: M3 retention **+9.09pp** (95% CI [+6.21, +11.96]).
 
-## Goal
+## Situation
 
 «Volta» is a fictional neobank that was losing users during onboarding. Marketing saw traffic, product saw activation, support saw tickets. Every team had its own number — and none of them explained where the money was leaking. We started with one question: **which onboarding step is critical?**
 
 We answered it with four projects wired into a single **discover → validate → measure → optimize** loop. Each project is a piece of evidence that narrows the case. All data is synthetic, generated deterministically (seed), and reproduced from code: any conclusion can be re-checked by re-running, not taken on faith.
 
-## Data & Method
+## Task
+
+I needed to find where the onboarding flow was actually losing users, and to prove it with evidence rather than per-team numbers, so I owned the loop that narrows the case from a first question to a defensible answer.
+
+## Actions
 
 **Data:** synthetic, seeded generators (`generate_*.py`) → reproducible CSVs. The funnel dataset is committed; the rest are generated on demand.
 

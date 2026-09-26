@@ -22,11 +22,15 @@ related:
 
 # A/B Testing Methodology Toolkit
 
-## Goal
+## Situation
 
 An A/B testing method is only as good as its Type I error under the null and its power under a real effect. In practice those promises are rarely checked: naive peeking, a wrong SE for ratio metrics, and multiple testing silently break decisions. The toolkit implements 15 methods from the primary literature and calibrates each one by simulation instead of trusting asymptotics.
 
-## Data & Method
+## Task
+
+I needed a testing toolkit whose methods hold up under the null and under a real effect, so I owned the calibration layer and checked every method by simulation instead of trusting asymptotics.
+
+## Actions
 
 ### Modules
 
