@@ -279,6 +279,10 @@ The theme toggle is implemented in `src/layouts/Base.astro`:
 - The toggle button updates `data-theme` and persists the choice.
 - CSS custom properties in `src/styles/global.css` react to `[data-theme="light"]`.
 
+### Demos
+
+The five boards in `public/demos/{volta,cohort,rfm,telegram,bayesian}/` load `/demos/demo.css` + `/demos/demo-theme.js` and follow the same three themes. They sync by reading the `storage` event, not by any parent-side code — `Base.astro` is not involved and must stay that way. `demo.css` duplicates the palette because `public/` is never processed; `tests/lib/demo-tokens.test.ts` is what keeps the copy honest. Data colours live in the `--dv-*` bucket and never style an interactive affordance. Full rationale: `DESIGN.md` → Demos.
+
 ## Analytics
 
 `src/components/Analytics.astro` loads the official PostHog JS snippet. It is **inert until build-time env vars are set**:

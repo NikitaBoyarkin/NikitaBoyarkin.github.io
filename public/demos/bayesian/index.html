@@ -1,39 +1,48 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Peeking у p-value vs Bayesian posterior</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
 <style>
-  :root{--bg:#fafaf7; --ink:#1f2430; --muted:#6b7280; --line:#e5e7eb; --p:#ef6c5a; --b:#2e7d32; --warn:#f59e0b}
-  *{box-sizing:border-box}
-  body{margin:0; padding:24px; background:var(--bg); color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; font-size:14px; line-height:1.5}
-  h1{font-size:18px; margin:0 0 4px}
-  .lede{margin:0 0 16px; color:var(--muted); font-size:13px}
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. This is the one demo canvas paints into, so its colours are
+     read back from the same tokens by demo-theme.js's demoTokens(). */
   .chart-wrap{position:relative; max-width:640px}
-  canvas{width:100%; height:300px; display:block; border-radius:8px}
-  .controls{margin-top:14px; display:flex; flex-wrap:wrap; gap:16px; align-items:center}
+  canvas{width:100%; height:300px; display:block; border-radius:var(--radius-md)}
+  .controls{margin-top:14px; display:flex; flex-wrap:wrap; gap:var(--space-4); align-items:center}
   .slider{display:flex; align-items:center; gap:10px; flex:1; min-width:220px}
-  input[type=range]{flex:1}
+  input[type=range]{flex:1; accent-color:var(--text-accent)}
   .readout{display:flex; gap:18px; font-size:13px}
   .readout b{font-variant-numeric:tabular-nums}
-  .pval{color:var(--p)} .pod{color:var(--b)}
-  .legend{display:flex; gap:16px; font-size:12px; color:var(--muted); margin-bottom:10px}
-  .legend i{width:14px; height:3px; display:inline-block; vertical-align:middle; margin-right:5px}
-  .flag{margin-top:12px; padding:10px 12px; border-radius:8px; font-size:13px; background:#fff7ed; color:#9a3412; border:1px solid #fed7aa; display:none}
+  .pval{color:var(--dv-bad)} .pod{color:var(--dv-good)}
+
+  .demo-legend{margin-bottom:10px}
+  .demo-legend i{width:14px; height:3px; display:inline-block; border-radius:2px}
+  .sw-p{background:var(--dv-bad)}
+  .sw-b{background:var(--dv-good)}
+  .sw-t{background:var(--dv-threshold); height:1px}
+
+  /* demo.css supplies the flag's colour (border + currentColor from --dv-warn /
+     --dv-good); this carries its size, because .demo-flag is a compact badge
+     and this one is a full sentence. */
+  .flag{display:none; padding:var(--space-2) var(--space-3);
+    border-radius:var(--radius-md); font-size:13px; max-width:640px}
   .flag.show{display:block}
-  .flag.ok{background:#f0fdf4; color:#166534; border-color:#bbf7d0}
 </style>
 </head>
 <body>
-  <h1>Peeking у p-value vs Bayesian posterior</h1>
-  <p class="lede">Двигайте размер выборки. p-value (красный) дрожит и ловит ложную значимость, posterior PoD (зелёный) сходится плавно.</p>
+  <h1 class="demo-title">Peeking у p-value vs Bayesian posterior</h1>
+  <p class="demo-lede">Двигайте размер выборки. p-value (красный) дрожит и ловит ложную значимость, posterior PoD (зелёный) сходится плавно.</p>
 
-  <div class="legend">
-    <span><i style="background:var(--p)"></i>p-value</span>
-    <span><i style="background:var(--b)"></i>PoD (вероятность, что B &gt; A)</span>
-    <span><i style="background:var(--muted); height:1px"></i>порог 0,05</span>
+  <div class="demo-legend">
+    <span><i class="sw-p"></i>p-value</span>
+    <span><i class="sw-b"></i>PoD (вероятность, что B &gt; A)</span>
+    <span><i class="sw-t"></i>порог 0,05</span>
   </div>
 
   <div class="chart-wrap"><canvas id="cv" width="1280" height="600"></canvas></div>
@@ -49,7 +58,7 @@
       <span class="pod">PoD: <b id="pd">—</b></span>
     </div>
   </div>
-  <div class="flag" id="flag"></div>
+  <div class="demo-flag flag" id="flag"></div>
 
 <script>
 // 30 точек: n = 100..3000 шаг 100
@@ -71,6 +80,16 @@ const pvEl = document.getElementById("pv");
 const pdEl = document.getElementById("pd");
 const flag = document.getElementById("flag");
 
+// Canvas cannot be recoloured by CSS, so the dataviz tokens are read back as
+// literal strings. demo-theme.js returns the SPECIFIED TEXT of each custom
+// property, which for these is a hex colour — usable as a strokeStyle with no
+// parsing. Re-read on demo:themechange rather than on every frame: a slider
+// drag would otherwise force a style recalc 30 times a second.
+const TOKEN_NAMES = ['--dv-axis','--dv-label','--dv-threshold','--dv-current',
+                     '--dv-bad','--dv-good','--font-sans'];
+let C = {};
+function readColors(){ C = window.demoTokens(TOKEN_NAMES); }
+
 function idxAt(n){ return Math.min(N.length-1, Math.max(0, (n/100)-1)); }
 
 function draw(n){
@@ -82,9 +101,10 @@ function draw(n){
   const xAt = v => padL + (v - 100)/(3000-100) * plotW;
   const yAt = v => padT + (1 - v) * plotH; // 0..1
 
-  // Сетка + оси
-  ctx.strokeStyle = "#e5e7eb"; ctx.fillStyle = "#6b7280";
-  ctx.lineWidth = 1; ctx.font = "20px Inter, sans-serif";
+  // Сетка + оси. --dv-axis, не --border-color: сетка здесь — единственная
+  // привязка шкалы, то есть графический объект без текстового дубля (WCAG 1.4.11).
+  ctx.strokeStyle = C['--dv-axis']; ctx.fillStyle = C['--dv-label'];
+  ctx.lineWidth = 1; ctx.font = "20px " + C['--font-sans'];
   [0, 0.25, 0.5, 0.75, 1].forEach(t=>{
     const y = padT + (1-t)*plotH;
     ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
@@ -96,16 +116,16 @@ function draw(n){
     ctx.fillText(String(v), x-22, H-padB+28);
   });
   // порог 0.05
-  ctx.strokeStyle = "#9aa3ad"; ctx.setLineDash([8,8]);
+  ctx.strokeStyle = C['--dv-threshold']; ctx.setLineDash([8,8]);
   ctx.beginPath(); ctx.moveTo(padL, yAt(0.05)); ctx.lineTo(W-padR, yAt(0.05)); ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = "#6b7280";
+  ctx.fillStyle = C['--dv-label'];
   ctx.fillText("α = 0,05", W-padR-90, yAt(0.05)-6);
 
   const cut = idxAt(n);
 
   // p-value
-  ctx.strokeStyle = "#ef6c5a"; ctx.lineWidth = 4;
+  ctx.strokeStyle = C['--dv-bad']; ctx.lineWidth = 4;
   ctx.beginPath();
   for (let i=0; i<=cut; i++){
     const x = xAt(N[i]), y = yAt(PVAL[i]);
@@ -115,13 +135,13 @@ function draw(n){
   // точки-маркеры ложной значимости (p<0.05 при PoD<0.85)
   for (let i=0; i<=cut; i++){
     if (PVAL[i] < 0.05 && POD[i] < 0.85){
-      ctx.fillStyle = "#ef6c5a";
+      ctx.fillStyle = C['--dv-bad'];
       ctx.beginPath(); ctx.arc(xAt(N[i]), yAt(PVAL[i]), 7, 0, 2*Math.PI); ctx.fill();
     }
   }
 
   // PoD
-  ctx.strokeStyle = "#2e7d32"; ctx.lineWidth = 4;
+  ctx.strokeStyle = C['--dv-good']; ctx.lineWidth = 4;
   ctx.beginPath();
   for (let i=0; i<=cut; i++){
     const x = xAt(N[i]), y = yAt(POD[i]);
@@ -130,7 +150,7 @@ function draw(n){
   ctx.stroke();
 
   // вертикаль на текущем n
-  ctx.strokeStyle = "#1f2430"; ctx.lineWidth = 2;
+  ctx.strokeStyle = C['--dv-current']; ctx.lineWidth = 2;
   const xn = xAt(n);
   ctx.beginPath(); ctx.moveTo(xn, padT); ctx.lineTo(xn, padT+plotH); ctx.stroke();
 }
@@ -145,23 +165,27 @@ function update(){
   draw(n);
   // Ловушка peeking: p<0.05, но PoD ещё низкая
   if (pv < 0.05 && pd < 0.85){
-    flag.className = "flag show";
+    flag.className = "demo-flag flag show";
     flag.innerHTML = "⚠️ Ловушка peeking: при n = "+n+
       " p-value = "+pv.toFixed(3)+
       " (значимо!), но PoD = "+pd.toFixed(2)+
       " — уверенности нет. Частотный вывод развернётся на большем n.";
   } else if (pv < 0.05 && pd >= 0.9){
-    flag.className = "flag show ok";
+    flag.className = "demo-flag flag show demo-flag--ok";
     flag.innerHTML = "✅ n = "+n+": p-value = "+pv.toFixed(3)+
       " и PoD = "+pd.toFixed(2)+
       " — оба метода согласны, эффект подтверждён.";
   } else {
-    flag.className = "flag";
-    flag.style.display = "none";
+    flag.className = "demo-flag flag";
   }
 }
+
+readColors();
+// Первый кадр — после загрузки Inter: иначе оси и подписи нарисовались бы
+// метриками фолбэк-шрифта и прыгнули, когда шрифт доедет.
+document.fonts.ready.then(update);
 nInput.addEventListener("input", update);
-update();
+document.addEventListener("demo:themechange", ()=>{ readColors(); update(); });
 </script>
 </body>
 </html>

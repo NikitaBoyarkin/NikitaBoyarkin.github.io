@@ -584,9 +584,16 @@ svg text {
   fill: var(--dv-label);
 }
 
-/* Non-text recessive marks: the "before the fix" series, legend strokes. */
+/* Non-text recessive marks: the "before the fix" series' markers and legend
+   swatches. Fill and stroke are separate classes on purpose — a polyline in the
+   markup carries fill="none", and a presentation attribute has specificity 0,
+   so a class that set `fill` would beat it and flood the line's interior. */
 .dv-muted {
   fill: var(--text-muted);
+}
+
+.dv-muted-line {
+  stroke: var(--text-muted);
 }
 
 .dv-axis {
@@ -601,9 +608,8 @@ svg text {
   fill: var(--text-accent-dataviz);
 }
 
-.dv-s2 {
-  fill: var(--text-muted);
-  stroke: var(--text-muted);
+.dv-s1-line {
+  stroke: var(--text-accent-dataviz);
 }
 
 .dv-dataviz {

@@ -304,7 +304,22 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 - **Skill badge** — accent-tinted pill with an accent border; used for skills and topic chips.
 - **Kanban column** — full-width snap panel on mobile, equal share on desktop; accent top border; header carries an accent dot and a count pill.
 
+## Demos
+
+The five standalone boards under `public/demos/{volta,cohort,rfm,telegram,bayesian}/` are embedded as iframes in articles and linked from project cards. They load two shared files from the site root — `/demos/demo.css` and `/demos/demo-theme.js` — and follow the site's three themes instead of each shipping an ad-hoc palette.
+
+- `public/` is copied verbatim and never processed, so `demo.css` cannot `@import` from `src/styles/global.css` and restates the tokens instead. `tests/lib/demo-tokens.test.ts` is what makes the copy safe: it parses both files, compares every shared token, and goes red on drift. Not hypothetical — `public/games/index.html` drifted exactly this way and still carries the pre-fix `#ff6643`.
+- Theme sync needs no parent-side code. The site stores `localStorage['theme']`; a demo is a same-origin browsing context, so a write in the parent fires a `storage` event inside the iframe. The `matchMedia` fallback covers the state where nothing has been stored yet, guarded the same way `Base.astro` guards it — `Base.astro` is deliberately untouched.
+- `--dv-*` is the demos' own dataviz bucket, with no canon in `global.css`. Rule: **`--dv-*` never styles a button, a link, a focus ring, `--border-active` or any hover affordance.** That separation is what keeps the coral action accent at an honest 10% of the surface area.
+- Why a luminance ramp and not the site's alpha idiom: `ChartCohort.astro` fills cells with one hue at `fill-opacity` 0.1–1.0, which works because its cells carry no text. The demos print `val%` inside the cell, and the middle of a mid-luminance teal is a dead zone — alpha 0.52 reaches 3.5:1 in dark and 2.9:1 in cyberpunk, so no ink passes AA there. Hence `--dv-seq-1..7` living in the light half of the range, and one theme-invariant ink, `--dv-cell-ink`.
+- `--dv-axis` deviates from `--border-color` on purpose: a hairline divides surfaces, where 1.5:1 is fine, but a chart axis is a graphical object with no text alternative, so 1.4.11 asks for 3:1. Same reasoning for `--dv-label`, which is not `--text-muted` — that fails 4.5:1 on `--background-tertiary`, where volta's tick labels sit.
+- `--dv-bad` is red rather than the coral action accent, and the two stay visibly distinct on purpose: a chart that warns is not a chart that invites a click. Keeping it in the `--dv-*` namespace means it can never be reached for as a button colour.
+- Canvas (`bayesian`) cannot be recoloured by CSS. `demo-theme.js` exposes `demoTokens()`, which returns the *specified text* of a custom property — so **no `--dv-*` may contain `var()` or `color-mix()`**, or that text reaches `ctx.strokeStyle` unparsable. Enforced by the test.
+- Two deliberate deviations from the prose scale: the base is 14px/1.5 rather than the site's 16px/1.6 (demos are dashboard-density panels in fixed-height iframes, and 16px clips every embed), and Cormorant is not loaded — demo headings are Inter.
+- Data colours reach the DOM through classes (`seq-3`, `cat-7`, `dv-s1`), never inline styles, so they re-resolve on a theme change with no JavaScript. Volta's 133 SVG presentation attributes were replaced by classes for the same reason, and so that "no colour literal in the demo HTML" is a claim a test can check.
+
 ## Do's and Don'ts
 
+- Don't put a `--dv-*` token on anything interactive — dataviz colour is information, and the coral action accent only stays at 10% if it keeps the affordances to itself.
 - Don't ship a theme color that fails WCAG AA contrast against both the page background and the card surface — enforced by the contrast-gate hook.
 - Don't use the accent as link text on a light card unless it passes AA; a vivid accent that works as a button fill often fails as link text.

@@ -1,22 +1,18 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Карта RFM-сегментов</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
 <style>
-  :root{
-    --bg:#fafaf7; --ink:#1f2430; --muted:#6b7280; --line:#e5e7eb;
-    --cell-gap:6px;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; padding:24px; background:var(--bg); color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-    font-size:14px; line-height:1.5;
-  }
-  h1{font-size:18px; margin:0 0 4px}
-  .lede{margin:0 0 18px; color:var(--muted); font-size:13px}
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. */
+  :root{ --cell-gap:6px; }
+
   .board{
     display:grid;
     grid-template-columns: 44px repeat(5, 1fr);
@@ -25,77 +21,71 @@
     max-width:560px;
   }
   .corner{background:transparent}
-  .axis{
+  .axis, .row-label{
     display:flex; align-items:center; justify-content:center;
-    font-size:12px; font-weight:600; color:var(--muted);
+    font-size:12px; font-weight:600; color:var(--dv-label);
   }
   .cell{
-    position:relative; border-radius:8px; padding:8px;
-    display:flex; align-items:flex-end;
-    font-size:11px; font-weight:600; color:#1f2430;
-    cursor:default; min-height:64px;
-    box-shadow:inset 0 0 0 1px rgba(0,0,0,.04);
+    position:relative; border-radius:var(--radius-md); padding:var(--space-2);
+    display:flex; align-items:flex-end; min-height:64px;
+    font-size:11px; font-weight:600;
+    /* The one ink that sits inside a coloured cell; theme-invariant, because
+       every segment colour stays in the light half of the luminance range. */
+    color:var(--dv-cell-ink);
+    cursor:default;
+    box-shadow:inset 0 0 0 1px var(--border-color);
     transition:transform .12s ease, box-shadow .12s ease;
   }
   .cell:hover{
     transform:translateY(-2px);
-    box-shadow:0 6px 18px rgba(0,0,0,.12), inset 0 0 0 1px rgba(0,0,0,.08);
-    z-index:2;
-  }
-  .cell small{
-    display:block; font-weight:400; font-size:10px; color:rgba(31,36,48,.72);
-    margin-top:2px;
-  }
-  .row-label{
-    display:flex; align-items:center; justify-content:center;
-    font-size:12px; font-weight:600; color:var(--muted);
+    box-shadow:0 6px 18px var(--shadow-color), inset 0 0 0 1px var(--border-color);
+    /* Lift above the sibling cells whose shadows it would otherwise sit under. */
+    z-index:var(--z-float);
   }
   .ytitle, .xtitle{
-    font-size:11px; color:var(--muted); text-align:center; font-weight:600;
+    font-size:11px; color:var(--dv-label); text-align:center; font-weight:600;
   }
   .ytitle{grid-column:1; grid-row:1 / span 6; writing-mode:vertical-rl; transform:rotate(180deg); display:flex; align-items:center; justify-content:center}
-  .legend{
-    margin-top:18px; display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12px;
-  }
-  .legend span{display:inline-flex; align-items:center; gap:6px}
-  .dot{width:12px; height:12px; border-radius:3px; display:inline-block}
-  .tip{
-    position:fixed; pointer-events:none; background:#1f2430; color:#fff;
-    padding:10px 12px; border-radius:8px; font-size:12px; line-height:1.45;
-    max-width:240px; box-shadow:0 8px 24px rgba(0,0,0,.25); opacity:0;
-    transition:opacity .12s ease; z-index:50;
-  }
-  .tip b{font-size:13px}
-  .tip .act{color:#c8e6c9; margin-top:4px; display:block}
   @media (max-width:520px){
-    body{padding:14px}
     .cell{min-height:54px; font-size:10px}
-    .cell small{font-size:9px}
   }
+
+  /* The eleven segment colours, applied by class rather than inline style so
+     they re-resolve on a theme change with no JavaScript at all. Order runs
+     best (champions) to worst (lost), matching the legend. */
+  .cat-1{background:var(--dv-cat-1)}   .cat-2{background:var(--dv-cat-2)}
+  .cat-3{background:var(--dv-cat-3)}   .cat-4{background:var(--dv-cat-4)}
+  .cat-5{background:var(--dv-cat-5)}   .cat-6{background:var(--dv-cat-6)}
+  .cat-7{background:var(--dv-cat-7)}   .cat-8{background:var(--dv-cat-8)}
+  .cat-9{background:var(--dv-cat-9)}   .cat-10{background:var(--dv-cat-10)}
+  .cat-11{background:var(--dv-cat-11)}
 </style>
 </head>
 <body>
-  <h1>Карта RFM-сегментов</h1>
-  <p class="lede">Сетка 5×5 по давности (R, строки) и частоте (F, столбцы). Наведите на ячейку — сегмент и действие. Сумма (M) уточняет сегмент внутри ячейки.</p>
+  <h1 class="demo-title">Карта RFM-сегментов</h1>
+  <p class="demo-lede">Сетка 5×5 по давности (R, строки) и частоте (F, столбцы). Наведите на ячейку — сегмент и действие. Сумма (M) уточняет сегмент внутри ячейки.</p>
 
   <div class="board" id="board"></div>
 
-  <div class="legend" id="legend"></div>
-  <div class="tip" id="tip"></div>
+  <div class="demo-legend" id="legend"></div>
+  <div class="demo-tooltip" id="tip"></div>
 
 <script>
+// n — индекс в категориальной палитре демо (--dv-cat-1..11), от лучшего
+// сегмента к худшему. Цвет здесь — дублирующий канал: имя сегмента в легенде
+// и подписи несут смысл, оттенок лишь помогает глазом связать ячейку с легендой.
 const SEG = {
-  champions:      {name:"Чемпионы",          color:"#2e7d32", act:"Программа лояльности, ранний доступ, рефералы."},
-  loyal:          {name:"Лояльные",          color:"#66bb6a", act:"Апсейл, награды за повторные покупки."},
-  potentialLoyal: {name:"Потенциально лояльные", color:"#a5d6a7", act:"Стимул ко второй покупке, подписка."},
-  recent:         {name:"Недавние",          color:"#c8e6c9", act:"Онбординг, приветственная серия."},
-  new:            {name:"Новички",           color:"#dcedc8", act:"Первый повторный оффер."},
-  aboutToSleep:   {name:"Засыпают",          color:"#fff9c4", act:"Реактивация, напоминание о бренде."},
-  needAttention:  {name:"Требуют внимания",  color:"#ffe082", act:"Персональная акция, опрос причин."},
-  atRisk:         {name:"В зоне риска",      color:"#ffb74d", act:"Win-back, скидка на возврат."},
-  cantLose:       {name:"Нельзя потерять",   color:"#ef6c5a", act:"Дорогая реактивация, личный менеджер."},
-  hibernating:    {name:"Спящие",            color:"#b0bec5", act:"Дешёвая реактивация или пауза."},
-  lost:           {name:"Потерянные",        color:"#90a4ae", act:"Игнорировать или массовая реактивация."}
+  champions:      {n:1,  name:"Чемпионы",          act:"Программа лояльности, ранний доступ, рефералы."},
+  loyal:          {n:2,  name:"Лояльные",          act:"Апсейл, награды за повторные покупки."},
+  potentialLoyal: {n:3,  name:"Потенциально лояльные", act:"Стимул ко второй покупке, подписка."},
+  recent:         {n:4,  name:"Недавние",          act:"Онбординг, приветственная серия."},
+  new:            {n:5,  name:"Новички",           act:"Первый повторный оффер."},
+  aboutToSleep:   {n:6,  name:"Засыпают",          act:"Реактивация, напоминание о бренде."},
+  needAttention:  {n:7,  name:"Требуют внимания",  act:"Персональная акция, опрос причин."},
+  atRisk:         {n:8,  name:"В зоне риска",      act:"Win-back, скидка на возврат."},
+  cantLose:       {n:9,  name:"Нельзя потерять",   act:"Дорогая реактивация, личный менеджер."},
+  hibernating:    {n:10, name:"Спящие",            act:"Дешёвая реактивация или пауза."},
+  lost:           {n:11, name:"Потерянные",        act:"Игнорировать или массовая реактивация."}
 };
 
 // Матрица: [R][F], R=5..1 (строки сверху вниз), F=1..5 (слева направо)
@@ -136,8 +126,7 @@ for (let r=5; r>=1; r--){
     const key = M[r][f-1];
     const seg = SEG[key];
     const cell = document.createElement("div");
-    cell.className = "cell";
-    cell.style.background = seg.color;
+    cell.className = "cell cat-" + seg.n;
     cell.dataset.segment = key;
     cell.dataset.r = r;
     cell.dataset.f = f;
@@ -150,7 +139,7 @@ for (let r=5; r>=1; r--){
 const legend = document.getElementById("legend");
 Object.keys(SEG).forEach(key=>{
   const s = document.createElement("span");
-  s.innerHTML = '<i class="dot" style="background:'+SEG[key].color+'"></i>'+SEG[key].name;
+  s.innerHTML = '<i class="demo-swatch cat-'+SEG[key].n+'"></i>'+SEG[key].name;
   legend.appendChild(s);
 });
 
@@ -162,7 +151,7 @@ board.addEventListener("mouseover", e=>{
   const seg = SEG[c.dataset.segment];
   tip.innerHTML = "<b>"+seg.name+"</b><br>R"+c.dataset.r+" · F"+c.dataset.f+
     '<span class="act">'+seg.act+"</span>";
-  tip.style.opacity = 1;
+  tip.classList.add("is-visible");
 });
 board.addEventListener("mousemove", e=>{
   tip.style.left = (e.clientX + 14) + "px";
@@ -170,7 +159,7 @@ board.addEventListener("mousemove", e=>{
 });
 board.addEventListener("mouseout", e=>{
   if (!e.target.closest(".cell")) return;
-  tip.style.opacity = 0;
+  tip.classList.remove("is-visible");
 });
 </script>
 </body>
