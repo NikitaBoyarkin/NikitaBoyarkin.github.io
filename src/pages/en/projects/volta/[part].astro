@@ -15,7 +15,7 @@ export async function getStaticPaths() {
 }
 
 const { part, allParts } = Astro.props;
-const { Content } = await render(part);
+const { Content, headings } = await render(part);
 const slug = part.data.part;
 
 const LAYER_LABELS: Record<string, string> = {
@@ -121,7 +121,7 @@ const partJsonLd = {
       }
     </div>
 
-    <InlineTOC lang="en" />
+    <InlineTOC lang="en" headings={headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth }))} />
 
     <article id="project-content">
       <Content />

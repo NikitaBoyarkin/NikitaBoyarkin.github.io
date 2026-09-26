@@ -23,7 +23,7 @@ export async function getStaticPaths() {
 }
 
 const { project, allPosts, allProjects, allParts } = Astro.props;
-const { Content } = await render(project);
+const { Content, headings } = await render(project);
 const slug = project.id.replace(/\.md$/, '');
 
 // Next / prev within the ordered project list (P3.11). Order comes from the
@@ -190,7 +190,7 @@ const pageJsonLd = {
       }
     </div>
 
-    <InlineTOC lang="ru" />
+    <InlineTOC lang="ru" headings={headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth }))} />
 
     <article id="project-content">
       <Content />

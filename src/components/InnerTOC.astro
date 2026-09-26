@@ -51,7 +51,8 @@ const isEn = lang === 'en';
         id = `${idBase}-${count++}`;
       }
       used.set(id, true);
-      h.id = id;
+      // Keep a build-time id: `InlineTOC` renders its anchors against it.
+      if (!h.id) h.id = id;
 
       const li = document.createElement('li');
       li.className = h.tagName.toLowerCase() === 'h3' ? 'toc-h3' : 'toc-h2';
@@ -65,7 +66,9 @@ const isEn = lang === 'en';
 
     // The inline block mirrors the rail off the same scan, so both lists target
     // the same heading ids and can never disagree about an anchor.
-    if (inlineList && inlineWrap) {
+    // `InlineTOC` now renders these at build time. Fill an empty list only, or the
+    // block ships a duplicate set and grows on hydration.
+    if (inlineList && inlineWrap && !inlineList.children.length) {
       headers.forEach((h) => {
         const li = document.createElement('li');
         li.className = h.tagName.toLowerCase() === 'h3' ? 'toc-h3' : 'toc-h2';

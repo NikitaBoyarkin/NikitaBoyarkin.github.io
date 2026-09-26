@@ -3,20 +3,55 @@
 // below 1100px, so on a laptop or a phone this block is the only table of
 // contents a page has.
 //
-// It carries no script: `InnerTOC` performs the single heading scan and fills
-// `#inline-toc-list`, so both lists share one set of heading ids and can never
-// drift apart. Placing this component anywhere on a page that also renders
-// `InnerTOC` is enough — the shell stays empty and is removed if the scan
-// finds no headings.
-interface Props {
-  lang?: 'ru' | 'en';
+// It renders the items at build time so the `<details open>` block ships at its
+// final height. It used to ship as an empty 69px shell that `InnerTOC`'s script
+// grew to ~518px after parse, pushing the whole article body down 448px — CLS
+// 0.105 on `/posts/ab-calibration-simulation/`, measured 2026-09-27. `InnerTOC`
+// still runs its single heading scan for the rail and for heading ids, but
+// leaves a pre-filled list alone.
+//
+// Two ways to supply the items, because pages differ in where their body comes
+// from:
+//   - `html` — post pages, whose body arrives as a slot; headings are read out
+//     of the rendered markup, so anchors match the ids actually in the page.
+//   - `headings` — project pages, whose body is a `<Content />` from a content
+//     collection and has no slot to stringify; the collection's own `headings`
+//     are passed through instead.
+// Passing neither falls back to the old script-filled block: correct, but it
+// pays that layout shift.
+interface TocHeading {
+  id: string;
+  text: string;
+  level: number;
 }
 
-const { lang = 'ru' } = Astro.props;
+interface Props {
+  lang?: 'ru' | 'en';
+  html?: string;
+  headings?: TocHeading[];
+}
+
+const { lang = 'ru', html = '', headings: given = [] } = Astro.props;
 const isEn = lang === 'en';
+
+// Ids are read out of the rendered HTML rather than recomputed, so the anchors
+// are the ones the reader's browser can actually jump to.
+const parsed: TocHeading[] = [
+  ...html.matchAll(/<h([23])\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g),
+].map((m) => ({ id: m[2], text: m[3].replace(/<[^>]+>/g, '').trim(), level: Number(m[1]) }));
+
+// Levels are filtered here because this block mirrors the rail: a collection's
+// `headings` also carries the h1, which the rail never shows.
+const headings = (given.length ? given : parsed).filter((h) => h.level === 2 || h.level === 3);
 ---
 
 <details class="inline-toc" id="inline-toc" open>
   <summary>{isEn ? 'On this page' : 'Содержание'}</summary>
-  <ol id="inline-toc-list"></ol>
+  <ol id="inline-toc-list">
+    {headings.map((h) => (
+      <li class={h.level === 3 ? 'toc-h3' : 'toc-h2'}>
+        <a href={`#${h.id}`}>{h.text}</a>
+      </li>
+    ))}
+  </ol>
 </details>
