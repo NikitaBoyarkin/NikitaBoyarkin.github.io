@@ -13,8 +13,7 @@
 export const CONTACT_ENDPOINT =
   'https://PROJECT_REF.supabase.co/functions/v1/contact';
 
-// TODO(Phase 0): replace USERNAME with the owner's Cal.com username.
-export const CAL_BOOKING_URL = 'https://cal.com/USERNAME/15min';
+export const CAL_BOOKING_URL = 'https://cal.com/lofinibo/30min';
 
 /**
  * Off-screen field name that only a bot fills. Shared so the markup, the
