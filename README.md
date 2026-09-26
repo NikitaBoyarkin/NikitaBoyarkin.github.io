@@ -215,12 +215,12 @@ Create `src/content/posts/<slug>.md`. `category` must be one of `decision-log`, 
 
 ### Authoring rules
 
-- **Project page skeleton** (H2 order): `Контекст → Гипотеза? → Данные и метод → Что нашли? → Эффект → Документация`. EN: `Context → Hypothesis? → Data & Method → Findings? → Impact → Documentation`. `volta` keeps its own narrative.
+- **Project page skeleton — STAR** (H2 order): `Ситуация → Задача → Действия → Результат → Ограничения → Документация`. EN: `Situation → Task → Actions → Result → Limitations → Documentation`. Action should be the longest section (50–60% of the body); `Задача` is 1–2 sentences of first-person goal and carries **no digits**. Volta parts add `Рекомендации` / `Recommendations`; the `volta` hub keeps its own D10 narrative. Bound by `tests/lib/content-skeleton.test.ts`.
 - **Descriptions:** 1–2 sentences, result + number first, 120–200 chars; the first 72 chars must stand alone (`MaterialStrip` truncates there). Author RU and EN independently — meaning parity, not literal translation.
 - **Numbers are frozen.** A readability rewrite never changes a metric. `bun run audit:content` diffs every numeric token in `src/content/**` against `docs/content-baseline.json` and exits 1 on any change. Accept an intentional change with `bun run audit:content:snapshot`.
 - **`related:` is locale-neutral** — write `/projects/<slug>/` and `/posts/<slug>/` in both languages; the EN resolver prefixes `en/` itself. Never write `/en/projects/...`.
 - **Volta hub map is generated.** The grouped map in `projects/volta.md` between `<!-- volta-map:start -->`/`<!-- volta-map:end -->` comes from `bun run volta:map`. Re-run after adding or renaming a part.
-- Fold one-off sections (`Architecture`, `Run`, `Testing`, …) under `Данные и метод` / `Data & Method`.
+- Fold one-off sections (`Architecture`, `Run`, `Testing`, …) under `Действия` / `Actions`.
 
 ### Bilingual routing
 

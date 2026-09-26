@@ -155,10 +155,10 @@ validation layer (18–22) and `causal-kyc` (23). Schema: `title`, `description`
 `layer` (required enum `core | extended | market-jobs | rat-v2 | causal`), `impact`, `tools`,
 `charts` (chart ids from `src/data/charts/volta.json`), `github` (optional), `draft`.
 
-**Parts dossier skeleton** (H2 order; a documented exception to the project skeleton below):
-`Контекст → Данные и метод → Выводы → Рекомендации → Документация`
-(`Context → Data & Method → Findings → Recommendations → Documentation`). Fold any one-off
-`Визуализация` / `Visualization` block into `Данные и метод`; evidence ships as native charts
+**Parts skeleton** (H2 order; the STAR skeleton below plus a retained `Рекомендации` section):
+`Ситуация → Задача → Действия → Результат → Рекомендации → Документация`
+(`Situation → Task → Actions → Result → Recommendations → Documentation`). Fold any one-off
+`Визуализация` / `Visualization` block into `Действия`; evidence ships as native charts
 (see `charts:`), not embedded PNGs.
 
 **Hub map** — `src/content/projects/volta.md` (and its EN twin) carries the grouped map of all
@@ -185,12 +185,17 @@ renaming a part. The hub itself shows a curated 6-chart evidence set (`HUB_CHART
 
 All project and post copy follows a shared spec — see `docs/prd-readability.md`.
 
-**Project skeleton** (H2 order; the four core sections are required, `Гипотеза`/`Что нашли` are optional and appear only where the project has that content):
+**Project skeleton — STAR** (H2 order; every project page carries exactly these six sections):
 
-- RU: `Контекст → Гипотеза? → Данные и метод → Что нашли? → Эффект → Документация`
-- EN: `Context → Hypothesis? → Data & Method → Findings? → Impact → Documentation`
-- `volta` is the exception: it keeps its narrative (`Дело → Улики → Вердикт` / `The Case → Evidence → The Verdict`) plus a `## Итог в 30 секундах` / `## The 30-second version` TL;DR.
-- Fold one-off sections (`Modules`, `Pages`, `Architecture`, `Run`, `Testing`, …) under `Данные и метод`; demote to `###` when the block stays distinct. No prose paragraph over ~500 characters.
+- RU: `Ситуация → Задача → Действия → Результат → Ограничения → Документация`
+- EN: `Situation → Task → Actions → Result → Limitations → Documentation`
+- **Proportions** (share of the body): S 15–20%, T 10–15%, **A 50–60%**, R 10–15% — Action must exceed half. Source: `Obsidian/Z-core/STAR method.md` in the vault; decision record: `docs/prd-readability.md` D11.
+- **`Задача` / `Task` is a goal, not a restatement of `Ситуация`.** 1–2 sentences, first person (`Мне нужно было…` / `I needed to…`), stating the goal and the personal ownership. No new facts about the project. **No digits** — the numeric baseline is a per-file multiset, so even repeating a number already on the page drifts `audit:content`.
+- **The card is the hoisted Result.** `description:` and `impact:` are the R pulled out of the body; STAR ordering does not apply to them (D1/D9: result-first for the recruiter, technical register from `Действия` onward).
+- `volta` (the hub only) is the exception: it is a dossier, not a project page. Its H2 order is frozen by `docs/prd-volta-structure.md` D10 — `Итог в 30 секунд → Ситуация → Задача → Действия → Карта проекта → Улики №1–4 → Слой RAT v2 → Рекомендации и гейты → Вердикт → Ограничения → Остальные проекты → Документация` (EN mirrors). `## Вердикт` — the R — sits **after** `## Рекомендации и гейты`, i.e. not in STAR order: **intended, not enforced**, kept for the hub narrative.
+- Fold one-off sections (`Modules`, `Pages`, `Architecture`, `Run`, `Testing`, …) under `Действия`; demote to `###` when the block stays distinct. No prose paragraph over ~500 characters.
+
+**Bound to a mechanism.** `tests/lib/content-skeleton.test.ts` fails when a file's H2 sequence leaves the skeleton, when a required section is missing, when RU and EN slugs diverge, or when `## Задача` / `## Task` contains a digit. The proportions above and «Action is the longest section» are **intended, not enforced** — nothing measures section length.
 
 **Project `description:` spec** — the field feeds the card, meta/OG/Twitter, JSON-LD and `MaterialStrip` (which truncates at 72 chars):
 
@@ -206,7 +211,7 @@ All project and post copy follows a shared spec — see `docs/prd-readability.md
 
 ### Add a project
 
-1. Create `src/content/projects/<id>.md` **and** `src/content/projects-en/<id>.md` (keep RU and EN in sync).
+1. Create `src/content/projects/<id>.md` **and** `src/content/projects-en/<id>.md` (keep RU and EN in sync), with the STAR skeleton from «Readability conventions» — `Ситуация → Задача → Действия → Результат → Ограничения → Документация` / `Situation → Task → Actions → Result → Limitations → Documentation`. `bun test tests/lib` fails otherwise.
 2. Set `track` to the kanban column (`experiments` | `analytics` | `product` | `engineering`) — defaults to `analytics` if omitted.
 3. Add the hero image to `public/images/` (the `hero` field is required).
 4. Add the slug to the `PROJECT_ORDER` array in `src/lib/projects.ts` so it sorts as intended (unlisted slugs sort first).
