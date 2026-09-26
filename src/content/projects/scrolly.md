@@ -1,6 +1,11 @@
 ---
 title: Scrolly English Speaking
 description: "Scrollytelling-гайд по spoken English для рабочих разговоров (A2–B1): MDX-нарратив и D3-визуализации, где контент и визуализации разделены. Astro 6, деплой на GitHub Pages."
+star:
+  situation: "Рабочие разговоры на английском (A2–B1): грамматика есть, а связная речь и реакции в реальном времени буксуют"
+  task: "Закрыть разрыв между грамматикой и живой речью: ситуации, где фразы применяют, а не узнают"
+  action: "Единый ScrollyLayout, MDX-нарратив по секциям, типизированный data-модуль для viz, IntersectionObserver с lazy import"
+  result: "Нарратив и визуализация синхронны: читатель доходит до абзаца, график меняется; новая сцена — data-файл плюс MDX"
 track: engineering
 hero: images/scrolly.svg
 impact:

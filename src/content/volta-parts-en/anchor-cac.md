@@ -1,6 +1,11 @@
 ---
 title: "Volta — Anchor Launch CAC at Scale"
 description: "LTV/CAC ≥3 holds only to ~70K users; at SOM it falls to 1.76× and a 17-month payback. The constraint is cheap-channel capacity, not budget."
+star:
+  situation: "The anchor segment is the growth point, but does its launch still scale economically when taken to the serviceable market"
+  task: "Own the call on whether the anchor segment stays economically viable once the launch scales to the serviceable market"
+  action: "Marginal-CAC curves by channel, cheap-first greedy allocation, blended LTV/CAC and payback vs scale, channel capacity"
+  result: "LTV/CAC ≥3 holds only to ~70K users (31% of SOM); at SOM 225K it is 1.76× with a 17.0-month payback"
 part: anchor-cac
 order: 21
 layer: rat-v2

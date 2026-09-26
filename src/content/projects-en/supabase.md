@@ -1,6 +1,11 @@
 ---
 title: Product Analytics + A/B on Supabase
 description: "Full-stack analytics on Supabase: an A/B experiment lifted conversion +5.1pp (p = 0.0034, chi-square), with a Streamlit dashboard reading live data through Row Level Security."
+star:
+  situation: "Analytics portfolios show metrics on a clean CSV; the hard part is analytics embedded in a real multi-tenant product"
+  task: "Own the multi-tenant setup end to end: auth, per-org isolation, event ingest, and the experiment result computed in the database"
+  action: "SQL views compute funnel, cohort, MRR, and DAU; v_results computes A/B in the DB; RLS isolates rows per organization"
+  result: "A/B concluded: control 32.1% vs treatment 37.2%, +5.1pp at p = 0.0034 (χ²); metrics computed in the DB for any client"
 track: product
 hero: images/supabase.svg
 impact:

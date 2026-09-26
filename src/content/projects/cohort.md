@@ -1,6 +1,11 @@
 ---
 title: Cohort Analysis Dashboard
 description: "Треугольная когортная матрица удержания и LTV на синтетических данных: ARPU и LTV по когортам с поправкой на observation age, выгрузка в Tableau (CSV + Hyper)."
+star:
+  situation: "Когортный анализ удержания и LTV на синтетических данных: средний retention прячет динамику"
+  task: "Показать поведение каждой когорты отдельно, а не сглаженную среднюю по всей базе"
+  action: "Матрица удержания, ARPU и LTV по когортам, поправка на возраст наблюдения, выгрузка в Tableau (CSV + Hyper)"
+  result: "Когортная матрица вместо среднего retention: видно скорость оттока и расхождение монетизации с удержанием"
 track: analytics
 hero: images/cohort.svg
 impact:

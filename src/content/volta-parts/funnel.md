@@ -1,6 +1,11 @@
 ---
 title: "Volta — Анализ воронки"
 description: "Воронка онбординга необанка: KYC — узкое место с 56,6% step conversion, регистрация теряет больше всех в абсолюте (2 682). Разбивка по каналам и платформам."
+star:
+  situation: "Первый проект петли discover: где необанк «Volta» теряет пользователей в онбординге"
+  task: "Найти шаг с потерей и держать данные воспроизводимыми через seeded-генератор"
+  action: "Step conversion и absolute/relative drop-off по каждому шагу, chi-square различий каналов, iOS против Android"
+  result: "KYC — 56,6% step conversion; Registration — 2 682 пользователя; до первой транзакции 1 269 из 10 000"
 part: funnel
 order: 1
 layer: core

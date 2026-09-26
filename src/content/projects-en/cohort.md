@@ -1,6 +1,11 @@
 ---
 title: Cohort Analysis Dashboard
 description: "A triangular cohort retention and LTV matrix on synthetic data: per-cohort ARPU and LTV with an observation-age caveat, plus a Tableau-ready CSV and Hyper export."
+star:
+  situation: "Cohort retention and LTV on synthetic data: average retention hides the per-cohort dynamics"
+  task: "Make retention and LTV readable per acquisition cohort rather than as a single average"
+  action: "Retention matrix, ARPU and LTV by cohort, observation-age correction, Tableau export (CSV + Hyper)"
+  result: "Cohort matrix instead of average retention: churn speed and where monetization diverges are visible"
 track: analytics
 hero: images/cohort.svg
 impact:

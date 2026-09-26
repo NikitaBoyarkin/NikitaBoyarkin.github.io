@@ -1,6 +1,11 @@
 ---
 title: "Volta — Referral Segments"
 description: "Referral funnel by JTBD segment: anchor 29.6% vs Digital Newcomers 45+ 4.8% and families 8.6%. The gap opens at accept, not KYC."
+star:
+  situation: "Referral is the best funnel channel: I test whether it scales beyond the anchor segment"
+  task: "Find out whether referral holds up outside the anchor and stays the strongest channel as it widens"
+  action: "Referral funnel by JTBD segment, chi² segment × status, two-proportion z-test, channel effect within gap segments"
+  result: "Anchor 29.6% vs 45+ 4.8% and families 8.6%; the gap opens at accept (78% vs 26% vs 40%), in-app 20.6% vs link 14.3%"
 part: referral
 order: 17
 layer: market-jobs

@@ -1,6 +1,11 @@
 ---
 title: "Volta — KYC Progress-Bar A/B Test"
 description: "A KYC progress bar lifted conversion +5.72pp (Z=5.82, p<0.0001) against a +5pp MDE. CUPED, AA-test and Bonferroni protect the conclusion; +€656K/yr at 44× ROI."
+star:
+  situation: "Validating the funnel finding: a snapshot is not proof, so the KYC progress-bar hypothesis was tested as an experiment"
+  task: "Turn the funnel observation into a testable hypothesis and own the interpretation of the KYC split experiment"
+  action: "Sample-size calculation for the MDE, SRM check, bootstrap CI, CUPED with a sessions covariate, AA-test and Bonferroni"
+  result: "KYC conversion 55.8% → 61.5%: +5.72pp at p<0.0001, above the MDE; gate passed, +€656K/yr"
 part: ab
 order: 2
 layer: core

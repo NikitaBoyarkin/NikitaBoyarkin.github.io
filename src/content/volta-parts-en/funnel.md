@@ -1,6 +1,11 @@
 ---
 title: "Volta — Funnel Analysis"
 description: "The neobank onboarding funnel: KYC is the bottleneck at 56.6% step conversion, registration loses the most in absolute terms (2,682). Broken down by channel and platform."
+star:
+  situation: "First project in the discover loop: where «Volta» loses users in onboarding"
+  task: "Locate the losing step and keep the dataset reproducible through a seeded generator"
+  action: "Step conversion and absolute/relative drop-off at every step, chi-square across channels, iOS vs Android"
+  result: "KYC — 56.6% step conversion; registration — 2,682 users; 1,269 of 10,000 reach the first transaction"
 part: funnel
 order: 1
 layer: core

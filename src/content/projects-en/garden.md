@@ -1,6 +1,11 @@
 ---
 title: Digital Garden
 description: "A personal digital garden and Zettelkasten published as a Quartz v4 site: linked notes, backlinks and a graph view instead of a chronological blog feed."
+star:
+  situation: "Chronological posts age and lose connections; a digital garden links notes with wikilinks instead"
+  task: "Publish a personal Zettelkasten as a static site where the links between notes are visible to the reader"
+  action: "Atomic notes in Obsidian-flavored Markdown; Quartz: TypeScript plugins, backlinks, graph view, static output"
+  result: "Links over chronology: backlinks make each note a node, and the graph turns note accumulation into a navigable structure"
 track: engineering
 hero: images/garden.svg
 impact:

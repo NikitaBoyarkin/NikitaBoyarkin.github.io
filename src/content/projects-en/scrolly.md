@@ -1,6 +1,11 @@
 ---
 title: Scrolly English Speaking
 description: "A scrollytelling guide to spoken English for workplace conversations (A2–B1): an MDX narrative with D3 visualizations, content and visuals decoupled. Built on Astro 6."
+star:
+  situation: "Workplace English (A2–B1) stalls for many Russian-speaking specialists: the grammar is there, coherent speech is not"
+  task: "Close the gap between grammar and live speech: give learners situations where phrases are used, not recognized"
+  action: "Single ScrollyLayout, MDX narrative sections, typed data module for viz props, IntersectionObserver with lazy imports"
+  result: "Narrative and visualization in sync: the chart changes as the reader reaches a paragraph; a new scene is just a data file plus MDX"
 track: engineering
 hero: images/scrolly.svg
 impact:

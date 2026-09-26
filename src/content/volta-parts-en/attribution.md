@@ -1,6 +1,11 @@
 ---
 title: "Volta — Marketing Attribution"
 description: "First-touch, last-touch, linear and Shapley attribution. Shapley (data-driven) reallocates budget and leads with referral; the conclusion is robust to model choice."
+star:
+  situation: "Different attribution models disagree about which channel brings revenue — the comparison runs on one dataset"
+  task: "Own the side-by-side run of competing attribution models to see how much the credited channel depends on model choice"
+  action: "Journey dataset (touch_order × channel × revenue), first-touch, last-touch, linear and Shapley attribution"
+  result: "Referral leads in all four models (€218–264K); Shapley takes referral to €263.7K and drops display to €125.0K"
 part: attribution
 order: 8
 layer: extended

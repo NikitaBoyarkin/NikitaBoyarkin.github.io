@@ -1,6 +1,11 @@
 ---
 title: "Volta — RFM Analysis"
 description: "R/F/M scoring 1–5 splits the base into lifecycle segments from Champions to Lost; recency and monetary diverge — 'frequent but cheap' and 'rare but large'."
+star:
+  situation: "Needed a simple, interpretable customer-value layer to complement cluster segmentation"
+  task: "Build a value layer that stays simple and interpretable alongside cluster segmentation"
+  action: "R/F/M quintile scoring → lifecycle tiers, plus a heatmap of mean R/F/M by segment"
+  result: "Champions — 23.9% of the base with all three axes high (91/93/93); At Risk 11.5% and Lost 23.2% are a large reactivation reserve"
 part: rfm
 order: 6
 layer: extended

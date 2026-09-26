@@ -1,6 +1,11 @@
 ---
 title: Churn Prediction — Leakage-Free Retention Model
 description: "Leakage-free churn-модель: recall@top-10% = 0.53 и lift 3,07× при ROC-AUC 0.904 на хронологическом сплите — без утечки будущей активности в признаки."
+star:
+  situation: "Модель оттока для подписочного продукта: случайный сплит подкладывает будущую активность в обучение"
+  task: "Оценить модель так, чтобы качество на тесте не было следствием утечки будущего"
+  action: "Признаки as-of, метка — будущее окно неактивности, хронологический сплит, решение по recall@top-decile и lift"
+  result: "В топ-10% самых рискующих модель ловит 53% реальных отточников при lift 3,07×"
 track: analytics
 hero: images/churn.svg
 impact:

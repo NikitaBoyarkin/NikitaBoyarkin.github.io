@@ -1,6 +1,11 @@
 ---
 title: "Volta — Assisted CAC vs LTV"
 description: "Окупается ли trust-трек 45+: LTV/CAC 45+ = 0,66 при гейте ≥3; assisted CAC €120 в ~3× дороже реферала и не окупается (payback 50 мес)."
+star:
+  situation: "Первый проект слоя валидации: рекомендация предыдущего этапа «отдельный trust-трек для 45+» проверяется деньгами"
+  task: "Проверить деньгами рекомендацию предыдущего этапа — отдельный trust-трек для старшего сегмента"
+  action: "LTV на пользователя, blended CAC по сегменту и каналу, LTV/CAC с bootstrap-ДИ, payback, Welch t-test по assisted-LTV"
+  result: "Якорь проходит гейт ≥3 только на реферале: LTV/CAC 3,62; 45+ не проходит гейт: assisted 0,41, blended 0,66, payback 50 мес"
 part: assisted-cac
 order: 18
 layer: rat-v2

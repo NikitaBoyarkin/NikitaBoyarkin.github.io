@@ -1,6 +1,11 @@
 ---
 title: "Volta — Churn Prediction"
 description: "Random Forest adds +0.03 ROC-AUC over logistic regression; the top churn driver is device-error rate (23.7%), not balance or activity."
+star:
+  situation: "Churn was treated as a marketing problem, but the retention lever had to be chosen from the data"
+  task: "Find out what actually drives customers to leave"
+  action: "Logistic regression vs Random Forest, ROC-AUC and feature importance, plus SHAP summary and a local breakdown of one prediction"
+  result: "Random Forest adds +0.03 ROC-AUC over LR; top driver is device-error rate 23.7%, usage_frequency 18.7% and days_since_last_activity 16.5%"
 part: churn
 order: 5
 layer: extended

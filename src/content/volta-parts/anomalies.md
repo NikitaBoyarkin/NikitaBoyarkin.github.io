@@ -1,6 +1,11 @@
 ---
 title: "Volta — Поиск аномалий"
 description: "Z-score, IQR и Isolation Forest против ground truth. IF — лучший F1 (50,4%), ловит аномалии суммы, ночных часов и частоты; Z-score точен, но осторожен."
+star:
+  situation: "Фрод и аномалии — сильный дисбаланс классов, детекторы нужно сравнить честно, против ground truth"
+  task: "Сравнить детекторы аномалий при сильном дисбалансе классов и построить честное сравнение против ground truth"
+  action: "Признаки: сумма, час, частота; Z-score, IQR, Isolation Forest с precision/recall/F1 против truth"
+  result: "IF — лучший F1 (50,4%, 401 детекция); Z-score — precision 80,5% при recall 24,7% (123 детекции)"
 part: anomalies
 order: 9
 layer: extended

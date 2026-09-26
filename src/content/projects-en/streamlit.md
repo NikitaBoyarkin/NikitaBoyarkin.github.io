@@ -1,6 +1,11 @@
 ---
 title: Product Analytics Dashboard (Streamlit)
 description: "A product analytics dashboard on a synthetic SaaS dataset (8,000 users): AARRR funnel, cohort retention, revenue (MRR, ARPU, churn) and segmentation — 5 Streamlit pages."
+star:
+  situation: "The portfolio shows the whole AARRR cycle on one dataset of 8,000 synthetic users, not one metric in isolation"
+  task: "Build the metrics so they read as one coherent story rather than a set of disconnected charts"
+  action: "Deterministic seed and shared cache: one base for Funnel, Retention, Revenue, and Segments; 5 Streamlit pages"
+  result: "Funnel, Retention, Revenue, and Segments read from one consistent base; the same UI became the Supabase project's presentation layer"
 track: product
 hero: images/streamlit.svg
 impact:

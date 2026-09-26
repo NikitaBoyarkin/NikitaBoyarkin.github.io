@@ -1,6 +1,11 @@
 ---
 title: RFM Analysis of Bank Clients
 description: "Segmented a bank's clients into 4 RFM groups and showed that a small high-value share drives most revenue. Marketing moved from mass sends to targeted scenarios."
+star:
+  situation: "The bank accumulates client transactions, but marketing sends everyone the same offer"
+  task: "Replace the single offer with targeted segments, each with its own retention strategy"
+  action: "Cleaned the transactions, scored Recency, Frequency and Monetary, segmented clients, visualized the distribution in Tableau"
+  result: "Four RFM groups: a small high-value share drives a disproportionate share of revenue; marketing moved to segmented scenarios"
 track: analytics
 hero: images/rfm.svg
 impact:

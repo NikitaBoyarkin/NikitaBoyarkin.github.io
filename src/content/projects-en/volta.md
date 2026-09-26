@@ -1,6 +1,11 @@
 ---
 title: Volta Neobank — Product Analytics
 description: "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €656K/year. 23 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2 → causal."
+star:
+  situation: "«Volta» is a fictional neobank losing users during onboarding: every team had its own number, and none explained where the money leaked"
+  task: "Find the critical onboarding step and prove it so the conclusion cannot be dismissed as a convenient sample"
+  action: "One discover → validate → measure → optimize loop: funnel, KYC progress-bar A/B, cohorts, KMeans segmentation, DiD causality check"
+  result: "KYC fix: +5.72pp conversion (p<0.0001) → €656K/yr at 44× ROI; M3 retention +9.2pp"
 track: experiments
 hero: images/volta.svg
 impact:

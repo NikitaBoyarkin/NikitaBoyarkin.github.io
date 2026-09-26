@@ -1,6 +1,11 @@
 ---
 title: "Volta — NPS Trends"
 description: "Monthly NPS hovers near zero; the strongest drivers are app quality (+30.3) and product (+29.4), the main source of dissatisfaction is fees (−59.4)."
+star:
+  situation: "Are customers promoters or neutrals, and which drivers actually move NPS"
+  task: "See where customers sit between promoter and neutral and find which drivers move the score"
+  action: "Monthly NPS across the survey waves; NPS by driver and promoter mix"
+  result: "NPS hovers near zero: peak +12.9 (2024-10), bottom −1.8 (2024-09); fees −59.4 is the main negative, app_quality +30.3"
 part: nps
 order: 12
 layer: extended

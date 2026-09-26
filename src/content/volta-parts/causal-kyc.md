@@ -1,6 +1,11 @@
 ---
 title: "Volta — Причинная валидация KYC (DiD)"
 description: "DiD-проверка: фикс KYC причинно поднял M3-удержание на +9,09 п.п. (95% ДИ [+6,21; +11,96]) — pre-trends плоские, placebo ≈ 0, max |SMD| 0,157 < 0,2."
+star:
+  situation: "Фикс KYC совпал с ростом удержания, но pre/post-тест даёт корреляцию, а не причинную оценку: он игнорирует общий месячный тренд"
+  task: "Получить причинную оценку эффекта KYC-фикса против корреляции от pre/post-теста через дизайн difference-in-differences"
+  action: "Treated — in-app KYC против партнёрского, naive pre/post, DiD и covariate-adjusted DiD, диагностики parallel trends, placebo, SMD"
+  result: "M3-удержание: DiD ATT +9,09 п.п. (95% ДИ [+6,21; +11,96]); активация naive +6,29 п.п. против DiD +4,92 п.п."
 part: causal-kyc
 order: 23
 layer: causal

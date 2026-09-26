@@ -1,6 +1,11 @@
 ---
 title: "Volta — Support & Churn"
 description: "Churn rises with ticket count: 37.1% at zero contacts vs 81.1% at 3+. Support is a measurable retention lever, not just a cost center."
+star:
+  situation: "We test whether a bad support experience drives churn and whether it can be influenced"
+  task: "Check whether a poor support experience actually drives churn, and whether that link is something the team can act on"
+  action: "Ticket–churn merge per user; churn by ticket count, by unresolved, and by CSAT band"
+  result: "Churn rises with ticket count: 37.1% (0) → 81.1% (3+); users with 3+ tickets churn 2.2× more; CSAT bands barely discriminate (52–55%)"
 part: support-churn
 order: 11
 layer: extended

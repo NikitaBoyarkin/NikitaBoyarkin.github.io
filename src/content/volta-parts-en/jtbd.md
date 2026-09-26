@@ -1,6 +1,11 @@
 ---
 title: "Volta — JTBD × Cohorts"
 description: "Job segments and behavioral cohorts are not independent (chi² p<0.001): Dormant concentrates in Digital Newcomers 45+ (39.4%) vs Family Budgeters (15.1%)."
+star:
+  situation: "The first Market & Jobs project: do job segments (JTBD) match the behavioral cohorts from segmentation"
+  task: "Check whether job-to-be-done segments line up with the behavioral cohorts that segmentation produced"
+  action: "Cross-table JTBD segment × cohort; chi-square for independence and a two-proportion z-test for Dormant; UX-friction contrast"
+  result: "JTBD segment × cohort are NOT independent (p<0.001); Dormant 39.4% among Digital Newcomers 45+ vs 15.1% among Family Budgeters"
 part: jtbd
 order: 13
 layer: market-jobs

@@ -1,6 +1,11 @@
 ---
 title: Causal / Uplift — CUPED and Individual Treatment Effects
 description: "CUPED cut the standard error by 26% — the same power on 5.6k users per arm instead of 10k. Uplift models recovered a known heterogeneous effect, built from scratch."
+star:
+  situation: "A two-sample t-test ignores the pre-period: experiments ask for more traffic than needed and retention offers go to everyone"
+  task: "Implement CUPED and uplift modeling and prove neither is biased where the true answer is known in advance"
+  action: "CUPED on a pre-period covariate and T-/S-learners on LightGBM; checked against ground truth with AUUC and QINI"
+  result: "Standard error down ~26%; 5.6k users per arm instead of 10k; new users respond ~10x more than returning ones"
 track: experiments
 hero: images/causal.svg
 impact:

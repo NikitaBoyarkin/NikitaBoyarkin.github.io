@@ -1,6 +1,11 @@
 ---
 title: Churn Prediction — Leakage-Free Retention Model
 description: "A leakage-free churn model: recall@top-10% of 0.53 and 3.07x lift at 0.904 ROC-AUC, on a chronological split with no future activity leaking into features."
+star:
+  situation: "A churn model for a subscription product: a random split leaks future activity into training"
+  task: "Score the model so its offline quality is not an artifact of leakage"
+  action: "As-of features, a future inactivity label, a chronological split, decisions driven by recall@top-decile and lift"
+  result: "In the top 10% riskiest the model catches 53% of real churners at 3.07x lift"
 track: analytics
 hero: images/churn.svg
 impact:

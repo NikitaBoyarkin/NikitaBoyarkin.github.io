@@ -139,7 +139,8 @@ Each project is a Markdown file with frontmatter:
 | `description` | Short summary used on the project card and meta tags |
 | `hero` | Path to hero image relative to `public/` (e.g. `images/volta.svg`) |
 | `track` | Kanban board column: `experiments` \| `analytics` \| `product` \| `engineering` (default `analytics`) |
-| `impact` | Array of bullet points rendered as card subtitle and CV bullets |
+| `impact` | Array of bullet points — **retained but no longer rendered** (superseded by `star` on the card and board, D21); kept as the CV-bullet source and as a frozen-number anchor in `docs/content-baseline.json` |
+| `star` | `{ situation, task, action, result }` — the body's STAR narrative hoisted into the card. Rendered first in `.project-meta` and on board cards. `task` carries no digits; every digit traces to the file's own `## Результат` / `## Result` or `description:` (D21, enforced by `tests/lib/star-frontmatter.test.ts`) |
 | `tools` | Array of tools/technologies |
 | `github` | URL to the project repository (optional) |
 | `demo` | Path/URL to a live demo (optional) |
@@ -191,7 +192,7 @@ All project and post copy follows a shared spec — see `docs/prd-readability.md
 - EN: `Situation → Task → Actions → Result → Limitations → Documentation`
 - **Proportions** (share of the body): S 15–20%, T 10–15%, **A 50–60%**, R 10–15% — Action must exceed half. Source: `Obsidian/Z-core/STAR method.md` in the vault; decision record: `docs/prd-readability.md` D11.
 - **`Задача` / `Task` is a goal, not a restatement of `Ситуация`.** 1–2 sentences, first person (`Мне нужно было…` / `I needed to…`), stating the goal and the personal ownership. No new facts about the project. **No digits** — the numeric baseline is a per-file multiset, so even repeating a number already on the page drifts `audit:content`.
-- **The card is the hoisted Result.** `description:` and `impact:` are the R pulled out of the body; STAR ordering does not apply to them (D1/D9: result-first for the recruiter, technical register from `Действия` onward).
+- **The card is the hoisted STAR.** `description:` and `star:` are the body's Situation/Task/Action/Result lifted into the card; STAR ordering does not apply to the *body* itself (D1/D9: result-first for the recruiter, technical register from `Действия` onward). **`impact:` is retained but no longer rendered** anywhere — it survives as the CV-bullet source and as a frozen-number anchor in the drift baseline, so deleting it would force a baseline re-snapshot and disarm the guard (D20/D21).
 - `volta` (the hub only) is the exception: it is a dossier, not a project page. Its H2 order is frozen by `docs/prd-volta-structure.md` D10 — `Итог в 30 секунд → Ситуация → Задача → Действия → Карта проекта → Улики №1–4 → Слой RAT v2 → Рекомендации и гейты → Вердикт → Ограничения → Остальные проекты → Документация` (EN mirrors). `## Вердикт` — the R — sits **after** `## Рекомендации и гейты`, i.e. not in STAR order: **intended, not enforced**, kept for the hub narrative.
 - Fold one-off sections (`Modules`, `Pages`, `Architecture`, `Run`, `Testing`, …) under `Действия`; demote to `###` when the block stays distinct. No prose paragraph over ~500 characters.
 

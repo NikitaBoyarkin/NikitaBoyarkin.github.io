@@ -1,6 +1,11 @@
 ---
 title: "Volta — Segment Premium Offers"
 description: "A/B: a segment offer lifts gap segments (+3.3pp 45+, +4.2pp families, +3.8pp travelers) — Holm-significant, but the anchor barely moves."
+star:
+  situation: "The generic upsell doesn't transfer — the previous project recommended segment offers, but they went untested"
+  task: "Own the head-to-head test of the generic upsell against the segment offer the earlier project left unverified"
+  action: "Randomized A/B, sample-size and SRM checks, z-test by segment with Holm correction, segment × arm interaction (DiD)"
+  result: "45+ 1.6%→5.0%, families 4.4%→8.6%, travelers 8.8%→12.6%; anchor +0.86pp — the gap is not closed"
 part: premium-offers
 order: 20
 layer: rat-v2

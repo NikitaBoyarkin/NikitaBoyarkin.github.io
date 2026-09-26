@@ -1,6 +1,11 @@
 ---
 title: "Volta — FX Sourcing Feasibility"
 description: "The 0.55% gate is reachable only at SOM scale (~€332M/mo, 122× today) — a cold-start, not 'impossible'. Best quote is Interbank Prime at 0.745%."
+star:
+  situation: "The preceding project set the break-even FX cost at 0.55% but assumed such a price is buyable"
+  task: "Test that assumption by modelling what liquidity providers actually quote"
+  action: "Provider quotes log-linear in volume, the volume required for the gate via log-interpolation, provider ranking and hedge term"
+  result: "The 0.55% gate needs ≈ €332M/month at SOM scale; today's ~€2.7M/mo is ~122× lower; ~0.20pp per order of magnitude; Interbank Prime 0.745%"
 part: fx-sourcing
 order: 19
 layer: rat-v2

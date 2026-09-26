@@ -1,6 +1,11 @@
 ---
 title: TaskFlow — PostHog Product Analytics Pipeline
 description: "SaaS-продукт, инструментированный PostHog end-to-end: типизированный каталог событий, генерация трафика и 7 анализов — воронка, retention, A/B, revenue/LTV, time-to-convert."
+star:
+  situation: "Аналитическое портфолио обычно начинается с готового CSV; здесь работа стартует раньше — с инструментирования приложения"
+  task: "Определить события без утечек PII, довести их до аналитического инструмента и превратить в решения"
+  action: "Каталог событий и скрабинг PII; A/B с chi-square, uplift, Wilson CI и SRM; SQL-зеркало метрик, Streamlit-дашборд, CI и Docker"
+  result: "Полный цикл аналитики: 7 анализов, типизированный каталог событий без утечек PII, метрики воспроизводимы и в Python, и в SQL"
 track: product
 hero: images/posthog.svg
 impact:

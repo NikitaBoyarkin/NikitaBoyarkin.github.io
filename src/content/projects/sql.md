@@ -1,6 +1,11 @@
 ---
 title: SQL Analytics Case Study
 description: "26 SQL-кейсов: 25 на синтетическом датасете (~183k событий) + 1 real-data на UCI Online Retail II. Воронка, retention, LTV, атрибуция, аномалии, dbt-слой. Запуск на DuckDB одной командой, живой отчёт на GitHub Pages."
+star:
+  situation: "Нет продакшен-данных, а учебные задачи не показывают системное мышление: 25 кейсов на синтетическом датасете"
+  task: "Собрать кейсы, где каждый запрос отвечает на продуктовый вопрос и воспроизводится одной командой"
+  action: "Самодостаточный .sql на кейс, генератор данных на DuckDB, dbt-слой staging → marts, regression-тесты, живой отчёт на Pages"
+  result: "Воронка теряет 54% на add-to-cart → checkout; retention с ~21% (D1) до ~5% (D30); повторных покупок 3.5%; на real data возвращаются 72.4%"
 track: analytics
 hero: images/sql.svg
 impact:

@@ -1,6 +1,11 @@
 ---
 title: Sales Calls Analytics Dashboard
 description: "A Streamlit dashboard for AI sales calls on 16,891 synthetic calls: a 4-step funnel (greeting → offer → meeting → qualification), leak breakdown by type, and transcript drill-down."
+star:
+  situation: "An AI call flow is a 4-step funnel over 16,891 synthetic calls; the export does not say which step loses the client"
+  task: "Take call breakdown off manual review and name the funnel step that loses the most clients"
+  action: "Step labels from templated script markers, leak broken down by type, weighted contact loss, engagement by hour"
+  result: "An answer in a minute: which step loses the client and what to fix; the funnel yields weighted contact loss and a first A/B scenario"
 track: analytics
 hero: images/sales-calls.svg
 impact:

@@ -1,6 +1,11 @@
 ---
 title: Product Analytics Dashboard (Streamlit)
 description: "Продуктовый дашборд на синтетическом SaaS-датасете (8 000 пользователей): AARRR-воронка, cohort retention, выручка (MRR, ARPU, churn) и сегментация — 5 страниц на Streamlit."
+star:
+  situation: "Портфолио показывает весь AARRR-цикл на одном датасете из 8 000 синтетических пользователей, а не одну метрику"
+  task: "Собрать метрики так, чтобы они читались как один связный сюжет, а не набор отдельных графиков"
+  action: "Детерминированный seed и общий кэш: одна база для Funnel, Retention, Revenue и Segments; 5 страниц на Streamlit"
+  result: "Funnel, Retention, Revenue и Segments читаются на одной базе; тот же UI стал слоем презентации Supabase-проекта"
 track: product
 hero: images/streamlit.svg
 impact:

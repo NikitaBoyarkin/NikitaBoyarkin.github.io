@@ -1,6 +1,11 @@
 ---
 title: "Volta — Retention & Cohorts"
 description: "Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€227K/yr LTV. Premium LTV is 4.3× Free."
+star:
+  situation: "Shipping is not the end: the KYC-fix effect was checked on retention with cohort triangles instead of one flat average"
+  task: "Own the retention check after the KYC fix shipped, reading the effect through cohort triangles by signup month and age"
+  action: "Cohort curves and a retention matrix, pre/post Welch t-test with Cohen's d, bootstrap CIs, plan-specific LTV on ARPU × retention"
+  result: "Post-fix cohorts hold 61–67% at M1 vs 51–53% pre-fix; M3 +9.2pp, Premium LTV 4.3× Free, +€227K/yr"
 part: retention
 order: 3
 layer: core

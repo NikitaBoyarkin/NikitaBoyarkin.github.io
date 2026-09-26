@@ -1,6 +1,11 @@
 ---
 title: "Volta — Traveler Unit Economics"
 description: "Travelers lose €0.45 per €100 FX transaction; break-even needs FX cost cut from 1.00% to 0.55%, otherwise the loss grows with volume."
+star:
+  situation: "The traveler segment promises a 'fair rate' — I test whether it survives economically"
+  task: "Find out whether the traveler segment's fair-rate promise survives economically and give an assessment, not take it on faith"
+  action: "Revenue, cost and margin per transaction by segment, FX break-even against spread, one-at-a-time sensitivity, SOM projection"
+  result: "Net margin −€0.45 per €100 FX; break-even needs FX cost cut 1.00% → 0.55%"
 part: unit-economics
 order: 14
 layer: market-jobs

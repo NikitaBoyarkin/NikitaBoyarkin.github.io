@@ -1,6 +1,11 @@
 ---
 title: Browser Mini-Games — Analytics Arcade
 description: "10 playable mini-games as self-contained SVGs: 7 analytics (A/B to p<0.05, funnel drop, cohort catch, retention day) and 3 arcade. One file per game, zero dependencies, no build."
+star:
+  situation: "Analytics concepts are abstract: a recruiter or student can't feel them from text"
+  task: "Make a metric's meaning obvious from the action itself, not from an explanation"
+  action: "Self-contained SVG games: A/B test, funnel drop, cohort catch, retention day, SQL and metric match"
+  result: "10 games: 7 analytics and 3 arcade, one file with no server; Playwright smoke tests catch load failures"
 track: experiments
 hero: images/games.svg
 impact:

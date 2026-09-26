@@ -1,6 +1,11 @@
 ---
 title: A/B Testing Methodology Toolkit
 description: "15 A/B methodology modules, each calibrated by simulation: an A/A null check holds Type I error at α, and power curves show the effect size each method can actually detect."
+star:
+  situation: "An A/B method is only as good as its Type I error under the null and its power under a real effect"
+  task: "Make the method guarantees verifiable, backed by a simulation run rather than by a citation"
+  action: "Modules from the primary literature — SRM, CUPED, delta method, mSPRT, HTE, BH — each calibrated by simulation"
+  result: "Type I error ≈ α for every method under its null; CI coverage ≈ 95% for the bootstrap; 15 modules calibrated by simulation"
 track: experiments
 hero: images/ab.svg
 impact:

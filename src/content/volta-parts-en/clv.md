@@ -1,6 +1,11 @@
 ---
 title: "Volta — CLV Modeling"
 description: "Three lifetime-value methods: historical, retention-curve and Gamma-Gamma. The order Power > Growth > Casual > Dormant is robust across all methods."
+star:
+  situation: "To set CAC ceilings and retention priorities we need an estimate of future value, not just past revenue"
+  task: "Own a forward-looking value estimate rather than a backward-looking revenue total to set CAC ceilings and retention priorities"
+  action: "Historical CLV from actuals, a retention curve with a power fit, and probabilistic Gamma-Gamma"
+  result: "Power > Growth > Casual > Dormant holds across all three methods; Gamma-Gamma Power €5,166 vs Dormant €27.7 — a ~187× gap"
 part: clv
 order: 7
 layer: extended

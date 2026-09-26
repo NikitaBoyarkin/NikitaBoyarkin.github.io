@@ -1,6 +1,11 @@
 ---
 title: "Volta — Causal Validation of KYC (DiD)"
 description: "A DiD test shows the KYC fix causally lifted M3 retention by +9.09pp (95% CI [+6.21, +11.96]) — flat pre-trends, placebo ≈ 0, max |SMD| 0.157 < 0.2."
+star:
+  situation: "The KYC fix coincided with better retention, but a pre/post t-test is correlation, not causation: it ignores the shared trend"
+  task: "Own the move from correlation to a causal estimate: a difference-in-differences design against a flow the KYC fix did not touch"
+  action: "Treated — in-app KYC, comparison — partner KYC; naive pre/post, DiD, covariate-adjusted DiD; parallel-trends, placebo, SMD gate"
+  result: "M3 retention: DiD ATT +9.09pp (95% CI [+6.21, +11.96]); activation naive +6.29pp vs DiD +4.92pp"
 part: causal-kyc
 order: 23
 layer: causal

@@ -1,6 +1,11 @@
 ---
 title: This Portfolio Site
 description: "The site you are reading: Astro 7, TypeScript and Markdown content collections, static output, dark/light theme, RSS, sitemap, JSON-LD and GitHub Pages deployment."
+star:
+  situation: "A static portfolio on GitHub Pages: projects and posts are edited in Markdown, not in component markup"
+  task: "Make publishing a project a content change, not a code change: a new Markdown file, then a push"
+  action: "Content collections with Zod schemas, withBase() for the base path, no-flash inline theme script, SEO set, push-to-Pages deploy"
+  result: "Invalid frontmatter breaks the build, not the deploy; no link hardcodes the base; adding a project needs no code changes"
 track: engineering
 hero: images/site.svg
 impact:

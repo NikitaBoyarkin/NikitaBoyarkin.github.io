@@ -1,6 +1,11 @@
 ---
 title: "Volta — Dormant 45+ Win-back"
 description: "Three-arm win-back: human +5.34pp and light-touch +2.77pp vs control. Light-touch pays off at 30–90d (ROI 2.54 / 1.26), human ROI 0.40 — kill as a mass channel."
+star:
+  situation: "Closing project of the validation round: an earlier part tied senior dormancy to a UX barrier but never tested reactivation"
+  task: "Own the check of whether assisted reactivation actually brings dormant senior users back and whether it pays for itself"
+  action: "Three-arm win-back, four dormancy buckets, z-tests by arm and bucket with Holm correction, ROI and targeting boundary"
+  result: "human +5.34pp, light-touch +2.77pp; light-touch pays off at 30–60d (ROI 2.54) and 60–90d (1.26), human overall 0.40"
 part: dormant-winback
 order: 22
 layer: rat-v2

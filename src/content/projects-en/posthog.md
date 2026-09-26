@@ -1,6 +1,11 @@
 ---
 title: TaskFlow — PostHog Product Analytics Pipeline
 description: "A SaaS product instrumented with PostHog end-to-end: a typed event catalog, generated traffic, and 7 analyses — funnel, retention, A/B, revenue/LTV and time-to-convert."
+star:
+  situation: "An analytics portfolio usually starts from a ready-made CSV; this one starts earlier — with instrumenting the app"
+  task: "Define events without PII leaks, get them into the analytics tool, and turn raw events into decisions"
+  action: "Typed event catalog, PII scrubbing; A/B with chi-square, uplift, Wilson CI, SRM; SQL mirror, Streamlit dashboard, CI, Docker"
+  result: "Full analytics lifecycle: 7 analyses, a typed event catalog with no PII leaks, metrics that reproduce in both Python and SQL"
 track: product
 hero: images/posthog.svg
 impact:

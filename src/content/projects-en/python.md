@@ -1,6 +1,11 @@
 ---
 title: Python Analytics Playground
 description: "A module-based Python analytics toolkit — loading, cleaning, EDA, visualization — assembled into one pipeline with ≥80% pytest coverage. The base I copy into every new analysis."
+star:
+  situation: "In product analytics most tasks start the same way: load an export, clean it, check distributions, chart it — from scratch each time"
+  task: "Turn the routine into shared modules that teammates can extend without fear of breaking existing behavior"
+  action: "load / clean / EDA / viz / pipeline modules mapped to PRD requirements; tests in tests/ check those requirements; uv + ruff tooling"
+  result: "pytest coverage ≥80%; modules stay small and single-purpose, requirements live in the PRD, and the tool extends without breakage"
 track: analytics
 hero: images/python.svg
 impact:

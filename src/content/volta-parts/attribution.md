@@ -1,6 +1,11 @@
 ---
 title: "Volta — Маркетинговая атрибуция"
 description: "First-touch, last-touch, linear и Shapley-атрибуция. Shapley (data-driven) перераспределяет бюджет и ведёт реферал; вывод устойчив к выбору модели."
+star:
+  situation: "Разные модели атрибуции дают разные ответы о том, какой канал приносит выручку"
+  task: "Выяснить, насколько вывод о канале зависит от выбора модели, сравнив их на одном наборе данных"
+  action: "Journey-датасет (touch_order × channel × revenue), first-touch, last-touch, linear и Shapley-атрибуция"
+  result: "Реферал ведёт во всех четырёх моделях (€218–264K); Shapley — referral €263,7K, display €125,0K"
 part: attribution
 order: 8
 layer: extended

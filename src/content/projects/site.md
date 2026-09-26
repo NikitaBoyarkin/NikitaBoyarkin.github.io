@@ -1,6 +1,11 @@
 ---
 title: This Portfolio Site
 description: "Сайт, который вы читаете: Astro 7, TypeScript и Markdown-коллекции, статическая сборка, тёмная/светлая тема, RSS, sitemap, JSON-LD и деплой на GitHub Pages."
+star:
+  situation: "Статическое портфолио на GitHub Pages: контент — проекты и посты — редактируется в Markdown, а не в разметке компонентов"
+  task: "Свести публикацию проекта к добавлению файла, без правки компонентов и ручных шагов между коммитом и продакшеном"
+  action: "Content collections с Zod-схемами, withBase() для base-path, inline-скрипт темы без flash, SEO-набор, деплой на Pages по push"
+  result: "Невалидный frontmatter ломает сборку, а не деплой; ни одна ссылка не хардкодит base; новый проект — без правки кода"
 track: engineering
 hero: images/site.svg
 impact:

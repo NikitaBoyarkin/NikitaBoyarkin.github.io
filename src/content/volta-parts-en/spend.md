@@ -1,6 +1,11 @@
 ---
 title: "Volta — Spend Analysis"
 description: "Spend breakdown by category and channel: bills (25.8%) and travel (20.2%) make up nearly half the turnover, groceries is the most frequent category."
+star:
+  situation: "Where and on what customers spend — the basis for cashback and offer strategy"
+  task: "Establish where and on what customers spend, and give the cashback and offer strategy a factual base"
+  action: "Spend aggregation by category, channel and merchant; decline rate by category and monthly trend"
+  result: "Bills (25.8%) and travel (20.2%) — nearly half the turnover; groceries most frequent (18,238 transactions, €45.8 ticket)"
 part: spend
 order: 10
 layer: extended

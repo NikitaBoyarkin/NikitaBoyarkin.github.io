@@ -1,6 +1,11 @@
 ---
 title: "Volta — Прогноз оттока"
 description: "Random Forest даёт +0,03 ROC-AUC над логистической регрессией; топ-драйвер оттока — частота ошибок устройства (23,7%), а не баланс или активность."
+star:
+  situation: "Отток считали маркетинговой проблемой, но рычаг удержания нужно было выбрать по данным"
+  task: "Понять, что реально двигает уход клиентов"
+  action: "Логистическая регрессия против Random Forest, ROC-AUC и важность признаков, SHAP-сводка и локальный разбор одного прогноза"
+  result: "Random Forest +0,03 ROC-AUC над LR; топ-драйвер — device_error_rate 23,7%, далее usage_frequency 18,7% и days_since_last_activity 16,5%"
 part: churn
 order: 5
 layer: extended

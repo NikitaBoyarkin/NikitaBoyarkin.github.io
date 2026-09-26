@@ -1,6 +1,11 @@
 ---
 title: "Volta — Моделирование CLV"
 description: "Три метода оценки пожизненной ценности: исторический, retention-кривая и Gamma-Gamma. Порядок Power > Growth > Casual > Dormant устойчив ко всем методам."
+star:
+  situation: "Чтобы ставить потолок CAC и приоритеты удержания, нужна оценка будущей ценности, а не только прошлой выручки"
+  task: "Дать оценку будущей ценности клиента, а не только прошлой выручки, как основу для потолка CAC и приоритетов удержания"
+  action: "Исторический CLV по факту, retention-кривая с power-fit и вероятностный Gamma-Gamma"
+  result: "Power > Growth > Casual > Dormant устойчив во всех трёх методах; Gamma-Gamma Power €5 166 против Dormant €27,7 — разрыв ~187×"
 part: clv
 order: 7
 layer: extended

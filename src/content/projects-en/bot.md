@@ -1,6 +1,11 @@
 ---
 title: Reporting Automation Telegram Bot
 description: "A Telegram bot replaced manual weekly reporting with a cron job: 1–2 hours of prep became a scheduled report with a KPI table and sparklines."
+star:
+  situation: "Every week an analyst hand-assembled metrics from several sources, refreshed a dashboard and posted screenshots to the chat"
+  task: "Take the weekly report off one person so it arrives on time with no manual steps"
+  action: "SQL against the data mart, KPI aggregation, a report template with a table and sparklines, Telegram Bot API delivery, fallbacks"
+  result: "Manual 1–2h of prep became a cron job; the report arrives on schedule and the analyst interprets instead of copying numbers"
 track: engineering
 hero: images/bot.svg
 impact:
