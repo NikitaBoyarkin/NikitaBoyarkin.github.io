@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import InnerTOC from '../../../components/InnerTOC.astro';
+import InlineTOC from '../../../components/InlineTOC.astro';
 import ProjectGraph from '../../../components/ProjectGraph.astro';
 import ChartsSection from '../../../components/charts/ChartsSection.astro';
 import { withBase } from '../../../lib/path';
@@ -195,6 +196,8 @@ const pageJsonLd = {
         )
       }
     </div>
+
+    <InlineTOC lang="en" />
 
     <article id="project-content">
       <Content />

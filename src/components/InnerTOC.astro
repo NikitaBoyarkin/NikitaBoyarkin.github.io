@@ -31,9 +31,13 @@ const isEn = lang === 'en';
     const tocWrap = document.getElementById('inner-toc');
     if (!tocList || !container) return;
 
+    const inlineList = document.getElementById('inline-toc-list');
+    const inlineWrap = document.getElementById('inline-toc');
+
     const headers = Array.from(container.querySelectorAll('h2, h3'));
     if (!headers.length) {
       if (tocWrap) tocWrap.style.display = 'none';
+      inlineWrap?.remove();
       return;
     }
 
@@ -59,6 +63,20 @@ const isEn = lang === 'en';
       tocList.appendChild(li);
     });
 
+    // The inline block mirrors the rail off the same scan, so both lists target
+    // the same heading ids and can never disagree about an anchor.
+    if (inlineList && inlineWrap) {
+      headers.forEach((h) => {
+        const li = document.createElement('li');
+        li.className = h.tagName.toLowerCase() === 'h3' ? 'toc-h3' : 'toc-h2';
+        const a = document.createElement('a');
+        a.href = `#${h.id}`;
+        a.textContent = h.textContent || '';
+        li.appendChild(a);
+        inlineList.appendChild(li);
+      });
+    }
+
     function updateActive() {
       const pos = window.scrollY + 160;
       let current = '';
@@ -80,7 +98,7 @@ const isEn = lang === 'en';
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    tocWrap?.addEventListener('click', (e) => {
+    const onTocClick = (e) => {
       const a = e.target.closest('a');
       if (!a) return;
       const id = a.getAttribute('href')?.slice(1);
@@ -103,7 +121,17 @@ const isEn = lang === 'en';
         if (isActive) el.setAttribute('aria-current', 'location');
         else el.removeAttribute('aria-current');
       });
-    });
+
+      // Below this width the rail is hidden, so the inline block is the only
+      // TOC — collapse it instead of leaving it over the section just reached.
+      if (inlineWrap?.open && window.matchMedia('(max-width: 1100px)').matches) {
+        inlineWrap.open = false;
+      }
+    };
+
+    // One handler for both lists: a jump must behave identically wherever it starts.
+    tocWrap?.addEventListener('click', onTocClick);
+    inlineWrap?.addEventListener('click', onTocClick);
   }
 
   document.addEventListener('DOMContentLoaded', initTOC);

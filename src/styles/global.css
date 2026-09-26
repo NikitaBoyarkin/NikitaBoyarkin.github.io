@@ -1903,19 +1903,31 @@ footer p {
   text-align: left;
 }
 
-/* Inner TOC for project pages */
+/* Inner TOC for project pages.
+   The rail shares the page with a 220px sidebar and an 800px centred column, so
+   the left gutter is not free — `left: 40px` put it *behind the nav*, where it
+   was invisible on every width. It lives in the right gutter now, and only
+   renders where that gutter is wide enough to hold it; below ~1520px it would
+   overlap the text, so the in-flow `.inline-toc` covers those widths. */
 #inner-toc {
   position: fixed;
   top: 120px;
-  left: max(40px, env(safe-area-inset-left));
+  right: max(24px, env(safe-area-inset-right));
   width: 200px;
-  padding-right: 12px;
-  border-right: 1px solid var(--border-color);
+  padding-left: 12px;
+  border-left: 1px solid var(--border-color);
   font-size: 0.9rem;
   max-height: 70vh;
   max-height: 70dvh;
   overflow-y: auto;
   scrollbar-width: none;
+  display: none;
+}
+
+@media (min-width: 1520px) {
+  #inner-toc {
+    display: block;
+  }
 }
 
 #inner-toc::-webkit-scrollbar {
@@ -1960,13 +1972,79 @@ footer p {
   padding-left: 10px;
 }
 
-/* Responsive Design */
-@media (max-width: 1100px) {
-  #inner-toc {
-    display: none;
-  }
+/* Inline TOC — the rail's heading list in flow, for the widths where the rail
+   is hidden. Shell only; `InnerTOC` fills the <ol> and removes the block when a
+   page has no headings. */
+.inline-toc {
+  margin: var(--space-6) 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--background-secondary);
+  font-size: 0.9rem;
 }
 
+.inline-toc summary {
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  list-style: none;
+}
+
+.inline-toc summary::-webkit-details-marker {
+  display: none;
+}
+
+.inline-toc summary::after {
+  content: ' ▾';
+  color: var(--text-accent);
+}
+
+.inline-toc[open] summary::after {
+  content: ' ▴';
+}
+
+.inline-toc ol {
+  list-style: none;
+  counter-reset: toc;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+}
+
+.inline-toc li {
+  margin: 0;
+  padding: 0;
+}
+
+/* Only h2 consumes a number; h3 stays unnumbered and indented, so the sequence
+   reads as sections with sub-points rather than a flat list. */
+.inline-toc li.toc-h2 {
+  counter-increment: toc;
+}
+
+.inline-toc li.toc-h2 a::before {
+  content: counter(toc) '. ';
+  color: var(--text-muted);
+}
+
+.inline-toc li.toc-h3 {
+  padding-left: var(--space-4);
+}
+
+.inline-toc li a {
+  display: block;
+  padding: 3px 0;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.inline-toc li a:hover {
+  color: var(--text-accent);
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
   :root {
     --page-pad: 15px;
@@ -2199,7 +2277,8 @@ footer p {
 @media print {
   #theme-toggle,
   #toc,
-  #inner-toc {
+  #inner-toc,
+  .inline-toc {
     display: none !important;
   }
 

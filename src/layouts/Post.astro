@@ -1,6 +1,7 @@
 ---
 import Base from './Base.astro';
 import InnerTOC from '../components/InnerTOC.astro';
+import InlineTOC from '../components/InlineTOC.astro';
 import { formatDate, estimateReadTime } from '../lib/date';
 import { withBase } from '../lib/path';
 import { categoryLabel } from '../lib/categories';
@@ -85,6 +86,8 @@ const articleJsonLdGraph = { '@context': 'https://schema.org', '@graph': [articl
         {' · '}{readTime} {minLabel} · Nikita Boyarkin
       </div>
     </header>
+
+    <InlineTOC lang={lang} />
 
     <div class="post-body" id="post-content">
       <slot />

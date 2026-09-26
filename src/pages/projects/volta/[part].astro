@@ -2,6 +2,8 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import ChartsSection from '../../../components/charts/ChartsSection.astro';
+import InnerTOC from '../../../components/InnerTOC.astro';
+import InlineTOC from '../../../components/InlineTOC.astro';
 import { withBase } from '../../../lib/path';
 
 export async function getStaticPaths() {
@@ -63,6 +65,8 @@ const partJsonLd = {
   counterpartHref={withBase(`en/projects/volta/${slug}/`)}
   jsonLd={partJsonLd}
 >
+  <InnerTOC lang="ru" />
+
   <div class="container reveal">
     <a class="back" href={withBase('projects/volta/')}>← Volta Neobank</a>
 
@@ -116,6 +120,8 @@ const partJsonLd = {
         )
       }
     </div>
+
+    <InlineTOC lang="ru" />
 
     <article id="project-content">
       <Content />

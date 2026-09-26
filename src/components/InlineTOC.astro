@@ -1,0 +1,22 @@
+---
+// In-flow counterpart to `InnerTOC`'s fixed rail. The rail is `display: none`
+// below 1100px, so on a laptop or a phone this block is the only table of
+// contents a page has.
+//
+// It carries no script: `InnerTOC` performs the single heading scan and fills
+// `#inline-toc-list`, so both lists share one set of heading ids and can never
+// drift apart. Placing this component anywhere on a page that also renders
+// `InnerTOC` is enough — the shell stays empty and is removed if the scan
+// finds no headings.
+interface Props {
+  lang?: 'ru' | 'en';
+}
+
+const { lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+---
+
+<details class="inline-toc" id="inline-toc" open>
+  <summary>{isEn ? 'On this page' : 'Содержание'}</summary>
+  <ol id="inline-toc-list"></ol>
+</details>
