@@ -7,11 +7,14 @@ import { dirname, join } from 'node:path';
 //
 // The demos live in `public/`, which Astro copies verbatim and never processes,
 // so demo.css cannot `@import` the design tokens — it restates them. That copy
-// is the risk: `public/games/index.html` already drifted this exact way (it
-// still carries --accent: #ff6643, which global.css deliberately replaced with
-// #ff8569). This test is what makes the duplication safe, the same way
-// tests/lib/brand.test.ts binds global.css to src/lib/brand.ts: global.css
-// stays hand-written, and the agreement is the test.
+// is the risk: `public/games/index.html` drifted this exact way, unnoticed, for
+// as long as nothing watched it — its cyberpunk accent sat on #ff6643 long after
+// global.css deliberately replaced that with #ff8569. The page is fixed, and it
+// is covered below by its own describe block (it keeps local token names and
+// predates demo.css, so it gets an alias map rather than a rewrite). This test
+// is what makes the duplication safe, the same way tests/lib/brand.test.ts binds
+// global.css to src/lib/brand.ts: global.css stays hand-written, and the
+// agreement is the test.
 //
 // It also binds the demo's OWN contrast invariant. That part is new — the
 // --dv-* dataviz bucket has no canon in global.css, so nothing else checks it.
@@ -40,13 +43,18 @@ const stripComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '');
  * whitespace collapsed. Values are taken verbatim up to the `;`, which matters:
  * most are hex colours, but the same map also carries multi-line font stacks
  * and the --wallpaper-tile data URI, and all of those have to match too.
+ *
+ * The terminating `;` is optional so the last declaration in a block counts even
+ * when it is not semicolon-terminated — minified CSS (public/games/index.html is
+ * one long line) drops it, and a token the parser silently skipped would be a
+ * token the gate cannot check.
  */
 function blockVars(source: string, selector: string): Record<string, string> {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const block = new RegExp(`${escaped}\\s*\\{([\\s\\S]*?)\\}`).exec(stripComments(source));
   if (!block) throw new Error(`no CSS block for selector ${selector}`);
   const vars: Record<string, string> = {};
-  const re = /--([a-z0-9-]+)\s*:\s*([^;]+);/g;
+  const re = /--([a-z0-9-]+)\s*:\s*([^;]+)(?:;|$)/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(block[1])) !== null) {
     vars[m[1]] = m[2].replace(/\s+/g, ' ').trim();
@@ -292,6 +300,88 @@ describe('demo token parity (public/demos/demo.css ↔ src/styles/global.css)', 
         .map(([name, value]) => `${selector} --${name}: ${value}`),
     );
     expect(offenders).toEqual([]);
+  });
+});
+
+// `public/games/index.html` is the other static page in `public/` that restates
+// the palette — the one whose cyberpunk accent drifted to #ff6643 while nothing
+// was watching. It predates the demos and does not load demo.css (it is a plain
+// page, not a dashboard board), so it is bound through an alias map onto the same
+// canon rather than being rewritten to use the demo tokens.
+
+const GAMES = read('public/games/index.html');
+
+/**
+ * Local selector → the canon block it mirrors. The page writes the theme
+ * attribute unquoted — valid CSS, not the spelling global.css uses.
+ */
+const GAMES_BLOCKS: Array<[local: string, canon: ThemeSelector]> = [
+  [':root', ':root'],
+  ['[data-theme=light]', '[data-theme="light"]'],
+  ['[data-theme=cyberpunk]', '[data-theme="cyberpunk"]'],
+];
+
+/** Local name on the games page → canon token name. */
+const GAMES_ALIASES: Record<string, string> = {
+  bg: 'background-primary',
+  surface: 'background-secondary',
+  surface2: 'background-tertiary',
+  accent: 'text-accent',
+  accent2: 'text-accent-hover',
+  text: 'text-normal',
+  muted: 'text-muted',
+  border: 'border-color',
+};
+
+/** `#fff` and `#ffffff` are the same colour; the canon spells some values out. */
+const normalizeHex = (value: string) =>
+  value.replace(/#([0-9a-fA-F]{3})\b/g, (_, h: string) =>
+    '#' + [...h].map((c) => c + c).join('').toLowerCase(),
+  );
+
+function gamesDrift(html: string): string[] {
+  const canon = themes(GLOBAL);
+  const problems: string[] = [];
+  for (const [local, selector] of GAMES_BLOCKS) {
+    const vars = blockVars(html, local);
+    for (const [name, token] of Object.entries(GAMES_ALIASES)) {
+      const actual = vars[name];
+      const expected = canon[selector][token];
+      if (expected === undefined) {
+        problems.push(`${selector} --${token}: gone from global.css`);
+      } else if (actual === undefined) {
+        problems.push(`${local} --${name}: missing from public/games (--${token})`);
+      } else if (normalizeHex(actual) !== normalizeHex(expected)) {
+        problems.push(`${local} --${name}: ${actual} != ${expected} (--${token})`);
+      }
+    }
+  }
+  return problems;
+}
+
+describe('games page palette parity (public/games/index.html ↔ src/styles/global.css)', () => {
+  it('every aliased token matches global.css, and none is missing', () => {
+    expect(gamesDrift(GAMES)).toEqual([]);
+  });
+
+  it('bites when the cyberpunk accent drifts back to the pre-fix coral', () => {
+    // Not a hypothetical: this is the value the page actually shipped.
+    const mutated = GAMES.replace(
+      /(\[data-theme=cyberpunk\]\{[^}]*--accent:)#ff8569/,
+      '$1#ff6643',
+    );
+    expect(mutated).not.toBe(GAMES);
+    expect(gamesDrift(mutated)).toContain(
+      '[data-theme=cyberpunk] --accent: #ff6643 != #ff8569 (--text-accent)',
+    );
+  });
+
+  it('bites when a token is dropped instead of fixed', () => {
+    const mutated = GAMES.replace('[data-theme=light]{--bg:#f4efca;', '[data-theme=light]{');
+    expect(mutated).not.toBe(GAMES);
+    expect(gamesDrift(mutated)).toContain(
+      '[data-theme=light] --bg: missing from public/games (--background-primary)',
+    );
   });
 });
 
