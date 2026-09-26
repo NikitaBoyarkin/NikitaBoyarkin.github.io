@@ -134,12 +134,18 @@ const articleJsonLdGraph = { '@context': 'https://schema.org', '@graph': [articl
 
   <script is:inline>
     // Reading progress bar (decorative, aria-hidden).
+    // Driven by `transform: scaleX()` rather than `width`: scaleX is compositor-only, so
+    // each scroll write stops invalidating layout. `width` would re-lay-out the fixed bar
+    // on every frame of the read, on a page whose scrollHeight is already being read there.
+    // No reduced-motion guard: the bar is a 1:1 map of the reader's own scroll position,
+    // not autonomous motion, so suppressing it would remove information rather than motion.
+    // No easing either — a spring on a progress indicator makes it lag its own scroll.
     (function () {
       const bar = document.getElementById('reading-progress');
       if (!bar) return;
       const onScroll = () => {
         const h = document.documentElement.scrollHeight - window.innerHeight;
-        bar.style.width = h > 0 ? `${(window.scrollY / h) * 100}%` : '0%';
+        bar.style.transform = h > 0 ? `scaleX(${window.scrollY / h})` : 'scaleX(0)';
       };
       window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('resize', onScroll);

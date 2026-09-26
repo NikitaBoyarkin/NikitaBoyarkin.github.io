@@ -209,7 +209,10 @@ button.blog-card-tag:hover {
   top: 0;
   left: 0;
   height: 3px;
-  width: 0;
+  /* Full width, scaled from the left edge: the JS drives `scaleX()`, never `width`. */
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
   background: var(--text-accent);
   z-index: var(--z-top);
   pointer-events: none;
