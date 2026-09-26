@@ -58,6 +58,7 @@ const projects = (await getCollection('projects', (p) => !p.data.draft))
                 description={project.data.description}
                 image={project.data.hero}
                 impact={project.data.impact}
+                star={project.data.star}
                 tools={project.data.tools}
                 github={project.data.github}
               />

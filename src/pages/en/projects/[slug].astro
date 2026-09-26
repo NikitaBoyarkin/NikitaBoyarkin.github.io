@@ -3,6 +3,7 @@ import { getCollection, render } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import InnerTOC from '../../../components/InnerTOC.astro';
 import InlineTOC from '../../../components/InlineTOC.astro';
+import StarBlock from '../../../components/StarBlock.astro';
 import ProjectGraph from '../../../components/ProjectGraph.astro';
 import ChartsSection from '../../../components/charts/ChartsSection.astro';
 import { withBase } from '../../../lib/path';
@@ -147,7 +148,12 @@ const pageJsonLd = {
       )
     }
 
-    <div class="project-meta">
+    <div class="project-meta">{project.data.star && (
+        <div class="project-meta-group project-meta-star">
+          <StarBlock star={project.data.star} lang="en" />
+        </div>
+      )}
+
       {
         project.data.tools && project.data.tools.length > 0 && (
           <div class="project-meta-group">
@@ -162,7 +168,7 @@ const pageJsonLd = {
       }
 
       {
-        project.data.impact && project.data.impact.length > 0 && (
+        !project.data.star && project.data.impact && project.data.impact.length > 0 && (
           <div class="project-meta-group">
             <span class="project-meta-label">Impact</span>
             <ul class="project-meta-list">

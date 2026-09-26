@@ -1651,6 +1651,94 @@ nav ul.links a[aria-current="page"] {
   margin-bottom: 0;
 }
 
+/* STAR block — the hoisted Result as four label/value rows (CLAUDE.md:194, D1/D9/D11). */
+.star {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  min-width: 0;
+}
+
+/* The row wrapper carries no box: dt/dd become grid items of `.star`, so the label
+   column is shared and every value starts at the same x. */
+.star-row {
+  display: contents;
+}
+
+.star-label,
+.star-value {
+  margin: 0;
+  padding-block: var(--space-1);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.star-row:last-child .star-label,
+.star-row:last-child .star-value {
+  border-bottom: none;
+}
+
+.star-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--text-accent);
+  white-space: nowrap;
+}
+
+.star-value {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-normal);
+}
+
+/* Result is the point of the block — same emphasis as GithubActivity's .gh-stat. */
+.star-row[data-star='result'] .star-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-accent);
+}
+
+/* Full-row hoist inside the .project-meta grid; Стек / Исходники wrap below. */
+.project-meta-star {
+  grid-column: 1 / -1;
+}
+
+/* Compact variant (ProjectCard) — must do real work: the board is 17 cards. */
+.star-compact {
+  gap: 0 var(--space-3);
+}
+
+.star-compact .star-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+}
+
+.star-compact .star-label,
+.star-compact .star-value {
+  padding-block: 0.15rem;
+}
+
+.star-compact .star-value {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Below 600px `.project-meta` is one implicit column, so `1 / -1` is a no-op —
+   keep the hoist legible with a rule instead. */
+@media (max-width: 599px) {
+  .project-meta-star {
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+  }
+}
+
 @media (min-width: 600px) {
   .project-meta {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

@@ -2,11 +2,29 @@ import { defineCollection } from 'astro:content';
 import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 
+/**
+ * The card is the hoisted Result (`CLAUDE.md`, Readability conventions; D21 in
+ * `docs/prd-readability.md`): STAR is the body skeleton — Situation / Task /
+ * Actions / Result — pulled onto the card, so all four letters live in one field.
+ * `strict()` rejects a typo'd key instead of silently dropping it; `.min(1)`
+ * rejects an empty string as an authoring slip.
+ */
+const starSchema = z
+  .object({
+    situation: z.string().min(1),
+    task: z.string().min(1),
+    action: z.string().min(1),
+    result: z.string().min(1),
+  })
+  .strict()
+  .optional();
+
 const projectSchema = z.object({
   title: z.string(),
   description: z.string(),
   hero: z.string(),
   impact: z.array(z.string()).default([]),
+  star: starSchema,
   tools: z.array(z.string()).default([]),
   github: z.url().optional(),
   demo: z.string().optional(),
@@ -27,6 +45,7 @@ const voltaPartSchema = z.object({
   order: z.number(),
   layer: z.enum(['core', 'extended', 'market-jobs', 'rat-v2', 'causal']),
   impact: z.array(z.string()).default([]),
+  star: starSchema,
   tools: z.array(z.string()).default([]),
   charts: z.array(z.string()).default([]),
   github: z.url().optional(),

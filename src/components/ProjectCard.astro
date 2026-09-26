@@ -1,6 +1,14 @@
 ---
 import { withBase } from '../lib/path';
 import ArrowMorph from './ArrowMorph.astro';
+import StarBlock from './StarBlock.astro';
+
+interface Star {
+  situation: string;
+  task: string;
+  action: string;
+  result: string;
+}
 
 interface Props {
   slug: string;
@@ -8,6 +16,8 @@ interface Props {
   description: string;
   image?: string;
   impact?: string[];
+  /** STAR skeleton (D21) — when present it replaces the legacy `impact` line. */
+  star?: Star;
   tools?: string[];
   github?: string;
   demo?: string;
@@ -18,7 +28,7 @@ interface Props {
   draggable?: boolean;
 }
 
-const { slug, title, description, image, impact, tools, github, demo, private: isPrivate = false, linkPrefix = '', lang = 'ru', draggable = false } = Astro.props;
+const { slug, title, description, image, impact, star, tools, github, demo, private: isPrivate = false, linkPrefix = '', lang = 'ru', draggable = false } = Astro.props;
 const isEn = lang === 'en';
 const impactText = impact?.join(', ');
 const i18n = {
@@ -50,7 +60,13 @@ const i18n = {
     )
   }
 
-  {impactText && <p class="Impact">{i18n.impact}: {impactText}</p>}
+  {
+    star ? (
+      <StarBlock star={star} lang={lang} compact />
+    ) : impactText ? (
+      <p class="Impact">{i18n.impact}: {impactText}</p>
+    ) : null
+  }
 
   <div class="project-actions">
     <a class="button" href={withBase(`${linkPrefix}projects/${slug}/`)} style="flex: 1 1 auto; justify-content: center;" data-analytics-project={slug} data-analytics-surface="card">{i18n.view} <ArrowMorph /></a>

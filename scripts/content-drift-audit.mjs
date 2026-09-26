@@ -17,8 +17,14 @@
  *
  * The `description:` field is excluded (decision D20 in docs/prd-readability.md):
  * Phase 1 rewrites descriptions to a 120-200 char result-first spec, which
- * necessarily changes which narrative numbers appear there. Everything else —
+ * necessarily changes which narrative numbers appear there. `star:` is excluded for
+ * the same reason (D21): it is the body skeleton — its Result included — restated on
+ * the card, so every number in it is a copy of a frozen one. Everything else —
  * bodies, `impact`, `faq`, titles, `excerpt` — stays frozen.
+ *
+ * That copy is not left to trust: tests/lib/star-frontmatter.test.ts asserts every
+ * `star` token already exists in the file's own baseline (or its `description`), and
+ * that `star.result` comes from the file's own Result section.
  *
  * Markdown ordered-list markers (`1.`, `2)`) are stripped as formatting, not
  * content: converting a numbered list to bullets is a valid readability edit.
@@ -62,12 +68,19 @@ function stripFrontmatterField(md, field) {
   const fm = block[1];
   const cleaned = fm.replace(new RegExp(`^${field}:.*(?:\\n[ \\t]+.*)*`, 'm'), '');
   if (cleaned === fm) return md;
-  return md.replace(block[0], block[0].replace(fm, cleaned));
+  // Function replacements: a `$` in `cleaned` (e.g. "$1M" in impact) must not be read
+  // as a `$&` / `$1` / `` $` `` substitution pattern.
+  return md.replace(block[0], () => block[0].replace(fm, () => cleaned));
 }
 
 function numericTokens(md) {
-  const text = stripFrontmatterField(stripFencedCode(md), 'description')
-    .replace(/^[ \t]*\d+[.)][ \t]+/gm, '');
+  // `description:` (D20) and `star:` (D21) are narrative restatements of the frozen
+  // body numbers — the card is the hoisted Result — so both are excluded. Bodies,
+  // `impact`, `faq`, titles and `excerpt` stay frozen.
+  const text = stripFrontmatterField(
+    stripFrontmatterField(stripFencedCode(md), 'description'),
+    'star',
+  ).replace(/^[ \t]*\d+[.)][ \t]+/gm, '');
   const raw = text.match(/\d(?:[\d\s.,_]*\d)?/g) || [];
   return raw.map((token) => token.replace(/[\s,_]/g, '')).filter((token) => /\d/.test(token));
 }

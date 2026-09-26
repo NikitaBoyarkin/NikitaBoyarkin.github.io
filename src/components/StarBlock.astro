@@ -1,0 +1,50 @@
+---
+/**
+ * STAR block — the body skeleton (Ситуация / Задача / Действия / Результат) hoisted
+ * onto the card, sourced from the `star:` frontmatter field (D21 in
+ * `docs/prd-readability.md`, which freezes the numbers it restates).
+ *
+ * Renders nothing when `star` is absent, so the legacy «Эффект» / `Impact` line stays
+ * the fallback until every file carries STAR — and remains the unreachable defence
+ * afterwards.
+ *
+ * Styles live in src/styles/global.css, not a scoped block: five surfaces consume it
+ * and the `.project-meta` grid needs the `.project-meta-star` modifier applied from
+ * the outside.
+ */
+interface Star {
+  situation: string;
+  task: string;
+  action: string;
+  result: string;
+}
+
+interface Props {
+  star?: Star;
+  lang?: 'ru' | 'en';
+  /** Tighter, line-clamped variant used by ProjectCard. */
+  compact?: boolean;
+}
+
+const { star, lang = 'ru', compact = false } = Astro.props;
+const isEn = lang === 'en';
+
+const labels = isEn
+  ? { situation: 'Situation', task: 'Task', action: 'Action', result: 'Result' }
+  : { situation: 'Ситуация', task: 'Задача', action: 'Действия', result: 'Результат' };
+
+const KEYS = ['situation', 'task', 'action', 'result'] as const;
+---
+
+{
+  star && (
+    <dl class:list={['star', compact && 'star-compact']}>
+      {KEYS.map((key) => (
+        <div class="star-row" data-star={key}>
+          <dt class="star-label">{labels[key]}</dt>
+          <dd class="star-value">{star[key]}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}

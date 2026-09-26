@@ -4,6 +4,7 @@ import Base from '../../../../layouts/Base.astro';
 import ChartsSection from '../../../../components/charts/ChartsSection.astro';
 import InnerTOC from '../../../../components/InnerTOC.astro';
 import InlineTOC from '../../../../components/InlineTOC.astro';
+import StarBlock from '../../../../components/StarBlock.astro';
 import { withBase } from '../../../../lib/path';
 
 export async function getStaticPaths() {
@@ -77,7 +78,12 @@ const partJsonLd = {
 
     <p class="part-summary">{part.data.description}</p>
 
-    <div class="project-meta">
+    <div class="project-meta">{part.data.star && (
+        <div class="project-meta-group project-meta-star">
+          <StarBlock star={part.data.star} lang="en" />
+        </div>
+      )}
+
       {
         part.data.tools && part.data.tools.length > 0 && (
           <div class="project-meta-group">
@@ -92,7 +98,7 @@ const partJsonLd = {
       }
 
       {
-        part.data.impact && part.data.impact.length > 0 && (
+        !part.data.star && part.data.impact && part.data.impact.length > 0 && (
           <div class="project-meta-group">
             <span class="project-meta-label">Impact</span>
             <ul class="project-meta-list">
