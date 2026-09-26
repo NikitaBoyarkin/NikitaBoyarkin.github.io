@@ -26,7 +26,12 @@
 | 18 | ProjectCard | «Смотреть» / «Demo» / «GitHub» | `project_view_<slug>` / `project_demo_<slug>` / `project_github_<slug>` | внутренние + внешние |
 | 19 | HeadlineCases (главная, PRD v6 S2.6) | 3 кейса + сжатый список 14 | `headline_case_<slug>` / `headline_demo_<slug>` / `headline_github_<slug>` / `headline_all_projects` / `more_project_<slug>` | внутренние проекты + внешние артефакты |
 | 20 | contact.astro (форма, RU+EN) | «Отправить» / «Send» | `contact_submit` (успех); `contact_form_error` с `reason` при отказе | `POST {CONTACT_ENDPOINT}` (Supabase Edge Function `contact`) |
-| 21 | contact.astro (под формой, RU+EN) | «Записаться на 15 минут» / «Book 15 minutes» | `booking_click` | `CAL_BOOKING_URL` (Cal.com) |
+| 21 | contact.astro (под формой, RU+EN) | «Записаться на 30 минут» / «Book 30 minutes» | `booking_click` | `CAL_BOOKING_URL` (Cal.com) |
+| 22 | Header nav (Base.astro, RU+EN, под «Контакты») | «Записаться на 30 минут» / «Book 30 minutes» | `booking_click` | `CAL_BOOKING_URL` (`cal.com/lofinibo/30min`) |
+
+Строки 21 и 22 намеренно делят одно событие `booking_click`: это два входа в одно
+действие, а не два разных CTA. Разделять их — только через property (`location`),
+если понадобится различать вклад рельса и страницы контактов.
 
 ## Гэпы, найденные аудитом
 
@@ -104,10 +109,11 @@ Telegram, LinkedIn и GitHub остались как вторичные опци
 | Что | Где | Значение |
 |---|---|---|
 | Endpoint формы | `src/lib/contact.ts` | `CONTACT_ENDPOINT` — **placeholder `PROJECT_REF`**, заменить в Phase 0 |
-| Ссылка на звонок | `src/lib/contact.ts` | `CAL_BOOKING_URL` — **placeholder `USERNAME`**, заменить в Phase 0 |
+| Ссылка на звонок | `src/lib/contact.ts` | `CAL_BOOKING_URL` = `https://cal.com/lofinibo/30min` (заполнено 2026-09-26, был placeholder `USERNAME/15min`) |
 | Лимиты полей | `src/lib/contact.ts` | `CONTACT_LIMITS` — зеркало CHECK-констрейнтов `contact_messages` |
 | Honeypot | `src/components/ContactForm.astro` | поле `website`, off-screen (`position: absolute; left: -9999px`), `tabindex="-1"` |
 
-Оба placeholder'а — константы, а не env-переменные: отсутствующая в CI env-переменная
-падает **молча** (это уже случилось с `PUBLIC_BEACON_ENDPOINT`), а константа видна в ревью.
+Оставшийся placeholder — `CONTACT_ENDPOINT` (и он же константа, а не env-переменная:
+отсутствующая в CI env-переменная падает **молча** — это уже случилось с
+`PUBLIC_BEACON_ENDPOINT`, — а константа видна в ревью). `CAL_BOOKING_URL` закрыт.
 Без JS форма отправляется нативно (`method="post"`), HTML-ответ отдаёт Edge Function.

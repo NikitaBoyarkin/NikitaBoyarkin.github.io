@@ -7,6 +7,7 @@ import LangSwitch from '../components/LangSwitch.astro';
 import SearchBox from '../components/SearchBox.astro';
 import MorphIcon from 'morphicons/astro';
 import BeaconMetrics from '../components/BeaconMetrics.astro';
+import { CAL_BOOKING_URL } from '../lib/contact';
 
 interface Props {
   title: string;
@@ -63,6 +64,7 @@ const t = {
   navAbout: isEn ? 'About' : 'Обо мне',
   navValue: isEn ? 'Value' : 'Ценность',
   navContact: isEn ? 'Contact' : 'Контакты',
+  navBook: isEn ? 'Book 30 minutes' : 'Записаться на 30 минут',
   navOpen: isEn ? 'Open menu' : 'Открыть меню',
   navClose: isEn ? 'Close menu' : 'Закрыть меню',
   footerWriting: isEn ? 'Writing' : 'Статьи',
@@ -247,6 +249,10 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           </button>
         </div>
         <a class="button nav-cta" href={contactHref}>{t.navContact}</a>
+        {/* Booking CTA sits next to Contact: both are "reach Nikita" actions.
+            Same `booking_click` event name as the contact-page CTA, so PostHog
+            aggregates the two entry points into one funnel step. */}
+        <a class="button nav-cta" href={CAL_BOOKING_URL} target="_blank" rel="noopener noreferrer" data-analytics="booking_click">{t.navBook}</a>
         <a class="button button-secondary nav-cta" href={withBase('CV-Nikita-Boyarkin.pdf')} download data-analytics="cv_download_pdf">CV</a>
       </div>
 
