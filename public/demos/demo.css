@@ -1,0 +1,611 @@
+/* demo.css — the site's design language for the standalone demo pages.
+ *
+ * Four of the five demos (cohort, rfm, telegram, bayesian) plus volta used to
+ * ship their own ad-hoc palettes, so an iframe embedded in a dark-theme article
+ * read as a foreign light window (and volta, hardcoded dark, did the reverse).
+ * This file is the single shared stylesheet they all load.
+ *
+ * It DUPLICATES the token values from `src/styles/global.css` — the demos live
+ * in `public/`, which Astro copies verbatim and never processes, so they cannot
+ * `@import` from `src/`. The guarantee that the copy still agrees with the
+ * canon is `tests/lib/demo-tokens.test.ts`: it parses both files, compares every
+ * token they share, and re-checks the contrast invariant below. Edit a token
+ * here without editing global.css and that test goes red — the same contract
+ * `tests/lib/brand.test.ts` holds between global.css and src/lib/brand.ts.
+ *
+ * The `--dv-*` group below is the exception: it is NEW here, has no canon in
+ * global.css, and is not compared against anything. It exists because the
+ * demos' data colours are a different channel from the site's UI tokens.
+ *
+ * ── Two deliberate deviations from the site's prose scale ──────────────────
+ * 1. Base font-size/line-height are 14px/1.5, not the site's 16px/1.6. The
+ *    site's scale is sized for reading prose; the demos are dashboard-density
+ *    panels inside iframes with a fixed height (280–540px). Adopting 16px grows
+ *    every demo ~14% and clips all four embeds. Type family, palette, radii,
+ *    shadows and the wallpaper ARE the site's — only the prose scale is not.
+ * 2. Cormorant is not loaded. Demo headings are Inter (the display serif is for
+ *    article prose, not for UI panels) — intentional, not an oversight.
+ *
+ * ── The AA invariant (enforced by tests/lib/demo-tokens.test.ts) ───────────
+ * • --dv-seq-* / --dv-cat-* hold >= 4.5:1 against --dv-cell-ink (1.4.3: cohort
+ *   and rfm print their values INSIDE the coloured cell).
+ * • --dv-good|warn|bad|neutral hold >= 4.5:1 against --background-primary and
+ *   --background-secondary of their theme (text usage).
+ * • --dv-label holds >= 4.5:1 against all three background levels (axis ticks
+ *   are text, and in volta they sit on --background-tertiary).
+ * • --dv-axis and --dv-threshold hold >= 3:1 against secondary + tertiary
+ *   (WCAG 1.4.11: a chart axis is a graphical object with no text alternative).
+ * • --dv-seq-* luminance is monotone; --dv-cat-* adjacent pairs differ by
+ *   DeltaE >= 12 so a legend of eleven swatches is readable.
+ *
+ * Why a luminance ramp and not the site's alpha idiom: `ChartCohort.astro` fills
+ * its cells with one hue at `fill-opacity` 0.1–1.0. That works there because the
+ * cells carry no text. Here they do, and the middle of a mid-luminance teal is a
+ * dead zone — at alpha 0.52 the teal reaches 3.5:1 in dark and 2.9:1 in cyberpunk,
+ * so no ink passes AA. Hence seven steps that all stay in the light half of the
+ * range, one fixed dark ink for every theme, and no per-theme ink bug class.
+ *
+ * --dv-* NEVER styles a button, a link, a focus ring, --border-active or any
+ * hover affordance. That separation is what keeps the coral action accent at an
+ * honest 10% of the surface area.
+ */
+
+/* Inter — same self-hosted subsets as global.css, served from the site root.
+   Same origin and same URL as the parent page, so embeds hit the HTTP cache. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Theme-invariant dataviz bucket. These read the same in all three themes,
+   which is possible because the whole ramp lives in the LIGHT half of the
+   luminance range: one dark ink covers every step, everywhere.
+
+   CONTRACT: no --dv-* value contains var() or color-mix(). demo-theme.js reads
+   these back with getComputedStyle().getPropertyValue(), which returns the
+   SPECIFIED TEXT of the declaration and does not resolve nested var() — so a
+   token holding `var(--something)` would be handed to canvas as an unparsable
+   string. A literal hex/colour here is usable as ctx.strokeStyle with no
+   parsing at all. tests/lib/demo-tokens.test.ts enforces this.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Sequential ramp — cohort retention cells, steps 1 (weakest) to 7
+     (strongest). Luminance is monotone decreasing; every step holds >= 5.16:1
+     against --dv-cell-ink, and no two adjacent steps are closer than DeltaE 5.9
+     (a sequential scale SHOULD read as a gradient; the floor is only that the
+     steps are distinguishable at all). */
+  --dv-seq-1: #e7f7f4;
+  --dv-seq-2: #c9e7e5;
+  --dv-seq-3: #abd9d6;
+  --dv-seq-4: #8fcbc8;
+  --dv-seq-5: #76bdba;
+  --dv-seq-6: #5cb0ad;
+  --dv-seq-7: #42a3a0;
+
+  /* Categorical set — the eleven RFM segments, ordered best (champions) to
+     worst (lost). Hue walks teal -> green -> yellow -> amber -> coral -> grey
+     while the legend's names carry the meaning; colour is a redundant channel
+     here, not the only one. Adjacent swatches differ by DeltaE >= 15. */
+  --dv-cat-1: #4ecdc4;
+  --dv-cat-2: #6ccf9c;
+  --dv-cat-3: #9fd98d;
+  --dv-cat-4: #cbdd85;
+  --dv-cat-5: #ecd585;
+  --dv-cat-6: #f2bd6b;
+  --dv-cat-7: #f0a05f;
+  --dv-cat-8: #ee8770;
+  --dv-cat-9: #e9624f;
+  --dv-cat-10: #c3ccd2;
+  --dv-cat-11: #8a9aa4;
+
+  /* The one ink that sits inside a --dv-seq-* / --dv-cat-* cell. Theme-
+     invariant on purpose: the ramp never gets dark enough to need a light ink,
+     so `textOn(value)` collapses to a constant and a whole family of
+     theme-dependent bugs cannot exist. Worst case across both sets is 4.67:1
+     (--dv-cat-9); the ramp's worst is 5.16:1. */
+  --dv-cell-ink: #1f2430;
+
+  /* ── Obsidian dark theme (default) — dark teal. Copied verbatim from
+     src/styles/global.css. ── */
+
+  /* 60% — page / card / nested surfaces */
+  --background-primary: #0f2a2b;
+  --background-secondary: #1a3435;
+  --background-tertiary: #234044;
+  --interactive-normal: #234044;
+  --interactive-hover: #3f3f46;
+
+  /* 30% — neutral text + hairlines */
+  --text-normal: #e4e4e7;
+  --text-muted: #a1a1aa;
+  --border-color: #3f3f46;
+  --surface-secondary: #27272a;
+
+  /* 10% — accent: coral, interactive semantics only */
+  --text-accent: #ff8569;
+  --text-accent-hover: #ffa68a;
+  --button-bg: #1400c3;
+  --button-bg-hover: #2410e0;
+  --button-ink: #f8f8fa;
+  --border-active: #ff8569;
+
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, sans-serif;
+  --font-mono: "SF Mono", Monaco, "Cascadia Mono", "Roboto Mono", monospace;
+
+  /* Dataviz accent — the site's chart colour, distinct from the coral action
+     accent so a bar chart reads as information, not as a call to action. */
+  --text-accent-dataviz: #4ecdc4;
+
+  --wallpaper-line: rgba(78, 205, 196, 0.07);
+  --wallpaper-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='24' viewBox='0 0 42 24'%3E%3Cpath d='M35 12 28 24 14 24 7 12 14 0 28 0Z' fill='none' stroke='%23fff'/%3E%3Cpath d='M0 12h7M35 12h7' fill='none' stroke='%23fff'/%3E%3C/svg%3E");
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  --page-pad: var(--space-5);
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Z-index scale */
+  --z-decor: -1;
+  --z-base: 0;
+  --z-float: 60;
+  --z-sticky: 100;
+  --z-panel: 150;
+  --z-top: 200;
+  --z-overlay: 1000;
+  --z-dialog: 1200;
+
+  /* ── Dark-theme dataviz roles ── */
+
+  /* Axis ticks. Text, so 4.5:1 — and it must clear it on --background-tertiary
+     too, because volta's tick labels sit inside the plot panel. That is why
+     this is not simply --text-muted (#a1a1aa, 4.34:1 on tertiary). */
+  --dv-label: #adadb5;
+
+  /* Chart axis / baseline. NOT --border-color: a hairline border is a surface
+     divider where 1.5:1 is fine, but an axis is a graphical object with no text
+     alternative, so 1.4.11 requires 3:1 against what it is drawn on. */
+  --dv-axis: #6f9498;
+
+  /* Decision boundary (bayesian's alpha = 0.05 line). Dashed to distinguish it
+     from the axis; the colour only has to clear the 3:1 graphical floor. */
+  --dv-threshold: #a3b8ba;
+
+  /* "You are here" marker (bayesian's current-n line). A copy of the theme's
+     --text-normal so the marker carries text weight rather than a hue. */
+  --dv-current: #e4e4e7;
+
+  /* Semantic trio, dataviz scope only. */
+  --dv-good: #2fbf85;
+  --dv-warn: #ffab00;
+  --dv-bad: #f87171;
+  --dv-neutral: #a1a1aa;
+}
+
+[data-theme="light"] {
+  /* ── Light theme — warm cream dominant. Copied verbatim from global.css. ── */
+
+  --background-primary: #f4efca;
+  --background-secondary: #ffffff;
+  --background-tertiary: #f4f4f5;
+  --interactive-normal: #f4f4f5;
+  --interactive-hover: #e4e4e7;
+
+  --text-normal: #18181b;
+  --text-muted: #52525b;
+  --border-color: #e4e4e7;
+  --surface-secondary: #d4d4d8;
+
+  --text-accent: #a8331a;
+  --text-accent-hover: #8a2a16;
+  --button-bg: #1400c3;
+  --button-bg-hover: #2410e0;
+  --button-ink: #f8f8fa;
+  --border-active: #a8331a;
+  --text-accent-dataviz: #0d7377;
+
+  --wallpaper-line: rgba(13, 115, 119, 0.07);
+  --shadow-color: rgba(0, 0, 0, 0.08);
+
+  /* ── Light-theme dataviz roles ── */
+
+  --dv-label: #52525b;
+  --dv-axis: #6b7280;
+  --dv-threshold: #5b6b6d;
+  --dv-current: #18181b;
+
+  --dv-good: #0f7b57;
+  --dv-warn: #8a5a00;
+  --dv-bad: #c62a2a;
+  --dv-neutral: #52525b;
+}
+
+[data-theme="cyberpunk"] {
+  /* ── Cyberpunk — neon on near-black. Copied verbatim from global.css. ── */
+
+  --background-primary: #0a0a12;
+  --background-secondary: #11111d;
+  --background-tertiary: #1a1a2e;
+  --interactive-normal: #1a1a2e;
+  --interactive-hover: #232342;
+
+  --text-normal: #e6f1ff;
+  --text-muted: #8a8aa8;
+  --border-color: #2a2a4a;
+  --surface-secondary: #16162e;
+
+  /* #ff8569 (was #ff6643): the darker accent fails 1.4.3 on accent-tinted
+     backgrounds — see global.css for the full note. Kept identical here so the
+     parity test sees one value, not two. */
+  --text-accent: #ff8569;
+  --text-accent-hover: #ffbe99;
+  --button-bg: #ff2bd6;
+  --button-bg-hover: #ff5ce0;
+  --button-ink: #1a1a1a;
+  --border-active: #ff8569;
+  --text-accent-dataviz: #4ecdc4;
+
+  --wallpaper-line: rgba(78, 205, 196, 0.1);
+  --shadow-color: rgba(255, 133, 105, 0.15);
+
+  /* ── Cyberpunk dataviz roles ── */
+
+  --dv-label: #8a8aa8;
+  --dv-axis: #7a7a9c;
+  --dv-threshold: #9a9ab8;
+  --dv-current: #e6f1ff;
+
+  --dv-good: #34d399;
+  --dv-warn: #ffab00;
+  --dv-bad: #f87171;
+  --dv-neutral: #8a8aa8;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* The page colour lives on the root so `body` can stay transparent — the
+   wallpaper layer below is a `body::before` and a painted body would cover it. */
+html {
+  background-color: var(--background-primary);
+}
+
+body {
+  background-color: transparent;
+  color: var(--text-normal);
+  font-family: var(--font-sans);
+  /* Deviation from the site's 16px/1.6 prose scale — see the header. */
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--page-pad);
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Wallpaper: the honeycomb lattice behind every page (DESIGN.md). Same recipe
+   as global.css — a fixed, pointer-transparent layer, not `background-
+   attachment: fixed` on body, because the latter repaints the pattern on every
+   scroll frame. `mask-position: center` keeps the lattice symmetric about the
+   content column instead of phasing the left and right gutters differently. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-decor);
+  pointer-events: none;
+  background-color: var(--wallpaper-line);
+  -webkit-mask-image: var(--wallpaper-tile);
+  mask-image: var(--wallpaper-tile);
+  -webkit-mask-size: 42px 24px;
+  mask-size: 42px 24px;
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+/* Forced-colours drops background images but not masks — a tinted lattice over
+   a user-chosen high-contrast palette is noise. Same reasoning for a user who
+   asked the OS for stronger contrast directly. */
+@media (forced-colors: active) {
+  body::before {
+    display: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  body::before {
+    display: none;
+  }
+}
+
+@media print {
+  body::before {
+    display: none;
+  }
+}
+
+/* Reduced motion, globally: this was one demo's private `@media` block
+   (`telegram`'s travelling dot) and the only such handling anywhere in
+   `public/demos/`. Promoted here so every demo inherits it — including any
+   added later — instead of each one remembering. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Shared components. Each demo keeps its own layout (grids, canvas, SVG
+   geometry) in its own <style>; only the visual language lives here.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.demo-title {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-1);
+}
+
+.demo-lede {
+  margin: 0 0 var(--space-5);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* A panel of content. Lifts on hover the way DESIGN.md prescribes for
+   interactive surfaces: translateY PLUS a shadow from --shadow-color, never
+   scale or opacity. */
+.demo-card {
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.demo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px var(--shadow-color);
+}
+
+/* Plot surface: recessed one level below the card it sits in. */
+.demo-panel {
+  background: var(--background-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+/* Tooltip. On --background-secondary (white in light, #1a3435 in dark) rather
+   than --surface-secondary: the accent teal that colours `.act` holds 4.5:1
+   against that surface in all three themes, but only 3.8:1 against light's
+   --surface-secondary (#d4d4d8). The border separates it from a card that
+   happens to be the same colour. */
+.demo-tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-size: 12px;
+  line-height: 1.45;
+  max-width: 260px;
+  box-shadow: 0 8px 24px var(--shadow-color);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  z-index: var(--z-float);
+}
+
+.demo-tooltip.is-visible {
+  opacity: 1;
+}
+
+.demo-tooltip b {
+  font-size: 13px;
+}
+
+/* Was three different ad-hoc greens (#c8e6c9, #a5d6a7, #2e7d32). The site's
+   dataviz channel is what "the data colour" means here — 7.7:1 on the tooltip
+   surface in dark, 5.3:1 in light, 9.1:1 in cyberpunk. */
+.demo-tooltip .act {
+  color: var(--text-accent-dataviz);
+  margin-top: var(--space-1);
+  display: block;
+}
+
+.demo-tooltip .sub {
+  color: var(--text-accent-dataviz);
+}
+
+/* Small status flag (bayesian's SRM / significance badges) and its ok-state.
+   Text + hairline rather than a solid fill: an amber fill needs dark ink in
+   dark theme and light ink in light theme (light's --dv-warn is #8a5a00, on
+   which dark ink is only 2.5:1), so a filled chip would need a second
+   theme-dependent ink. Border + currentColor keeps it on the plain page
+   surface, where the semantic tokens already hold 4.5:1 — the same invariant
+   the test checks. */
+.demo-flag {
+  display: inline-block;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dv-warn);
+  border: 1px solid currentColor;
+}
+
+.demo-flag--ok {
+  color: var(--dv-good);
+}
+
+/* Legend / swatch. The inset hairline matters: the pale end of the categorical
+   set is nearly invisible as a 12px dot on cream, and a border is the honest
+   fix (it delineates the swatch instead of pretending the fill carries it). */
+.demo-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  font-size: 12px;
+}
+
+.demo-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.demo-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+  flex: 0 0 auto;
+  box-shadow: inset 0 0 0 1px var(--border-color);
+}
+
+/* KPI readout — mirrors the site's `.bento-metric-value`. */
+.demo-kpi-value {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-accent-dataviz);
+}
+
+.demo-kpi-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Axis / series titles in a demo's own chrome (not SVG text). */
+.demo-axis-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dv-label);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SVG utilities for volta (and any future inline chart). Presentation
+   ATTRIBUTES have specificity 0, so `fill="#4C9AFF"` on an element loses to
+   any of these rules from a stylesheet — the hexes are replaced by classes
+   precisely so nothing has to be overridden with !important.
+   ───────────────────────────────────────────────────────────────────────── */
+
+svg text {
+  font-family: var(--font-sans);
+}
+
+/* Value labels above bars. */
+.dv-ink {
+  fill: var(--text-normal);
+}
+
+/* Axis tick labels: text, so 4.5:1 — --dv-label, not --text-muted, because
+   these sit on the plot panel (--background-tertiary). */
+.dv-label {
+  fill: var(--dv-label);
+}
+
+/* Non-text recessive marks: the "before the fix" series, legend strokes. */
+.dv-muted {
+  fill: var(--text-muted);
+}
+
+.dv-axis {
+  stroke: var(--dv-axis);
+}
+
+/* The one data series. Volta's per-section hues (gold / green / red) were
+   decoration identifying a section, not semantics — every chart there is
+   single-series, matching the site's CHART_PALETTE and the way
+   ChartFunnel.astro colours all bars with --text-accent-dataviz. */
+.dv-s1 {
+  fill: var(--text-accent-dataviz);
+}
+
+.dv-s2 {
+  fill: var(--text-muted);
+  stroke: var(--text-muted);
+}
+
+.dv-dataviz {
+  fill: var(--text-accent-dataviz);
+}
