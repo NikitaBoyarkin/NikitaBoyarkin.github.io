@@ -97,9 +97,9 @@
   /* 10% — ACCENT: coral, interactive semantics only */
   --text-accent: #ff8569;
   --text-accent-hover: #ffa68a;
-  --button-bg: #1400c3;                      /* indigo fill, white ink text */
-  --button-bg-hover: #2410e0;                /* stepped indigo */
-  --button-ink: #f8f8fa;                     /* white ink on indigo button (AA) */
+  --button-bg: #fe4e02;                      /* orange fill (ACCENT_ON_BLUE) + dark ink */
+  --button-bg-hover: #ff6a1f;                /* stepped orange */
+  --button-ink: #1a1a1a;                     /* dark ink on orange (5.22:1, AA) */
   --border-active: #ff8569;
 
   --shadow-color: rgba(0, 0, 0, 0.4);
@@ -195,9 +195,9 @@
   /* 10% — ACCENT: burnt sienna (light-adapted coral) + coral button fill */
   --text-accent: #a8331a;
   --text-accent-hover: #8a2a16;
-  --button-bg: #1400c3;                      /* indigo fill, white ink text */
-  --button-bg-hover: #2410e0;                /* stepped indigo */
-  --button-ink: #f8f8fa;                     /* white ink on indigo button (AA) */
+  --button-bg: #fe4e02;                      /* orange fill (ACCENT_ON_BLUE) + dark ink */
+  --button-bg-hover: #ff6a1f;                /* stepped orange */
+  --button-ink: #1a1a1a;                     /* dark ink on orange (5.22:1, AA) */
   --border-active: #a8331a;
   --text-accent-dataviz: #0d7377;
 
@@ -665,20 +665,30 @@ nav ul.links a[aria-current="page"] {
 .button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
   background: var(--button-bg);
   color: var(--button-ink);
   padding: var(--space-3) var(--space-5);
   border-radius: var(--radius-md);
+  /* A transparent hairline rather than `border: none`. Under border-box an
+     absent border makes the primary 2px shorter than the bordered secondary
+     and demo buttons it shares a row with (project cards, about, nav rail). */
+  border: 1px solid transparent;
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9rem;
-  border: none;
+  line-height: 1.2;
+  white-space: nowrap;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.button:hover {
+/* `:not(:disabled)` so a disabled button never takes the hover fill. The
+   variant hovers below are bumped the same way to keep their original
+   specificity order (see the button states block at the end of the file). */
+.button:not(:disabled):hover {
   background: var(--button-bg-hover);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px color-mix(in srgb, var(--text-accent) 25%, transparent);
@@ -1523,13 +1533,13 @@ nav ul.links a[aria-current="page"] {
   font-weight: 500;
   font-size: 0.9rem;
   transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-  border: none;
+  border: 1px solid transparent; /* height-matches the bordered siblings */
   cursor: pointer;
   position: relative;
   overflow: hidden;
 }
 
-.project .button:hover {
+.project .button:not(:disabled):hover {
   background: var(--button-bg-hover);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px color-mix(in srgb, var(--text-accent) 25%, transparent);
@@ -1545,7 +1555,7 @@ nav ul.links a[aria-current="page"] {
   content: none;
 }
 
-.project .button-secondary:hover {
+.project .button-secondary:not(:disabled):hover {
   background: color-mix(in srgb, var(--text-accent) 10%, transparent);
   color: var(--text-accent-hover);
 }
@@ -1561,7 +1571,7 @@ nav ul.links a[aria-current="page"] {
   content: none;
 }
 
-.project .button-demo:hover {
+.project .button-demo:not(:disabled):hover {
   background: color-mix(in srgb, var(--text-accent) 22%, transparent);
   border-color: color-mix(in srgb, var(--text-accent) 60%, transparent);
 }
@@ -2414,7 +2424,7 @@ button:focus-visible {
   color: var(--text-accent);
   border: 1px solid var(--text-accent);
 }
-.button.button-secondary:hover {
+.button.button-secondary:not(:disabled):hover {
   background: color-mix(in srgb, var(--text-accent) 10%, transparent);
   color: var(--text-accent-hover);
 }
@@ -2435,6 +2445,50 @@ button:focus-visible {
   .cta-row .button {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* ============================================================
+   Button family — shared geometry + interaction states
+   Applies to .button and .project .button across every variant
+   (primary, secondary, demo, .nav-cta). Declared last so it wins
+   same-specificity ties without !important; the variant hover rules
+   above carry the matching :not(:disabled) so their order is intact.
+   ============================================================ */
+
+.button,
+.project .button {
+  justify-content: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Press lands instead of lifting further: hover already reads as "raised",
+   so the click has to travel back down to the rested position. */
+.button:not(:disabled):active,
+.project .button:not(:disabled):active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--text-accent) 18%, transparent);
+}
+
+/* Disabled — the send-in-flight state on the contact form. No lift, no
+   shadow, no pointer affordance. Opacity 0.6 matches .contact-submit:disabled,
+   which layers its own `cursor: progress` on top from component scope. */
+.button:disabled,
+.project .button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 44px touch target on small screens, where the CTA row also stacks. */
+@media (max-width: 480px) {
+  .button,
+  .project .button {
+    min-height: 44px;
   }
 }
 
@@ -2464,7 +2518,11 @@ button:focus-visible {
   margin-top: var(--space-4);
 }
 .now-teaser-cta a {
-  color: var(--button-ink); /* primary button convention: white text on indigo --button-bg */
+  /* Unused: no template carries this class. `--button-ink` is now a *dark* ink
+     (it sits on a light fill), so this rule would render near-invisible text if
+     the block were ever revived — such a link needs its own colour, not the
+     button's ink. */
+  color: var(--button-ink);
   text-decoration: none;
   font-weight: 600;
 }

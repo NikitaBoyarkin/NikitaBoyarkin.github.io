@@ -9,18 +9,30 @@
  *     directly so a banner can never be the only place a brand hex lives.
  *
  * The brand has two contextual accents on purpose (see DESIGN.md, "Double
- * regime"): a high-chroma orange for the royal-blue marketing surface, and a
- * coral for the site's teal canvas. They are not interchangeable — orange on
- * teal or coral on blue would each fall short of the brand's contrast targets.
+ * regime"): a high-chroma orange that fills the call-to-action button and
+ * accents the royal-blue marketing surface, and a coral for the site's teal
+ * canvas. They are not interchangeable *by role*. The orange is a **fill**: it
+ * carries dark ink at 5.23:1 and clears the 3:1 graphical floor against the
+ * teal canvas (4.55:1). As accent *text* it would fail — on a card surface
+ * (`--background-secondary`, `#1a3435`) it lands at 3.97:1, under the 4.5:1
+ * the contrast gate enforces for `--text-accent`. That slot stays coral.
  */
 
 /** A hex colour string, in the `#rrggbb` form this codebase uses everywhere. */
 export type BrandHex = `#${string}`;
 
-/** Signal blue — the CTA fill (`--button-bg`) and the marketing surface. */
+/**
+ * Signal blue — the marketing surface (OG banners, CV covers) and the family
+ * its depth tints belong to. Not a button fill: a blue CTA on the teal canvas
+ * sat at 1.31:1 against it.
+ */
 export const BRAND_BLUE: BrandHex = '#1400c3';
 
-/** High-chroma orange — accent for the blue marketing surface (OG banners). */
+/**
+ * High-chroma orange — the CTA fill (`--button-bg`, dark and light themes,
+ * with `--button-ink` dark on top) and the accent on the blue marketing
+ * surface. The one hex the two regimes share.
+ */
 export const ACCENT_ON_BLUE: BrandHex = '#fe4e02';
 
 /** Coral — interactive accent for the teal site canvas (dark + cyberpunk). */

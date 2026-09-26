@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import {
+  ACCENT_ON_BLUE,
   ACCENT_ON_TEAL,
   ACCENT_ON_TEAL_LIGHT,
-  BRAND_BLUE,
   CREAM,
   type BrandHex,
 } from '../../src/lib/brand';
@@ -27,12 +27,15 @@ type Expected = Record<string, Record<string, BrandHex>>;
 
 const EXPECTED: Expected = {
   ':root': {
-    'button-bg': BRAND_BLUE,
+    // The CTA fill is ACCENT_ON_BLUE, not BRAND_BLUE: the signal blue is the
+    // *marketing surface* colour, and a blue button on the teal canvas cleared
+    // only 1.31:1 against it. Same constant, correct role.
+    'button-bg': ACCENT_ON_BLUE,
     'text-accent': ACCENT_ON_TEAL,
   },
   '[data-theme="light"]': {
     'background-primary': CREAM,
-    'button-bg': BRAND_BLUE,
+    'button-bg': ACCENT_ON_BLUE,
     'text-accent': ACCENT_ON_TEAL_LIGHT,
   },
   '[data-theme="cyberpunk"]': {

@@ -10,9 +10,9 @@ colors:
   text-muted: "#a1a1aa"
   text-accent: "#ff8569"
   text-accent-hover: "#ffa68a"
-  button-bg: "#1400c3"
-  button-bg-hover: "#2410e0"
-  button-ink: "#f8f8fa"
+  button-bg: "#fe4e02"
+  button-bg-hover: "#ff6a1f"
+  button-ink: "#1a1a1a"
   interactive-normal: "#234044"
   interactive-hover: "#3f3f46"
   border-color: "#3f3f46"
@@ -119,7 +119,8 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 
 - The accent is semantic, not decorative: use it for links, active nav, focus rings, borders, and primary actions. Do not introduce a second accent.
 - Surfaces step primary → secondary → tertiary for page, card, and nested surfaces (code blocks, table headers, chips).
-- The button fill is a distinct indigo (`#1400c3`) with `--button-ink` (white, `#f8f8fa`) — the primary-button convention. `--button-ink` is the ink that sits on the button fill: white (`#f8f8fa`) in dark/light themes, dark (`#1a1a1a`) in cyberpunk (where the fill is magenta). It is the ink for buttons, skip-link, `::selection`, and accent badges; it is **not** constant across all three themes — it flips to keep AA contrast on its fill.
+- The button fill is the brand orange (`#fe4e02`) with `--button-ink` dark (`#1a1a1a`) — a light fill under dark ink, the same convention the cyberpunk theme already used. `--button-ink` is the ink that sits on the button fill: dark (`#1a1a1a`) in dark/light themes and in cyberpunk (where the fill is magenta). It is the ink for buttons, skip-link, `::selection`, and accent badges; it is **not** constant across all three themes — it flips to keep AA contrast on its fill.
+- The fill was signal blue (`#1400c3`) until 2026-09. It sat at **1.31:1** against the teal canvas — a CTA that read as a hole punched in the page. No blue can clear 3:1 against that canvas *and* carry AA text on top, so the fill had to become light with dark ink.
 - `text-muted` is for secondary text and metadata; `text-normal` for body and headings.
 
 ## Color Roles — 60-30-10
@@ -143,12 +144,12 @@ The palette is formalized against the **60-30-10** rule (`docs/prd-palette-60-30
 | | `--surface-secondary` | `#27272a` | `#d4d4d8` | `#16162e` |
 | **10% Accent** (interactive) | `--text-accent` | `#ff8569` | `#a8331a` | `#ff8569` |
 | | `--text-accent-hover` | `#ffa68a` | `#8a2a16` | `#ffbe99` |
-| | `--button-bg` | `#1400c3` | `#1400c3` | `#ff2bd6` |
-| | `--button-bg-hover` | `#2410e0` | `#2410e0` | `#ff5ce0` |
-| | `--button-ink` | `#f8f8fa` | `#f8f8fa` | `#1a1a1a` |
+| | `--button-bg` | `#fe4e02` | `#fe4e02` | `#ff2bd6` |
+| | `--button-bg-hover` | `#ff6a1f` | `#ff6a1f` | `#ff5ce0` |
+| | `--button-ink` | `#1a1a1a` | `#1a1a1a` | `#1a1a1a` |
 | | `--border-active` | `#ff8569` | `#a8331a` | `#ff8569` |
 
-Application budget: dominant 55–65% of any screen, secondary 25–35%, accent ≤15%. The accent is reserved for links, active nav, focus rings, `border-active`, accent bars, and badge pills — never as the fill of a content block. The primary button fill is a **scoped exception**: it is indigo `#1400c3` (magenta `#ff2bd6` in cyberpunk), not the coral accent — a deliberate second interactive color so CTAs read as actions, not as accent text.
+Application budget: dominant 55–65% of any screen, secondary 25–35%, accent ≤15%. The accent is reserved for links, active nav, focus rings, `border-active`, accent bars, and badge pills — never as the fill of a content block. The primary button fill is a **scoped exception in role, not in colour**: it takes the brand orange `#fe4e02` (magenta `#ff2bd6` in cyberpunk), but as a *fill* rather than accent text. On the teal canvas the orange clears the 3:1 graphical floor (4.55:1) and carries dark ink at 5.23:1; used as text on a card (`--background-secondary`, `#1a3435`) it would land at 3.97:1 — under the 4.5:1 the contrast gate enforces for `--text-accent`, which therefore stays coral.
 
 **Scoped exceptions** (raw hex outside the token system, by technical necessity — not palette drift):
 - `Base.astro` `theme-color` meta + `THEME_COLORS` JS map — meta content cannot be a CSS variable; values mirror the dominant 60% per theme.
@@ -162,15 +163,17 @@ and the marketing-surface depth tints:
 
 | Export | Value | Where it lands |
 |---|---|---|
-| `BRAND_BLUE` | `#1400c3` | `--button-bg` (dark + light); the OG banner surface |
+| `BRAND_BLUE` | `#1400c3` | the OG banner surface; the blue depth tints' family |
 | `ACCENT_ON_TEAL` | `#ff8569` | `--text-accent` (dark + cyberpunk) |
 | `ACCENT_ON_TEAL_LIGHT` | `#a8331a` | `--text-accent` (light) |
-| `ACCENT_ON_BLUE` | `#fe4e02` | the OG banner accent — never site text |
+| `ACCENT_ON_BLUE` | `#fe4e02` | `--button-bg` (dark + light) **and** the OG banner accent |
 | `CREAM` | `#f4efca` | `--background-primary` (light) **and** the OG banner ink |
 
 The two accents are deliberate, not drift: the high-chroma orange reads on the
-royal-blue marketing surface, the coral on the teal site canvas. Swapping them
-would fail contrast in both places.
+royal-blue marketing surface, the coral on the teal site canvas. They are
+separated by **role**, not just by surface — the orange is a fill (dark ink on
+top, 5.23:1) and would fail as accent text on a card (3.97:1); the coral is the
+site's text accent and never appears on the blue banner.
 
 `global.css` stays hand-written; agreement between it and `brand.ts` is enforced
 by `tests/lib/brand.test.ts`, which parses the `:root`, `[data-theme="light"]` and
@@ -184,8 +187,8 @@ import the same module, so there are no bare brand hexes outside it.
 Bar widths approximate the 60/30/10 proportion (illustrative, not pixel-measured — see Goal 1 for a measured audit):
 
 ```
-Dark       60% ▰▰▰▰▰▰▰▰▰▰  #0f2a2b teal       · 30% ▰▰▰▰▰  #e4e4e7 zinc    · 10% ▰▰  #ff8569 coral
-Light      60% ▰▰▰▰▰▰▰▰▰▰  #f4efca cream      · 30% ▰▰▰▰▰  #18181b zinc    · 10% ▰▰  #a8331a sienna
+Dark       60% ▰▰▰▰▰▰▰▰▰▰  #0f2a2b teal       · 30% ▰▰▰▰▰  #e4e4e7 zinc    · 10% ▰▰  #ff8569 coral  (button fill: #fe4e02 orange)
+Light      60% ▰▰▰▰▰▰▰▰▰▰  #f4efca cream      · 30% ▰▰▰▰▰  #18181b zinc    · 10% ▰▰  #a8331a sienna  (button fill: #fe4e02 orange)
 Cyberpunk  60% ▰▰▰▰▰▰▰▰▰▰  #0a0a12 indigo     · 30% ▰▰▰▰▰  #e6f1ff cool    · 10% ▰▰  #ff8569 coral  (button fill: #ff2bd6 magenta)
 ```
 
@@ -226,7 +229,8 @@ WCAG AA contrast is bound to a mechanism — `.claude/hooks/contrast-gate.js`, a
 | text-normal / bg-primary | 11.94:1 | 15.22:1 | 17.27:1 | hook |
 | text-muted / bg-primary | 5.91:1 | 6.64:1 | 5.90:1 | hook |
 | text-accent / bg-secondary (card) | 5.55:1 | 6.66:1 | 7.85:1 | hook |
-| `--button-ink` / button-bg | 10.89:1 | 10.89:1 | 5.44:1 | hook |
+| `--button-ink` / button-bg | 5.23:1 | 5.23:1 | 5.44:1 | hook |
+| button-bg / bg-primary (3:1) | 4.55:1 | 2.86:1 | 6.17:1 | measured, not gated |
 | border-active / bg-primary (3:1) | 6.36:1 | 5.72:1 | 8.27:1 | hook |
 
 ## Themes
@@ -242,8 +246,8 @@ The default (dark) values live in the frontmatter. Light and cyberpunk re-map th
 | text-muted | `#52525b` | `#8a8aa8` |
 | text-accent | `#a8331a` | `#ff8569` |
 | text-accent-hover | `#8a2a16` | `#ffbe99` |
-| button-bg | `#1400c3` | `#ff2bd6` |
-| button-bg-hover | `#2410e0` | `#ff5ce0` |
+| button-bg | `#fe4e02` | `#ff2bd6` |
+| button-bg-hover | `#ff6a1f` | `#ff5ce0` |
 | interactive-normal | `#f4f4f5` | `#1a1a2e` |
 | interactive-hover | `#e4e4e7` | `#232342` |
 | border-color | `#e4e4e7` | `#2a2a4a` |
@@ -299,7 +303,7 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 
 ## Components
 
-- **Button** — three variants: primary (indigo fill, white ink), secondary (transparent, accent border and text), demo (accent-tinted fill). Hover lifts with an accent-tinted shadow.
+- **Button** — three variants: primary (orange fill, dark ink), secondary (transparent, accent border and text), demo (accent-tinted fill). All three share one geometry: the fill variants carry a transparent 1px hairline so a borderless primary is not 2px shorter than the bordered secondary and demo it shares a row with. Hover lifts with an accent-tinted shadow; `:active` returns to the rested position (a press that kept lifting would read as a second hover); `:disabled` drops the lift, the shadow and the hover fill at `opacity: .6`, and hover is scoped `:not(:disabled)` so a disabled button never takes the hover fill. Geometry, the transition list and those three states are declared once for `.button, .project .button` in the states block at the end of `global.css`. Under 480px all `.button` get a 44px minimum height alongside the stacked full-width CTA row.
 - **Project card** — secondary surface, hairline border, large corner; an accent gradient bar reveals on hover; the hero image scales up slightly.
 - **Skill badge** — accent-tinted pill with an accent border; used for skills and topic chips.
 - **Kanban column** — full-width snap panel on mobile, equal share on desktop; accent top border; header carries an accent dot and a count pill.
