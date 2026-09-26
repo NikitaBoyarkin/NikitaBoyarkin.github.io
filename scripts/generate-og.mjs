@@ -25,7 +25,15 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 import { ACCENT_ON_BLUE, BRAND_BLUE, CREAM, hexPoints, hexPointsFlat } from '../src/lib/brand.ts';
-import { FONT_SANS, FONT_SERIF, assertContrast, esc, renderSvgToPng } from './lib/og-render.mjs';
+import {
+  FONT_SANS,
+  FONT_SERIF,
+  assertContrast,
+  esc,
+  honeycombLayer,
+  honeycombPattern,
+  renderSvgToPng,
+} from './lib/og-render.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const POSTS_DIR = join(ROOT, 'src/content/posts');
@@ -119,9 +127,11 @@ function buildSvg(title, category) {
       <stop offset="0" stop-color="${CREAM}" stop-opacity="0.05"/>
       <stop offset="1" stop-color="${CREAM}" stop-opacity="0"/>
     </linearGradient>
+    ${honeycombPattern({ color: CREAM })}
   </defs>
 
   <rect width="1200" height="630" fill="${BLUE}"/>
+  ${honeycombLayer()}
   <rect width="1200" height="630" fill="url(#shade)"/>
   <ellipse cx="420" cy="330" rx="460" ry="215" fill="url(#glow)"/>
   <rect x="0" y="0" width="1200" height="6" fill="${ORANGE}"/>

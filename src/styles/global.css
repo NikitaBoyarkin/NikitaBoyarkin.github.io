@@ -2048,6 +2048,28 @@ footer p {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     max-width: 100%;
+
+    /* Scroll affordance. A clipped third column otherwise reads as "the table
+       ends here" rather than "swipe", which on a phone is the difference
+       between seeing the data and not. The two opaque covers are `local`, so
+       they travel with the content and hide the shadow on a side that has
+       nothing left to reveal; the shadows are `scroll`, so they stay pinned to
+       the edges. --background-primary matches the page surface the cells are
+       transparent against, so the covers never read as a painted band. */
+    background:
+      linear-gradient(to right, var(--background-primary) 30%, transparent) left center / 40px 100% no-repeat local,
+      linear-gradient(to left, var(--background-primary) 30%, transparent) right center / 40px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, color-mix(in srgb, var(--text-normal) 22%, transparent), transparent) left center / 14px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, color-mix(in srgb, var(--text-normal) 22%, transparent), transparent) right center / 14px 100% no-repeat scroll;
+  }
+
+  /* Project pages stacked the desktop 32px gutter on top of body's page pad,
+     leaving a 3-column table 296 of a phone's 390px — a quarter of the width
+     spent on margin, and the widest tables scrolling 168–239px for it.
+     --page-pad is the one gutter the page already uses, so the two edges
+     collapse into a single 15px one and the table gets the width back. */
+  .container {
+    padding: 2rem var(--page-pad);
   }
 
   #about {

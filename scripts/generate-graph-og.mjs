@@ -48,6 +48,8 @@ import {
   FONT_SERIF,
   assertContrast,
   esc,
+  honeycombLayer,
+  honeycombPattern,
   renderSvgToPng,
 } from './lib/og-render.mjs';
 
@@ -309,9 +311,11 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.
       <stop offset="0.55" stop-color="#000000" stop-opacity="0"/>
       <stop offset="1" stop-color="#000000" stop-opacity="0.32"/>
     </radialGradient>
+    ${honeycombPattern({ color: CREAM })}
   </defs>
 
   <rect width="1200" height="630" fill="${BG}"/>
+  ${honeycombLayer()}
   <rect x="0" y="0" width="1200" height="6" fill="${ORANGE}"/>
 
   <!-- graph surface: warm glow + inner vignette separate the panel from the page -->

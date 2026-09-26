@@ -10,6 +10,7 @@ import {
   CREAM,
   type BrandHex,
 } from '../../src/lib/brand';
+import { HONEYCOMB } from '../../scripts/lib/og-render.mjs';
 
 // Drift gate (PRD REQ-02 / D13). global.css stays hand-written; the guarantee
 // that it still agrees with the brand module is this test. If someone edits a
@@ -89,5 +90,51 @@ describe('brand drift gate (global.css ↔ brand.ts)', () => {
     expect(drift(mutated)).toContain(
       '[data-theme="light"] --background-primary: missing',
     );
+  });
+});
+
+// --- Wallpaper lattice: global.css --wallpaper-tile ↔ the OG banners --------
+//
+// The banners paint the same honeycomb the site paints behind every page, and
+// HONEYCOMB in scripts/lib/og-render.mjs is a transcription of that tile. Same
+// contract as the palette gate above: edit either side alone and this goes red,
+// instead of shipping two lattices that almost match.
+
+const TILE = /--wallpaper-tile:\s*url\("data:image\/svg\+xml,([^"]+)"\)/;
+
+/** The tile's geometry, read out of the CSS data URI. */
+function wallpaperTile(source: string): typeof HONEYCOMB {
+  const m = TILE.exec(source);
+  if (!m) throw new Error('no --wallpaper-tile data URI in global.css');
+  const svg = decodeURIComponent(m[1]);
+  const size = /width='(\d+)' height='(\d+)'/.exec(svg);
+  const viewBox = /viewBox='([^']+)'/.exec(svg);
+  const paths = [...svg.matchAll(/d='([^']+)'/g)].map((p) => p[1]);
+  if (!size || !viewBox || paths.length !== 2) {
+    throw new Error('--wallpaper-tile is not the two-path tile this gate parses');
+  }
+  return {
+    width: Number(size[1]),
+    height: Number(size[2]),
+    viewBox: viewBox[1],
+    hex: paths[0],
+    links: paths[1],
+  };
+}
+
+describe('wallpaper lattice drift gate (global.css ↔ og-render.mjs)', () => {
+  it('the OG honeycomb is the tile the site paints', () => {
+    expect(wallpaperTile(CSS)).toEqual(HONEYCOMB);
+  });
+
+  it('bites when the tile geometry is changed', () => {
+    // Move one vertex of the hexagon: a plausible hand-tweak that would
+    // otherwise leave every banner drawing the old cell forever.
+    const mutated = CSS.replace(
+      'M35 12 28 24 14 24 7 12 14 0 28 0Z',
+      'M35 12 28 24 14 24 7 12 14 0 30 0Z',
+    );
+    expect(mutated).not.toBe(CSS);
+    expect(wallpaperTile(mutated)).not.toEqual(HONEYCOMB);
   });
 });

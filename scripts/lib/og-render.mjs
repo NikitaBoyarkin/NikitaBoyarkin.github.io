@@ -21,6 +21,10 @@
 // process cwd, not the config file).
 //
 // Callers must have `rsvg-convert` on PATH (Homebrew: `brew install librsvg`).
+//
+// The lattice (HONEYCOMB / honeycombPattern) is the same honeycomb the site
+// paints behind every page, so a banner and the page it previews read as one
+// surface. It lives here as geometry — see HONEYCOMB for what pins it.
 
 import { mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -47,6 +51,59 @@ export function ogFontEnv() {
 /** XML-escape text destined for an SVG text node. */
 export const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/**
+ * The site's wallpaper lattice, as geometry rather than a picture: a flat-top
+ * honeycomb tile. These five values are a transcription of `--wallpaper-tile`
+ * in src/styles/global.css, and `tests/lib/brand.test.ts` pins the two together
+ * — the banner and the page must never drift into two different lattices.
+ *
+ * It lives here, not in each generator, for the same reason the palette lives
+ * in brand.ts: a banner must not be the only place the lattice is defined.
+ */
+export const HONEYCOMB = {
+  width: 42,
+  height: 24,
+  viewBox: '0 0 42 24',
+  hex: 'M35 12 28 24 14 24 7 12 14 0 28 0Z',
+  links: 'M0 12h7M35 12h7',
+};
+
+/**
+ * The lattice as an SVG `<pattern>`, for the background of an OG banner.
+ *
+ * `scale` multiplies the 42x24 tile. A banner is 1200px wide but is consumed at
+ * link-preview size (~600px), so at 1x the cells would arrive at half the
+ * apparent size of the desktop wallpaper and dissolve into texture; 2x is the
+ * default so the banner and the page read as the same surface. `stroke-width`
+ * is divided by the same factor, keeping the line a 1-unit hairline at any
+ * scale.
+ *
+ * The colour is passed in, never defaulted: this module is a renderer and owns
+ * no palette (see brand.ts for that).
+ */
+export function honeycombPattern({
+  id = 'lattice',
+  scale = 2,
+  color,
+  opacity = 0.11,
+} = {}) {
+  const { width, height, hex, links } = HONEYCOMB;
+  return `<pattern id="${id}" width="${width * scale}" height="${height * scale}" patternUnits="userSpaceOnUse">
+      <g transform="scale(${scale})" fill="none" stroke="${color}" stroke-width="${(1 / scale).toFixed(4)}" stroke-opacity="${opacity}">
+        <path d="${hex}"/>
+        <path d="${links}"/>
+      </g>
+    </pattern>`;
+}
+
+/**
+ * The full-canvas layer that paints the lattice. Sits directly on the surface
+ * fill and below the glow, so the warm light falls on the texture instead of
+ * being flattened by it.
+ */
+export const honeycombLayer = (id = 'lattice') =>
+  `<rect width="1200" height="630" fill="url(#${id})"/>`;
 
 /**
  * Rasterise an SVG string to `outPath` via rsvg-convert, using the vendored
