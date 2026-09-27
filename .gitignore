@@ -115,3 +115,7 @@ src/graphify-out/cache/
 # CI-only sibling checkouts (drift-guard evidence) — never committed
 vendor/
 
+
+# graphify cache — generated, never tracked
+# (the src/ variant was already covered; the root copy was not)
+graphify-out/cache/
