@@ -131,11 +131,17 @@ const hiddenTags = tags.filter((t) => t.count < 2);
         .replace(/"/g, '&quot;');
     }
 
+    // WebP sibling for the card preview — same swap BlogCard.astro does, so a
+    // filtered list does not silently fall back to the multi-hundred-KB PNG.
+    function webpOf(src: string): string {
+      return src.replace(/\.png$/, '.webp');
+    }
+
     // Mirrors BlogCard.astro markup so the client-rendered filtered list looks
     // identical to the static paginated one.
     function cardHtml(p: Post): string {
       return `<article class="blog-card" data-category="${p.category}">
-        ${p.image ? `<img class="blog-card-image" src="${p.image}" alt="" width="600" height="200" loading="lazy" />` : ''}
+        ${p.image ? `<picture><source type="image/webp" srcset="${webpOf(p.image)}" /><img class="blog-card-image" src="${p.image}" alt="" width="600" height="200" loading="lazy" /></picture>` : ''}
         <div class="blog-card-body">
           <button class="blog-card-tag" type="button" data-card-category="${p.category}">${p.categoryLabel}</button>
           <a class="blog-card-link blog-card-title" href="${p.href}">${escapeHtml(p.title)}</a>

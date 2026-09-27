@@ -1080,8 +1080,15 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   .kg-chip[aria-pressed='true'] {
     background: var(--text-accent);
     border-color: var(--text-accent);
-    color: #1a1a1a; /* dark ink on coral accent; button ink is now white */
+    color: #1a1a1a; /* dark ink on the coral accent — 7.3:1, AA */
     font-weight: 600;
+  }
+  /* Light theme's --text-accent is dark sienna (#a8331a), where the dark ink
+     above drops to 2.61:1. `:global()` keeps Astro from scoping the ancestor —
+     without it the compiled selector demands `data-theme` on the button itself
+     and never matches. White ink on sienna is 6.66:1. */
+  :global([data-theme='light']) .kg-chip[aria-pressed='true'] {
+    color: #ffffff;
   }
   .kg-chip:focus-visible {
     outline: 2px solid var(--text-accent);

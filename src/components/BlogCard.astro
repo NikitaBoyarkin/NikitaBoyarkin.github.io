@@ -21,6 +21,12 @@ interface Props {
    * else it stays a decorative <span>.
    */
   filterableTag?: boolean;
+  /**
+   * Topmost card of a paginated index: its image sits in the first viewport and
+   * is the LCP element, so it must not be lazy-loaded and should win the
+   * fetch-priority race. Set only for index 0 of each writing page.
+   */
+  eager?: boolean;
 }
 
 const {
@@ -34,8 +40,12 @@ const {
   readTime,
   lang = 'ru',
   filterableTag = false,
+  eager = false,
 } = Astro.props;
 const minLabel = lang === 'en' ? 'min' : 'мин';
+// WebP sibling for the card preview (the PNG stays for OG meta tags). Same
+// pattern as MaterialStrip — scripts/generate-og.mjs always emits both.
+const webpOf = (src: string) => src.replace(/\.png$/, '.webp');
 // EN posts live at /en/posts/<slug>/ (their own collection); RU at /posts/<slug>/.
 const postHref = lang === 'en' ? withBase(`en/posts/${slug}/`) : withBase(`posts/${slug}/`);
 const updatedText = updated
@@ -49,14 +59,18 @@ const tagLabel = categoryLabel(category, lang);
 <article class="blog-card" data-category={category}>
   {
     image && (
-      <img
-        class="blog-card-image"
-        src={withBase(image)}
-        alt=""
-        width="600"
-        height="200"
-        loading="lazy"
-      />
+      <picture>
+        <source type="image/webp" srcset={withBase(webpOf(image))} />
+        <img
+          class="blog-card-image"
+          src={withBase(image)}
+          alt=""
+          width="600"
+          height="200"
+          loading={eager ? 'eager' : 'lazy'}
+          fetchpriority={eager ? 'high' : 'auto'}
+        />
+      </picture>
     )
   }
   <div class="blog-card-body">

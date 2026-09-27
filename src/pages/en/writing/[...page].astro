@@ -79,7 +79,7 @@ const nextUrl = page < totalPages ? `${siteUrl}${withBase(pageHref(page + 1))}` 
       pagePosts.length === 0 ? (
         <p style="color: var(--text-muted);">No English posts yet.</p>
       ) : (
-        pagePosts.map((post) => (
+        pagePosts.map((post, i) => (
           <BlogCard
             slug={post.id.replace(/\.md$/, '')}
             title={post.data.title}
@@ -90,6 +90,7 @@ const nextUrl = page < totalPages ? `${siteUrl}${withBase(pageHref(page + 1))}` 
             excerpt={post.data.excerpt}
             readTime={estimateReadTime(post.body ?? '')}
             lang="en"
+            eager={i === 0}
             filterableTag
           />
         ))

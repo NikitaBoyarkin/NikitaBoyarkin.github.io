@@ -103,6 +103,9 @@
 }
 
 .blog-card-image {
+  /* Block, not the inline default: the image now sits inside <picture>, and an
+     inline box would add ~8px of line-box leading below it, growing the card. */
+  display: block;
   width: 100%;
   height: 140px;
   object-fit: cover;

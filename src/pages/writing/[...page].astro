@@ -92,7 +92,7 @@ const counterpartHref = page === 1 ? withBase('en/writing/') : undefined;
 
   <div class="blog-list reveal reveal-delay-2" id="blog-list">
     {
-      pagePosts.map((post) => (
+      pagePosts.map((post, i) => (
         <BlogCard
           slug={post.id.replace(/\.md$/, '')}
           title={post.data.title}
@@ -102,6 +102,7 @@ const counterpartHref = page === 1 ? withBase('en/writing/') : undefined;
           updated={post.data.updated}
           excerpt={post.data.excerpt}
           readTime={estimateReadTime(post.body ?? '')}
+          eager={i === 0}
           filterableTag
         />
       ))
