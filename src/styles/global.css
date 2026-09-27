@@ -2673,7 +2673,10 @@ button:focus-visible {
   border-radius: 999px;
   border: 1px solid var(--border-color);
   background: var(--background-tertiary);
-  color: var(--text-muted);
+  /* Filter pill = interactive UI, not metadata. --text-muted on
+     --background-tertiary is 4.34:1 in the dark theme (the same failure that
+     axe reports for .tag-chip on /writing/); --text-normal is 8.76:1. */
+  color: var(--text-normal);
   cursor: pointer;
   font-family: inherit;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
@@ -2683,7 +2686,11 @@ button:focus-visible {
   border-color: var(--text-accent);
 }
 .search-facet.is-active {
-  background: color-mix(in srgb, var(--text-accent) 18%, transparent);
+  /* 18% tint dropped --text-accent to 4.17:1 over --background-secondary in
+     dark (the panel surface). 10% matches the house accent-pill recipe
+     (.blog-card-tag, .tag-count) and clears AA on every theme: 4.79 dark /
+     4.91 light / 6.79 cyberpunk at worst. */
+  background: color-mix(in srgb, var(--text-accent) 10%, transparent);
   color: var(--text-accent);
   border-color: var(--text-accent);
 }
@@ -3253,7 +3260,8 @@ button:focus-visible {
   font-size: 0.7rem;
   font-weight: 600;
   line-height: 1;
-  color: var(--text-muted);
+  /* Count pill on --background-tertiary: --text-muted is 4.34:1 in dark. */
+  color: var(--text-normal);
   background: var(--background-tertiary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);

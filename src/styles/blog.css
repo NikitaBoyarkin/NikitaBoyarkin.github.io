@@ -381,7 +381,11 @@ nav ul.links a.active {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
   font-size: 0.82rem;
-  color: var(--text-muted);
+  /* Chip label is interactive UI, not metadata: --text-muted on
+     --background-tertiary is 4.34:1 in the dark theme (17 axe color-contrast
+     nodes on /writing/). --text-normal is 8.76 / 16.12 / 14.94:1 across
+     dark / light / cyberpunk. */
+  color: var(--text-normal);
   background: var(--background-tertiary);
   transition:
     color 0.2s ease,
@@ -403,7 +407,10 @@ nav ul.links a.active {
   display: inline-block;
   margin-left: 0.35rem;
   font-size: 0.72rem;
-  color: var(--text-muted);
+  /* Sits on the accent-tinted pill over the chip's --background-tertiary, where
+     --text-muted composites to 3.78:1 (dark) / 4.35:1 (cyberpunk). The tint is
+     kept; the text moves to --text-normal (7.63 / 13.84 / 12.73:1). */
+  color: var(--text-normal);
   background: color-mix(in srgb, var(--text-accent) 10%, transparent);
   border-radius: var(--radius-full);
   padding: 0.05rem 0.45rem;
@@ -432,7 +439,8 @@ nav ul.links a.active {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
   background: var(--background-tertiary);
-  color: var(--text-muted);
+  /* Same --text-muted on --background-tertiary failure as .tag-chip (4.34:1). */
+  color: var(--text-normal);
   font-size: 0.85rem;
   font-family: inherit;
   cursor: pointer;

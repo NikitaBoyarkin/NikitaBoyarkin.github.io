@@ -50,6 +50,54 @@ export default defineConfig({
   build: {
     format: "directory",
   },
+  // Keep the OneWorks 3D hero out of the default page load.
+  //
+  // HeroAvatar.astro reaches the scene only via
+  // `void import('../lib/avatar/mount-hero')` after an explicit opt-in click, yet
+  // the built pages were downloading it anyway. Two rounds of chunking were
+  // needed:
+  //
+  // 1. Rollup merged avatar modules with the *analytics* entry (they shared a
+  //    helper), so `analytics.<hash>.js` statically imported `mount-hero.<hash>.js`
+  //    (117 486 B raw / 32 811 B gzip). Splitting `src/lib/avatar/*` and
+  //    `node_modules/@oneworks/*` into `avatar-3d` fixed that import.
+  //
+  // 2. But the shared helper that both entries imported is Vite's own
+  //    `\0vite/preload-helper.js`, and Rollup parks a shared module in the
+  //    largest chunk that needs it — the 1 MB avatar chunk. So every entry that
+  //    preloads a lazy chunk statically imported `avatar-3d.<hash>.js` instead.
+  //    Giving the preload helper its own tiny chunk removes the last static edge
+  //    from the initial graph to the 3D scene.
+  //
+  // Verified by walking the static `from"./x.js"` edges of every script in
+  // `dist/index.html`: `avatar-3d` is reachable only through the dynamic
+  // `import("./avatar-3d...")` inside HeroAvatar, never on the default load.
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          // `codeSplitting.groups` is rolldown's own chunking API (this build
+          // runs on rolldown 1.2.6, not Rollup). `manualChunks` matched the
+          // preload-helper id but rolldown ignored the assignment and still
+          // parked the helper in the largest chunk that imported it.
+          codeSplitting: {
+            groups: [
+              {
+                name: "vite-preload",
+                test: /vite[\\/]preload-helper/,
+                priority: 20,
+              },
+              {
+                name: "avatar-3d",
+                test: /[\\/]src[\\/]lib[\\/]avatar[\\/]|[\\/]node_modules[\\/]@oneworks[\\/]/,
+                priority: 10,
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
   // Deep-link redirects for the consolidated about-cluster (S1.2/S1.4).
   // Old routes collapse into /about anchors; /start becomes the in-page jump nav.
   redirects: {

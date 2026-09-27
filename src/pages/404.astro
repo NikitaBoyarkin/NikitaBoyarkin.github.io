@@ -36,10 +36,15 @@ const index = [...projects, ...posts];
       placeholder="Поиск…"
       autocomplete="off"
       aria-label="Поиск по проектам и статьям"
+      aria-controls="search-results-404"
       style="width: 100%; max-width: 480px; padding: 0.75rem 1rem; font-size: 1rem; background: var(--background-secondary); color: var(--text-normal); border: 1px solid var(--border-color); border-radius: var(--radius-md);"
     />
+    <!-- Own id, not "search-results": Base.astro renders SearchBox.astro, whose
+         #search-results panel comes earlier in the DOM, so getElementById here
+         used to resolve to the nav's hidden listbox and this page's results were
+         written into an invisible panel. -->
     <ul
-      id="search-results"
+      id="search-results-404"
       style="list-style: none; padding: 0; margin: 1.5rem auto 0; max-width: 600px; text-align: left;"
     ></ul>
     <p style="margin-top: 2.5rem;">
@@ -52,7 +57,7 @@ const index = [...projects, ...posts];
   <script is:inline set:html={`const INDEX=${JSON.stringify(index)};
 (function(){
   var input=document.getElementById('search404');
-  var out=document.getElementById('search-results');
+  var out=document.getElementById('search-results-404');
   function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function render(q){
     var ql=q.trim().toLowerCase();

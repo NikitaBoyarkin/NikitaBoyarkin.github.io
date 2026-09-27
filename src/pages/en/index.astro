@@ -94,11 +94,15 @@ const jsonLd = {
 
       <div class="hero-visual">
         <article class="featured-card featured-card-hero">
+          {/* LCP element for `/en/` (Lighthouse largest-contentful-paint-element).
+              54% of the 2 590 ms LCP was Load Delay with loading="lazy" — it is
+              in the first viewport, so it must not be deferred. */}
           <img
             class="featured-card-image"
             src={withBase(featuredProject.data.hero)}
             alt=""
-            loading="lazy"
+            loading="eager"
+            fetchpriority="high"
           />
           <div class="featured-card-body">
             <p class="featured-card-eyebrow">Featured case</p>
