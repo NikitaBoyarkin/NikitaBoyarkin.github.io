@@ -285,12 +285,12 @@ src/lib/path.ts  → withBase() helper
 **Acceptance Criteria:**
 - [ ] Person schema на обеих локалях; Article schema с `image`/`dateModified`/`articleSection`
 - [ ] sitemap включает topics, start, graph, cv + EN-зеркала; robots корректный
-- [ ] `public/llms.txt` для AI-краулеров (GEO); AI-краулинг доступен
+- [ ] `llms.txt` для AI-краулеров (GEO), генерируется `src/pages/llms.txt.ts`; AI-краулинг доступен
 - [ ] OG-картинки на каждую страницу-шерер (см. REQ-017 residual)
 
 **Task Breakdown:**
 - [SEO]: Done (исторически)
-- [Тесты]: визуальная сверка `dist/llms.txt`, `dist/sitemap.xml`
+- [Тесты]: визуальная сверка `dist/llms.txt`, `dist/sitemap-index.xml`
 
 **Dependencies:** REQ-001
 
@@ -476,9 +476,9 @@ Astro 5 static build
 ├── src/content/        # Zod-коллекции: projects, projects-en, posts, posts-en, volta-parts(+en)
 ├── src/lib/            # topics.ts, graph.ts, path.ts
 ├── src/components/     # SearchBox, MaterialStrip, KnowledgeGraph, Analytics, CapabilitiesGrid(новый)
-├── src/pages/          # 50+ страниц, /search-index.json.ts, sitemap.xml.ts, robots.txt.ts
-├── public/             # llms.txt, demos/, images/og/
-└── dist/ → GitHub Pages (base: /Personal_Projects.github.io)
+├── src/pages/          # 50+ страниц, /search-index.json.ts, llms.txt.ts, robots.txt.ts (sitemap — интеграция @astrojs/sitemap, не страница)
+├── public/             # demos/, games/, images/og/
+└── dist/ → GitHub Pages (base: /)
 Analytics: PostHog (edge: none — клиентские события, build-time индексы)
 ```
 

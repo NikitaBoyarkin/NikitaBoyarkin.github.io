@@ -40,19 +40,38 @@ const groups = LAYER_ORDER.map((key) => ({
 })).filter((g) => g.parts.length > 0);
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
+const partUrl = `${siteUrl}${withBase(`projects/volta/${slug}/`)}`;
+const voltaHubUrl = `${siteUrl}${withBase('projects/volta/')}`;
+// No `date`/`dateModified` and no `image`: `voltaPartSchema` carries neither
+// (dates would need a content change — all 23 part files lack both fields),
+// and no raster card exists per part. The SVG project hero is deliberately not
+// used here: og:image consumers do not render SVG.
 const partJsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'CreativeWork',
-  name: part.data.title,
-  description: part.data.description,
-  isPartOf: {
-    '@type': 'CreativeWork',
-    name: 'Volta Neobank — Product Analytics',
-    url: `${siteUrl}${withBase('projects/volta/')}`,
-  },
-  author: { '@type': 'Person', name: 'Nikita Boyarkin', url: `${siteUrl}${withBase('/')}` },
-  url: `${siteUrl}${withBase(`projects/volta/${slug}/`)}`,
-  keywords: part.data.tools?.join(', '),
+  '@graph': [
+    {
+      '@type': 'CreativeWork',
+      name: part.data.title,
+      description: part.data.description,
+      isPartOf: {
+        '@type': 'CreativeWork',
+        name: 'Volta Neobank — Product Analytics',
+        url: voltaHubUrl,
+      },
+      author: { '@type': 'Person', name: 'Nikita Boyarkin', url: `${siteUrl}${withBase('/')}` },
+      url: partUrl,
+      keywords: part.data.tools?.join(', '),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}${withBase('/')}` },
+        { '@type': 'ListItem', position: 2, name: 'Projects', item: `${siteUrl}${withBase('projects/')}` },
+        { '@type': 'ListItem', position: 3, name: 'Volta Neobank — Product Analytics', item: voltaHubUrl },
+        { '@type': 'ListItem', position: 4, name: part.data.title, item: partUrl },
+      ],
+    },
+  ],
 };
 ---
 

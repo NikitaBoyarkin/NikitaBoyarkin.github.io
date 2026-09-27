@@ -62,6 +62,12 @@ const pageHref = (n: number) => (n === 1 ? 'writing/' : `writing/${n}/`);
 const prevUrl = page > 1 ? `${siteUrl}${withBase(pageHref(page - 1))}` : undefined;
 const nextUrl = page < totalPages ? `${siteUrl}${withBase(pageHref(page + 1))}` : undefined;
 const canonical = withBase(pageHref(page));
+// hreflang must be reciprocal or Google discards the pair. /en/writing/ links
+// back to the RU index (its single page == RU page 1), so only page 1 may claim
+// that counterpart: pages 2..N have no EN equivalent, and pointing them at
+// /en/writing/ would be a false annotation. Same optional-counterpart pattern
+// as en/posts/[slug].astro.
+const counterpartHref = page === 1 ? withBase('en/writing/') : undefined;
 ---
 
 <Base
@@ -69,6 +75,7 @@ const canonical = withBase(pageHref(page));
   description="Статьи о продуктовой аналитике, A/B-тестировании и работе с данными от Никиты Бояркина."
   activeNav="writing"
   lang="ru"
+  counterpartHref={counterpartHref}
   canonical={canonical}
   relPrev={prevUrl}
   relNext={nextUrl}

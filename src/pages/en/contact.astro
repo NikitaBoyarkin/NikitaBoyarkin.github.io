@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import ContactForm from '../../components/ContactForm.astro';
+import LinkedInBadge from '../../components/LinkedInBadge.astro';
 import { withBase } from '../../lib/path';
 import { CAL_BOOKING_URL, CONTACT_FORM_ENABLED } from '../../lib/contact';
 
@@ -81,11 +82,7 @@ const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent("Hi! Let's d
       </dl>
     </div>
 
-    <div class="linkedin-badge">
-      <div class="badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="light" data-type="VERTICAL" data-vanity="nikita-boyarkin" data-version="v1">
-        <a class="badge-base__link LI-simple-link" href="https://www.linkedin.com/in/nikita-boyarkin">Nikita Boyarkin</a>
-      </div>
-    </div>
+    <LinkedInBadge lang="en" />
   </section>
 
   <style>
@@ -130,14 +127,4 @@ const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent("Hi! Let's d
     }
   </style>
 
-  <script is:inline>
-    // Match LinkedIn badge theme to current site theme before the badge script initializes.
-    (function () {
-      var badge = document.querySelector('.LI-profile-badge');
-      if (!badge) return;
-      var theme = document.documentElement.getAttribute('data-theme') || 'dark';
-      badge.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
-    })();
-  </script>
-  <script src="https://platform.linkedin.com/badges/js/profile.js" async defer is:inline></script>
 </Base>

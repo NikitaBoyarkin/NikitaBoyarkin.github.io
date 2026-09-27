@@ -1,0 +1,92 @@
+---
+// LinkedIn profile badge — click-to-load.
+//
+// The vendor script (platform.linkedin.com/badges/js/profile.js) builds its card
+// inside a badges.linkedin.com iframe that sets third-party cookies. Loaded on
+// page open, that cost /contact/ and /en/contact/ two Lighthouse best-practices
+// audits — `third-party-cookies` and `inspector-issues`, both pointing at the
+// same iframe URL — and dragged the category score to 0.79.
+//
+// So the widget becomes opt-in, the same shape HeroAvatar uses for the 3D scene
+// (spec-homepage-performance.md): nothing third-party loads until the visitor
+// asks for it. Without JS the button never appears and the `<noscript>` link
+// carries the same destination.
+interface Props {
+  lang?: 'ru' | 'en';
+}
+
+const { lang = 'ru' } = Astro.props;
+const label = lang === 'en' ? 'Show LinkedIn badge' : 'Показать бейдж LinkedIn';
+
+const PROFILE_URL = 'https://www.linkedin.com/in/nikita-boyarkin';
+// Vendor script reads these off the badge element. Kept in the component so both
+// locales render the identical card.
+const VANITY = 'nikita-boyarkin';
+---
+
+<div class="linkedin-badge" data-linkedin-badge data-profile-url={PROFILE_URL} data-vanity={VANITY}>
+  <button
+    type="button"
+    class="button button-secondary"
+    data-linkedin-load
+    data-analytics="linkedin_badge_load"
+    hidden
+  >
+    {label}
+  </button>
+  <noscript>
+    <a class="button button-secondary" href={PROFILE_URL} target="_blank" rel="noopener noreferrer">
+      {lang === 'en' ? 'LinkedIn profile' : 'Профиль в LinkedIn'}
+    </a>
+  </noscript>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-linkedin-badge]');
+  const trigger = root?.querySelector<HTMLButtonElement>('[data-linkedin-load]');
+
+  if (root && trigger) {
+    // JavaScript is running — the button is the control, so reveal it.
+    trigger.hidden = false;
+
+    trigger.addEventListener('click', () => {
+      if (root.dataset.loaded === '1') return;
+      root.dataset.loaded = '1';
+      trigger.disabled = true;
+
+      const theme =
+        document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+
+      const badge = document.createElement('div');
+      badge.className = 'badge-base LI-profile-badge';
+      badge.dataset.locale = 'en_US';
+      badge.dataset.size = 'medium';
+      badge.dataset.theme = theme;
+      badge.dataset.type = 'VERTICAL';
+      badge.dataset.vanity = root.dataset.vanity || '';
+      badge.dataset.version = 'v1';
+
+      // The vendor script rewrites this subtree, so it only needs to exist.
+      const fallback = document.createElement('a');
+      fallback.className = 'badge-base__link LI-simple-link';
+      fallback.href = root.dataset.profileUrl || '';
+      fallback.textContent = 'Nikita Boyarkin';
+      badge.append(fallback);
+
+      root.replaceChildren(badge);
+
+      const script = document.createElement('script');
+      script.src = 'https://platform.linkedin.com/badges/js/profile.js';
+      script.async = true;
+      script.defer = true;
+      // The widget is optional: if it never arrives, put the control back
+      // rather than leaving an empty slot where a button used to be.
+      script.addEventListener('error', () => {
+        delete root.dataset.loaded;
+        trigger.disabled = false;
+        root.replaceChildren(trigger);
+      });
+      document.body.append(script);
+    });
+  }
+</script>

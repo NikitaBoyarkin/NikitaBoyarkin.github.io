@@ -95,7 +95,7 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 - Bento grid cells: `CareerSnapshot`, knowledge-graph link, `ReadingBlock`, notes link, arcade link, `Testimonials`.
 - Removed from the homepage: the audience-toggle bar, the 3-column homepage kanban, and the A/B case-study block. Those components were deleted (PRD v6 / the case-study refactor) — no route renders them and they are reachable at no URL.
 - Still reachable via direct URLs (dropped from nav, not from the build): `/graph`, and the static arcade assets under `public/games/`.
-- **Known debt — unused components.** On disk but imported by nothing: `Manifesto`, `TopicMap`, `ProjectTimeline`, `CollaborationFormats` (~487 lines). Delete or re-link in navigation — task P3-2 in `docs/prd-v8-tasks.md`.
+- **Known debt — unused components (resolved).** On disk but imported by nothing: `Manifesto`, `TopicMap`, `ProjectTimeline`, `CollaborationFormats` (~487 lines). Deleted in commit `90630fa` — task P3-2 in `docs/prd-v8-tasks.md`.
 - **Known debt — orphan dependency.** `@paper-design/shaders` has had no consumer since the shader hero background was retired; recorded in `docs/prd-hero-banner-brand-polish.md` «Открытые вопросы» §2. Removal is task P3-3.
 
 ### Phase 3 (completed)

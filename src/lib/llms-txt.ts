@@ -101,7 +101,10 @@ export async function buildLlmsTxt(site: string): Promise<string> {
   }
 
   add("## Contact");
-  add(`- [CV](${abs("CV-Nikita-Boyarkin.pdf")}): one-page CV (PDF download).`);
+  // No CV line: robots.txt disallows /CV-Nikita-Boyarkin.pdf for `User-agent: *`
+  // as the site's one deliberate crawl exception, and llms.txt must not
+  // advertise a URL we tell crawlers not to fetch. The CV stays discoverable to
+  // humans through the nav and footer download buttons on every page.
   add("- GitHub: https://github.com/NikitaBoyarkin");
   add("- LinkedIn: https://www.linkedin.com/in/nikita-boyarkin");
   add("- Telegram: https://t.me/lofinibo");

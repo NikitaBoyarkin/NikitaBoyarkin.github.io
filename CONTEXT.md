@@ -21,11 +21,11 @@ _Avoid_: bento grid (только имя секции), dashboard
 ## Контакт и CTA
 
 **Hero CTA**:
-Primary-действие в hero: «Смотреть проекты» / «See my work» (событие `hero_projects`). Вторичные — «Связаться» (`hero_contact`), «CV» (`cv_download_pdf` — скачивание PDF). Компонент детерминирован (A/B `hero_cta_variant` снят 13.09).
+CTA-строки в hero больше нет (удалена вместе с компонентом `HeroCta`); «concrete»-сигнал hero несёт featured project card (событие `featured_project`), а единственная CTA-кнопка, оставшаяся на всех страницах, — «CV» (`cv_download_pdf` — скачивание PDF). A/B `hero_cta_variant` снят 13.09.
 _Avoid_: hero CTA variant, A/B CTA
 
 **Contact action**:
-Любое событие, означающее контакт-инициативу: `cv_download_pdf` (единая кнопка «CV» → PDF), `github_footer`, `linkedin_footer`. `hero_projects` контактом НЕ является (переход в проекты). Это click-уровень (что нажали), а не исход контакта — исход ведётся в **Contact stage** (корневой контекст).
+Любое событие, означающее контакт-инициативу: `cv_download_pdf` (единая кнопка «CV» → PDF), `github_footer`, `linkedin_footer`. Переходы в проекты (`featured_project`, `bento_*`, `headline_all_projects`) контактом НЕ являются. Это click-уровень (что нажали), а не исход контакта — исход ведётся в **Contact stage** (корневой контекст).
 _Avoid_: click, conversion event (неспецифично)
 
 ## Метрики

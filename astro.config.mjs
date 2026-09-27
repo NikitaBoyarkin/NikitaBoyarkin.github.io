@@ -2,7 +2,34 @@ import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import fs from "node:fs";
 import path from "node:path";
+import githubDark from "shiki/themes/github-dark.mjs";
 import { parse as parseYaml } from "yaml";
+
+// github-dark paints comments `#6a737d` — 3.05:1 on the theme's own `#24292e`
+// code block, under WCAG AA; axe flags 5 color-contrast nodes on
+// /posts/cohort-retention-guide/. GitHub's later revision of that same token is
+// `#8b949e`, 4.77:1 on the same background, so exactly one token moves and
+// nothing else does: the `#24292e` block the prose layer documents as
+// deliberate, every other token colour, and the theme's name/type all stay
+// byte-identical (asserted below).
+//
+// Done here rather than as a CSS override because Shiki writes the colour as an
+// inline style on a bare `<span>` with no class — a stylesheet could only reach
+// it through an attribute selector carrying a hex literal, and `prose.css` is
+// bound by `tests/lib/prose-css.test.ts` to carry no hex at all.
+const COMMENT_TOKENS = new Set([
+  "comment",
+  "punctuation.definition.comment",
+  "string.comment",
+]);
+const shikiTheme = {
+  ...githubDark,
+  tokenColors: githubDark.tokenColors.map((rule) => {
+    const scopes = Array.isArray(rule.scope) ? rule.scope : [rule.scope];
+    if (!scopes.some((scope) => COMMENT_TOKENS.has(scope))) return rule;
+    return { ...rule, settings: { ...rule.settings, foreground: "#8b949e" } };
+  }),
+};
 
 // Per-URL `lastmod` for the sitemap. A single `lastmod: new Date()` stamps every
 // URL as "changed today" on every deploy — the one form crawlers learn to ignore.
@@ -49,6 +76,11 @@ export default defineConfig({
   },
   build: {
     format: "directory",
+  },
+  // Only the comment token differs from the stock github-dark theme — see the
+  // derivation next to the import at the top of this file.
+  markdown: {
+    shikiConfig: { theme: shikiTheme },
   },
   // Keep the OneWorks 3D hero out of the default page load.
   //

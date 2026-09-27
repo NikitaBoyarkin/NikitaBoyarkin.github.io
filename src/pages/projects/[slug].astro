@@ -72,16 +72,20 @@ const sub = subgraphAround(graph, `p:${slug}`);
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
 const pageUrl = `${siteUrl}${withBase(`projects/${slug}/`)}`;
+// Dates: only 4 of 17 projects carry an authored `date`, but 17/17 carry
+// `updated`. Gating both fields on `date` left 13 Article nodes dateless, and
+// copying `date` into `dateModified` claimed a modification that never
+// happened. Publish prefers the authored `date` and falls back to `updated`;
+// modification prefers `updated`. A project with neither emits no date fields
+// (guarded — `undefined.toISOString()` would throw at build time).
+const publishedDate = project.data.date ?? project.data.updated;
+const modifiedDate = project.data.updated ?? project.data.date;
 const projectJsonLd = {
   '@type': 'Article',
   headline: project.data.title,
   description: project.data.description,
-  ...(project.data.date
-    ? {
-        datePublished: project.data.date.toISOString(),
-        dateModified: project.data.date.toISOString(),
-      }
-    : {}),
+  ...(publishedDate ? { datePublished: publishedDate.toISOString() } : {}),
+  ...(modifiedDate ? { dateModified: modifiedDate.toISOString() } : {}),
   author: { '@type': 'Person', name: 'Nikita Boyarkin', url: `${siteUrl}${withBase('/')}` },
   publisher: { '@type': 'Person', name: 'Nikita Boyarkin' },
   mainEntityOfPage: pageUrl,
@@ -121,6 +125,7 @@ const pageJsonLd = {
   canonical={withBase(`projects/${slug}/`)}
   lang="ru"
   counterpartHref={withBase(`en/projects/${slug}/`)}
+  ogImage={project.data.ogImage}
   jsonLd={pageJsonLd}
 >
   <InnerTOC lang="ru" />

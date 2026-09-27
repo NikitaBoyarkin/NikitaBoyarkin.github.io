@@ -6,12 +6,12 @@
 
 | # | Локация | Текст CTA | Событие PostHog | Целевой URL |
 |---|---|---|---|---|
-| 1 | Hero (index, RU+EN) | «С чего начать» / «Start here» (A/B: «Смотреть проекты» / «See my work») | `hero_cta_click` + `hero_cta_exposure` (variant) | `/start/` (A/B: `/projects/`) |
+| 1 | ~~Hero CTA (index, RU+EN)~~ — **удалён 2026-09-27** | — | `hero_cta_click` / `hero_cta_exposure` — 0 вхождений в `src/` (`HeroCta` удалён в `90630fa`) | — |
 | 2 | Hero (index, RU+EN) | «CV» | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
-| 3 | Hero (index) | GitHub / LinkedIn | `github_hero` / `linkedin_hero` | внешние |
-| 4 | Header nav | Telegram-иконка | `telegram_header` | `t.me/lofinibo` |
+| 3 | Featured card (index) | «Разбор проекта» / «Демо» / «GitHub» | `featured_project` / `featured_demo` / `featured_github` | внутренний + внешние |
+| 4 | Header nav (rail) | «CV» | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
 | 5 | Footer | GitHub · LinkedIn · Telegram · CV · Writing | `github_footer` / `linkedin_footer` / `telegram_footer` / `cv_download_pdf` / `writing_footer` | внешние + внутренние |
-| 6 | HomeBoard (главная) | Telegram / GitHub / LinkedIn | `telegram_board` / `github_board` / `linkedin_board` | внешние |
+| 6 | ~~HomeBoard (главная)~~ — **удалён 2026-09-27** | — | `telegram_board` / `github_board` / `linkedin_board` — 0 вхождений в `src/` и `public/` | — |
 | 7 | contact.astro | «Telegram: @lofinibo» | `telegram_contact` | `t.me/lofinibo` |
 | 8 | contact.astro | «Написать с контекстом →» | `telegram_deeplink` | tg deep-link |
 | 9 | contact.astro | «CV» | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
@@ -23,8 +23,8 @@
 | 15 | games (`/games/`) | LinkedIn / Telegram (contact-секция) | `contact_click` (channel) | внешние |
 | 16 | AskMe (главная) | «Спросить» (открывает панель) | `ask_me_open` | — (панель) |
 | 17 | SearchBox (header) | «Поиск» (открывает панель) | `search_open` | — (панель) |
-| 18 | ProjectCard | «Смотреть» / «Demo» / «GitHub» | `project_view_<slug>` / `project_demo_<slug>` / `project_github_<slug>` | внутренние + внешние |
-| 19 | HeadlineCases (главная, PRD v6 S2.6) | 3 кейса + сжатый список 14 | `headline_case_<slug>` / `headline_demo_<slug>` / `headline_github_<slug>` / `headline_all_projects` / `more_project_<slug>` | внутренние проекты + внешние артефакты |
+| 18 | ProjectCard | «Смотреть» / «Demo» / «GitHub» | `project_viewed` {`slug`, `surface: "card"`} (через `data-analytics-project`) / `project_demo_<slug>` / `project_github_<slug>` | внутренние + внешние |
+| 19 | HeadlineCases (главная, PRD v6 S2.6) | 3 кейса + сжатый список 14 | `headline_demo_<slug>` / `headline_github_<slug>` / `headline_all_projects` / `more_project_<slug>` | внутренние проекты + внешние артефакты |
 | 20 | contact.astro (форма, RU+EN) | «Отправить» / «Send» | `contact_submit` (успех); `contact_form_error` с `reason` при отказе | `POST {CONTACT_ENDPOINT}` (Supabase Edge Function `contact`) |
 | 21 | contact.astro (под формой, RU+EN) | «Записаться на 30 минут» / «Book 30 minutes» | `booking_click` | `CAL_BOOKING_URL` (Cal.com) |
 | 22 | Header nav (Base.astro, RU+EN, под «Контакты») | «Записаться на 30 минут» / «Book 30 minutes» | `booking_click` | `CAL_BOOKING_URL` (`cal.com/lofinibo/30min`) |
@@ -41,7 +41,10 @@
 | Ссылки внутри панели AskMe не трекаются (только `ask_me_open`) | ⏳ опционально: `ask_me_link_<label>` |
 | `start.astro` — удалён (S1.4); маршрутизация перенесена в jump-nav на `/about` | ✅ закрыт 2026-09-18 |
 
-## A/B-тест главного CTA
+## A/B-тест главного CTA — **удалён 2026-09-27**
+
+> Тест и компонент `HeroCta.astro` удалены (commit `90630fa`); события `hero_cta_click` /
+> `hero_cta_exposure` дают 0 вхождений в `src/`. Раздел сохранён как история.
 
 **Флаг:** `hero_cta_variant` (PostHog, id 872930, client-side, 50/50).
 
@@ -114,6 +117,7 @@ Telegram, LinkedIn и GitHub остались как вторичные опци
 | Honeypot | `src/components/ContactForm.astro` | поле `website`, off-screen (`position: absolute; left: -9999px`), `tabindex="-1"` |
 
 Оставшийся placeholder — `CONTACT_ENDPOINT` (и он же константа, а не env-переменная:
-отсутствующая в CI env-переменная падает **молча** — это уже случилось с
-`PUBLIC_BEACON_ENDPOINT`, — а константа видна в ревью). `CAL_BOOKING_URL` закрыт.
+env-переменная, не заведённая секретом в CI, падает **молча** — `PUBLIC_BEACON_ENDPOINT`
+объявлена в `.env.example` и прокинута в `deploy.yml`, но без секрета рендерит пусто, —
+а константа видна в ревью). `CAL_BOOKING_URL` закрыт.
 Без JS форма отправляется нативно (`method="post"`), HTML-ответ отдаёт Edge Function.

@@ -72,6 +72,6 @@
 | ID | Задача |
 |---|---|
 | P3-1 | EN-паритет постов |
-| P3-2 | 4 неиспользуемых компонента: `Manifesto`, `TopicMap`, `ProjectTimeline`, `CollaborationFormats` (~487 строк) — удалить или вернуть в навигацию |
+| P3-2 | **DONE** (2026-09-27, commit `90630fa`): 4 неиспользуемых компонента `Manifesto`, `TopicMap`, `ProjectTimeline`, `CollaborationFormats` (~487 строк) удалены; вариант «вернуть в навигацию» отклонён |
 | P3-3 | `@paper-design/shaders` из `package.json` |
 | P3-4 | Токен PostHog в `public/games/*` (11 файлов) — только если игры трогаются |

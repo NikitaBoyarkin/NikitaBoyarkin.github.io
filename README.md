@@ -133,11 +133,11 @@ Run this triad after every content or component change. All green = safe to comm
 ```bash
 bun run build        # Astro build
 bun run check        # astro check + tsc --noEmit on tests
-make check           # tests + test:built + check_site.py — validates the built dist/
+make check           # astro check + tests + test:monitoring + test:built + check_site.py — validates the built dist/
 bun run coverage     # same suite with coverage
 ```
 
-`make check` is not a type check — it runs the test suite (`test`, then `test:built`) and then inspects the **built output**, failing on:
+`make check` runs `bun run check` (Astro/TS type-check), the test suite (`test`, then `test:monitoring` and `test:built`), and then inspects the **built output**, failing on:
 
 - missing required pages
 - internal links that do not resolve to a file in `dist/`
@@ -162,7 +162,7 @@ Lighthouse CI runs separately — see [CI/CD](#cicd).
 │   ├── data/               # chart data + generated github-activity.json
 │   └── styles/             # global.css (tokens + themes), blog.css
 ├── scripts/                # OG/CV generators, GitHub sync, check_site.py, content-drift-audit, mobile audits
-├── tests/lib/              # 20 bun:test suites for src/lib/*
+├── tests/lib/              # 25 bun:test suites for src/lib/*
 ├── docs/                   # PRDs, ADRs, SPEC, analytics review ritual
 ├── monitoring/             # local RED monitoring stack (Prometheus + Grafana)
 └── public/                 # images, hero SVGs, OG images, fonts, CV PDF, demos, games
@@ -251,7 +251,7 @@ Copy `.env.example` to `.env` for local development; for CI the same names go in
 
 Typed events (`AnalyticsEventMap`): `project_viewed`, `post_read`, `lang_switched`, `theme_change`, `ask_me_used`, `random_post_click`, `section_viewed`, `outbound_click`, `search_used`, `search_no_results`, `read_depth`, `filter_applied`, `projects_track_filter`. Super properties: `locale`, `theme`, `prefers_reduced_motion`, `initial_referrer_class`, `landing_path` — the first-touch class is computed once per visitor and persisted.
 
-**Convention:** any element carrying `data-analytics="<name>"` fires `<name>` on click through a delegated listener in `Analytics.astro` (`hero_projects`, `hero_contact`, `cv_download_pdf`, `featured_project`, `bento_*`, …). New CTAs should reuse that attribute instead of calling `track()` for the same click — mix the two and a click is counted twice.
+**Convention:** any element carrying `data-analytics="<name>"` fires `<name>` on click through a delegated listener in `Analytics.astro` (`featured_project`, `cv_download_pdf`, `bento_*`, `headline_all_projects`, …). New CTAs should reuse that attribute instead of calling `track()` for the same click — mix the two and a click is counted twice.
 
 ## OG image generation
 
@@ -301,7 +301,7 @@ Three workflows in `.github/workflows/`:
 
 | Workflow | Trigger | Does |
 |---|---|---|
-| `deploy.yml` | push / PR to `master` \| `main` | install → **GitHub drift gate** (`sync:gh`, exits 1) → `bun run check` → `bun run test` → build → `make check` (tests + `test:built` + `check_site.py`) → Lighthouse CI → deploy `dist/` to Pages |
+| `deploy.yml` | push / PR to `master` \| `main` | install → **GitHub drift gate** (`sync:gh`, exits 1) → `bun run check` → `bun run test` → build → `make check` (tests + `test:monitoring` + `test:built` + `check_site.py`) → Lighthouse CI → deploy `dist/` to Pages |
 | `sync-github.yml` | weekly | runs `sync:gh:apply` and opens a PR with the changes |
 | `github-activity.yml` | daily | refreshes `github-activity.json`; commits only when the payload changed |
 

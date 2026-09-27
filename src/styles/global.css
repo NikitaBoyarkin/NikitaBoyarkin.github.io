@@ -256,6 +256,22 @@ h4 {
   text-wrap: balance;
 }
 
+/* Baseline link colour.
+ *
+ * DESIGN.md: "The accent is semantic, not decorative: use it for links". Some
+ * page-level links in about/value/contact carried no class and no inherited
+ * rule, so they fell through to the UA default #0000ee — 1.40–1.61:1 on every
+ * surface (10 axe color-contrast nodes on /contact/ alone). This is the lowest
+ * possible specificity (element selector), so every component rule — nav,
+ * .button, .about-jump a, prose, footer — still wins unchanged; it only paints
+ * anchors that had no colour at all.
+ *
+ * AA on every surface it can land on: dark 6.36 / 5.55 / 4.67, light 5.72 /
+ * 6.66 / 6.06, cyberpunk 8.27 / 7.85 / 7.16 (primary / secondary / tertiary). */
+a {
+  color: var(--text-accent);
+}
+
 p {
   text-wrap: pretty;
 }

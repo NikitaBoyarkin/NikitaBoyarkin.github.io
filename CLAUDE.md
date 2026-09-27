@@ -70,10 +70,10 @@ bun run sync:activity
 ├── tsconfig.json
 ├── public/                   # static assets copied as-is to dist/
 │   ├── images/               # profile photo + project hero SVGs (one per project)
-│   ├── og/                   # generated OG images
+│   │   └── og/               # generated OG images
 │   └── fonts/                # self-hosted Inter variable font (subsets; see @font-face in global.css)
 ├── src/
-│   ├── content.config.ts     # Zod schemas (Content Layer): projects, projects-en, volta-parts, volta-parts-en, posts
+│   ├── content.config.ts     # Zod schemas (Content Layer): projects, projects-en, volta-parts, volta-parts-en, posts, posts-en
 │   ├── content/              # Markdown content collections (schema lives in ../content.config.ts)
 │   │   ├── projects/         # RU project markdown (one file per project)
 │   │   ├── projects-en/      # EN project markdown (mirror)
@@ -88,8 +88,8 @@ bun run sync:activity
 │   │   ├── ProjectCard.astro / ProjectBoard.astro / ProjectFilter.astro
 │   │   ├── BlogCard.astro / BlogFilter.astro
 │   │   ├── InnerTOC.astro    # client-side TOC + scrollspy
-│   │   ├── TopicMap.astro / KnowledgeGraph.astro / Graph (graph.astro)
-│   │   ├── CollaborationFormats.astro / MaterialStrip.astro
+│   │   ├── KnowledgeGraph.astro / Graph (graph.astro)
+│   │   ├── MaterialStrip.astro
 │   │   ├── LangSwitch.astro  # RU/EN toggle (uses counterpartHref)
 │   │   ├── SearchBox.astro   # client-side search over search-index.json
 │   │   └── Analytics.astro   # PostHog (inert until PUBLIC_POSTHOG_KEY env var is set) + custom events (project_viewed, post_read, lang_switched)
@@ -139,7 +139,7 @@ Each project is a Markdown file with frontmatter:
 | `description` | Short summary used on the project card and meta tags |
 | `hero` | Path to hero image relative to `public/` (e.g. `images/volta.svg`) |
 | `track` | Kanban board column: `experiments` \| `analytics` \| `product` \| `engineering` (default `analytics`) |
-| `impact` | Array of bullet points — **retained but no longer rendered** (superseded by `star` on the card and board, D21); kept as the CV-bullet source and as a frozen-number anchor in `docs/content-baseline.json` |
+| `impact` | Array of bullet points — rendered **only when a project has no `star`**: `ProjectCard.astro` falls back to an `Impact` paragraph and `projects/[slug].astro` renders an «Эффект» list. Every current content file has a `star`, so both branches are dormant, but the field is live code — it doubles as the CV-bullet source and a frozen-number anchor in `docs/content-baseline.json` |
 | `star` | `{ situation, task, action, result }` — the body's STAR narrative hoisted into the card. Rendered first in `.project-meta` and on board cards. `task` carries no digits; every digit traces to the file's own `## Результат` / `## Result` or `description:` (D21, enforced by `tests/lib/star-frontmatter.test.ts`) |
 | `tools` | Array of tools/technologies |
 | `github` | URL to the project repository (optional) |
@@ -192,7 +192,7 @@ All project and post copy follows a shared spec — see `docs/prd-readability.md
 - EN: `Situation → Task → Actions → Result → Limitations → Documentation`
 - **Proportions** (share of the body): S 15–20%, T 10–15%, **A 50–60%**, R 10–15% — Action must exceed half. Source: `Obsidian/Z-core/STAR method.md` in the vault; decision record: `docs/prd-readability.md` D11.
 - **`Задача` / `Task` is a goal, not a restatement of `Ситуация`.** 1–2 sentences, first person (`Мне нужно было…` / `I needed to…`), stating the goal and the personal ownership. No new facts about the project. **No digits** — the numeric baseline is a per-file multiset, so even repeating a number already on the page drifts `audit:content`.
-- **The card is the hoisted STAR.** `description:` and `star:` are the body's Situation/Task/Action/Result lifted into the card; STAR ordering does not apply to the *body* itself (D1/D9: result-first for the recruiter, technical register from `Действия` onward). **`impact:` is retained but no longer rendered** anywhere — it survives as the CV-bullet source and as a frozen-number anchor in the drift baseline, so deleting it would force a baseline re-snapshot and disarm the guard (D20/D21).
+- **The card is the hoisted STAR.** `description:` and `star:` are the body's Situation/Task/Action/Result lifted into the card; STAR ordering does not apply to the *body* itself (D1/D9: result-first for the recruiter, technical register from `Действия` onward). **`impact:` is a conditional fallback** — `ProjectCard.astro` and `projects/[slug].astro` render it only when a project has no `star`; since every current content file carries one, the branches are dormant, but `impact:` is still live rendering code and doubles as the CV-bullet source and a frozen-number anchor in the drift baseline (D20/D21).
 - `volta` (the hub only) is the exception: it is a dossier, not a project page. Its H2 order is frozen by `docs/prd-volta-structure.md` D10 — `Итог в 30 секунд → Ситуация → Задача → Действия → Карта проекта → Улики №1–4 → Слой RAT v2 → Рекомендации и гейты → Вердикт → Ограничения → Остальные проекты → Документация` (EN mirrors). `## Вердикт` — the R — sits **after** `## Рекомендации и гейты`, i.e. not in STAR order: **intended, not enforced**, kept for the hub narrative.
 - Fold one-off sections (`Modules`, `Pages`, `Architecture`, `Run`, `Testing`, …) under `Действия`; demote to `###` when the block stays distinct. No prose paragraph over ~500 characters.
 
@@ -201,7 +201,7 @@ All project and post copy follows a shared spec — see `docs/prd-readability.md
 **Project `description:` spec** — the field feeds the card, meta/OG/Twitter, JSON-LD and the compressed "More projects" list on the homepage:
 
 - 1–2 sentences, result + number first, 120–200 characters. **Bound to a mechanism:** `.min(120).max(200)` on `description` in `src/content.config.ts` (projects, projects-en, volta-parts, volta-parts-en), so `bun run build` fails outside the range.
-- The only consumer that truncates a description is `HeadlineCases.astro:52` — `description.length > 120 ? description.slice(0, 117).trimEnd() + '…' : description`. That 117-character cut lands mid-word, so the truncated line is not guaranteed to read cleanly on its own; write it so the opening 117 characters carry the sense.
+- The only consumer that truncates a description is `HeadlineCases.astro` (`shortLine`, lines 53–59) — a description longer than 120 characters is cut at 117 and then trimmed back to the last space (`cut.lastIndexOf(' ')`), so the ellipsis lands on a word boundary. Only a description whose first 117 characters contain no space can truncate mid-word. Write the opening ~117 characters so they carry the sense.
 - RU files: Russian (Cyrillic); EN files: English. Author each language independently — meaning parity, not a literal translation.
 - Keep hiring keywords (`A/B-тест`, `retention`, `SQL`, `Python`, `LTV`); gloss or move exotics (`CUPED`, `mSPRT`, `AUUC`) into the body.
 
@@ -292,10 +292,12 @@ The five boards in `public/demos/{volta,cohort,rfm,telegram,bayesian}/` load `/d
 
 ## Analytics
 
-`src/components/Analytics.astro` loads the official PostHog JS snippet. It is **inert until build-time env vars are set**:
+`src/components/Analytics.astro` renders analytics **only when build-time env vars are set** — it never embeds a synchronous vendor snippet:
 
-- `PUBLIC_POSTHOG_KEY` — PostHog project key (no snippet rendered if unset)
+- `PUBLIC_POSTHOG_KEY` — PostHog project token. When set, `posthog-js` is **dynamically imported on demand** after the first user interaction (`pointerdown`/`keydown`/`scroll`/`touchstart`, or an idle/3.5 s fallback), and never on `localhost`/`127.0.0.1`/`::1`/`0.0.0.0`, so the SDK stays off the critical path and out of the Lighthouse window.
 - `PUBLIC_POSTHOG_HOST` — defaults to `https://us.i.posthog.com` (EU: `https://eu.i.posthog.com`)
+- `PUBLIC_PLAUSIBLE_DOMAIN` — optional; when set, a `defer`ed Plausible `<script data-domain=…>` is emitted (privacy-friendly counter)
+- `PUBLIC_PLAUSIBLE_SRC` — optional custom/self-hosted Plausible script URL (default `https://plausible.io/js/script.js`)
 
 Custom events captured (in addition to autocapture `$pageview`/`$pageleave`):
 
@@ -307,14 +309,22 @@ Custom events captured (in addition to autocapture `$pageview`/`$pageleave`):
 | `theme_change` | theme toggle click (in `Base.astro`) | `theme` |
 
 Any element carrying `data-analytics="<name>"` fires `<name>` on click via a
-delegated listener in `Analytics.astro`. Existing attributes: `project_view_*`,
-`project_demo_*`, `project_github_*` (ProjectCard), `cv_download_pdf` (every "CV" download button — hero, footer, contact, about, value, career snapshot),
+delegated listener in `Analytics.astro`; an element carrying
+`data-analytics-project="<slug>"` fires the canonical `project_viewed { slug, surface }`
+instead (homepage headline cases and `ProjectCard`). Existing named attributes:
+`project_demo_<slug>` / `project_github_<slug>` (ProjectCard),
+`headline_demo_<slug>` / `headline_github_<slug>` / `more_project_<slug>` /
+`headline_all_projects` (HeadlineCases), `featured_project` / `featured_demo` /
+`featured_github` (homepage featured card), `bento_stack` / `bento_graph` /
+`bento_notes` (homepage bento),
+`cv_download_pdf` (every "CV" download button — nav rail, footer, contact),
 `telegram_deeplink` (contact «написать с контекстом»),
-`github_hero` / `linkedin_hero` (hero CTA row),
 `telegram_contact` (contact main Telegram link),
-`telegram_header` / `github_footer` / `linkedin_footer` / `telegram_footer` /
-`writing_footer` (Base), `search_open`
-(SearchBox). `lang_switch_*` is special-cased into the structured
+`github_footer` / `linkedin_footer` / `telegram_footer` / `writing_footer`
+(Base footer), `search_open`
+(SearchBox), plus `ask_me_open`, `booking_click`, `value_cta` / `value_github`,
+`whois_cta`, `work_with_me_cta`, `projects_reset`. `lang_switch_*` is
+special-cased into the structured
 `lang_switched` event above. New CTA elements should reuse this pattern instead
 of writing bespoke capture code.
 
@@ -336,7 +346,7 @@ Pushing to `master` (or `main`) triggers `.github/workflows/deploy.yml`, which:
 3. Type-checks (`bun run check`).
 4. Runs the build-independent suite (`bun run test`).
 5. Builds the site to `dist/`.
-6. Runs `make check` — the suite plus `test:built` plus `scripts/check_site.py`.
+6. Runs `make check` — `bun run check`, the test suite (`test`), `test:monitoring`, `test:built`, and `scripts/check_site.py`.
 7. Deploys `dist/` to GitHub Pages; Lighthouse runs in a parallel job.
 
 Do **not** push directly to `master` without confirming the workflow is enabled in the repository settings (`Settings → Pages → Build and deployment → GitHub Actions`).

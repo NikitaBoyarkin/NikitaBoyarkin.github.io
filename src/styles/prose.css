@@ -13,9 +13,11 @@
 
    Colours are the per-theme `--table-*` / `--code-*` / `--border-*` tokens
    from global.css, so dark / light / cyberpunk re-tint for free. No new hex:
-   `.claude/hooks/contrast-gate.js` fires on writes to global.css and resolves
-   only solid hex, so leaving every value on a token keeps that gate's inputs
-   intact. The gate does not read this file.
+   `.claude/hooks/contrast-gate.js` fires on writes to every `src/styles/*.css`
+   (including this one) and resolves its text/surface pairings against the
+   tokens in the sibling global.css, so leaving every value on a token keeps
+   that gate's inputs intact. A hex here would move the colour off the palette
+   the gate reads; `tests/lib/prose-css.test.ts` fails if one appears.
    ───────────────────────────────────────────────────────────────────────── */
 
 :root {
@@ -219,6 +221,13 @@
   font-size: inherit;
   color: inherit;
 }
+
+/* github-dark's comment token (`#6a737d`, 3.05:1 on the block's own
+   `#24292e`) is raised to GitHub's later `#8b949e` (4.77:1) — but at the
+   source, in `astro.config.mjs`'s `shikiConfig.theme`, not here. A stylesheet
+   could only reach that colour through an attribute selector carrying a hex
+   literal, and this file is bound by `tests/lib/prose-css.test.ts` to hold no
+   hex at all. Nothing about the block itself moves. */
 
 /* ── Media ─────────────────────────────────────────────────────────────── */
 

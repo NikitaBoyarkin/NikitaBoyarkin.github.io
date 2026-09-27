@@ -84,13 +84,34 @@ const enAltUrl = isEn ? pageUrl : counterpartUrl;
 // Site-level JSON-LD, emitted on every page. No `SearchAction`: the search box
 // is a client-side filter over /search-index.json with no addressable query
 // URL, and advertising a template that 404s is worse than advertising none.
+//
+// Stable `@id`s: the WebSite and Person nodes get absolute fragment ids so other
+// pages can reference the same entities instead of redeclaring them, and so a
+// crawler merges the Person on /projects/volta/ with the Person here. Every
+// property that was here before is kept — `@id`, `image` and `sameAs` are added.
+const personId = `${siteUrl}${withBase('/')}#person`;
+const websiteId = `${siteUrl}${withBase('/')}#website`;
 const websiteLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
+  '@id': websiteId,
   name: 'Nikita Boyarkin',
   url: `${siteUrl}${withBase('/')}`,
   inLanguage: isEn ? 'en' : 'ru',
-  author: { '@type': 'Person', name: 'Nikita Boyarkin', url: `${siteUrl}${withBase('/')}` },
+  author: {
+    '@type': 'Person',
+    '@id': personId,
+    name: 'Nikita Boyarkin',
+    url: `${siteUrl}${withBase('/')}`,
+    image: `${siteUrl}${withBase('images/00_profile.jpg')}`,
+    // The three identity links the footer already ships. Telegram was missing
+    // even though it is in the footer and in llms.txt.
+    sameAs: [
+      'https://github.com/NikitaBoyarkin',
+      'https://www.linkedin.com/in/nikita-boyarkin',
+      'https://t.me/lofinibo',
+    ],
+  },
 };
 
 // Theme-toggle icons (lucide-style stroke paths, 24×24). Moved to plain

@@ -30,6 +30,43 @@ const projects = (await getCollection('projects', (p) => !p.data.draft))
     const hay = `${slug} ${p.data.title} ${(p.data.tools ?? []).join(' ')} ${p.data.description}`.toLowerCase();
     return topic.tags.some((t) => hay.includes(t.replace('-', ' '))) || hay.includes(needle);
   });
+
+// CollectionPage + ItemList over exactly what the page renders — the same
+// projects/posts arrays, in the same order, so the markup can never list an
+// item the hub does not show. Previously the hub emitted no page-level node at
+// all and inherited only the site-wide WebSite, which left the pages AI search
+// is most likely to cite without a machine-readable item list.
+const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
+const topicUrl = `${siteUrl}${withBase(`topics/${tag}/`)}`;
+const topicItems = [
+  ...projects.map((p) => ({ name: p.data.title, path: `projects/${p.id.replace(/\.md$/, '')}/` })),
+  ...posts.map((p) => ({ name: p.data.title, path: `posts/${p.id.replace(/\.md$/, '')}/` })),
+];
+const topicJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: `${topic.label} | Nikita Boyarkin`,
+  description: `Материалы по теме «${topic.label}»: записи и проекты.`,
+  url: topicUrl,
+  inLanguage: 'ru',
+  // Reference, not redeclaration: the WebSite `@id` is published by Base.astro
+  // on every page (see the entity-graph note there).
+  isPartOf: { '@type': 'WebSite', '@id': `${siteUrl}${withBase('/')}#website` },
+  ...(topicItems.length > 0
+    ? {
+        mainEntity: {
+          '@type': 'ItemList',
+          numberOfItems: topicItems.length,
+          itemListElement: topicItems.map((item, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            name: item.name,
+            url: `${siteUrl}${withBase(item.path)}`,
+          })),
+        },
+      }
+    : {}),
+};
 ---
 
 <Base
@@ -38,6 +75,7 @@ const projects = (await getCollection('projects', (p) => !p.data.draft))
   canonical={withBase(`topics/${tag}/`)}
   activeNav="home"
   lang="ru"
+  jsonLd={topicJsonLd}
 >
   <section class="container reveal">
     <a class="back" href={withBase('topics/')}>← Все темы</a>

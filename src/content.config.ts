@@ -33,6 +33,10 @@ const projectSchema = z.object({
   children: z.array(z.string()).default([]),
   date: z.coerce.date().optional(),
   updated: z.coerce.date().optional(),
+  /** Per-project social/AI preview card (1200×630 raster under public/).
+   *  Optional: falling back to Base's shared banner is the default, and an SVG
+   *  hero must NOT go here — og:image consumers do not render SVG. */
+  ogImage: z.string().optional(),
   faq: z.array(z.object({ question: z.string(), answer: z.string() })).default([]),
   draft: z.boolean().default(false),
   private: z.boolean().default(false),
