@@ -220,7 +220,6 @@ button.blog-card-tag:hover {
 
 .post-header {
   margin-bottom: var(--space-10);
-  max-width: 65ch;
 }
 
 .post-tag {
@@ -250,115 +249,13 @@ button.blog-card-tag:hover {
 }
 
 .post-content {
-  max-width: 65ch;
+  /* The whole post column — header, body, related, prev/next — so the header
+     aligns with the body instead of stepping in. `--prose-measure` is in `ch`,
+     which resolves against this element's own font-size, so the size has to be
+     set here too or the measure would land 5% narrower than on project pages. */
+  max-width: var(--prose-measure);
+  font-size: var(--prose-size);
   margin: 0 auto;
-}
-
-.post-content h2 {
-  font-size: 1.35rem;
-  font-weight: 600;
-  color: var(--text-normal);
-  margin-top: var(--space-10);
-  margin-bottom: var(--space-4);
-  letter-spacing: -0.01em;
-}
-
-.post-content h3 {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: var(--text-normal);
-  margin-top: var(--space-8);
-  margin-bottom: var(--space-3);
-}
-
-.post-content p {
-  font-size: 1.05rem;
-  color: var(--text-normal);
-  line-height: 1.7;
-  margin-bottom: var(--space-3);
-  text-align: justify;
-  text-justify: inter-word;
-  text-indent: 1.5em;
-  hyphens: auto;
-  -webkit-hyphens: auto;
-}
-
-/* No first-line indent after a heading, at the very start of the body, or
-   inside lists/quotes — the classic «красная строка» convention. */
-.post-body > p:first-of-type,
-.post-content h1 + p,
-.post-content h2 + p,
-.post-content h3 + p,
-.post-content h4 + p,
-.post-content li p,
-.post-content blockquote p {
-  text-indent: 0;
-}
-
-.post-content li p,
-.post-content blockquote p {
-  text-align: left;
-}
-
-/* Justified text needs a wide-enough column: on narrow screens the gaps
-   between words outweigh the even right edge, so fall back to ragged right. */
-@media (max-width: 640px) {
-  .post-content p {
-    text-align: left;
-  }
-}
-
-.post-content a {
-  color: var(--text-accent);
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-}
-
-.post-content a:hover {
-  color: var(--text-accent-hover);
-}
-
-.post-content code {
-  font-family: var(--font-mono);
-  font-size: 0.85em;
-  background: var(--code-background);
-  padding: 0.15em 0.35em;
-  border-radius: var(--radius-sm);
-}
-
-.post-content pre {
-  background: var(--code-background);
-  padding: var(--space-5);
-  border-radius: var(--radius-md);
-  overflow-x: auto;
-  margin-bottom: var(--space-6);
-}
-
-.post-content pre code {
-  background: none;
-  padding: 0;
-  font-size: 0.9rem;
-}
-
-.post-content blockquote {
-  border-left: 3px solid var(--blockquote-border);
-  padding-left: var(--space-5);
-  margin-bottom: var(--space-6);
-  color: var(--text-normal);
-  font-style: italic;
-}
-
-.post-content ul,
-.post-content ol {
-  margin-bottom: var(--space-6);
-  padding-left: var(--space-6);
-}
-
-.post-content li {
-  margin-bottom: var(--space-2);
-  color: var(--text-normal);
-  font-size: 1.05rem;
-  line-height: 1.6;
 }
 
 .post-back {
@@ -407,51 +304,6 @@ button.blog-card-tag:hover {
 
 .post-related li a:hover {
   color: var(--text-accent-hover);
-}
-
-/* Now page */
-.now-section {
-  margin-bottom: var(--space-12);
-}
-
-.now-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-normal);
-  margin-bottom: var(--space-2);
-  letter-spacing: -0.02em;
-}
-
-.now-subtitle {
-  font-size: 1rem;
-  color: var(--text-muted);
-  margin-bottom: var(--space-8);
-}
-
-.now-list {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  max-width: 65ch;
-}
-
-.now-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  color: var(--text-normal);
-  font-size: 1.05rem;
-  line-height: 1.5;
-}
-
-.now-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--text-accent);
-  border-radius: 50%;
-  flex-shrink: 0;
 }
 
 /* Contact section */

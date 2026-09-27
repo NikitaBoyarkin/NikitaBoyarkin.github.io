@@ -132,7 +132,7 @@ const pageJsonLd = {
 >
   <InnerTOC lang="en" />
 
-  <div class="container reveal">
+  <div class="container container-wide reveal">
     <a class="back" href={withBase('en/')}>← Back to portfolio</a>
 
     {
@@ -205,7 +205,7 @@ const pageJsonLd = {
 
     <InlineTOC lang="en" headings={headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth }))} />
 
-    <article id="project-content">
+    <article id="project-content" class="prose">
       <Content />
     </article>
 

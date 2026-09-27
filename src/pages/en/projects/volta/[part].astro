@@ -68,7 +68,7 @@ const partJsonLd = {
 >
   <InnerTOC lang="en" />
 
-  <div class="container reveal">
+  <div class="container container-wide reveal">
     <a class="back" href={withBase('en/projects/volta/')}>← Volta Neobank</a>
 
     <p class="part-layer">
@@ -129,7 +129,7 @@ const partJsonLd = {
 
     <InlineTOC lang="en" headings={headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth }))} />
 
-    <article id="project-content">
+    <article id="project-content" class="prose">
       <Content />
     </article>
 

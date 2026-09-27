@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
 import '../styles/blog.css';
+// Prose layer last, so equal-specificity rules resolve to it.
+import '../styles/prose.css';
 import { withBase } from '../lib/path';
 import Analytics from '../components/Analytics.astro';
 import LangSwitch from '../components/LangSwitch.astro';

@@ -145,7 +145,7 @@ not new work — but they live in the files this PRD touches, so they are fixed 
 
 ### 3.2 Non-goals — explicitly out of scope
 
-- **Visual redesign.** Type, palette, themes, layout are set (see `docs/prd-v6.md` D2). Do not restyle.
+- **Visual redesign.** Type, palette, themes, layout are set (see `docs/prd-v6.md` D2). Do not restyle. D22 is the one documented exception: it restyles rendered Markdown, and nothing outside the `.prose` layer.
 - **Post rewriting for substance.** Long posts are not shortened and stubs are not expanded. Only
   paragraph splitting, the `Кратко` addition, and the closing-section rename.
 - **Project body rewrite from scratch.** Structure and presentation change; claims and numbers do not.
@@ -161,7 +161,7 @@ not new work — but they live in the files this PRD touches, so they are fixed 
 | # | Decision | Rationale |
 |---|---|---|
 | D1 | **Two registers.** Descriptions/cards + page TL;DR = recruiter register. Body from `Данные и метод` = technical register. | A hiring manager reads 10–20 s; a peer reads the method. One register would under-serve both |
-| D2 | **Two axes: copy + structure.** Typography untouched except D16. | The survey shows typography is already correct; the defects are language, consistency, and density |
+| D2 | **Two axes: copy + structure.** Typography untouched except D16 — **and, from 2026-09-27, except D22.** | The survey shows typography is already correct; the defects are language, consistency, and density |
 | D3 | **Three phases**, in order: descriptions → project bodies → posts. | Descriptions are the highest-visibility, lowest-risk change and validate the workflow |
 | D4 | **Both languages.** RU is primary; EN mirrors and keeps parity. | RU is the site default; `CLAUDE.md` mandates twin files |
 | D5 | **Depth = restructure + rewrite for clarity, preserving every number and claim.** | The value is readability, not new content. Numbers are frozen (rule 0.1) |
@@ -175,12 +175,14 @@ not new work — but they live in the files this PRD touches, so they are fixed 
 | D13 | **RU and EN descriptions authored independently** (meaning parity, not a word-for-word translation). | Literal translations of a 12-character-budgeted line read as machine output |
 | D14 | **`volta` TL;DR** heading `## Итог в 30 секундах` (EN `## The 30-second version`), 4 bullets, existing numbers only. | Gives the flagship a scannable entry without losing its narrative |
 | D15 | **Posts:** rename only the **links** section (`## Ресурсы` → `## Ссылки`; `## Результат` → `## Выводы`); keep `## Выводы`/`## Заключение` as conclusions; add `## Кратко` to the 3 posts lacking it; split paragraphs >500 chars. | "Conclude" and "reference" are different sections; a single rename would erase conclusions |
-| D16 | **Project prose gets the `65ch` measure** (currently `.container 800px`). One rule only. | Consistency with posts; the only typographic change in scope |
+| D16 | **Project prose gets the `65ch` measure** (currently `.container 800px`). One rule only. — **Superseded 2026-09-27 by D22.** | Consistency with posts; the only typographic change in scope at the time. The 2026-09-27 pass widened the measure to `75ch` and moved the prose roots from ID selectors to a class-scoped layer, which is a larger typographic change than D16 authorised — so D16 is kept here as history rather than edited in place |
 | D17 | **PRD path `docs/prd-readability.md`**, matching the lowercase `prd-*` family. | Consistent with `docs/prd.md` … `docs/prd-v6.md` |
 | D18 | **Drift audit is a standalone script, not wired into `make check`.** `scripts/content-drift-audit.mjs` + `bun run audit:content`; baseline committed; run manually at Phase 0 and after every phase. | Wiring it into `make check` would fail CI on every legitimate content PR; the audit's job is to gate a rewrite, not every edit |
 | D19 | **After execution, document the skeleton convention in `CLAUDE.md`** (and `CONTEXT.md` if terminology is affected). | A convention nobody can look up will drift back |
 | D21 | **The drift audit also excludes the `star:` block, and its consistency is bound by a test, not a human.** `stripFrontmatterField(md, 'star')` joins the existing `description` strip; `tests/lib/star-frontmatter.test.ts` asserts the shape (four keys in order, one physical line each, no NBSP, `star:` at column 0), that `task` carries no digits, and that every token in `star.result` exists in that file's own `## Результат` / `## Result` section or its `description`. | D20 left `description` consistency to manual review, and `star` doubles that surface across 80 files — prose, in `claim-mechanism.md` terms. The test is the missing mechanism: an invented number, or one copied from a sibling project, turns red instead of shipping. The same patch fixes a latent bug — `String.replace(fm, cleaned)` read `$&`/`$1`/`$'` in the cleaned text as substitution patterns, silently corrupting the frontmatter before tokenisation whenever a body contained a `$` |
 | D20 | **The drift audit excludes the `description:` field.** Bodies, `impact`, `caseStudy`, `faq`, titles and `excerpt` stay frozen. | Phase 1 rewrites descriptions to D12's result-first 120–200-char spec, which necessarily changes which narrative numbers appear there. Freezing the field would forbid the very edit D12 mandates. Consistency between a description's numbers and the frozen body numbers is still checked manually — the `star:` field added later gets a test instead (D21) |
+
+| D22 | **A single class-scoped prose layer, `src/styles/prose.css`; the ID-scoped prose blocks in `global.css` and `blog.css` are deleted, not layered over.** Measure `65ch → 75ch`; `.container` gains a `--container-max` token, with `.container-wide` (880px) applied to the four prose pages only; table scroll + edge-fade on mobile; `details`/`summary` and post `img` styled; the project `<h1>` styled for the first time. Mechanism: `tests/lib/prose-css.test.ts` (14 tests). | A `.prose h2` rule (0-1-0) can never outrank `#project-content h2` (1-0-0) at any load order, so "improving readability" was not reachable by adding rules — it required migrating them. `#project-content` and `#post-content` stay, because `InnerTOC.astro` defaults to the first and `Post.astro` passes the second, and `tests/built/toc.test.ts` asserts both in built HTML. Widening `.container` itself was rejected: it is used by 13 pages (about / value / graph / topics / 404), so the width is opt-in per page instead. The `rehypeWrapTables` plugin originally planned for the table wrapper was dropped — Astro 7's default Markdown processor no longer ships `@astrojs/markdown-remark`, so `markdown.rehypePlugins` needs a new dependency; `display: block; overflow-x: auto` on the table does the job with none, and is the recipe the site already uses for `main table` |
 
 ---
 
@@ -349,7 +351,8 @@ Skeleton applies to all except `volta` (D6).
 
 | File | Change |
 |---|---|
-| `src/styles/global.css` | project prose `65ch` measure (D16) |
+| `src/styles/global.css` | project prose `65ch` measure (D16, superseded by D22) |
+| `src/styles/prose.css` | the prose layer (D22) — created 2026-09-27 |
 | `CLAUDE.md` | document skeleton + description spec + audit command (Phase 4) |
 | `CONTEXT.md` | only if terminology changes (Phase 4) |
 | `docs/content-baseline.json` | created by S0.2 |
@@ -376,6 +379,28 @@ Paths: `src/content.config.ts` (schemas), `src/components/ProjectCard.astro:41`,
 | 5 | **Done 2026-09-26 — STAR amendment.** All **80** content files moved to STAR: 17 RU + 17 EN projects (including both `volta` hubs) and 23 RU + 23 EN volta-parts. Rename map: `Задача`→`Ситуация` / `Goal`→`Situation` (projects), `Контекст`→`Ситуация` / `Context`→`Situation` (parts); `Данные и метод`→`Действия` / `Data & Method`→`Actions`; `Выводы`→`Результат` / `Findings`→`Result`. A new `## Задача` / `## Task` was authored in every one of the 80 (1–2 sentences, first person, goal + ownership, no digits). Docs updated: `CLAUDE.md`, `README.md`, `docs/prd-volta-structure.md` D10/D11. Mechanism: `tests/lib/content-skeleton.test.ts` (10 tests) — **proven to fail** on an off-skeleton heading and on a digit inside `Задача`. |
 
 **Verification:** `bun run audit:content` exits 0; `bun run build` → 98 pages; `bun run check` → 0 errors/warnings; G3 skeleton (in-order subset) 0 failures; G4 (Кратко, links naming, prose >500) pass; G6 `related:`/parity pass.
+
+| 6 | **Done 2026-09-27 — prose layer (D22).** `src/styles/prose.css` created; the `#project-content` block (`global.css`, 166 lines), the 4 shared table rules, and the `.post-content` block (`blog.css`, 106 lines) deleted — the layer replaces them rather than shadowing them. Also deleted: dead `#project-title` and `.now-section` (44 lines). `.container` → `var(--container-max, 800px)` with `.container-wide: 880px` on the 4 prose pages. `class="prose"` added beside the load-bearing id on 5 surfaces (4 project/part pages + `Post.astro`), RU and EN. The project `<h1>` — which had no rule at all — now carries the size `#project-title` used to, `details`/`summary` and post `img` styled, links unified on `text-decoration`. **Scope reduction, stated not silent:** the 4 `<iframe>` embeds keep their inline `style="width:100%;border:0;border-radius:10px"` — stripping it changes nothing visible, so it was left alone; the CSS adds only the `display: block` the inline style cannot express. **Two of the four planned Markdown defect classes did not exist:** `ab.md` renders all three `<li>` (the "lost marker") and "list not preceded by a blank line" is 119 benign hits — CommonMark lets bullet lists interrupt paragraphs. Fixed the two real ones: 12 trailing-whitespace lines across 3 files, 3 double-space markers across 2. |
+
+**Phase 6 verification:** `bun run build` → 135 pages, 0 errors; `bun test` → 334 pass / 0 fail (320 before + 14 new); `bun run test:built` → 69 pass, so `toc.test.ts` still resolves both containers; `bun run audit:content` → no drift; the built bundle carries `--prose-measure` and `.container-wide`, and carries **no** `#project-content h2` / `.post-content h2` — the old rules are gone from what ships, not just from the source.
+
+**Phase 6 rendered result — measured 2026-09-27.** §Verification below was written as «Verified by eye»; it was then actually checked with Playwright + Chrome against `bun run serve-dist` (1440×900 and 390×844, all three themes, on `/projects/ab/`, `/projects/volta/ab/`, `/posts/bayesian-ab-testing/`). **The harness was a throwaway script, not a committed test** — these numbers record one run, they are not a mechanism, and nothing turns red if they regress.
+
+| Claim | Class | Measurement |
+|---|---|---|
+| Measure is ~794px, not clipped to 736px | **Verified** | `max-width` resolves to 794.4px; used width 794.4px |
+| Project `<h1>` styled, not UA default | **Verified** | 40px / 700 at 1440; 29.6px / 700 at 390; colour `--text-normal` per theme |
+| One paragraph signal, not two | **Verified** | genuine `p + p`: `text-indent` 25.2px, `margin-top` 4.2px (0.25em), `margin-bottom` 0 |
+| No red line after a heading | **Verified** | `h2 + p` → `text-indent` 0 |
+| Mobile falls back to ragged right | **Verified** | at 390px: `--prose-indent` 0, `text-align: left` |
+| Wide tables scroll + fade at 390px | **Verified** | `display: block`, `overflow-x: auto`, fade present, and `scrollWidth > clientWidth` — it really scrolls |
+| Wide tables fit at 1440px | **Verified** | `display: table`, no fade, `scrollWidth == clientWidth` |
+| No horizontal page overflow | **Verified** | equal on 3 pages × 2 widths × 3 themes |
+| `details` / `summary` styled | **Verified** | 1px border, per-theme background, 8px radius; `summary` flex + pointer |
+| `pre` keeps Shiki's inline background | **Verified** | `rgb(36,41,46)` in **all three** themes — the deliberate no-override holds |
+| Table hairline reads across themes | **Verified** | computed from tokens: 2.10 / 1.88 / 1.86:1, vs 1.09:1 for `--table-border` alone in light. **Under** WCAG 1.4.11's 3:1 — accepted as a redundant grid, and unchecked by any gate |
+| `hyphens: auto` removes rivers | **Not verified** | no measurable hyphenation in headless Chrome (an 8-line Russian paragraph renders 8 lines with `hyphens: none` too). The proxy is too weak to conclude either way. `hyphenate-limit-chars: 8 4 4` was **removed** — stricter than the UA default on all three numbers, it suppressed breaks and fought this goal |
+| Red line visible on Volta part pages | **N/A** | `/projects/volta/ab/` has **0** adjacent paragraph pairs (9 `<p>`, each set off by a heading or list), so `.prose p + p` never fires there. Correct rule, nothing to apply it to |
 
 **Baseline re-snapshots (intentional, per D20):** `volta` TL;DR repeats existing numbers plus the heading token `30`; EN `bot`/`sql` gained their RU-parity `caseStudy` numbers. No file lost a numeric token at any point.
 

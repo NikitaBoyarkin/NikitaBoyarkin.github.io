@@ -1818,9 +1818,16 @@ footer p {
 
 /* Project Page Styles */
 .container {
-  max-width: 800px;
+  /* 800px is the site-wide default. Prose pages opt into the wider column with
+     `.container-wide`, so widening the measure does not move about / value /
+     graph / topics. */
+  max-width: var(--container-max, 800px);
   margin: 0 auto;
   padding: 2rem;
+}
+
+.container-wide {
+  --container-max: 880px;
 }
 
 .back {
@@ -1839,12 +1846,6 @@ footer p {
   transform: translateX(-5px);
 }
 
-#project-title {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  color: var(--text-normal);
-}
-
 .hero-image {
   width: 100%;
   max-width: 100%;
@@ -1854,173 +1855,6 @@ footer p {
   border-radius: 12px;
   margin-bottom: 2rem;
   border: 1px solid var(--border-color);
-}
-
-/* The measure lives here, at the root font size — `ch` resolves against the
-   element's own `font-size`, so setting the prose size on this element would
-   widen the column (65ch at 16.8px = 688px) instead of keeping it equal to
-   `.post-content`'s 65ch at 16px = 656px. Prose size is set on the prose
-   elements below, exactly as `blog.css` does it. */
-#project-content {
-  max-width: 65ch;
-  line-height: 1.7;
-}
-
-/* Адаптивные картинки в контенте проекта */
-#project-content img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  margin: 1.5rem 0;
-  border: 1px solid var(--border-color);
-  display: block;
-}
-
-#project-content h2 {
-  color: var(--text-accent);
-  margin: 2rem 0 1rem 0;
-  font-size: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--border-color);
-}
-
-#project-content h3 {
-  color: var(--text-normal);
-  margin: 1.5rem 0 0.8rem 0;
-  font-size: 1.2rem;
-}
-
-#project-content p {
-  font-size: 1.05rem;
-  margin-bottom: 0.6rem;
-  color: var(--text-normal);
-  text-align: justify;
-  text-justify: inter-word;
-  text-indent: 1.5em;
-  hyphens: auto;
-  -webkit-hyphens: auto;
-}
-
-/* No first-line indent after a heading, at the very start of the body, or
-   inside lists/quotes — the classic «красная строка» convention. */
-#project-content > p:first-of-type,
-#project-content h1 + p,
-#project-content h2 + p,
-#project-content h3 + p,
-#project-content h4 + p,
-#project-content li p,
-#project-content blockquote p {
-  text-indent: 0;
-}
-
-#project-content li p,
-#project-content blockquote p {
-  text-align: left;
-}
-
-/* Justified text needs a wide-enough column: on narrow screens the gaps
-   between words outweigh the even right edge, so fall back to ragged right. */
-@media (max-width: 640px) {
-  #project-content p {
-    text-align: left;
-  }
-}
-
-#project-content ul,
-#project-content ol {
-  font-size: 1.05rem;
-  margin: 1rem 0;
-  padding-left: 2rem;
-  color: var(--text-normal);
-}
-
-#project-content li {
-  margin-bottom: 0.5rem;
-}
-
-#project-content a {
-  color: var(--text-accent);
-  text-decoration: none;
-  border-bottom: 1px dotted var(--text-accent);
-  transition: color 0.2s ease, border-bottom-color 0.2s ease;
-}
-
-#project-content a:hover {
-  color: var(--text-accent-hover);
-  border-bottom-style: solid;
-}
-
-#project-content code {
-  background: var(--code-background);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  font-family: var(--font-mono);
-  font-size: 0.9em;
-  color: var(--text-normal);
-}
-
-#project-content pre {
-  background: var(--code-background);
-  padding: 1rem;
-  border-radius: 8px;
-  overflow-x: auto;
-  margin: 1rem 0;
-}
-
-#project-content blockquote {
-  border-left: 4px solid var(--blockquote-border);
-  padding-left: 1rem;
-  margin: 1rem 0;
-  font-size: 1.05rem;
-  color: var(--text-normal);
-  font-style: italic;
-}
-
-/* Content tables — a hairline on every cell, so wide comparison tables read as
-   a grid instead of loose columns. Both content roots are covered: the tables
-   come from Markdown (28 collection files), and the only pages rendering them
-   are project pages (#project-content) and posts (.post-content). Colours are
-   the per-theme --table-* tokens, so the grid re-tints with dark / light /
-   cyberpunk; no new hex, which keeps contrast-gate.js on its token inputs. */
-#project-content table,
-.post-content table {
-  width: 100%;
-  margin: 1.5rem 0;
-  border-collapse: collapse;
-  border-spacing: 0;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-#project-content th,
-#project-content td,
-.post-content th,
-.post-content td {
-  /* --table-border alone is a hairline within ~1.1:1 of the page in the light
-     theme, where a literal grid disappears into the cream. Tinting the muted
-     text colour reads at ~1.9–2.1:1 across dark / light / cyberpunk;
-     --table-border stays as the fallback for engines without color-mix(). */
-  border: 1px solid var(--table-border);
-  border-color: color-mix(in srgb, var(--text-muted) 40%, transparent);
-  padding: 0.55rem 0.75rem;
-  text-align: left;
-  vertical-align: top;
-}
-
-#project-content thead th,
-.post-content thead th {
-  background: var(--table-header-background);
-  color: var(--text-normal);
-  font-weight: 600;
-}
-
-/* Cells hold plain text, but a raw-HTML cell can carry a <p> — keep the
-   «красная строка» and the justified tracking out of the grid. */
-#project-content td p,
-.post-content td p {
-  margin-bottom: 0;
-  text-indent: 0;
-  text-align: left;
 }
 
 /* Inner TOC for project pages.
