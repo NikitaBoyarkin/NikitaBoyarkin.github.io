@@ -51,8 +51,10 @@ const isEn = lang === 'en';
 const homeHref = isEn ? withBase('en/') : withBase('/');
 const aboutHref = isEn ? withBase('en/about/') : withBase('about/');
 const projectsHref = isEn ? withBase('en/projects/') : withBase('projects/');
-const notesHref = isEn ? withBase('en/writing/') : withBase('notes/');
 const contactHref = isEn ? withBase('en/contact/') : withBase('contact/');
+// One href for the writing index, not two. The nav used to point at the legacy
+// `/notes/` index while the footer and the homepage bento pointed at `/writing/`,
+// so the two entry points could disagree about where "writing" lives.
 const writingHref = isEn ? withBase('en/writing/') : withBase('writing/');
 const valueHref = isEn ? withBase('en/value/') : withBase('value/');
 
@@ -60,7 +62,7 @@ const valueHref = isEn ? withBase('en/value/') : withBase('value/');
 const t = {
   skip: isEn ? 'Skip to content' : 'Перейти к содержимому',
   navProjects: isEn ? 'Projects' : 'Проекты',
-  navNotes: isEn ? 'Writing' : 'Заметки',
+  navWriting: isEn ? 'Writing' : 'Статьи',
   navAbout: isEn ? 'About' : 'Обо мне',
   navValue: isEn ? 'Value' : 'Ценность',
   navContact: isEn ? 'Contact' : 'Контакты',
@@ -260,7 +262,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         <li><a href={projectsHref} class={activeNav === 'projects' ? 'active' : ''} aria-current={activeNav === 'projects' ? 'page' : undefined}>{t.navProjects}</a></li>
         <li><a href={aboutHref} class={activeNav === 'about' ? 'active' : ''} aria-current={activeNav === 'about' ? 'page' : undefined}>{t.navAbout}</a></li>
         <li><a href={valueHref} class={activeNav === 'value' ? 'active' : ''} aria-current={activeNav === 'value' ? 'page' : undefined}>{t.navValue}</a></li>
-        <li><a href={notesHref} class={activeNav === 'writing' ? 'active' : ''} aria-current={activeNav === 'writing' ? 'page' : undefined}>{t.navNotes}</a></li>
+        <li><a href={writingHref} class={activeNav === 'writing' ? 'active' : ''} aria-current={activeNav === 'writing' ? 'page' : undefined}>{t.navWriting}</a></li>
       </ul>
     </nav>
 
