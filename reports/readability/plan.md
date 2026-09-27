@@ -1,6 +1,6 @@
 # Readability pass — план правок (handoff)
 
-**Статус:** 1 из ~19 правок применена. Остальное — ниже.
+**Статус:** ✅ Выполнено. Все 18 правок ниже применены + 1 корректировка к самому плану. Верификация пройдена — см. «Результат верификации» в конце.
 **Цель:** улучшить читаемость текста. Верстка абзаца (`justify` + красная строка `1.5em` + `hyphens: auto`) **сохраняется** — это осознанный редакционный выбор в DESIGN.md.
 **Область — 3 файла:** `src/styles/global.css`, `src/styles/blog.css`, `DESIGN.md`.
 
@@ -41,7 +41,7 @@
 
 | # | Селектор | Было | Стало |
 |---|---|---|---|
-| 1 | `#project-content` | нет `max-width`; наследует **736px** | `font-size: 1.05rem; max-width: 65ch;` → **~656px**, **~72 симв./строку** |
+| 1 | `#project-content` | нет `max-width`; наследует **736px** | `max-width: 65ch;` на контейнере + `font-size: 1.05rem` на прозаических детях → **656px**, **72 симв./строку** (см. «Корректировка к плану») |
 | 2 | `#project-content p` | `color: var(--text-muted)` | `var(--text-normal)` → **11.94:1** |
 | 3 | `#project-content ul, #project-content ol` | `color: var(--text-muted)` | `var(--text-normal)` |
 | 4 | `#project-content blockquote` | `color: var(--text-muted)` | `var(--text-normal)` |
@@ -89,6 +89,45 @@
    Ожидаемый шум, не баг: `overused-font` про Inter (осознан), `design-system-font` про Cormorant (есть в DESIGN.md, детектор не парсит `display` в фронтматтере), **132** `design-system-font-size` (advisory) — единой роль-шкалы нет, это отдельная задача, в объём НЕ входит.
 6. Скриншоты: `reports/readability/after-*.png`, сравнить с `before-*.png`. Обязательно посмотреть страницу проекта с широкой таблицей — мера 65ch сузит таблицы (посты уже так живут, прецедент есть).
 7. Удалить `_tmp-readability-audit.mjs` в конце.
+
+## Результат верификации (после)
+
+### Корректировка к плану: где живёт мера
+
+Правка №1 в исходном виде (`font-size: 1.05rem` **на контейнере** `#project-content` вместе с `max-width: 65ch`) дала **688px / 75 симв.** вместо ожидаемых 656px: `ch` резолвится против **собственного** `font-size` элемента, поэтому 65ch × 16.8px = 688px, а не 65ch × 16px = 656px.
+
+Кегль перенесён на прозаических детей — `#project-content p`, `#project-content ul, #project-content ol`, `#project-content blockquote` — ровно так, как это уже сделано в `blog.css` (там `font-size` стоит на `.post-content p`, а `max-width` — на контейнере). Результат: **656px / 72 симв.**, идентично постам. В CSS оставлен комментарий с этим объяснением.
+
+### Замеры
+
+`PORT=4399 bun _tmp-readability-audit.mjs after` (Playwright, 3 темы × desktop 1440 / mobile 390):
+
+| Роль | Кегль | Контраст dark / light / cyberpunk | Симв./строку | Ширина |
+|---|---|---|---|---|
+| project prose (`#project-content > p`) | **16.8px** | **11.94 / 15.22 / 17.27** | **72** | **656px** |
+| project list | **16.8px** | **11.94 / 15.22 / 17.27** | **68** | **656px** |
+| post prose (`.post-content p`) | **16.8px** | **11.94 / 15.22 / 17.27** | **72** | **656px** |
+| post list (`.post-content li`) | **16.8px** (было 14.4) | **10.43 / 17.72 / —** | **65** | **598px** |
+| featured prose (`.featured-card-description`) | 15.68px | 10.43 / 17.72 / 16.39 | 39 | 344px |
+| bento prose (`.bento-cell-text`) | 15.2px | 10.43 / 17.72 / 16.39 | 39 | 402px |
+
+Две читальные поверхности сошлись: **656px / 72 симв. / 16.8px** — одна роль, один размер, одна мера.
+
+### Отклонения от ожиданий плана (все объяснены)
+
+| Что | План ожидал | Замер | Причина |
+|---|---|---|---|
+| featured / bento, контраст (dark) | 11.94:1 | **10.43:1** | карточки лежат на `--background-secondary`, не на `--background-primary` |
+| `#project-content h2` | не рассматривался | 6.36 / 5.72 / 8.27 | акцентные заголовки, не менялись; зона `contrast-gate.js` |
+| Счётчик детектора | 132 × `design-system-font-size` | **136** | +4 новых `font-size: 1.05rem` (проза проектов) |
+
+### Прочие проверки
+
+- `bun run build` — **135 страниц**, зелёно.
+- `bun test tests/lib` — **227 pass / 0 fail** (24 файла, 4224 `expect()`). Токены не менялись, как и требовалось.
+- Детектор `detect --json --scope type`: 136 `design-system-font-size` (advisory) + `overused-font` ×4 (Inter) + `design-system-font` ×4 (Cormorant) — ожидаемый шум из шага 5.
+- **Таблицы — риск меры 65ch снят замером.** Playwright по 5 страницам проектов (`volta`, `ab`, `causal`, `cohort`, `streamlit`): 2–4 колонки, ширина таблицы 656px, `overflow: 0`, обрезанных ячеек **0**. Визуально — `after-project-table.png` (RAT v2, 5 строк), чисто.
+- **Скриншоты.** `after-project-desktop.png` vs `before-project-desktop.png`: верх страницы не изменился — ожидаемо, проза лежит ниже сгиба, а кадр снимается от `scrollY = 0`. Пары кропов `before-prose-crop.png` (1472px = 736 CSS, `muted`) и `after-prose-crop.png` (1314px = 656 CSS, `normal`) показывают обе изменённые величины — ширину и цвет, — но это **разные абзацы**: before снят как клип полосы прозы, элемент-кроп для него невоспроизводим. Прямое сравнение одного и того же текста есть только в числах выше.
 
 ## Границы
 
