@@ -1,0 +1,411 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Prose layer — the single source of truth for rendered Markdown.
+
+   Every content surface opts in with `class="prose"` next to its existing,
+   load-bearing id (`#project-content`, `#post-content` — InnerTOC defaults to
+   the former and `tests/built/toc.test.ts` asserts both). The ids stay; the
+   class is what styles.
+
+   Why a class and not the ids: a `.prose h2` rule (0-1-0) can never beat
+   `#project-content h2` (1-0-0) at any load order, so the two old ID-scoped
+   prose blocks were **deleted** (global.css 1859–2024, blog.css 257–362)
+   rather than layered over. This file replaces them.
+
+   Colours are the per-theme `--table-*` / `--code-*` / `--border-*` tokens
+   from global.css, so dark / light / cyberpunk re-tint for free. No new hex:
+   `.claude/hooks/contrast-gate.js` fires on writes to global.css and resolves
+   only solid hex, so leaving every value on a token keeps that gate's inputs
+   intact. The gate does not read this file.
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* `ch` resolves against the element's own font-size — see the trap documented
+     in the old global.css block this file replaces. Both the measure and the
+     size therefore live on the same element (`.prose`, and `.post-content`,
+     which is the column that wraps a post's header + body). */
+  --prose-measure: 75ch;
+  --prose-size: 1.05rem;
+  --prose-lh: 1.7;
+  --prose-indent: 1.5em;
+}
+
+.prose {
+  max-width: var(--prose-measure);
+  font-size: var(--prose-size);
+  line-height: var(--prose-lh);
+  color: var(--text-normal);
+}
+
+.prose > :first-child {
+  margin-block-start: 0;
+}
+
+/* ── Headings ──────────────────────────────────────────────────────────── */
+
+/* The Markdown body of every project opens with `# Title`, and the project
+   page chrome renders no other visible h1 — this is the page's only heading.
+   It had no rule at all before (UA default 2em), so it is styled here. */
+.prose > h1:first-child {
+  font-size: clamp(1.85rem, 1.3rem + 2.2vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text-normal);
+  margin-block: 0 var(--space-6);
+  text-wrap: balance;
+}
+
+.prose :is(h2, h3, h4) {
+  color: var(--text-normal);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  /* In-page TOC links jump here; without it the heading sits flush on the
+     viewport edge and reads as cut off. */
+  scroll-margin-top: var(--space-6);
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-accent);
+  margin-block: var(--space-10) var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.prose h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-block: var(--space-8) var(--space-3);
+}
+
+.prose h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-block: var(--space-6) var(--space-2);
+}
+
+/* ── Paragraphs ────────────────────────────────────────────────────────── */
+
+/* One separation signal, not two: the red line carries the break, so the
+   inter-paragraph margin goes to zero and only a hairline remains between
+   sibling paragraphs (enough to separate a paragraph from a following list
+   item's continuation, not enough to compete with the indent). */
+.prose p {
+  margin-block: 0;
+  text-align: justify;
+  text-justify: inter-word;
+  text-indent: var(--prose-indent);
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  /* `hyphens: auto` is the whole river fix — justified text needs *more* break
+     opportunities. A `hyphenate-limit-chars` only restricts them, and the value
+     this sheet first carried (`8 4 4`) is stricter than the UA default on every
+     one of its three numbers, so it suppressed breaks in ordinary Russian words
+     and fought the goal it was meant to serve. Left off.
+     Not verified: headless Chrome shows no measurable hyphenation here (an
+     8-line Russian paragraph renders 8 lines with `hyphens: none` too), so this
+     leans on the UA default rather than on a measurement. */
+  overflow-wrap: break-word;
+}
+
+.prose p + p {
+  margin-block-start: 0.25em;
+}
+
+/* The classic «красная строка» convention: no indent after a heading, at the
+   very start of the body, or anywhere the line is not a prose column. */
+.prose > p:first-child,
+.prose :is(h1, h2, h3, h4, h5, h6) + p,
+.prose li p,
+.prose blockquote p,
+.prose td p,
+.prose th p,
+.prose details > p:first-of-type,
+.prose summary + p {
+  text-indent: 0;
+}
+
+.prose li p,
+.prose td p,
+.prose th p {
+  text-align: left;
+}
+
+/* Justification needs a wide-enough column: on a phone the word gaps outweigh
+   the even right edge, so fall back to ragged right and drop the indent. */
+@media (max-width: 640px) {
+  .prose {
+    --prose-indent: 0;
+  }
+
+  .prose p {
+    text-align: left;
+  }
+}
+
+/* ── Lists ─────────────────────────────────────────────────────────────── */
+
+.prose :is(ul, ol) {
+  margin-block: var(--space-4);
+  padding-left: var(--space-6);
+}
+
+.prose li {
+  margin-block: var(--space-1);
+  line-height: 1.65;
+}
+
+.prose li > :is(ul, ol) {
+  margin-block: var(--space-1);
+}
+
+.prose li::marker {
+  color: var(--text-muted);
+}
+
+/* ── Links ─────────────────────────────────────────────────────────────── */
+
+/* `text-decoration` rather than `border-bottom`: a border only paints under a
+   wrapped link's last line, and it adds to the line box height. */
+.prose a {
+  color: var(--text-accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--text-accent) 50%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition:
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
+}
+
+.prose a:hover {
+  color: var(--text-accent-hover);
+  text-decoration-color: currentColor;
+}
+
+/* ── Code ──────────────────────────────────────────────────────────────── */
+
+.prose :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--code-background);
+  color: var(--text-normal);
+  padding: 0.15em 0.35em;
+  border-radius: var(--radius-sm);
+  overflow-wrap: break-word;
+}
+
+/* No `background` here on purpose. Shiki emits an inline
+   `style="background-color:#24292e;color:#e1e4e8"` on every `<pre>`; an inline
+   declaration beats any selector short of `!important`, and forcing the theme
+   token would leave github-dark's light token colours on a light background in
+   the light theme — a contrast regression. The dark block stands as-is. */
+.prose pre {
+  margin-block: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  -webkit-overflow-scrolling: touch;
+}
+
+.prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* ── Media ─────────────────────────────────────────────────────────────── */
+
+.prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-block: var(--space-5);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+/* The four demo embeds carry `style="width:100%;border:0;border-radius:10px"`
+   inline, so only the box behaviour is set here — an iframe is inline by
+   default and would otherwise sit on a text baseline with a descender gap. */
+.prose iframe {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin-block: var(--space-5);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--background-secondary);
+}
+
+.prose hr {
+  margin-block: var(--space-8);
+  border: 0;
+  border-top: 1px solid var(--border-color);
+}
+
+/* ── Blockquote ────────────────────────────────────────────────────────── */
+
+.prose blockquote {
+  margin-block: var(--space-5);
+  padding-left: var(--space-5);
+  border-left: 3px solid var(--blockquote-border);
+  color: var(--text-normal);
+  font-style: italic;
+}
+
+.prose blockquote > :first-child {
+  margin-block-start: 0;
+}
+
+.prose blockquote > :last-child {
+  margin-block-end: 0;
+}
+
+/* ── Tables ────────────────────────────────────────────────────────────── */
+
+/* A hairline on every cell, so wide comparison tables read as a grid instead
+   of loose columns. Measured off the theme tokens: `--table-border` alone is
+   1.09:1 against the light theme's cream page, where the grid disappears;
+   tinting --text-muted 40% gives 2.10 / 1.88 / 1.86:1 (dark / light / cyberpunk)
+   with `--table-border` kept as the fallback for engines without color-mix().
+
+   That is deliberately under WCAG 1.4.11's 3:1 for non-text, on the judgement
+   that the grid is redundant — the header row and the column alignment carry
+   the structure without it. Nothing checks this: the contrast gate resolves
+   only solid hex and reads only global.css. */
+.prose table {
+  width: 100%;
+  margin-block: var(--space-6);
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid var(--table-border);
+  border-color: color-mix(in srgb, var(--text-muted) 40%, transparent);
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose thead th {
+  background: var(--table-header-background);
+  color: var(--text-normal);
+  font-weight: 600;
+}
+
+/* Cells hold plain text, but a raw-HTML cell can carry a <p> — keep the
+   «красная строка» and the justified tracking out of the grid. */
+.prose td p,
+.prose th p {
+  margin-block: 0;
+}
+
+/* Below 768px a three-column comparison table cannot fit any phone, so it
+   scrolls sideways instead of widening the page. `display: block` on the table
+   is what makes it its own scroll container — the same recipe the site already
+   uses for `main table` (global.css), and the only one available without a
+   Markdown AST hook (Astro 7's default processor ships no unified plugins).
+
+   Scoped to the narrow breakpoint on purpose: at desktop width the table wraps
+   its cells and fits, and a fade painted over a table that is not scrolling
+   reads as a smudge.
+
+   The fade: `background-attachment: local` on the two cover layers makes them
+   scroll with the content, so each shadow disappears once that edge is reached,
+   while the radial gradients stay `scroll` — pinned to the box — and read as
+   the shadow of the content still off-screen. */
+@media (max-width: 768px) {
+  .prose table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    background:
+      linear-gradient(to right, var(--background-primary) 30%, transparent) left center / 40px 100% no-repeat local,
+      linear-gradient(to left, var(--background-primary) 30%, transparent) right center / 40px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, color-mix(in srgb, var(--text-normal) 22%, transparent), transparent) left center / 14px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, color-mix(in srgb, var(--text-normal) 22%, transparent), transparent) right center / 14px 100% no-repeat scroll;
+  }
+}
+
+/* ── FAQ accordions ────────────────────────────────────────────────────── */
+
+.prose details {
+  margin-block: var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--background-secondary);
+  overflow: hidden;
+}
+
+.prose details[open] {
+  padding-bottom: var(--space-4);
+}
+
+.prose summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-normal);
+  list-style: none;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.prose summary::-webkit-details-marker {
+  display: none;
+}
+
+/* A border-drawn chevron rather than a glyph, so it cannot fall back to a
+   missing-font box in either locale. */
+.prose summary::after {
+  content: "";
+  flex: none;
+  margin-left: auto;
+  width: 0.45em;
+  height: 0.45em;
+  border-right: 1.5px solid var(--text-accent);
+  border-bottom: 1.5px solid var(--text-accent);
+  transform: rotate(45deg) translate(-0.1em, -0.1em);
+  transition: transform 0.2s ease;
+}
+
+.prose details[open] > summary::after {
+  transform: rotate(-135deg) translate(-0.1em, -0.1em);
+}
+
+.prose summary:hover {
+  background: var(--background-tertiary);
+  color: var(--text-accent);
+}
+
+.prose summary:focus-visible {
+  outline: 2px solid var(--border-active);
+  outline-offset: -2px;
+}
+
+.prose details > :not(summary) {
+  margin-inline: var(--space-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prose summary,
+  .prose summary::after {
+    transition: none;
+  }
+}
