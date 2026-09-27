@@ -188,7 +188,7 @@ button.blog-card-tag:hover {
 
 .blog-card-excerpt {
   font-size: 0.92rem;
-  color: var(--text-muted);
+  color: var(--text-normal);
   line-height: 1.55;
   max-width: 65ch;
 }
@@ -273,7 +273,7 @@ button.blog-card-tag:hover {
 
 .post-content p {
   font-size: 1.05rem;
-  color: var(--text-muted);
+  color: var(--text-normal);
   line-height: 1.7;
   margin-bottom: var(--space-3);
   text-align: justify;
@@ -344,7 +344,7 @@ button.blog-card-tag:hover {
   border-left: 3px solid var(--blockquote-border);
   padding-left: var(--space-5);
   margin-bottom: var(--space-6);
-  color: var(--text-muted);
+  color: var(--text-normal);
   font-style: italic;
 }
 
@@ -356,7 +356,8 @@ button.blog-card-tag:hover {
 
 .post-content li {
   margin-bottom: var(--space-2);
-  color: var(--text-muted);
+  color: var(--text-normal);
+  font-size: 1.05rem;
   line-height: 1.6;
 }
 
@@ -440,7 +441,7 @@ button.blog-card-tag:hover {
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  color: var(--text-muted);
+  color: var(--text-normal);
   font-size: 1.05rem;
   line-height: 1.5;
 }
@@ -468,7 +469,7 @@ button.blog-card-tag:hover {
 
 .contact-text {
   font-size: 1.05rem;
-  color: var(--text-muted);
+  color: var(--text-normal);
   line-height: 1.6;
   margin-bottom: var(--space-4);
   max-width: 65ch;

@@ -231,15 +231,21 @@ body {
   color: var(--text-normal);
   font-family: var(--font-sans);
   line-height: 1.6;
-  font-size: 16px;
+  /* 1rem, not 16px: rem resolves against the user's browser default font
+     size, so someone who set 20px gets 20px. A px literal would pin the em
+     base and silently ignore that preference. Identical at the default. */
+  font-size: 1rem;
   max-width: 1000px;
   margin: 0 auto;
   padding: var(--page-pad);
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* No -webkit-font-smoothing: antialiased here, deliberately. It thins every
+     glyph, and on this site the body text is *light on dark* — the one case
+     where thinning costs legibility rather than buying crispness, and the
+     case DESIGN.md's own rule asks to compensate for. Default subpixel
+     rendering restores the weight instead. */
 }
 
 /* Readable text wrapping — balance headings, pretty body paragraphs */
@@ -755,7 +761,7 @@ nav ul.links a[aria-current="page"] {
 
 .intro-content p {
   font-size: 1.05rem;
-  color: var(--text-muted);
+  color: var(--text-normal);
   line-height: 1.7;
   max-width: 54ch;
 }
@@ -1129,7 +1135,7 @@ nav ul.links a[aria-current="page"] {
 .bento-cell-text {
   font-size: 0.95rem;
   line-height: 1.6;
-  color: var(--text-muted);
+  color: var(--text-normal);
   margin: 0;
 }
 
@@ -1245,7 +1251,7 @@ nav ul.links a[aria-current="page"] {
 .featured-card-description {
   font-size: 0.98rem;
   line-height: 1.6;
-  color: var(--text-muted);
+  color: var(--text-normal);
   margin: 0;
   max-width: 70ch;
 }
@@ -1515,7 +1521,7 @@ nav ul.links a[aria-current="page"] {
 }
 
 .project p {
-  color: var(--text-muted);
+  color: var(--text-normal);
   margin-bottom: var(--space-4);
   line-height: 1.6;
   font-size: 0.95rem;
@@ -1719,7 +1725,7 @@ nav ul.links a[aria-current="page"] {
 }
 
 .star-compact .star-label {
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   letter-spacing: 0.06em;
 }
 
@@ -1776,7 +1782,7 @@ nav ul.links a[aria-current="page"] {
 }
 
 #about p {
-  color: var(--text-muted);
+  color: var(--text-normal);
   line-height: 1.7;
   font-size: 1.05rem;
 }
@@ -1850,7 +1856,13 @@ footer p {
   border: 1px solid var(--border-color);
 }
 
+/* The measure lives here, at the root font size — `ch` resolves against the
+   element's own `font-size`, so setting the prose size on this element would
+   widen the column (65ch at 16.8px = 688px) instead of keeping it equal to
+   `.post-content`'s 65ch at 16px = 656px. Prose size is set on the prose
+   elements below, exactly as `blog.css` does it. */
 #project-content {
+  max-width: 65ch;
   line-height: 1.7;
 }
 
@@ -1879,8 +1891,9 @@ footer p {
 }
 
 #project-content p {
+  font-size: 1.05rem;
   margin-bottom: 0.6rem;
-  color: var(--text-muted);
+  color: var(--text-normal);
   text-align: justify;
   text-justify: inter-word;
   text-indent: 1.5em;
@@ -1915,9 +1928,10 @@ footer p {
 
 #project-content ul,
 #project-content ol {
+  font-size: 1.05rem;
   margin: 1rem 0;
   padding-left: 2rem;
-  color: var(--text-muted);
+  color: var(--text-normal);
 }
 
 #project-content li {
@@ -1957,7 +1971,8 @@ footer p {
   border-left: 4px solid var(--blockquote-border);
   padding-left: 1rem;
   margin: 1rem 0;
-  color: var(--text-muted);
+  font-size: 1.05rem;
+  color: var(--text-normal);
   font-style: italic;
 }
 
@@ -2898,7 +2913,7 @@ button:focus-visible {
   color: var(--text-normal);
 }
 .featured-body p {
-  color: var(--text-muted);
+  color: var(--text-normal);
   margin: 0 0 var(--space-4);
   line-height: 1.6;
 }
@@ -3017,7 +3032,7 @@ button:focus-visible {
 }
 .strip-badge {
   align-self: flex-start;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;

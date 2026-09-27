@@ -121,7 +121,7 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 - Surfaces step primary → secondary → tertiary for page, card, and nested surfaces (code blocks, table headers, chips).
 - The button fill is the brand orange (`#fe4e02`) with `--button-ink` dark (`#1a1a1a`) — a light fill under dark ink, the same convention the cyberpunk theme already used. `--button-ink` is the ink that sits on the button fill: dark (`#1a1a1a`) in dark/light themes and in cyberpunk (where the fill is magenta). It is the ink for buttons, skip-link, `::selection`, and accent badges; it is **not** constant across all three themes — it flips to keep AA contrast on its fill.
 - The fill was signal blue (`#1400c3`) until 2026-09. It sat at **1.31:1** against the teal canvas — a CTA that read as a hole punched in the page. No blue can clear 3:1 against that canvas *and* carry AA text on top, so the fill had to become light with dark ink.
-- `text-muted` is for secondary text and metadata; `text-normal` for body and headings.
+- `text-muted` is for **metadata only** — dates, tags, captions, breadcrumbs, footer, counts. `text-normal` is for **body prose** and headings. The boundary is not "how important it feels": a paragraph of prose is body text even when it sits inside a card, so `.bento-cell-text`, `.featured-card-description`, `.blog-card-excerpt`, `#project-content p` and `.post-content p` are all `text-normal`. Measured, this is the difference between 5.91:1 and 11.94:1 in dark (5.90:1 → 17.27:1 in cyberpunk).
 
 ## Color Roles — 60-30-10
 
@@ -269,6 +269,11 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 - Project and post prose is justified (`text-align: justify`) with automatic hyphenation (`hyphens: auto`) so the even right edge does not open word gaps.
 - Paragraphs separate by a first-line indent (`text-indent: 1.5em`) with only a tight vertical gap, not by extra air; the indent drops after a heading, at the start of a section, and inside lists and quotes.
 - Justification is turned off below 640px — in a narrow column it produces rivers and uneven spacing.
+- **The measure is 65ch on both reading surfaces**, project pages (`#project-content`) and posts (`.post-content`). They used to disagree — projects ran to the full 736px column (≈84 characters per line) while posts were already capped (≈72) — which read as two different type systems rather than one. 65ch lands at ≈656px, at the top of the comfortable 45–75ch range.
+- **Prose size is `1.05rem` (16.8px) wherever prose appears** — body paragraphs, list items, quotes, card descriptions. One role, one size; the previous 16px / 16.8px / 15.2px spread was drift, not hierarchy.
+- **The root font size is `1rem`, never `16px`.** At the browser default the two are identical, but `rem` honours a reader who has raised the default text size — a hard `16px` on `body` throws that setting away.
+- **Micro-label floor is `0.72rem` (≈11.5px).** Badge and compact-label styles (`.strip-badge`, `.star-compact .star-label`) sat at 0.66–0.68rem (10.5–10.9px), below any legible floor.
+- **`-webkit-font-smoothing` is not applied.** Antialiasing thins light text on dark backgrounds — the opposite of what the dark theme needs. Weight and colour carry the compensation instead; the tracking compensation that light-on-dark usually wants is deliberately skipped because prose here is justified, and `letter-spacing` on justified text widens word gaps and makes rivers more visible, not less.
 
 ## Layout
 
@@ -276,7 +281,7 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 - Below 1100px the nav is an off-canvas drawer over a scrim, opened from a sticky top bar; the panel holds the page scroll only while it is open.
 - The kanban board is the only element that breaks out of the reading column, to a wider viewport-capped width — it centres on the content column, not the viewport, so it never slides under the rail.
 - Project grids use auto-fit with a minimum card width so cards reflow without media queries.
-- Post content is capped at a comfortable reading measure; intro paragraphs are narrower.
+- Both reading surfaces are capped at the same 65ch measure — project content and post content. Intro and card paragraphs are narrower by their own containers, not by a second type scale.
 - The rail utility cluster (language, search, contacts CTA, theme) sits directly under the brand, above the primary links — the search dropdown opens downward from its toggle, so it needs the headroom the rail's bottom edge could not give it.
 - The search dropdown anchors to the left edge of its toggle and opens rightward; on the rail it overhangs into the content column, and the rail stops clipping only while the panel is open. Inside the mobile drawer the panel fits the drawer width instead of overhanging a box that would cut it.
 - The rail is opaque with a single inline-end hairline. Blur belongs to the mobile bar, which does have content scrolling under it.
