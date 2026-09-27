@@ -139,6 +139,13 @@ const STEPS: Step[] = [
   .proof {
     margin: var(--space-16) 0;
   }
+  /* Right inset for the whole band: neither the text column nor the chart runs
+     flush to the content edge. `#proof`, not `.proof`: global.css:1367 zeroes
+     the inline padding on `#proof`, and the id outranks a class — the scoped id
+     selector (`#proof[data-astro-cid-*]`) wins back. */
+  #proof {
+    padding-inline-end: var(--space-6);
+  }
   .proof-head h2 {
     font-size: 2rem;
     font-weight: 700;
@@ -148,6 +155,7 @@ const STEPS: Step[] = [
   .proof-lead {
     color: var(--text-muted);
     max-width: 60ch;
+    line-height: 1.5;
     margin-bottom: var(--space-10);
   }
 
@@ -195,7 +203,7 @@ const STEPS: Step[] = [
     grid-column: 2;
     margin: 0;
     font-size: 0.92rem;
-    line-height: 1.6;
+    line-height: 1.5;
     color: var(--text-muted);
     max-width: 52ch;
   }
