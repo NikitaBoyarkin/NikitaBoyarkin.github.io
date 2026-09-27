@@ -160,6 +160,12 @@
   --rail-gap: var(--space-6);
   --rail-total: calc(var(--rail-w) + var(--rail-gap));
 
+  /* Height of the sticky mobile/tablet bar (`.nav-mobile`, <1100px). The projects
+     filter bar pins directly below it, and a hand-picked offset there drifted
+     from the bar it was meant to sit under — this is the single source for both
+     the bar's own min-height and the filter's sticky offset. */
+  --nav-mobile-h: 65px;
+
   /* Z-index scale — fixed tokens, no bare layer numbers */
   --z-decor: -1;
   --z-base: 0;
@@ -432,6 +438,7 @@ body.nav-open .nav-scrim {
   gap: var(--space-4);
   position: sticky;
   top: 0;
+  min-height: var(--nav-mobile-h);
   z-index: var(--z-dialog);
   margin-block: calc(-1 * var(--page-pad)) var(--space-4);
   margin-inline: calc(-1 * var(--page-pad));
@@ -3199,16 +3206,29 @@ button:focus-visible {
   }
 }
 
-/* Sticky filter bar on desktop, tucked under the sticky site nav. Opaque on
-   purpose — a translucent bar let card text ghost through while scrolling. */
+/* Sticky filter bar on desktop. The offset has to equal the height of whatever
+   sticky chrome sits above it, or a band of cards shows through the gap. At
+   ≥1100px that is nothing — the site nav is a fixed LEFT rail, so the bar pins
+   flush to the viewport; the old 4.5rem was measured against a top bar that
+   does not exist there and left a 72px slit of scrolling cards above the filter.
+   Opaque on purpose — a translucent bar let card text ghost through. */
 @media (min-width: 1024px) {
   .project-filter-bar {
     position: sticky;
-    top: var(--project-filter-top, 4.5rem);
+    top: 0;
     z-index: var(--z-float);
     padding: var(--space-3) 0;
     background: var(--background-primary);
     border-bottom: 1px solid color-mix(in srgb, var(--border-color) 45%, transparent);
+  }
+}
+
+/* 1024–1099px is the one range where a top bar does exist: the rail has not
+   kicked in yet and `.nav-mobile` is showing. Tuck the filter bar directly
+   under it, from the same variable that sets that bar's height. */
+@media (min-width: 1024px) and (max-width: 1099px) {
+  .project-filter-bar {
+    top: var(--nav-mobile-h);
   }
 }
 

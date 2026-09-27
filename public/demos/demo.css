@@ -427,6 +427,36 @@ body::before {
   font-size: 13px;
 }
 
+/* Back-to-portfolio link, on standalone demo visits only. demo-theme.js owns
+   when it exists (it is skipped inside an article's iframe, where a "leave this
+   page" link would navigate the frame out from under the reader); this owns how
+   it looks. Styled from the action accent, not the --dv-* bucket: it is a link,
+   not a chart mark, so it never competes with the data colours. */
+.demo-back {
+  display: inline-block;
+  margin: 0 0 var(--space-4);
+  padding: var(--space-1) var(--space-3);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-accent);
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+}
+
+.demo-back:hover {
+  color: var(--text-accent-hover);
+  border-color: var(--border-active);
+}
+
+/* Same focus ring as the site's own links (global.css `a:focus-visible`). */
+.demo-back:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 2px;
+}
+
 /* A panel of content. Lifts on hover the way DESIGN.md prescribes for
    interactive surfaces: translateY PLUS a shadow from --shadow-color, never
    scale or opacity. */

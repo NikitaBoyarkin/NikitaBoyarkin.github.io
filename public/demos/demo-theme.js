@@ -125,3 +125,53 @@
     return current;
   };
 })();
+
+/* Back-to-portfolio link for standalone demo visits.
+ *
+ * The same file serves two opposite situations: a demo embedded as a same-origin
+ * iframe inside article prose, and a demo opened as its own page. Embedded, a
+ * "leave this page" affordance is wrong — the reader is mid-article, and the
+ * link would navigate the FRAME, replacing the demo with the portfolio inside a
+ * 540px box. So it is injected only when this document is the top-level one.
+ *
+ * Injected rather than written into five <body> tags so the standalone rule,
+ * the href and the label each have one definition — the same reason the palette
+ * lives in demo.css. `.demo-back` in demo.css owns the look.
+ */
+(function () {
+  'use strict';
+
+  // Identity comparison is safe even cross-origin; only property access on
+  // window.top would throw. The try/catch covers engines that disagree.
+  var standalone;
+  try {
+    standalone = window.self === window.top;
+  } catch (e) {
+    standalone = false;
+  }
+  if (!standalone) return;
+
+  function inject() {
+    // If a demo ever ships the link itself, that one wins — never add a second.
+    if (document.querySelector('.demo-back')) return;
+    var link = document.createElement('a');
+    link.className = 'demo-back';
+    // Root-absolute: every demo asset is referenced this way because the pages
+    // are served from /demos/<name>/ and sit next to the site root.
+    link.href = '/';
+    // Four demos declare lang="ru" and volta declares lang="en" — the label
+    // follows the document, not the filename or the article it is embedded in.
+    link.textContent =
+      (document.documentElement.lang || 'ru').indexOf('en') === 0
+        ? '← Back to portfolio'
+        : '← В портфолио';
+    document.body.insertBefore(link, document.body.firstChild);
+  }
+
+  // This file is loaded blocking in <head>, so the body does not exist yet.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inject);
+  } else {
+    inject();
+  }
+})();
