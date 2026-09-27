@@ -61,7 +61,7 @@ const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').r
 const pageHref = (n: number) => (n === 1 ? 'writing/' : `writing/${n}/`);
 const prevUrl = page > 1 ? `${siteUrl}${withBase(pageHref(page - 1))}` : undefined;
 const nextUrl = page < totalPages ? `${siteUrl}${withBase(pageHref(page + 1))}` : undefined;
-const canonical = page > 1 ? withBase('writing/') : undefined;
+const canonical = withBase(pageHref(page));
 ---
 
 <Base

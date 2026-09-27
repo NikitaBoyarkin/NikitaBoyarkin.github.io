@@ -10,6 +10,8 @@ preview:
 	bun run preview
 
 check:
+	bun run check
 	bun run test
+	bun run test:monitoring
 	bun run test:built
 	python3 scripts/check_site.py

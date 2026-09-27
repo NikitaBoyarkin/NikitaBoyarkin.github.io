@@ -21,7 +21,7 @@ const starSchema = z
 
 const projectSchema = z.object({
   title: z.string(),
-  description: z.string(),
+  description: z.string().min(120).max(200),
   hero: z.string(),
   impact: z.array(z.string()).default([]),
   star: starSchema,
@@ -40,7 +40,7 @@ const projectSchema = z.object({
 
 const voltaPartSchema = z.object({
   title: z.string(),
-  description: z.string(),
+  description: z.string().min(120).max(200),
   part: z.string(),
   order: z.number(),
   layer: z.enum(['core', 'extended', 'market-jobs', 'rat-v2', 'causal']),
@@ -56,7 +56,7 @@ const postSchema = z.object({
   title: z.string(),
   date: z.coerce.date(),
   updated: z.coerce.date().optional(),
-  category: z.string(),
+  category: z.enum(['decision-log', 'framework', 'guide', 'note']),
   tags: z.array(z.string()).default([]),
   excerpt: z.string(),
   image: z.string().optional(),

@@ -4,6 +4,6 @@
     "types": ["bun-types"],
     "lib": ["ESNext", "DOM", "DOM.Iterable"]
   },
-  "include": ["tests/**/*.ts"],
+  "include": ["tests/**/*.ts", "monitoring/exporter/tests/**/*.ts"],
   "exclude": ["dist"]
 }

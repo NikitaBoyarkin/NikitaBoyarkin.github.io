@@ -2,13 +2,13 @@
 import Base from '../layouts/Base.astro';
 import ContactForm from '../components/ContactForm.astro';
 import { withBase } from '../lib/path';
-import { CAL_BOOKING_URL } from '../lib/contact';
+import { CAL_BOOKING_URL, CONTACT_FORM_ENABLED } from '../lib/contact';
 
 // Telegram deep-link: pre-fills the message so the first contact carries context.
 const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent('Привет! Обсудим продуктовую аналитику / роли аналитика.')}`;
 ---
 
-<Base title="Контакты | Nikita Boyarkin" description="Связаться с Никитой Бояркиным — продуктовая аналитика, A/B-тестирование, сотрудничество." activeNav="contact" canonical={withBase('contact/')} lang="ru">
+<Base title="Контакты | Nikita Boyarkin" description="Связаться с Никитой Бояркиным — продуктовая аналитика, A/B-тестирование, сотрудничество." activeNav="contact" canonical={withBase('contact/')} lang="ru" counterpartHref={withBase('en/contact/')}>
   <section class="contact-section reveal">
     <h1 class="contact-title">Связаться</h1>
     <p class="contact-text">
@@ -16,12 +16,30 @@ const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent('Приве�
       Открыт к Data / Product Analyst ролям.
     </p>
 
-    <ContactForm locale="ru" />
+    {
+      CONTACT_FORM_ENABLED ? (
+        <>
+          <ContactForm locale="ru" />
 
-    <p class="contact-note">
-      Отправляя форму, вы соглашаетесь на обработку указанных данных для ответа на обращение.
-      Имя, контакт и текст сообщения хранятся в защищённой базе; IP не сохраняется.
-    </p>
+          <p class="contact-note">
+            Отправляя форму, вы соглашаетесь на обработку указанных данных для ответа на обращение.
+            Имя, контакт и текст сообщения хранятся в защищённой базе; IP не сохраняется.
+          </p>
+        </>
+      ) : (
+        <div class="board-card" style="max-width: 60ch;">
+          <p>
+            Форма на паузе, пока не подключён приём заявок — чтобы клик не уходил в пустоту,
+            напишите напрямую.
+          </p>
+          <p style="margin-top: var(--space-3);">
+            <a href="https://t.me/lofinibo" data-analytics="telegram_contact" target="_blank" rel="noopener noreferrer">Telegram: @lofinibo</a>
+            {' · '}
+            <a href={tgDeepLink} data-analytics="telegram_deeplink" target="_blank" rel="noopener noreferrer">Написать с контекстом →</a>
+          </p>
+        </div>
+      )
+    }
 
     <p style="margin-top: var(--space-6);">
       <a href={CAL_BOOKING_URL} class="button button-secondary" target="_blank" rel="noopener noreferrer" data-analytics="booking_click">Записаться на 30 минут</a>

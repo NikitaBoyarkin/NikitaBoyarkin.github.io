@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import ContactForm from '../../components/ContactForm.astro';
 import { withBase } from '../../lib/path';
-import { CAL_BOOKING_URL } from '../../lib/contact';
+import { CAL_BOOKING_URL, CONTACT_FORM_ENABLED } from '../../lib/contact';
 
 // Telegram deep-link: pre-fills the message so the first contact carries context.
 const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent("Hi! Let's discuss product analytics / analyst roles.")}`;
@@ -16,12 +16,30 @@ const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent("Hi! Let's d
       Open to Data / Product Analyst roles.
     </p>
 
-    <ContactForm locale="en" />
+    {
+      CONTACT_FORM_ENABLED ? (
+        <>
+          <ContactForm locale="en" />
 
-    <p class="contact-note">
-      By submitting the form you agree to the processing of the data above so I can reply.
-      Name, contact and message are stored in a secured database; IP is not kept.
-    </p>
+          <p class="contact-note">
+            By submitting the form you agree to the processing of the data above so I can reply.
+            Name, contact and message are stored in a secured database; IP is not kept.
+          </p>
+        </>
+      ) : (
+        <div class="board-card" style="max-width: 60ch;">
+          <p>
+            The form is paused until submission intake is wired up — so a click does not vanish
+            into nothing, message me directly.
+          </p>
+          <p style="margin-top: var(--space-3);">
+            <a href="https://t.me/lofinibo" data-analytics="telegram_contact" target="_blank" rel="noopener noreferrer">Telegram: @lofinibo</a>
+            {' · '}
+            <a href={tgDeepLink} data-analytics="telegram_deeplink" target="_blank" rel="noopener noreferrer">Send with context →</a>
+          </p>
+        </div>
+      )
+    }
 
     <p style="margin-top: var(--space-6);">
       <a href={CAL_BOOKING_URL} class="button button-secondary" target="_blank" rel="noopener noreferrer" data-analytics="booking_click">Book 30 minutes</a>

@@ -16,6 +16,14 @@ export const CONTACT_ENDPOINT =
 export const CAL_BOOKING_URL = 'https://cal.com/lofinibo/30min';
 
 /**
+ * The form is inert until the placeholder above is replaced: every submission
+ * would fail at the network layer with no visible cause, and the visitor would
+ * meet a dead button rather than an error. The contact pages read this to swap
+ * the form for the channels that already work.
+ */
+export const CONTACT_FORM_ENABLED = !CONTACT_ENDPOINT.includes('PROJECT_REF');
+
+/**
  * Off-screen field name that only a bot fills. Shared so the markup, the
  * honeypot rule and the Edge Function cannot drift apart on the spelling.
  */

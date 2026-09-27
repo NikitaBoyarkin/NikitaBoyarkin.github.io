@@ -198,9 +198,10 @@ All project and post copy follows a shared spec — see `docs/prd-readability.md
 
 **Bound to a mechanism.** `tests/lib/content-skeleton.test.ts` fails when a file's H2 sequence leaves the skeleton, when a required section is missing, when RU and EN slugs diverge, or when `## Задача` / `## Task` contains a digit. The proportions above and «Action is the longest section» are **intended, not enforced** — nothing measures section length.
 
-**Project `description:` spec** — the field feeds the card, meta/OG/Twitter, JSON-LD and `MaterialStrip` (which truncates at 72 chars):
+**Project `description:` spec** — the field feeds the card, meta/OG/Twitter, JSON-LD and the compressed "More projects" list on the homepage:
 
-- 1–2 sentences, result + number first, 120–200 characters; the first 72 characters must stand alone.
+- 1–2 sentences, result + number first, 120–200 characters. **Bound to a mechanism:** `.min(120).max(200)` on `description` in `src/content.config.ts` (projects, projects-en, volta-parts, volta-parts-en), so `bun run build` fails outside the range.
+- The only consumer that truncates a description is `HeadlineCases.astro:52` — `description.length > 120 ? description.slice(0, 117).trimEnd() + '…' : description`. That 117-character cut lands mid-word, so the truncated line is not guaranteed to read cleanly on its own; write it so the opening 117 characters carry the sense.
 - RU files: Russian (Cyrillic); EN files: English. Author each language independently — meaning parity, not a literal translation.
 - Keep hiring keywords (`A/B-тест`, `retention`, `SQL`, `Python`, `LTV`); gloss or move exotics (`CUPED`, `mSPRT`, `AUUC`) into the body.
 

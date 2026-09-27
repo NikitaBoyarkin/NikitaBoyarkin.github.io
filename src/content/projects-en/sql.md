@@ -1,6 +1,6 @@
 ---
 title: SQL Analytics Case Study
-description: "26 SQL cases: 25 on a ~183k-event synthetic dataset + 1 real-data case on UCI Online Retail II. Funnel, retention, LTV, attribution, anomalies, plus a dbt layer. Runs on DuckDB with one command; live report on GitHub Pages."
+description: "26 SQL cases: 25 on a synthetic ~183k-event dataset + 1 real-data case on UCI Online Retail II. Funnel, retention, LTV, attribution, anomalies, dbt layer on DuckDB, live report on GitHub Pages."
 star:
   situation: "No production data, and textbook exercises do not show systems thinking: 25 cases on a synthetic dataset"
   task: "Build cases where every query answers a product question and reproduces with one command"

@@ -1,6 +1,6 @@
 ---
 title: SQL Analytics Case Study
-description: "26 SQL-кейсов: 25 на синтетическом датасете (~183k событий) + 1 real-data на UCI Online Retail II. Воронка, retention, LTV, атрибуция, аномалии, dbt-слой. Запуск на DuckDB одной командой, живой отчёт на GitHub Pages."
+description: "26 SQL-кейсов: 25 на синтетике (~183k событий) + 1 real-data на UCI Online Retail II. Воронка, retention, LTV, атрибуция, аномалии, dbt-слой на DuckDB, живой отчёт на GitHub Pages."
 star:
   situation: "Нет продакшен-данных, а учебные задачи не показывают системное мышление: 25 кейсов на синтетическом датасете"
   task: "Собрать кейсы, где каждый запрос отвечает на продуктовый вопрос и воспроизводится одной командой"

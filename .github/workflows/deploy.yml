@@ -60,6 +60,7 @@ jobs:
         env:
           PUBLIC_POSTHOG_KEY: ${{ secrets.PUBLIC_POSTHOG_KEY }}
           PUBLIC_POSTHOG_HOST: ${{ secrets.PUBLIC_POSTHOG_HOST }}
+          PUBLIC_BEACON_ENDPOINT: ${{ secrets.PUBLIC_BEACON_ENDPOINT }}
         run: bun run build
 
       - name: Validate built site

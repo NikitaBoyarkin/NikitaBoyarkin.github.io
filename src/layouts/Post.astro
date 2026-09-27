@@ -65,6 +65,7 @@ const articleJsonLdGraph = { '@context': 'https://schema.org', '@graph': [articl
   description={excerpt}
   keywords={keywords}
   ogImage={image}
+  ogImageAlt={excerpt ? `${title} — ${excerpt}` : title}
   ogType="article"
   activeNav="writing"
   canonical={withBase(`${langPrefix}posts/${slug}/`)}

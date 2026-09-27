@@ -48,8 +48,16 @@ const i18n = {
 
 const demoHref = (d: string) => (d.startsWith('http') ? d : withBase(d));
 const projectHref = (slug: string) => withBase(`${linkPrefix}projects/${slug}/`);
-const shortLine = (p: (typeof projects)[number]) =>
-  p.data.description.length > 120 ? `${p.data.description.slice(0, 117).trimEnd()}…` : p.data.description;
+// Cut on a word boundary: a hard `slice` at 117 lands mid-word for 28 of the 80
+// descriptions ("Streaml…it dashboard", "≥8…0% pytest"), which reads as a bug
+// rather than as a deliberate teaser.
+const shortLine = (p: (typeof projects)[number]) => {
+  const text = p.data.description;
+  if (text.length <= 120) return text;
+  const cut = text.slice(0, 117);
+  const lastSpace = cut.lastIndexOf(' ');
+  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+};
 ---
 
 <section id="cases" class="cases reveal" aria-labelledby="cases-heading">
