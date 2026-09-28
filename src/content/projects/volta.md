@@ -25,7 +25,7 @@ tools:
   - Matplotlib / Seaborn
   - uv + ruff
 github: https://github.com/NikitaBoyarkin/volta-banking
-updated: 2026-09-27
+updated: 2026-09-22
 date: 2026-08-11
 faq:
   - question: "Что добавляет слой RAT v2?"

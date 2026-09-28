@@ -24,7 +24,7 @@ tools:
   - Matplotlib / Seaborn
   - uv + ruff
 github: https://github.com/NikitaBoyarkin/volta-banking
-updated: 2026-09-20
+updated: 2026-09-22
 demo: demos/volta/index.html
 date: 2026-08-11
 faq:
