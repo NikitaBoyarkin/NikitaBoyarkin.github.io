@@ -1,8 +1,9 @@
 #!/usr/bin/env bun
 /**
- * Sync contact-form submissions from Supabase into docs/contact-log.md.
+ * Sync contact-form submissions from Supabase into the private contact log
+ * (portfolio-contact-backend/docs/contact-log.md).
  *
- * The log is the source of truth for *outcome* stages (docs/contact-log.md
+ * The log is the source of truth for *outcome* stages (contact-log.md
  * rules 1–4); PostHog only ever sees a click. This closes the loop in one
  * direction: one `contact` row per inbound form submission, nothing else.
  *
@@ -22,7 +23,11 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const LOG_PATH = 'docs/contact-log.md';
+// CI points this at the private backend repo's checkout (see
+// .github/workflows/sync-contacts.yml), so form PII (name, contact handle,
+// message excerpt) is committed there and never reaches this public repo.
+// The default assumes the sibling local clone, keeping local runs working.
+const LOG_PATH = process.env.CONTACT_LOG_PATH || '../portfolio-contact-backend/docs/contact-log.md';
 const TABLE_HEADER = '| date | source | company | segment | stage | evidence | next action |';
 const PLACEHOLDER = '_no rows yet — awaiting first inbound contact_';
 

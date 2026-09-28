@@ -48,7 +48,8 @@
                                 ▼
                   scripts/sync-contact-log.mjs --apply   (append-only)
                                 ▼
-                        docs/contact-log.md
+        portfolio-contact-backend/docs/contact-log.md
+        (приватный репо — PII не попадает в публичный)
 ```
 
 **Ключевые решения и почему:**
@@ -95,7 +96,7 @@
 | `src/lib/analytics.ts` | +`contact_submit`, `contact_form_error`, `booking_click` |
 | `docs/analytics-events.md`, `docs/cta-inventory.md` | события и CTA |
 | `scripts/sync-contact-log.mjs` | append-only синк: `--dry-run` по умолчанию, `--apply` для записи |
-| `.github/workflows/sync-contacts.yml` | cron 04:23 UTC + `workflow_dispatch`, `contents: write`, самовзводится при появлении секрета |
+| `.github/workflows/sync-contacts.yml` | cron 04:23 UTC + `workflow_dispatch`, `contents: write`, самовзводится при появлении секрета; лог пишется в checkout приватного `portfolio-contact-backend` (`CONTACT_LOG_PATH` + `CONTACT_LOG_TOKEN`) |
 | `tests/lib/contact.test.ts`, `tests/lib/sync-contact-log.test.ts`, `tests/built/contact.test.ts` | 9 + 12 + 10 тестов |
 | `package.json`, `.env.example` | `sync:contacts(:apply)`, `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` |
 
@@ -126,6 +127,9 @@
       supabase functions deploy contact
       ```
 - [ ] **5. GitHub-секреты** `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` — включает cron синка.
+      Плюс `CONTACT_LOG_TOKEN` — fine-grained PAT с `contents: write` на
+      `portfolio-contact-backend`: лог с PII коммитится в приватный репо
+      (`sync-contacts.yml` → checkout `contact-backend/` → `CONTACT_LOG_PATH`).
 - [ ] **6. PostHog:** в фаннеле `zlXsA98W` шаг 3 заменить click-out на `contact_submit` OR `booking_click`.
 
 ## 7. Приёмка
@@ -136,7 +140,7 @@
 2. Строка в Supabase Table Editor.
 3. Пинг в Telegram.
 4. `contact_submit` виден в PostHog Activity.
-5. `bun run sync:contacts:apply` добавляет ровно одну строку в `docs/contact-log.md`.
+5. `bun run sync:contacts:apply` добавляет ровно одну строку в `portfolio-contact-backend/docs/contact-log.md`.
 
 Плюс негативные: пустое `message` → 400; заполненный honeypot → тихий 200 без строки;
 4-я отправка за 10 минут с того же `ip_hash` → 429.
