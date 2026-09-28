@@ -66,10 +66,24 @@
         });
       });
     });
+    // In-game events use short GAME keys ("abtest", "funnel", …) while card
+    // hrefs carry file names ("ab-test.svg", …). Map href → GAME key so hub
+    // and in-game events join on the same `game` value (7/10 names differ).
+    // Mirrors the `GAMES` array in the daily-game script below — keep in sync.
+    var GAME_KEYS = {
+      "ab-test": "abtest",
+      "funnel-drop": "funnel",
+      "cohort-catch": "cohort",
+      "sql-query": "sql",
+      "metric-match": "metric",
+      "retention-day": "retention",
+      "funnel-bottleneck": "bottleneck",
+    };
     document.querySelectorAll(".card").forEach(function (c) {
       c.addEventListener("click", function () {
+        var href = c.getAttribute("href").replace(".svg", "");
         ph("game_selected", {
-          game: c.getAttribute("href").replace(".svg", ""),
+          game: GAME_KEYS[href] || href,
           from_hub: true,
         });
       });

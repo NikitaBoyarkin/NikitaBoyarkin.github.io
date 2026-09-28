@@ -156,7 +156,17 @@ const X_D = "M6 6l12 12M6 18L18 6";
 
     // Make the page behind the panel inert while it's open (aria-modal
     // contract): every branch of the DOM except the widget itself.
+    let inertedEls: HTMLElement[] = [];
     function setBackgroundInert(inert: boolean) {
+      if (!inert) {
+        // Restore only the elements this panel inerted. A blanket
+        // `inert = false` over body children would also clear the off-canvas
+        // nav drawer that Base.astro inerted — nothing re-runs syncInert
+        // afterwards, so the drawer would stay tabbable for the session.
+        for (const el of inertedEls) el.inert = false;
+        inertedEls = [];
+        return;
+      }
       const chain: HTMLElement[] = [];
       let node: HTMLElement | null = root;
       while (node && node.parentElement && node.parentElement !== document.body) {
@@ -164,15 +174,21 @@ const X_D = "M6 6l12 12M6 18L18 6";
         node = node.parentElement;
       }
       const top = node ?? root!; // direct child of <body> (or the widget itself)
+      const mark = (el: HTMLElement) => {
+        if (!el.inert) {
+          el.inert = true;
+          inertedEls.push(el);
+        }
+      };
       for (const child of Array.from(document.body.children)) {
-        if (child !== top) (child as HTMLElement).inert = inert;
+        if (child !== top) mark(child as HTMLElement);
       }
       const chainSet = new Set(chain);
       const apply = (el: HTMLElement) => {
         for (const child of Array.from(el.children)) {
           if (child === root) continue;
           if (chainSet.has(child as HTMLElement)) apply(child as HTMLElement);
-          else (child as HTMLElement).inert = inert;
+          else mark(child as HTMLElement);
         }
       };
       if (top !== root) apply(top);
@@ -265,13 +281,16 @@ const X_D = "M6 6l12 12M6 18L18 6";
     }
 
     function ask(question: string) {
+      // Cap free text at 100 chars (same policy as `search_used`): the raw
+      // question may contain names/emails that must not ride into PostHog.
+      const q = question.slice(0, 100);
       const pair = bestMatch(question);
       if (pair) {
         renderAnswer(pair);
-        track("ask_me_used", { question, answer_matched: true, locale });
+        track("ask_me_used", { question: q, answer_matched: true, locale });
       } else {
         renderFallback();
-        track("ask_me_used", { question, answer_matched: false, locale });
+        track("ask_me_used", { question: q, answer_matched: false, locale });
       }
       lastQuestion = question;
     }

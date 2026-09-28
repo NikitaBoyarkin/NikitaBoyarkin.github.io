@@ -187,10 +187,10 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
 
     {
       jsonLd && (
-        <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+        <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')} />
       )
     }
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(websiteLd).replace(/</g, '\\u003c')} />
 
     <script is:inline>
       // Prevent theme flash: apply saved or preferred theme before first paint.

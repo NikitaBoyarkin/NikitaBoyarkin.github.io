@@ -155,8 +155,16 @@ const X_D = "M6 6l12 12M6 18L18 6";
 
     async function getIndex() {
       if (!index) {
-        const res = await fetch(indexUrl);
-        index = (await res.json()) as Entry[];
+        try {
+          const res = await fetch(indexUrl);
+          // A 404 (or an HTML error page) must not throw into a floating
+          // promise and re-fetch on every keystroke — fall through to an
+          // empty index so the panel renders "no results", not nothing.
+          if (!res.ok) throw new Error(`search index ${res.status}`);
+          index = (await res.json()) as Entry[];
+        } catch {
+          index = [];
+        }
       }
       return index;
     }

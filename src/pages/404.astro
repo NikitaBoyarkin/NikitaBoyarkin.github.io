@@ -54,7 +54,7 @@ const index = [...projects, ...posts];
     </p>
   </section>
 
-  <script is:inline set:html={`const INDEX=${JSON.stringify(index)};
+  <script is:inline set:html={`const INDEX=${JSON.stringify(index).replace(/</g, '\\u003c')};
 (function(){
   var input=document.getElementById('search404');
   var out=document.getElementById('search-results-404');
@@ -62,7 +62,7 @@ const index = [...projects, ...posts];
   function render(q){
     var ql=q.trim().toLowerCase();
     var hits=ql?INDEX.filter(function(i){return i.title.toLowerCase().indexOf(ql)>=0;}).slice(0,8):INDEX.slice(0,6);
-    out.innerHTML=hits.length?hits.map(function(i){return '<li style="padding:0.5rem 0; border-bottom:1px solid var(--border-color);"><a href="'+i.href+'" style="color:var(--text-normal);font-weight:500;">'+esc(i.title)+' <span style="color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.05em;">'+i.kind+'</span></a></li>';}).join(''):'<li style="color:var(--text-muted);padding:0.5rem 0;">Ничего не найдено</li>';
+    out.innerHTML=hits.length?hits.map(function(i){return '<li style="padding:0.5rem 0; border-bottom:1px solid var(--border-color);"><a href="'+esc(i.href)+'" style="color:var(--text-normal);font-weight:500;">'+esc(i.title)+' <span style="color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.05em;">'+esc(i.kind)+'</span></a></li>';}).join(''):'<li style="color:var(--text-muted);padding:0.5rem 0;">Ничего не найдено</li>';
   }
   input.addEventListener('input',function(){render(input.value);});
   render('');

@@ -87,7 +87,13 @@ const projectJsonLd = {
   ...(publishedDate ? { datePublished: publishedDate.toISOString() } : {}),
   ...(modifiedDate ? { dateModified: modifiedDate.toISOString() } : {}),
   author: { '@type': 'Person', name: 'Nikita Boyarkin', url: `${siteUrl}${withBase('/')}` },
-  publisher: { '@type': 'Person', name: 'Nikita Boyarkin' },
+  // Organization + logo, not Person: Google's Article rich-result eligibility
+  // requires an Organization publisher carrying a logo.
+  publisher: {
+    '@type': 'Organization',
+    name: 'Nikita Boyarkin',
+    logo: { '@type': 'ImageObject', url: `${siteUrl}${withBase('favicon.svg')}` },
+  },
   mainEntityOfPage: pageUrl,
   url: pageUrl,
   keywords: project.data.tools?.join(', '),

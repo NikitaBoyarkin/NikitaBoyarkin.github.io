@@ -47,6 +47,11 @@ const fmt = (v: number, d: number) => (d > 0 ? v.toFixed(d) : String(Math.round(
       </div>
     ))
   }
+  <p class="hero-metrics-note">
+    {isEn
+      ? "Business figures: portfolio case Volta (synthetic data) — not employment results."
+      : "Бизнес-цифры — кейс портфолио Volta (синтетические данные), не результаты найма."}
+  </p>
 </div>
 
 <script>
@@ -140,6 +145,14 @@ const fmt = (v: number, d: number) => (d > 0 ? v.toFixed(d) : String(Math.round(
     color: var(--text-muted);
     max-width: 12ch;
     line-height: 1.35;
+  }
+  /* Honesty caveat: the KYC/euro figures come from a synthetic-data case
+     study, and a recruiter must be able to see that without scrolling. */
+  .hero-metrics-note {
+    margin-top: var(--space-2);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    opacity: 0.85;
   }
 
   @media (max-width: 640px) {

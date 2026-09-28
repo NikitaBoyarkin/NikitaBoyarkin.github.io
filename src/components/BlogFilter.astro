@@ -140,12 +140,12 @@ const hiddenTags = tags.filter((t) => t.count < 2);
     // Mirrors BlogCard.astro markup so the client-rendered filtered list looks
     // identical to the static paginated one.
     function cardHtml(p: Post): string {
-      return `<article class="blog-card" data-category="${p.category}">
-        ${p.image ? `<picture><source type="image/webp" srcset="${webpOf(p.image)}" /><img class="blog-card-image" src="${p.image}" alt="" width="600" height="200" loading="lazy" /></picture>` : ''}
+      return `<article class="blog-card" data-category="${escapeHtml(p.category)}">
+        ${p.image ? `<picture><source type="image/webp" srcset="${escapeHtml(webpOf(p.image))}" /><img class="blog-card-image" src="${escapeHtml(p.image)}" alt="" width="600" height="200" loading="lazy" /></picture>` : ''}
         <div class="blog-card-body">
-          <button class="blog-card-tag" type="button" data-card-category="${p.category}">${p.categoryLabel}</button>
-          <a class="blog-card-link blog-card-title" href="${p.href}">${escapeHtml(p.title)}</a>
-          <div class="blog-card-meta">${p.dateLabel}${p.readTimeLabel}</div>
+          <button class="blog-card-tag" type="button" data-card-category="${escapeHtml(p.category)}">${escapeHtml(p.categoryLabel)}</button>
+          <a class="blog-card-link blog-card-title" href="${escapeHtml(p.href)}">${escapeHtml(p.title)}</a>
+          <div class="blog-card-meta">${escapeHtml(p.dateLabel)}${escapeHtml(p.readTimeLabel)}</div>
           <div class="blog-card-excerpt">${escapeHtml(p.excerpt)}</div>
         </div>
       </article>`;

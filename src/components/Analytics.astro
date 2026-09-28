@@ -33,6 +33,26 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
     if (!IS_LOCAL) {
       let started = false;
 
+      // The delegated click listener only exists after the lazy imports below
+      // resolve. Buffer click events from the very first interaction (the one
+      // that triggered init, plus anything during the import window) and
+      // replay them once the listener is wired, so the session's first CTA
+      // click is not silently lost.
+      const pendingClicks: Event[] = [];
+      const bufferClick = (e: Event) => {
+        if (pendingClicks.length < 100) pendingClicks.push(e);
+      };
+      document.addEventListener('click', bufferClick, { capture: true });
+      const stopBuffering = () =>
+        document.removeEventListener('click', bufferClick, { capture: true });
+      // Chunk load blocked (ad-blocker, CSP): stop buffering and drop the
+      // buffered events — their `target` DOM refs would otherwise stay
+      // alive for the rest of the page.
+      const failInit = () => {
+        stopBuffering();
+        pendingClicks.length = 0;
+      };
+
       const TRIGGERS = ['pointerdown', 'keydown', 'scroll', 'touchstart'] as const;
 
       function teardownTriggers() {
@@ -42,7 +62,9 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
       }
 
       function onFirstInteraction() {
-        void start();
+        // If the lazy import fails, at least stop buffering clicks that
+        // nobody will ever replay.
+        void start().catch(failInit);
       }
 
       // Lazy entry point: fetch the SDK + canonical module on demand, init, then
@@ -97,11 +119,14 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
         const locale = localeFromPath(path);
 
         // Content page-view events (in addition to autocapture $pageview).
-        const projectMatch = path.match(/^\/(?:en\/)?projects\/([^/]+)\/?$/);
+        // Unanchored on purpose: `/projects/volta/<part>/` is still a view of
+        // the `volta` project — same notion of content page as `contentInfo`,
+        // which matches `/projects/<slug>/…`.
+        const projectMatch = path.match(/^\/(?:en\/)?projects\/([^/]+)/);
         if (projectMatch) {
           track('project_viewed', { slug: projectMatch[1], locale, surface: 'page' });
         }
-        const postMatch = path.match(/^\/(?:en\/)?posts\/([^/]+)\/?$/);
+        const postMatch = path.match(/^\/(?:en\/)?posts\/([^/]+)/);
         if (postMatch) {
           track('post_read', { slug: postMatch[1], locale });
         }
@@ -118,8 +143,18 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
                 document.documentElement.scrollHeight,
                 window.innerHeight,
               ) * 100;
+            // Some browsers land 1–2px short of the true bottom (elastic
+            // scroll, fractional DPR): credit depth 100 at ≤2px from the end.
+            const atBottom =
+              // scrollY > 0: a page only 1–2px taller than the viewport is
+              // "at bottom" before any scrolling — credit 100 only after a
+              // real scroll.
+              window.scrollY > 0 &&
+              window.scrollY + window.innerHeight >=
+              document.documentElement.scrollHeight - 2;
             for (const threshold of READ_DEPTH_THRESHOLDS) {
-              if (fired.has(threshold) || pct < threshold) continue;
+              if (fired.has(threshold)) continue;
+              if (pct < threshold && !(threshold === 100 && atBottom)) continue;
               fired.add(threshold);
               track('read_depth', {
                 content_type: info.content_type,
@@ -156,6 +191,20 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
             { threshold: 0.5 },
           );
           sections.forEach((el) => observer.observe(el));
+
+          // Lazy-init gap: sections scrolled past before the observer existed
+          // never cross the threshold while it is live — their
+          // isIntersecting stays false. Credit any section whose top has
+          // already passed mid-viewport (it was seen while the SDK loaded).
+          sections.forEach((el) => {
+            const section = el.dataset.analyticsSection;
+            if (!section || seen.has(section)) return;
+            if (el.getBoundingClientRect().top < window.innerHeight / 2) {
+              seen.add(section);
+              track('section_viewed', { section, path });
+              observer.unobserve(el);
+            }
+          });
         }
 
         function isExternal(href: string): boolean {
@@ -172,7 +221,7 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
         // - `[data-analytics-project]` → canonical `project_viewed {slug, surface}`
         // - `[data-analytics]`         → the element's frozen event name
         // - external `<a>`             → `outbound_click {domain, …}`
-        document.addEventListener('click', (e) => {
+        const handleClick = (e: Event) => {
           const target = e.target as Element | null;
           if (!target) return;
 
@@ -218,7 +267,18 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
               path,
             });
           }
-        });
+        };
+
+        document.addEventListener('click', handleClick);
+
+        // Replay clicks buffered while the SDK was still loading — the first
+        // interaction of the session included — then stop buffering. (A click
+        // that navigates away before init finishes is unrecoverable: the page
+        // unloads with the buffer.)
+        stopBuffering();
+        for (const e of pendingClicks.splice(0)) {
+          handleClick(e);
+        }
       }
 
       // First interaction wins; a passive visitor still initialises on idle (or
@@ -233,8 +293,8 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
         }
       ).requestIdleCallback;
 
-      if (idle) idle(() => void start());
-      else window.setTimeout(() => void start(), 3500);
+      if (idle) idle(() => void start().catch(failInit));
+      else window.setTimeout(() => void start().catch(failInit), 3500);
     }
   </script>
 )}

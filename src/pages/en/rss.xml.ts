@@ -14,7 +14,9 @@ export async function GET(context: APIContext) {
     title: "Nikita Boyarkin — Writing (EN)",
     description:
       "Articles on product analytics, A/B testing, and data science by Nikita Boyarkin.",
-    site: context.site ?? "https://nikitaboyarkin.github.io",
+    // Channel link must point at the EN root, not the RU root — feed readers
+    // otherwise aggregate EN items under the RU site URL.
+    site: new URL("en/", context.site ?? "https://nikitaboyarkin.github.io"),
     items: posts.map((post) => ({
       title: post.data.title,
       description: post.data.excerpt,

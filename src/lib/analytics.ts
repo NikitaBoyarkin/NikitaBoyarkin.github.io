@@ -158,6 +158,18 @@ function store(kind: 'session' | 'local'): Storage | null {
   }
 }
 
+const REFERRER_CLASSES: ReadonlySet<string> = new Set([
+  'linkedin',
+  'github',
+  'google',
+  'direct',
+  'other',
+]);
+
+function isReferrerClass(value: unknown): value is ReferrerClass {
+  return typeof value === 'string' && REFERRER_CLASSES.has(value);
+}
+
 function readFirstTouch(s: Storage | null): FirstTouch | null {
   if (!s) return null;
   try {
@@ -166,7 +178,13 @@ function readFirstTouch(s: Storage | null): FirstTouch | null {
     const parsed = JSON.parse(raw) as Partial<FirstTouch>;
     if (typeof parsed.landing_path !== 'string') return null;
     return {
-      referrer_class: classifyReferrer(parsed.referrer_class),
+      // The stored value is already a class name, not a hostname — running it
+      // through classifyReferrer again collapses every class except 'direct'
+      // to 'other' ('linkedin' does not contain 'linkedin.'), destroying
+      // first-touch attribution on every page load after the first.
+      referrer_class: isReferrerClass(parsed.referrer_class)
+        ? parsed.referrer_class
+        : 'other',
       landing_path: parsed.landing_path,
     };
   } catch {

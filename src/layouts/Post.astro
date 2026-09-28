@@ -45,7 +45,13 @@ const articleJsonLd = {
   articleSection: category,
   image: image ? `${siteUrl}${withBase(image)}` : undefined,
   author: { '@type': 'Person', name: 'Nikita Boyarkin', url: `${siteUrl}${withBase('/')}` },
-  publisher: { '@type': 'Person', name: 'Nikita Boyarkin' },
+  // Organization + logo, not Person: Google's Article rich-result eligibility
+  // requires an Organization publisher carrying a logo.
+  publisher: {
+    '@type': 'Organization',
+    name: 'Nikita Boyarkin',
+    logo: { '@type': 'ImageObject', url: `${siteUrl}${withBase('favicon.svg')}` },
+  },
   mainEntityOfPage: `${siteUrl}${withBase(`${langPrefix}posts/${slug}/`)}`,
 };
 const breadcrumbJsonLd = {

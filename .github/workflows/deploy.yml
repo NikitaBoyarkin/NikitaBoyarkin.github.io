@@ -25,19 +25,19 @@ jobs:
       SQL_CASES_DIR: ${{ github.workspace }}/vendor/sql-analytics-case-study/cases
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       # The site repo is checked out alone, so the drift guard cannot see the
       # sibling case-study repo it counts .sql files from. Fetch that public
       # repo into `vendor/` (kept out of git) instead of weakening the guard.
       - name: Checkout SQL case-study repo (drift-guard evidence)
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: NikitaBoyarkin/sql-analytics-case-study
           path: vendor/sql-analytics-case-study
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: latest
           cache: bun
@@ -56,6 +56,27 @@ jobs:
       - name: Unit tests
         run: bun run test
 
+      - name: Games hub PostHog key drift check
+        # public/games/* hardcode the capture token (static files cannot read
+        # env at runtime). Bind that literal to the secret the main site uses:
+        # if a key rotation misses the games hub, the build goes red instead of
+        # games silently landing in another PostHog project.
+        env:
+          PUBLIC_POSTHOG_KEY: ${{ secrets.PUBLIC_POSTHOG_KEY }}
+        run: |
+          if [ -z "$PUBLIC_POSTHOG_KEY" ]; then
+            echo "skip: PUBLIC_POSTHOG_KEY secret not available"
+            exit 0
+          fi
+          status=0
+          for f in $(grep -rlE 'phc_[A-Za-z0-9]{20,}' public/games/); do
+            if ! grep -q "$PUBLIC_POSTHOG_KEY" "$f"; then
+              echo "drift: $f hardcodes a capture key that differs from PUBLIC_POSTHOG_KEY"
+              status=1
+            fi
+          done
+          exit $status
+
       - name: Build site
         env:
           PUBLIC_POSTHOG_KEY: ${{ secrets.PUBLIC_POSTHOG_KEY }}
@@ -68,7 +89,7 @@ jobs:
 
       - name: Upload artifact
         if: github.event_name == 'push'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
         with:
           path: dist/
 
@@ -77,10 +98,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: latest
           cache: bun
@@ -96,7 +117,7 @@ jobs:
 
       - name: Upload Lighthouse reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: lighthouse-reports
           path: lhci-reports/
@@ -111,4 +132,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
