@@ -360,28 +360,18 @@ def list_dashboard_names(base: str, api_key: str) -> set[str] | None:
 def attach_tile(base: str, api_key: str, dashboard_id, insight_id) -> bool:
     """Attach an insight to a dashboard.
 
-    Primary: the nested tiles endpoint
-    POST /api/projects/{id}/dashboards/{dashboard_id}/tiles/ {"insight": id}.
-    Fallback: PATCH the dashboard with its current tiles plus the new one.
+    Verified against us.posthog.com (2026-09-28): the nested
+    POST /dashboards/{id}/tiles/ endpoint does NOT exist (404), and PATCHing the
+    dashboard's `tiles` list returns 200 while silently changing nothing. The
+    working route is PATCHing the *insight* with `dashboards: [dashboard_id]`.
     """
     result = api_request(
-        "POST",
-        f"{base}/dashboards/{dashboard_id}/tiles/",
+        "PATCH",
+        f"{base}/insights/{insight_id}/",
         api_key,
-        {"insight": insight_id},
+        {"dashboards": [dashboard_id]},
     )
-    if result is not None:
-        return True
-    # Fallback: read the dashboard, append the tile, PATCH it back.
-    dash = api_request("GET", f"{base}/dashboards/{dashboard_id}/", api_key)
-    if dash is None:
-        return False
-    tiles = list(dash.get("tiles") or [])
-    tiles.append({"insight": insight_id})
-    patched = api_request(
-        "PATCH", f"{base}/dashboards/{dashboard_id}/", api_key, {"tiles": tiles}
-    )
-    return patched is not None
+    return result is not None
 
 
 def apply_mode(base: str, api_key: str, dashboards: list[dict]) -> None:
