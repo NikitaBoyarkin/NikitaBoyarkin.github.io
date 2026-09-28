@@ -20,7 +20,7 @@ tools:
   - Astro
   - Playwright
 github: https://github.com/NikitaBoyarkin/browser-mini-games
-updated: 2026-09-04
+updated: 2026-09-27
 demo: games/
 related:
   - /projects/ab/
