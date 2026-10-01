@@ -418,3 +418,15 @@
     transition: none;
   }
 }
+
+/* KaTeX emits `.katex-html` as a block box, so a long inline formula can be broken
+   across lines mid-expression (`.katex-base` is nowrap, but not atomic). An
+   inline-block wrapper makes the whole formula one unbreakable box; a formula
+   wider than the column then scrolls instead of pushing the page sideways.
+   `:not(.katex-display)` keeps display math, which KaTeX already blocks, untouched. */
+.prose :not(.katex-display) > .katex {
+  display: inline-block;
+  max-width: 100%;
+  overflow-x: auto;
+  vertical-align: baseline;
+}

@@ -15,7 +15,7 @@ NPS (Net Promoter Score) is a loyalty index built on one question: "how likely a
 
 ## How to compute
 
-$\text{NPS} = \%\text{promoters} - \%\text{detractors}$; passives do not enter the formula but do enter the percentage base. Compute it per survey wave, always reporting the sample size and the response rate. Keep waves identical in wording and channel so they are comparable over time.
+$\text{NPS} = \text{share of promoters} - \text{share of detractors}$; passives do not enter the formula but do enter the percentage base. Compute it per survey wave, always reporting the sample size and the response rate. Keep waves identical in wording and channel so they are comparable over time.
 
 ## Pitfalls
 

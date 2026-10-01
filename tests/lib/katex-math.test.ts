@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { nextMathSpan, splitMathText } from "../../src/lib/katex-math.ts";
 
 describe("nextMathSpan", () => {
@@ -51,5 +53,21 @@ describe("splitMathText", () => {
   test("handles a formula that spans the whole node", () => {
     const parts = splitMathText("$n$");
     expect(parts!.map((p) => p.type)).toEqual(["html"]);
+  });
+});
+
+describe("glossary math source", () => {
+  // The plugin sees text *after* CommonMark escaping, and `%` is ASCII punctuation,
+  // so `\%` reaches KaTeX as a bare `%` — a LaTeX comment that silently swallows
+  // the rest of the formula (nps rendered as "NPS ="). Write the words instead.
+  test("no backslash-escaped percent in glossary notes", () => {
+    const offenders: string[] = [];
+    for (const dir of ["src/content/glossary", "src/content/glossary-en"]) {
+      for (const file of readdirSync(dir)) {
+        if (!file.endsWith(".md")) continue;
+        if (readFileSync(join(dir, file), "utf8").includes("\\%")) offenders.push(`${dir}/${file}`);
+      }
+    }
+    expect(offenders).toEqual([]);
   });
 });
