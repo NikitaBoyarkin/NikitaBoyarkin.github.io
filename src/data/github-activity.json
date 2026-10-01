@@ -1,13 +1,13 @@
 {
   "slug": "github",
-  "source": "GitHub API · updated 2026-09-30",
-  "updatedAt": "2026-09-30T09:59:40.438Z",
+  "source": "GitHub API · updated 2026-10-01",
+  "updatedAt": "2026-10-01T10:27:12.467Z",
   "stats": {
-    "contributions": 838,
+    "contributions": 839,
     "publicRepos": 21,
-    "followers": 392,
+    "followers": 395,
     "currentStreak": 0,
-    "longestStreak": 53,
+    "longestStreak": 54,
     "activeSince": 2019
   },
   "charts": [
@@ -32,7 +32,6 @@
       },
       "data": {
         "categories": [
-          "01.09",
           "02.09",
           "03.09",
           "04.09",
@@ -61,13 +60,13 @@
           "27.09",
           "28.09",
           "29.09",
-          "30.09"
+          "30.09",
+          "01.10"
         ],
         "series": [
           {
             "name": "Contributions",
             "values": [
-              11,
               22,
               13,
               11,
@@ -96,6 +95,7 @@
               25,
               18,
               2,
+              1,
               0
             ]
           }
@@ -104,8 +104,8 @@
       "labelEvery": 5,
       "conclusions": [
         {
-          "ru": "За последние 30 дней — 416 вкладов, в среднем 13.9 в день.",
-          "en": "Over the last 30 days: 416 contributions, averaging 13.9 per day."
+          "ru": "За последние 30 дней — 406 вкладов, в среднем 13.5 в день.",
+          "en": "Over the last 30 days: 406 contributions, averaging 13.5 per day."
         },
         {
           "ru": "Пик активности — 49 вкладов за один день.",
@@ -134,7 +134,6 @@
       },
       "data": {
         "categories": [
-          "Oct",
           "Nov",
           "Dec",
           "Jan",
@@ -145,13 +144,13 @@
           "Jun",
           "Jul",
           "Aug",
-          "Sep"
+          "Sep",
+          "Oct"
         ],
         "series": [
           {
             "name": "Contributions",
             "values": [
-              2,
               14,
               22,
               16,
@@ -162,19 +161,20 @@
               4,
               8,
               331,
-              416
+              417,
+              0
             ]
           }
         ]
       },
       "conclusions": [
         {
-          "ru": "За 12 месяцев — 838 вкладов.",
-          "en": "Over 12 months: 838 contributions."
+          "ru": "За 12 месяцев — 837 вкладов.",
+          "en": "Over 12 months: 837 contributions."
         },
         {
-          "ru": "Сильнейший месяц — Sep с 416 вкладами (49.6% годового объёма).",
-          "en": "The strongest month is Sep with 416 contributions (49.6% of the annual total)."
+          "ru": "Сильнейший месяц — Sep с 417 вкладами (49.8% годового объёма).",
+          "en": "The strongest month is Sep with 417 contributions (49.8% of the annual total)."
         }
       ]
     },
@@ -309,7 +309,7 @@
               74,
               149,
               80,
-              20
+              21
             ]
           }
         ]
@@ -356,7 +356,7 @@
           {
             "name": "Contributions",
             "values": [
-              827,
+              828,
               0,
               0,
               2
@@ -366,12 +366,12 @@
       },
       "conclusions": [
         {
-          "ru": "Всего 829 вкладов за год.",
-          "en": "829 contributions in total over the year."
+          "ru": "Всего 830 вкладов за год.",
+          "en": "830 contributions in total over the year."
         },
         {
-          "ru": "Основной тип — Commits (827, 99.8% вкладов).",
-          "en": "The dominant type is Commits (827, 99.8% of contributions)."
+          "ru": "Основной тип — Commits (828, 99.8% вкладов).",
+          "en": "The dominant type is Commits (828, 99.8% of contributions)."
         }
       ]
     },
