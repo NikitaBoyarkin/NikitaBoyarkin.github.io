@@ -6,6 +6,7 @@ import path from "node:path";
 import githubDark from "shiki/themes/github-dark.mjs";
 import { parse as parseYaml } from "yaml";
 import { glossaryLinker } from "./src/lib/glossary-linker.ts";
+import { katexMath } from "./src/lib/katex-math.ts";
 
 // github-dark paints comments `#6a737d` — 3.05:1 on the theme's own `#24292e`
 // code block, under WCAG AA; axe flags 5 color-contrast nodes on
@@ -91,7 +92,9 @@ export default defineConfig({
     // Sätteri runs the mdast pipeline; @astrojs/markdown-remark is not installed,
     // so `markdown.remarkPlugins` would throw. The glossary linker is a no-op on
     // every file outside `src/content/glossary{, -en}`.
-    processor: satteri({ mdastPlugins: [glossaryLinker()] }),
+    // Order matters: math runs first so a term name inside `\text{…}` never gets
+    // a markdown link injected into its LaTeX.
+    processor: satteri({ mdastPlugins: [katexMath(), glossaryLinker()] }),
   },
   // Keep the OneWorks 3D hero out of the default page load.
   //
