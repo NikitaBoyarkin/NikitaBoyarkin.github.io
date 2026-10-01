@@ -54,6 +54,11 @@ describe('parseRelatedPath', () => {
     expect(parseRelatedPath('/en/posts/x/')).toEqual({ type: 'post', slug: 'x' });
   });
 
+  it('parses glossary paths in both locales', () => {
+    expect(parseRelatedPath('/glossary/cuped/')).toEqual({ type: 'glossary', slug: 'cuped' });
+    expect(parseRelatedPath('/en/glossary/cuped/')).toEqual({ type: 'glossary', slug: 'cuped' });
+  });
+
   it('rejects external URLs and non-project/post paths', () => {
     expect(parseRelatedPath('https://github.com/foo/bar')).toBeNull();
     expect(parseRelatedPath('/topics/sql/')).toBeNull();

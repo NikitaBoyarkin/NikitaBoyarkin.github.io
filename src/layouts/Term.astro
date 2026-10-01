@@ -1,0 +1,183 @@
+---
+// Glossary term layout. Mirrors Post.astro (header / InlineTOC / prose body /
+// related / prev-next / back link / reading progress) but for a dictionary
+// entry: a category badge instead of a date-first meta line, an alias line, a
+// backlink section ("Mentioned in") and a slot for the per-term mini-graph.
+//
+// JSON-LD is a DefinedTerm (not BlogPosting) inside a @graph with a
+// BreadcrumbList (Home → Glossary → term).
+import Base from './Base.astro';
+import InnerTOC from '../components/InnerTOC.astro';
+import InlineTOC from '../components/InlineTOC.astro';
+import { formatDate, estimateReadTime } from '../lib/date';
+import { withBase } from '../lib/path';
+import { CATEGORY_LABELS, type GlossaryCategory, type RelatedTarget } from '../lib/glossary';
+
+interface Props {
+  title: string;
+  description: string;
+  slug: string;
+  category: GlossaryCategory;
+  aka?: string[];
+  updated?: Date;
+  related?: RelatedTarget[];
+  backlinks?: { title: string; href: string; kind: string }[];
+  keywords?: string[];
+  prev?: { href: string; title: string } | null;
+  next?: { href: string; title: string } | null;
+  lang?: 'ru' | 'en';
+  counterpartHref?: string;
+}
+
+const {
+  title,
+  description,
+  slug,
+  category,
+  aka = [],
+  updated,
+  related = [],
+  backlinks = [],
+  keywords = [],
+  prev = null,
+  next = null,
+  lang = 'ru',
+  counterpartHref,
+} = Astro.props;
+
+const isEn = lang === 'en';
+const rendered = await Astro.slots.render('default');
+const readTime = estimateReadTime(rendered.replace(/<[^>]*>/g, ' '));
+const categoryDisplay = CATEGORY_LABELS[category]?.[lang] ?? category;
+
+const minLabel = isEn ? 'min read' : 'мин чтения';
+const updatedLabel = isEn ? 'updated' : 'обновлено';
+const akaLabel = isEn ? 'Also' : 'Также';
+const backLabel = isEn ? '← All terms' : '← Все понятия';
+const relatedLabel = isEn ? 'Related terms' : 'Связанные понятия';
+const backlinksLabel = isEn ? 'Mentioned in' : 'Упоминается в';
+const prevLabel = isEn ? '← Previous' : '← Предыдущий';
+const nextLabel = isEn ? 'Next →' : 'Следующий →';
+
+const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
+const langPrefix = isEn ? 'en/' : '';
+const pagePath = `${langPrefix}glossary/${slug}/`;
+const pageUrl = `${siteUrl}${withBase(pagePath)}`;
+
+const termJsonLd = {
+  '@type': 'DefinedTerm',
+  name: title,
+  description,
+  inDefinedTermSet: `${siteUrl}${withBase(`${langPrefix}glossary/`)}`,
+  url: pageUrl,
+};
+const breadcrumbJsonLd = {
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}${withBase('/')}` },
+    { '@type': 'ListItem', position: 2, name: isEn ? 'Glossary' : 'Словарь', item: `${siteUrl}${withBase(`${langPrefix}glossary/`)}` },
+    { '@type': 'ListItem', position: 3, name: title, item: pageUrl },
+  ],
+};
+const pageJsonLd = { '@context': 'https://schema.org', '@graph': [termJsonLd, breadcrumbJsonLd] };
+---
+
+<Base
+  title={`${title} | Nikita Boyarkin`}
+  description={description}
+  keywords={keywords}
+  ogType="article"
+  ogImageAlt={description ? `${title} — ${description}` : title}
+  activeNav="glossary"
+  canonical={withBase(pagePath)}
+  lang={lang}
+  counterpartHref={counterpartHref}
+  jsonLd={pageJsonLd}
+>
+  <InnerTOC selector="#term-content" lang={lang} />
+
+  <div id="reading-progress" aria-hidden="true"></div>
+
+  <article class="post-content">
+    <header class="post-header reveal">
+      <span class="post-tag">{categoryDisplay}</span>
+      <h1 class="post-title">{title}</h1>
+      <div class="post-meta">
+        {updated ? `${updatedLabel} ${formatDate(updated)} · ` : ''}
+        {readTime} {minLabel} · Nikita Boyarkin
+      </div>
+      {aka.length > 0 && (
+        <div class="post-meta term-aka">{akaLabel}: {aka.join(', ')}</div>
+      )}
+    </header>
+
+    <InlineTOC lang={lang} html={rendered} />
+
+    <div class="post-body prose" id="term-content">
+      <slot />
+    </div>
+
+    {related.length > 0 && (
+      <section class="post-related reveal reveal-delay-2" aria-label={relatedLabel}>
+        <h2>{relatedLabel}</h2>
+        <ul>
+          {related.map((r) => (
+            <li>
+              <a href={r.href}>{r.title}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {backlinks.length > 0 && (
+      <section class="post-related reveal reveal-delay-2" aria-label={backlinksLabel}>
+        <h2>{backlinksLabel}</h2>
+        <ul>
+          {backlinks.map((b) => (
+            <li>
+              <a href={b.href}>{b.title}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <slot name="graph" />
+
+    {(prev || next) && (
+      <nav class="prev-next" aria-label={isEn ? 'Other terms' : 'Другие понятия'}>
+        {prev && (
+          <a class="pn-link pn-prev" href={prev.href}>
+            <span class="pn-dir">{prevLabel}</span>
+            <span class="pn-title">{prev.title}</span>
+          </a>
+        )}
+        {next && (
+          <a class="pn-link pn-next" href={next.href}>
+            <span class="pn-dir">{nextLabel}</span>
+            <span class="pn-title">{next.title}</span>
+          </a>
+        )}
+      </nav>
+    )}
+
+    <a href={withBase(`${langPrefix}glossary/`)} class="post-back">{backLabel}</a>
+  </article>
+
+  <script is:inline>
+    // Reading progress bar (decorative, aria-hidden). Same compositor-only
+    // `transform: scaleX()` approach as Post.astro.
+    (function () {
+      const bar = document.getElementById('reading-progress');
+      if (!bar) return;
+      const onScroll = () => {
+        const h = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.transform = h > 0 ? `scaleX(${window.scrollY / h})` : 'scaleX(0)';
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+      onScroll();
+    })();
+  </script>
+</Base>

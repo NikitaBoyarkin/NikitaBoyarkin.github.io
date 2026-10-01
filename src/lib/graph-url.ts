@@ -12,8 +12,8 @@ export interface GraphUrlState {
   /** Edge types hidden by the "Edges" filter (mode-independent). */
   hiddenEdges: string[];
   /** Quick-view preset: filter to a single node kind ('project' | 'post' |
-   *  'topic' | 'volta'), or null for everything. */
-  preset: 'project' | 'post' | 'topic' | 'volta' | null;
+   *  'topic' | 'volta' | 'glossary'), or null for everything. */
+  preset: 'project' | 'post' | 'topic' | 'volta' | 'glossary' | null;
 }
 
 const MODE_PARAM = 'mode';
@@ -63,7 +63,11 @@ export function decodeGraphState(search: string): GraphUrlState {
     .filter(Boolean);
   const presetRaw = p.get(PRESET_PARAM);
   const preset =
-    presetRaw === 'project' || presetRaw === 'post' || presetRaw === 'topic' || presetRaw === 'volta'
+    presetRaw === 'project' ||
+    presetRaw === 'post' ||
+    presetRaw === 'topic' ||
+    presetRaw === 'volta' ||
+    presetRaw === 'glossary'
       ? presetRaw
       : null;
   return { mode, hiddenGroups, hiddenCommunities, hiddenEdges, preset };

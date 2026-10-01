@@ -1,0 +1,134 @@
+---
+// Glossary index (RU). Terms grouped by category (fixed GLOSSARY_CATEGORIES
+// order), alphabetical within a category, with per-category counts. Every href
+// goes through `termHref` + `withBase` so it matches the [slug] route exactly.
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { withBase } from '../../lib/path';
+import {
+  CATEGORY_LABELS,
+  GLOSSARY_CATEGORIES,
+  termHref,
+} from '../../lib/glossary';
+
+const terms = await getCollection('glossary', (t) => !t.data.draft);
+const slugOf = (id: string) => id.replace(/\.md$/, '');
+
+const groups = GLOSSARY_CATEGORIES.map((category) => {
+  const items = terms
+    .filter((t) => t.data.category === category)
+    .map((t) => ({
+      slug: slugOf(t.id),
+      title: t.data.title,
+      description: t.data.description,
+    }))
+    .sort((a, b) => a.title.localeCompare(b.title, 'ru'));
+  return { category, label: CATEGORY_LABELS[category].ru, items };
+}).filter((g) => g.items.length > 0);
+
+const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
+const glossaryUrl = `${siteUrl}${withBase('glossary/')}`;
+const definedTermSetJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'DefinedTermSet',
+  name: 'Словарь терминов',
+  url: glossaryUrl,
+  hasDefinedTerm: [...terms]
+    .sort((a, b) => a.data.title.localeCompare(b.data.title, 'ru'))
+    .map((t) => ({
+      '@type': 'DefinedTerm',
+      name: t.data.title,
+      url: `${siteUrl}${withBase(termHref(slugOf(t.id), 'ru'))}`,
+    })),
+};
+---
+
+<Base
+  title="Словарь терминов | Nikita Boyarkin"
+  description="Словарь продуктовой аналитики: A/B-тестирование, статистика, продуктовые и бизнес-метрики — краткие определения со связями."
+  canonical={withBase('glossary/')}
+  activeNav="glossary"
+  lang="ru"
+  counterpartHref={withBase('en/glossary/')}
+  jsonLd={definedTermSetJsonLd}
+>
+  <section class="container reveal">
+    <h1 class="page-title">Словарь</h1>
+    <p style="color: var(--text-muted); margin-bottom: var(--space-8); max-width: 60ch;">
+      Краткие определения терминов продуктовой аналитики. Сгруппированы по темам;
+      счётчик — число понятий в разделе.
+    </p>
+    {
+      groups.map((g) => (
+        <div class="level-group">
+          <div class="level-heading">
+            <span class="level-name">{g.label}</span>
+            <span class="level-blurb">{g.items.length}</span>
+          </div>
+          <div class="term-grid">
+            {g.items.map((t) => (
+              <a class="term-card" href={withBase(termHref(t.slug, 'ru'))}>
+                <span class="term-card-inner">
+                  <span class="term-label">{t.title}</span>
+                  <span class="term-blurb">{t.description}</span>
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+  </section>
+</Base>
+
+<style>
+  .level-group {
+    margin-bottom: var(--space-8);
+  }
+  .level-heading {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+  .level-name {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-normal);
+  }
+  .level-blurb {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .term-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-3);
+  }
+  .term-card {
+    display: block;
+    padding: var(--space-4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--background-secondary);
+    text-decoration: none;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+  .term-card:hover {
+    border-color: var(--text-accent);
+    transform: translateY(-2px);
+  }
+  .term-card-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .term-label {
+    font-weight: 500;
+    color: var(--text-normal);
+  }
+  .term-blurb {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+</style>

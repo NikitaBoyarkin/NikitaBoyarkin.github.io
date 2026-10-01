@@ -1,9 +1,11 @@
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
+import { satteri } from "@astrojs/markdown-satteri";
 import fs from "node:fs";
 import path from "node:path";
 import githubDark from "shiki/themes/github-dark.mjs";
 import { parse as parseYaml } from "yaml";
+import { glossaryLinker } from "./src/lib/glossary-linker.ts";
 
 // github-dark paints comments `#6a737d` — 3.05:1 on the theme's own `#24292e`
 // code block, under WCAG AA; axe flags 5 color-contrast nodes on
@@ -42,10 +44,15 @@ const CONTENT_SOURCES = [
   ["src/content/posts-en", "en/posts"],
   ["src/content/projects", "projects"],
   ["src/content/projects-en", "en/projects"],
+  ["src/content/glossary", "glossary"],
+  ["src/content/glossary-en", "en/glossary"],
 ];
 
 const lastmodByPath = new Map();
 for (const [dir, prefix] of CONTENT_SOURCES) {
+  // Directories that don't exist yet (e.g. a not-yet-authored collection) must
+  // not crash config evaluation — skip rather than let readdirSync throw.
+  if (!fs.existsSync(dir)) continue;
   for (const file of fs.readdirSync(dir)) {
     if (!file.endsWith(".md") || file.startsWith("_")) continue;
     const frontmatter = fs.readFileSync(path.join(dir, file), "utf8").split("---")[1];
@@ -81,6 +88,10 @@ export default defineConfig({
   // derivation next to the import at the top of this file.
   markdown: {
     shikiConfig: { theme: shikiTheme },
+    // Sätteri runs the mdast pipeline; @astrojs/markdown-remark is not installed,
+    // so `markdown.remarkPlugins` would throw. The glossary linker is a no-op on
+    // every file outside `src/content/glossary{, -en}`.
+    processor: satteri({ mdastPlugins: [glossaryLinker()] }),
   },
   // Keep the OneWorks 3D hero out of the default page load.
   //

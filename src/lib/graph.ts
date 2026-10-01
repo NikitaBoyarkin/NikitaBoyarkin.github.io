@@ -1,7 +1,7 @@
 // Knowledge-graph builder for /graph.json and /graph-en.json.
-// Nodes = projects (group by track), posts (group by category), volta parts and
-// topics. Edges = related links, volta children, post↔topic (tag match),
-// project↔topic (signal match) and project↔project via shared topics.
+// Nodes = projects (group by track), posts (group by category), glossary terms,
+// volta parts and topics. Edges = related links, volta children, post/term↔topic
+// (tag match), project↔topic (signal match) and project↔project via shared topics.
 //
 // Every node carries a `url` (relative, locale-prefixed) so the client can
 // navigate from the graph. Every edge carries a `weight` (strength) and a
@@ -74,6 +74,10 @@ export const GRAPH_GROUP_COLORS: Record<string, string> = {
   // clearly against the track/category palette in both themes.
   projects: '#ff8c42',
   articles: '#4cc9f0',
+  // Glossary terms (and their hub). Magenta-pink — a hue none of the
+  // track/category colors use; ~3.3:1 on the light (#ffffff) background and
+  // ~4:1 on the dark teal (#1a3435) one, so term nodes read in both themes.
+  glossary: '#e0609b',
 };
 
 /** Obsidian-style visual tokens, shared by the full graph and the per-project
@@ -150,16 +154,50 @@ interface PartLike {
   data: { title: string };
 }
 
+/** Minimal shape of a glossary term entry (collection `glossary` /
+ *  `glossary-en`). Decoupled from astro:content so this module stays portable
+ *  and testable. */
+interface GlossaryLike {
+  id: string;
+  data: {
+    title: string;
+    category?: string;
+    tags?: string[];
+    related?: string[];
+    /** Optional URL override — mirrors PostLike.url, used when a locale falls
+     *  back to the other locale's term page. */
+    url?: string;
+  };
+}
+
 const slugOf = (id: string) => id.replace(/\.md$/, "");
 
+/** Map a parsed related-path to its graph node id. An explicit switch (not a
+ *  ternary) so a new kind can never silently collapse into a `post:` id. */
+export function relatedNodeId(parsed: {
+  type: "project" | "post" | "glossary";
+  slug: string;
+}): string {
+  switch (parsed.type) {
+    case "project":
+      return `p:${parsed.slug}`;
+    case "post":
+      return `post:${parsed.slug}`;
+    case "glossary":
+      return `g:${parsed.slug}`;
+  }
+}
+
 /** Parse a related-path entry into a typed internal target, or null if it is
- *  an external URL or not a project/post path. Handles both locales. */
+ *  an external URL or not a project/post/glossary path. Handles both locales. */
 export function parseRelatedPath(
   path: string,
-): { type: "project" | "post"; slug: string } | null {
-  const m = path.match(/^\/(?:en\/)?(projects|posts)\/([^/]+)\/?$/);
+): { type: "project" | "post" | "glossary"; slug: string } | null {
+  const m = path.match(/^\/(?:en\/)?(projects|posts|glossary)\/([^/]+)\/?$/);
   if (!m) return null;
-  return { type: m[1] === "projects" ? "project" : "post", slug: m[2] };
+  const type =
+    m[1] === "projects" ? "project" : m[1] === "posts" ? "post" : "glossary";
+  return { type, slug: m[2] };
 }
 
 /** Merge EN posts with RU fallback so both locale graphs stay in sync: a post
@@ -234,6 +272,7 @@ const COMMUNITY_LABELS: Record<'ru' | 'en', [string, string][]> = {
     // clustering), so each is its own singleton community — label them.
     ['core:projects', 'Проекты'],
     ['core:posts', 'Статьи'],
+    ['core:glossary', 'Словарь'],
     ['p:site', 'Карьера и портфолио'],
     ['p:sql', 'Аналитический тулкит'],
     ['p:volta', 'Эксперименты и петля Volta'],
@@ -241,6 +280,7 @@ const COMMUNITY_LABELS: Record<'ru' | 'en', [string, string][]> = {
   en: [
     ['core:projects', 'Projects'],
     ['core:posts', 'Articles'],
+    ['core:glossary', 'Glossary'],
     ['p:bot', 'Automation'],
     ['p:sql', 'Analytics toolkit'],
     ['p:site', 'Portfolio & site'],
@@ -346,8 +386,12 @@ export function buildGraph(opts: {
   parts: PartLike[];
   topics?: Topic[];
   lang?: "ru" | "en";
+  /** Glossary terms for this locale (`glossary` / `glossary-en` collections).
+   *  Optional — graphs built without it (project mini-graphs, older callers)
+   *  simply contain no term nodes. */
+  glossary?: GlossaryLike[];
 }): GraphData {
-  const { projects, posts, parts, topics = TOPICS, lang = "ru" } = opts;
+  const { projects, posts, parts, topics = TOPICS, lang = "ru", glossary = [] } = opts;
   const nodes: GraphNode[] = [];
   const links: GraphLink[] = [];
   const nodeById = new Map<string, GraphNode>();
@@ -392,6 +436,16 @@ export function buildGraph(opts: {
     group: "articles",
     url: `${localePrefix}writing/`,
   });
+  // Glossary hub — added only when the locale actually has terms, so a
+  // term-less build can't leave an orphaned hub node behind.
+  if (glossary.length > 0) {
+    addNode({
+      id: "core:glossary",
+      label: lang === "en" ? "Glossary" : "Словарь",
+      group: "glossary",
+      url: `${localePrefix}glossary/`,
+    });
+  }
   for (const p of projects) {
     const slug = slugOf(p.id);
     addNode({
@@ -419,6 +473,18 @@ export function buildGraph(opts: {
       url: `${localePrefix}projects/volta/${slug}/`,
     });
   }
+  for (const term of glossary) {
+    const slug = slugOf(term.id);
+    addNode({
+      id: `g:${slug}`,
+      label: term.data.title,
+      group: "glossary",
+      // Same relative, locale-prefixed shape as every other node url (the
+      // components run it through `withBase`), mirroring lib/glossary's
+      // `termHref` without the leading slash.
+      url: term.data.url ?? `${localePrefix}glossary/${slug}/`,
+    });
+  }
   for (const t of topics) {
     addNode({
       id: `topic:${t.key}`,
@@ -428,14 +494,15 @@ export function buildGraph(opts: {
     });
   }
 
-  // Related links (project↔project, project↔post, post↔post) — strongest.
+  // Related links (project↔project, project↔post, post↔post, term↔…) —
+  // strongest. The target id comes from an explicit kind switch so a glossary
+  // target becomes `g:<slug>`, never a collapsed `post:<slug>`.
   for (const p of projects) {
     const from = `p:${slugOf(p.id)}`;
     for (const rel of p.data.related ?? []) {
       const parsed = parseRelatedPath(rel);
       if (!parsed) continue;
-      const to = parsed.type === "project" ? `p:${parsed.slug}` : `post:${parsed.slug}`;
-      addLink(from, to, 1, "related");
+      addLink(from, relatedNodeId(parsed), 1, "related");
     }
     for (const child of p.data.children ?? []) {
       addLink(from, `vp:${child}`, 1, "children");
@@ -446,19 +513,29 @@ export function buildGraph(opts: {
     for (const rel of post.data.related ?? []) {
       const parsed = parseRelatedPath(rel);
       if (!parsed) continue;
-      const to = parsed.type === "project" ? `p:${parsed.slug}` : `post:${parsed.slug}`;
-      addLink(from, to, 1, "related");
+      addLink(from, relatedNodeId(parsed), 1, "related");
+    }
+  }
+  for (const term of glossary) {
+    const from = `g:${slugOf(term.id)}`;
+    for (const rel of term.data.related ?? []) {
+      const parsed = parseRelatedPath(rel);
+      if (!parsed) continue;
+      addLink(from, relatedNodeId(parsed), 1, "related");
     }
   }
 
-  // Core edges: every project → projects core, every post → posts core.
-  // Weight 1 so the force layout pulls each group's members toward its hub.
-  // Excluded from community detection and mini-graphs (see below).
+  // Core edges: every project → projects core, every post → posts core, every
+  // term → glossary core. Weight 1 so the force layout pulls each group's
+  // members toward its hub. Excluded from community detection and mini-graphs.
   for (const p of projects) {
     addLink("core:projects", `p:${slugOf(p.id)}`, 1, "core");
   }
   for (const post of posts) {
     addLink("core:posts", `post:${slugOf(post.id)}`, 1, "core");
+  }
+  for (const term of glossary) {
+    addLink("core:glossary", `g:${slugOf(term.id)}`, 1, "core");
   }
 
   // post↔topic by tag match.
@@ -466,6 +543,16 @@ export function buildGraph(opts: {
     const from = `post:${slugOf(post.id)}`;
     for (const t of topics) {
       if ((post.data.tags ?? []).some((tag) => t.match(tag))) {
+        addLink(from, `topic:${t.key}`, 0.6, "topic");
+      }
+    }
+  }
+
+  // term↔topic by tag match (mirrors post↔topic).
+  for (const term of glossary) {
+    const from = `g:${slugOf(term.id)}`;
+    for (const t of topics) {
+      if ((term.data.tags ?? []).some((tag) => t.match(tag))) {
         addLink(from, `topic:${t.key}`, 0.6, "topic");
       }
     }
@@ -573,6 +660,7 @@ export function buildGraph(opts: {
     p: 9,
     post: 7,
     vp: 7,
+    g: 7,
     topic: 6.5,
     core: 10,
   };

@@ -33,15 +33,18 @@ beforeAll(() => {
   const postsEn = loadCollection('posts-en') as BuildOpts['posts'];
   const parts = loadCollection('volta-parts') as BuildOpts['parts'];
   const partsEn = loadCollection('volta-parts-en') as BuildOpts['parts'];
+  const glossary = loadCollection('glossary') as BuildOpts['glossary'];
+  const glossaryEn = loadCollection('glossary-en') as BuildOpts['glossary'];
 
   graphs = {
-    ru: buildGraph({ projects, posts, parts, topics: TOPICS, lang: 'ru' }),
+    ru: buildGraph({ projects, posts, parts, topics: TOPICS, lang: 'ru', glossary }),
     en: buildGraph({
       projects: projectsEn,
       posts: mergePostsForLocale(posts, postsEn),
       parts: partsEn,
       topics: TOPICS,
       lang: 'en',
+      glossary: glossaryEn,
     }),
   };
 });
@@ -123,14 +126,33 @@ invariants('ru', () => graphs.ru);
 invariants('en', () => graphs.en);
 
 describe('real-content related parsing', () => {
-  it('every /projects/ and /posts/ related entry resolves to a real slug', () => {
-    for (const coll of ['projects', 'projects-en', 'posts', 'posts-en']) {
+  it('every related entry resolves to a real slug or node', () => {
+    const graphsByLocale: Record<'ru' | 'en', GraphData> = { ru: graphs.ru, en: graphs.en };
+    for (const coll of ['projects', 'projects-en', 'posts', 'posts-en', 'glossary', 'glossary-en']) {
+      // The `-en` collections feed the EN graph; everything else the RU one.
+      const lang: 'ru' | 'en' = coll.endsWith('-en') ? 'en' : 'ru';
+      const ids = new Set(graphsByLocale[lang].nodes.map((n) => n.id));
+      // Glossary terms only point at internal `/glossary/…/` or `/projects/…​/`
+      // targets, so an unparsable internal path there is a real regression: a
+      // silently-nulled glossary link must fail rather than be skipped.
+      const requireInternalParse = coll.startsWith('glossary');
       const entries = loadCollection(coll);
       for (const entry of entries) {
         const related = (entry.data.related as unknown[] | undefined) ?? [];
         for (const rel of related) {
           const parsed = typeof rel === 'string' ? parseRelatedPath(rel) : null;
-          if (!parsed) continue;
+          if (!parsed) {
+            if (requireInternalParse && typeof rel === 'string' && rel.startsWith('/')) {
+              expect(parsed, `${coll}/${entry.id} → unparsable internal related ${rel}`).not.toBeNull();
+            }
+            continue;
+          }
+          if (parsed.type === 'glossary') {
+            // A glossary target must exist as a real `g:<slug>` node in this
+            // locale's graph — it must never collapse into a `post:<slug>` id.
+            expect(ids.has(`g:${parsed.slug}`), `${coll}/${entry.id} → unresolved ${rel}`).toBe(true);
+            continue;
+          }
           // A related target may live in either locale (e.g. an EN project
           // linking to a RU-only post) — the link just needs to exist somewhere.
           const candidates = parsed.type === 'project'
@@ -138,7 +160,7 @@ describe('real-content related parsing', () => {
             : [...loadCollection('posts'), ...loadCollection('posts-en')];
           expect(
             candidates.some((t) => basename(t.id) === `${parsed.slug}.md`),
-            `${entry.id} → unresolved ${rel}`,
+            `${coll}/${entry.id} → unresolved ${rel}`,
           ).toBe(true);
         }
       }

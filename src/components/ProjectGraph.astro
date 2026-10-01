@@ -15,6 +15,10 @@ interface Props {
   links: GraphLink[];
   centerId: string;
   lang?: 'ru' | 'en';
+  /** Overridable copy so a non-project center (e.g. a glossary term page) can
+   *  describe its own subgraph. Defaults keep every existing caller unchanged. */
+  caption?: string;
+  ariaLabel?: string;
 }
 
 const { nodes, links, centerId, lang = 'ru' } = Astro.props;
@@ -36,10 +40,14 @@ const data = {
 };
 // Escape `<` so a label can never close the JSON script tag early.
 const json = JSON.stringify(data).replace(/</g, '\\u003c');
-const ariaLabel = isEn ? 'Connections of this project' : 'Связи этого проекта';
-const caption = isEn
-  ? 'Projects, posts and topics connected to this one. Hover a node to see its name; click to open.'
-  : 'Проекты, записи и темы, связанные с этим проектом. Наведите на узел, чтобы увидеть название; клик — открыть.';
+// Default copy describes a project center; a term (or other) page can pass its
+// own caption/ariaLabel to stay accurate.
+const ariaLabel = Astro.props.ariaLabel ?? (isEn ? 'Connections of this project' : 'Связи этого проекта');
+const caption =
+  Astro.props.caption ??
+  (isEn
+    ? 'Projects, posts and topics connected to this one. Hover a node to see its name; click to open.'
+    : 'Проекты, записи и темы, связанные с этим проектом. Наведите на узел, чтобы увидеть название; клик — открыть.');
 ---
 
 <div id="pg-root" class="pg-root">

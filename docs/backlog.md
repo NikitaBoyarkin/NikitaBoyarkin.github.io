@@ -71,7 +71,38 @@
 
 | ID | Задача |
 |---|---|
-| P3-1 | EN-паритет постов |
+| P3-1 | EN-паритет постов — **подтверждено аудитом 2026-09-28**: 22 из 24 постов без EN (`posts-en/` содержит только `ab-calibration-simulation`, `cohort-triangles-retention`) |
 | P3-2 | **DONE** (2026-09-27, commit `90630fa`): 4 неиспользуемых компонента `Manifesto`, `TopicMap`, `ProjectTimeline`, `CollaborationFormats` (~487 строк) удалены; вариант «вернуть в навигацию» отклонён |
-| P3-3 | `@paper-design/shaders` из `package.json` |
+| P3-3 | `@paper-design/shaders` из `package.json` — **подтверждено аудитом 2026-09-28**: orphan-dep, `IntroShader.astro` отretired (`DESIGN.md:99`), ни один компонент не импортирует |
 | P3-4 | Токен PostHog в `public/games/*` (11 файлов) — только если игры трогаются |
+
+---
+
+## B-4 — Волна 2 после fan-out-аудита 2026-09-28
+
+Оси: TS-ревью, SEO-аудит, WCAG 2.2 a11y-аудит (по 3 субагента, отчёты с `file:line`).
+Волна 1 (Plausible-ветка, `og:locale`, `noindex` в `<head>`, EN JSON-LD-даты, EN `ogImage`,
+битые `/en/topics/*`, дубль `<h1>` ×46, breadcrumbs, robots.txt-группы, cast'ы, guard в графе,
+`role="img"` графа + sr-only список) — применена в тот же день.
+
+| ID | Задача | Почему отложено |
+|---|---|---|
+| W2-1 | A11y-поведение: roving tabindex в графе, close-button внутри focus-trap `AskMe`, combobox-паттерн `KnowledgeGraph` (`aria-activedescendant`), `.reveal` no-JS fallback (`global.css:312` — при выключенном JS все reveal-секции невидимы), `contrast-gate.js` для cyberpunk-токенов, SC 2.5.8 (чипы 22–24px), `h2` для bento-секции, `aria-pressed` фасетов, `aria-live` результатов в 404 | Требует прогонки LHCI + ручной клавиатурной проверки; поведенческие изменения в 1359-строчном компоненте |
+| W2-2 | TS-механизмы: экспорт `Track`/`PostCategory`/`VoltaLayer`/`Star` из `content.config.ts` (сейчас схемы module-local → ~10 сайтов с расширенным `string`, добавление трека в zod молча убирает проекты с доски); общий `Entry` для `search-index.json.ts` ↔ `SearchBox.astro`; `LaidOutGraph` с обязательными `x`/`y` | Каскадный рефактор: сначала типы, потом ошибки компиляции сами называют сайты |
+| W2-3 | i18n-словарь: единый `src/lib/i18n.ts` вместо inline-тернарников в `Base.astro:64-77`, `SearchBox`, `AskMe`, `KnowledgeGraph`, `LAYER_LABELS` | ADR-worthy (единый словарь vs текущий подход — реальный trade-off); многофайловый рефактор |
+| W2-4 | ESLint (flat-config + astro-plugin) в CI | Сначала зафиксировать текущее состояние — иначе сотня новых находок расширит дифф |
+| W2-5 | `/cv/`: canonical → PDF, закрытый в `robots.txt` (Google не читает заблокированную цель) — определиться: снять `Disallow` с PDF или убрать canonical | Решение владельца о политике индексации резюме |
+| W2-6 | `/games/` и `/demos/*` (файлы в `public/`) — нет canonical и нет в sitemap, хотя индексируемы и связаны изнутри | Нужен `sitemap.customPages` или явные `.astro`-страницы |
+| W2-7 | JSON-LD-гигиена: `WebSite` `@id` на EN-страницах заявляет RU-корень как англоязычный; `Person` переобъявляется без `@id` на 6 страницах (расщепление сущности); `BlogPosting` без `@id` → нет `workTranslation` между RU/EN | Средний приоритет, ловится только ручным аудитом rich-results |
+| W2-8 | Каннибализация `/notes/` + `/notes/guides/` против `/writing/` | UX-решение: canonical на `/writing/` или `noindex, follow` |
+
+### Известные лимиты (не баги, не чинятся без владельца)
+
+- **Контакт-форма выключена** — `src/lib/contact.ts:12-14`: `CONTACT_ENDPOINT` содержит
+  `PROJECT_REF` → `CONTACT_FORM_ENABLED === false`. Форма подменяется на рабочие каналы.
+  Требует собственного Supabase-проекта + Edge Function (секреты `SUPABASE_*` в CI уже есть).
+- **Beacon: тест ≠ прод-код** — `src/lib/beacon.ts` импортируется только своим тестом;
+  прод везёт рукописный inline-дубликат в `BeaconMetrics.astro` (`is:inline define:vars`
+  не умеет импорт). Волна 1 закрыла ассертом на собранный HTML; полное схлопывание —
+  отдельная задача.
+- **`PUBLIC_BEACON_ENDPOINT` не задан** → бэкон исчезает молча (задокументировано в `contact.ts:5-10`).

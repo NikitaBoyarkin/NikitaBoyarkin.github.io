@@ -69,6 +69,23 @@ const postSchema = z.object({
   draft: z.boolean().default(false),
 });
 
+/**
+ * Glossary term (RU/EN). One note per concept; `related` holds internal
+ * `/glossary/<slug>/`, `/posts/<slug>/`, `/projects/<slug>/` paths resolved by
+ * `src/lib/glossary.ts`. `aka` carries aliases used for backlink matching.
+ */
+const termSchema = z.object({
+  title: z.string(),
+  description: z.string().min(60).max(200),
+  aka: z.array(z.string()).default([]),
+  category: z.enum(['statistics', 'experiment', 'product', 'data', 'business']),
+  tags: z.array(z.string()).default([]),
+  related: z.array(z.string()).default([]),
+  keywords: z.array(z.string()).default([]),
+  updated: z.coerce.date().optional(),
+  draft: z.boolean().default(false),
+});
+
 const projects = defineCollection({
   loader: glob({ base: './src/content/projects', pattern: '**/[^_]*.{md,mdx}' }),
   schema: projectSchema,
@@ -93,6 +110,14 @@ const postsEn = defineCollection({
   loader: glob({ base: './src/content/posts-en', pattern: '**/[^_]*.{md,mdx}' }),
   schema: postSchema,
 });
+const glossary = defineCollection({
+  loader: glob({ base: './src/content/glossary', pattern: '**/[^_]*.{md,mdx}' }),
+  schema: termSchema,
+});
+const glossaryEn = defineCollection({
+  loader: glob({ base: './src/content/glossary-en', pattern: '**/[^_]*.{md,mdx}' }),
+  schema: termSchema,
+});
 
 export const collections = {
   projects,
@@ -101,4 +126,6 @@ export const collections = {
   'volta-parts-en': voltaPartsEn,
   posts,
   'posts-en': postsEn,
+  glossary,
+  'glossary-en': glossaryEn,
 };

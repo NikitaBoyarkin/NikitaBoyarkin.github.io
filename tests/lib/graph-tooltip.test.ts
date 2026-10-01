@@ -15,6 +15,7 @@ describe('nodeKindOf', () => {
     expect(nodeKindOf('post:ab-calibration')).toBe('post');
     expect(nodeKindOf('vp:funnel')).toBe('volta');
     expect(nodeKindOf('topic:ab-testing')).toBe('topic');
+    expect(nodeKindOf('g:cuped')).toBe('glossary');
   });
 
   it('falls back for unknown ids', () => {

@@ -30,6 +30,11 @@ describe('decodeGraphState', () => {
     expect(decodeGraphState('?preset=volta&mode=community').preset).toBe('volta');
   });
 
+  it('accepts the glossary preset', () => {
+    expect(decodeGraphState('?preset=glossary').preset).toBe('glossary');
+    expect(encodeGraphState({ ...EMPTY, preset: 'glossary' })).toBe('?preset=glossary');
+  });
+
   it('drops unknown preset values and missing preset as null', () => {
     expect(decodeGraphState('?preset=banana').preset).toBe(null);
     expect(decodeGraphState('?preset=').preset).toBe(null);

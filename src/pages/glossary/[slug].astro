@@ -1,0 +1,124 @@
+---
+// One glossary term (RU). Builds the related links (resolveRelated), the
+// backlinks (computeBacklinks over posts + projects) and the per-term
+// mini-graph (1-hop subgraph of the full knowledge graph, glossary-aware).
+import { getCollection, render } from 'astro:content';
+import Term from '../../layouts/Term.astro';
+import ProjectGraph from '../../components/ProjectGraph.astro';
+import { withBase } from '../../lib/path';
+import {
+  computeBacklinks,
+  resolveRelated,
+  termHref,
+  type BacklinkSource,
+  type GlossaryCategory,
+} from '../../lib/glossary';
+import { buildGraph, subgraphAround } from '../../lib/graph';
+import { TOPICS } from '../../lib/topics';
+
+export async function getStaticPaths() {
+  const terms = await getCollection('glossary', (t) => !t.data.draft);
+  const enTerms = await getCollection('glossary-en', (t) => !t.data.draft);
+  const enSlugs = new Set(enTerms.map((t) => t.id.replace(/\.md$/, '')));
+  return terms.map((entry) => ({
+    params: { slug: entry.id.replace(/\.md$/, '') },
+    props: { entry, allTerms: terms, enSlugs },
+  }));
+}
+
+const { entry, allTerms, enSlugs } = Astro.props;
+const slug = entry.id.replace(/\.md$/, '');
+const lang = 'ru' as const;
+const { Content } = await render(entry);
+const slugOf = (id: string) => id.replace(/\.md$/, '');
+
+const [posts, projects, parts, glossary] = await Promise.all([
+  getCollection('posts', (p) => !p.data.draft),
+  getCollection('projects', (p) => !p.data.draft),
+  getCollection('volta-parts', (p) => !p.data.draft),
+  getCollection('glossary'),
+]);
+
+// Related: resolve /glossary|/posts|/projects paths against real entries.
+const related = resolveRelated(entry.data.related, lang, {
+  glossary: allTerms.map((t) => ({ slug: slugOf(t.id), title: t.data.title })),
+  posts: posts.map((p) => ({ slug: slugOf(p.id), title: p.data.title })),
+  projects: projects.map((p) => ({ slug: slugOf(p.id), title: p.data.title })),
+}).map((r) => ({ ...r, href: withBase(r.href) }));
+
+// Backlinks: posts + projects whose title/body mentions this term or an alias.
+const sources: BacklinkSource[] = [
+  ...posts.map((p) => ({
+    kind: 'post' as const,
+    slug: slugOf(p.id),
+    href: `/posts/${slugOf(p.id)}/`,
+    title: p.data.title,
+    body: p.body ?? '',
+  })),
+  ...projects.map((p) => ({
+    kind: 'project' as const,
+    slug: slugOf(p.id),
+    href: `/projects/${slugOf(p.id)}/`,
+    title: p.data.title,
+    body: p.body ?? '',
+  })),
+];
+const backlinkMap = computeBacklinks(
+  allTerms.map((t) => ({ slug: slugOf(t.id), title: t.data.title, aka: t.data.aka ?? [] })),
+  sources,
+);
+const backlinks = (backlinkMap[slug] ?? []).map((s) => ({
+  title: s.title,
+  href: withBase(s.href),
+  kind: s.kind,
+}));
+
+// Prev / next alphabetical by title.
+const ordered = [...allTerms].sort((a, b) => a.data.title.localeCompare(b.data.title, 'ru'));
+const idx = ordered.findIndex((t) => t.id === entry.id);
+const prev =
+  idx > 0
+    ? { href: withBase(termHref(slugOf(ordered[idx - 1].id), lang)), title: ordered[idx - 1].data.title }
+    : null;
+const next =
+  idx >= 0 && idx < ordered.length - 1
+    ? { href: withBase(termHref(slugOf(ordered[idx + 1].id), lang)), title: ordered[idx + 1].data.title }
+    : null;
+
+// Mini-graph: 1-hop neighborhood of this term in the full knowledge graph.
+const graph = buildGraph({ projects, posts, parts, topics: TOPICS, lang, glossary });
+const sub = subgraphAround(graph, `g:${slug}`, 1);
+---
+
+<Term
+  title={entry.data.title}
+  description={entry.data.description}
+  slug={slug}
+  category={entry.data.category as GlossaryCategory}
+  aka={entry.data.aka ?? []}
+  updated={entry.data.updated}
+  related={related}
+  backlinks={backlinks}
+  keywords={entry.data.keywords ?? []}
+  prev={prev}
+  next={next}
+  lang={lang}
+  counterpartHref={enSlugs.has(slug) ? withBase(`en/glossary/${slug}/`) : undefined}
+>
+  <Content />
+  {
+    sub.nodes.length > 1 && (
+      <section slot="graph" class="post-related reveal reveal-delay-3" aria-label="Карта связей">
+        <h2>Карта связей</h2>
+        <ProjectGraph
+          nodes={sub.nodes}
+          links={sub.links}
+          centerId={`g:${slug}`}
+          lang={lang}
+          caption="Термины, статьи и проекты, связанные с этим понятием. Наведите на узел, чтобы увидеть название; клик — открыть."
+          ariaLabel="Связи этого понятия"
+        />
+      </section>
+    )
+  }
+</Term>

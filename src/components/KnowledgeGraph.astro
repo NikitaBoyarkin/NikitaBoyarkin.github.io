@@ -59,6 +59,7 @@ const t = {
   presetPost: isEn ? 'Posts' : 'Записи',
   presetTopic: isEn ? 'Topics' : 'Темы',
   presetVolta: isEn ? 'Volta' : 'Volta',
+  presetGlossary: isEn ? 'Glossary' : 'Словарь',
 };
 
 // Both layouts ran at build time. The SVG ships the group layout (so every
@@ -72,6 +73,25 @@ const nodeById = new Map(nodes.map((n) => [n.id, n]));
 // Tooltip lines (per node / per edge, aligned by index) rendered into the SVG
 // <title> elements and embedded for the interactive tooltip below.
 const tooltips = buildGraphTooltips(nodes, links, lang);
+
+// Screen-reader text alternative: per-node connection lines ("label (edge
+// type)"), rendered into the visually-hidden list below the SVG. The SVG
+// itself stays a focusable group of real links; this list is the plain-text
+// mirror of the data for SR users browsing in reading order.
+const connsByNode = new Map<string, string[]>();
+for (const l of links) {
+  const a = nodeById.get(l.source);
+  const b = nodeById.get(l.target);
+  if (!a || !b) continue;
+  const ty = t.edgeType[l.type] ?? l.type;
+  if (!connsByNode.has(a.id)) connsByNode.set(a.id, []);
+  if (!connsByNode.has(b.id)) connsByNode.set(b.id, []);
+  connsByNode.get(a.id)!.push(`${b.label} (${ty})`);
+  connsByNode.get(b.id)!.push(`${a.label} (${ty})`);
+}
+const srDesc = isEn
+  ? `Interactive knowledge graph: ${nodes.length} nodes and ${links.length} links between portfolio pages. Each node is keyboard-focusable; press Enter or Space to open its page. A full list of nodes and their links follows the graphic.`
+  : `Интерактивный граф знаний: ${nodes.length} узлов и ${links.length} связей между страницами портфолио. Каждый узел доступен с клавиатуры; Enter или пробел открывают связанную страницу. Полный список узлов и их связей — после графика.`;
 
 // Obsidian-style graph settings (match the vault's graph view).
 
@@ -149,8 +169,13 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     <button type="button" class="kg-chip" data-kg-preset="post" aria-pressed="false" data-label={t.presetPost}>{t.presetPost}</button>
     <button type="button" class="kg-chip" data-kg-preset="topic" aria-pressed="false" data-label={t.presetTopic}>{t.presetTopic}</button>
     <button type="button" class="kg-chip" data-kg-preset="volta" aria-pressed="false" data-label={t.presetVolta}>{t.presetVolta}</button>
+    <button type="button" class="kg-chip" data-kg-preset="glossary" aria-pressed="false" data-label={t.presetGlossary}>{t.presetGlossary}</button>
   </div>
-  <svg id="kg-svg" class="kg-svg" viewBox="0 0 900 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label={ariaLabel}>
+  <!-- role="group" (not "img"): ARIA "img" has presentational children, which
+       would flatten the 75 focusable node links inside the SVG out of the
+       accessibility tree. A group keeps them real, focusable links; the
+       visually-hidden list below carries the plain-text data alternative. -->
+  <svg id="kg-svg" class="kg-svg" viewBox="0 0 900 560" preserveAspectRatio="xMidYMid meet" role="group" aria-label={ariaLabel} aria-describedby="kg-sr-desc">
     <defs>
       <marker id="kg-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
         <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-muted)"></path>
@@ -200,6 +225,15 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       })}
     </g>
   </svg>
+  <div class="visually-hidden">
+    <p id="kg-sr-desc">{srDesc}</p>
+    <ul>
+      {nodes.map((n) => {
+        const conns = connsByNode.get(n.id);
+        return <li>{conns && conns.length ? `${n.label}: ${conns.join(', ')}` : n.label}</li>;
+      })}
+    </ul>
+  </div>
   <div id="kg-tooltip" class="kg-tooltip" role="tooltip" hidden></div>
 </div>
 
@@ -412,9 +446,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         hiddenCommunities: [...hiddenCommunities].map(Number),
         hiddenEdges: [...hiddenEdgeTypes],
         // Runtime value comes from a data attribute / URL; the encoder only
-        // accepts the four known preset kinds (anything else serializes as
+        // accepts the known preset kinds (anything else serializes as
         // absent), so narrowing here is safe.
-        preset: preset as 'project' | 'post' | 'topic' | 'volta' | null,
+        preset: preset as 'project' | 'post' | 'topic' | 'volta' | 'glossary' | null,
       },
       window.location.search,
     );

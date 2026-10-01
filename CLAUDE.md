@@ -182,6 +182,23 @@ renaming a part. The hub itself shows a curated 6-chart evidence set (`HUB_CHART
 | `related` / `keywords` | Optional arrays; `related` may contain `/posts/<slug>/`, `/projects/<slug>/` or absolute URLs (external) |
 | `draft` | If `true`, omitted from the build |
 
+### Glossary (`glossary` RU, `glossary-en` EN)
+
+One term per file, mirrored across languages — the EN file shares the RU slug (a translation, not a re-slug).
+
+| Field | Purpose |
+|---|---|
+| `title` | Term as displayed (also page `<title>`) |
+| `description` | Definition, 60–200 characters — used on the glossary card, meta tags and the search index |
+| `category` | Term group — enum `statistics` \| `experiment` \| `product` \| `data` \| `business` |
+| `aka` | Array of aliases / alternate spellings |
+| `tags` | Array of tags |
+| `related` | Array of internal links (`/glossary/<slug>/`, `/projects/<slug>/`, …) |
+| `keywords` | Array of search keywords |
+| `updated` | Optional last-edit date |
+
+The term page renders through `src/layouts/Term.astro`; `termHref(slug, lang)` in `src/lib/glossary.ts` is the single source of the `/glossary/<slug>/` (RU) and `/en/glossary/<slug>/` (EN) URLs.
+
 ### Readability conventions (RU + EN)
 
 All project and post copy follows a shared spec — see `docs/prd-readability.md`.
@@ -246,6 +263,13 @@ Auth: `GITHUB_TOKEN`/`GH_TOKEN` env (higher rate limit, sees private repos). Una
 
 1. Create `src/content/posts/<slug>.md` with the required frontmatter; `category` must be one of `decision-log`, `framework`, `guide`, `note`.
 2. Run `bun run build` and `make check`.
+
+### Add a glossary term
+
+1. Create `src/content/glossary/<slug>.md` **and** the English mirror `src/content/glossary-en/<slug>.md` — the two files share the same slug (the EN file is a translation, not a re-slug). Required frontmatter: `title`, `description` (60–200 characters), `category`, `aka`, `tags`, `related`, `keywords`.
+2. `related:` is locale-neutral — use `/glossary/<slug>/`, `/projects/<slug>/`, `/posts/<slug>/` in both RU and EN files.
+3. No registry to update: the term is picked up automatically by the `/glossary/` index, the search index (`search-index.json`) and `llms.txt`.
+4. Run `bun run build` and `make check`.
 
 ## CV Source of Truth
 

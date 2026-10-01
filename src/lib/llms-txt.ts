@@ -9,13 +9,16 @@ const slugOf = (id: string) => id.replace(/\.md$/, "");
 export async function buildLlmsTxt(site: string): Promise<string> {
   const abs = (path: string) => `${site}${withBase(path)}`;
 
-  const [projects, projectsEn, posts, postsEn, voltaParts] = await Promise.all([
-    getCollection("projects", (p) => !p.data.draft),
-    getCollection("projects-en", (p) => !p.data.draft),
-    getCollection("posts", (p) => !p.data.draft),
-    getCollection("posts-en", (p) => !p.data.draft),
-    getCollection("volta-parts", (p) => !p.data.draft),
-  ]);
+  const [projects, projectsEn, posts, postsEn, voltaParts, glossaryTerms, glossaryTermsEn] =
+    await Promise.all([
+      getCollection("projects", (p) => !p.data.draft),
+      getCollection("projects-en", (p) => !p.data.draft),
+      getCollection("posts", (p) => !p.data.draft),
+      getCollection("posts-en", (p) => !p.data.draft),
+      getCollection("volta-parts", (p) => !p.data.draft),
+      getCollection("glossary", (p) => !p.data.draft),
+      getCollection("glossary-en", (p) => !p.data.draft),
+    ]);
 
   const projectsSorted = [...projects].sort((a, b) =>
     a.data.title.localeCompare(b.data.title, "ru"),
@@ -30,6 +33,12 @@ export async function buildLlmsTxt(site: string): Promise<string> {
     (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
   );
   const partsSorted = [...voltaParts].sort((a, b) => a.data.order - b.data.order);
+  const glossarySorted = [...glossaryTerms].sort((a, b) =>
+    a.data.title.localeCompare(b.data.title, "ru"),
+  );
+  const glossaryEnSorted = [...glossaryTermsEn].sort((a, b) =>
+    a.data.title.localeCompare(b.data.title, "en"),
+  );
 
   const featuredProject =
     projectsSorted.find((p) => slugOf(p.id) === "volta") ?? projectsSorted[0];
@@ -53,6 +62,7 @@ export async function buildLlmsTxt(site: string): Promise<string> {
   add(`- [How I can help](${abs("value/")}): offers (hiring + collaboration) with quantified proof — A/B, retention, RFM, automation.`);
   add(`- [Writing](${abs("writing/")}): articles on SQL, A/B testing, retention, segmentation, automation.`);
   add(`- [Skill taxonomy](${abs("topics/")}): Junior/Middle/Senior topics with case studies per topic.`);
+  add(`- [Glossary](${abs("glossary/")}): definitions of core analytics terms — p-value, MDE, SRM, cohort, LTV, RFM.`);
   add(`- [Knowledge graph](${abs("graph/")}): product-analytics domain map.`);
   add(`- [Games](${abs("games/")}): playable analytics arcade — 10 zero-dependency SVG mini-games (A/B test, funnel drop, cohort catch, SQL, retention, metric match) + arcade (snake, pong, 2048). Phone + desktop.`);
   add();
@@ -81,7 +91,15 @@ export async function buildLlmsTxt(site: string): Promise<string> {
   }
   add();
 
-  if (projectsEnSorted.length || postsEnSorted.length) {
+  if (glossarySorted.length) {
+    add("## Glossary");
+    for (const term of glossarySorted) {
+      add(`- [${term.data.title}](${abs(`glossary/${slugOf(term.id)}/`)}): ${term.data.description}`);
+    }
+    add();
+  }
+
+  if (projectsEnSorted.length || postsEnSorted.length || glossaryEnSorted.length) {
     add("## English");
     if (projectsEnSorted.length) {
       add();
@@ -95,6 +113,13 @@ export async function buildLlmsTxt(site: string): Promise<string> {
       add("### Writing (EN)");
       for (const post of postsEnSorted) {
         add(`- [${post.data.title}](${abs(`en/posts/${slugOf(post.id)}/`)}): ${post.data.excerpt}`);
+      }
+    }
+    if (glossaryEnSorted.length) {
+      add();
+      add("### Glossary (EN)");
+      for (const term of glossaryEnSorted) {
+        add(`- [${term.data.title}](${abs(`en/glossary/${slugOf(term.id)}/`)}): ${term.data.description}`);
       }
     }
     add();

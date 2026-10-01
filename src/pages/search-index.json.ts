@@ -5,7 +5,7 @@ import { getCollection } from "astro:content";
 import { withBase } from "../lib/path";
 
 interface Entry {
-  type: "project" | "post";
+  type: "project" | "post" | "term";
   locale: "ru" | "en";
   title: string;
   desc: string;
@@ -19,12 +19,15 @@ interface Entry {
 const slugOf = (id: string) => id.replace(/\.md$/, "");
 
 export async function GET() {
-  const [ruProjects, enProjects, posts, enPosts] = await Promise.all([
-    getCollection("projects", (p) => !p.data.draft),
-    getCollection("projects-en", (p) => !p.data.draft),
-    getCollection("posts", (p) => !p.data.draft),
-    getCollection("posts-en", (p) => !p.data.draft),
-  ]);
+  const [ruProjects, enProjects, posts, enPosts, glossaryTerms, glossaryTermsEn] =
+    await Promise.all([
+      getCollection("projects", (p) => !p.data.draft),
+      getCollection("projects-en", (p) => !p.data.draft),
+      getCollection("posts", (p) => !p.data.draft),
+      getCollection("posts-en", (p) => !p.data.draft),
+      getCollection("glossary", (p) => !p.data.draft),
+      getCollection("glossary-en", (p) => !p.data.draft),
+    ]);
 
   const entries: Entry[] = [
     ...ruProjects.map<Entry>((p) => ({
@@ -70,6 +73,31 @@ export async function GET() {
       href: withBase(`en/posts/${slugOf(p.id)}/`),
       date: p.data.date.toISOString(),
       image: p.data.image ? withBase(p.data.image) : null,
+    })),
+    // Glossary terms (RU + EN). href is derived from the entry id, matching the
+    // `termHref` shape the /glossary/<slug>/ + /en/glossary/<slug>/ routes emit,
+    // so every index href resolves to a built page (tests/built/seo.test.ts).
+    ...glossaryTerms.map<Entry>((p) => ({
+      type: "term",
+      locale: "ru",
+      title: p.data.title,
+      desc: p.data.description,
+      tags: p.data.tags ?? [],
+      tools: [],
+      href: withBase(`glossary/${slugOf(p.id)}/`),
+      date: null,
+      image: null,
+    })),
+    ...glossaryTermsEn.map<Entry>((p) => ({
+      type: "term",
+      locale: "en",
+      title: p.data.title,
+      desc: p.data.description,
+      tags: p.data.tags ?? [],
+      tools: [],
+      href: withBase(`en/glossary/${slugOf(p.id)}/`),
+      date: null,
+      image: null,
     })),
   ];
 

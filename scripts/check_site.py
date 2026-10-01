@@ -89,6 +89,7 @@ def check_required_pages() -> int:
         DIST / "posts" / "cohort-triangles-retention" / "index.html",
         DIST / "posts" / "sql-window-functions" / "index.html",
         DIST / "posts" / "volta-neobank-case-study" / "index.html",
+        DIST / "glossary" / "index.html",
         # EN locale (prefixDefaultLocale: false → EN under /en/)
         DIST / "en" / "index.html",
         DIST / "en" / "about" / "index.html",
@@ -103,6 +104,7 @@ def check_required_pages() -> int:
         DIST / "en" / "projects" / "sql" / "index.html",
         DIST / "en" / "projects" / "garden" / "index.html",
         DIST / "en" / "projects" / "site" / "index.html",
+        DIST / "en" / "glossary" / "index.html",
     ]
     print(f"Checking {len(required)} required page(s)...")
     for path in required:

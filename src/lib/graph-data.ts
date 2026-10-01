@@ -8,21 +8,25 @@ import { TOPICS } from "./topics";
 
 async function buildGraphFor(lang: "ru" | "en"): Promise<GraphData> {
   if (lang === "en") {
-    const [projects, postsEn, parts, postsRu] = await Promise.all([
+    const [projects, postsEn, parts, postsRu, glossary] = await Promise.all([
       getCollection("projects-en", (p) => !p.data.draft),
       getCollection("posts-en", (p) => !p.data.draft),
       getCollection("volta-parts-en", (p) => !p.data.draft),
       getCollection("posts", (p) => !p.data.draft),
+      // Glossary terms carry a `draft` flag; fetch unfiltered like the search
+      // index so the graph never drifts from the built term pages.
+      getCollection("glossary-en"),
     ]);
     const posts = mergePostsForLocale(postsRu, postsEn);
-    return buildGraph({ projects, posts, parts, topics: TOPICS, lang: "en" });
+    return buildGraph({ projects, posts, parts, topics: TOPICS, lang: "en", glossary });
   }
-  const [projects, posts, parts] = await Promise.all([
+  const [projects, posts, parts, glossary] = await Promise.all([
     getCollection("projects", (p) => !p.data.draft),
     getCollection("posts", (p) => !p.data.draft),
     getCollection("volta-parts", (p) => !p.data.draft),
+    getCollection("glossary"),
   ]);
-  return buildGraph({ projects, posts, parts, topics: TOPICS, lang: "ru" });
+  return buildGraph({ projects, posts, parts, topics: TOPICS, lang: "ru", glossary });
 }
 
 /** Both deterministic layouts for the SSR component: the taxonomy-group layout

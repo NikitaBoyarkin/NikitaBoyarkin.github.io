@@ -22,6 +22,7 @@ const i18n = {
   all: isEn ? "All" : "Все",
   projects: isEn ? "Projects" : "Проекты",
   posts: isEn ? "Posts" : "Записи",
+  terms: isEn ? "Glossary" : "Словарь",
   empty: isEn ? "Nothing found" : "Ничего не найдено",
   topicsLabel: isEn ? "Browse topics:" : "Смотрите темы:",
   toggleLabel: isEn ? "Open search" : "Открыть поиск",
@@ -74,6 +75,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
       <button class="search-facet is-active" data-facet="all" type="button">{i18n.all}</button>
       <button class="search-facet" data-facet="project" type="button">{i18n.projects}</button>
       <button class="search-facet" data-facet="post" type="button">{i18n.posts}</button>
+      <button class="search-facet" data-facet="term" type="button">{i18n.terms}</button>
     </div>
     <ul id="search-results" class="search-results" role="listbox" aria-label={i18n.resultsLabel}></ul>
     <p class="search-hint" id="search-hint">{i18n.hint}</p>
@@ -113,6 +115,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
       all: string;
       projects: string;
       posts: string;
+      terms: string;
       empty: string;
       topicsLabel: string;
       toggleLabel: string;
@@ -134,8 +137,11 @@ const X_D = "M6 6l12 12M6 18L18 6";
     const resultsEl = resultsElEl;
 
     const lang = document.documentElement.lang === "en" ? "en" : "ru";
-    const typeLabel = (tp: string) =>
-      lang === "en" ? (tp === "post" ? "Post" : "Project") : (tp === "post" ? "Запись" : "Проект");
+    const typeLabel = (tp: string) => {
+      if (tp === "post") return lang === "en" ? "Post" : "Запись";
+      if (tp === "term") return lang === "en" ? "Glossary" : "Словарь";
+      return lang === "en" ? "Project" : "Проект";
+    };
 
     type Entry = {
       type: string;

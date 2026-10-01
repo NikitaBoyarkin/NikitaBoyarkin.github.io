@@ -5,7 +5,7 @@
 // text.
 import type { LinkType } from './graph';
 
-export type NodeKind = 'core' | 'project' | 'post' | 'volta' | 'topic';
+export type NodeKind = 'core' | 'project' | 'post' | 'volta' | 'topic' | 'glossary';
 
 /** Node kind from the id prefix scheme used by graph.ts. */
 export function nodeKindOf(id: string): NodeKind {
@@ -14,6 +14,7 @@ export function nodeKindOf(id: string): NodeKind {
   if (id.startsWith('post:')) return 'post';
   if (id.startsWith('vp:')) return 'volta';
   if (id.startsWith('topic:')) return 'topic';
+  if (id.startsWith('g:')) return 'glossary';
   return 'project';
 }
 
@@ -29,7 +30,7 @@ export interface TooltipCopy {
 export function tooltipCopy(lang: 'ru' | 'en'): TooltipCopy {
   return lang === 'en'
     ? {
-        kind: { core: 'Hub', project: 'Project', post: 'Post', volta: 'Volta module', topic: 'Topic' },
+        kind: { core: 'Hub', project: 'Project', post: 'Post', volta: 'Volta module', topic: 'Topic', glossary: 'Glossary term' },
         group: 'Group / category',
         community: 'Community',
         links: 'links',
@@ -43,7 +44,7 @@ export function tooltipCopy(lang: 'ru' | 'en'): TooltipCopy {
         weight: 'weight',
       }
     : {
-        kind: { core: 'Хаб', project: 'Проект', post: 'Запись', volta: 'Volta-модуль', topic: 'Тема' },
+        kind: { core: 'Хаб', project: 'Проект', post: 'Запись', volta: 'Volta-модуль', topic: 'Тема', glossary: 'Термин словаря' },
         group: 'Трек / категория',
         community: 'Комьюнити',
         links: 'связей',
