@@ -54,6 +54,22 @@ export const CATEGORY_LABELS: Record<GlossaryCategory, { ru: string; en: string 
   business: { ru: 'Бизнес', en: 'Business' },
 };
 
+/**
+ * Tag facets for the glossary filter chips: one entry per distinct tag across
+ * all terms, most-used first, ties broken alphabetically. Counts are per tag
+ * value, so an unordered tag array (e.g. `["ab-testing", "statistics"]` vs the
+ * reverse) still counts once per term.
+ */
+export function buildTagFacets(items: { tags: string[] }[]): { tag: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    for (const tag of item.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+}
+
 /** Locale path prefix: RU lives at the root, EN under `/en/`. */
 function langPrefix(lang: GlossaryLang): string {
   return lang === 'en' ? '/en/' : '/';

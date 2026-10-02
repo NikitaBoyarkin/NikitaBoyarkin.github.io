@@ -22,7 +22,7 @@ Canonical event taxonomy for the portfolio, per
 | `search_used` | `{ query, results_count, locale }` | a search with ≥1 result | `SearchBox.astro` (truncated to 100 chars, once per panel) |
 | `search_no_results` | `{ query, results_count: 0, locale }` | a search with 0 results | `SearchBox.astro` |
 | `read_depth` | `{ content_type, slug, depth, locale }` | scroll crosses 25/50/75/100% (`content_type ∈ {post, case_study, note}`; depth 100 credits at ≤2px from the bottom — elastic scroll) | `Analytics.astro` |
-| `filter_applied` | `{ tag, results_count, surface }` | a writing-page filter chip is applied (`surface` is always `'writing'` — `BlogFilter.astro` renders only on writing pages) | `BlogFilter.astro` |
+| `filter_applied` | `{ tag, results_count, surface }` | a filter chip is applied — `surface` is `'writing'` (`BlogFilter.astro`), `'notes'`, or `'glossary'` (`GlossaryFilter.astro`) | `BlogFilter.astro`, `GlossaryFilter.astro` |
 | `projects_track_filter` | `{ track, results_count, locale }` | a project category tab is selected (`track` is the taxonomy key or `all`) | `ProjectBoard.astro` |
 | `contact_submit` | `{ locale }` | the contact form was submitted and the Edge Function accepted it | `ContactForm.astro` (only on `res.ok`). **Inert in production** until `PROJECT_REF` in `src/lib/contact.ts` is replaced (`CONTACT_FORM_ENABLED=false`, so the form is not rendered at all) |
 | `contact_form_error` | `{ locale, reason }` | a contact-form submission failed (`reason ∈ {validation, rate_limited, server, network}`) | `ContactForm.astro`. **Inert in production** — same reason as `contact_submit` |

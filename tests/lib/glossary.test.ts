@@ -10,6 +10,7 @@ import { describe, it, expect } from 'bun:test';
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import {
+  buildTagFacets,
   CATEGORY_LABELS,
   GLOSSARY_CATEGORIES,
   computeBacklinks,
@@ -49,6 +50,36 @@ function contentSuite(name: string, fn: () => void): void {
 }
 
 const LANGS: GlossaryLang[] = ['ru', 'en'];
+
+// ---------------------------------------------------------------------------
+// Tag facets (pure — they drive the glossary filter chips' counts).
+// ---------------------------------------------------------------------------
+
+describe('buildTagFacets', () => {
+  it('returns nothing for an empty list', () => {
+    expect(buildTagFacets([])).toEqual([]);
+  });
+
+  it('counts a tag once per term regardless of array order', () => {
+    const facets = buildTagFacets([
+      { tags: ['ab-testing', 'statistics'] },
+      { tags: ['statistics', 'ab-testing'] },
+      { tags: ['statistics'] },
+      { tags: [] },
+    ]);
+    expect(facets).toEqual([
+      { tag: 'statistics', count: 3 },
+      { tag: 'ab-testing', count: 2 },
+    ]);
+  });
+
+  it('breaks count ties alphabetically', () => {
+    expect(buildTagFacets([{ tags: ['retention', 'cohort-analysis'] }])).toEqual([
+      { tag: 'cohort-analysis', count: 1 },
+      { tag: 'retention', count: 1 },
+    ]);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Content invariants (guarded on real content).

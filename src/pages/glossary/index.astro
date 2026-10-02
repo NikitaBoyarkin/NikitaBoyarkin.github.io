@@ -3,9 +3,11 @@
 // order), alphabetical within a category, with per-category counts. Every href
 // goes through `termHref` + `withBase` so it matches the [slug] route exactly.
 import Base from '../../layouts/Base.astro';
+import GlossaryFilter from '../../components/GlossaryFilter.astro';
 import { getCollection } from 'astro:content';
 import { withBase } from '../../lib/path';
 import {
+  buildTagFacets,
   CATEGORY_LABELS,
   GLOSSARY_CATEGORIES,
   termHref,
@@ -25,6 +27,26 @@ const groups = GLOSSARY_CATEGORIES.map((category) => {
     .sort((a, b) => a.title.localeCompare(b.title, 'ru'));
   return { category, label: CATEGORY_LABELS[category].ru, items };
 }).filter((g) => g.items.length > 0);
+
+// Filter facets: categories come from the (already ordered) groups; tags are
+// counted across every term. The client filter data below is pre-formatted so
+// the bundled script stays dumb (no withBase/termHref logic in JS).
+const categoriesFacet = groups.map((g) => ({ key: g.category, label: g.label }));
+const tagFacets = buildTagFacets(terms.map((t) => ({ tags: t.data.tags ?? [] })));
+
+const termsJson = terms
+  .map((t) => {
+    const slug = slugOf(t.id);
+    return {
+      slug,
+      href: withBase(termHref(slug, 'ru')),
+      title: t.data.title,
+      description: t.data.description,
+      category: t.data.category,
+      tags: t.data.tags ?? [],
+    };
+  })
+  .sort((a, b) => a.title.localeCompare(b.title, 'ru'));
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
 const glossaryUrl = `${siteUrl}${withBase('glossary/')}`;
@@ -54,30 +76,40 @@ const definedTermSetJsonLd = {
 >
   <section class="container reveal">
     <h1 class="page-title">Словарь</h1>
-    <p style="color: var(--text-muted); margin-bottom: var(--space-8); max-width: 60ch;">
+    <p style="color: var(--text-muted); margin-bottom: var(--space-4); max-width: 60ch;">
       Краткие определения терминов продуктовой аналитики. Сгруппированы по темам;
       счётчик — число понятий в разделе.
     </p>
-    {
-      groups.map((g) => (
-        <div class="level-group">
-          <div class="level-heading">
-            <span class="level-name">{g.label}</span>
-            <span class="level-blurb">{g.items.length}</span>
+    <GlossaryFilter lang="ru" categories={categoriesFacet} tags={tagFacets} />
+    <div id="glossary-static">
+      {
+        groups.map((g) => (
+          <div class="level-group">
+            <div class="level-heading">
+              <span class="level-name">{g.label}</span>
+              <span class="level-blurb">{g.items.length}</span>
+            </div>
+            <div class="term-grid">
+              {g.items.map((t) => (
+                <a class="term-card" href={withBase(termHref(t.slug, 'ru'))}>
+                  <span class="term-card-inner">
+                    <span class="term-label">{t.title}</span>
+                    <span class="term-blurb">{t.description}</span>
+                  </span>
+                </a>
+              ))}
+            </div>
           </div>
-          <div class="term-grid">
-            {g.items.map((t) => (
-              <a class="term-card" href={withBase(termHref(t.slug, 'ru'))}>
-                <span class="term-card-inner">
-                  <span class="term-label">{t.title}</span>
-                  <span class="term-blurb">{t.description}</span>
-                </span>
-              </a>
-            ))}
-          </div>
-        </div>
-      ))
-    }
+        ))
+      }
+    </div>
+    <div id="glossary-results" hidden></div>
+    <script
+      is:inline
+      type="application/json"
+      id="glossary-terms-data"
+      set:html={JSON.stringify(termsJson).replace(/</g, '\\u003c')}
+    />
   </section>
 </Base>
 

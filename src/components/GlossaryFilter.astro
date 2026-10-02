@@ -1,0 +1,271 @@
+---
+// Glossary ("Словарь") toolbar — the same filter UX as BlogFilter.astro on
+// /writing/: category chips + tag chips with counts + a long-tail tag toggle.
+//
+// Filtering is client-side over the full term list embedded by the page as
+// <script type="application/json" id="glossary-terms-data">, so a tag click
+// shows every matching term. With no filter active the static per-category
+// sections stay as-is, so the default view stays grouped and zero-JS.
+//
+// Unlike BlogFilter the results are re-grouped by category rather than dropped
+// into one flat list: the client reuses the `.level-group` markup, so grouping
+// survives filtering instead of only existing in the unfiltered view.
+interface Props {
+  lang?: 'ru' | 'en';
+  categories: { key: string; label: string }[];
+  tags: { tag: string; count: number }[];
+}
+const { lang = 'ru', categories, tags } = Astro.props;
+const isEn = lang === 'en';
+const allLabel = isEn ? 'All' : 'Все';
+const tagsLabel = isEn ? 'Topics' : 'Темы';
+const moreTagsLabel = isEn ? 'All tags' : 'Все теги';
+// Tags used once stay behind a toggle so the row doesn't dominate the page;
+// the recurring topics are the ones worth filtering by.
+const visibleTags = tags.filter((t) => t.count >= 2);
+const hiddenTags = tags.filter((t) => t.count < 2);
+---
+
+<div class="filter-row reveal reveal-delay-1">
+  <button class="filter-tag active" data-filter="all" aria-pressed="true" type="button">
+    {allLabel}
+  </button>
+  {
+    categories.map((cat) => (
+      <button class="filter-tag" data-filter={cat.key} aria-pressed="false" type="button">
+        {cat.label}
+      </button>
+    ))
+  }
+</div>
+
+{
+  tags.length > 0 && (
+    <div class="tag-row reveal reveal-delay-1">
+      <span class="tag-row-label">{tagsLabel}:</span>
+      {visibleTags.map((t) => (
+        <button class="filter-tag tag-chip" data-tag={t.tag} aria-pressed="false" type="button">
+          {t.tag} <span class="tag-count">{t.count}</span>
+        </button>
+      ))}
+      {hiddenTags.length > 0 && (
+        <button class="filter-tag tag-more" data-tag-more type="button" aria-expanded="false">
+          {moreTagsLabel} ({hiddenTags.length})
+        </button>
+      )}
+      {hiddenTags.map((t) => (
+        <button
+          class="filter-tag tag-chip tag-hidden"
+          data-tag={t.tag}
+          aria-pressed="false"
+          type="button"
+          hidden
+        >
+          {t.tag} <span class="tag-count">{t.count}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+<span class="visually-hidden" role="status" id="glossary-filter-status"></span>
+
+<script>
+  import { track } from '../lib/analytics';
+
+  type Term = {
+    slug: string;
+    href: string;
+    title: string;
+    description: string;
+    category: string;
+    tags: string[];
+  };
+
+  function init() {
+    const filterTags = document.querySelectorAll<HTMLButtonElement>('.filter-tag[data-filter]');
+    const tagChips = document.querySelectorAll<HTMLButtonElement>('.filter-tag[data-tag]');
+    const statusEl = document.getElementById('glossary-filter-status');
+    const dataEl = document.getElementById('glossary-terms-data');
+    const staticEl = document.getElementById('glossary-static');
+    const resultsEl = document.getElementById('glossary-results');
+    const moreBtn = document.querySelector<HTMLButtonElement>('.tag-more');
+    const isEn = document.documentElement.lang === 'en';
+
+    let allTerms: Term[] = [];
+    if (dataEl) {
+      try {
+        allTerms = JSON.parse(dataEl.textContent || '[]') as Term[];
+      } catch {
+        allTerms = [];
+      }
+    }
+
+    // Category order and labels come from the chips themselves, so the page
+    // stays the single source of truth — no second copy of the taxonomy here.
+    const order = Array.from(filterTags)
+      .map((t) => t.dataset.filter || '')
+      .filter((key) => key && key !== 'all');
+    const labelOf = new Map(
+      Array.from(filterTags).map((t) => [t.dataset.filter || '', t.textContent?.trim() || '']),
+    );
+
+    let activeCategory = 'all';
+    let activeTag: string | null = null;
+
+    function escapeHtml(s: string): string {
+      return s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Mirrors the static markup in glossary/index.astro so a filtered grid is
+    // indistinguishable from the unfiltered one.
+    function cardHtml(t: Term): string {
+      return `<a class="term-card" href="${escapeHtml(t.href)}">
+        <span class="term-card-inner">
+          <span class="term-label">${escapeHtml(t.title)}</span>
+          <span class="term-blurb">${escapeHtml(t.description)}</span>
+        </span>
+      </a>`;
+    }
+
+    // Re-group the matches by category, dropping empties — keeps the section
+    // headings (and their counts) visible while a filter is active.
+    function groupsHtml(matched: Term[]): string {
+      const buckets = new Map(order.map((key) => [key, [] as Term[]]));
+      for (const t of matched) buckets.get(t.category)?.push(t);
+
+      return order
+        .map((key) => {
+          const items = buckets.get(key) ?? [];
+          if (!items.length) return '';
+          return `<div class="level-group">
+            <div class="level-heading">
+              <span class="level-name">${escapeHtml(labelOf.get(key) ?? key)}</span>
+              <span class="level-blurb">${items.length}</span>
+            </div>
+            <div class="term-grid">${items.map(cardHtml).join('')}</div>
+          </div>`;
+        })
+        .join('');
+    }
+
+    function statusText(n: number): string {
+      return isEn ? `${n} terms shown` : `Показано терминов: ${n}`;
+    }
+
+    function applyFilter() {
+      const filtered = allTerms.filter(
+        (t) =>
+          (activeCategory === 'all' || t.category === activeCategory) &&
+          (activeTag === null || t.tags.includes(activeTag)),
+      );
+
+      filterTags.forEach((t) => {
+        const isActive = t.dataset.filter === activeCategory;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-pressed', String(isActive));
+      });
+      tagChips.forEach((t) => {
+        const isActive = t.dataset.tag === activeTag;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-pressed', String(isActive));
+      });
+
+      const isFiltered = activeCategory !== 'all' || activeTag !== null;
+      if (staticEl) staticEl.hidden = isFiltered;
+      if (resultsEl) {
+        resultsEl.hidden = !isFiltered;
+        if (isFiltered) resultsEl.innerHTML = groupsHtml(filtered);
+      }
+      if (statusEl) {
+        const n = isFiltered
+          ? filtered.length
+          : (staticEl?.querySelectorAll('.term-card').length ?? 0);
+        statusEl.textContent = statusText(n);
+      }
+
+      if (isFiltered) {
+        track('filter_applied', {
+          tag: activeTag ?? activeCategory,
+          results_count: filtered.length,
+          surface: 'glossary',
+        });
+      }
+    }
+
+    filterTags.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeCategory = btn.dataset.filter || 'all';
+        activeTag = null;
+        applyFilter();
+        const hash = activeCategory === 'all' ? '' : `#${activeCategory}`;
+        if (location.hash !== hash) {
+          history.replaceState(null, '', `${location.pathname}${location.search}${hash}`);
+        }
+      });
+    });
+
+    tagChips.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeTag = btn.dataset.tag || null;
+        activeCategory = 'all';
+        applyFilter();
+        const hash = activeTag ? `#tag-${activeTag}` : '';
+        if (location.hash !== hash) {
+          history.replaceState(null, '', `${location.pathname}${location.search}${hash}`);
+        }
+      });
+    });
+
+    // Long-tail tags toggle: reveal/hide the single-use chips.
+    if (moreBtn) {
+      moreBtn.addEventListener('click', () => {
+        const hidden = document.querySelectorAll<HTMLElement>('.tag-chip.tag-hidden');
+        const show = moreBtn.getAttribute('aria-expanded') !== 'true';
+        hidden.forEach((c) => {
+          c.hidden = !show;
+        });
+        moreBtn.setAttribute('aria-expanded', String(show));
+        moreBtn.textContent = show
+          ? isEn
+            ? 'Fewer tags'
+            : 'Меньше тегов'
+          : isEn
+            ? `All tags (${hidden.length})`
+            : `Все теги (${hidden.length})`;
+      });
+    }
+
+    // Esc clears the active filter.
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (activeCategory === 'all' && activeTag === null) return;
+      e.preventDefault();
+      activeCategory = 'all';
+      activeTag = null;
+      applyFilter();
+      document.querySelector<HTMLElement>('.filter-tag[data-filter="all"]')?.focus();
+    });
+
+    // Restore filter from URL hash on load (#category or #tag-<tag>).
+    const initial = location.hash.replace(/^#/, '');
+    if (initial.startsWith('tag-')) {
+      const tag = initial.slice(4);
+      if (Array.from(tagChips).some((t) => t.dataset.tag === tag)) {
+        activeTag = tag;
+        activeCategory = 'all';
+        applyFilter();
+      }
+    } else if (initial) {
+      if (Array.from(filterTags).some((t) => t.dataset.filter === initial)) {
+        activeCategory = initial;
+        applyFilter();
+      }
+    }
+  }
+
+  init();
+</script>
