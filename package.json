@@ -16,6 +16,7 @@
     "coverage": "bun test tests/lib --coverage",
     "serve-dist": "bun run scripts/serve-dist.mjs",
     "verify:writing-filter": "bun run scripts/verify-writing-filter.mjs",
+    "verify:glossary-filter": "bun run scripts/verify-glossary-filter.mjs",
     "og": "bun run scripts/generate-og.mjs",
     "og:watch": "bun run --watch scripts/generate-og.mjs",
     "og:home": "bun run scripts/generate-home-og.mjs",
