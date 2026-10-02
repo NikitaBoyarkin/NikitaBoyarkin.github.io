@@ -2,7 +2,7 @@ name: Sync GitHub activity
 
 on:
   schedule:
-    - cron: '41 3 * * *' # daily ~03:41 UTC, after the profile build
+    - cron: '51 4 * * *' # daily ~04:51 UTC, after the profile build (04:23)
   workflow_dispatch:
   push:
     branches: [master, main]
@@ -33,12 +33,23 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Require a token that can see private contributions
+        env:
+          PAT: ${{ secrets.STREAK_PAT }}
+        run: |
+          if [ -z "$PAT" ]; then
+            echo "::error::STREAK_PAT is not set in this repository. The default Actions token authenticates as github-actions[bot] and cannot see private contributions, so the activity numbers would silently collapse to the public-only subset (~850 instead of ~24 800). Set the classic PAT with the read:user scope."
+            exit 1
+          fi
+
       - name: Generate GitHub activity payload
         run: bun run sync:activity
         env:
-          # Use a PAT when configured (more complete contribution calendar);
-          # fall back to the default Actions token for public data.
-          GITHUB_TOKEN: ${{ secrets.STREAK_PAT || secrets.GITHUB_TOKEN }}
+          # Classic PAT carrying the read:user scope. Without it GitHub hides the
+          # private contributions (the vault auto-commits dominate the total), and
+          # the site would disagree with the profile repo's cards by ~29x. No
+          # fallback on purpose: a louder failure beats a quietly wrong chart.
+          GITHUB_TOKEN: ${{ secrets.STREAK_PAT }}
 
       - name: Commit payload
         uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403
