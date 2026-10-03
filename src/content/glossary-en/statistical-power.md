@@ -20,9 +20,3 @@ Power rises with sample size, effect size, and significance level, and falls wit
 ## Pitfalls
 
 Compute power before the experiment: post-hoc power on an observed effect is meaningless and almost always low. Power does not describe the effect you found; it describes the sensitivity of the design. Several metrics in one test lower the power of each, and CUPED restores it by shrinking $\sigma^2$.
-
-## Related
-
-- MDE
-- p-value
-- A/A test

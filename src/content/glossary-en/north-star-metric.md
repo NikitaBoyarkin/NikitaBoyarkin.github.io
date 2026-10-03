@@ -20,10 +20,3 @@ An NSM is not derived by a formula from above; it is chosen. Pick a metric that 
 ## Pitfalls
 
 A metric that is easy to move by hand falls under Goodhart's law and loses its link to value. An NSM is not revenue and not DAU: those are consequences. Several North Stars mean no North Star. A metric without a driver tree does not tell anyone what to do and turns into a reporting figure.
-
-## Related
-
-- Funnel
-- Retention
-- DAU / MAU and stickiness
-- ARPU

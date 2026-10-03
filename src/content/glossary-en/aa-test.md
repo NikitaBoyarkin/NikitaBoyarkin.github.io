@@ -20,9 +20,3 @@ Run it on real traffic before or alongside the main test. The share of "signific
 ## Pitfalls
 
 An A/A test cannot catch an error specific to a particular variant; it validates only the shared infrastructure. A passed A/A does not guarantee correctness under a real effect. Spending all traffic on it steals power from useful tests. A single A/A run without a SRM check proves little.
-
-## Related
-
-- SRM
-- p-value
-- CUPED

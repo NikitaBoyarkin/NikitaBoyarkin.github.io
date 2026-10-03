@@ -20,8 +20,3 @@ Draw $B$ resamples of $n$ observations with replacement, compute the statistic o
 ## Pitfalls
 
 The percentile interval is biased on small samples and skewed statistics. Data are dependent by user, not by row, so you must resample users or the interval comes out falsely narrow. The bootstrap does not fix SRM and does not replace a split check. It refines the standard error but does not raise power dramatically.
-
-## Related
-
-- p-value
-- Uplift modelling

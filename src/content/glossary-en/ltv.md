@@ -20,10 +20,3 @@ Roughly: $\text{LTV} \approx \text{ARPU in margin} \times \text{average lifetime
 ## Pitfalls
 
 LTV without a horizon and without margin misleads. Never mix revenue and margin: an LTV on revenue overstates the return. A predicted LTV from a short cohort requires extrapolation and is easily overstated. Comparing LTV with CAC is only valid over the same horizon.
-
-## Related
-
-- ARPU
-- Churn
-- Retention
-- Segmentation

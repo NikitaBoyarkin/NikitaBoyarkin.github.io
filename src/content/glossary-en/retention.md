@@ -20,10 +20,3 @@ Group users into cohorts by start day and, for each period, compute the share st
 ## Pitfalls
 
 Without an explicit activity definition retention is meaningless: the same number yields different metrics at different thresholds. The first period is the noisiest. Compare cohorts over the same window length. Calendar events and seasonality distort cohort-to-cohort comparisons.
-
-## Related
-
-- Cohort
-- Retention curve
-- Churn
-- Funnel

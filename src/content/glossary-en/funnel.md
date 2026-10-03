@@ -20,9 +20,3 @@ Define steps by events and a time window. Step conversion is the ratio of those 
 ## Pitfalls
 
 The classic mistake is measuring every step against the first, not the previous one. Unfinished cohorts understate later steps. The time window between steps must match real behaviour. Dropping out of a step does not always mean abandoning: some traffic simply leaves by another path.
-
-## Related
-
-- North Star metric
-- Retention
-- Time to convert

@@ -20,11 +20,3 @@ Compute it from the test statistic and its null distribution: $p = P(T \ge t_{\t
 ## Pitfalls
 
 A p-value does not replace a confidence interval or an effect size: a significant effect can be trivial. Multiple testing inflates the false-discovery share, so apply a correction (BH, Holm). Peeking and stopping on significance inflate the Type I error. A p-value does not prove a hypothesis, it merely fails to reject it.
-
-## Related
-
-- Statistical power
-- MDE
-- A/A test
-- SRM
-- Bootstrap

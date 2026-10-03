@@ -20,10 +20,3 @@ For a cohort, compute $R_t$ for each period $t$ and join them into a line, often
 ## Pitfalls
 
 Curves cannot be compared at different lengths or without normalisation. A plateau means part of the audience stayed, not that retention is high. The early segment is the noisiest. Extrapolation without a model misleads: real curves do not always decay monotonically.
-
-## Related
-
-- Retention
-- Cohort
-- Churn
-- DAU / MAU and stickiness

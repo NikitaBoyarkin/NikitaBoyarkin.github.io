@@ -20,10 +20,3 @@ Tag users with a cohort by start date and, for each cohort, compute the metric b
 ## Pitfalls
 
 Small cohorts are noisy, so an effect is easily mistaken for a trend. Mix-shift between cohorts distorts comparison: the product may have changed its acquisition channel. Calendar period and cohort age are different axes; confusing them explains the product by seasonality. An aggregate without a cohort split hides failures in new groups.
-
-## Related
-
-- Retention
-- Retention curve
-- Segmentation
-- Time to convert

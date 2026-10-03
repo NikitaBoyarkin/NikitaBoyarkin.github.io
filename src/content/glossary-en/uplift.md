@@ -20,9 +20,3 @@ Models are trained on experimental data where treatment is known: T-learner, S-l
 ## Pitfalls
 
 Without a control arm the causal effect cannot be separated from correlation. Segmenting on the predicted outcome is not the same as segmenting on the effect: "likely to convert" is not "persuadable". On small samples QINI and AUUC cannot tell even an oracle from noise, so trust the metric only with enough observations per arm.
-
-## Related
-
-- CUPED
-- MDE
-- Churn

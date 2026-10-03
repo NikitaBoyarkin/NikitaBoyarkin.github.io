@@ -20,9 +20,3 @@ $\text{ARPU} = \text{revenue over the period} / \text{active users over the peri
 ## Pitfalls
 
 ARPU shifts with the composition of the base (mix-shift): a rising ARPU may reflect the churn of cheap users rather than better monetisation. Fix the period — daily and monthly ARPU are not comparable. Never present ARPPU as ARPU. As a ratio metric it needs a correct standard error, usually via the delta method.
-
-## Related
-
-- LTV
-- DAU / MAU and stickiness
-- NPS

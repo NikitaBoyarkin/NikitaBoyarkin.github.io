@@ -20,10 +20,3 @@ The adjusted metric is $\tilde{Y} = Y - \theta (X - \bar X)$, where $X$ is the s
 ## Pitfalls
 
 $X$ must be pre-experiment and independent of the treatment, or the estimate is biased. The correlation has to be stable across arms; if the pre-period does not resemble the test window, $\theta$ fits noise. For ratio metrics the covariance must be computed through the delta method, not directly.
-
-## Related
-
-- SRM
-- p-value
-- Statistical power
-- MDE

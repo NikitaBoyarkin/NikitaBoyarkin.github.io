@@ -20,10 +20,3 @@ Solving the power formula for the effect in a two-arm test: $\Delta = (z_{1-\alp
 ## Pitfalls
 
 The MDE depends on variance, so CUPED lowers it directly. Never confuse the MDE with the expected effect: a small MDE means high sensitivity, not that an effect exists. Computing the MDE on a peeked sample is invalid. Ratio metrics need a correct standard error, or the MDE comes out too optimistic.
-
-## Related
-
-- Statistical power
-- p-value
-- SRM
-- CUPED

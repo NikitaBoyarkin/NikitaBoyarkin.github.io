@@ -20,9 +20,3 @@ For a cohort, build the cumulative share converted by day $t$ — the empirical 
 ## Pitfalls
 
 Unfinished cohorts are censored: later days are not yet filled in, so the share is understated. Conversion time is heavily right-skewed, so the mean misleads and the median is needed. Time to convert does not replace retention: a fast action and long-lasting use are different questions. Fix the observation horizon, or comparison is unfair.
-
-## Related
-
-- Funnel
-- Cohort
-- Retention

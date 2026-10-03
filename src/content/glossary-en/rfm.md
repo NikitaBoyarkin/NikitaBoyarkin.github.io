@@ -20,9 +20,3 @@ Build 1–5 scores per axis from the base's percentiles, giving a triple such as
 ## Pitfalls
 
 Bin boundaries are arbitrary and strongly change the result, so choose them deliberately rather than by default. Monetary correlates with Frequency, so two axes partly duplicate each other. On a small base the scores are noisy. A segment with no assigned action is useless: the point of RFM is working the groups, not drawing a chart.
-
-## Related
-
-- Segmentation
-- LTV
-- Churn

@@ -20,10 +20,3 @@ Simple churn over a window is $1 - \text{retention}$ for the same period. Period
 ## Pitfalls
 
 Churn without an explicit window and activity definition is meaningless: "churned" depends on the inactivity threshold. Low churn does not mean growth — the product may simply not be acquiring new users. Involuntary churn is treated very differently from voluntary and needs its own cut. Averaging over the whole base hides segments with churn several times higher.
-
-## Related
-
-- Retention
-- LTV
-- Uplift modelling
-- RFM segmentation

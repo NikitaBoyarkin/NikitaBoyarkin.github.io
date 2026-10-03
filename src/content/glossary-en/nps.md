@@ -20,9 +20,3 @@ $\text{NPS} = \text{share of promoters} - \text{share of detractors}$; passives 
 ## Pitfalls
 
 NPS is not an interval scale: a 5-point move between waves can be sampling noise. A low response rate biases the result, since the extremes respond. NPS does not guarantee growth: loyalty and revenue are linked only indirectly. A single question does not explain causes; drivers need follow-up questions.
-
-## Related
-
-- Retention
-- ARPU
-- Churn

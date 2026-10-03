@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-01T20:18:07.014Z",
+  "generatedAt": "2026-10-03T19:16:30.765Z",
   "root": "src/content",
   "files": {
     "volta-parts-en/retention.md": [
@@ -3995,6 +3995,11 @@
       "10",
       "2026"
     ],
+    "glossary-en/ab-test.md": [
+      "03",
+      "10",
+      "2026"
+    ],
     "glossary-en/rfm.md": [
       "01",
       "1",
@@ -4007,6 +4012,11 @@
     ],
     "glossary-en/uplift.md": [
       "01",
+      "10",
+      "2026"
+    ],
+    "glossary-en/cac.md": [
+      "03",
       "10",
       "2026"
     ],
@@ -4025,6 +4035,16 @@
     ],
     "glossary-en/time-to-convert.md": [
       "01",
+      "10",
+      "2026"
+    ],
+    "glossary-en/guardrail-metric.md": [
+      "03",
+      "10",
+      "2026"
+    ],
+    "glossary-en/correlation-causation.md": [
+      "03",
       "10",
       "2026"
     ],
@@ -4053,6 +4073,12 @@
       "2026",
       "97.5"
     ],
+    "glossary-en/confidence-interval.md": [
+      "03",
+      "10",
+      "2026",
+      "95"
+    ],
     "glossary-en/ltv.md": [
       "01",
       "10",
@@ -4060,6 +4086,11 @@
     ],
     "glossary-en/arpu.md": [
       "01",
+      "10",
+      "2026"
+    ],
+    "glossary-en/sample-size.md": [
+      "03",
       "10",
       "2026"
     ],
@@ -4159,6 +4190,11 @@
       "10",
       "2026"
     ],
+    "glossary/ab-test.md": [
+      "03",
+      "10",
+      "2026"
+    ],
     "glossary/rfm.md": [
       "01",
       "1",
@@ -4171,6 +4207,11 @@
     ],
     "glossary/uplift.md": [
       "01",
+      "10",
+      "2026"
+    ],
+    "glossary/cac.md": [
+      "03",
       "10",
       "2026"
     ],
@@ -4189,6 +4230,16 @@
     ],
     "glossary/time-to-convert.md": [
       "01",
+      "10",
+      "2026"
+    ],
+    "glossary/guardrail-metric.md": [
+      "03",
+      "10",
+      "2026"
+    ],
+    "glossary/correlation-causation.md": [
+      "03",
       "10",
       "2026"
     ],
@@ -4217,6 +4268,12 @@
       "2026",
       "97.5"
     ],
+    "glossary/confidence-interval.md": [
+      "03",
+      "10",
+      "2026",
+      "95"
+    ],
     "glossary/ltv.md": [
       "01",
       "10",
@@ -4224,6 +4281,11 @@
     ],
     "glossary/arpu.md": [
       "01",
+      "10",
+      "2026"
+    ],
+    "glossary/sample-size.md": [
+      "03",
       "10",
       "2026"
     ],

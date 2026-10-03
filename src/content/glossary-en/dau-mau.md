@@ -20,10 +20,3 @@ Define activity by a concrete event and keep that definition fixed. Count DAU an
 ## Pitfalls
 
 DAU depends on the activity definition and shifts when it changes. Stickiness is seasonal: weekends and holidays distort week-to-week comparison. Never compare DAU/MAU computed on different windows. Stickiness has a ceiling and does not grow forever; low stickiness is a reason to look at retention, not at the metric itself.
-
-## Related
-
-- Retention
-- ARPU
-- North Star metric
-- Retention curve

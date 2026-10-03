@@ -20,10 +20,3 @@ First choose the axes — behaviour, value, channel, lifecycle. Rule-based segme
 ## Pitfalls
 
 A segment with no action delivers nothing — start from a hypothesis and an intervention, then split. Clusters overfit noise and fall apart on a rerun. Segment composition drifts over time, so recompute regularly. Mixing behavioural and value axes in one split yields uninterpretable groups.
-
-## Related
-
-- RFM segmentation
-- Cohort
-- Churn
-- LTV

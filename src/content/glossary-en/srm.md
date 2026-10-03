@@ -20,9 +20,3 @@ Use a chi-square goodness-of-fit test: $\chi^2 = \sum_i (O_i - E_i)^2 / E_i$ wit
 ## Pitfalls
 
 SRM is invisible on small samples, so test on full traffic. Bot filtering and survivorship can create or hide a skew. You cannot "fix" SRM by reweighting after the fact: find the cause first, then decide whether the test is usable.
-
-## Related
-
-- A/A test
-- CUPED
-- p-value
