@@ -42,6 +42,9 @@ const termsJson = terms
       href: withBase(termHref(slug, 'ru')),
       title: t.data.title,
       description: t.data.description,
+      // Searchable, not rendered: the client search matches aliases too, so a
+      // reader who types "CTR" lands on the click-through-rate entry.
+      aka: t.data.aka ?? [],
       category: t.data.category,
       tags: t.data.tags ?? [],
     };

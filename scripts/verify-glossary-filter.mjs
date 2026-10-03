@@ -97,6 +97,57 @@ try {
       `[${lang}] "all tags" toggle reveals the long tail`,
       (await count('.tag-chip.tag-hidden:not([hidden])')) > 0,
     );
+
+    // --- Search + A–Z ------------------------------------------------------
+    // The query is derived from the page itself rather than hard-coded, so
+    // editing a description can't silently turn this into a search for nothing.
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+
+    const alphaBtns = await count('#glossary-alpha .alpha-btn');
+    check(`[${lang}] A–Z strip renders letter buttons`, alphaBtns > 1, `${alphaBtns} letters`);
+
+    const probe =
+      (await page.locator('#glossary-static .term-blurb').first().textContent())?.trim().slice(0, 30) || '';
+    await page.locator('#glossary-search').fill(probe);
+    await page.waitForTimeout(300);
+    check(`[${lang}] search hides the static list`, !(await visible('#glossary-static')));
+    const searchCards = await count('#glossary-results .term-card');
+    check(
+      `[${lang}] search narrows to matching terms`,
+      searchCards >= 1 && searchCards < staticCards,
+      `"${probe}" → ${searchCards} of ${staticCards}`,
+    );
+
+    // Letter axis on its own: clears the query, narrows, and toggles back off.
+    await page.locator('#glossary-search').fill('');
+    await page.waitForTimeout(200);
+    await page.locator('#glossary-alpha .alpha-btn').first().click();
+    await page.waitForTimeout(250);
+    const letterCards = await count('#glossary-results .term-card');
+    check(
+      `[${lang}] letter filter narrows to that letter`,
+      letterCards >= 1 && letterCards < staticCards,
+      `${letterCards} of ${staticCards}`,
+    );
+    await page.locator('#glossary-alpha .alpha-btn').first().click();
+    await page.waitForTimeout(250);
+    check(
+      `[${lang}] clicking the active letter restores the static view`,
+      await visible('#glossary-static'),
+    );
+
+    // Esc must clear the search field, not just the chip facets.
+    await page.locator('#glossary-search').fill(probe);
+    await page.waitForTimeout(300);
+    check(`[${lang}] typing a query hides the static list`, !(await visible('#glossary-static')));
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+    check(
+      `[${lang}] Esc clears the query and restores the static view`,
+      (await visible('#glossary-static')) &&
+        (await page.locator('#glossary-search').inputValue()) === '',
+    );
   }
 
   check('no console or page errors', errors.length === 0, errors.slice(0, 2).join(' | '));

@@ -20,11 +20,26 @@ const isEn = lang === 'en';
 const allLabel = isEn ? 'All' : 'Все';
 const tagsLabel = isEn ? 'Topics' : 'Темы';
 const moreTagsLabel = isEn ? 'All tags' : 'Все теги';
+const searchLabel = isEn ? 'Search the glossary' : 'Поиск по словарю';
+const searchPlaceholder = isEn ? 'Search terms…' : 'Поиск по терминам…';
+const alphaLabel = isEn ? 'Jump to letter' : 'Перейти к букве';
 // Tags used once stay behind a toggle so the row doesn't dominate the page;
 // the recurring topics are the ones worth filtering by.
 const visibleTags = tags.filter((t) => t.count >= 2);
 const hiddenTags = tags.filter((t) => t.count < 2);
 ---
+
+<div class="glossary-search reveal reveal-delay-1">
+  <label class="visually-hidden" for="glossary-search">{searchLabel}</label>
+  <input
+    id="glossary-search"
+    class="search-input"
+    type="search"
+    placeholder={searchPlaceholder}
+    autocomplete="off"
+    spellcheck="false"
+  />
+</div>
 
 <div class="filter-row reveal reveal-delay-1">
   <button class="filter-tag active" data-filter="all" aria-pressed="true" type="button">
@@ -38,6 +53,14 @@ const hiddenTags = tags.filter((t) => t.count < 2);
     ))
   }
 </div>
+
+<nav
+  id="glossary-alpha"
+  class="filter-row glossary-alpha reveal reveal-delay-1"
+  aria-label={alphaLabel}
+  hidden
+>
+</nav>
 
 {
   tags.length > 0 && (
@@ -79,7 +102,14 @@ const hiddenTags = tags.filter((t) => t.count < 2);
     description: string;
     category: string;
     tags: string[];
+    aka?: string[];
   };
+
+  // Index alphabets. Cyrillic terms dominate the RU glossary but several titles
+  // are Latin (A/B test, CAC, DAU, LTV, p-value), so the RU strip appends the
+  // Latin range after the Cyrillic one instead of hiding those terms.
+  const CYRILLIC = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
+  const LATIN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
   function init() {
     const filterTags = document.querySelectorAll<HTMLButtonElement>('.filter-tag[data-filter]');
@@ -89,6 +119,8 @@ const hiddenTags = tags.filter((t) => t.count < 2);
     const staticEl = document.getElementById('glossary-static');
     const resultsEl = document.getElementById('glossary-results');
     const moreBtn = document.querySelector<HTMLButtonElement>('.tag-more');
+    const searchInput = document.getElementById('glossary-search') as HTMLInputElement | null;
+    const alphaEl = document.getElementById('glossary-alpha');
     const isEn = document.documentElement.lang === 'en';
 
     let allTerms: Term[] = [];
@@ -99,6 +131,35 @@ const hiddenTags = tags.filter((t) => t.count < 2);
         allTerms = [];
       }
     }
+
+    const alphabet = isEn ? LATIN : CYRILLIC + LATIN;
+
+    /** Bucket key for the A–Z strip; null when a title starts off-alphabet. */
+    function firstLetter(title: string): string | null {
+      const ch = title.trim().charAt(0).toUpperCase();
+      return ch && alphabet.includes(ch) ? ch : null;
+    }
+
+    // The strip is built from the terms actually present, so it never offers a
+    // letter that would filter the page down to nothing. Rendered client-side:
+    // without JS the reader still gets the full static grouped list.
+    if (alphaEl) {
+      const letters = alphabet
+        .split('')
+        .filter((ch) => allTerms.some((t) => firstLetter(t.title) === ch));
+      if (letters.length > 1) {
+        alphaEl.innerHTML = letters
+          .map(
+            (ch) =>
+              `<button class="filter-tag alpha-btn" data-letter="${escapeHtml(ch)}" aria-pressed="false" type="button">${escapeHtml(ch)}</button>`,
+          )
+          .join('');
+        alphaEl.hidden = false;
+      }
+    }
+    const letterBtns: HTMLButtonElement[] = alphaEl
+      ? Array.from(alphaEl.querySelectorAll<HTMLButtonElement>('.alpha-btn'))
+      : [];
 
     // Category order and labels come from the chips themselves, so the page
     // stays the single source of truth — no second copy of the taxonomy here.
@@ -111,6 +172,8 @@ const hiddenTags = tags.filter((t) => t.count < 2);
 
     let activeCategory = 'all';
     let activeTag: string | null = null;
+    let activeLetter: string | null = null;
+    let activeQuery = '';
 
     function escapeHtml(s: string): string {
       return s
@@ -156,11 +219,37 @@ const hiddenTags = tags.filter((t) => t.count < 2);
       return isEn ? `${n} terms shown` : `Показано терминов: ${n}`;
     }
 
+    function matchesQuery(t: Term, q: string): boolean {
+      // Aliases are searchable too: the acronym a reader actually types ("CTR",
+      // "ДИ") usually lives there, not in the title.
+      const haystack = `${t.title} ${t.description} ${(t.aka ?? []).join(' ')}`.toLowerCase();
+      return haystack.includes(q);
+    }
+
+    // Debounced so a typed word is one event, not one per keystroke. The timer
+    // re-checks the query before firing, so further typing cancels the capture.
+    let searchTimer = 0;
+    let pendingQuery = '';
+    function scheduleSearchTrack(query: string, resultsCount: number): void {
+      pendingQuery = query;
+      window.clearTimeout(searchTimer);
+      searchTimer = window.setTimeout(() => {
+        if (pendingQuery !== activeQuery.trim()) return;
+        const locale = isEn ? ('en' as const) : ('ru' as const);
+        const props = { query, results_count: resultsCount, locale };
+        if (resultsCount > 0) track('search_used', props);
+        else track('search_no_results', props);
+      }, 600);
+    }
+
     function applyFilter() {
+      const query = activeQuery.trim().toLowerCase();
       const filtered = allTerms.filter(
         (t) =>
           (activeCategory === 'all' || t.category === activeCategory) &&
-          (activeTag === null || t.tags.includes(activeTag)),
+          (activeTag === null || t.tags.includes(activeTag)) &&
+          (activeLetter === null || firstLetter(t.title) === activeLetter) &&
+          (query === '' || matchesQuery(t, query)),
       );
 
       filterTags.forEach((t) => {
@@ -173,8 +262,14 @@ const hiddenTags = tags.filter((t) => t.count < 2);
         t.classList.toggle('active', isActive);
         t.setAttribute('aria-pressed', String(isActive));
       });
+      letterBtns.forEach((t) => {
+        const isActive = t.dataset.letter === activeLetter;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-pressed', String(isActive));
+      });
 
-      const isFiltered = activeCategory !== 'all' || activeTag !== null;
+      const hasFacet = activeCategory !== 'all' || activeTag !== null || activeLetter !== null;
+      const isFiltered = hasFacet || query !== '';
       if (staticEl) staticEl.hidden = isFiltered;
       if (resultsEl) {
         resultsEl.hidden = !isFiltered;
@@ -187,19 +282,25 @@ const hiddenTags = tags.filter((t) => t.count < 2);
         statusEl.textContent = statusText(n);
       }
 
-      if (isFiltered) {
+      if (hasFacet) {
+        // A letter is prefixed so it can never collide with a real tag slug in
+        // the breakdown; tags and categories keep their bare values.
         track('filter_applied', {
-          tag: activeTag ?? activeCategory,
+          tag: activeTag ?? (activeLetter ? `letter:${activeLetter}` : activeCategory),
           results_count: filtered.length,
           surface: 'glossary',
         });
       }
+      if (query.length >= 2) scheduleSearchTrack(activeQuery.trim(), filtered.length);
     }
 
     filterTags.forEach((btn) => {
       btn.addEventListener('click', () => {
         activeCategory = btn.dataset.filter || 'all';
         activeTag = null;
+        // Category and letter are both coarse buckets; intersecting them reads
+        // as an empty page more often than as a refinement.
+        activeLetter = null;
         applyFilter();
         const hash = activeCategory === 'all' ? '' : `#${activeCategory}`;
         if (location.hash !== hash) {
@@ -212,6 +313,7 @@ const hiddenTags = tags.filter((t) => t.count < 2);
       btn.addEventListener('click', () => {
         activeTag = btn.dataset.tag || null;
         activeCategory = 'all';
+        activeLetter = null;
         applyFilter();
         const hash = activeTag ? `#tag-${activeTag}` : '';
         if (location.hash !== hash) {
@@ -219,6 +321,25 @@ const hiddenTags = tags.filter((t) => t.count < 2);
         }
       });
     });
+
+    // A–Z strip: clicking the active letter clears it, so the strip needs no
+    // separate reset control.
+    letterBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const letter = btn.dataset.letter || null;
+        activeLetter = activeLetter === letter ? null : letter;
+        activeCategory = 'all';
+        activeTag = null;
+        applyFilter();
+      });
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        activeQuery = searchInput.value;
+        applyFilter();
+      });
+    }
 
     // Long-tail tags toggle: reveal/hide the single-use chips.
     if (moreBtn) {
@@ -239,15 +360,23 @@ const hiddenTags = tags.filter((t) => t.count < 2);
       });
     }
 
-    // Esc clears the active filter.
+    // Esc clears every axis. Focus stays in the search field when that is where
+    // the reader was typing; otherwise it lands back on the "All" chip.
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
-      if (activeCategory === 'all' && activeTag === null) return;
+      const anyActive =
+        activeCategory !== 'all' || activeTag !== null || activeLetter !== null || activeQuery !== '';
+      if (!anyActive) return;
       e.preventDefault();
+      const fromSearch = document.activeElement === searchInput;
       activeCategory = 'all';
       activeTag = null;
+      activeLetter = null;
+      activeQuery = '';
+      if (searchInput) searchInput.value = '';
       applyFilter();
-      document.querySelector<HTMLElement>('.filter-tag[data-filter="all"]')?.focus();
+      if (fromSearch) searchInput?.focus();
+      else document.querySelector<HTMLElement>('.filter-tag[data-filter="all"]')?.focus();
     });
 
     // Restore filter from URL hash on load (#category or #tag-<tag>).

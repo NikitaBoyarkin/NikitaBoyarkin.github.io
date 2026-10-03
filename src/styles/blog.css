@@ -435,6 +435,32 @@ nav ul.links a.active {
   color: var(--text-accent);
 }
 
+/* Glossary search + A–Z strip. Both are progressive enhancement: the input is
+   inert without JS (the static grouped list is still complete) and the strip
+   ships `hidden`, filled in by GlossaryFilter from the letters actually
+   present, so it never offers a letter that filters the page down to nothing. */
+.glossary-search {
+  max-width: 420px;
+  margin-bottom: var(--space-5);
+}
+
+.glossary-alpha {
+  gap: var(--space-1);
+  margin-bottom: var(--space-6);
+}
+
+/* `.filter-row` is `display: flex`, which beats the UA `[hidden] { display:
+   none }` rule — the same cascade trap as `.blog-list[hidden]` above. Without
+   this the empty strip renders as a blank row before the script fills it. */
+.glossary-alpha[hidden] {
+  display: none;
+}
+
+.glossary-alpha .filter-tag {
+  min-width: 1.6rem;
+  text-align: center;
+}
+
 /* 🎲 Random post (REQ-035) — sits at the right end of the category row */
 .random-post {
   margin-left: auto;
