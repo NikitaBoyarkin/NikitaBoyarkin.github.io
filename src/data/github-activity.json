@@ -1,13 +1,13 @@
 {
   "slug": "github",
-  "source": "GitHub API · updated 2026-10-02",
-  "updatedAt": "2026-10-02T18:31:20.890Z",
+  "source": "GitHub API · updated 2026-10-03",
+  "updatedAt": "2026-10-03T10:05:11.093Z",
   "stats": {
-    "contributions": 24850,
+    "contributions": 24854,
     "publicRepos": 21,
     "followers": 395,
-    "currentStreak": 65,
-    "longestStreak": 65,
+    "currentStreak": 66,
+    "longestStreak": 66,
     "activeSince": 2019
   },
   "charts": [
@@ -32,7 +32,6 @@
       },
       "data": {
         "categories": [
-          "03.09",
           "04.09",
           "05.09",
           "06.09",
@@ -61,13 +60,13 @@
           "29.09",
           "30.09",
           "01.10",
-          "02.10"
+          "02.10",
+          "03.10"
         ],
         "series": [
           {
             "name": "Contributions",
             "values": [
-              66,
               23,
               93,
               27,
@@ -96,7 +95,8 @@
               5,
               4,
               15,
-              33
+              36,
+              1
             ]
           }
         ]
@@ -104,8 +104,8 @@
       "labelEvery": 5,
       "conclusions": [
         {
-          "ru": "За последние 30 дней — 1136 вкладов, в среднем 37.9 в день.",
-          "en": "Over the last 30 days: 1136 contributions, averaging 37.9 per day."
+          "ru": "За последние 30 дней — 1074 вкладов, в среднем 35.8 в день.",
+          "en": "Over the last 30 days: 1074 contributions, averaging 35.8 per day."
         },
         {
           "ru": "Пик активности — 95 вкладов за один день.",
@@ -162,15 +162,15 @@
               171,
               2010,
               1199,
-              48
+              52
             ]
           }
         ]
       },
       "conclusions": [
         {
-          "ru": "За 12 месяцев — 23761 вкладов.",
-          "en": "Over 12 months: 23761 contributions."
+          "ru": "За 12 месяцев — 23765 вкладов.",
+          "en": "Over 12 months: 23765 contributions."
         },
         {
           "ru": "Сильнейший месяц — Apr с 3873 вкладами (16.3% годового объёма).",
@@ -309,7 +309,7 @@
               192,
               421,
               225,
-              89
+              93
             ]
           }
         ]
@@ -356,7 +356,7 @@
           {
             "name": "Contributions",
             "values": [
-              24832,
+              24836,
               0,
               0,
               2
@@ -366,12 +366,12 @@
       },
       "conclusions": [
         {
-          "ru": "Всего 24834 вкладов за год.",
-          "en": "24834 contributions in total over the year."
+          "ru": "Всего 24838 вкладов за год.",
+          "en": "24838 contributions in total over the year."
         },
         {
-          "ru": "Основной тип — Commits (24832, 100% вкладов).",
-          "en": "The dominant type is Commits (24832, 100% of contributions)."
+          "ru": "Основной тип — Commits (24836, 100% вкладов).",
+          "en": "The dominant type is Commits (24836, 100% of contributions)."
         }
       ]
     },
@@ -410,23 +410,23 @@
           {
             "name": "%",
             "values": [
-              33.9,
-              23.3,
-              17.3,
-              11.9,
-              4.4,
+              33.8,
+              23.2,
+              17.2,
+              12.2,
+              4.5,
               4.3,
               2.1,
               1.1,
-              1.7
+              1.6
             ]
           }
         ]
       },
       "conclusions": [
         {
-          "ru": "Основной язык — Python с долей 33.9% от 3942744 байт кода.",
-          "en": "The primary language is Python at 33.9% of 3942744 bytes of code."
+          "ru": "Основной язык — Python с долей 33.8% от 3961250 байт кода.",
+          "en": "The primary language is Python at 33.8% of 3961250 bytes of code."
         },
         {
           "ru": "Всего в профиле 13 языков, из них 9 показаны на графике.",
