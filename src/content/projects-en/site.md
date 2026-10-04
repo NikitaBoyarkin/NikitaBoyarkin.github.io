@@ -8,6 +8,7 @@ star:
   result: "Invalid frontmatter breaks the build, not the deploy; no link hardcodes the base; adding a project needs no code changes"
 track: engineering
 hero: images/site.svg
+ogImage: /images/og/site.png
 impact:
   - Astro 7 + TypeScript + Markdown content collections
   - Dark/light theme with no-flash inline script

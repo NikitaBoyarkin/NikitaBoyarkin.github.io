@@ -8,6 +8,7 @@ star:
   result: "Type I error ≈ α у каждого метода; покрытие CI ≈ 95% для bootstrap; 15 модулей калибруются симуляцией"
 track: experiments
 hero: images/ab.svg
+ogImage: /images/og/ab.png
 impact:
   - "15 модулей, каждый откалиброван симуляцией: Type I error ≈ α, power-кривые"
   - "CUPED снижает дисперсию на ρ², то есть SE — примерно в ρ раз"

@@ -8,6 +8,7 @@ star:
   result: "KYC fix: +5.72pp conversion (p<0.0001) → €656K/yr at 44× ROI; M3 retention +9.2pp"
 track: experiments
 hero: images/volta.svg
+ogImage: /images/og/volta-neobank-case-study.png
 impact:
   - +5.72pp KYC conversion (Z=5.82, p<0.0001), €656K/yr (44× ROI)
   - +9.2pp M3 retention, +€227K/yr incremental LTV

@@ -8,6 +8,7 @@ star:
   result: "10 игр: 7 аналитических и 3 аркадных, один файл без сервера; smoke-тесты Playwright ловят поломки"
 track: experiments
 hero: images/games.svg
+ogImage: /images/og/games.png
 impact:
   - "10 игр: 7 аналитических + 3 аркадных, каждая — self-contained SVG"
   - "Аналитические концепции → игровая механика: p<0.05, retention day, funnel bottleneck"

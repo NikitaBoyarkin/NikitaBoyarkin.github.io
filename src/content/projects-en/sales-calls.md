@@ -8,6 +8,7 @@ star:
   result: "An answer in a minute: which step loses the client and what to fix; the funnel yields weighted contact loss and a first A/B scenario"
 track: analytics
 hero: images/sales-calls.svg
+ogImage: /images/og/sales-calls.png
 impact:
   - "16,891 synthetic calls, deterministic labeling (script markers)"
   - "4-step funnel: greeting → offer → meeting → qualification"

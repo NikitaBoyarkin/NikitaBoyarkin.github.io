@@ -8,6 +8,7 @@ star:
   result: "Full analytics lifecycle: 7 analyses, a typed event catalog with no PII leaks, metrics that reproduce in both Python and SQL"
 track: product
 hero: images/posthog.svg
+ogImage: /images/og/posthog.png
 impact:
   - Typed event catalog (single source of truth) + PostHog capture/identify/group with PII scrubbing
   - Feature flag → onboarding A/B variant; A/B analysis with chi-square, uplift, Wilson CI + SRM check

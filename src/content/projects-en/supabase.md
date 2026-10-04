@@ -8,6 +8,7 @@ star:
   result: "A/B concluded: control 32.1% vs treatment 37.2%, +5.1pp at p = 0.0034 (χ²); metrics computed in the DB for any client"
 track: product
 hero: images/supabase.svg
+ogImage: /images/og/supabase.png
 impact:
   - "Full-stack: Streamlit UI + Supabase Postgres + Edge Function ingest (API-key auth)"
   - Row Level Security on every table — a user sees only their org's rows

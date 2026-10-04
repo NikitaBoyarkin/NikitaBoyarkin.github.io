@@ -8,6 +8,7 @@ star:
   result: "Four RFM groups: a small high-value share drives a disproportionate share of revenue; marketing moved to segmented scenarios"
 track: analytics
 hero: images/rfm.svg
+ogImage: /images/og/rfm.png
 impact:
   - High-value RFM segments identified across the client base
   - Marketing got clear personas for targeting

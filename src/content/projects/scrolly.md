@@ -8,6 +8,7 @@ star:
   result: "Нарратив и визуализация синхронны: читатель доходит до абзаца, график меняется; новая сцена — data-файл плюс MDX"
 track: engineering
 hero: images/scrolly.svg
+ogImage: /images/og/scrolly.png
 impact:
   - Scrollytelling-нарратив на Astro 6 + MDX, D3-визуализации (workflow, bars, calendar, checklist)
   - Контент и визуализации разделены — доверенный data-модуль, frontmatter безопасно мёржится

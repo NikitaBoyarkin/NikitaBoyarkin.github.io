@@ -1,8 +1,12 @@
-// Per-post branded OG image generator.
-// Reads src/content/posts/*.md frontmatter, renders a 1200x630 branded SVG
-// per post, and converts it to PNG (+ a WebP sibling) into public/images/og/.
+// Per-content branded OG image generator.
+// Reads src/content/posts/*.md and src/content/projects/*.md frontmatter,
+// renders a 1200x630 branded SVG per entry, and converts it to PNG (+ a WebP
+// sibling) into public/images/og/.
 // Run: bun run og
-// Not wired into the build — run manually when posts change; commit the PNGs.
+// Not wired into the build — run manually when content changes; commit the PNGs.
+//
+// A project that already declares `ogImage` owns its card (volta ships a
+// hand-made case-study banner) and is skipped, so a re-run never clobbers it.
 //
 // Palette: this is the BLUE marketing surface — BRAND_BLUE / ACCENT_ON_BLUE /
 // CREAM, the same regime as portfolio-banner-v2 and portfolio-graph-v2, so all
@@ -37,7 +41,17 @@ import {
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const POSTS_DIR = join(ROOT, 'src/content/posts');
+const PROJECTS_DIR = join(ROOT, 'src/content/projects');
 const OUT_DIR = join(ROOT, 'public/images/og');
+
+// Project `track` values are taxonomy keys, not display strings — spell them
+// out for the card pill the same way the board's category tabs do.
+const TRACK_LABELS = {
+  experiments: 'Experiments',
+  analytics: 'Analytics',
+  product: 'Product',
+  engineering: 'Engineering',
+};
 
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true });
 
@@ -56,7 +70,7 @@ const TITLE_STEPS = [
   { size: 46, chars: 40 },
 ];
 
-// Naive frontmatter parse — only needs title / category / draft.
+// Naive frontmatter parse — only needs title / category / track / ogImage / draft.
 function parseFrontmatter(text) {
   const m = text.match(/^---\n([\s\S]*?)\n---/);
   if (!m) return {};
@@ -66,7 +80,13 @@ function parseFrontmatter(text) {
     if (!line) return undefined;
     return line[1].trim().replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1');
   };
-  return { title: get('title'), category: get('category'), draft: get('draft') };
+  return {
+    title: get('title'),
+    category: get('category'),
+    track: get('track'),
+    ogImage: get('ogImage'),
+    draft: get('draft'),
+  };
 }
 
 // Word-wrap a title into lines that fit the OG canvas at the given font size.
@@ -185,28 +205,48 @@ function toWebp(pngPath) {
   return null;
 }
 
-const files = readdirSync(POSTS_DIR).filter((f) => f.endsWith('.md'));
-let made = 0;
-const errors = [];
-
-for (const file of files) {
-  const slug = file.replace(/\.md$/, '');
-  const text = readFileSync(join(POSTS_DIR, file), 'utf8');
-  const fm = parseFrontmatter(text);
-  if (fm.draft === 'true') continue;
-  if (!fm.title) {
-    errors.push(`${slug}: no title`);
-    continue;
+/**
+ * Render one card per content file in `dir`. `pill` picks the label for the
+ * category badge; `skip` lets a file opt out because it declares its own image.
+ */
+function generate({ dir, pill, skip = () => false }) {
+  let made = 0;
+  const errors = [];
+  for (const file of readdirSync(dir).filter((f) => f.endsWith('.md'))) {
+    const slug = file.replace(/\.md$/, '');
+    const fm = parseFrontmatter(readFileSync(join(dir, file), 'utf8'));
+    if (fm.draft === 'true') continue;
+    if (!fm.title) {
+      errors.push(`${slug}: no title`);
+      continue;
+    }
+    if (skip(fm)) {
+      console.log(`  --  ${slug} (declares its own ogImage)`);
+      continue;
+    }
+    const pngPath = join(OUT_DIR, `${slug}.png`);
+    renderSvgToPng(buildSvg(fm.title, pill(fm)), pngPath, { tmpName: `og-${slug}` });
+    const webpErr = toWebp(pngPath);
+    if (webpErr) errors.push(`${slug}: ${webpErr}`);
+    else {
+      made++;
+      console.log(`  OK  ${slug}.png + .webp`);
+    }
   }
-  const pngPath = join(OUT_DIR, `${slug}.png`);
-  renderSvgToPng(buildSvg(fm.title, fm.category), pngPath, { tmpName: `og-${slug}` });
-  const webpErr = toWebp(pngPath);
-  if (webpErr) errors.push(`${slug}: ${webpErr}`);
-  else {
-    made++;
-    console.log(`  OK  ${slug}.png + .webp`);
-  }
+  return { made, errors };
 }
+
+// Posts and projects share the og/ namespace; slugs are disjoint today (asserted
+// by tests/lib/og-images.test.ts), so a collision cannot silently overwrite.
+const postRun = generate({ dir: POSTS_DIR, pill: (fm) => fm.category });
+const projectRun = generate({
+  dir: PROJECTS_DIR,
+  pill: (fm) => TRACK_LABELS[fm.track] ?? 'Project',
+  skip: (fm) => Boolean(fm.ogImage),
+});
+
+const made = postRun.made + projectRun.made;
+const errors = [...postRun.errors, ...projectRun.errors];
 
 console.log(`\nGenerated ${made} OG image(s) → public/images/og/`);
 if (errors.length) {

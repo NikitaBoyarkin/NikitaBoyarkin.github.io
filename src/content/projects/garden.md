@@ -8,6 +8,7 @@ star:
   result: "Связи вместо хронологии: бэклинки делают заметку узлом, граф превращает накопление заметок в навигируемую структуру"
 track: engineering
 hero: images/garden.svg
+ogImage: /images/og/garden.png
 impact:
   - "Zettelkasten со ссылками: backlinks + graph view"
   - Атомарные evergreen-заметки вместо хронологической ленты

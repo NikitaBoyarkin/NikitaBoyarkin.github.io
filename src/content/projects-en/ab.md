@@ -8,6 +8,7 @@ star:
   result: "Type I error ≈ α for every method under its null; CI coverage ≈ 95% for the bootstrap; 15 modules calibrated by simulation"
 track: experiments
 hero: images/ab.svg
+ogImage: /images/og/ab.png
 impact:
   - "15 modules, each calibrated by simulation: Type I error ≈ α, power curves"
   - "CUPED drops variance by ρ², so the standard error by ~ρ"

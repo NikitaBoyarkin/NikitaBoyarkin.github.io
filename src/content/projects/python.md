@@ -8,6 +8,7 @@ star:
   result: "Покрытие pytest ≥80%; модули маленькие и одноцелевые, требования в PRD, инструмент можно дорабатывать, не ломая существующее"
 track: analytics
 hero: images/python.svg
+ogImage: /images/og/python.png
 impact:
   - Модули load / clean / EDA / viz / pipeline с покрытием pytest ≥80%
   - Единый end-to-end пайплайн, запускаемый как `python -m python_analytics`

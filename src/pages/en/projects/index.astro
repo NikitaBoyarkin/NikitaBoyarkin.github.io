@@ -1,7 +1,31 @@
 ---
+import { getCollection } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import ProjectBoard from '../../../components/ProjectBoard.astro';
 import { withBase } from '../../../lib/path';
+import { sortByProjectOrder } from '../../../lib/projects';
+
+// Catalog-level rich result: the board is a list of projects, so it earns a
+// CollectionPage + ItemList. Positions follow the board's visible order
+// (PROJECT_ORDER via sortByProjectOrder) so the markup matches what renders.
+const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
+const projects = sortByProjectOrder(await getCollection('projects-en', (p) => !p.data.draft));
+const collectionJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Projects',
+  url: `${siteUrl}${withBase('en/projects/')}`,
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: projects.length,
+    itemListElement: projects.map((project, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: project.data.title,
+      url: `${siteUrl}${withBase(`en/projects/${project.id.replace(/\.md$/, '')}/`)}`,
+    })),
+  },
+};
 ---
 
 <Base
@@ -11,6 +35,7 @@ import { withBase } from '../../../lib/path';
   activeNav="projects"
   lang="en"
   counterpartHref={withBase('projects/')}
+  jsonLd={collectionJsonLd}
 >
   <div class="projects-page">
     <h1 class="page-title reveal">Projects</h1>

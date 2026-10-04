@@ -8,6 +8,7 @@ star:
   result: "The funnel drops 54% at add-to-cart → checkout; retention falls from ~21% (D1) to ~5% (D30); only 3.5% repeat; on real data 72.4% return"
 track: analytics
 hero: images/sql.svg
+ogImage: /images/og/sql.png
 impact:
   - 26 self-contained SQL cases (funnel → RFM) + 1 real-data case
   - dbt model layer on DuckDB (staging → marts, 17 dbt tests)

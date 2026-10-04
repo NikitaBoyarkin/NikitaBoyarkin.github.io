@@ -195,6 +195,15 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     }
     <script is:inline type="application/ld+json" set:html={JSON.stringify(websiteLd).replace(/</g, '\\u003c')} />
 
+    {
+      /* No-JS fallback: `.reveal` starts at opacity 0 and only an
+         IntersectionObserver adds `.visible`. With scripting off the observer
+         never runs and the whole catalog — cards included — stays invisible,
+         so restore the revealed state here. `@media (scripting: none)` in
+         global.css covers the same case for engines that honour it. */
+    }
+    <noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+
     <script is:inline>
       // Prevent theme flash: apply saved or preferred theme before first paint.
       // Three themes: dark (default), light, cyberpunk.

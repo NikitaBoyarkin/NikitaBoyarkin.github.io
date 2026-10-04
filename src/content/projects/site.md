@@ -8,6 +8,7 @@ star:
   result: "Невалидный frontmatter ломает сборку, а не деплой; ни одна ссылка не хардкодит base; новый проект — без правки кода"
 track: engineering
 hero: images/site.svg
+ogImage: /images/og/site.png
 impact:
   - Astro 7 + TypeScript + Markdown content collections
   - Тёмная/светлая тема без flash

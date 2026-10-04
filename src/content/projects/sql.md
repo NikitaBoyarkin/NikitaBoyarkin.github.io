@@ -8,6 +8,7 @@ star:
   result: "Воронка теряет 54% на add-to-cart → checkout; retention с ~21% (D1) до ~5% (D30); повторных покупок 3.5%; на real data возвращаются 72.4%"
 track: analytics
 hero: images/sql.svg
+ogImage: /images/og/sql.png
 impact:
   - 26 self-contained SQL-кейсов (funnel → RFM) + 1 real-data кейс
   - dbt-слой на DuckDB (staging → marts, 17 dbt-тестов)

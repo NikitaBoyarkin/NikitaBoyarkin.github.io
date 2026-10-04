@@ -6,6 +6,9 @@
 //      not rot when a post is edited.
 //   2. The search index drops a collection when one is left out of the fetch
 //      (EN posts were missing from it).
+//   3. The projects board carries no CollectionPage/ItemList JSON-LD, so the
+//      catalog is invisible to rich results even though the detail pages
+//      (Article + FAQPage) are annotated.
 //
 // Requires `bun run build` first (reads dist/).
 
@@ -77,6 +80,50 @@ describe('built search index', () => {
     for (const entry of searchIndex) {
       const pathname = entry.href.endsWith('/') ? entry.href : `${entry.href}/`;
       expect(existsSync(resolve(DIST, `.${pathname}index.html`))).toBe(true);
+    }
+  });
+});
+
+/** Every JSON-LD node embedded in a built page (a page emits several scripts). */
+function jsonLdNodes(html: string): Record<string, unknown>[] {
+  const matches = html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g);
+  return [...matches].map((m) => JSON.parse(m[1]) as Record<string, unknown>);
+}
+
+describe('built projects index', () => {
+  // 17 published projects, no drafts — the count the board renders.
+  const cases: Array<[string, number]> = [
+    ['projects', 17],
+    ['en/projects', 17],
+  ];
+
+  it('emits CollectionPage + ItemList for the catalog', () => {
+    for (const [dir] of cases) {
+      const html = readFileSync(resolve(DIST, dir, 'index.html'), 'utf8');
+      const collection = jsonLdNodes(html).find((node) => node['@type'] === 'CollectionPage');
+      expect(collection).toBeTruthy();
+      const list = collection?.mainEntity as Record<string, unknown> | undefined;
+      expect(list?.['@type']).toBe('ItemList');
+    }
+  });
+
+  it('lists every project as a 1-based ListItem', () => {
+    for (const [dir, count] of cases) {
+      const html = readFileSync(resolve(DIST, dir, 'index.html'), 'utf8');
+      const collection = jsonLdNodes(html).find((node) => node['@type'] === 'CollectionPage');
+      const list = collection?.mainEntity as {
+        numberOfItems: number;
+        itemListElement: Array<Record<string, unknown>>;
+      };
+      expect(list.numberOfItems).toBe(count);
+      expect(list.itemListElement.length).toBe(count);
+      expect(list.itemListElement.map((item) => item.position)).toEqual(
+        Array.from({ length: count }, (_, i) => i + 1),
+      );
+      for (const item of list.itemListElement) {
+        expect(item['@type']).toBe('ListItem');
+        expect(String(item.url)).toMatch(/^https:\/\/[^ ]+\/projects\//);
+      }
     }
   });
 });

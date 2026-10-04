@@ -8,6 +8,7 @@ star:
   result: "pytest coverage ≥80%; modules stay small and single-purpose, requirements live in the PRD, and the tool extends without breakage"
 track: analytics
 hero: images/python.svg
+ogImage: /images/og/python.png
 impact:
   - Modular load / clean / EDA / viz / pipeline modules with pytest coverage ≥80%
   - Single end-to-end pipeline runnable as `python -m python_analytics`

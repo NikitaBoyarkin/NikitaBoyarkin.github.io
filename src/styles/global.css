@@ -320,6 +320,15 @@ p {
   opacity: 1;
   transform: translateY(0);
 }
+/* No-JS: scripting disabled means no IntersectionObserver, so `.visible` is
+   never added and the content would stay at opacity 0. Reveal it outright —
+   the animation only means anything once scripts can drive it. */
+@media (scripting: none) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
 .reveal-delay-1 {
   transition-delay: 0.1s;
 }

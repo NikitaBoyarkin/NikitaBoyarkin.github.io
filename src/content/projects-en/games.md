@@ -8,6 +8,7 @@ star:
   result: "10 games: 7 analytics and 3 arcade, one file with no server; Playwright smoke tests catch load failures"
 track: experiments
 hero: images/games.svg
+ogImage: /images/og/games.png
 impact:
   - "10 games: 7 analytics + 3 arcade, each a self-contained SVG"
   - "Analytics concepts → game mechanics: p<0.05, retention day, funnel bottleneck"

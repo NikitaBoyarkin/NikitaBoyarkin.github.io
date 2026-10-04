@@ -8,6 +8,7 @@ star:
   result: "Cohort matrix instead of average retention: churn speed and where monetization diverges are visible"
 track: analytics
 hero: images/cohort.svg
+ogImage: /images/og/cohort.png
 impact:
   - Cohort retention matrix with triangular decay
   - ARPU / LTV by cohort with proper observation-age caveat

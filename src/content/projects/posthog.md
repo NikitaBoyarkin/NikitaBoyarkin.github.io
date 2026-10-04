@@ -8,6 +8,7 @@ star:
   result: "Полный цикл аналитики: 7 анализов, типизированный каталог событий без утечек PII, метрики воспроизводимы и в Python, и в SQL"
 track: product
 hero: images/posthog.svg
+ogImage: /images/og/posthog.png
 impact:
   - Типизированный каталог событий (единый источник правды) + PostHog capture/identify/group со скрабингом PII
   - Feature-flag → A/B-вариант онбординга; анализ A/B с χ², uplift, Wilson CI и проверкой SRM

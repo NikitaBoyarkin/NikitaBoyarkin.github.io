@@ -8,6 +8,7 @@ star:
   result: "Narrative and visualization in sync: the chart changes as the reader reaches a paragraph; a new scene is just a data file plus MDX"
 track: engineering
 hero: images/scrolly.svg
+ogImage: /images/og/scrolly.png
 impact:
   - Scrollytelling narrative on Astro 6 + MDX, D3 visualizations (workflow, bars, calendar, checklist)
   - Content and visuals decoupled — trusted data module, frontmatter safely merged on top

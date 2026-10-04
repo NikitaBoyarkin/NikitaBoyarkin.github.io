@@ -8,6 +8,7 @@ star:
   result: "Standard error down ~26%; 5.6k users per arm instead of 10k; new users respond ~10x more than returning ones"
 track: experiments
 hero: images/causal.svg
+ogImage: /images/og/causal.png
 impact:
   - CUPED keeps the ATE (0.270 → 0.276) and cuts the standard error ~26%
   - Same power with ~5.6k users/arm instead of 10k (95% CI narrows 1.35x)

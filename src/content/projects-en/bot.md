@@ -8,6 +8,7 @@ star:
   result: "Manual 1–2h of prep became a cron job; the report arrives on schedule and the analyst interprets instead of copying numbers"
 track: engineering
 hero: images/bot.svg
+ogImage: /images/og/bot.png
 impact:
   - Cut weekly report prep from 1–2h to automated cron
   - KPI table + sparklines delivered on schedule

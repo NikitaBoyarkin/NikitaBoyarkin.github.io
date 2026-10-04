@@ -8,6 +8,7 @@ star:
   result: "Links over chronology: backlinks make each note a node, and the graph turns note accumulation into a navigable structure"
 track: engineering
 hero: images/garden.svg
+ogImage: /images/og/garden.png
 impact:
   - Linked-notes Zettelkasten with backlinks + graph view
   - Atomic evergreen notes over chronological posts

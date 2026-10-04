@@ -8,6 +8,7 @@ star:
   result: "Funnel, Retention, Revenue и Segments читаются на одной базе; тот же UI стал слоем презентации Supabase-проекта"
 track: product
 hero: images/streamlit.svg
+ogImage: /images/og/streamlit.png
 impact:
   - 8 000 синтетических пользователей, Jan 2024 – Jun 2025, детерминированный seed = 42
   - "AARRR-воронка: app_open → signup → activate → start_trial → subscribe с пошаговым drop-off"

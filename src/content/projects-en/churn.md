@@ -8,6 +8,7 @@ star:
   result: "In the top 10% riskiest the model catches 53% of real churners at 3.07x lift"
 track: analytics
 hero: images/churn.svg
+ogImage: /images/og/churn.png
 impact:
   - Chronological snapshot split (train/val/test) — no future activity leaks into training
   - Churn label = a future 30-day inactivity window for recently active users only
