@@ -157,3 +157,46 @@ All resolved 2026-09-20 (defaults accepted):
 4. ~~Where cycle specs live~~ → **`docs/spec-*.md`** (this pattern).
 
 No blocking open questions remain; the spec is approved and ready for Phase 2 (Plan).
+
+## Measurement result (2026-10-04)
+
+First acceptance measurement after implementation. **Server: `bun run serve-dist`** (not `astro preview`
+— see the tooling note below). 3 runs per URL, same `.lighthouserc.json` assertions; thresholds untouched.
+
+| Metric | `/` | `/en/` | Budget | Verdict |
+|---|---|---|---|---|
+| Lighthouse performance | **0.86** | **0.82** | ≥ 0.85 (warn) | ✅ `/` · ⚠️ `/en/` (warn only) |
+| accessibility / best-practices / **seo** | 1.0 / 1.0 / **1.0** | 1.0 / 1.0 / **1.0** | ≥ 0.95 (error) | ✅ all pass |
+| **Total Blocking Time** | **0 ms** | **0 ms** | ≤ 200 ms | ✅ (was 3 520 ms) |
+| Main-thread work | **0.4 s** | **0.6 s** | ≤ 4 s | ✅ (was 13.1 s) |
+| Time to Interactive | 3.6 s | 4.2 s | ≤ 3.8 s | ✅ `/` · ❌ `/en/` |
+| FCP / LCP / CLS | 2.4 s / **3.6 s** / 0.069 | 2.6 s / **4.2 s** / 0.003 | LCP ≤ 2.5 s, CLS ≤ 0.1 | CLS ✅ · LCP ❌ |
+
+Evidence class per metric: **Verified** for all rows (LHCI asserted them on this machine, this build).
+
+**Decision #1 (3D avatar opt-in) is confirmed effective — Verified.** TBT 3 520 ms → **0 ms** and
+main-thread 13.1 s → **0.4–0.6 s**: the 960 KB `avatar-3d` chunk no longer executes inside the
+measurement window. Success Criterion 1 is met for `/`, and its TBT / main-thread targets are met
+for both. Still open: `/en/` performance 0.82 (warn-only, non-blocking) and LCP 3.6 / 4.2 s against
+the ≤ 2.5 s budget.
+
+**Caveat — local LCP is a floor, not the production number.** `serve-dist` (like `astro preview`)
+answers **uncompressed**, so `uses-text-compression` scores 0 locally. The deployed host does
+compress: `curl -sI -H 'Accept-Encoding: gzip, br' https://nikitaboyarkin.github.io/` →
+`content-encoding: gzip`, **17 220 B** vs **75 345 B** raw. The authoritative LCP/perf number must
+come from a measurement against the deployed site, not the local server.
+
+**Invalid earlier run (same day).** A run against `astro preview` reported perf 0.57 / 0.58 and
+**seo 0.92 — an error-level FAIL** whose only offender was a `link-text` hit on
+`https://docs.astro.build/en/reference/cli-reference/#astro-preferences` ("Learn more"). That anchor
+is **not present** in `dist/index.html`, in `serve-dist`, in `astro preview`, in `astro dev`, or on
+the deployed site (all four checked this session, zero matches). **Not reproducible; root cause
+unidentified.** Treat that run as invalid — it must not be cited as a baseline.
+
+**Tooling note (recommendation, not applied).** `collect.startServerCommand: "bun run preview"` is
+unreliable locally: Astro 7's `astro preview` **daemonizes** (detaches, may take another port, and
+prints JSON `{"message":"Preview server already running at http://localhost:4322 …"}`), while
+`startServerReadyPattern: "localhost"` matches that JSON immediately — so LHCI proceeds and measures
+`localhost:4321` regardless of which server actually holds it. Pointing the command at
+`bun run serve-dist` (foreground; prints `serving <root> at http://localhost:4321`) with
+`startServerReadyPattern: "serving"` makes the measurement deterministic. Thresholds stay as they are.
