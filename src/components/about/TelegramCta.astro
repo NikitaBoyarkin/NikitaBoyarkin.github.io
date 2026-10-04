@@ -1,0 +1,23 @@
+---
+// Both CTAs on /about open Telegram with a pre-filled message. The link is built
+// here rather than in the .mdx body so the copy stays editable: percent-encoding
+// a Russian sentence by hand inside MDX breaks silently — no test reads it back.
+interface Props {
+  text: string;
+  analytics: string;
+}
+const { text, analytics } = Astro.props;
+const href = `https://t.me/lofinibo?text=${encodeURIComponent(text)}`;
+---
+
+<p class="cta-row">
+  <a
+    class="button"
+    href={href}
+    data-analytics={analytics}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <slot />
+  </a>
+</p>

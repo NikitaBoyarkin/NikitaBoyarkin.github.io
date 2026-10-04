@@ -1,7 +1,12 @@
 ---
+import { getEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import AboutPage from '../../components/AboutPage.astro';
 import { withBase } from '../../lib/path';
+
+// Body copy lives in src/content/about/en.mdx — see AboutPage.astro.
+const entry = await getEntry('about', 'en');
+if (!entry) throw new Error('missing src/content/about/en.mdx');
 
 // Mirrors the RU ProfilePage; see src/pages/about.astro for the rationale.
 const jsonLd = {
@@ -52,5 +57,5 @@ const jsonLd = {
   counterpartHref={withBase('about/')}
   jsonLd={jsonLd}
 >
-  <AboutPage lang="en" />
+  <AboutPage entry={entry} />
 </Base>

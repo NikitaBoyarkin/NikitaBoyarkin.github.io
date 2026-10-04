@@ -1,0 +1,176 @@
+---
+lang: ru
+---
+
+{/*
+  Тело страницы /about. Правится как обычный Markdown.
+
+  Что важно не сломать (это проверяет tests/built/about.test.ts):
+    · id="start" / "who" / "now" / "work" / "career" — на них ведут 7 редиректов;
+    · data-analytics-section со значениями who / how / now / work / location —
+      из них Analytics.astro эмитит событие `section_viewed`;
+    · ссылка на CV несёт download и data-analytics="cv_download_pdf".
+
+  Цифры здесь не набираются: <HeroMetrics> и <CareerSnapshot> читают
+  src/lib/metrics.ts, поэтому полоса цифр, буллеты и OG-баннеры не разъезжаются.
+*/}
+
+<nav id="start" class="about-jump" aria-label="Содержание страницы">
+  <a href="#who">Кто я</a>
+  <a href="#how">Как работаю</a>
+  <a href="#career">Опыт</a>
+  <a href="#now">Сейчас</a>
+  <a href="#work">Как со мной работать</a>
+  <a href="#location">Локация / формат</a>
+  <a href="#stack">Стек</a>
+  <a href="#activity">Активность</a>
+</nav>
+
+<h2 id="who" data-analytics-section="who">Кто я</h2>
+
+Никита Бояркин, аналитик данных и продуктовый аналитик. 
+
+Фокус — эксперименты, retention и сегментация: от гипотезы до метрики, с кодом и SQL рядом с каждым выводом.
+
+Пришёл в аналитику из психологии труда (PhD, 2022–2025), поэтому начинаю с вопроса «что именно мы измеряем» — и только потом считаю. 
+
+Работодателей в резюме нет: портфолио собрано из проектной работы на синтетических и открытых данных.
+
+<HeroMetrics lang="ru" />
+
+<h2 id="how" data-analytics-section="how">Как работаю</h2>
+
+От гипотезы до метрики. 
+
+Вывод можно перепроверить: код, SQL и визуализация выложены рядом с каждым кейсом — читатель проверяет расчёт, а не доверяет цифре.
+
+Методология воспроизводимая: CUPED, AA-тесты, коррекция множественных сравнений, ship-gates. 
+
+Пусть решение останавливает заранее зарегистрированный MDE, а не удачный график.
+
+<CareerSnapshot lang="ru" />
+
+<h2 id="now" data-analytics-section="now">Сейчас</h2>
+
+<p class="now-updated">Обновлено · 4 октября 2026</p>
+
+- Развиваю этот сайт: личностный слой, граф знаний, аркада из 10 мини-игр.
+- Поддерживаю Obsidian knowledge base по product analytics — структурированный Zettelkasten с автоматизацией.
+- Готовлюсь к BI / Data Analyst и Product Analyst middle-интервью: SQL, pandas, алгоритмы, моки.
+- Экспериментирую с AI-assisted аналитическими workflow на Claude Code + MCP.
+- Пишу о практических data-техниках: A/B-тестирование, когортный анализ, RFM-сегментация.
+
+<p class="now-reading">Читаю: Designing Machine Learning Systems Чипы Нгуен.</p>
+
+<h2 id="work" data-analytics-section="work">Как со мной работать</h2>
+
+<p class="wwm-sub">Relationship manual — чтобы не тратить время на выяснение формата.</p>
+
+<div class="bento-grid">
+<div class="board-card wwm-block">
+  <h3>Ценности</h3>
+  <ul>
+    <li><b>Честность с данными</b> — если цифры против гипотезы, меняем гипотезу, а не цифры.</li>
+    <li><b>Скорость обучения</b> — быстро пробуем, быстро учимся, фиксируем результат.</li>
+    <li><b>Прямой фидбек</b> — без эвфемизмов и «мне кажется».</li>
+  </ul>
+</div>
+
+<div class="board-card wwm-block">
+  <h3>Стиль работы</h3>
+  <ul>
+    <li>Люблю контекст перед запросом: зачем, для кого, какое решение примем по результату.</li>
+    <li>Задаю уточняющие вопросы — лучше 5 вопросов в начале, чем переделка в конце.</li>
+    <li>Предпочитаю метрики впечатлениям: «выросло на 6pp» вместо «стало лучше».</li>
+  </ul>
+</div>
+
+<div class="board-card wwm-block">
+  <h3>Фидбек-нормы</h3>
+  <ul>
+    <li>Прямой, конкретный, с предложением: что не так, почему, как исправить.</li>
+    <li>Открыт к критике — считаю её бесплатным ускорением.</li>
+    <li>Фидбек по работе, не по личности.</li>
+  </ul>
+</div>
+
+<div class="board-card wwm-block">
+  <h3>Встречи</h3>
+  <ul>
+    <li>Адженда для встреч от 3 человек — иначе это не встреча, а чат.</li>
+    <li>Предпочитаю async: документ + комментарии вместо созвона ради созвона.</li>
+    <li>Готов к созвонам с целью: решение, ревью, синк по эксперименту.</li>
+  </ul>
+</div>
+
+<div class="board-card wwm-block">
+  <h3>Что мне важно в команде</h3>
+  <ul>
+    <li>Data-driven решения — метрики как язык, а не украшение.</li>
+    <li>Владение метриками — команда знает, что и зачем измеряет.</li>
+    <li>Экспериментальная культура — гипотезы проверяются, а не обсуждаются.</li>
+  </ul>
+</div>
+</div>
+
+<TelegramCta text="Привет! Прочитал «Как со мной работать» — обсудим формат." analytics="work_with_me_cta">Обсудить формат →</TelegramCta>
+
+<h2 id="location" data-analytics-section="location">Локация / формат</h2>
+
+<ul class="location-list">
+  <li>Москва, UTC+3.</li>
+  <li>Удалёнка или гибрид — по договорённости.</li>
+  <li>Грейд: middle и выше — аналитик данных / продуктовый аналитик.</li>
+  <li>Полная занятость. Открыт к предложениям.</li>
+</ul>
+
+<h2 id="stack">Стек</h2>
+
+<div class="stack-groups">
+  <div class="stack-group">
+    <h3>Анализ</h3>
+    <div class="skills">
+      <span class="skill-badge">SQL</span>
+      <span class="skill-badge">Python</span>
+      <span class="skill-badge">pandas</span>
+      <span class="skill-badge">визуализация</span>
+    </div>
+  </div>
+  <div class="stack-group">
+    <h3>Эксперименты</h3>
+    <div class="skills">
+      <span class="skill-badge">A/B</span>
+      <span class="skill-badge">CUPED</span>
+      <span class="skill-badge">AA-tests</span>
+      <span class="skill-badge">ship-gates</span>
+    </div>
+  </div>
+  <div class="stack-group">
+    <h3>Удержание и сегментация</h3>
+    <div class="skills">
+      <span class="skill-badge">когортный анализ</span>
+      <span class="skill-badge">retention-кривые</span>
+      <span class="skill-badge">RFM</span>
+    </div>
+  </div>
+</div>
+
+<h2>Ссылки</h2>
+
+<p class="about-links">
+  <a href="https://github.com/NikitaBoyarkin" target="_blank" rel="noopener noreferrer">GitHub</a>
+  {' · '}
+  <a href="https://www.linkedin.com/in/nikita-boyarkin" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+  {' · '}
+  <a href="/CV-Nikita-Boyarkin.pdf" download data-analytics="cv_download_pdf">CV</a>
+  {' · '}
+  <a href="/writing/">Статьи</a>
+  {' · '}
+  <a href="/value/">Ценность</a>
+  {' · '}
+  <a href="/contact/">Контакты</a>
+</p>
+
+<TelegramCta text="Привет! Прочитал «Кто я» — обсудим аналитику." analytics="whois_cta">Написать в Telegram →</TelegramCta>
+
+<GithubActivity lang="ru" />

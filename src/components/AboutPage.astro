@@ -1,192 +1,37 @@
 ---
-// The whole /about body, shared by RU and EN.
+// Shell for /about. The body copy lives in src/content/about/{ru,en}.mdx so it
+// is editable without touching this file.
 //
-// This page is the consolidation target of the old about-cluster: the 7 redirects
-// in astro.config.mjs point at #who / #work / #now / #start, and Analytics.astro
-// observes [data-analytics-section] to emit `section_viewed`. Both contracts are
-// asserted by tests/built/about.test.ts — do not rename an anchor or drop a
-// data-analytics-section without updating that test.
+// Contract kept by tests/built/about.test.ts: the 7 redirects in
+// astro.config.mjs point at #who / #work / #now / #start, and Analytics.astro
+// observes [data-analytics-section] to emit `section_viewed`. Do not rename an
+// anchor or drop a data-analytics-section without updating that test.
 //
-// Numbers are never typed here: CareerSnapshot and HeroMetrics both read
+// Numbers are never typed anywhere: CareerSnapshot and HeroMetrics both read
 // src/lib/metrics.ts (CV-authoritative), so the strip, the bullets and the OG
 // banners cannot drift apart.
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
 import AskMe from './AskMe.astro';
 import CareerSnapshot from './CareerSnapshot.astro';
 import GithubActivity from './GithubActivity.astro';
 import HeroMetrics from './HeroMetrics.astro';
+import TelegramCta from './about/TelegramCta.astro';
 import { withBase } from '../lib/path';
-import { formatDate } from '../lib/date';
 
 interface Props {
-  lang?: 'ru' | 'en';
+  entry: CollectionEntry<'about'>;
 }
-const { lang = 'ru' } = Astro.props;
+const { entry } = Astro.props;
+const lang = entry.data.lang;
 const isEn = lang === 'en';
 
-// Telegram deep-links: pre-fill the message so the first contact carries context.
-const tgWhois = `https://t.me/lofinibo?text=${encodeURIComponent(
-  isEn
-    ? 'Hi! I read "Who I am" — let us talk analytics.'
-    : 'Привет! Прочитал «Кто я» — обсудим аналитику.',
-)}`;
-const tgWork = `https://t.me/lofinibo?text=${encodeURIComponent(
-  isEn
-    ? 'Hi! I read "How I work" — let us discuss the format.'
-    : 'Привет! Прочитал «Как со мной работать» — обсудим формат.',
-)}`;
-
-// In-page jump nav — replaces the deleted /start route (routing value now lives on /about).
-const JUMP = [
-  { label: isEn ? 'Who I am' : 'Кто я', href: '#who' },
-  { label: isEn ? 'How I work' : 'Как работаю', href: '#how' },
-  { label: isEn ? 'Experience' : 'Опыт', href: '#career' },
-  { label: isEn ? 'Now' : 'Сейчас', href: '#now' },
-  { label: isEn ? 'How to work with me' : 'Как со мной работать', href: '#work' },
-  { label: isEn ? 'Location / format' : 'Локация / формат', href: '#location' },
-  { label: isEn ? 'Stack' : 'Стек', href: '#stack' },
-  { label: isEn ? 'Activity' : 'Активность', href: '#activity' },
-];
-
-// Every chip is a term the site already claims elsewhere (the "how I work"
-// paragraph, the case studies, src/lib/metrics.ts) — nothing is added here that
-// the portfolio cannot back with code.
-const STACK = [
-  {
-    title: isEn ? 'Analysis' : 'Анализ',
-    items: ['SQL', 'Python', 'pandas', isEn ? 'visualization' : 'визуализация'],
-  },
-  {
-    title: isEn ? 'Experiments' : 'Эксперименты',
-    items: ['A/B', 'CUPED', 'AA-tests', 'ship-gates'],
-  },
-  {
-    title: isEn ? 'Retention & segmentation' : 'Удержание и сегментация',
-    items: [
-      isEn ? 'cohort analysis' : 'когортный анализ',
-      isEn ? 'retention curves' : 'retention-кривые',
-      'RFM',
-    ],
-  },
-];
-
-const NOW = isEn
-  ? [
-      'Building out this site: the personal layer, the knowledge graph, a 10-mini-game arcade.',
-      'Maintaining an Obsidian knowledge base on product analytics — a structured Zettelkasten with automation.',
-      'Preparing for BI / Data Analyst and Product Analyst mid-level interviews: SQL, pandas, algorithms, mocks.',
-      'Experimenting with AI-assisted analytical workflows on Claude Code + MCP.',
-      'Writing about practical data techniques: A/B testing, cohort analysis, RFM segmentation.',
-    ]
-  : [
-      'Развиваю этот сайт: личностный слой, граф знаний, аркада из 10 мини-игр.',
-      'Поддерживаю Obsidian knowledge base по product analytics — структурированный Zettelkasten с автоматизацией.',
-      'Готовлюсь к BI / Data Analyst и Product Analyst middle-интервью: SQL, pandas, алгоритмы, моки.',
-      'Экспериментирую с AI-assisted аналитическими workflow на Claude Code + MCP.',
-      'Пишу о практических data-техниках: A/B-тестирование, когортный анализ, RFM-сегментация.',
-    ];
-
-const NOW_READING = isEn
-  ? 'Reading: Designing Machine Learning Systems by Chip Huyen.'
-  : 'Читаю: Designing Machine Learning Systems Чипы Нгуен.';
-
-const LOCATION = isEn
-  ? [
-      'Moscow, UTC+3.',
-      'Remote or hybrid — by arrangement.',
-      'Grade: mid-level and up — Data Analyst / Product Analyst.',
-      'Full-time. Open to offers.',
-    ]
-  : [
-      'Москва, UTC+3.',
-      'Удалёнка или гибрид — по договорённости.',
-      'Грейд: middle и выше — аналитик данных / продуктовый аналитик.',
-      'Полная занятость. Открыт к предложениям.',
-    ];
-
-const WORK = [
-  {
-    title: isEn ? 'Values' : 'Ценности',
-    items: isEn
-      ? [
-          '<b>Honesty with data</b> — if the numbers contradict the hypothesis, we change the hypothesis, not the numbers.',
-          '<b>Speed of learning</b> — try fast, learn fast, record the result.',
-          '<b>Direct feedback</b> — no euphemisms, no "I feel like".',
-        ]
-      : [
-          '<b>Честность с данными</b> — если цифры против гипотезы, меняем гипотезу, а не цифры.',
-          '<b>Скорость обучения</b> — быстро пробуем, быстро учимся, фиксируем результат.',
-          '<b>Прямой фидбек</b> — без эвфемизмов и «мне кажется».',
-        ],
-  },
-  {
-    title: isEn ? 'Working style' : 'Стиль работы',
-    items: isEn
-      ? [
-          'I like context before a request: why, for whom, what decision the result will drive.',
-          'I ask clarifying questions — 5 questions up front beat rework at the end.',
-          'I prefer metrics over impressions: "up 6pp" instead of "it got better".',
-        ]
-      : [
-          'Люблю контекст перед запросом: зачем, для кого, какое решение примем по результату.',
-          'Задаю уточняющие вопросы — лучше 5 вопросов в начале, чем переделка в конце.',
-          'Предпочитаю метрики впечатлениям: «выросло на 6pp» вместо «стало лучше».',
-        ],
-  },
-  {
-    title: isEn ? 'Feedback norms' : 'Фидбек-нормы',
-    items: isEn
-      ? [
-          "Direct, specific, with a proposal: what is wrong, why, how to fix it.",
-          'Open to criticism — I treat it as free acceleration.',
-          'Feedback about the work, not the person.',
-        ]
-      : [
-          'Прямой, конкретный, с предложением: что не так, почему, как исправить.',
-          'Открыт к критике — считаю её бесплатным ускорением.',
-          'Фидбек по работе, не по личности.',
-        ],
-  },
-  {
-    title: isEn ? 'Meetings' : 'Встречи',
-    items: isEn
-      ? [
-          "An agenda for any meeting with 3+ people — otherwise it's a chat, not a meeting.",
-          'I prefer async: a document + comments over a call for the sake of a call.',
-          'Ready for calls with a purpose: a decision, a review, an experiment sync.',
-        ]
-      : [
-          'Адженда для встреч от 3 человек — иначе это не встреча, а чат.',
-          'Предпочитаю async: документ + комментарии вместо созвона ради созвона.',
-          'Готов к созвонам с целью: решение, ревью, синк по эксперименту.',
-        ],
-  },
-  {
-    title: isEn ? 'What matters to me in a team' : 'Что мне важно в команде',
-    items: isEn
-      ? [
-          'Data-driven decisions — metrics as the language, not decoration.',
-          'Metric ownership — the team knows what it measures and why.',
-          'An experimentation culture — hypotheses get tested, not debated.',
-        ]
-      : [
-          'Data-driven решения — метрики как язык, а не украшение.',
-          'Владение метриками — команда знает, что и зачем измеряет.',
-          'Экспериментальная культура — гипотезы проверяются, а не обсуждаются.',
-        ],
-  },
-];
-
-const LINKS = [
-  { label: 'GitHub', href: 'https://github.com/NikitaBoyarkin', external: true },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/nikita-boyarkin', external: true },
-  { label: 'CV', href: withBase('CV-Nikita-Boyarkin.pdf'), download: true },
-  { label: isEn ? 'Writing' : 'Статьи', href: withBase(isEn ? 'en/writing/' : 'writing/') },
-  { label: isEn ? 'Value' : 'Ценность', href: withBase(isEn ? 'en/value/' : 'value/') },
-  { label: isEn ? 'Contact' : 'Контакты', href: withBase(isEn ? 'en/contact/' : 'contact/') },
-];
+// Rendered here, not in the pages: `components` resolves the MDX tags
+// (<HeroMetrics /> etc.) so the .mdx files import nothing.
+const { Content } = await render(entry);
 ---
 
-<section class="container reveal">
+<section class="container reveal about-body">
   <header class="about-head">
     <img
       class="about-portrait"
@@ -203,152 +48,40 @@ const LINKS = [
     </div>
   </header>
 
-  <nav id="start" class="about-jump" aria-label={isEn ? 'Page contents' : 'Содержание страницы'}>
-    {JUMP.map((j) => <a href={j.href}>{j.label}</a>)}
-  </nav>
-
-  <h2 id="who" data-analytics-section="who">{isEn ? 'Who I am' : 'Кто я'}</h2>
-  <p>
-    {
-      isEn
-        ? 'Nikita Boyarkin, data and product analyst. Focus — experiments, retention and segmentation: from hypothesis to metric, with code and SQL sitting next to every conclusion.'
-        : 'Никита Бояркин, аналитик данных и продуктовый аналитик. Фокус — эксперименты, retention и сегментация: от гипотезы до метрики, с кодом и SQL рядом с каждым выводом.'
-    }
-  </p>
-  <p>
-    {
-      isEn
-        ? 'I came to analytics from work psychology (PhD, 2022–2025), which is why I start with "what exactly are we measuring" and only then run the numbers. There is no employer history on my CV — the portfolio is built from project work on synthetic and open data.'
-        : 'Пришёл в аналитику из психологии труда (PhD, 2022–2025), поэтому начинаю с вопроса «что именно мы измеряем» — и только потом считаю. Работодателей в резюме нет: портфолио собрано из проектной работы на синтетических и открытых данных.'
-    }
-  </p>
-
-  <HeroMetrics lang={lang} />
-
-  <h2 id="how" data-analytics-section="how">{isEn ? 'How I work' : 'Как работаю'}</h2>
-  <p>
-    {
-      isEn
-        ? 'From hypothesis to metric. Every conclusion can be re-checked: code, SQL and visualization sit next to each case, so you verify the calculation instead of trusting the number.'
-        : 'От гипотезы до метрики. Вывод можно перепроверить: код, SQL и визуализация выложены рядом с каждым кейсом — читатель проверяет расчёт, а не доверяет цифре.'
-    }
-  </p>
-  <p>
-    {
-      isEn
-        ? 'The methodology is reproducible: CUPED, AA-tests, multiple-comparison correction, ship-gates. I would rather have a pre-registered MDE stop a decision than a lucky chart.'
-        : 'Методология воспроизводимая: CUPED, AA-тесты, коррекция множественных сравнений, ship-gates. Пусть решение останавливает заранее зарегистрированный MDE, а не удачный график.'
-    }
-  </p>
-
-  <CareerSnapshot lang={lang} />
-
-  <h2 id="now" data-analytics-section="now">{isEn ? 'Now' : 'Сейчас'}</h2>
-  <p class="now-updated">{isEn ? 'Updated' : 'Обновлено'} · {formatDate('2026-10-04')}</p>
-  <ul>
-    {NOW.map((item) => <li>{item}</li>)}
-  </ul>
-  <p class="now-reading">{NOW_READING}</p>
-
-  <h2 id="work" data-analytics-section="work">{isEn ? 'How to work with me' : 'Как со мной работать'}</h2>
-  <p class="wwm-sub">
-    {
-      isEn
-        ? "A relationship manual — so we don't waste time figuring out the format."
-        : 'Relationship manual — чтобы не тратить время на выяснение формата.'
-    }
-  </p>
-
-  {
-    WORK.map((card) => (
-      <div class="board-card wwm-block">
-        <h3>{card.title}</h3>
-        <ul>
-          {card.items.map((item) => (
-            <li set:html={item} />
-          ))}
-        </ul>
-      </div>
-    ))
-  }
-
-  <p class="cta-row">
-    <a
-      class="button"
-      href={tgWork}
-      data-analytics="work_with_me_cta"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      {isEn ? 'Discuss the format →' : 'Обсудить формат →'}
-    </a>
-  </p>
-
-  <h2 id="location" data-analytics-section="location">{isEn ? 'Location / format' : 'Локация / формат'}</h2>
-  <ul class="location-list">
-    {LOCATION.map((item) => <li>{item}</li>)}
-  </ul>
-
-  <h2 id="stack">{isEn ? 'Stack' : 'Стек'}</h2>
-  <div class="stack-groups">
-    {
-      STACK.map((group) => (
-        <div class="stack-group">
-          <h3>{group.title}</h3>
-          <div class="skills">
-            {group.items.map((item) => (
-              <span class="skill-badge">{item}</span>
-            ))}
-          </div>
-        </div>
-      ))
-    }
-  </div>
-
-  <h2>{isEn ? 'Links' : 'Ссылки'}</h2>
-  <p class="about-links">
-    {
-      LINKS.map((l, i) => (
-        <>
-          {i > 0 && ' · '}
-          <a
-            href={l.href}
-            target={l.external ? '_blank' : undefined}
-            rel={l.external ? 'noopener noreferrer' : undefined}
-            download={l.download ? true : undefined}
-            data-analytics={l.download ? 'cv_download_pdf' : undefined}
-          >
-            {l.label}
-          </a>
-        </>
-      ))
-    }
-  </p>
-
-  <p class="cta-row">
-    <a
-      class="button"
-      href={tgWhois}
-      data-analytics="whois_cta"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      {isEn ? 'Message me on Telegram →' : 'Написать в Telegram →'}
-    </a>
-  </p>
-
-  <GithubActivity lang={lang} />
+  <Content components={{ HeroMetrics, CareerSnapshot, GithubActivity, TelegramCta }} />
 </section>
 
 <style>
+  /* Bento layout. HTML produced by <Content /> carries no data-astro-cid-*, so
+     every rule that targets MDX output goes through `.about-body :global(...)`;
+     the header is shell markup and keeps plain scoped selectors. Accent is used
+     only as a signal (bars, tick, dots), never as a surface — DESIGN.md 60-30-10. */
+
+  /* ── Hero panel ─────────────────────────────────────────────── */
   .about-head {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--space-5);
-    margin-bottom: var(--space-2);
+    padding: var(--space-6);
+    margin-bottom: var(--space-8);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    background: var(--card-background);
+    overflow: hidden;
+  }
+  .about-head::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--text-accent) 0%, transparent 65%);
   }
   .about-head h1 {
     margin: 0;
+    font-size: clamp(2rem, 1.4rem + 2vw, 2.9rem);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
   }
   /* 1229×1469 source; the declared 96×115 keeps the intrinsic ratio so a CSS
      failure degrades to a correctly proportioned box instead of a jump. */
@@ -361,94 +94,187 @@ const LINKS = [
     border: 1px solid var(--border-color);
     background: var(--background-secondary);
   }
-
   .about-sub {
+    margin: var(--space-2) 0 0;
     color: var(--text-muted);
-    font-size: 1.2rem;
-    margin: var(--space-1) 0 0;
+    font-size: 1.05rem;
   }
-  .about-jump {
+
+  /* ── Jump-nav → chips ───────────────────────────────────────── */
+  .about-body :global(.about-jump) {
     display: flex;
     flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-8) 0;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+  .about-body :global(.about-jump a) {
+    padding: var(--space-1) var(--space-3);
+    font-size: 0.8rem;
+    color: var(--text-normal);
+    text-decoration: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    background: var(--background-secondary);
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+  .about-body :global(.about-jump a:hover) {
+    color: var(--text-accent);
+    border-color: var(--border-active);
+    background: color-mix(in srgb, var(--text-accent) 8%, transparent);
+  }
+
+  /* ── Section headings: Cormorant + coral tick ───────────────── */
+  .about-body :global(h2) {
+    margin: var(--space-10) 0 var(--space-4);
+    padding-left: var(--space-4);
+    border-left: 4px solid var(--text-accent);
+    font-size: clamp(1.5rem, 1.2rem + 1vw, 1.9rem);
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Prose rhythm (DESIGN.md: 65ch, 1.05rem) ────────────────── */
+  .about-body :global(p) {
+    max-width: 65ch;
+    margin: var(--space-3) 0;
+    font-size: 1.05rem;
+    line-height: 1.7;
+  }
+  .about-body :global(.now-updated) {
+    margin: calc(var(--space-4) * -1 + var(--space-2)) 0 var(--space-3);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .about-body :global(.now-reading) {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .about-body :global(.wwm-sub) {
+    margin-top: calc(var(--space-4) * -1);
+    color: var(--text-muted);
+  }
+
+  /* ── Location list → panel with coral dots ──────────────────── */
+  .about-body :global(.location-list) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: var(--space-4) 0;
+    padding: var(--space-5);
+    color: var(--text-muted);
+    line-height: 1.6;
+    list-style: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--card-background);
+  }
+  .about-body :global(.location-list li) {
+    padding-left: var(--space-4);
+    border-left: 2px solid color-mix(in srgb, var(--text-accent) 55%, transparent);
+  }
+
+  /* ── Bento grid: the five "how to work with me" cards ───────── */
+  .about-body :global(.bento-grid) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-4) 0;
+  }
+  .about-body :global(.bento-grid .wwm-block) {
+    position: relative;
+    margin: 0;
+    max-width: none;
+    padding: var(--space-5);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--card-background);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .about-body :global(.bento-grid .wwm-block)::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: var(--text-accent);
+  }
+  .about-body :global(.bento-grid .wwm-block:hover) {
+    transform: translateY(-3px);
+    border-color: var(--border-active);
+    box-shadow: 0 10px 24px var(--shadow-color);
+  }
+  .about-body :global(.wwm-block h3) {
+    margin: 0 0 var(--space-3);
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+  }
+  .about-body :global(.wwm-block ul) {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  /* ── Stack: auto-fit cards ──────────────────────────────────── */
+  .about-body :global(.stack-groups) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: var(--space-4);
+  }
+  /* global.css:1208 lays .stack-group out as an inline label+chips row for a
+     bento cell; a card needs the label stacked above the chips instead. */
+  .about-body :global(.stack-group) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     gap: var(--space-3);
-    margin: var(--space-6) 0;
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-5);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     background: var(--background-secondary);
   }
-  .about-jump a {
-    color: var(--text-accent);
-    text-decoration: none;
-    font-size: 0.9rem;
-    border-bottom: 1px dotted var(--border-color);
-  }
-  .about-jump a:hover {
-    border-color: var(--text-accent);
-  }
-  .now-updated {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    margin-top: -0.25rem;
-  }
-  .now-reading {
-    color: var(--text-muted);
-    font-style: italic;
-  }
-  .wwm-sub {
-    color: var(--text-muted);
-    margin-top: -0.5rem;
-  }
-  .wwm-block {
-    margin-top: var(--space-4);
-    max-width: 60ch;
-  }
-  .wwm-block h3 {
-    margin: 0 0 var(--space-3);
-    font-size: 1.05rem;
-  }
-  .wwm-block ul {
-    margin: 0;
-    padding-left: 1.2rem;
-    color: var(--text-muted);
-    line-height: 1.6;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .location-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    color: var(--text-muted);
-    line-height: 1.6;
-  }
-
-  .stack-groups {
+  /* .skills only has a scoped rule under `.intro-content`; here it needs its
+     own wrap so chips flow instead of collapsing to one line. */
+  .about-body :global(.stack-group .skills) {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-6);
+    gap: var(--space-2);
   }
-  .stack-group h3 {
+  .about-body :global(.stack-group h3) {
     margin: 0 0 var(--space-3);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-muted);
   }
-  .about-links {
-    line-height: 2;
+
+  .about-body :global(.about-links) {
+    line-height: 2.2;
   }
 
   @media (max-width: 640px) {
     .about-head {
       gap: var(--space-4);
+      padding: var(--space-4);
     }
     .about-portrait {
       width: 72px;
       height: 86px;
+    }
+    .about-head h1 {
+      font-size: 1.7rem;
+    }
+    .about-body :global(.bento-grid),
+    .about-body :global(.stack-groups) {
+      grid-template-columns: 1fr;
     }
   }
 </style>

@@ -119,6 +119,18 @@ const glossaryEn = defineCollection({
   schema: termSchema,
 });
 
+// The /about body, one file per locale, authored as .mdx so the copy is
+// editable without touching .astro. `title` / `description` / JSON-LD stay on
+// the page wrappers — Base consumes them, there is nowhere here to read them.
+const aboutSchema = z.object({
+  lang: z.enum(['ru', 'en']),
+});
+
+const about = defineCollection({
+  loader: glob({ base: './src/content/about', pattern: '**/[^_]*.{md,mdx}' }),
+  schema: aboutSchema,
+});
+
 export const collections = {
   projects,
   'projects-en': projectsEn,
@@ -128,4 +140,5 @@ export const collections = {
   'posts-en': postsEn,
   glossary,
   'glossary-en': glossaryEn,
+  about,
 };

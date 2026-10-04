@@ -1,4 +1,5 @@
 import { defineConfig } from "astro/config";
+import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import { satteri } from "@astrojs/markdown-satteri";
 import fs from "node:fs";
@@ -160,6 +161,9 @@ export default defineConfig({
     "/cv/": "/CV-Nikita-Boyarkin.pdf",
   },
   integrations: [
+    // MDX inherits `markdown.processor` (satteri) by default — the /about body
+    // is authored as .mdx so its copy is editable without touching .astro.
+    mdx(),
     sitemap({
       i18n: {
         defaultLocale: "ru",

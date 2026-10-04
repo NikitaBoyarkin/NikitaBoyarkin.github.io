@@ -1,0 +1,168 @@
+---
+lang: en
+---
+
+{/*
+  Body of /about. Edit like plain Markdown.
+
+  Do not break (tests/built/about.test.ts asserts these):
+    · id="start" / "who" / "now" / "work" / "career" — seven redirects target them;
+    · data-analytics-section values who / how / now / work / location —
+      Analytics.astro emits `section_viewed` from them;
+    · the CV link carries download and data-analytics="cv_download_pdf".
+
+  No number is typed here: <HeroMetrics> and <CareerSnapshot> read
+  src/lib/metrics.ts, so the strip, the bullets and the OG banners stay aligned.
+*/}
+
+<nav id="start" class="about-jump" aria-label="Page contents">
+  <a href="#who">Who I am</a>
+  <a href="#how">How I work</a>
+  <a href="#career">Experience</a>
+  <a href="#now">Now</a>
+  <a href="#work">How to work with me</a>
+  <a href="#location">Location / format</a>
+  <a href="#stack">Stack</a>
+  <a href="#activity">Activity</a>
+</nav>
+
+<h2 id="who" data-analytics-section="who">Who I am</h2>
+
+Nikita Boyarkin, data and product analyst. Focus — experiments, retention and segmentation: from hypothesis to metric, with code and SQL sitting next to every conclusion.
+
+I came to analytics from work psychology (PhD, 2022–2025), which is why I start with "what exactly are we measuring" and only then run the numbers. There is no employer history on my CV — the portfolio is built from project work on synthetic and open data.
+
+<HeroMetrics lang="en" />
+
+<h2 id="how" data-analytics-section="how">How I work</h2>
+
+From hypothesis to metric. Every conclusion can be re-checked: code, SQL and visualization sit next to each case, so you verify the calculation instead of trusting the number.
+
+The methodology is reproducible: CUPED, AA-tests, multiple-comparison correction, ship-gates. I would rather have a pre-registered MDE stop a decision than a lucky chart.
+
+<CareerSnapshot lang="en" />
+
+<h2 id="now" data-analytics-section="now">Now</h2>
+
+<p class="now-updated">Updated · October 4, 2026</p>
+
+- Building out this site: the personal layer, the knowledge graph, a 10-mini-game arcade.
+- Maintaining an Obsidian knowledge base on product analytics — a structured Zettelkasten with automation.
+- Preparing for BI / Data Analyst and Product Analyst mid-level interviews: SQL, pandas, algorithms, mocks.
+- Experimenting with AI-assisted analytical workflows on Claude Code + MCP.
+- Writing about practical data techniques: A/B testing, cohort analysis, RFM segmentation.
+
+<p class="now-reading">Reading: Designing Machine Learning Systems by Chip Huyen.</p>
+
+<h2 id="work" data-analytics-section="work">How to work with me</h2>
+
+<p class="wwm-sub">A relationship manual — so we don't waste time figuring out the format.</p>
+
+<div class="bento-grid">
+<div class="board-card wwm-block">
+  <h3>Values</h3>
+  <ul>
+    <li><b>Honesty with data</b> — if the numbers contradict the hypothesis, we change the hypothesis, not the numbers.</li>
+    <li><b>Speed of learning</b> — try fast, learn fast, record the result.</li>
+    <li><b>Direct feedback</b> — no euphemisms, no "I feel like".</li>
+  </ul>
+</div>
+
+<div class="board-card wwm-block">
+  <h3>Working style</h3>
+  <ul>
+    <li>I like context before a request: why, for whom, what decision the result will drive.</li>
+    <li>I ask clarifying questions — 5 questions up front beat rework at the end.</li>
+    <li>I prefer metrics over impressions: "up 6pp" instead of "it got better".</li>
+  </ul>
+</div>
+
+<div class="board-card wwm-block">
+  <h3>Feedback norms</h3>
+  <ul>
+    <li>Direct, specific, with a proposal: what is wrong, why, how to fix it.</li>
+    <li>Open to criticism — I treat it as free acceleration.</li>
+    <li>Feedback about the work, not the person.</li>
+  </ul>
+</div>
+
+<div class="board-card wwm-block">
+  <h3>Meetings</h3>
+  <ul>
+    <li>An agenda for any meeting with 3+ people — otherwise it's a chat, not a meeting.</li>
+    <li>I prefer async: a document + comments over a call for the sake of a call.</li>
+    <li>Ready for calls with a purpose: a decision, a review, an experiment sync.</li>
+  </ul>
+</div>
+
+<div class="board-card wwm-block">
+  <h3>What matters to me in a team</h3>
+  <ul>
+    <li>Data-driven decisions — metrics as the language, not decoration.</li>
+    <li>Metric ownership — the team knows what it measures and why.</li>
+    <li>An experimentation culture — hypotheses get tested, not debated.</li>
+  </ul>
+</div>
+</div>
+
+<TelegramCta text='Hi! I read "How I work" — let us discuss the format.' analytics="work_with_me_cta">Discuss the format →</TelegramCta>
+
+<h2 id="location" data-analytics-section="location">Location / format</h2>
+
+<ul class="location-list">
+  <li>Moscow, UTC+3.</li>
+  <li>Remote or hybrid — by arrangement.</li>
+  <li>Grade: mid-level and up — Data Analyst / Product Analyst.</li>
+  <li>Full-time. Open to offers.</li>
+</ul>
+
+<h2 id="stack">Stack</h2>
+
+<div class="stack-groups">
+  <div class="stack-group">
+    <h3>Analysis</h3>
+    <div class="skills">
+      <span class="skill-badge">SQL</span>
+      <span class="skill-badge">Python</span>
+      <span class="skill-badge">pandas</span>
+      <span class="skill-badge">visualization</span>
+    </div>
+  </div>
+  <div class="stack-group">
+    <h3>Experiments</h3>
+    <div class="skills">
+      <span class="skill-badge">A/B</span>
+      <span class="skill-badge">CUPED</span>
+      <span class="skill-badge">AA-tests</span>
+      <span class="skill-badge">ship-gates</span>
+    </div>
+  </div>
+  <div class="stack-group">
+    <h3>Retention &amp; segmentation</h3>
+    <div class="skills">
+      <span class="skill-badge">cohort analysis</span>
+      <span class="skill-badge">retention curves</span>
+      <span class="skill-badge">RFM</span>
+    </div>
+  </div>
+</div>
+
+<h2>Links</h2>
+
+<p class="about-links">
+  <a href="https://github.com/NikitaBoyarkin" target="_blank" rel="noopener noreferrer">GitHub</a>
+  {' · '}
+  <a href="https://www.linkedin.com/in/nikita-boyarkin" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+  {' · '}
+  <a href="/CV-Nikita-Boyarkin.pdf" download data-analytics="cv_download_pdf">CV</a>
+  {' · '}
+  <a href="/en/writing/">Writing</a>
+  {' · '}
+  <a href="/en/value/">Value</a>
+  {' · '}
+  <a href="/en/contact/">Contact</a>
+</p>
+
+<TelegramCta text='Hi! I read "Who I am" — let us talk analytics.' analytics="whois_cta">Message me on Telegram →</TelegramCta>
+
+<GithubActivity lang="en" />

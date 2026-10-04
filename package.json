@@ -37,6 +37,7 @@
     "volta:map": "bun run scripts/gen-volta-map.mjs"
   },
   "dependencies": {
+    "@astrojs/mdx": "^8.0.2",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
     "@oneworks/avatar": "1.0.0-rc.9",
