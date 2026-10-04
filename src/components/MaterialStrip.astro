@@ -62,3 +62,15 @@ const webpOf = (src: string) => src.replace(/\.png$/, ".webp");
     <a href={withBase(`${isEn ? 'en/' : ''}writing/`)}>{footLabel} →</a>
   </p>
 </section>
+
+<style>
+  /* The section heading was unstyled (browser default h2) — align it with the
+     other editorial section headings: Cormorant at the shared scale. */
+  #materials > h2 {
+    font-family: var(--font-display);
+    font-size: var(--type-section-h2);
+    font-weight: 700;
+    margin-bottom: var(--space-3);
+    color: var(--text-normal);
+  }
+</style>

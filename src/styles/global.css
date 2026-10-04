@@ -114,6 +114,10 @@
     "Cormorant", "Georgia", "Times New Roman", "Literata", "Noto Serif", "PT Serif", serif;
   --font-mono: "SF Mono", Monaco, "Cascadia Mono", "Roboto Mono", monospace;
 
+  /* Content column + editorial section-heading scale (strict editorial pass). */
+  --content-max: 1180px;
+  --type-section-h2: clamp(1.9rem, 2.3vw, 2.4rem);
+
   /* Dataviz accent — distinct from the coral action accent so charts/graphs
      read as information, not as interactive calls-to-action. */
   --text-accent-dataviz: #4ecdc4;
@@ -676,7 +680,10 @@ nav ul.links a[aria-current="page"] {
   grid-template-columns: 1.2fr 0.8fr;
   gap: 3rem;
   align-items: center;
-  max-width: 1000px;
+  /* Spans the content column so the hero's two columns share an edge with every
+     section heading below (was 1000px, which only aligned while main capped at
+     960px). */
+  max-width: var(--content-max);
   margin: 0 auto;
 }
 
@@ -995,7 +1002,7 @@ nav ul.links a[aria-current="page"] {
   line-height: 1.55;
   color: var(--text-normal);
   max-width: 52ch;
-  border-left: 2px solid var(--text-accent);
+  border-left: 1px solid var(--border-color);
   padding-left: var(--space-3);
 }
 
@@ -1126,7 +1133,6 @@ nav ul.links a[aria-current="page"] {
   border-radius: var(--radius-xl);
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.25s ease, box-shadow 0.25s ease;
-  min-height: 100%;
 }
 
 .bento-cell:hover {
@@ -3716,7 +3722,7 @@ button:focus-visible {
      right of the rail; the footer hairline follows the same width. */
   main,
   footer {
-    max-width: 960px;
+    max-width: var(--content-max);
     margin-inline: auto;
   }
 

@@ -337,7 +337,7 @@ delegated listener in `Analytics.astro`; an element carrying
 `data-analytics-project="<slug>"` fires the canonical `project_viewed { slug, surface }`
 instead (homepage headline cases and `ProjectCard`). Existing named attributes:
 `project_demo_<slug>` / `project_github_<slug>` (ProjectCard),
-`headline_demo_<slug>` / `headline_github_<slug>` / `more_project_<slug>` /
+`headline_demo_<slug>` / `headline_github_<slug>` /
 `headline_all_projects` (HeadlineCases), `featured_project` / `featured_demo` /
 `featured_github` (homepage featured card), `bento_stack` / `bento_graph` /
 `bento_notes` (homepage bento),

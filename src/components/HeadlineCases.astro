@@ -27,8 +27,6 @@ const bySlug = new Map(projects.map((p) => [slugOf(p.id), p]));
 const headline = HEADLINE_PROJECTS.map((s) => bySlug.get(s)).filter(
   (p): p is (typeof projects)[number] => Boolean(p),
 );
-const headlineSlugs = new Set<string>(HEADLINE_PROJECTS);
-const rest = projects.filter((p) => !headlineSlugs.has(slugOf(p.id)));
 
 const tracks = new Map(projectTracks(lang).map((t) => [t.key, t.label]));
 
@@ -42,22 +40,11 @@ const i18n = {
   demo: isEn ? 'Live demo' : 'Демо',
   repo: 'GitHub',
   privateNote: isEn ? 'Private repo — available on request' : 'Приватный репозиторий — доступ по запросу',
-  restHeading: isEn ? 'More projects' : 'Остальные проекты',
   restLink: isEn ? 'Full catalogue' : 'Каталог проектов',
 };
 
 const demoHref = (d: string) => (d.startsWith('http') ? d : withBase(d));
 const projectHref = (slug: string) => withBase(`${linkPrefix}projects/${slug}/`);
-// Cut on a word boundary: a hard `slice` at 117 lands mid-word for 28 of the 80
-// descriptions ("Streaml…it dashboard", "≥8…0% pytest"), which reads as a bug
-// rather than as a deliberate teaser.
-const shortLine = (p: (typeof projects)[number]) => {
-  const text = p.data.description;
-  if (text.length <= 120) return text;
-  const cut = text.slice(0, 117);
-  const lastSpace = cut.lastIndexOf(' ');
-  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
-};
 ---
 
 <section id="cases" class="cases reveal" aria-labelledby="cases-heading">
@@ -133,34 +120,16 @@ const shortLine = (p: (typeof projects)[number]) => {
 
   <div class="cases-rest">
     <div class="cases-rest-head">
-      <h3>{i18n.restHeading}</h3>
       <a href={withBase(`${linkPrefix}projects/`)} data-analytics="headline_all_projects">
         {i18n.restLink} →
       </a>
     </div>
-    <ul class="cases-rest-list">
-      {
-        rest.map((p) => {
-          const slug = slugOf(p.id);
-          return (
-            <li>
-              <a href={projectHref(slug)} data-analytics={`more_project_${slug}`}>
-                <span class="rest-track">{tracks.get(p.data.track) ?? p.data.track}</span>
-                <span class="rest-title">{p.data.title}</span>
-                <span class="rest-line">{shortLine(p)}</span>
-              </a>
-            </li>
-          );
-        })
-      }
-    </ul>
   </div>
 </section>
 
 <style>
   .cases {
     margin: var(--space-16) auto;
-    max-width: 1100px;
     padding: 0 var(--space-5);
   }
   .cases-head {
@@ -176,6 +145,9 @@ const shortLine = (p: (typeof projects)[number]) => {
     margin: 0 0 var(--space-2);
   }
   .cases-head h2 {
+    font-family: var(--font-display);
+    font-size: var(--type-section-h2);
+    font-weight: 700;
     margin: 0 0 var(--space-3);
   }
   .cases-intro {
@@ -307,58 +279,9 @@ const shortLine = (p: (typeof projects)[number]) => {
     gap: var(--space-3);
     margin-bottom: var(--space-4);
   }
-  .cases-rest-head h3 {
-    margin: 0;
-    font-size: 1rem;
-  }
   .cases-rest-head a {
     font-size: 0.85rem;
     color: var(--text-accent);
     text-decoration: none;
-  }
-  .cases-rest-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    border-top: 1px solid var(--border-color);
-  }
-  .cases-rest-list li {
-    border-bottom: 1px solid var(--border-color);
-  }
-  .cases-rest-list a {
-    display: grid;
-    grid-template-columns: 7rem minmax(0, 14rem) 1fr;
-    align-items: baseline;
-    gap: var(--space-3);
-    padding: var(--space-3) var(--space-2);
-    text-decoration: none;
-    transition: background 0.15s ease;
-  }
-  .cases-rest-list a:hover {
-    background: color-mix(in srgb, var(--text-accent) 6%, transparent);
-  }
-  .rest-track {
-    font-size: 0.66rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-  .rest-title {
-    color: var(--text-normal);
-    font-weight: 600;
-    font-size: 0.92rem;
-  }
-  .rest-line {
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    line-height: 1.5;
-  }
-
-  @media (max-width: 640px) {
-    .cases-rest-list a {
-      grid-template-columns: 1fr;
-      gap: 0.15rem;
-    }
   }
 </style>
