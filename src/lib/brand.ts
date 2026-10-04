@@ -48,6 +48,15 @@ export const ACCENT_ON_TEAL_LIGHT: BrandHex = '#a8331a';
 export const CREAM: BrandHex = '#f4efca';
 
 /**
+ * Card cream — the light-theme project and article card surface
+ * (`--card-background`). A hair lighter than CREAM on purpose: a card should
+ * read as a raised sheet on the #f4efca page rather than as the page itself.
+ * The dark and cyberpunk themes alias their `--background-secondary` here
+ * instead, so one token serves all three.
+ */
+export const CREAM_CARD: BrandHex = '#f8f2da';
+
+/**
  * Blue-family depth tints. The marketing surface is royal blue, so the only
  * place to add depth is within the blue family: `LIFT` reads as a raised
  * surface, `DEEP` as an inset well. Both are banner-surface only.
@@ -63,6 +72,7 @@ export const BRAND = {
   accentOnTeal: ACCENT_ON_TEAL,
   accentOnTealLight: ACCENT_ON_TEAL_LIGHT,
   cream: CREAM,
+  creamCard: CREAM_CARD,
   surfaceBlueLift: SURFACE_BLUE_LIFT,
   surfaceBlueDeep: SURFACE_BLUE_DEEP,
   surfaceBlueDeepest: SURFACE_BLUE_DEEPEST,

@@ -8,6 +8,7 @@ import {
   ACCENT_ON_TEAL,
   ACCENT_ON_TEAL_LIGHT,
   CREAM,
+  CREAM_CARD,
   type BrandHex,
 } from '../../src/lib/brand';
 import { HONEYCOMB } from '../../scripts/lib/og-render.mjs';
@@ -37,6 +38,10 @@ const EXPECTED: Expected = {
     'background-primary': CREAM,
     'button-bg': ACCENT_ON_BLUE,
     'text-accent': ACCENT_ON_TEAL_LIGHT,
+    // The project/article card surface — its own token so the light theme can
+    // repaint cards without moving the forms, nav rail and charts that share
+    // --background-secondary.
+    'card-background': CREAM_CARD,
   },
   '[data-theme="cyberpunk"]': {
     'text-accent': ACCENT_ON_TEAL,

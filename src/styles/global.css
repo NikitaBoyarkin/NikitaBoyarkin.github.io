@@ -80,6 +80,10 @@
   /* 60% — DOMINANT: page / card / nested surfaces (teal family) */
   --background-primary: #0f2a2b;
   --background-secondary: #1a3435;
+  /* Project + article card surface. Split out from --background-secondary so the
+     light theme can repaint cards alone: the secondary surface also carries
+     forms, the nav rail, glossary rows and chart chrome, which must not move. */
+  --card-background: #1a3435;
   --background-tertiary: #234044;
   --interactive-normal: #234044;            /* alias of tertiary */
   --interactive-hover: #3f3f46;             /* stepped surface */
@@ -184,6 +188,10 @@
   /* 60% — DOMINANT: page / card / nested surfaces */
   --background-primary: #f4efca;
   --background-secondary: #ffffff;
+  /* Banner cream (#f8f2da): cards read one step lighter than the #f4efca page
+     instead of as white panels. Dark ink --text-normal #18181b clears AA at
+     16.4:1, and contrast-gate probes this surface. */
+  --card-background: #f8f2da;
   --background-tertiary: #f4f4f5;
   --interactive-normal: #f4f4f5;             /* alias of tertiary */
   --interactive-hover: #e4e4e7;              /* stepped surface */
@@ -1234,7 +1242,7 @@ nav ul.links a[aria-current="page"] {
   grid-template-columns: 220px 1fr;
   gap: var(--space-6);
   padding: var(--space-6);
-  background: var(--background-secondary);
+  background: var(--card-background);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
@@ -1481,7 +1489,7 @@ nav ul.links a[aria-current="page"] {
 }
 
 .project {
-  background: var(--background-secondary);
+  background: var(--card-background);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
@@ -2354,6 +2362,7 @@ button:focus-visible {
   /* 60% — DOMINANT: page / card / nested surfaces (near-black indigo) */
   --background-primary: #0a0a12;
   --background-secondary: #11111d;
+  --card-background: #11111d;               /* alias of secondary */
   --background-tertiary: #1a1a2e;
   --interactive-normal: #1a1a2e;             /* alias of tertiary */
   --interactive-hover: #232342;              /* stepped surface */
@@ -2760,7 +2769,7 @@ button:focus-visible {
   gap: var(--space-8);
   align-items: center;
   padding: var(--space-8);
-  background: var(--background-secondary);
+  background: var(--card-background);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
   box-shadow: 0 12px 40px var(--shadow-color);
