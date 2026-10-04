@@ -23,8 +23,18 @@ tools:
   - pandas / NumPy
   - pytest
 github: https://github.com/NikitaBoyarkin/sql-analytics-case-study
+date: 2026-08-11
 updated: 2026-09-19
 demo: https://nikitaboyarkin.github.io/sql-analytics-case-study/
+faq:
+  - question: "Какие данные лежат в основе кейсов?"
+    answer: "25 кейсов на синтетике (~183k событий, seed=42 плюс аддитивный seed=43) и 1 real-data кейс на UCI Online Retail II."
+  - question: "Где воронка теряет больше всего?"
+    answer: "На шаге add-to-cart → checkout: 54% потерь."
+  - question: "Как выглядит удержание?"
+    answer: "Retention падает с ~21% на D1 до ~5% на D30, повторных покупок — 3.5%; на real data возвращаются 72.4%."
+  - question: "Что даёт dbt-слой?"
+    answer: "Модели staging → marts на DuckDB, 17 dbt-тестов и regression-тест с детерминированными инвариантами на каждый кейс."
 ---
 
 # SQL Analytics Case Study

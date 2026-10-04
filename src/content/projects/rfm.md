@@ -19,6 +19,7 @@ tools:
   - SQL
   - Tableau
 github: https://github.com/NikitaBoyarkin/rfm-analysis-of-bank-clients
+date: 2025-12-06
 updated: 2026-09-17
 demo: demos/rfm/index.html
 related:

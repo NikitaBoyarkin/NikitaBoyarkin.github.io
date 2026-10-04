@@ -21,10 +21,20 @@ tools:
   - Jupyter Notebook
   - Tableau (Hyper API)
 github: https://github.com/NikitaBoyarkin/tableau_cohort_analysis
+date: 2026-07-12
 updated: 2026-09-04
 demo: demos/cohort/index.html
 related:
   - /posts/cohort-retention-guide/
+faq:
+  - question: "Почему среднего retention недостаточно?"
+    answer: "Средний retention сглаживает динамику: когорты удерживаются с разной скоростью, и в усреднённой кривой это расхождение не видно."
+  - question: "Что показывает когортная матрица?"
+    answer: "Треугольное убывание удержания по когортам: скорость оттока в разрезе возраста каждой когорты, а не одна смешанная кривая."
+  - question: "Зачем поправка на возраст наблюдения?"
+    answer: "Старшие когорты наблюдались дольше, поэтому их ARPU и LTV выше не из-за качества; без оговорки сравнение когорт смещено."
+  - question: "Как результат попадает в Tableau?"
+    answer: "Экспортом CSV и .hyper-экстракта; пайплайн воспроизводится с фиксированным seed=42."
 ---
 
 # Cohort Analysis Dashboard

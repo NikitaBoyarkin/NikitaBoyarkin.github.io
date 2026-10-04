@@ -27,6 +27,17 @@ updated: 2026-09-18
 date: 2026-09-18
 related:
   - /posts/churn-uplift-discount/
+faq:
+  - question: "Why a chronological split instead of a random one?"
+    answer: "A random split leaks future activity into training: offline quality becomes an artifact of the leak rather than of signal."
+  - question: "How is the churn label defined?"
+    answer: "As a future 30-day inactivity window, applied only to recently active users."
+  - question: "How good is the model?"
+    answer: "ROC-AUC 0.904: in the top 10% riskiest the model catches 53% of real churners at 3.07x lift."
+  - question: "Why is the decision metric recall and not AUC alone?"
+    answer: "A retention campaign works the top of the risk list, so the decision follows recall@top-10% and lift."
+  - question: "Why look at Brier?"
+    answer: "Brier is sensitive to probability calibration: 0.068 for LightGBM versus 0.099 for the balanced logistic baseline."
 ---
 
 # Churn Prediction — Leakage-Free Retention Model

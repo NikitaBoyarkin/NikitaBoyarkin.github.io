@@ -9,6 +9,9 @@
 //   3. The projects board carries no CollectionPage/ItemList JSON-LD, so the
 //      catalog is invisible to rich results even though the detail pages
 //      (Article + FAQPage) are annotated.
+//   4. A `faq:` block that does not reach the page as FAQPage JSON-LD is dead
+//      weight — the questions are written for rich results and AI citation, so
+//      the frontmatter and the emitted graph are asserted to agree.
 //
 // Requires `bun run build` first (reads dist/).
 
@@ -124,6 +127,51 @@ describe('built projects index', () => {
         expect(item['@type']).toBe('ListItem');
         expect(String(item.url)).toMatch(/^https:\/\/[^ ]+\/projects\//);
       }
+    }
+  });
+});
+
+/** `faq:` from a content file's frontmatter, as an array of Q/A pairs. */
+function sourceFaq(file: string): Array<{ question: string; answer: string }> {
+  const frontmatter = readFileSync(resolve(ROOT, file), 'utf8').split('---')[1] ?? '';
+  const { faq } = parseYaml(frontmatter) ?? {};
+  return Array.isArray(faq) ? faq : [];
+}
+
+describe('built project FAQ', () => {
+  // The five cases that carry a `faq:` block, in both locales.
+  const slugs = ['volta', 'sql', 'cohort', 'ab', 'churn'];
+
+  it('emits a FAQPage whose Question count matches the frontmatter', () => {
+    for (const slug of slugs) {
+      for (const [dir, content] of [
+        ['projects', `src/content/projects/${slug}.md`],
+        ['en/projects', `src/content/projects-en/${slug}.md`],
+      ] as Array<[string, string]>) {
+        const expected = sourceFaq(content);
+        expect(expected.length).toBeGreaterThan(0);
+
+        const html = readFileSync(resolve(DIST, dir, slug, 'index.html'), 'utf8');
+        const faqPage = jsonLdNodes(html)
+          .flatMap((node) => (Array.isArray(node['@graph']) ? (node['@graph'] as Record<string, unknown>[]) : [node]))
+          .find((node) => node['@type'] === 'FAQPage');
+        expect(faqPage).toBeTruthy();
+
+        const questions = faqPage?.mainEntity as Array<Record<string, unknown>>;
+        expect(questions.length).toBe(expected.length);
+        for (const question of questions) {
+          expect(question['@type']).toBe('Question');
+          expect(expected.map((pair) => pair.question)).toContain(String(question.name));
+        }
+      }
+    }
+  });
+
+  it('carries a faq in both locales for every slug that has one', () => {
+    for (const slug of slugs) {
+      const ru = sourceFaq(`src/content/projects/${slug}.md`).length;
+      const en = sourceFaq(`src/content/projects-en/${slug}.md`).length;
+      expect([slug, ru > 0, en > 0]).toEqual([slug, true, true]);
     }
   });
 });

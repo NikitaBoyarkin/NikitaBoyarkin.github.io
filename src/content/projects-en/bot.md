@@ -21,6 +21,7 @@ tools:
   - cron scheduler
   - Tableau
 private: true
+date: 2025-06-19
 updated: 2025-06-19
 demo: demos/telegram/index.html
 related:

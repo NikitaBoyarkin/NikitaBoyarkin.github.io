@@ -21,6 +21,7 @@ tools:
   - SQL
   - supabase-py
 github: https://github.com/NikitaBoyarkin/supabase-product-analytics
+date: 2026-08-14
 updated: 2026-09-15
 private: true
 related:

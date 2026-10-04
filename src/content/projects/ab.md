@@ -21,9 +21,21 @@ tools:
   - pytest
   - uv
 github: https://github.com/NikitaBoyarkin/ab_test
+date: 2026-08-22
 updated: 2026-09-17
 related:
   - /projects/volta/
+faq:
+  - question: "Как проверяется, что метод корректен?"
+    answer: "Калибровкой симуляцией: A/A-прогон держит Type I error на уровне α, покрытие CI для bootstrap ≈ 95% — свойство подкреплено прогоном, а не ссылкой на литературу."
+  - question: "Какую дисперсию убирает CUPED?"
+    answer: "ρ² от дисперсии, то есть стандартную ошибку — примерно в ρ раз."
+  - question: "Чем опасен наивный peeking?"
+    answer: "Он раздувает Type I error; Pocock/OBF и mSPRT держат его под контролем."
+  - question: "Как считать ratio-метрики вроде CTR?"
+    answer: "Delta-method даёт корректный SE для CTR и RPC — наивный per-unit t-test на ratio-метрике смещён."
+  - question: "Из чего состоит pipeline?"
+    answer: "SRM → CUPED → delta-method CTR → сегментные ATE с BH-поправкой → novelty check."
 ---
 
 # A/B Testing Methodology Toolkit

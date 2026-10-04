@@ -21,10 +21,20 @@ tools:
   - Jupyter Notebook
   - Tableau (Hyper API)
 github: https://github.com/NikitaBoyarkin/tableau_cohort_analysis
+date: 2026-07-12
 updated: 2026-09-04
 demo: demos/cohort/index.html
 related:
   - /posts/cohort-retention-guide/
+faq:
+  - question: "Why is average retention not enough?"
+    answer: "Average retention smooths the dynamics: cohorts churn at different speeds, and that spread disappears inside a single averaged curve."
+  - question: "What does the cohort matrix show?"
+    answer: "Triangular retention decay per cohort: churn speed broken out by each cohort's age rather than one blended curve."
+  - question: "Why does ARPU/LTV need an observation-age caveat?"
+    answer: "Older cohorts have been observed longer, so their ARPU and LTV sit higher for free; without the caveat the comparison across cohorts is biased."
+  - question: "How does the result reach Tableau?"
+    answer: "As a CSV and a .hyper extract export; the pipeline reproduces from a fixed seed=42."
 ---
 
 # Cohort Analysis Dashboard

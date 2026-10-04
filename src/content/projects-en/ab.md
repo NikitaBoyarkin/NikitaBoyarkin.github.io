@@ -21,9 +21,21 @@ tools:
   - pytest
   - uv
 github: https://github.com/NikitaBoyarkin/ab_test
+date: 2026-08-22
 updated: 2026-09-17
 related:
   - /projects/volta/
+faq:
+  - question: "How is a method's correctness verified?"
+    answer: "By simulation calibration: an A/A run holds Type I error at α and bootstrap CI coverage sits near 95% — the property is backed by a run, not by a citation."
+  - question: "How much variance does CUPED remove?"
+    answer: "ρ² of it, which is the standard error by roughly a factor of ρ."
+  - question: "Why is naive peeking dangerous?"
+    answer: "It inflates Type I error; Pocock/OBF and mSPRT keep it under control."
+  - question: "How should ratio metrics like CTR be tested?"
+    answer: "The delta method gives the correct SE for CTR and RPC — the naive per-unit t-test is biased on a ratio metric."
+  - question: "What does the end-to-end pipeline contain?"
+    answer: "SRM → CUPED → delta-method CTR → per-segment ATE with a BH correction → novelty check."
 ---
 
 # A/B Testing Methodology Toolkit

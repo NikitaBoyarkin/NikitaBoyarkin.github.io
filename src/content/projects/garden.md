@@ -20,6 +20,7 @@ tools:
   - Markdown
   - Obsidian
 github: https://github.com/NikitaBoyarkin/digital_garden
+date: 2026-08-11
 updated: 2026-08-12
 related:
   - /projects/site/
