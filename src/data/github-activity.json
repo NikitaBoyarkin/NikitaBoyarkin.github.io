@@ -1,13 +1,13 @@
 {
   "slug": "github",
-  "source": "GitHub API · updated 2026-10-03",
-  "updatedAt": "2026-10-03T10:05:11.093Z",
+  "source": "GitHub API · updated 2026-10-04",
+  "updatedAt": "2026-10-04T10:47:28.086Z",
   "stats": {
-    "contributions": 24854,
+    "contributions": 24877,
     "publicRepos": 21,
-    "followers": 395,
-    "currentStreak": 66,
-    "longestStreak": 66,
+    "followers": 396,
+    "currentStreak": 67,
+    "longestStreak": 67,
     "activeSince": 2019
   },
   "charts": [
@@ -32,7 +32,6 @@
       },
       "data": {
         "categories": [
-          "04.09",
           "05.09",
           "06.09",
           "07.09",
@@ -61,13 +60,13 @@
           "30.09",
           "01.10",
           "02.10",
-          "03.10"
+          "03.10",
+          "04.10"
         ],
         "series": [
           {
             "name": "Contributions",
             "values": [
-              23,
               93,
               27,
               32,
@@ -96,6 +95,7 @@
               4,
               15,
               36,
+              23,
               1
             ]
           }
@@ -162,15 +162,15 @@
               171,
               2010,
               1199,
-              52
+              75
             ]
           }
         ]
       },
       "conclusions": [
         {
-          "ru": "За 12 месяцев — 23765 вкладов.",
-          "en": "Over 12 months: 23765 contributions."
+          "ru": "За 12 месяцев — 23788 вкладов.",
+          "en": "Over 12 months: 23788 contributions."
         },
         {
           "ru": "Сильнейший месяц — Apr с 3873 вкладами (16.3% годового объёма).",
@@ -257,7 +257,7 @@
           {
             "name": "Contributions",
             "values": [
-              159,
+              54,
               28,
               127,
               484,
@@ -309,7 +309,7 @@
               192,
               421,
               225,
-              93
+              116
             ]
           }
         ]
@@ -317,8 +317,8 @@
       "labelEvery": 6,
       "conclusions": [
         {
-          "ru": "Активных недель — 50 из 53, в среднем 468.9 вкладов в неделю.",
-          "en": "Active weeks: 50 of 53, averaging 468.9 contributions per week."
+          "ru": "Активных недель — 50 из 53, в среднем 467.4 вкладов в неделю.",
+          "en": "Active weeks: 50 of 53, averaging 467.4 contributions per week."
         },
         {
           "ru": "Самая продуктивная неделя — 1186 вкладов.",
@@ -356,7 +356,7 @@
           {
             "name": "Contributions",
             "values": [
-              24836,
+              24859,
               0,
               0,
               2
@@ -366,12 +366,12 @@
       },
       "conclusions": [
         {
-          "ru": "Всего 24838 вкладов за год.",
-          "en": "24838 contributions in total over the year."
+          "ru": "Всего 24861 вкладов за год.",
+          "en": "24861 contributions in total over the year."
         },
         {
-          "ru": "Основной тип — Commits (24836, 100% вкладов).",
-          "en": "The dominant type is Commits (24836, 100% of contributions)."
+          "ru": "Основной тип — Commits (24859, 100% вкладов).",
+          "en": "The dominant type is Commits (24859, 100% of contributions)."
         }
       ]
     },
@@ -410,11 +410,11 @@
           {
             "name": "%",
             "values": [
-              33.8,
+              33.7,
               23.2,
-              17.2,
-              12.2,
-              4.5,
+              17.1,
+              12.3,
+              4.6,
               4.3,
               2.1,
               1.1,
@@ -425,8 +425,8 @@
       },
       "conclusions": [
         {
-          "ru": "Основной язык — Python с долей 33.8% от 3961250 байт кода.",
-          "en": "The primary language is Python at 33.8% of 3961250 bytes of code."
+          "ru": "Основной язык — Python с долей 33.7% от 3970203 байт кода.",
+          "en": "The primary language is Python at 33.7% of 3970203 bytes of code."
         },
         {
           "ru": "Всего в профиле 13 языков, из них 9 показаны на графике.",
