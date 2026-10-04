@@ -26,6 +26,8 @@ interface Props {
   jsonLd?: Record<string, unknown>;
   lang?: 'ru' | 'en';
   counterpartHref?: string;
+  /** Above-the-fold image that is the page's LCP element — preloaded in <head>. */
+  preloadImage?: string;
 }
 
 const {
@@ -42,6 +44,7 @@ const {
   jsonLd,
   lang = 'ru',
   counterpartHref,
+  preloadImage,
 } = Astro.props;
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
@@ -156,8 +159,8 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     />
 
     {
-      /* LCP: preload the font subsets used above the fold so the hero `h1`
-         (the LCP element) renders in the final font as early as possible.
+      /* LCP: preload the font subsets used above the fold so the hero heading
+         renders in the final font as early as possible.
          Inter and Cormorant are variable fonts — one woff2 per subset covers
          all weights. Latin is always needed ("Nikita Boyarkin"); add the
          script subset for the active language. crossorigin is required for
@@ -170,6 +173,17 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       ].map((f) => (
         <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href={withBase(`fonts/${f}`)} />
       ))
+    }
+    {
+      /* LCP: the hero image is the largest-contentful element on `/` and `/en/`,
+         but it sits deep in a ~75 KB document — without a hint the browser only
+         starts fetching it after parsing past the hero copy, which cost ~1.1 s
+         between FCP and LCP in prod (2.74 s / 2.97 s vs a ≤2.5 s budget).
+         A head preload starts the request with the document instead.
+         `href` must match the `<img src>` exactly or the browser fetches twice. */
+      preloadImage && (
+        <link rel="preload" as="image" href={preloadImage} fetchpriority="high" />
+      )
     }
     <meta id="theme-color" name="theme-color" content="#0f2a2b" />
 
