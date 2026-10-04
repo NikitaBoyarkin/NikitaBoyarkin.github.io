@@ -1,24 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
-import AskMe from '../components/AskMe.astro';
-import GithubActivity from '../components/GithubActivity.astro';
+import AboutPage from '../components/AboutPage.astro';
 import { withBase } from '../lib/path';
-import { formatDate } from '../lib/date';
 
-// Telegram deep-links: pre-fill the message so the first contact carries context.
-const tgWhois = `https://t.me/lofinibo?text=${encodeURIComponent('Привет! Прочитал «Кто я» — обсудим аналитику.')}`;
-const tgWork = `https://t.me/lofinibo?text=${encodeURIComponent('Привет! Прочитал «Как со мной работать» — обсудим формат.')}`;
-
-// In-page jump nav — replaces the deleted /start route (routing value now lives on /about).
-const JUMP = [
-  { label: 'Кто я', href: '#who' },
-  { label: 'Как работаю', href: '#how' },
-  { label: 'Сейчас', href: '#now' },
-  { label: 'Как со мной работать', href: '#work' },
-  { label: 'Локация / формат', href: '#location' },
-  { label: 'Активность', href: '#activity' },
-];
-
+// ProfilePage rather than a bare Person: the page is the profile. `knowsAbout`
+// and `alumniOf` are what turn it into something a knowledge panel can use —
+// the same claims the visible page makes (see AboutPage.astro).
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ProfilePage',
@@ -26,6 +13,30 @@ const jsonLd = {
     '@type': 'Person',
     name: 'Nikita Boyarkin',
     jobTitle: 'Data Analyst / Product Analyst',
+    url: 'https://nikitaboyarkin.github.io/about/',
+    image: 'https://nikitaboyarkin.github.io/images/00_profile.webp',
+    description:
+      'Аналитик данных и продуктовый аналитик. Эксперименты, retention, сегментация — с кодом, SQL и воспроизводимой методологией.',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Moscow',
+      addressCountry: 'RU',
+    },
+    knowsAbout: [
+      'A/B testing',
+      'CUPED',
+      'AA-tests',
+      'Retention analysis',
+      'Cohort analysis',
+      'RFM segmentation',
+      'SQL',
+      'Python',
+    ],
+    alumniOf: [
+      { '@type': 'EducationalOrganization', name: 'UMC', description: 'BSc, Business informatics, 2016–2020' },
+      { '@type': 'EducationalOrganization', name: 'UMC', description: 'MSc, Work psychology, 2020–2022' },
+      { '@type': 'EducationalOrganization', name: 'UMC', description: 'PhD, Work psychology, 2022–2025' },
+    ],
     sameAs: [
       'https://github.com/NikitaBoyarkin',
       'https://www.linkedin.com/in/nikita-boyarkin',
@@ -36,185 +47,12 @@ const jsonLd = {
 
 <Base
   title="Обо мне | Nikita Boyarkin"
-  description="Обо мне — Data Analyst / Product Analyst. Кто я, как работаю, что сейчас в работе и как со мной сотрудничать."
+  description="Обо мне — Data Analyst / Product Analyst. Кто я, опыт и образование, стек, что сейчас в работе и как со мной сотрудничать."
   canonical={withBase('about/')}
   activeNav="about"
   lang="ru"
   counterpartHref={withBase('en/about/')}
   jsonLd={jsonLd}
 >
-  <section class="container reveal">
-    <h1>Обо мне</h1>
-    <p class="about-sub">Data Analyst / Product Analyst</p>
-
-    <nav id="start" class="about-jump" aria-label="Содержание страницы">
-      {JUMP.map((j) => <a href={j.href}>{j.label}</a>)}
-    </nav>
-
-    <h2 id="who" data-analytics-section="who">Кто я</h2>
-    <p>
-      Никита Бояркин, data / product analyst. Фокус — эксперименты, retention, сегментация.
-      Портфолио воспроизводимых аналитических проектов — эксперименты, retention, сегментация —
-      с полной методологией и кодом. Создано из проектной работы, а не из найма.
-    </p>
-
-    <h2 id="how" data-analytics-section="how">Как работаю</h2>
-    <p>
-      От гипотезы до метрики. Вывод можно перепроверить: код + SQL + метрики.
-      Предпочитаю reproducible-аналитику — код, SQL и визуализация выложены рядом с каждым кейсом,
-      чтобы читатель мог проверить расчёт, а не доверять голословной цифре.
-    </p>
-    <p>
-      Специализация — SQL, Python, визуализация и product-аналитика с воспроизводимой статистической
-      методологией (CUPED, AA-тесты, коррекция множественных сравнений, ship-gates).
-    </p>
-
-    <h2 id="now" data-analytics-section="now">Сейчас</h2>
-    <p class="now-updated">Обновлено · {formatDate('2026-09-18')}</p>
-    <ul>
-      <li>Готовлюсь к BI / Data Analyst и Product Analyst middle-интервью: SQL, pandas, алгоритмы, моки.</li>
-      <li>Развиваю портфолио-сайт: личностный слой, граф знаний, аркада из 10 мини-игр.</li>
-      <li>Поддерживаю Obsidian knowledge base по product analytics — структурированный Zettelkasten с автоматизацией.</li>
-      <li>Экспериментирую с AI-assisted аналитическими workflow на Claude Code + MCP.</li>
-      <li>Пишу о практических data-техниках: A/B-тестирование, когортный анализ, RFM-сегментация.</li>
-      <li>Читаю: <em>Designing Machine Learning Systems</em> Чипы Нгуен.</li>
-      <li>Открыт к Data / Product Analyst ролям.</li>
-    </ul>
-
-    <h2 id="work" data-analytics-section="work">Как со мной работать</h2>
-    <p class="wwm-sub">Relationship manual — чтобы не тратить время на выяснение формата.</p>
-
-    <div class="board-card wwm-block">
-      <h3>Ценности</h3>
-      <ul>
-        <li><b>Честность с данными</b> — если цифры против гипотезы, меняем гипотезу, а не цифры.</li>
-        <li><b>Скорость обучения</b> — быстро пробуем, быстро учимся, фиксируем результат.</li>
-        <li><b>Прямой фидбек</b> — без эвфемизмов и «мне кажется».</li>
-      </ul>
-    </div>
-
-    <div class="board-card wwm-block">
-      <h3>Стиль работы</h3>
-      <ul>
-        <li>Люблю контекст перед запросом: зачем, для кого, какое решение примем по результату.</li>
-        <li>Задаю уточняющие вопросы — лучше 5 вопросов в начале, чем переделка в конце.</li>
-        <li>Предпочитаю метрики впечатлениям: «выросло на 6pp» вместо «стало лучше».</li>
-      </ul>
-    </div>
-
-    <div class="board-card wwm-block">
-      <h3>Фидбек-нормы</h3>
-      <ul>
-        <li>Прямой, конкретный, с предложением: что не так, почему, как исправить.</li>
-        <li>Открыт к критике — считаю её бесплатным ускорением.</li>
-        <li>Фидбек по работе, не по личности.</li>
-      </ul>
-    </div>
-
-    <div class="board-card wwm-block">
-      <h3>Встречи</h3>
-      <ul>
-        <li>Адженда для встреч от 3 человек — иначе это не встреча, а чат.</li>
-        <li>Предпочитаю async: документ + комментарии вместо созвона ради созвона.</li>
-        <li>Готов к созвонам с целью: решение, ревью, синк по эксперименту.</li>
-      </ul>
-    </div>
-
-    <div class="board-card wwm-block">
-      <h3>Что мне важно в команде</h3>
-      <ul>
-        <li>Data-driven решения — метрики как язык, а не украшение.</li>
-        <li>Владение метриками — команда знает, что и зачем измеряет.</li>
-        <li>Экспериментальная культура — гипотезы проверяются, а не обсуждаются.</li>
-      </ul>
-    </div>
-
-    <p class="cta-row">
-      <a class="button" href={tgWork} data-analytics="work_with_me_cta" target="_blank" rel="noopener noreferrer">Обсудить формат →</a>
-      <a class="button button-secondary" href={withBase('value/')}>Чем могу быть полезен</a>
-    </p>
-
-    <h2 id="location" data-analytics-section="location">Локация / формат</h2>
-    <p>Москва. Удалёнка / гибрид — по договорённости. Middle+.</p>
-
-    <h2>Стек</h2>
-    <div class="skills">
-      <span class="skill-badge">SQL</span>
-      <span class="skill-badge">Python</span>
-      <span class="skill-badge">Visualization</span>
-      <span class="skill-badge">A/B Testing</span>
-    </div>
-
-    <h2>Ссылки</h2>
-    <p>
-      <a href="https://github.com/NikitaBoyarkin">GitHub</a> ·
-      <a href="https://www.linkedin.com/in/nikita-boyarkin">LinkedIn</a> ·
-      <a href={withBase('CV-Nikita-Boyarkin.pdf')} download>CV</a> ·
-      <a href={withBase('writing/')}>Статьи</a> ·
-      <a href={withBase('value/')}>Ценность</a> ·
-      <a href={withBase('contact/')}>Контакты</a>
-    </p>
-
-    <p class="cta-row">
-      <a class="button" href={tgWhois} data-analytics="whois_cta" target="_blank" rel="noopener noreferrer">Написать в Telegram →</a>
-    </p>
-
-    <GithubActivity lang="ru" />
-  </section>
-
-  <style>
-    .about-sub {
-      color: var(--text-muted);
-      font-size: 1.2rem;
-      margin-top: -0.5rem;
-    }
-    .about-jump {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-3);
-      margin: var(--space-6) 0;
-      padding: var(--space-3) var(--space-4);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      background: var(--background-secondary);
-    }
-    .about-jump a {
-      color: var(--text-accent);
-      text-decoration: none;
-      font-size: 0.9rem;
-      border-bottom: 1px dotted var(--border-color);
-    }
-    .about-jump a:hover {
-      border-color: var(--text-accent);
-    }
-    .now-updated {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      margin-top: -0.25rem;
-    }
-    .wwm-sub {
-      color: var(--text-muted);
-      margin-top: -0.5rem;
-    }
-    .wwm-block {
-      margin-top: var(--space-4);
-      max-width: 60ch;
-    }
-    .wwm-block h3 {
-      margin: 0 0 var(--space-3);
-      font-size: 1.05rem;
-    }
-    .wwm-block ul {
-      margin: 0;
-      padding-left: 1.2rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-    }
-  </style>
-
-  <!-- AI-ассистент «Спроси меня» (static, client-side) -->
-  <AskMe lang="ru" />
+  <AboutPage lang="ru" />
 </Base>

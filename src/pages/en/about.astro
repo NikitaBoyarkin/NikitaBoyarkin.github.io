@@ -1,24 +1,9 @@
 ---
 import Base from '../../layouts/Base.astro';
-import AskMe from '../../components/AskMe.astro';
-import GithubActivity from '../../components/GithubActivity.astro';
+import AboutPage from '../../components/AboutPage.astro';
 import { withBase } from '../../lib/path';
-import { formatDate } from '../../lib/date';
 
-// Telegram deep-links: pre-fill the message so the first contact carries context.
-const tgWhois = `https://t.me/lofinibo?text=${encodeURIComponent("Hi! I read \"Who I am\" — let's talk analytics.")}`;
-const tgWork = `https://t.me/lofinibo?text=${encodeURIComponent("Hi! I read \"How I work\" — let's discuss the format.")}`;
-
-// In-page jump nav — replaces the deleted /start route (routing value now lives on /about).
-const JUMP = [
-  { label: 'Who I am', href: '#who' },
-  { label: 'How I work', href: '#how' },
-  { label: 'Now', href: '#now' },
-  { label: 'How to work with me', href: '#work' },
-  { label: 'Location / format', href: '#location' },
-  { label: 'Activity', href: '#activity' },
-];
-
+// Mirrors the RU ProfilePage; see src/pages/about.astro for the rationale.
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ProfilePage',
@@ -26,6 +11,30 @@ const jsonLd = {
     '@type': 'Person',
     name: 'Nikita Boyarkin',
     jobTitle: 'Data Analyst / Product Analyst',
+    url: 'https://nikitaboyarkin.github.io/en/about/',
+    image: 'https://nikitaboyarkin.github.io/images/00_profile.webp',
+    description:
+      'Data and product analyst. Experiments, retention, segmentation — with code, SQL and a reproducible methodology.',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Moscow',
+      addressCountry: 'RU',
+    },
+    knowsAbout: [
+      'A/B testing',
+      'CUPED',
+      'AA-tests',
+      'Retention analysis',
+      'Cohort analysis',
+      'RFM segmentation',
+      'SQL',
+      'Python',
+    ],
+    alumniOf: [
+      { '@type': 'EducationalOrganization', name: 'UMC', description: 'BSc, Business informatics, 2016–2020' },
+      { '@type': 'EducationalOrganization', name: 'UMC', description: 'MSc, Work psychology, 2020–2022' },
+      { '@type': 'EducationalOrganization', name: 'UMC', description: 'PhD, Work psychology, 2022–2025' },
+    ],
     sameAs: [
       'https://github.com/NikitaBoyarkin',
       'https://www.linkedin.com/in/nikita-boyarkin',
@@ -36,184 +45,12 @@ const jsonLd = {
 
 <Base
   title="About | Nikita Boyarkin"
-  description="About Nikita Boyarkin — Data Analyst / Product Analyst. Who I am, how I work, what I'm doing now, and how to collaborate."
+  description="About Nikita Boyarkin — Data Analyst / Product Analyst. Who I am, experience and education, stack, what I'm doing now, and how to collaborate."
   canonical={withBase('en/about/')}
   activeNav="about"
   lang="en"
   counterpartHref={withBase('about/')}
   jsonLd={jsonLd}
 >
-  <section class="container reveal">
-    <h1>About Me</h1>
-    <p class="about-sub">Data Analyst / Product Analyst</p>
-
-    <nav id="start" class="about-jump" aria-label="Page contents">
-      {JUMP.map((j) => <a href={j.href}>{j.label}</a>)}
-    </nav>
-
-    <h2 id="who" data-analytics-section="who">Who I am</h2>
-    <p>
-      Nikita Boyarkin, data / product analyst. Focus — experiments, retention, segmentation.
-      Portfolio of reproducible analytics projects — experimentation, retention, segmentation —
-      with full methodology and code. Built from project work, not from employment.
-    </p>
-
-    <h2 id="how" data-analytics-section="how">How I work</h2>
-    <p>
-      From hypothesis to metric. The conclusion can be re-checked: code + SQL + metrics.
-      I prefer reproducible analytics — code, SQL and visualization sit next to every case,
-      so the reader can verify the calculation rather than trust an unsubstantiated number.
-    </p>
-    <p>
-      My specialization is SQL, Python, visualization, and product analytics with reproducible
-      statistical methodology (CUPED, AA-tests, multiple-comparison correction, ship-gates).
-    </p>
-
-    <h2 id="now" data-analytics-section="now">Now</h2>
-    <p class="now-updated">Updated · {formatDate('2026-09-18')}</p>
-    <ul>
-      <li>Preparing for BI / Data Analyst and Product Analyst mid-level interviews: SQL, pandas, algorithms, mocks.</li>
-      <li>Maintaining an Obsidian knowledge base on product analytics — a structured Zettelkasten with automation.</li>
-      <li>Experimenting with AI-assisted analytical workflows on Claude Code + MCP.</li>
-      <li>Writing about practical data techniques: A/B testing, cohort analysis, RFM segmentation.</li>
-      <li>Reading: <em>Designing Machine Learning Systems</em> by Chip Huyen.</li>
-      <li>Open to Data / Product Analyst roles.</li>
-    </ul>
-
-    <h2 id="work" data-analytics-section="work">How to work with me</h2>
-    <p class="wwm-sub">A relationship manual — so we don't waste time figuring out the format.</p>
-
-    <div class="board-card wwm-block">
-      <h3>Values</h3>
-      <ul>
-        <li><b>Honesty with data</b> — if the numbers contradict the hypothesis, we change the hypothesis, not the numbers.</li>
-        <li><b>Speed of learning</b> — try fast, learn fast, record the result.</li>
-        <li><b>Direct feedback</b> — no euphemisms, no "I feel like".</li>
-      </ul>
-    </div>
-
-    <div class="board-card wwm-block">
-      <h3>Working style</h3>
-      <ul>
-        <li>I like context before a request: why, for whom, what decision the result will drive.</li>
-        <li>I ask clarifying questions — 5 questions up front beat rework at the end.</li>
-        <li>I prefer metrics over impressions: "up 6pp" instead of "it got better".</li>
-      </ul>
-    </div>
-
-    <div class="board-card wwm-block">
-      <h3>Feedback norms</h3>
-      <ul>
-        <li>Direct, specific, with a proposal: what's wrong, why, how to fix it.</li>
-        <li>Open to criticism — I treat it as free acceleration.</li>
-        <li>Feedback about the work, not the person.</li>
-      </ul>
-    </div>
-
-    <div class="board-card wwm-block">
-      <h3>Meetings</h3>
-      <ul>
-        <li>An agenda for any meeting with 3+ people — otherwise it's a chat, not a meeting.</li>
-        <li>I prefer async: a document + comments over a call for the sake of a call.</li>
-        <li>Ready for calls with a purpose: a decision, a review, an experiment sync.</li>
-      </ul>
-    </div>
-
-    <div class="board-card wwm-block">
-      <h3>What matters to me in a team</h3>
-      <ul>
-        <li>Data-driven decisions — metrics as the language, not decoration.</li>
-        <li>Metric ownership — the team knows what it measures and why.</li>
-        <li>An experimentation culture — hypotheses get tested, not debated.</li>
-      </ul>
-    </div>
-
-    <p class="cta-row">
-      <a class="button" href={tgWork} data-analytics="work_with_me_cta" target="_blank" rel="noopener noreferrer">Discuss the format →</a>
-      <a class="button button-secondary" href={withBase('en/value/')}>How I can help</a>
-    </p>
-
-    <h2 id="location" data-analytics-section="location">Location / format</h2>
-    <p>Moscow. Remote / hybrid — by arrangement. Middle+.</p>
-
-    <h2>Stack</h2>
-    <div class="skills">
-      <span class="skill-badge">SQL</span>
-      <span class="skill-badge">Python</span>
-      <span class="skill-badge">Visualization</span>
-      <span class="skill-badge">A/B Testing</span>
-    </div>
-
-    <h2>Links</h2>
-    <p>
-      <a href="https://github.com/NikitaBoyarkin">GitHub</a> ·
-      <a href="https://www.linkedin.com/in/nikita-boyarkin">LinkedIn</a> ·
-      <a href={withBase('CV-Nikita-Boyarkin.pdf')} download>CV</a> ·
-      <a href={withBase('en/writing/')}>Writing</a> ·
-      <a href={withBase('en/value/')}>Value</a> ·
-      <a href={withBase('en/contact/')}>Contact</a>
-    </p>
-
-    <p class="cta-row">
-      <a class="button" href={tgWhois} data-analytics="whois_cta" target="_blank" rel="noopener noreferrer">Message me on Telegram →</a>
-    </p>
-
-    <GithubActivity lang="en" />
-  </section>
-
-  <style>
-    .about-sub {
-      color: var(--text-muted);
-      font-size: 1.2rem;
-      margin-top: -0.5rem;
-    }
-    .about-jump {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-3);
-      margin: var(--space-6) 0;
-      padding: var(--space-3) var(--space-4);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      background: var(--background-secondary);
-    }
-    .about-jump a {
-      color: var(--text-accent);
-      text-decoration: none;
-      font-size: 0.9rem;
-      border-bottom: 1px dotted var(--border-color);
-    }
-    .about-jump a:hover {
-      border-color: var(--text-accent);
-    }
-    .now-updated {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      margin-top: -0.25rem;
-    }
-    .wwm-sub {
-      color: var(--text-muted);
-      margin-top: -0.5rem;
-    }
-    .wwm-block {
-      margin-top: var(--space-4);
-      max-width: 60ch;
-    }
-    .wwm-block h3 {
-      margin: 0 0 var(--space-3);
-      font-size: 1.05rem;
-    }
-    .wwm-block ul {
-      margin: 0;
-      padding-left: 1.2rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-    }
-  </style>
-
-  <!-- AI assistant "Ask me" (static, client-side) -->
-  <AskMe lang="en" />
+  <AboutPage lang="en" />
 </Base>
