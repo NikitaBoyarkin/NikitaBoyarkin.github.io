@@ -28,7 +28,11 @@ const counts = trackCounts(
 const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[track.key] ?? 0 }));
 ---
 
-<section id="projects" class="reveal reveal-delay-2">
+<section id="projects" class="reveal reveal-delay-2" aria-labelledby="projects-heading">
+  {/* The cards are h3, so the section needs its own h2: without one the outline
+      jumps h1 (page title) -> h3 and the Lighthouse heading-order audit fails. */}
+  <h2 id="projects-heading" class="visually-hidden">{lang === 'en' ? 'All projects' : 'Все проекты'}</h2>
+
   <div class="project-filter-bar">
     <ProjectTrackFilter lang={lang} tracks={tracks} total={projects.length} />
     <ProjectFilter lang={lang}>

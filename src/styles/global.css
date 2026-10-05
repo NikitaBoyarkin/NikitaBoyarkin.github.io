@@ -3116,14 +3116,16 @@ button:focus-visible {
 }
 
 /* Counts are metadata, not actions — inherit the chip's own ink instead of
-   painting a second accent pill inside it. */
+   painting a second accent pill inside it. Full strength on purpose: the
+   count is 11.5px, so a reduced opacity drops the active chip's `--text-accent`
+   to 3.32:1 against the sticky-note background and fails the 4.5:1 floor the
+   Lighthouse color-contrast assertion enforces. */
 .filter-count {
   display: inline-block;
   margin-left: 0.35rem;
   font-size: 0.72rem;
   font-weight: 600;
   line-height: 1.5;
-  opacity: 0.7;
   vertical-align: middle;
 }
 
