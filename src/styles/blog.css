@@ -200,7 +200,7 @@ button.blog-card-tag:hover {
 .blog-card-excerpt {
   font-size: 0.92rem;
   color: var(--text-normal);
-  line-height: 1.55;
+  line-height: 1.5;
   max-width: 65ch;
 }
 
@@ -333,7 +333,7 @@ button.blog-card-tag:hover {
 .contact-text {
   font-size: 1.05rem;
   color: var(--text-normal);
-  line-height: 1.6;
+  line-height: 1.5;
   margin-bottom: var(--space-4);
   max-width: 65ch;
 }

@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
 
       # The contact log carries form PII (name, contact handle, message
       # excerpt), so it lives in the private backend repo — never in this
@@ -36,7 +36,7 @@ jobs:
       # contents:write on NikitaBoyarkin/portfolio-contact-backend (Phase 0).
       - name: Checkout log repo
         if: ${{ env.HAS_SUPABASE == 'true' }}
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
           repository: NikitaBoyarkin/portfolio-contact-backend
           token: ${{ secrets.CONTACT_LOG_TOKEN }}
@@ -46,7 +46,6 @@ jobs:
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: latest
-          cache: bun
 
       - name: Install dependencies
         run: bun install --frozen-lockfile

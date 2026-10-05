@@ -27,7 +27,7 @@
      which is the column that wraps a post's header + body). */
   --prose-measure: 75ch;
   --prose-size: 1.05rem;
-  --prose-lh: 1.7;
+  --prose-lh: 1.5;
   --prose-indent: 1.5em;
 }
 
@@ -155,7 +155,7 @@
 
 .prose li {
   margin-block: var(--space-1);
-  line-height: 1.65;
+  line-height: 1.5;
 }
 
 .prose li > :is(ul, ol) {
