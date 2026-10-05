@@ -39,8 +39,7 @@ Russian is the default locale; every route below has an `/en/…` mirror unless 
 | `/projects/` | Catalogue — all 17 cases as a board, grouped by `track` |
 | `/projects/<slug>/` | Case study page (RU source + EN mirror) |
 | `/projects/volta/<part>/` | The 23 linked sub-parts of the Volta case |
-| `/about/` | About + jump nav to anchors `#who`, `#work`, `#now`, `#start` |
-| `/value/` | "Чем могу быть полезен" — the conversion page |
+| `/about/` | About + jump nav to anchors `#who`, `#work`, `#now`, `#start`, `#value` |
 | `/notes/` | Notes hub with category filters (absorbs `/guides/`) |
 | `/writing/` | Paginated article archive |
 | `/topics/`, `/topics/<tag>/` | Topic taxonomy and level grouping |

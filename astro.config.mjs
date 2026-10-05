@@ -152,9 +152,13 @@ export default defineConfig({
     "/work-with-me/": "/about/#work",
     "/now/": "/about/#now",
     "/start/": "/about/#start",
+    // 2026-10-06: /value/ was the last standalone page of the personal layer;
+    // its offers block now lives at /about#value (see about/ValueOffers.astro).
+    "/value/": "/about/#value",
     "/en/whois/": "/en/about/#who",
     "/en/work-with-me/": "/en/about/#work",
     "/en/start/": "/en/about/#start",
+    "/en/value/": "/en/about/#value",
     // S1.3 (PRD v6): /guides/ merged into the parameterised /notes/ route.
     "/guides/": "/notes/guides/",
     // 2026-09-19: the standalone /cv/ page became a PDF download button.

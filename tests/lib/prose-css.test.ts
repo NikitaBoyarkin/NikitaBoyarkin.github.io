@@ -134,13 +134,14 @@ describe('wiring — the class styles, the id stays', () => {
     expect(read(file)).toContain(markup);
   });
 
-  it('widens the column only where prose lives', () => {
+  it('binds each container width modifier to its page set', () => {
     const css = stripComments(read(GLOBAL));
     expect(css).toMatch(/\.container\s*\{[^}]*max-width:\s*var\(--container-max,\s*800px\)/);
     expect(css).toMatch(/\.container-wide\s*\{\s*--container-max:\s*880px/);
+    expect(css).toMatch(/\.container-content\s*\{\s*--container-max:\s*var\(--content-max\)/);
 
-    // Scoped on purpose: the other `.container` pages (about / value / graph /
-    // topics) keep the 800px column.
+    // Both modifiers are scoped on purpose. The remaining `.container` pages
+    // (graph / topics) keep the 800px column.
     const pages = fs
       .readdirSync(path.join(ROOT, 'src/pages'), { recursive: true, encoding: 'utf8' })
       .filter((f) => f.endsWith('.astro'))
@@ -152,6 +153,18 @@ describe('wiring — the class styles, the id stays', () => {
         'src/pages/en/projects/volta/[part].astro',
         'src/pages/projects/[slug].astro',
         'src/pages/projects/volta/[part].astro',
+      ].sort(),
+    );
+
+    // About keeps its body in src/components/, so the scan has to span both.
+    const content = [...pages, 'src/components/AboutPage.astro'].filter((f) =>
+      read(f).includes('container-content'),
+    );
+    expect(content.sort()).toEqual(
+      [
+        'src/components/AboutPage.astro',
+        'src/pages/en/glossary/index.astro',
+        'src/pages/glossary/index.astro',
       ].sort(),
     );
   });

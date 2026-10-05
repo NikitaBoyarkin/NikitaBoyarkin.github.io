@@ -25,10 +25,10 @@ const PAGES = [
 ];
 
 /** Anchors the redirect map in astro.config.mjs resolves to. */
-const REDIRECT_ANCHORS = ['start', 'who', 'now', 'work'];
+const REDIRECT_ANCHORS = ['start', 'who', 'now', 'work', 'value'];
 
 /** Values Analytics.astro observes via [data-analytics-section]. */
-const ANALYTICS_SECTIONS = ['who', 'how', 'now', 'work', 'location'];
+const ANALYTICS_SECTIONS = ['who', 'how', 'now', 'work', 'location', 'value'];
 
 function page(path: string): string {
   const file = resolve(DIST, `.${path}`);

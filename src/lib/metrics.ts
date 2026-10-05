@@ -1,5 +1,6 @@
 // Signature results — single source of truth for the headline numbers shown
-// on the homepage and value page (hero metrics, career snapshot, value page).
+// on the homepage and the personal layer (hero metrics, career snapshot,
+// ValueOffers on /about#value).
 // Authoritative figures come from the CV (rendercv YAML); before 1.3 they were
 // duplicated in 4+ places and drifted (e.g. the bot automation card said
 // "1–2ч" while the CV says "2ч → 5 мин"). Change a number here, not in each

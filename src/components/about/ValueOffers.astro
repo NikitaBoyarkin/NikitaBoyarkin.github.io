@@ -1,0 +1,134 @@
+---
+// Offers block for /about#value, moved 1:1 from the retired /value/ page.
+//
+// Numbers are never typed here: every figure comes from src/lib/metrics.ts
+// (CV-authoritative), the same module HeroMetrics and CareerSnapshot read, so
+// the strip, the homepage hero and the OG banners cannot drift apart.
+//
+// The heading, the lead paragraph and the closing TelegramCta live in
+// src/content/about/{ru,en}.mdx — this component carries only the two things
+// that need to be computed: the proof strip and the offer cards.
+import { METRICS } from '../../lib/metrics';
+import { withBase } from '../../lib/path';
+
+interface Props {
+  lang: 'ru' | 'en';
+}
+const { lang } = Astro.props;
+const isEn = lang === 'en';
+
+const proof = [
+  { value: `+${METRICS.abKyc.deltaPp}pp`, label: isEn ? 'A/B on the KYC step' : 'A/B на KYC-шаге' },
+  { value: `+${METRICS.retention.deltaPp}pp`, label: isEn ? 'M3 retention' : 'Retention M3' },
+  {
+    value: `${METRICS.rfm.revenueBeforePct}→${METRICS.rfm.revenueAfterPct}%`,
+    label: isEn ? 'Revenue in the 4 key segments' : 'Выручка в 4 ключевых сегментах',
+  },
+  {
+    value: `${METRICS.bot.hoursBefore}${isEn ? 'h' : 'ч'}→${METRICS.bot.minutesAfter}${isEn ? 'min' : 'мин'}`,
+    label: isEn ? 'Weekly report automation' : 'Автоматизация еженедельного отчёта',
+  },
+  {
+    value: `${METRICS.portfolio.projects}`,
+    label: isEn ? 'Projects in the portfolio' : 'Проектов в портфолио',
+  },
+];
+---
+
+<div class="value-proof">
+  {proof.map((item) => (
+    <div class="board-card value-metric">
+      <b>{item.value}</b>
+      <span>{item.label}</span>
+    </div>
+  ))}
+</div>
+
+<div class="board-card value-offer">
+  <h3>{isEn ? '💼 Hiring' : '💼 Найм'}</h3>
+  {isEn ? (
+    <p>
+      Data / Product Analyst, mid-level and up. Flagship cases: Volta (neobank), A/B
+      experiments, retention analysis. The methodology is reproducible: CUPED, AA-tests,
+      ship-gates.
+    </p>
+  ) : (
+    <p>
+      Data / Product Analyst, middle+. Флагманские кейсы: Volta (необанк), A/B-эксперименты,
+      retention-анализ. Методология воспроизводимая: CUPED, AA-тесты, ship-gates.
+    </p>
+  )}
+  <p class="value-links">
+    <a href={withBase('CV-Nikita-Boyarkin.pdf')} download data-analytics="cv_download_pdf">CV →</a>
+    {' · '}
+    <a href={withBase(isEn ? 'en/projects/volta/' : 'projects/volta/')}>{isEn ? 'Volta case' : 'Кейс Volta'} →</a>
+    {' · '}
+    <a href={withBase(isEn ? 'en/projects/volta/ab/' : 'projects/volta/ab/')}>{isEn ? 'A/B case' : 'Кейс A/B'} →</a>
+  </p>
+</div>
+
+<div class="board-card value-offer">
+  <h3>{isEn ? '🤝 Collaboration' : '🤝 Коллаборация'}</h3>
+  {isEn ? (
+    <p>
+      Cases, demos, the knowledge graph, the arcade — all of it is open: fork it, discuss it,
+      reuse it. I write about practical data techniques: A/B, cohorts, RFM.
+    </p>
+  ) : (
+    <p>
+      Кейсы, демо, граф знаний, игры — всё открыто: можно форкнуть, обсудить, переиспользовать.
+      Пишу о практических data-техниках: A/B, когорты, RFM.
+    </p>
+  )}
+  <p class="value-links">
+    <a href={withBase(isEn ? 'en/graph/' : 'graph/')}>{isEn ? 'Knowledge graph' : 'Граф знаний'} →</a>
+    {' · '}
+    <a href={withBase('games/')}>{isEn ? 'Games' : 'Игры'} →</a>
+    {' · '}
+    <a href="https://github.com/NikitaBoyarkin" data-analytics="value_github">GitHub →</a>
+  </p>
+</div>
+
+<style>
+  .value-proof {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-3);
+    margin: var(--space-4) 0 var(--space-6);
+  }
+  .value-metric {
+    text-align: center;
+    padding: var(--space-4);
+  }
+  .value-metric b {
+    display: block;
+    font-size: 1.6rem;
+    color: var(--text-accent);
+    letter-spacing: -0.02em;
+  }
+  .value-metric span {
+    display: block;
+    margin-top: var(--space-2);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .value-offer {
+    margin-top: var(--space-4);
+    max-width: 60ch;
+  }
+  /* `h2` in the .mdx body is styled by AboutPage.astro (Cormorant + coral tick);
+     these cards sit inside that body and need the smaller heading instead. */
+  .value-offer h3 {
+    margin: 0 0 var(--space-3);
+    font-size: 1.05rem;
+  }
+  .value-offer p {
+    margin: 0 0 var(--space-2);
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .value-links {
+    margin: 0;
+  }
+</style>

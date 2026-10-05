@@ -54,7 +54,7 @@ These keep their historical names (they are the slider for the "hard naming" cas
 | `cv_download_pdf` | every "CV" button: `Base.astro` nav rail + footer, `contact.astro` / `en/contact.astro` |
 | `telegram_contact`, `telegram_deeplink`, `telegram_footer` | `contact.astro`, `Base.astro` footer |
 | `github_footer`, `linkedin_footer`, `writing_footer` | `Base.astro` footer |
-| `value_cta`, `value_github` | `value.astro` / `en/value.astro` |
+| `value_cta`, `value_github` | `ValueOffers.astro` on `/about#value` |
 | `work_with_me_cta`, `whois_cta` | `about.astro` / `en/about.astro` |
 | `search_open` | `SearchBox.astro` |
 | `ask_me_open` | `AskMe.astro` |

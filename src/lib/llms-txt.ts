@@ -58,8 +58,7 @@ export async function buildLlmsTxt(site: string): Promise<string> {
   add("## Core pages");
   add(`- [Home (RU)](${abs("")}): intro, featured project (${featuredProject?.data.title ?? "Product analytics"}), skill taxonomy.`);
   add(`- [Home (EN)](${abs("en/")}): English mirror.`);
-  add(`- [About](${abs("about/")}): background and focus — who I am, how I work, what I enjoy, collaboration format.`);
-  add(`- [How I can help](${abs("value/")}): offers (hiring + collaboration) with quantified proof — A/B, retention, RFM, automation.`);
+  add(`- [About](${abs("about/")}): background and focus — who I am, how I work, what I enjoy, collaboration format, and the offers (hiring + collaboration) with quantified proof — A/B, retention, RFM, automation.`);
   add(`- [Writing](${abs("writing/")}): articles on SQL, A/B testing, retention, segmentation, automation.`);
   add(`- [Skill taxonomy](${abs("topics/")}): Junior/Middle/Senior topics with case studies per topic.`);
   add(`- [Glossary](${abs("glossary/")}): definitions of core analytics terms — p-value, MDE, SRM, cohort, LTV, RFM.`);

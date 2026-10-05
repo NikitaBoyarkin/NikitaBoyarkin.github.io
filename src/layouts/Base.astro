@@ -22,7 +22,7 @@ interface Props {
   canonical?: string;
   relPrev?: string;
   relNext?: string;
-  activeNav?: 'writing' | 'contact' | 'home' | 'about' | 'projects' | 'value' | 'glossary';
+  activeNav?: 'writing' | 'contact' | 'home' | 'about' | 'projects' | 'glossary';
   jsonLd?: Record<string, unknown>;
   lang?: 'ru' | 'en';
   counterpartHref?: string;
@@ -62,7 +62,6 @@ const contactHref = isEn ? withBase('en/contact/') : withBase('contact/');
 // `/notes/` index while the footer and the homepage bento pointed at `/writing/`,
 // so the two entry points could disagree about where "writing" lives.
 const writingHref = isEn ? withBase('en/writing/') : withBase('writing/');
-const valueHref = isEn ? withBase('en/value/') : withBase('value/');
 const glossaryHref = isEn ? withBase('en/glossary/') : withBase('glossary/');
 
 // i18n: header / footer chrome labels.
@@ -71,7 +70,6 @@ const t = {
   navProjects: isEn ? 'Projects' : 'Проекты',
   navWriting: isEn ? 'Writing' : 'Статьи',
   navAbout: isEn ? 'About' : 'Обо мне',
-  navValue: isEn ? 'Value' : 'Ценность',
   navGlossary: isEn ? 'Glossary' : 'Словарь',
   navContact: isEn ? 'Contact' : 'Контакты',
   navBook: isEn ? 'Book 30 minutes' : 'Записаться на 30 минут',
@@ -310,7 +308,6 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       <ul class="links" id="nav-links">
         <li><a href={projectsHref} class={activeNav === 'projects' ? 'active' : ''} aria-current={activeNav === 'projects' ? 'page' : undefined}>{t.navProjects}</a></li>
         <li><a href={aboutHref} class={activeNav === 'about' ? 'active' : ''} aria-current={activeNav === 'about' ? 'page' : undefined}>{t.navAbout}</a></li>
-        <li><a href={valueHref} class={activeNav === 'value' ? 'active' : ''} aria-current={activeNav === 'value' ? 'page' : undefined}>{t.navValue}</a></li>
         <li><a href={writingHref} class={activeNav === 'writing' ? 'active' : ''} aria-current={activeNav === 'writing' ? 'page' : undefined}>{t.navWriting}</a></li>
         <li><a href={glossaryHref} class={activeNav === 'glossary' ? 'active' : ''} aria-current={activeNav === 'glossary' ? 'page' : undefined}>{t.navGlossary}</a></li>
       </ul>

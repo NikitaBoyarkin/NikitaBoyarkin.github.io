@@ -271,7 +271,7 @@ h4 {
 /* Baseline link colour.
  *
  * DESIGN.md: "The accent is semantic, not decorative: use it for links". Some
- * page-level links in about/value/contact carried no class and no inherited
+ * page-level links in about/contact carried no class and no inherited
  * rule, so they fell through to the UA default #0000ee — 1.40–1.61:1 on every
  * surface (10 axe color-contrast nodes on /contact/ alone). This is the lowest
  * possible specificity (element selector), so every component rule — nav,
@@ -1977,6 +1977,13 @@ footer p {
 
 .container-wide {
   --container-max: 880px;
+}
+.container-content {
+  /* Fills <main>'s reading column instead of the 800px prose measure. For pages
+     whose bulk is cards/grids rather than paragraphs (about, glossary), so they
+     match the frame /projects/ is built on. Prose stays readable because the
+     65ch cap lives on the paragraphs themselves, not on this container. */
+  --container-max: var(--content-max);
 }
 
 .back {

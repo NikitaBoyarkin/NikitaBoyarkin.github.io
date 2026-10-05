@@ -15,11 +15,11 @@
 | 7 | contact.astro | «Telegram: @lofinibo» | `telegram_contact` | `t.me/lofinibo` |
 | 8 | contact.astro | «Написать с контекстом →» | `telegram_deeplink` | tg deep-link |
 | 9 | contact.astro | «CV» | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
-| 10 | value.astro | «Написать в Telegram →» | `value_cta` | tg deep-link |
-| 11 | value.astro | «GitHub →» | `value_github` | `github.com/NikitaBoyarkin` |
+| 10 | ValueOffers.astro (`/about#value`) | «Написать в Telegram →» | `value_cta` | tg deep-link |
+| 11 | ValueOffers.astro (`/about#value`) | «GitHub →» | `value_github` | `github.com/NikitaBoyarkin` |
 | 12 | about.astro (#work) | «Обсудить формат →» | `work_with_me_cta` | tg deep-link |
 | 13 | about.astro (links footer) | «Написать в Telegram →» | `whois_cta` | tg deep-link |
-| 14 | about.astro / value.astro / CareerSnapshot | «CV» | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
+| 14 | about.astro / ValueOffers.astro / CareerSnapshot | «CV» | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
 | 15 | games (`/games/`) | LinkedIn / Telegram (contact-секция) | `contact_click` (channel) | внешние |
 | 16 | AskMe (главная) | «Спросить» (открывает панель) | `ask_me_open` | — (панель) |
 | 17 | SearchBox (header) | «Поиск» (открывает панель) | `search_open` | — (панель) |
@@ -61,7 +61,9 @@
 
 ## S1.2/S1.4 Consolidation mapping (2026-09-18)
 
-The about-cluster (`whois`, `work-with-me`, `now`, `start`) collapsed into `/about` + `/value`.
+The about-cluster (`whois`, `work-with-me`, `now`, `start`, `value`) collapsed into `/about`.
+`/value/` was the last to go (2026-10-06): its offers block now lives at `/about#value` via
+`ValueOffers.astro`.
 Redirects in `astro.config.mjs`:
 
 | Old route | Redirect target |
@@ -82,8 +84,8 @@ Redirects in `astro.config.mjs`:
 |---|---|---|---|
 | `whois_cta` | `whois.astro` (deleted) | `about.astro` links-footer CTA | preserved |
 | `work_with_me_cta` | `work-with-me.astro` (deleted) | `about.astro` #work section CTA | preserved |
-| `value_cta` | `value.astro` | `value.astro` (unchanged) | preserved |
-| `value_github` | `value.astro` | `value.astro` (unchanged) | preserved |
+| `value_cta` | `value.astro` (deleted 2026-10-06) | `about.astro` #value section CTA | preserved |
+| `value_github` | `value.astro` (deleted 2026-10-06) | `ValueOffers.astro` GitHub link | preserved |
 
 No wired event was dropped. `start.astro` carried no `data-analytics` event, so its deletion
 removes no funnel signal.

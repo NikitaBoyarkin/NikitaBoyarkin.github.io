@@ -277,7 +277,8 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 
 ## Layout
 
-- The body spans the viewport; at ≥1100px it reserves `--rail-total` on the inline start for the fixed nav rail, and the reading column stays centred at a 960px measure inside the remaining space.
+- The body spans the viewport; at ≥1100px it reserves `--rail-total` on the inline start for the fixed nav rail, and the reading column stays centred at the `--content-max` measure inside the remaining space.
+- Three container widths, each scoped: `.container` (800px) for prose pages, `.container-wide` (880px) for case studies, and `.container-content` (`--content-max`) for pages whose bulk is cards rather than paragraphs — about and the glossary, so they fill the same frame `/projects/` is built on. Widening to `.container-content` does not stretch prose: the 65ch cap lives on the paragraphs, not on the container.
 - Below 1100px the nav is an off-canvas drawer over a scrim, opened from a sticky top bar; the panel holds the page scroll only while it is open.
 - The kanban board is the only element that breaks out of the reading column, to a wider viewport-capped width — it centres on the content column, not the viewport, so it never slides under the rail.
 - Project grids use auto-fit with a minimum card width so cards reflow without media queries.

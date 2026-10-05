@@ -94,12 +94,12 @@ bun run sync:activity
 │   │   ├── SearchBox.astro   # client-side search over search-index.json
 │   │   └── Analytics.astro   # PostHog (inert until PUBLIC_POSTHOG_KEY env var is set) + custom events (project_viewed, post_read, lang_switched)
 │   ├── pages/
-│   │   ├── index.astro / about.astro / value.astro / contact.astro / graph.astro
+│   │   ├── index.astro / about.astro / contact.astro / graph.astro
 │   │   ├── writing/ / notes/          # section directories, not single pages
 │   │   ├── projects/[slug].astro   # RU project pages
 │   │   ├── posts/[slug].astro      # blog post pages
 │   │   ├── topics/                 # topic pages
-│   │   ├── en/                     # EN mirror: index, about, value, graph, writing, contact, projects/[slug].astro, posts/[slug].astro
+│   │   ├── en/                     # EN mirror: index, about, graph, writing, contact, projects/[slug].astro, posts/[slug].astro
 │   │   ├── 404.astro
 │   │   ├── robots.txt.ts / rss.xml.ts / search-index.json.ts / graph.json.ts / graph-en.json.ts
 │   │   ├── llms.txt.ts + .well-known/llms.txt.ts   # share one generator (src/lib/llms-txt.ts) — llms.txt for LLM/AI-search citability; robots.txt explicitly allows known AI crawlers
@@ -273,7 +273,7 @@ Auth: `GITHUB_TOKEN`/`GH_TOKEN` env (higher rate limit, sees private repos). Una
 
 ## CV Source of Truth
 
-The CV is **not** authored here — it lives in a separate rendercv project at `/Users/nikitaboarkin/Desktop/00 ide/00 portfolio/cv/` (source: `Boyarkin_Nikita_Product_Analyst_CV.yaml`). The portfolio ships it as one downloadable PDF (`public/CV-Nikita-Boyarkin.pdf`) and exposes a single "CV" button on every page (hero, footer, contact, about, value, career snapshot) that downloads it.
+The CV is **not** authored here — it lives in a separate rendercv project at `/Users/nikitaboarkin/Desktop/00 ide/00 portfolio/cv/` (source: `Boyarkin_Nikita_Product_Analyst_CV.yaml`). The portfolio ships it as one downloadable PDF (`public/CV-Nikita-Boyarkin.pdf`) and exposes a single "CV" button on every page (hero, footer, contact, about, career snapshot) that downloads it.
 
 To update the CV:
 

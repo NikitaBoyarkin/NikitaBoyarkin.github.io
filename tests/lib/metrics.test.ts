@@ -5,8 +5,8 @@ import { dirname, join } from "node:path";
 import { METRICS } from '../../src/lib/metrics';
 
 // Regression guard for the "single source of truth" claim in src/lib/metrics.ts.
-// The homepage (HeroMetrics, CareerSnapshot) and the value page read these
-// numbers; if one drifts here, the value is no longer CV-authoritative.
+// The homepage (HeroMetrics, CareerSnapshot) and ValueOffers on /about#value
+// read these numbers; if one drifts here, the value is no longer CV-authoritative.
 describe('METRICS (CV-authoritative)', () => {
   it('matches the rendercv YAML figures', () => {
     expect(METRICS.abKyc).toEqual({ deltaPp: 5.72, annualEurK: 656 });
