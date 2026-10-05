@@ -3,11 +3,11 @@
 //   /Users/nikitaboarkin/Desktop/00 ide/00 portfolio/cv
 //     Boyarkin_Nikita_Product_Analyst_CV.yaml -> rendercv_output/Boyarkin_Nikita_CV.pdf
 //
-// This script prepends the branded A4 cover (scripts/generate-cv-cover.mjs) and
-// writes the result to public/CV-Nikita-Boyarkin.pdf, so the shared link's
-// preview shows a designed page 1 instead of a dense wall of resume text.
+// This script ships the plain one-page resume (the rendercv output) to
+// public/CV-Nikita-Boyarkin.pdf.
 //
-// Set CV_NO_COVER=1 to ship the plain one-page resume instead.
+// Set CV_WITH_COVER=1 to prepend the branded A4 cover
+// (scripts/generate-cv-cover.mjs) — a designed page 1 for shared links.
 //
 // Run: bun run cv:pdf
 // Not wired into the build — re-run after `rendercv render` in the cv project.
@@ -37,7 +37,7 @@ if (!existsSync(SRC)) {
 
 mkdirSync(dirname(OUT), { recursive: true });
 
-if (process.env.CV_NO_COVER === '1') {
+if (process.env.CV_WITH_COVER !== '1') {
   copyFileSync(SRC, OUT);
   console.log(`Synced CV PDF → public/CV-Nikita-Boyarkin.pdf (no cover)`);
 } else {
@@ -48,7 +48,7 @@ if (process.env.CV_NO_COVER === '1') {
   if (res.error || res.status !== 0) {
     console.error(
       `pdfunite failed (${res.error?.message ?? res.stderr ?? res.status}).\n` +
-        `Install poppler (brew install poppler) or set CV_NO_COVER=1 to ship the plain resume.`
+        `Install poppler (brew install poppler) or drop CV_WITH_COVER to ship the plain resume.`
     );
     process.exit(1);
   }
