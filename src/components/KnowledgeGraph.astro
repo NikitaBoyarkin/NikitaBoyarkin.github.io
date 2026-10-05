@@ -41,9 +41,9 @@ const t = {
   colorByCommunity: isEn ? 'Community' : 'Комьюнити',
   colorMode: isEn ? 'Switch node colors: track/category or community' : 'Переключить цвет узлов: трек/категория или комьюнити',
   arrows: isEn ? 'Arrows' : 'Стрелки',
-  arrowsLabel: isEn ? 'Show link direction' : 'Показать направление ссылок',
+  arrowsLabel: isEn ? 'Arrows: show link direction' : 'Стрелки: показать направление ссылок',
   focus: isEn ? 'Focus' : 'Фокус',
-  focusLabel: isEn ? 'Highlight 1-hop neighbors on click (Esc clears)' : 'Подсветить соседей по клику (Esc снимает)',
+  focusLabel: isEn ? 'Focus: highlight 1-hop neighbors on click (Esc clears)' : 'Фокус: подсветить соседей по клику (Esc снимает)',
   edges: isEn ? 'Edges' : 'Рёбра',
   edgesLabel: isEn ? 'Filter by link type' : 'Фильтр по типу связей',
   edgeType: {
@@ -146,7 +146,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-arrows" aria-pressed="false" aria-label={t.arrowsLabel} title={t.arrowsLabel}>{t.arrows}</button>
       <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-focus" aria-pressed="false" aria-label={t.focusLabel} title={t.focusLabel}>{t.focus}</button>
       <div class="kg-popover">
-        <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-edge-panel" aria-haspopup="true" aria-expanded="false" aria-label={t.edgesLabel} title={t.edgesLabel}>{t.edges}</button>
+        <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-edge-panel" aria-haspopup="true" aria-expanded="false" aria-label={`${t.edges}: ${t.edgesLabel}`} title={t.edgesLabel}>{t.edges}</button>
         <div id="kg-edge-panel" class="kg-edge-panel" role="group" aria-label={t.edgesLabel} hidden>
           {(['related', 'children', 'topic', 'shared', 'core'] as const).map((ty) => (
             <label class="kg-edge-toggle">
