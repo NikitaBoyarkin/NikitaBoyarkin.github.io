@@ -2,17 +2,23 @@
 import Base from '../layouts/Base.astro';
 import ReadingBlock from '../components/ReadingBlock.astro';
 import { withBase } from '../lib/path';
+import { loadSources, shelfHref } from '../lib/library';
+
+// A shelf is a grid, and a grid in a 65ch prose column reads cramped — so the
+// index keeps the full 800px column, while the per-source pages beneath it narrow
+// to the reading measure, which is what prose is for.
+const sources = await loadSources('ru');
 ---
 
 <Base
   title="Библиотека | Nikita Boyarkin"
-  description="Что читаю и что держу как рабочий справочник: Designing Machine Learning Systems, Trustworthy Online Controlled Experiments."
-  canonical={withBase('library/')}
-  counterpartHref={withBase('en/library/')}
+  description="Книги, курсы и статьи, на которых стоит методология: Designing Machine Learning Systems, Trustworthy Online Controlled Experiments."
+  canonical={shelfHref('ru')}
+  counterpartHref={shelfHref('en')}
   activeNav="library"
   lang="ru"
 >
-  <div class="container container-content">
-    <ReadingBlock lang="ru" standalone />
+  <div class="container">
+    <ReadingBlock sources={sources} lang="ru" standalone />
   </div>
 </Base>

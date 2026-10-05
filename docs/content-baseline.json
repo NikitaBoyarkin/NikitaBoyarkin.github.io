@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-04T17:53:59.588Z",
+  "generatedAt": "2026-10-05T22:15:13.512Z",
   "root": "src/content",
   "files": {
     "volta-parts-en/retention.md": [
@@ -4040,6 +4040,12 @@
       "805",
       "9"
     ],
+    "library/designing-machine-learning-systems.md": [
+      "1"
+    ],
+    "library/trustworthy-online-controlled-experiments.md": [
+      "2"
+    ],
     "glossary-en/retention.md": [
       "0",
       "01",
@@ -4234,6 +4240,12 @@
       "2",
       "2026",
       "30"
+    ],
+    "library-en/designing-machine-learning-systems.md": [
+      "1"
+    ],
+    "library-en/trustworthy-online-controlled-experiments.md": [
+      "2"
     ],
     "glossary/retention.md": [
       "0",

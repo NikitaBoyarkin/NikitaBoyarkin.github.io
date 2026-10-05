@@ -1,0 +1,147 @@
+---
+import { render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import {
+  KIND_LABELS,
+  STATUS_LABELS,
+  loadSources,
+  shelfHref,
+  slugOf,
+  sourceHref,
+} from '../../../lib/library';
+
+export async function getStaticPaths() {
+  const sources = await loadSources('en');
+  return sources.map((entry) => ({
+    params: { slug: slugOf(entry.id) },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { data } = entry;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': data.kind === 'book' ? 'Book' : 'CreativeWork',
+  name: data.title,
+  author: { '@type': 'Person', name: data.author },
+  ...(data.url ? { sameAs: data.url } : {}),
+  inLanguage: 'en',
+};
+---
+
+<Base
+  title={`${data.title} | Nikita Boyarkin`}
+  description={`A source on the shelf: ${data.title} — ${data.author}.`}
+  canonical={sourceHref('en', entry.id)}
+  counterpartHref={sourceHref('ru', entry.id)}
+  activeNav="library"
+  lang="en"
+  jsonLd={jsonLd}
+>
+  <article class="container container-content source">
+    <p class="source-back"><a href={shelfHref('en')}>← Library</a></p>
+
+    <header class="source-head">
+      <span class="source-mono" aria-hidden="true">{data.mono}</span>
+      <div>
+        <p class="source-kind">{KIND_LABELS.en[data.kind]} · {STATUS_LABELS.en[data.status]}</p>
+        <h1 class="source-title">{data.title}</h1>
+        <p class="source-author">{data.author}</p>
+      </div>
+    </header>
+
+    {
+      data.url && (
+        <p class="source-url">
+          <a href={data.url} target="_blank" rel="noopener noreferrer" data-analytics="source_external">
+            Source ↗
+          </a>
+        </p>
+      )
+    }
+
+    <div class="source-body">
+      <Content />
+    </div>
+
+    <p class="source-back"><a href={shelfHref('en')}>← Library</a></p>
+  </article>
+</Base>
+
+<style>
+  /* HTML produced by <Content /> carries no data-astro-cid-*, so every rule that
+     targets rendered markdown has to go through `:global()`. */
+  .source-back {
+    margin: 0 0 var(--space-4);
+    font-size: 0.85rem;
+  }
+  .source-back a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+  .source-back a:hover {
+    color: var(--text-accent);
+  }
+
+  .source-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    padding-bottom: var(--space-5);
+    margin-bottom: var(--space-5);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .source-mono {
+    flex: 0 0 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    background: var(--text-accent);
+    border-radius: var(--radius-md, 8px);
+  }
+  .source-kind {
+    margin: 0;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-accent);
+  }
+  .source-title {
+    margin: var(--space-1) 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.2rem);
+    line-height: 1.15;
+  }
+  .source-author {
+    margin: var(--space-2) 0 0;
+    color: var(--text-muted);
+  }
+  .source-url {
+    margin: 0 0 var(--space-5);
+  }
+  .source-url a {
+    color: var(--text-accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .source-url a:hover {
+    color: var(--text-accent-hover);
+    text-decoration: underline;
+  }
+
+  .source-body :global(p) {
+    max-width: 65ch;
+    font-size: 1.05rem;
+    line-height: 1.5;
+  }
+  .source-body :global(h2) {
+    margin: var(--space-8) 0 var(--space-3);
+  }
+</style>

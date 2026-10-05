@@ -1,18 +1,20 @@
 ---
 import Base from '../../layouts/Base.astro';
 import ReadingBlock from '../../components/ReadingBlock.astro';
-import { withBase } from '../../lib/path';
+import { loadSources, shelfHref } from '../../lib/library';
+
+const sources = await loadSources('en');
 ---
 
 <Base
   title="Library | Nikita Boyarkin"
-  description="What's on the desk and what I keep as a working reference: Designing Machine Learning Systems, Trustworthy Online Controlled Experiments."
-  canonical={withBase('en/library/')}
-  counterpartHref={withBase('library/')}
+  description="Books, courses and papers the methodology here is built on: Designing Machine Learning Systems, Trustworthy Online Controlled Experiments."
+  canonical={shelfHref('en')}
+  counterpartHref={shelfHref('ru')}
   activeNav="library"
   lang="en"
 >
-  <div class="container container-content">
-    <ReadingBlock lang="en" standalone />
+  <div class="container">
+    <ReadingBlock sources={sources} lang="en" standalone />
   </div>
 </Base>

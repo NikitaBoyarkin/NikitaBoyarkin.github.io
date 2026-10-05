@@ -3,12 +3,18 @@ import Base from '../../layouts/Base.astro';
 import HeroMetrics from '../../components/HeroMetrics.astro';
 import HeroAvatar from '../../components/HeroAvatar.astro';
 import CareerSnapshot from '../../components/CareerSnapshot.astro';
+import ReadingBlock from '../../components/ReadingBlock.astro';
 import { getCollection } from 'astro:content';
 import { withBase } from '../../lib/path';
+import { loadFeaturedSources } from '../../lib/library';
 
 const allProjects = await getCollection('projects-en', (p) => !p.data.draft);
 const featuredProject =
   allProjects.find((p) => p.id === 'volta') || allProjects[0];
+
+// Three tiles, in shelf order — reordering the frontmatter in
+// `src/content/library-en/` reorders the homepage too.
+const shelf = await loadFeaturedSources('en');
 
 const siteUrl = 'https://nikitaboyarkin.github.io';
 const jsonLd = {
@@ -183,6 +189,17 @@ const jsonLd = {
         </div>
         <a class="bento-cell-link" href={withBase('en/projects/')} data-analytics="bento_stack">
           All projects →
+        </a>
+      </div>
+
+      <!-- Library — the shelf's job is depth; three tiles carry that, the rest
+           live at /en/library/. -->
+      <div class="bento-cell bento-cell-wide reveal reveal-delay-2" tabindex="-1">
+        <h3 class="bento-cell-title">Library</h3>
+        <p class="bento-cell-heading">Sources the methodology is built on</p>
+        <ReadingBlock sources={shelf} lang="en" variant="cell" />
+        <a class="bento-cell-link" href={withBase('en/library/')} data-analytics="bento_library">
+          All sources →
         </a>
       </div>
     </div>

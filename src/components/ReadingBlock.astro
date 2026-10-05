@@ -1,63 +1,104 @@
 ---
-// «Библиотека / сейчас» — one note per book under `src/content/library/`
-// (EN mirror: `library-en`), so the shelf is data, not markup. Tiles carry only
-// verifiable facts — title, author, status label, destination; monograms stand
-// in for cover art rather than fabricating it.
-import { getCollection } from "astro:content";
-import { withBase } from "../lib/path";
+// The shelf. Presentational: it renders the sources it is handed and does no
+// loading of its own, so the same component serves the /library/ index and the
+// bento cell on the homepage without either one guessing at the other's shape.
+// `src/lib/library.ts` owns the loading, the ordering and the tile path.
+//
+// A tile carries only verifiable facts — title, author, status, destination; the
+// monogram stands in for cover art rather than fabricating it.
+import type { SourceEntry } from "../lib/library";
+import { KIND_LABELS, STATUS_LABELS, sourceHref, shelfHref } from "../lib/library";
+import type { Lang } from "../lib/library";
 
 interface Props {
-  lang?: "ru" | "en";
+  sources: SourceEntry[];
+  lang?: Lang;
   /** Standalone /library/ page: the heading is the page <h1>, not a section <h2>. */
   standalone?: boolean;
+  /** Bento cell: the host supplies its own heading and link, so render tiles only. */
+  variant?: "page" | "cell";
 }
-const { lang = "ru", standalone = false } = Astro.props;
+const { sources, lang = "ru", standalone = false, variant = "page" } = Astro.props;
 const isEn = lang === "en";
 const Heading = standalone ? "h1" : "h2";
+const showChrome = variant === "page";
 
 const I18N = {
   heading: isEn ? "Library" : "Библиотека",
   lead: isEn
-    ? "What's on the desk and what I keep as a working reference."
-    : "Что на столе и что держу как рабочий справочник.",
+    ? "Books, courses and papers the methodology here is built on — and where each one landed."
+    : "Книги, курсы и статьи, на которых стоит методология, — и где каждый источник применился.",
   footLabel: isEn ? "All writing" : "Все записи",
+  external: isEn ? "Source" : "Источник",
 };
-
-const shelf = isEn
-  ? await getCollection("library-en", (book) => !book.data.draft)
-  : await getCollection("library", (book) => !book.data.draft);
-const books = shelf
-  .sort((a, b) => a.data.order - b.data.order)
-  .map((book) => ({ ...book.data, href: withBase(book.data.href) }));
 ---
 
-<section id="library" class="library reveal" aria-label={I18N.heading}>
-  <Heading>{I18N.heading}</Heading>
-  <p class="library-lead">{I18N.lead}</p>
+<section
+  id="library"
+  class:list={["library", "reveal", variant === "cell" && "library-cell"]}
+  aria-label={I18N.heading}
+>
+  {
+    showChrome && (
+      <>
+        <Heading>{I18N.heading}</Heading>
+        <p class="library-lead">{I18N.lead}</p>
+      </>
+    )
+  }
 
-  <div class="library-books">
+  <ul class="library-books">
     {
-      books.map((b) => (
-        <a class="book-tile" href={b.href}>
-          <span class="book-mono" aria-hidden="true">{b.mono}</span>
-          <span class="book-info">
-            <span class="book-tag">{b.tag}</span>
-            <span class="book-title">{b.title}</span>
-            <span class="book-author">{b.author}</span>
-          </span>
-        </a>
+      sources.map((s) => (
+        <li class="book">
+          <a
+            class="book-tile"
+            href={sourceHref(lang, s.id)}
+            data-analytics="library_tile"
+          >
+            <span class="book-mono" aria-hidden="true">
+              {s.data.mono}
+            </span>
+            <span class="book-info">
+              <span class="book-tag">
+                {KIND_LABELS[lang][s.data.kind]} · {STATUS_LABELS[lang][s.data.status]}
+              </span>
+              <span class="book-title">{s.data.title}</span>
+              <span class="book-author">{s.data.author}</span>
+            </span>
+          </a>
+          {s.data.url && (
+            <a
+              class="book-source"
+              href={s.data.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-analytics="source_external"
+            >
+              {I18N.external} ↗
+            </a>
+          )}
+        </li>
       ))
     }
-  </div>
+  </ul>
 
-  <p class="library-foot">
-    <a href={withBase(isEn ? "en/writing/" : "writing/")}>{I18N.footLabel} →</a>
-  </p>
+  {
+    showChrome && (
+      <p class="library-foot">
+        <a href={shelfHref(lang)}>{I18N.footLabel} →</a>
+      </p>
+    )
+  }
 </section>
 
 <style>
   .library {
     margin: var(--space-16) 0;
+  }
+  /* Inside a bento cell the host owns the surrounding rhythm. */
+  .library-cell {
+    margin: 0;
   }
   .library h1,
   .library h2 {
@@ -73,13 +114,24 @@ const books = shelf
     margin-bottom: var(--space-10);
   }
 
+  /* A grid, not a wrapped flex row: tiles line up in columns, which is what
+     makes a shelf of ten readable at a glance. */
   .library-books {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .book {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
   }
   .book-tile {
-    flex: 1 1 280px;
+    flex: 1;
     display: flex;
     align-items: center;
     gap: var(--space-4);
@@ -137,6 +189,18 @@ const books = shelf
   .book-author {
     font-size: 0.82rem;
     color: var(--text-muted);
+  }
+
+  .book-source {
+    align-self: flex-start;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-accent);
+    text-decoration: none;
+  }
+  .book-source:hover {
+    color: var(--text-accent-hover);
+    text-decoration: underline;
   }
 
   .library-foot {

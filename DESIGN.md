@@ -77,7 +77,7 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 - **Hero:** two-column editorial layout — identity + pitch + metrics + CTAs on the left, animated dataviz panel on the right (floating metric cards over a mesh-gradient backdrop).
 - **Navigation:** a left rail (≥1100px) carrying name/logo, the primary links (Projects, About, Value, Writing), language switch, search, contact CTA and theme toggle; below 1100px the same panel becomes an off-canvas drawer opened from a sticky top bar that holds the brand and the ☰/✕ trigger. Start/Graph/Games removed from the main nav but remain reachable via direct URLs and internal links.
 - **Palette:** keep the existing teal/coral base; add a second `--text-accent-dataviz` token for graph/metric highlights so dataviz reads as information, not as a CTA.
-- **Homepage structure:** editorial top after hero (featured project spotlight) and a bento grid bottom (career snapshot, knowledge graph, library, notes, arcade, testimonials).
+- **Homepage structure:** editorial top after hero (featured project spotlight) and a bento grid bottom (career snapshot, stack, library).
 
 ### Files touched
 
@@ -92,7 +92,7 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 - Replaced the long `home-stack` dashboard and its audience-toggle bar with a focused editorial top + bento bottom on both language homepages.
 - Featured project spotlight surfaces `posthog.md` as the lead case (full loop: metric → hypothesis → experiment → decision).
 - CapabilitiesGrid was removed (ADR-0001); the capabilities signal now lives in the featured project spotlight, the bento stack chips, and the `/projects/` board.
-- Bento grid cells: `CareerSnapshot`, knowledge-graph link, `ReadingBlock`, notes link, arcade link, `Testimonials`.
+- Bento grid cells (three, as shipped): `CareerSnapshot` (full width), `Stack`, `ReadingBlock`.
 - Removed from the homepage: the audience-toggle bar, the 3-column homepage kanban, and the A/B case-study block. Those components were deleted (PRD v6 / the case-study refactor) — no route renders them and they are reachable at no URL.
 - Still reachable via direct URLs (dropped from nav, not from the build): `/graph`, and the static arcade assets under `public/games/`.
 - **Known debt — unused components (resolved).** On disk but imported by nothing: `Manifesto`, `TopicMap`, `ProjectTimeline`, `CollaborationFormats` (~487 lines). Deleted in commit `90630fa` — task P3-2 in `docs/prd-v8-tasks.md`.

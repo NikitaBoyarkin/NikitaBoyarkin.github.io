@@ -1,0 +1,27 @@
+---
+// The "Сейчас" line on /about/. It reads the shelf instead of restating it —
+// the prose version said "Читаю: Designing Machine Learning Systems Чипы Нгуен",
+// which was both a second source of truth and a wrong transliteration of the
+// author. One source, so neither can happen again.
+//
+// Rendered via the `components` map on AboutPage: MDX imports nothing.
+import { sourceHref, loadSources } from "../lib/library";
+import type { Lang } from "../lib/library";
+
+interface Props {
+  lang?: Lang;
+}
+const { lang = "ru" } = Astro.props;
+const current = (await loadSources(lang)).find((s) => s.data.status === "reading");
+
+const label = lang === "en" ? "Reading:" : "Читаю:";
+---
+
+{
+  current && (
+    <p class="now-reading">
+      {label}{" "}
+      <a href={sourceHref(lang, current.id)}>{current.data.title}</a> {current.data.author}.
+    </p>
+  )
+}

@@ -16,6 +16,7 @@ import AskMe from './AskMe.astro';
 import CareerSnapshot from './CareerSnapshot.astro';
 import GithubActivity from './GithubActivity.astro';
 import HeroMetrics from './HeroMetrics.astro';
+import NowReading from './NowReading.astro';
 import TelegramCta from './about/TelegramCta.astro';
 import ValueOffers from './about/ValueOffers.astro';
 import { withBase } from '../lib/path';
@@ -49,7 +50,9 @@ const { Content } = await render(entry);
     </div>
   </header>
 
-  <Content components={{ HeroMetrics, CareerSnapshot, GithubActivity, TelegramCta, ValueOffers }} />
+  <Content
+    components={{ HeroMetrics, CareerSnapshot, GithubActivity, TelegramCta, ValueOffers, NowReading }}
+  />
 </section>
 
 <style>

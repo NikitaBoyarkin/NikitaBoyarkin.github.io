@@ -1,6 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
+import { SOURCE_KINDS, SOURCE_STATUSES, KINDS_NEEDING_URL } from './lib/source';
 
 /**
  * The card is the hoisted Result (`CLAUDE.md`, Readability conventions; D21 in
@@ -87,20 +88,38 @@ const termSchema = z.object({
 });
 
 /**
- * One shelf tile on /library/. The tile is built only from verifiable facts —
- * no cover art is fabricated, hence the monogram. `href` is a site path
- * (`now/`, `projects/ab/`) that ReadingBlock resolves through `withBase`, so
- * the locale prefix stays out of the note.
+ * One source on /library/. The tile is built only from verifiable facts — no
+ * cover art is fabricated, hence the monogram.
+ *
+ * Two closed sets replace the single free-text `tag`: `kind` ("what is this?")
+ * and `status` ("what is it to me?"). A closed set can be filtered and localised;
+ * a free-text tag drifts ("Читаю сейчас" / "Сейчас читаю" / "Reading") with nothing
+ * to catch the split.
+ *
+ * There is deliberately no `href`: where a tile points is the source's own page,
+ * computed in `src/lib/library.ts`, so the locale prefix is never authored and
+ * cannot land on the wrong branch. `url` is the external source itself, and is
+ * required for the kinds that are unfindable by title alone.
+ *
+ * `strict()` rejects a leftover `tag`/`href` key instead of silently dropping it —
+ * that is what makes the content migration below non-optional.
  */
-const bookSchema = z.object({
-  title: z.string(),
-  author: z.string(),
-  mono: z.string().min(1).max(2),
-  tag: z.string(),
-  href: z.string(),
-  order: z.number().default(0),
-  draft: z.boolean().default(false),
-});
+const bookSchema = z
+  .object({
+    title: z.string().min(1),
+    author: z.string().min(1),
+    mono: z.string().min(1).max(2),
+    kind: z.enum(SOURCE_KINDS),
+    status: z.enum(SOURCE_STATUSES),
+    url: z.url().optional(),
+    order: z.number().default(0),
+    draft: z.boolean().default(false),
+  })
+  .strict()
+  .refine((s) => !KINDS_NEEDING_URL.includes(s.kind) || Boolean(s.url), {
+    message: `url is required when kind is ${KINDS_NEEDING_URL.join(' or ')}`,
+    path: ['url'],
+  });
 
 const projects = defineCollection({
   loader: glob({ base: './src/content/projects', pattern: '**/[^_]*.{md,mdx}' }),

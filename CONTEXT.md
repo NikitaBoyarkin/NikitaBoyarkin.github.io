@@ -15,8 +15,24 @@ _Avoid_: skill grid, capabilities grid, бейджи навыков
 _Avoid_: hero project, showcase card
 
 **Bento**:
-Сетка секций главной под hero: CareerSnapshot, Stack, Knowledge Graph, Notes, ReadingBlock. События `bento_stack`/`bento_graph`/`bento_notes`.
+Сетка секций главной под hero: CareerSnapshot, Stack, ReadingBlock. События `bento_stack`/`bento_library`.
 _Avoid_: bento grid (только имя секции), dashboard
+
+**Shelf tile**:
+Плитка источника в `ReadingBlock`: монограмма, метка «kind · status», название, автор и — если у источника есть URL — внешняя ссылка рядом (не внутри: вложенный `<a>` невалиден). События `library_tile` (переход на страницу источника) и `source_external` (уход на внешний URL).
+_Avoid_: book card, library item
+
+**Source kind**:
+Закрытый набор: `book`, `course`, `paper`, `talk`. Источник истины — `SOURCE_KINDS` в `src/lib/source.ts`; Zod-схема берёт значения оттуда, тесты — тоже, поэтому набор нельзя расширить в одном месте.
+_Avoid_: type, category, tag
+
+**Source status**:
+Закрытый набор: `reading`, `reference`, `done`. Ровно одна запись на полке может быть `reading` — именно её показывает строка «Читаю:» на `/about#now` (`NowReading`), а не отдельно набранный текст.
+_Avoid_: progress, state
+
+**Applied in**:
+Поле, связывающее источник с проектом, где он применился. Деривативное: страница источника собирается из тела заметки, отдельного поля в frontmatter нет — расхождение невозможно.
+_Avoid_: used_in, projects
 
 ## Контакт и CTA
 

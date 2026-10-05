@@ -1,12 +1,15 @@
 // Library shelf (Библиотека) — content invariants for `src/content/library` and
 // its EN mirror `src/content/library-en`.
 //
-// ReadingBlock turns each note into one tile, and the build's Zod schema
-// (`bookSchema`) already rejects a note with a missing or mistyped field. What
-// no schema can reject is a *wrong value*: an EN note whose `href` omits the
-// `en/` prefix builds green and sends the English reader to the Russian page.
-// That is the gap this file closes. `tests/built/library.test.ts` binds the
-// rendered output; this binds the source.
+// The build's Zod schema (`bookSchema` in src/content.config.ts) already rejects
+// a note with a missing or mistyped field. What no schema can reject is a *wrong
+// value*: a `kind` outside the closed set, a `url` that is not a URL, or a kind
+// that needs a source and has none. That is the gap this file closes.
+//
+// The tile path is no longer authored at all — `sourceHref` in src/lib/library.ts
+// derives it from the locale — so the "EN note forgot the en/ prefix" drift class
+// is gone by construction. `tests/built/library.test.ts` binds the rendered
+// output; this binds the source.
 //
 // Content is optional: a checkout with no books still runs the wiring checks.
 import { describe, it, expect } from 'bun:test';
@@ -20,13 +23,28 @@ const LANG_DIRS = { ru: 'library', en: 'library-en' } as const;
 type Lang = keyof typeof LANG_DIRS;
 const LANGS: Lang[] = ['ru', 'en'];
 
+/** The closed sets live in src/lib/source.ts — read them, never restate them. */
+const SOURCE_TS = readFileSync(join(ROOT, 'src', 'lib', 'source.ts'), 'utf8');
+
+function vocab(name: string): string[] {
+  // `[^=]*` skips an optional type annotation: KINDS_NEEDING_URL is `readonly
+  // SourceKind[]`, the other two are bare arrays.
+  const hit = new RegExp(`export const ${name}(?::[^=]*)? = \\[([^\\]]*)\\]`).exec(SOURCE_TS);
+  if (!hit) throw new Error(`src/lib/source.ts: no export named ${name}`);
+  return [...hit[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+}
+const KINDS = vocab('SOURCE_KINDS');
+const STATUSES = vocab('SOURCE_STATUSES');
+const KINDS_NEEDING_URL = vocab('KINDS_NEEDING_URL');
+
 interface Book {
   slug: string;
   title: string;
   author: string;
   mono: string;
-  tag: string;
-  href: string;
+  kind: string;
+  status: string;
+  url: string;
   order: number;
   draft: boolean;
 }
@@ -36,14 +54,18 @@ function mdFiles(dir: string): string[] {
   return existsSync(full) ? readdirSync(full).filter((f) => f.endsWith('.md')) : [];
 }
 
-/** Flat frontmatter scalars only — the body is prose ReadingBlock never reads. */
+function frontmatter(lang: Lang, file: string): string {
+  const raw = readFileSync(join(CONTENT, LANG_DIRS[lang], file), 'utf8');
+  const block = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
+  if (!block) throw new Error(`${lang}/${file}: no frontmatter block`);
+  return block[1];
+}
+
+/** Flat frontmatter scalars only — the body is prose the tile never reads. */
 function load(lang: Lang): Book[] {
   const dir = LANG_DIRS[lang];
   return mdFiles(dir).map((file) => {
-    const raw = readFileSync(join(CONTENT, dir, file), 'utf8');
-    const block = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
-    if (!block) throw new Error(`${lang}/${file}: no frontmatter block`);
-    const fm = block[1];
+    const fm = frontmatter(lang, file);
     const scalar = (key: string, fallback = ''): string => {
       const hit = new RegExp(`^${key}:\\s*(.*)$`, 'm').exec(fm);
       if (!hit || hit[1].trim() === '') return fallback;
@@ -54,8 +76,9 @@ function load(lang: Lang): Book[] {
       title: scalar('title'),
       author: scalar('author'),
       mono: scalar('mono'),
-      tag: scalar('tag'),
-      href: scalar('href'),
+      kind: scalar('kind'),
+      status: scalar('status'),
+      url: scalar('url'),
       order: Number(scalar('order', '0')) || 0,
       draft: scalar('draft') === 'true',
     };
@@ -79,22 +102,40 @@ contentSuite('library shelf — RU/EN parity', () => {
   });
 });
 
-contentSuite('library shelf — a tile never leaves its locale', () => {
-  it('prefixes every EN href with en/ and no RU href with it', () => {
-    for (const b of published('en')) {
-      expect(b.href, `en/${b.slug}`).toMatch(/^en\//);
+contentSuite('library shelf — the tile path is derived, not authored', () => {
+  it('branches the locale prefix in exactly one place', () => {
+    const lib = readFileSync(join(ROOT, 'src', 'lib', 'library.ts'), 'utf8');
+    expect(lib).toContain("lang === 'en' ? 'en/' : ''");
+    expect(lib).toContain('export function sourceHref');
+  });
+
+  it('keeps `href` out of every shelf note', () => {
+    // The field the tile used to read is gone; a note that still carries one is a
+    // note that predates the migration, and `.strict()` would have rejected it.
+    for (const lang of LANGS) {
+      for (const file of mdFiles(LANG_DIRS[lang])) {
+        expect(/^href:/m.test(frontmatter(lang, file)), `${lang}/${file}`).toBe(false);
+      }
     }
-    for (const b of published('ru')) {
-      expect(b.href, `ru/${b.slug}`).not.toMatch(/^en\//);
+  });
+});
+
+contentSuite('library shelf — the external source is real or absent', () => {
+  it('stores an absolute https url when it stores one at all', () => {
+    for (const lang of LANGS) {
+      for (const b of published(lang)) {
+        if (!b.url) continue;
+        expect(b.url, `${lang}/${b.slug}`).toMatch(/^https:\/\/\S+$/);
+      }
     }
   });
 
-  it('stores a site path, not a URL or a bare fragment', () => {
-    // A trailing `#anchor` is allowed — an in-page destination still has to name
-    // the page it lives on, so the path itself stays relative.
+  it('requires a url for every kind that is not a book you hold', () => {
+    // A paper or a talk is a pointer; without the pointer the tile is a dead label.
     for (const lang of LANGS) {
       for (const b of published(lang)) {
-        expect(b.href, `${lang}/${b.slug}`).toMatch(/^[a-z0-9][\w\-/]*\/(#[a-z0-9\-]+)?$/i);
+        if (!KINDS_NEEDING_URL.includes(b.kind)) continue;
+        expect(b.url, `${lang}/${b.slug} (kind: ${b.kind})`).toBeTruthy();
       }
     }
   });
@@ -122,38 +163,63 @@ contentSuite('library shelf — tile facts', () => {
   it('carries copy on every field the tile prints', () => {
     for (const lang of LANGS) {
       for (const b of published(lang)) {
-        for (const key of ['title', 'author', 'tag'] as const) {
+        for (const key of ['title', 'author'] as const) {
           expect(b[key], `${lang}/${b.slug}.${key}`).toBeTruthy();
         }
       }
     }
   });
+
+  it('names a kind and a status from the closed sets', () => {
+    for (const lang of LANGS) {
+      for (const b of published(lang)) {
+        expect(KINDS, `${lang}/${b.slug}.kind`).toContain(b.kind);
+        expect(STATUSES, `${lang}/${b.slug}.status`).toContain(b.status);
+      }
+    }
+  });
+
+  it('keeps at most one book reading at a time', () => {
+    // /about#now shows the single `reading` book; two of them and the line is a
+    // coin flip decided by glob order.
+    for (const lang of LANGS) {
+      const reading = published(lang).filter((b) => b.status === 'reading');
+      expect(reading.length, `${lang}: ${reading.map((b) => b.slug).join(', ')}`).toBeLessThanOrEqual(1);
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------
-// Wiring — ReadingBlock ↔ the collections. No content dependency.
+// Wiring — the loader, the component and the pages. No content dependency.
 // ---------------------------------------------------------------------------
 
-describe('ReadingBlock wiring', () => {
+describe('library wiring', () => {
   const read = (rel: string) => readFileSync(join(ROOT, rel), 'utf8');
   const component = read('src/components/ReadingBlock.astro');
+  const lib = read('src/lib/library.ts');
 
   it('reads the collection that matches the requested locale', () => {
-    expect(component).toContain('getCollection("library-en"');
-    expect(component).toContain('getCollection("library"');
+    expect(lib).toContain("getCollection('library-en'");
+    expect(lib).toContain("getCollection('library'");
   });
 
   it('drops drafts before rendering', () => {
-    expect(component).toMatch(/!book\.data\.draft/);
+    expect(lib).toMatch(/!s\.data\.draft/);
   });
 
-  it('resolves every href through withBase', () => {
-    // A raw `book.data.href` would skip the base prefix and break a sub-path deploy.
-    expect(component).toContain('withBase(book.data.href)');
+  it('resolves every tile href through withBase', () => {
+    // A raw template string would skip the base prefix and break a sub-path deploy.
+    expect(lib).toContain('withBase(');
+    expect(component).not.toContain('href={`');
   });
 
   it('mounts on both locales of /library/', () => {
     expect(read('src/pages/library.astro')).toContain('<ReadingBlock');
     expect(read('src/pages/en/library.astro')).toContain('<ReadingBlock');
+  });
+
+  it('mounts on both locales of the homepage bento', () => {
+    expect(read('src/pages/index.astro')).toContain('<ReadingBlock');
+    expect(read('src/pages/en/index.astro')).toContain('<ReadingBlock');
   });
 });
