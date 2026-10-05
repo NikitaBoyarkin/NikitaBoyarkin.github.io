@@ -2,19 +2,12 @@
 import Base from '../layouts/Base.astro';
 import HeroMetrics from '../components/HeroMetrics.astro';
 import HeroAvatar from '../components/HeroAvatar.astro';
-import CareerSnapshot from '../components/CareerSnapshot.astro';
-import ReadingBlock from '../components/ReadingBlock.astro';
 import { getCollection } from 'astro:content';
 import { withBase } from '../lib/path';
-import { loadFeaturedSources } from '../lib/library';
 
 const allProjects = await getCollection('projects', (p) => !p.data.draft);
 const featuredProject =
   allProjects.find((p) => p.id === 'volta') || allProjects[0];
-
-// Three tiles, in shelf order — reordering the frontmatter in
-// `src/content/library/` reorders the homepage too.
-const shelf = await loadFeaturedSources('ru');
 
 const siteUrl = 'https://nikitaboyarkin.github.io';
 const jsonLd = {
@@ -152,56 +145,4 @@ const jsonLd = {
       </div>
     </div>
   </section>
-
-  <!-- BENTO BOTTOM -->
-  <div class="home-layout">
-    <!-- Bento bottom — airy, spaced layout -->
-    <div class="bento-grid bento-spaced">
-      <!-- Career snapshot -->
-      <div class="bento-cell bento-cell-full" tabindex="-1">
-        <CareerSnapshot lang="ru" showExperience={false} />
-      </div>
-
-      <!-- Stack -->
-      <div class="bento-cell bento-cell-wide reveal reveal-delay-1" tabindex="-1">
-        <h3 class="bento-cell-title">Стек</h3>
-        <p class="bento-cell-heading">Инструменты и технологии</p>
-        <div class="stack-groups">
-          <div class="stack-group">
-            <span class="stack-group-name">Анализ</span>
-            <span class="bento-chip">SQL</span>
-            <span class="bento-chip">Python</span>
-            <span class="bento-chip">pandas</span>
-            <span class="bento-chip">DuckDB</span>
-          </div>
-          <div class="stack-group">
-            <span class="stack-group-name">Визуализация</span>
-            <span class="bento-chip">matplotlib</span>
-            <span class="bento-chip">Plotly</span>
-            <span class="bento-chip">Astro</span>
-          </div>
-          <div class="stack-group">
-            <span class="stack-group-name">Инфра</span>
-            <span class="bento-chip">GitHub Actions</span>
-            <span class="bento-chip">Supabase</span>
-            <span class="bento-chip">PostHog</span>
-          </div>
-        </div>
-        <a class="bento-cell-link" href={withBase('projects/')} data-analytics="bento_stack">
-          Все проекты →
-        </a>
-      </div>
-
-      <!-- Library — the shelf's job is depth; three tiles carry that, the rest
-           live at /library/. -->
-      <div class="bento-cell bento-cell-wide reveal reveal-delay-2" tabindex="-1">
-        <h3 class="bento-cell-title">Библиотека</h3>
-        <p class="bento-cell-heading">Источники, на которых стоит методология</p>
-        <ReadingBlock sources={shelf} lang="ru" variant="cell" />
-        <a class="bento-cell-link" href={withBase('library/')} data-analytics="bento_library">
-          Все источники →
-        </a>
-      </div>
-    </div>
-  </div>
 </Base>
