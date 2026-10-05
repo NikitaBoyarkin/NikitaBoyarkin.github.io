@@ -140,8 +140,8 @@ describe('wiring — the class styles, the id stays', () => {
     expect(css).toMatch(/\.container-wide\s*\{\s*--container-max:\s*880px/);
     expect(css).toMatch(/\.container-content\s*\{\s*--container-max:\s*var\(--content-max\)/);
 
-    // Both modifiers are scoped on purpose. The remaining `.container` pages
-    // (graph / topics) keep the 800px column.
+    // Both modifiers are scoped on purpose. The remaining `.container` page
+    // (topics) keeps the 800px column.
     const pages = fs
       .readdirSync(path.join(ROOT, 'src/pages'), { recursive: true, encoding: 'utf8' })
       .filter((f) => f.endsWith('.astro'))
@@ -164,7 +164,11 @@ describe('wiring — the class styles, the id stays', () => {
       [
         'src/components/AboutPage.astro',
         'src/pages/en/glossary/index.astro',
+        'src/pages/en/graph.astro',
+        'src/pages/en/library.astro',
         'src/pages/glossary/index.astro',
+        'src/pages/graph.astro',
+        'src/pages/library.astro',
       ].sort(),
     );
   });

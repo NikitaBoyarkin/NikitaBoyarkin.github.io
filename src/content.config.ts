@@ -86,6 +86,22 @@ const termSchema = z.object({
   draft: z.boolean().default(false),
 });
 
+/**
+ * One shelf tile on /library/. The tile is built only from verifiable facts —
+ * no cover art is fabricated, hence the monogram. `href` is a site path
+ * (`now/`, `projects/ab/`) that ReadingBlock resolves through `withBase`, so
+ * the locale prefix stays out of the note.
+ */
+const bookSchema = z.object({
+  title: z.string(),
+  author: z.string(),
+  mono: z.string().min(1).max(2),
+  tag: z.string(),
+  href: z.string(),
+  order: z.number().default(0),
+  draft: z.boolean().default(false),
+});
+
 const projects = defineCollection({
   loader: glob({ base: './src/content/projects', pattern: '**/[^_]*.{md,mdx}' }),
   schema: projectSchema,
@@ -126,6 +142,15 @@ const aboutSchema = z.object({
   lang: z.enum(['ru', 'en']),
 });
 
+const library = defineCollection({
+  loader: glob({ base: './src/content/library', pattern: '**/[^_]*.{md,mdx}' }),
+  schema: bookSchema,
+});
+const libraryEn = defineCollection({
+  loader: glob({ base: './src/content/library-en', pattern: '**/[^_]*.{md,mdx}' }),
+  schema: bookSchema,
+});
+
 const about = defineCollection({
   loader: glob({ base: './src/content/about', pattern: '**/[^_]*.{md,mdx}' }),
   schema: aboutSchema,
@@ -140,5 +165,7 @@ export const collections = {
   'posts-en': postsEn,
   glossary,
   'glossary-en': glossaryEn,
+  library,
+  'library-en': libraryEn,
   about,
 };

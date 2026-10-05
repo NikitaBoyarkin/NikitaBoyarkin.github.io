@@ -3,10 +3,6 @@ import Base from '../layouts/Base.astro';
 import HeroMetrics from '../components/HeroMetrics.astro';
 import HeroAvatar from '../components/HeroAvatar.astro';
 import CareerSnapshot from '../components/CareerSnapshot.astro';
-import ReadingBlock from '../components/ReadingBlock.astro';
-import MaterialStrip from '../components/MaterialStrip.astro';
-import HeadlineCases from '../components/HeadlineCases.astro';
-import ProofBand from '../components/ProofBand.astro';
 import { getCollection } from 'astro:content';
 import { withBase } from '../lib/path';
 
@@ -151,22 +147,13 @@ const jsonLd = {
     </div>
   </section>
 
-  <!-- EVIDENCE BAND — the hero's numbers, backed by the charts behind them -->
-  <ProofBand lang="ru" />
-
-  <!-- HEADLINE PROOF — three deep case studies + compressed list (PRD v6 S2.6) -->
-  <HeadlineCases lang="ru" />
-
-  <!-- EDITORIAL TOP — latest writing (with dates) -->
-  <MaterialStrip lang="ru" />
-
   <!-- BENTO BOTTOM -->
   <div class="home-layout">
     <!-- Bento bottom — airy, spaced layout -->
     <div class="bento-grid bento-spaced">
       <!-- Career snapshot -->
       <div class="bento-cell bento-cell-full" tabindex="-1">
-        <CareerSnapshot lang="ru" />
+        <CareerSnapshot lang="ru" showExperience={false} />
       </div>
 
       <!-- Stack -->
@@ -197,35 +184,6 @@ const jsonLd = {
         <a class="bento-cell-link" href={withBase('projects/')} data-analytics="bento_stack">
           Все проекты →
         </a>
-      </div>
-
-      <!-- Knowledge graph -->
-      <div class="bento-cell bento-cell-wide reveal reveal-delay-2" tabindex="-1">
-        <h3 class="bento-cell-title">Граф знаний</h3>
-        <p class="bento-cell-heading">Исследуй связи</p>
-        <p class="bento-cell-text">
-          Все заметки, проекты и темы связаны в интерактивный граф. Найди путь от SQL до A/B-теста.
-        </p>
-        <a class="bento-cell-link" href={withBase('graph/')} data-analytics="bento_graph">
-          Открыть граф →
-        </a>
-      </div>
-
-      <!-- Notes -->
-      <div class="bento-cell bento-cell-wide reveal reveal-delay-3" tabindex="-1">
-        <h3 class="bento-cell-title">Заметки</h3>
-        <p class="bento-cell-heading">Продуктовая аналитика в заметках</p>
-        <p class="bento-cell-text">
-          Разборы методологии, чек-листы и шаблоны для повседневной работы аналитика.
-        </p>
-        <a class="bento-cell-link" href={withBase('writing/')} data-analytics="bento_notes">
-          Читать заметки →
-        </a>
-      </div>
-
-      <!-- Reading / library -->
-      <div class="bento-cell bento-cell-wide reveal reveal-delay-4" tabindex="-1">
-        <ReadingBlock lang="ru" />
       </div>
     </div>
   </div>

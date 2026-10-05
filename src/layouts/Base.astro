@@ -22,7 +22,7 @@ interface Props {
   canonical?: string;
   relPrev?: string;
   relNext?: string;
-  activeNav?: 'writing' | 'contact' | 'home' | 'about' | 'projects' | 'glossary';
+  activeNav?: 'writing' | 'contact' | 'home' | 'about' | 'projects' | 'glossary' | 'graph' | 'library';
   jsonLd?: Record<string, unknown>;
   lang?: 'ru' | 'en';
   counterpartHref?: string;
@@ -63,6 +63,8 @@ const contactHref = isEn ? withBase('en/contact/') : withBase('contact/');
 // so the two entry points could disagree about where "writing" lives.
 const writingHref = isEn ? withBase('en/writing/') : withBase('writing/');
 const glossaryHref = isEn ? withBase('en/glossary/') : withBase('glossary/');
+const graphHref = isEn ? withBase('en/graph/') : withBase('graph/');
+const libraryHref = isEn ? withBase('en/library/') : withBase('library/');
 
 // i18n: header / footer chrome labels.
 const t = {
@@ -71,6 +73,8 @@ const t = {
   navWriting: isEn ? 'Writing' : 'Статьи',
   navAbout: isEn ? 'About' : 'Обо мне',
   navGlossary: isEn ? 'Glossary' : 'Словарь',
+  navGraph: isEn ? 'Graph' : 'Граф',
+  navLibrary: isEn ? 'Library' : 'Библиотека',
   navContact: isEn ? 'Contact' : 'Контакты',
   navBook: isEn ? 'Book 30 minutes' : 'Записаться на 30 минут',
   navOpen: isEn ? 'Open menu' : 'Открыть меню',
@@ -310,6 +314,8 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         <li><a href={aboutHref} class={activeNav === 'about' ? 'active' : ''} aria-current={activeNav === 'about' ? 'page' : undefined}>{t.navAbout}</a></li>
         <li><a href={writingHref} class={activeNav === 'writing' ? 'active' : ''} aria-current={activeNav === 'writing' ? 'page' : undefined}>{t.navWriting}</a></li>
         <li><a href={glossaryHref} class={activeNav === 'glossary' ? 'active' : ''} aria-current={activeNav === 'glossary' ? 'page' : undefined}>{t.navGlossary}</a></li>
+        <li><a href={graphHref} class={activeNav === 'graph' ? 'active' : ''} aria-current={activeNav === 'graph' ? 'page' : undefined}>{t.navGraph}</a></li>
+        <li><a href={libraryHref} class={activeNav === 'library' ? 'active' : ''} aria-current={activeNav === 'library' ? 'page' : undefined}>{t.navLibrary}</a></li>
       </ul>
     </nav>
 

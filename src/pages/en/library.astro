@@ -1,0 +1,18 @@
+---
+import Base from '../../layouts/Base.astro';
+import ReadingBlock from '../../components/ReadingBlock.astro';
+import { withBase } from '../../lib/path';
+---
+
+<Base
+  title="Library | Nikita Boyarkin"
+  description="What's on the desk and what I keep as a working reference: Designing Machine Learning Systems, Trustworthy Online Controlled Experiments."
+  canonical={withBase('en/library/')}
+  counterpartHref={withBase('library/')}
+  activeNav="library"
+  lang="en"
+>
+  <div class="container container-content">
+    <ReadingBlock lang="en" standalone />
+  </div>
+</Base>

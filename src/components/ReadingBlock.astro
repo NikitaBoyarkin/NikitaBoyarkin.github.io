@@ -1,15 +1,19 @@
 ---
-// «Библиотека / сейчас» — book tiles built only from verifiable facts:
-// DMLS is backed by the /now page (RU) ; Kohavi's "Trustworthy Online
-// Controlled Experiments" is the reference behind the A/B Methodology Toolkit
-// project page. Monogram tiles instead of covers — nothing fabricated.
+// «Библиотека / сейчас» — one note per book under `src/content/library/`
+// (EN mirror: `library-en`), so the shelf is data, not markup. Tiles carry only
+// verifiable facts — title, author, status label, destination; monograms stand
+// in for cover art rather than fabricating it.
+import { getCollection } from "astro:content";
 import { withBase } from "../lib/path";
 
 interface Props {
   lang?: "ru" | "en";
+  /** Standalone /library/ page: the heading is the page <h1>, not a section <h2>. */
+  standalone?: boolean;
 }
-const { lang = "ru" } = Astro.props;
+const { lang = "ru", standalone = false } = Astro.props;
 const isEn = lang === "en";
+const Heading = standalone ? "h1" : "h2";
 
 const I18N = {
   heading: isEn ? "Library" : "Библиотека",
@@ -19,26 +23,16 @@ const I18N = {
   footLabel: isEn ? "All writing" : "Все записи",
 };
 
-const books = [
-  {
-    mono: "D",
-    title: "Designing Machine Learning Systems",
-    author: "Chip Huyen",
-    tag: isEn ? "Now reading" : "Читаю сейчас",
-    href: withBase("now/"),
-  },
-  {
-    mono: "K",
-    title: "Trustworthy Online Controlled Experiments",
-    author: "Ron Kohavi · Diane Tang · Ya Xu",
-    tag: isEn ? "Reference" : "Справочник",
-    href: withBase(isEn ? "en/projects/ab/" : "projects/ab/"),
-  },
-];
+const shelf = isEn
+  ? await getCollection("library-en", (book) => !book.data.draft)
+  : await getCollection("library", (book) => !book.data.draft);
+const books = shelf
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((book) => ({ ...book.data, href: withBase(book.data.href) }));
 ---
 
 <section id="library" class="library reveal" aria-label={I18N.heading}>
-  <h2>{I18N.heading}</h2>
+  <Heading>{I18N.heading}</Heading>
   <p class="library-lead">{I18N.lead}</p>
 
   <div class="library-books">
@@ -65,6 +59,7 @@ const books = [
   .library {
     margin: var(--space-16) 0;
   }
+  .library h1,
   .library h2 {
     font-family: var(--font-display);
     font-size: var(--type-section-h2);

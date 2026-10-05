@@ -1,25 +1,40 @@
 ---
-// «Опыт» + «Образование» — compact two-card snapshot under the board.
+// «Опыт» + «Образование» — compact snapshot under the board.
 // Career-switcher honesty: no employer history exists in the CV, so the
 // experience card leads with the grade claim (Middle) and measured
 // portfolio outcomes — the same numbers shown across the homepage, sourced
 // from src/lib/metrics.ts (CV-authoritative). Education comes from rendercv.
+// The homepage hides the experience half (`showExperience={false}`) because the
+// hero already states that pitch; /about renders both. Either way the section
+// keeps `id="career"` — redirects and the /about jump nav point at it.
 import { withBase } from "../lib/path";
 import { METRICS as SIG } from "../lib/metrics";
 
 interface Props {
   lang?: "ru" | "en";
+  /** Drop the experience card and lead with education alone. */
+  showExperience?: boolean;
 }
-const { lang = "ru" } = Astro.props;
+const { lang = "ru", showExperience = true } = Astro.props;
 const isEn = lang === "en";
 
 const { abKyc, retention, rfm, bot } = SIG;
 
 const I18N = {
-  heading: isEn ? "Experience & education" : "Опыт и образование",
-  lead: isEn
-    ? "Who I am in facts — grade, experience, and measured outcomes."
-    : "Кто я по фактам — грейд, опыт и измеренные результаты.",
+  heading: showExperience
+    ? isEn
+      ? "Experience & education"
+      : "Опыт и образование"
+    : isEn
+      ? "Education"
+      : "Образование",
+  lead: showExperience
+    ? isEn
+      ? "Who I am in facts — grade, experience, and measured outcomes."
+      : "Кто я по фактам — грейд, опыт и измеренные результаты."
+    : isEn
+      ? "The degrees behind the analyst — measurement and causal inference, not correlations."
+      : "Дипломы за спиной аналитика — измерение и причинные выводы, а не корреляции.",
   expTitle: isEn ? "Experience" : "Опыт",
   expHeadline: isEn ? "Data Analyst / Product Analyst · Mid" : "Аналитик данных / продуктовый аналитик · Middle",
   expSub: isEn
@@ -45,20 +60,24 @@ const I18N = {
   <h2>{I18N.heading}</h2>
   <p class="career-lead">{I18N.lead}</p>
 
-  <div class="career-grid">
-    <div class="career-card">
-      <h3 class="career-card-title">{I18N.expTitle}</h3>
-      <p class="career-headline">{I18N.expHeadline}</p>
-      <p class="career-sub">{I18N.expSub}</p>
-      <ul class="career-list">
-        {I18N.bullets.map((b) => (
-          <li>{b}</li>
-        ))}
-      </ul>
-    </div>
+  <div class:list={["career-grid", { "career-grid-single": !showExperience }]}>
+    {
+      showExperience && (
+        <div class="career-card">
+          <h3 class="career-card-title">{I18N.expTitle}</h3>
+          <p class="career-headline">{I18N.expHeadline}</p>
+          <p class="career-sub">{I18N.expSub}</p>
+          <ul class="career-list">
+            {I18N.bullets.map((b) => (
+              <li>{b}</li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
 
     <div class="career-card">
-      <h3 class="career-card-title">{I18N.eduTitle}</h3>
+      {showExperience && <h3 class="career-card-title">{I18N.eduTitle}</h3>}
       <ul class="career-edu">
         {I18N.eduItems.map((e) => (
           <li>
@@ -98,6 +117,9 @@ const I18N = {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--space-5);
+  }
+  .career-grid-single {
+    grid-template-columns: 1fr;
   }
 
   .career-card {
