@@ -3,6 +3,8 @@ import Base from '../../layouts/Base.astro';
 import ReadingBlock from '../../components/ReadingBlock.astro';
 import { loadSources, shelfHref } from '../../lib/library';
 
+// Same frame as /graph/: the shelf is a grid, so it takes `--content-max` (1180px)
+// rather than the 800px prose measure.
 const sources = await loadSources('en');
 ---
 
@@ -14,7 +16,7 @@ const sources = await loadSources('en');
   activeNav="library"
   lang="en"
 >
-  <div class="container">
+  <div class="container container-content">
     <ReadingBlock sources={sources} lang="en" standalone />
   </div>
 </Base>

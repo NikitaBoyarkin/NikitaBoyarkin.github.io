@@ -21,18 +21,23 @@ const PAGES = [
   { label: 'EN library', path: '/en/library/index.html', dir: 'library-en', localeRoot: '/en' },
 ];
 
-/** Frontmatter scalars only — enough to count published books. */
-function publishedCount(dir: string): number {
+/** Frontmatter scalars only — enough to list published books and their routes. */
+function publishedSlugs(dir: string): string[] {
   const full = join(CONTENT, dir);
-  if (!existsSync(full)) return 0;
+  if (!existsSync(full)) return [];
   return readdirSync(full)
-    .filter((f) => f.endsWith('.md'))
+    .filter((f) => /\.mdx?$/.test(f))
     .filter((f) => {
       const raw = readFileSync(join(full, f), 'utf8');
       const block = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
       const draft = block && /^draft:\s*true\s*$/m.test(block[1]);
       return !draft;
-    }).length;
+    })
+    .map((f) => f.replace(/\.mdx?$/, ''));
+}
+
+function publishedCount(dir: string): number {
+  return publishedSlugs(dir).length;
 }
 
 function page(path: string): string {
@@ -91,5 +96,31 @@ describe.each(PAGES)('library page contract ($label)', ({ path, dir, localeRoot 
     // between the tags rather than the bare `<h1>text</h1>` form.
     const Heading = localeRoot ? 'Library' : 'Библиотека';
     expect(html).toMatch(new RegExp(`<h1[^>]*>${Heading}</h1>`));
+  });
+
+  it('keeps every «Applied in» link inside this locale', () => {
+    // The block renders only when a project lists this note in `sources:`
+    // (projectSchema). No project does today, so the body is a no-op now — and
+    // the moment the owner wires one, a project href built for the other locale
+    // turns this red instead of silently sending the reader across the tree.
+    // The source half (a slug that names no note) is bound in tests/lib/library.test.ts.
+    for (const slug of publishedSlugs(dir)) {
+      const file = resolve(DIST, localeRoot.replace(/^\//, ''), 'library', slug, 'index.html');
+      if (!existsSync(file)) continue;
+      const sourceHtml = readFileSync(file, 'utf8');
+      const section = /<section[^>]*class="source-applied"[\s\S]*?<\/section>/.exec(sourceHtml)?.[0];
+      if (!section) continue;
+
+      const links = [...section.matchAll(/href="([^"]*)"/g)].map((m) => m[1]);
+      expect(links.length, `${slug}: «Applied in» rendered with no link`).toBeGreaterThan(0);
+      for (const href of links) {
+        const withoutHash = href.split('#')[0].split('?')[0];
+        const inLocale = withoutHash.startsWith(`${localeRoot}/`)
+          ? withoutHash.slice(localeRoot.length + 1)
+          : withoutHash.replace(/^\//, '');
+        const target = resolve(DIST, localeRoot.replace(/^\//, ''), inLocale, 'index.html');
+        expect(existsSync(target), `${slug}: ${href} resolves outside ${localeRoot || '/'}`).toBe(true);
+      }
+    }
   });
 });

@@ -5,7 +5,7 @@ import { getCollection } from "astro:content";
 import { withBase } from "../lib/path";
 
 interface Entry {
-  type: "project" | "post" | "term";
+  type: "project" | "post" | "term" | "source";
   locale: "ru" | "en";
   title: string;
   desc: string;
@@ -18,16 +18,30 @@ interface Entry {
 
 const slugOf = (id: string) => id.replace(/\.md$/, "");
 
+/** Shelf notes carry no `description` — the searchable text is the note itself. */
+const shelfText = (entry: { body?: string }): string =>
+  (entry.body ?? "").replace(/\s+/g, " ").trim().slice(0, 240);
+
 export async function GET() {
-  const [ruProjects, enProjects, posts, enPosts, glossaryTerms, glossaryTermsEn] =
-    await Promise.all([
-      getCollection("projects", (p) => !p.data.draft),
-      getCollection("projects-en", (p) => !p.data.draft),
-      getCollection("posts", (p) => !p.data.draft),
-      getCollection("posts-en", (p) => !p.data.draft),
-      getCollection("glossary", (p) => !p.data.draft),
-      getCollection("glossary-en", (p) => !p.data.draft),
-    ]);
+  const [
+    ruProjects,
+    enProjects,
+    posts,
+    enPosts,
+    glossaryTerms,
+    glossaryTermsEn,
+    shelfRu,
+    shelfEn,
+  ] = await Promise.all([
+    getCollection("projects", (p) => !p.data.draft),
+    getCollection("projects-en", (p) => !p.data.draft),
+    getCollection("posts", (p) => !p.data.draft),
+    getCollection("posts-en", (p) => !p.data.draft),
+    getCollection("glossary", (p) => !p.data.draft),
+    getCollection("glossary-en", (p) => !p.data.draft),
+    getCollection("library", (p) => !p.data.draft),
+    getCollection("library-en", (p) => !p.data.draft),
+  ]);
 
   const entries: Entry[] = [
     ...ruProjects.map<Entry>((p) => ({
@@ -96,6 +110,30 @@ export async function GET() {
       tags: p.data.tags ?? [],
       tools: [],
       href: withBase(`en/glossary/${slugOf(p.id)}/`),
+      date: null,
+      image: null,
+    })),
+    // Shelf notes. `desc` is the note body, not a frontmatter field — the shelf
+    // schema has no `description`, and the body is the searchable evidence.
+    ...shelfRu.map<Entry>((s) => ({
+      type: "source",
+      locale: "ru",
+      title: s.data.title,
+      desc: shelfText(s),
+      tags: [],
+      tools: [],
+      href: withBase(`library/${slugOf(s.id)}/`),
+      date: null,
+      image: null,
+    })),
+    ...shelfEn.map<Entry>((s) => ({
+      type: "source",
+      locale: "en",
+      title: s.data.title,
+      desc: shelfText(s),
+      tags: [],
+      tools: [],
+      href: withBase(`en/library/${slugOf(s.id)}/`),
       date: null,
       image: null,
     })),

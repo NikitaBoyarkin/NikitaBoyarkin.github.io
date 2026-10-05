@@ -6,19 +6,34 @@ import { withBase } from "./path";
 
 const slugOf = (id: string) => id.replace(/\.md$/, "");
 
+/** Shelf notes carry no `description` — the body is the citable text. */
+const blurb = (entry: { body?: string }): string =>
+  (entry.body ?? "").replace(/\s+/g, " ").trim().slice(0, 200);
+
 export async function buildLlmsTxt(site: string): Promise<string> {
   const abs = (path: string) => `${site}${withBase(path)}`;
 
-  const [projects, projectsEn, posts, postsEn, voltaParts, glossaryTerms, glossaryTermsEn] =
-    await Promise.all([
-      getCollection("projects", (p) => !p.data.draft),
-      getCollection("projects-en", (p) => !p.data.draft),
-      getCollection("posts", (p) => !p.data.draft),
-      getCollection("posts-en", (p) => !p.data.draft),
-      getCollection("volta-parts", (p) => !p.data.draft),
-      getCollection("glossary", (p) => !p.data.draft),
-      getCollection("glossary-en", (p) => !p.data.draft),
-    ]);
+  const [
+    projects,
+    projectsEn,
+    posts,
+    postsEn,
+    voltaParts,
+    glossaryTerms,
+    glossaryTermsEn,
+    shelfRu,
+    shelfEn,
+  ] = await Promise.all([
+    getCollection("projects", (p) => !p.data.draft),
+    getCollection("projects-en", (p) => !p.data.draft),
+    getCollection("posts", (p) => !p.data.draft),
+    getCollection("posts-en", (p) => !p.data.draft),
+    getCollection("volta-parts", (p) => !p.data.draft),
+    getCollection("glossary", (p) => !p.data.draft),
+    getCollection("glossary-en", (p) => !p.data.draft),
+    getCollection("library", (p) => !p.data.draft),
+    getCollection("library-en", (p) => !p.data.draft),
+  ]);
 
   const projectsSorted = [...projects].sort((a, b) =>
     a.data.title.localeCompare(b.data.title, "ru"),
@@ -39,6 +54,8 @@ export async function buildLlmsTxt(site: string): Promise<string> {
   const glossaryEnSorted = [...glossaryTermsEn].sort((a, b) =>
     a.data.title.localeCompare(b.data.title, "en"),
   );
+  const shelfSorted = [...shelfRu].sort((a, b) => a.data.order - b.data.order);
+  const shelfEnSorted = [...shelfEn].sort((a, b) => a.data.order - b.data.order);
 
   const featuredProject =
     projectsSorted.find((p) => slugOf(p.id) === "volta") ?? projectsSorted[0];
@@ -98,7 +115,17 @@ export async function buildLlmsTxt(site: string): Promise<string> {
     add();
   }
 
-  if (projectsEnSorted.length || postsEnSorted.length || glossaryEnSorted.length) {
+  if (shelfSorted.length) {
+    add("## Library");
+    for (const source of shelfSorted) {
+      add(
+        `- [${source.data.title}](${abs(`library/${slugOf(source.id)}/`)}): ${source.data.author} — ${blurb(source)}`,
+      );
+    }
+    add();
+  }
+
+  if (projectsEnSorted.length || postsEnSorted.length || glossaryEnSorted.length || shelfEnSorted.length) {
     add("## English");
     if (projectsEnSorted.length) {
       add();
@@ -119,6 +146,15 @@ export async function buildLlmsTxt(site: string): Promise<string> {
       add("### Glossary (EN)");
       for (const term of glossaryEnSorted) {
         add(`- [${term.data.title}](${abs(`en/glossary/${slugOf(term.id)}/`)}): ${term.data.description}`);
+      }
+    }
+    if (shelfEnSorted.length) {
+      add();
+      add("### Library (EN)");
+      for (const source of shelfEnSorted) {
+        add(
+          `- [${source.data.title}](${abs(`en/library/${slugOf(source.id)}/`)}): ${source.data.author} — ${blurb(source)}`,
+        );
       }
     }
     add();

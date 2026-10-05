@@ -199,6 +199,29 @@ One term per file, mirrored across languages — the EN file shares the RU slug 
 
 The term page renders through `src/layouts/Term.astro`; `termHref(slug, lang)` in `src/lib/glossary.ts` is the single source of the `/glossary/<slug>/` (RU) and `/en/glossary/<slug>/` (EN) URLs.
 
+### Library (`library` RU, `library-en` EN)
+
+One source per file on `/library/` — a book, course, paper or talk that the work actually rests on. Mirrored across languages, sharing the RU slug. Schema is `bookSchema` in `src/content.config.ts`, `.strict()`, with no `description` and no `href`: the tile is built from verifiable facts only, and where it points is computed by `sourceHref` in `src/lib/library.ts`, so the locale prefix is never authored.
+
+| Field | Purpose |
+|---|---|
+| `title` | Work as displayed (also page `<title>`) |
+| `author` | Author(s), printed under the title |
+| `mono` | One- or two-character monogram standing in for the cover |
+| `kind` | `book` \| `course` \| `paper` \| `talk` — a closed set, so the chip is localisable |
+| `status` | `reading` \| `reference` \| `done` — what the work is to me, not what it is |
+| `url` | The external source; required for the kinds that are unfindable by title (`course`, `paper`, `talk`) |
+| `order` | Shelf rank; must be unique within a locale, or the visible order falls back to glob order |
+| `draft` | Hidden from the shelf, the search index and `llms.txt` |
+
+A project lists the sources its method rests on in its own frontmatter:
+
+```yaml
+sources: ["trustworthy-online-controlled-experiments"]
+```
+
+The relation is stored **only** there — the source page's «Применил в» / «Applied in» block is computed from it by `loadAppliedIn` in `src/lib/library.ts`, so the two sides cannot drift. A slug that names no note is caught by `tests/lib/library.test.ts`; a link that escapes its locale by `tests/built/library.test.ts`.
+
 ### Readability conventions (RU + EN)
 
 All project and post copy follows a shared spec — see `docs/prd-readability.md`.
@@ -269,6 +292,13 @@ Auth: `GITHUB_TOKEN`/`GH_TOKEN` env (higher rate limit, sees private repos). Una
 1. Create `src/content/glossary/<slug>.md` **and** the English mirror `src/content/glossary-en/<slug>.md` — the two files share the same slug (the EN file is a translation, not a re-slug). Required frontmatter: `title`, `description` (60–200 characters), `category`, `aka`, `tags`, `related`, `keywords`.
 2. `related:` is locale-neutral — use `/glossary/<slug>/`, `/projects/<slug>/`, `/posts/<slug>/` in both RU and EN files.
 3. No registry to update: the term is picked up automatically by the `/glossary/` index, the search index (`search-index.json`) and `llms.txt`.
+4. Run `bun run build` and `make check`.
+
+### Add a source to the shelf
+
+1. Create `src/content/library/<slug>.md` **and** the English mirror `src/content/library-en/<slug>.md` — same slug in both (the EN file is a translation, not a re-slug). Required frontmatter: `title`, `author`, `mono`, `kind`, `status`, `order`. Add `url` for anything that is not a book you physically hold.
+2. To link it to the work that used it, add its slug to `sources:` on the project(s) — `src/content/projects/<slug>.md` for the RU branch, `src/content/projects-en/<slug>.md` for EN. Do **not** author the relation on the note; there is no field for it.
+3. No registry to update: the source is picked up by the `/library/` index, the search index (`search-index.json`, facet «Библиотека»/«Library») and `llms.txt`. Content with a digit in the slug moves the `audit:content` baseline — review the diff, then `bun run audit:content:snapshot`.
 4. Run `bun run build` and `make check`.
 
 ## CV Source of Truth

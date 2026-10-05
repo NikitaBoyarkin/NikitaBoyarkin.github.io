@@ -157,8 +157,9 @@ describe('wiring — the class styles, the id stays', () => {
     );
 
     // About keeps its body in src/components/, so the scan has to span both.
-    // The shelf *index* is a tile grid and keeps the 800px column; only the
-    // source pages, which are prose, narrow to the reading measure.
+    // The shelf *index* is a tile grid and takes the same full reading frame as
+    // /graph/ — a grid in the 800px column reads cramped. Only the source pages,
+    // which are prose, narrow to the reading measure.
     const content = [...pages, 'src/components/AboutPage.astro'].filter((f) =>
       read(f).includes('container-content'),
     );
@@ -167,9 +168,11 @@ describe('wiring — the class styles, the id stays', () => {
         'src/components/AboutPage.astro',
         'src/pages/en/glossary/index.astro',
         'src/pages/en/graph.astro',
+        'src/pages/en/library.astro',
         'src/pages/en/library/[slug].astro',
         'src/pages/glossary/index.astro',
         'src/pages/graph.astro',
+        'src/pages/library.astro',
         'src/pages/library/[slug].astro',
       ].sort(),
     );

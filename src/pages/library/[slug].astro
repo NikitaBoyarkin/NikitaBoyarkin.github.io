@@ -5,6 +5,7 @@ import { withBase } from '../../lib/path';
 import {
   KIND_LABELS,
   STATUS_LABELS,
+  loadAppliedIn,
   loadSources,
   shelfHref,
   slugOf,
@@ -24,6 +25,10 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 const { data } = entry;
+
+// The relation lives on the project (`sources: [slug]`); this is the computed
+// reverse. No project claims a source yet, so the block stays absent until one does.
+const appliedIn = await loadAppliedIn('ru', slugOf(entry.id));
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -69,6 +74,25 @@ const jsonLd = {
     <div class="source-body">
       <Content />
     </div>
+
+    {
+      appliedIn.length > 0 && (
+        <section class="source-applied" aria-labelledby="applied-in">
+          <h2 class="source-applied-title" id="applied-in">
+            Применил в
+          </h2>
+          <ul class="source-applied-list">
+            {appliedIn.map((project) => (
+              <li>
+                <a class="source-applied-link" href={project.href}>
+                  {project.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
 
     <p class="source-back"><a href={shelfHref('ru')}>← Библиотека</a></p>
   </article>
@@ -135,6 +159,35 @@ const jsonLd = {
     font-weight: 500;
   }
   .source-url a:hover {
+    color: var(--text-accent-hover);
+    text-decoration: underline;
+  }
+
+  /* Authored here, not rendered from markdown — so no `:global()` wrapper. */
+  .source-applied {
+    margin: var(--space-8) 0 0;
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-color);
+  }
+  .source-applied-title {
+    margin: 0 0 var(--space-3);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .source-applied-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .source-applied-link {
+    color: var(--text-accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .source-applied-link:hover {
     color: var(--text-accent-hover);
     text-decoration: underline;
   }

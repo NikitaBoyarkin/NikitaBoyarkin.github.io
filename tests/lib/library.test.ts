@@ -51,14 +51,19 @@ interface Book {
 
 function mdFiles(dir: string): string[] {
   const full = join(CONTENT, dir);
-  return existsSync(full) ? readdirSync(full).filter((f) => f.endsWith('.md')) : [];
+  // `.mdx` too: `projectSchema` is applied to both spellings by the glob loader.
+  return existsSync(full) ? readdirSync(full).filter((f) => /\.mdx?$/.test(f)) : [];
+}
+
+function frontmatterIn(dir: string, file: string): string {
+  const raw = readFileSync(join(CONTENT, dir, file), 'utf8');
+  const block = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
+  if (!block) throw new Error(`${dir}/${file}: no frontmatter block`);
+  return block[1];
 }
 
 function frontmatter(lang: Lang, file: string): string {
-  const raw = readFileSync(join(CONTENT, LANG_DIRS[lang], file), 'utf8');
-  const block = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
-  if (!block) throw new Error(`${lang}/${file}: no frontmatter block`);
-  return block[1];
+  return frontmatterIn(LANG_DIRS[lang], file);
 }
 
 /** Flat frontmatter scalars only — the body is prose the tile never reads. */
@@ -221,5 +226,50 @@ describe('library wiring', () => {
   it('mounts on both locales of the homepage bento', () => {
     expect(read('src/pages/index.astro')).toContain('<ReadingBlock');
     expect(read('src/pages/en/index.astro')).toContain('<ReadingBlock');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// «Applied in» — the project → shelf-note link.
+//
+// The relation is authored once, on the project (`sources: [slug]` in
+// projectSchema); the note's page renders the computed reverse via
+// `loadAppliedIn`. Nothing in the build complains when a slug is misspelled —
+// the block simply renders empty and the note silently loses its evidence.
+// This binds the authored half. `tests/built/library.test.ts` binds the output.
+// ---------------------------------------------------------------------------
+
+const PROJECT_DIRS = { ru: 'projects', en: 'projects-en' } as const;
+
+/** Accepts both YAML spellings: `sources: ["a", "b"]` and a `- a` block list. */
+function sourcesOf(fm: string): string[] {
+  const flow = /^sources:\s*\[([^\]]*)\]\s*$/m.exec(fm);
+  if (flow) return [...flow[1].matchAll(/["']([^"']+)["']/g)].map((m) => m[1]);
+  const block = /^sources:[ \t]*\n((?:[ \t]*-[ \t]*.+\n?)*)/m.exec(fm);
+  if (block) {
+    return [...block[1].matchAll(/^[ \t]*-[ \t]*["']?([^"'\s]+)["']?/gm)].map((m) => m[1]);
+  }
+  return [];
+}
+
+describe('library wiring — every declared `sources` slug names a real note', () => {
+  for (const lang of LANGS) {
+    it(`resolves every \`sources\` slug against ${LANG_DIRS[lang]} in ${lang}`, () => {
+      const available = new Set(mdFiles(LANG_DIRS[lang]).map((f) => f.replace(/\.mdx?$/, '')));
+      for (const file of mdFiles(PROJECT_DIRS[lang])) {
+        const fm = frontmatterIn(PROJECT_DIRS[lang], file);
+        for (const slug of sourcesOf(fm)) {
+          expect(available, `${PROJECT_DIRS[lang]}/${file}: sources → ${slug}`).toContain(slug);
+        }
+      }
+    });
+  }
+
+  it('parses both YAML spellings of `sources`', () => {
+    // Guards the guard: a parser that silently returns [] would make the two
+    // checks above vacuously green.
+    expect(sourcesOf('sources: ["a", "b"]\nother: 1')).toEqual(['a', 'b']);
+    expect(sourcesOf("sources:\n  - a\n  - 'b'\nother: 1")).toEqual(['a', 'b']);
+    expect(sourcesOf('source: ["typo"]\n')).toEqual([]);
   });
 });
