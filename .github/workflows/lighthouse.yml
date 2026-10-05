@@ -1,0 +1,66 @@
+name: Lighthouse
+
+on:
+  # Runs after the Pages workflow completes. Kept out of deploy.yml so a slow or
+  # flaky audit cannot occupy the `pages` concurrency queue and delay the next
+  # deployment, and so its verdict never gates publishing.
+  workflow_run:
+    workflows: ["Deploy Astro site to GitHub Pages"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read # download the `github-pages` artifact from the triggering run
+
+concurrency:
+  # Only the newest audit per branch matters.
+  group: lighthouse-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    # The `build` job uploads the pages artifact on push only, and a failed run
+    # has no site worth auditing.
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # The triggering run already built the site. Reuse that artifact instead
+      # of paying for a second Astro build here.
+      - name: Download built site
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: github-pages
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          path: pages-artifact
+
+      # `astro preview` (see .lighthouserc.json) serves dist/, so unpack the
+      # pages tarball back into it.
+      - name: Unpack site into dist/
+        run: |
+          mkdir -p dist
+          tar --directory dist -xf pages-artifact/artifact.tar
+          test -f dist/index.html
+
+      - name: Run Lighthouse CI
+        run: bunx @lhci/cli autorun
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lighthouse-reports
+          path: lhci-reports/

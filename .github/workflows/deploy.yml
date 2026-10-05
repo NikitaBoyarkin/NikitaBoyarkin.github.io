@@ -13,6 +13,8 @@ permissions:
   id-token: write
 
 concurrency:
+  # Deployments only. Lighthouse runs in lighthouse.yml (workflow_run) so a slow
+  # audit cannot occupy this queue and delay the next release.
   group: pages
   cancel-in-progress: false
 
@@ -91,38 +93,6 @@ jobs:
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: dist/
-
-  lighthouse:
-    needs: build
-    runs-on: ubuntu-latest
-    # Metrics gate, not a release gate: a flaky runner or a missed threshold
-    # must not redden the run or block publishing. Findings stay visible in the
-    # job log and in the uploaded lhci-reports artifact.
-    continue-on-error: true
-    steps:
-      - name: Checkout
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build site
-        run: bun run build
-
-      - name: Run Lighthouse CI
-        run: bunx @lhci/cli autorun
-
-      - name: Upload Lighthouse reports
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: lighthouse-reports
-          path: lhci-reports/
 
   deploy:
     if: github.event_name == 'push'
