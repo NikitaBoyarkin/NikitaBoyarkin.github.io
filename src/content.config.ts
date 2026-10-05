@@ -32,6 +32,11 @@ const projectSchema = z.object({
   track: z.enum(['experiments', 'analytics', 'product', 'engineering']).default('analytics'),
   related: z.array(z.string()).default([]),
   children: z.array(z.string()).default([]),
+  /** Slugs of shelf notes (`src/content/library/`) whose method this project
+   *  applied. The relation is stored here and nowhere else: the source page's
+   *  «Applied in» block is computed from this list, so the two sides cannot
+   *  drift. `default([])` keeps every project that never carried a source. */
+  sources: z.array(z.string()).default([]),
   date: z.coerce.date().optional(),
   updated: z.coerce.date().optional(),
   /** Per-project social/AI preview card (1200×630 raster under public/).

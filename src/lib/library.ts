@@ -13,6 +13,7 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import { withBase } from './path';
+import { sortByProjectOrder } from './projects';
 import type { SourceKind, SourceStatus } from './source';
 
 export type Lang = 'ru' | 'en';
@@ -58,4 +59,30 @@ export async function loadSources(lang: Lang): Promise<SourceEntry[]> {
 /** The shelf as the homepage cell shows it: the first few, in shelf order. */
 export async function loadFeaturedSources(lang: Lang, limit = 3): Promise<SourceEntry[]> {
   return (await loadSources(lang)).slice(0, limit);
+}
+
+export interface AppliedIn {
+  title: string;
+  href: string;
+}
+
+/** Both project collections share `projectSchema`; only the `collection` literal
+ *  differs, so one cast covers the pair — as in `loadSources` above. */
+type ProjectEntry = CollectionEntry<'projects'>;
+
+/** The projects that applied this source. The relation is stored on the project
+ *  (`sources: [slug]`) and read here — never authored on the note, so a source
+ *  cannot claim a project that does not claim it back. Ordered by the board's
+ *  canonical `PROJECT_ORDER`, not by the id the glob happens to return. */
+export async function loadAppliedIn(lang: Lang, slug: string): Promise<AppliedIn[]> {
+  const projects =
+    lang === 'en'
+      ? await getCollection('projects-en', (p) => !p.data.draft)
+      : await getCollection('projects', (p) => !p.data.draft);
+  return sortByProjectOrder(projects as unknown as ProjectEntry[])
+    .filter((p) => p.data.sources.includes(slug))
+    .map((p) => ({
+      title: p.data.title,
+      href: withBase(`${lang === 'en' ? 'en/' : ''}projects/${slugOf(p.id)}/`),
+    }));
 }
