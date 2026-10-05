@@ -12,15 +12,21 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  # Deployments only. Lighthouse runs in lighthouse.yml (workflow_run) so a slow
-  # audit cannot occupy this queue and delay the next release.
-  group: pages
-  cancel-in-progress: false
+# Concurrency is set per job, not per workflow — see the build and deploy jobs.
+# A workflow-level `group: pages` would put every run, build included, behind the
+# previous one; a burst of pushes then queues instead of superseding, which is
+# how 21 runs averaged 401 s of wall clock for 76 s of actual work.
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      # Cancellable: a newer push makes this run obsolete, and cancelling a
+      # queued or building run is free. Pull requests get their own group via
+      # github.ref, so two PRs never cancel each other.
+      group: pages-build-${{ github.ref }}
+      cancel-in-progress: true
     env:
       # Evidence for the METRICS drift guard (tests/lib/metrics.test.ts): the
       # sibling sql-analytics-case-study repo, checked out below.
@@ -41,7 +47,10 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
-          bun-version: latest
+          # Pinned, not `latest`: it matches the dev machine, and the setup step
+          # keys its cache on this value — a floating version invalidates the
+          # cache on every Bun release.
+          bun-version: 1.4.2
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -50,12 +59,6 @@ jobs:
         run: bun run sync:gh
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Type-check
-        run: bun run check
-
-      - name: Unit tests
-        run: bun run test
 
       - name: Games hub PostHog key drift check
         # public/games/* hardcode the capture token (static files cannot read
@@ -86,6 +89,11 @@ jobs:
         run: bun run build
 
       - name: Validate built site
+        # The single gate. `make check` runs `bun run check` (astro check + tsc),
+        # the unit suite, test:monitoring, test:built and scripts/check_site.py;
+        # running it here also means test:built sees a real dist/. Type-check and
+        # Unit tests used to run as separate pre-build steps as well, paying for
+        # the same astro check and the same suite twice.
         run: make check
 
       - name: Upload artifact
@@ -98,6 +106,13 @@ jobs:
     if: github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      # Not cancellable: killing this job mid-flight can leave GitHub Pages on a
+      # half-published release. It is short and rare enough that serialising it
+      # costs nothing.
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
