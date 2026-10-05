@@ -317,25 +317,36 @@ button.blog-card-tag:hover {
   color: var(--text-accent-hover);
 }
 
-/* Contact section */
-.contact-section {
-  margin-top: var(--space-12);
-}
-
+/* Contact section — card-page frame (`.container.container-content`, same as
+   /graph/ and /library/). Single reading-order column: title, intro, call to
+   action, channels, then what-I'm-looking-for. */
 .contact-title {
+  font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-normal);
   margin-bottom: var(--space-2);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .contact-text {
   font-size: 1.05rem;
   color: var(--text-normal);
   line-height: 1.5;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-6);
   max-width: 65ch;
+}
+
+.contact-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Uniform card padding across the section (the base .board-card ships a
+   tighter 1rem, sized for the sticky board). */
+.contact-layout .board-card {
+  padding: var(--space-6);
 }
 
 .contact-email {
@@ -348,6 +359,53 @@ button.blog-card-tag:hover {
   color: var(--text-accent-hover);
   text-decoration: underline;
   text-underline-offset: 0.15em;
+}
+
+.contact-channels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Card micro-label — shared by the channels / look cards. */
+.look-title {
+  margin: 0 0 var(--space-4);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.look-grid {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.look-item dt {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.look-item dd {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-normal);
+  line-height: 1.5;
+}
+
+/* Personal-data note under the form. Deliberately plain text: it names no
+   policy page, because there is no `/privacy/` route to link to. */
+.contact-note {
+  margin: var(--space-3) 0 0;
+  max-width: 60ch;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
 }
 
 .linkedin-badge {

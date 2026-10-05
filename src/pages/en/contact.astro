@@ -10,121 +10,82 @@ const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent("Hi! Let's d
 ---
 
 <Base title="Contact | Nikita Boyarkin" description="Get in touch with Nikita Boyarkin — product analytics, A/B testing, collaboration." activeNav="contact" canonical={withBase('en/contact/')} lang="en" counterpartHref={withBase('contact/')}>
-  <section class="contact-section reveal">
+  <section class="container container-content reveal">
     <h1 class="contact-title">Contact</h1>
     <p class="contact-text">
       If you want to talk product analytics, A/B testing, or a collaboration format — I'm open to conversations.
       Open to Data / Product Analyst roles.
     </p>
 
-    {
-      CONTACT_FORM_ENABLED ? (
-        <>
-          <ContactForm locale="en" />
+    <div class="contact-layout">
+      {
+        CONTACT_FORM_ENABLED && (
+          <div class="contact-form-wrap">
+            <ContactForm locale="en" />
 
-          <p class="contact-note">
-            By submitting the form you agree to the processing of the data above so I can reply.
-            Name, contact and message are stored in a secured database; IP is not kept.
-          </p>
-        </>
-      ) : (
-        <div class="board-card" style="max-width: 60ch;">
-          <p>
-            The form is paused until submission intake is wired up — so a click does not vanish
-            into nothing, message me directly.
-          </p>
-          <p style="margin-top: var(--space-3);">
-            <a href="https://t.me/lofinibo" data-analytics="telegram_contact" target="_blank" rel="noopener noreferrer">Telegram: @lofinibo</a>
-            {' · '}
-            <a href={tgDeepLink} data-analytics="telegram_deeplink" target="_blank" rel="noopener noreferrer">Send with context →</a>
-          </p>
+            <p class="contact-note">
+              By submitting the form you agree to the processing of the data above so I can reply.
+              Name, contact and message are stored in a secured database; IP is not kept.
+            </p>
+          </div>
+        )
+      }
+
+      <div class="cta-row">
+        <a
+          href={CAL_BOOKING_URL}
+          class="button"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-analytics="booking_click">Book 30 minutes</a
+        >
+        <a
+          href={tgDeepLink}
+          class="button button-secondary"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-analytics="telegram_deeplink">Send in Telegram →</a
+        >
+      </div>
+
+      <div class="board-card">
+        <h2 class="look-title">Other ways to reach me</h2>
+        <div class="contact-channels">
+          <a
+            href="https://t.me/lofinibo"
+            class="contact-email"
+            data-analytics="telegram_contact"
+            target="_blank"
+            rel="noopener noreferrer">Telegram: @lofinibo</a
+          >
+          <a
+            href="https://www.linkedin.com/in/nikita-boyarkin"
+            class="contact-email"
+            target="_blank"
+            rel="noopener noreferrer">LinkedIn</a
+          >
         </div>
-      )
-    }
+      </div>
 
-    <p style="margin-top: var(--space-6);">
-      <a href={CAL_BOOKING_URL} class="button button-secondary" target="_blank" rel="noopener noreferrer" data-analytics="booking_click">Book 30 minutes</a>
-    </p>
-
-    <div class="board-card" style="max-width: 60ch; margin-top: var(--space-8);">
-      <h2 class="look-title">Other ways to reach me</h2>
-      <a href="https://t.me/lofinibo" class="contact-email" data-analytics="telegram_contact" target="_blank" rel="noopener noreferrer">Telegram: @lofinibo</a>
-      <p style="margin-top: var(--space-2);">
-        <a href={tgDeepLink} data-analytics="telegram_deeplink" target="_blank" rel="noopener noreferrer">Send with context →</a>
-      </p>
-
-      <p style="margin-top: var(--space-6);">
-        <a href={withBase('en/about/')}>About →</a> ·
-        <a href={withBase('en/about/#now')}>What I'm working on →</a> ·
-        <a href={withBase('en/about/#who')}>Who I am →</a> ·
-        <a href={withBase('en/about/#value')}>What I can help with →</a> ·
-        <a href={withBase('en/about/#work')}>How I work →</a> ·
-        <a href={withBase('CV-Nikita-Boyarkin.pdf')} download data-analytics="cv_download_pdf">CV</a> ·
-        <a href={withBase('contact/')}>Russian version</a>
-      </p>
-    </div>
-
-    <div class="board-card look-card" style="max-width: 60ch;">
-      <h2 class="look-title">What I'm looking for</h2>
-      <dl class="look-grid">
-        <div class="look-item">
-          <dt>Role</dt>
-          <dd>Data / Product Analyst · middle</dd>
-        </div>
-        <div class="look-item">
-          <dt>Stack</dt>
-          <dd>SQL · Python · A/B experiments · product metrics</dd>
-        </div>
-        <div class="look-item">
-          <dt>Format</dt>
-          <dd>Open to roles — let's discuss the collaboration format</dd>
-        </div>
-      </dl>
+      <div class="board-card look-card">
+        <h2 class="look-title">What I'm looking for</h2>
+        <dl class="look-grid">
+          <div class="look-item">
+            <dt>Role</dt>
+            <dd>Data / Product Analyst · middle</dd>
+          </div>
+          <div class="look-item">
+            <dt>Stack</dt>
+            <dd>SQL · Python · A/B experiments · product metrics</dd>
+          </div>
+          <div class="look-item">
+            <dt>Format</dt>
+            <dd>Open to roles — let's discuss the collaboration format</dd>
+          </div>
+        </dl>
+      </div>
     </div>
 
     <LinkedInBadge lang="en" />
   </section>
-
-  <style>
-    .look-card {
-      margin-top: var(--space-6);
-      padding: var(--space-6);
-    }
-    .look-title {
-      margin: 0 0 var(--space-4);
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-    .look-grid {
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-4);
-    }
-    .look-item dt {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: var(--space-1);
-    }
-    .look-item dd {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--text-normal);
-      line-height: 1.5;
-    }
-    /* Personal-data note under the form. Deliberately plain text: it names no
-       policy page, because there is no `/en/privacy/` route to link to. */
-    .contact-note {
-      margin: var(--space-3) 0 0;
-      max-width: 60ch;
-      font-size: 0.85rem;
-      line-height: 1.5;
-      color: var(--text-muted);
-    }
-  </style>
-
 </Base>
