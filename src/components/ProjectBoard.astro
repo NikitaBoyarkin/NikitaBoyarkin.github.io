@@ -3,20 +3,22 @@ import { getCollection } from 'astro:content';
 import ProjectCard from './ProjectCard.astro';
 import ProjectFilter from './ProjectFilter.astro';
 import ProjectTrackFilter from './ProjectTrackFilter.astro';
-import { groupByTrack, projectTracks, sortByProjectOrder, trackCounts } from '../lib/projects';
+import { flattenByTrack, projectTracks, sortByProjectOrder, trackCounts } from '../lib/projects';
 
 interface Props {
   collection?: 'projects' | 'projects-en';
   linkPrefix?: string;
-  heading?: string;
 }
-const { collection = 'projects', linkPrefix = '', heading = 'Projects' } = Astro.props;
+const { collection = 'projects', linkPrefix = '' } = Astro.props;
 const lang: 'ru' | 'en' = linkPrefix.startsWith('en/') ? 'en' : 'ru';
 
 const projects = sortByProjectOrder(await getCollection(collection, (p) => !p.data.draft));
 
-const grouped = groupByTrack(
-  projects.map((project) => ({ track: project.data.track, project })),
+// One flat grid, cards grouped track by track. The track is a badge on the card,
+// not a section heading — the card carries `data-track` so the controller can
+// filter and reorder within it.
+const entries = flattenByTrack(
+  projects.map((project) => ({ ...project, track: project.data.track })),
   lang,
 );
 const counts = trackCounts(
@@ -27,12 +29,9 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
 ---
 
 <section id="projects" class="reveal reveal-delay-2">
-  <h2>{heading}</h2>
-
   <div class="project-filter-bar">
     <ProjectTrackFilter lang={lang} tracks={tracks} total={projects.length} />
-    <ProjectFilter lang={lang} />
-    <div class="filter-row project-board-tools reveal reveal-delay-1">
+    <ProjectFilter lang={lang}>
       <button class="filter-tag" id="board-reset" data-analytics="projects_reset" type="button">
         {lang === 'en' ? 'Reset order' : 'Сбросить порядок'}
       </button>
@@ -43,7 +42,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
         aria-live="polite"
         data-saved={lang === 'en' ? 'Order saved' : 'Порядок сохранён'}
         data-reset={lang === 'en' ? 'Reset to default' : 'Порядок сброшен'}></span>
-    </div>
+    </ProjectFilter>
   </div>
 
   <span class="visually-hidden" role="status" id="project-filter-status"></span>
@@ -53,34 +52,27 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
       : 'В этой категории нет проектов с этим инструментом.'}
   </p>
 
-  <div id="project-list" class="project-tracks">
+  <div id="project-list" class="project-track-grid">
     {
-      grouped.map((track) => (
-        <section class="project-track" data-track={track.key}>
-          <div class="project-track-header">
-            <h3 class="project-track-title">{track.label}</h3>
-            <span class="project-track-count">{track.projects.length}</span>
-          </div>
-          <div class="project-track-grid">
-            {track.projects.map(({ project }) => (
-              <ProjectCard
-                slug={project.id.replace(/\.md$/, '')}
-                title={project.data.title}
-                description={project.data.description}
-                image={project.data.hero}
-                impact={project.data.impact}
-                star={project.data.star}
-                tools={project.data.tools}
-                github={project.data.github}
-                demo={project.data.demo}
-                private={project.data.private}
-                linkPrefix={linkPrefix}
-                lang={lang}
-                draggable
-              />
-            ))}
-          </div>
-        </section>
+      entries.map(({ project, trackLabel }) => (
+        <ProjectCard
+          slug={project.id.replace(/\.md$/, '')}
+          title={project.data.title}
+          description={project.data.description}
+          image={project.data.hero}
+          star={project.data.star}
+          impact={project.data.impact}
+          tools={project.data.tools}
+          github={project.data.github}
+          demo={project.data.demo}
+          private={project.data.private}
+          linkPrefix={linkPrefix}
+          lang={lang}
+          track={project.data.track}
+          trackLabel={trackLabel}
+          draggable
+          compact
+        />
       ))
     }
   </div>
@@ -92,7 +84,8 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
 
   // One controller for the whole board: category tabs + tool chips share the
   // same state, so they filter, sync the URL and toggle empty/disabled states
-  // together. Reorder (drag / keyboard / reset) is layered on top.
+  // together. Reorder (drag / keyboard / reset) is layered on top — and is
+  // confined to a card's own track, since the grid is flat.
   const board = document.getElementById('project-list');
   if (board) {
     const root = board as HTMLElement;
@@ -103,7 +96,6 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
     const emptyEl = document.getElementById('project-empty');
     const statusEl = document.getElementById('project-filter-status');
 
-    const sections = Array.from(root.querySelectorAll<HTMLElement>('.project-track'));
     const trackBtns = Array.from(
       document.querySelectorAll<HTMLButtonElement>('.project-track-filter [data-track-filter]'),
     );
@@ -111,12 +103,14 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
       document.querySelectorAll<HTMLButtonElement>('.project-filter [data-tool-filter]'),
     );
 
-    const cardsIn = (el: HTMLElement): HTMLElement[] =>
-      Array.from(el.querySelectorAll<HTMLElement>('.project'));
+    // Read fresh every time: reordering moves nodes, so a cached list goes stale.
+    const cards = (): HTMLElement[] => Array.from(root.querySelectorAll<HTMLElement>('.project'));
+    const cardsOfTrack = (key: string): HTMLElement[] =>
+      cards().filter((card) => card.dataset.track === key);
+    const trackKeys = (): string[] =>
+      [...new Set(cards().map((card) => card.dataset.track || ''))].filter(Boolean);
     const toolsOf = (card: HTMLElement): string[] =>
       (card.dataset.tools || '').split(',').filter(Boolean);
-    const sectionFor = (key: string): HTMLElement | undefined =>
-      sections.find((section) => section.dataset.track === key);
 
     let activeTrack = ALL_TRACKS;
     let activeTool = ALL_TOOLS;
@@ -128,18 +122,11 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
     // Apply both filters; returns the number of visible cards.
     function apply(): number {
       let visible = 0;
-      for (const section of sections) {
-        const inTrack = activeTrack === ALL_TRACKS || section.dataset.track === activeTrack;
-        let shown = 0;
-        for (const card of cardsIn(section)) {
-          const ok = inTrack && matchesTool(toolsOf(card), activeTool);
-          card.style.display = ok ? '' : 'none';
-          if (ok) shown += 1;
-        }
-        // A track is hidden when it is not selected, or when the tool filter
-        // leaves nothing in it.
-        section.hidden = !inTrack || shown === 0;
-        visible += shown;
+      for (const card of cards()) {
+        const inTrack = activeTrack === ALL_TRACKS || card.dataset.track === activeTrack;
+        const ok = inTrack && matchesTool(toolsOf(card), activeTool);
+        card.classList.toggle('is-hidden', !ok);
+        if (ok) visible += 1;
       }
 
       for (const btn of trackBtns) {
@@ -155,10 +142,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
 
       // Disable tool chips that cannot match inside the active category so a
       // click never lands on an empty board. The active chip stays operable.
-      const scope =
-        activeTrack === ALL_TRACKS
-          ? sections.flatMap(cardsIn)
-          : cardsIn(sectionFor(activeTrack) ?? root);
+      const scope = activeTrack === ALL_TRACKS ? cards() : cardsOfTrack(activeTrack);
       const emptyKeys = emptyToolKeys(
         scope.map((card) => ({ tools: toolsOf(card) })),
         lang,
@@ -240,15 +224,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
       flash();
     });
 
-    // --- Reorder: drag, keyboard (ArrowUp/Down) and reset, per track ---
-    const trackOf = (el: HTMLElement): HTMLElement | null =>
-      el.closest<HTMLElement>('.project-track');
-    const gridOf = (track: HTMLElement | null): HTMLElement | null =>
-      track ? track.querySelector<HTMLElement>('.project-track-grid') : null;
-    const gridCards = (track: HTMLElement): HTMLElement[] =>
-      Array.from(track.querySelectorAll<HTMLElement>(':scope > .project-track-grid > .project'));
-    const trackKey = (track: HTMLElement): string => track.dataset.track || '';
-
+    // --- Reorder: drag, keyboard (ArrowUp/Down) and reset, within one track ---
     function readOrder(): Record<string, string[]> {
       try {
         const raw = localStorage.getItem(storageKey);
@@ -270,38 +246,45 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
 
     function currentOrder(): Record<string, string[]> {
       const order: Record<string, string[]> = {};
-      for (const track of sections) {
-        order[trackKey(track)] = gridCards(track)
+      for (const key of trackKeys()) {
+        order[key] = cardsOfTrack(key)
           .map((card) => card.dataset.slug || '')
           .filter(Boolean);
       }
       return order;
     }
 
-    function reorderTrackTo(track: HTMLElement, slugs: string[]): void {
-      const grid = gridOf(track);
-      if (!grid) return;
-      const bySlug = new Map<string, HTMLElement>();
-      for (const card of gridCards(track)) bySlug.set(card.dataset.slug || '', card);
-      const frag = document.createDocumentFragment();
-      for (const slug of slugs) {
-        const el = bySlug.get(slug);
-        if (el) frag.appendChild(el);
-      }
+    // Put one track's cards back in `slugs` order without leaving the grid.
+    // `ref` walks the block: a card already sitting where it belongs advances
+    // the cursor, any other card is moved in front of it. Never moves a node
+    // out of the tree, so `ref` is always still attached.
+    function reorderTrackTo(key: string, slugs: string[]): void {
+      const peers = cardsOfTrack(key);
+      if (!peers.length) return;
+      const bySlug = new Map(peers.map((card) => [card.dataset.slug || '', card]));
+      const ordered = slugs
+        .map((slug) => bySlug.get(slug))
+        .filter((card): card is HTMLElement => Boolean(card));
       // Cards not listed in `slugs` (e.g. a new project) keep their DOM order.
-      for (const card of gridCards(track)) {
-        if (!slugs.includes(card.dataset.slug || '')) frag.appendChild(card);
+      for (const card of peers) if (!ordered.includes(card)) ordered.push(card);
+
+      let ref: ChildNode | null = peers[0];
+      for (const card of ordered) {
+        if (card === ref) {
+          ref = ref.nextSibling;
+          continue;
+        }
+        root.insertBefore(card, ref);
       }
-      grid.appendChild(frag);
     }
 
     // Capture the Astro-rendered order before applying any saved order, so
     // "Reset" can restore it without a page reload.
     const canonicalOrder = currentOrder();
     const savedOrder = readOrder();
-    for (const track of sections) {
-      const slugs = savedOrder[trackKey(track)];
-      if (slugs && slugs.length) reorderTrackTo(track, slugs);
+    for (const key of trackKeys()) {
+      const slugs = savedOrder[key];
+      if (slugs && slugs.length) reorderTrackTo(key, slugs);
     }
 
     let hintTimer: ReturnType<typeof setTimeout> | undefined;
@@ -316,13 +299,15 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
     }
 
     let dragEl: HTMLElement | null = null;
-    let dragKey = '';
+    let dragTrack = '';
+
+    const sameTrack = (card: HTMLElement): boolean => card.dataset.track === dragTrack;
 
     function clearDrag(): void {
       if (dragEl) dragEl.classList.remove('dragging');
       root.querySelectorAll('.project.drag-over').forEach((card) => card.classList.remove('drag-over'));
       dragEl = null;
-      dragKey = '';
+      dragTrack = '';
     }
 
     root.addEventListener('dragstart', (e) => {
@@ -334,11 +319,11 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
         return;
       }
       dragEl = card;
-      dragKey = trackOf(card)?.dataset.track || '';
+      dragTrack = card.dataset.track || '';
       try {
         if (e.dataTransfer) {
           e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/plain', dragKey);
+          e.dataTransfer.setData('text/plain', dragTrack);
         }
       } catch {
         /* dataTransfer unavailable */
@@ -350,7 +335,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
       if (!dragEl) return;
       e.preventDefault();
       const card = (e.target as HTMLElement).closest<HTMLElement>('.project');
-      if (card && card !== dragEl && trackOf(card)?.dataset.track === dragKey) {
+      if (card && card !== dragEl && sameTrack(card)) {
         card.classList.add('drag-over');
       }
     });
@@ -363,52 +348,32 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
       if (!dragEl) return;
       e.preventDefault();
       const target = (e.target as HTMLElement).closest<HTMLElement>('.project');
-      if (target && target !== dragEl && trackOf(target)?.dataset.track === dragKey) {
-        const grid = gridOf(trackOf(target));
-        if (grid) {
-          const rect = target.getBoundingClientRect();
-          const after = e.clientY > rect.top + rect.height / 2;
-          if (after) {
-            const next = target.nextElementSibling as HTMLElement | null;
-            if (next) grid.insertBefore(dragEl, next);
-            else grid.appendChild(dragEl);
-          } else {
-            grid.insertBefore(dragEl, target);
-          }
-          writeOrder(currentOrder());
-          showHint(hintEl?.dataset.saved || 'Saved');
-        }
+      if (target && target !== dragEl && sameTrack(target)) {
+        const rect = target.getBoundingClientRect();
+        const after = e.clientY > rect.top + rect.height / 2;
+        root.insertBefore(dragEl, after ? target.nextSibling : target);
+        writeOrder(currentOrder());
+        showHint(hintEl?.dataset.saved || 'Saved');
       }
       clearDrag();
     });
 
     root.addEventListener('dragend', clearDrag);
 
-    // Keyboard reorder (WCAG 2.1.1 / 2.5.7): ArrowUp/ArrowDown moves the
-    // focused card within its track. Drag stays the pointer enhancement.
+    // Keyboard reorder (WCAG 2.1.1 / 2.5.7): ArrowUp/ArrowDown moves the focused
+    // card one slot within its own track. Drag stays the pointer enhancement.
     root.addEventListener('keydown', (e) => {
       if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
       const target = e.target as HTMLElement;
       const card = target.closest<HTMLElement>('.project');
       if (!card || !root.contains(card) || target !== card) return;
-      const track = trackOf(card);
-      const grid = gridOf(track);
-      if (!track || !grid) return;
-      const items = gridCards(track);
-      const idx = items.indexOf(card);
+      const peers = cardsOfTrack(card.dataset.track || '');
+      const idx = peers.indexOf(card);
       if (idx < 0) return;
-      const delta = e.key === 'ArrowDown' ? 1 : -1;
-      const next = idx + delta;
-      if (next < 0 || next >= items.length) return;
+      const next = peers[idx + (e.key === 'ArrowDown' ? 1 : -1)];
+      if (!next) return;
       e.preventDefault();
-      const targetCard = items[next];
-      if (delta > 0) {
-        const after = targetCard.nextElementSibling as HTMLElement | null;
-        if (after) grid.insertBefore(card, after);
-        else grid.appendChild(card);
-      } else {
-        grid.insertBefore(card, targetCard);
-      }
+      root.insertBefore(card, e.key === 'ArrowDown' ? next.nextSibling : next);
       writeOrder(currentOrder());
       showHint(hintEl?.dataset.saved || 'Saved');
       card.focus(); // stay on the card so repeated moves work
@@ -420,7 +385,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
       } catch {
         /* ignore */
       }
-      for (const track of sections) reorderTrackTo(track, canonicalOrder[trackKey(track)] || []);
+      for (const key of trackKeys()) reorderTrackTo(key, canonicalOrder[key] || []);
       showHint(hintEl?.dataset.reset || 'Reset');
     });
 

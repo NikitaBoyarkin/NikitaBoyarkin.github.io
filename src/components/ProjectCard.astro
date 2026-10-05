@@ -15,22 +15,36 @@ interface Props {
   title: string;
   description: string;
   image?: string;
-  impact?: string[];
-  /** STAR skeleton (D21) — when present it replaces the legacy `impact` line. */
+  /** STAR skeleton — when present it replaces the card's prose (`description`). */
   star?: Star;
+  impact?: string[];
   tools?: string[];
   github?: string;
   demo?: string;
   private?: boolean;
   linkPrefix?: string;
   lang?: 'ru' | 'en';
+  /** Track key — the board's filter scope and the bound of a reorder drag. */
+  track?: string;
+  /** Localized track name, printed as the card's eyebrow badge. */
+  trackLabel?: string;
   /** Enable HTML5 drag on the card (kanban board reorder). */
   draggable?: boolean;
+  /** Board teaser: clamps the description, the impact line and the tool chips,
+   *  so a row of cards stays level. The full text lives on the project page. */
+  compact?: boolean;
 }
 
-const { slug, title, description, image, impact, star, tools, github, demo, private: isPrivate = false, linkPrefix = '', lang = 'ru', draggable = false } = Astro.props;
+const { slug, title, description, image, star, impact, tools, github, demo, private: isPrivate = false, linkPrefix = '', lang = 'ru', track, trackLabel, draggable = false, compact = false } = Astro.props;
 const isEn = lang === 'en';
 const impactText = impact?.join(', ');
+// The compact (board) card shows the first few tools and counts the rest, so
+// the chip row is one line tall; the project page lists them all. Two, not
+// three: at a ~324px card width two compound labels ("pandas / NumPy",
+// "SciPy / Statsmodels") already fill the row, and a third forces a wrap.
+const TOOL_LIMIT = 2;
+const shownTools = compact && tools && tools.length > TOOL_LIMIT ? tools.slice(0, TOOL_LIMIT) : tools;
+const hiddenTools = tools && shownTools ? tools.length - shownTools.length : 0;
 const i18n = {
   impact: isEn ? 'Impact' : 'Эффект',
   view: isEn ? 'View Project' : 'Открыть проект',
@@ -39,66 +53,66 @@ const i18n = {
 };
 ---
 
-<article class="project reveal" data-tools={(tools ?? []).join(',').toLowerCase()} data-slug={slug} draggable={draggable ? 'true' : undefined} tabindex={draggable ? '0' : undefined}>
+<article class={`project reveal${compact ? ' compact' : ''}`} data-tools={(tools ?? []).join(',').toLowerCase()} data-track={track} data-slug={slug} draggable={draggable ? 'true' : undefined} tabindex={draggable ? '0' : undefined}>
   <span class="project-grip" aria-hidden="true"><span></span><span></span><span></span></span>
   {draggable && (
     <span class="visually-hidden">
       {isEn ? ' — reorder with Arrow Up/Down' : ' — перемещение стрелками ↑/↓'}
     </span>
   )}
-  {image && <img src={withBase(image)} alt={title} loading="lazy" width="600" height="200" />}
+  {image && <img src={withBase(image)} alt={title} loading="lazy" />}
+  <div class="project-body">
+  {trackLabel && <p class="project-track-badge">{trackLabel}</p>}
   <h3>{title}</h3>
-  <p>{description}</p>
+
+  {star ? <StarBlock star={star} lang={lang} compact /> : <p>{description}</p>}
 
   {
     tools && tools.length > 0 && (
       <div class="project-tools">
-        {tools.map((tool) => (
+        {shownTools?.map((tool) => (
           <span class="project-tool">{tool}</span>
         ))}
+        {hiddenTools > 0 && <span class="project-tool">+{hiddenTools}</span>}
       </div>
     )
   }
 
-  {
-    star ? (
-      <StarBlock star={star} lang={lang} compact />
-    ) : impactText ? (
-      <p class="Impact">{i18n.impact}: {impactText}</p>
-    ) : null
-  }
+  {!star && impactText && <p class="Impact">{i18n.impact}: {impactText}</p>}
 
   <div class="project-actions">
-    <a class="button" href={withBase(`${linkPrefix}projects/${slug}/`)} style="flex: 1 1 auto; justify-content: center;" data-analytics-project={slug} data-analytics-surface="card">{i18n.view} <ArrowMorph /></a>
+    <a class="button" href={withBase(`${linkPrefix}projects/${slug}/`)} data-analytics-project={slug} data-analytics-surface="card">{i18n.view} <ArrowMorph /></a>
     {
-      demo && (
-        <a
-          class="button button-demo"
-          href={demo.startsWith('http') ? demo : withBase(demo)}
-          target="_blank"
-          rel="noopener noreferrer"
-          style="flex: 1 1 auto; justify-content: center;"
-          data-analytics={`project_demo_${slug}`}
-        >
-          {i18n.demo} <ArrowMorph />
-        </a>
+      (demo || github) && (
+        <div class="project-action-links">
+          {demo && (
+            <a
+              class="project-action-link"
+              href={demo.startsWith('http') ? demo : withBase(demo)}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-analytics={`project_demo_${slug}`}
+            >
+              {i18n.demo} <ArrowMorph />
+            </a>
+          )}
+          {github && (
+            <a
+              class="project-action-link"
+              href={github}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-analytics={`project_github_${slug}`}
+            >
+              GitHub <ArrowMorph />
+            </a>
+          )}
+        </div>
       )
     }
-    {
-      github && (
-        <a
-          class="button button-secondary"
-          href={github}
-          target="_blank"
-          rel="noopener noreferrer"
-          style="flex: 1 1 auto; justify-content: center;"
-          data-analytics={`project_github_${slug}`}
-        >
-          GitHub <ArrowMorph />
-        </a>
-      )
-    }
+    {compact && isPrivate && <p class="repo-private-note">{i18n.privateNote}</p>}
   </div>
 
-  {isPrivate && <p class="repo-private-note" style="font-size:.8rem;color:var(--text-normal);opacity:.75;margin:.5rem 0 0;">{i18n.privateNote}</p>}
+  {!compact && isPrivate && <p class="repo-private-note">{i18n.privateNote}</p>}
+  </div>
 </article>

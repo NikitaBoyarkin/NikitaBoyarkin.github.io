@@ -69,6 +69,23 @@ export function groupByTrack<T extends { track: string }>(
     .filter((track) => track.projects.length > 0);
 }
 
+/**
+ * Flat board order: every project once, grouped track by track (taxonomy order,
+ * then `sortByProjectOrder` inside each track). The board renders one grid, so
+ * the flat order is what the reorder controller persists — each track's cards
+ * have to stay contiguous or a saved order would interleave two tracks.
+ * `trackLabel` rides along so the card can print its track as a badge without
+ * the board re-deriving labels.
+ */
+export function flattenByTrack<T extends { track: string }>(
+  projects: readonly T[],
+  lang: 'ru' | 'en' = 'ru',
+): { project: T; trackLabel: string }[] {
+  return projectTracks(lang).flatMap(({ key, label }) =>
+    projects.filter((p) => p.track === key).map((project) => ({ project, trackLabel: label })),
+  );
+}
+
 /** Project count per track key, including empty tracks (`0`). */
 export function trackCounts<T extends { track: string }>(
   projects: readonly T[],

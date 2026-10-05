@@ -1123,6 +1123,17 @@ nav ul.links a[aria-current="page"] {
   padding: var(--space-8);
 }
 
+/* Homepage only: one cell per row. Scoped to `bento-spaced` (the homepage's
+   modifier) so About's plain `.bento-grid` keeps its 4-column layout. */
+.bento-grid.bento-spaced {
+  grid-template-columns: 1fr;
+}
+
+.bento-grid.bento-spaced .bento-cell-wide,
+.bento-grid.bento-spaced .bento-cell-full {
+  grid-column: span 1;
+}
+
 .bento-cell {
   display: flex;
   flex-direction: column;
@@ -1486,8 +1497,8 @@ nav ul.links a[aria-current="page"] {
   border-radius: var(--radius-full);
 }
 
-/* Projects board container — one full-width section per category, stacked.
-   (Was a card grid before the kanban era; the board owns this id.) */
+/* Stacked card list — the topic pages render their cards under this id. The
+   board overrides it with its own grid (`#project-list.project-track-grid`). */
 #project-list {
   display: flex;
   flex-direction: column;
@@ -1495,6 +1506,10 @@ nav ul.links a[aria-current="page"] {
 }
 
 .project {
+  /* Column layout so `.project-actions { margin-top: auto }` can pin the
+     buttons to the bottom of a stretched grid row. */
+  display: flex;
+  flex-direction: column;
   background: var(--card-background);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
@@ -1538,9 +1553,11 @@ nav ul.links a[aria-current="page"] {
   outline-offset: -2px;
 }
 
+/* Covers are 1200x600 SVGs, so the frame is their real 2:1 ratio — no crop. */
 .project img {
   width: 100%;
-  height: 200px;
+  aspect-ratio: 2 / 1;
+  height: auto;
   object-fit: cover;
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-4);
@@ -1549,6 +1566,42 @@ nav ul.links a[aria-current="page"] {
 
 .project:hover img {
   transform: scale(1.03);
+}
+
+/* Card body wrapper. On the board (`.compact`) it becomes the right-hand column
+   beside the cover; everywhere else it stays transparent (`display: contents`)
+   so the stacked topic-page card keeps its original single-column flow. */
+.project-body {
+  display: contents;
+}
+
+/* Board card: horizontal — cover left, body right. The cover keeps its real
+   2:1 ratio at a fixed column width; the body sets the card height. `flex-wrap`
+   lets the body drop below the cover on narrow widths without a breakpoint. */
+.project.compact {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.project.compact img {
+  flex: none;
+  width: clamp(260px, 38%, 420px);
+  align-self: flex-start;
+  margin-right: var(--space-6);
+  margin-bottom: 0;
+}
+
+.project.compact .project-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+/* The drag grip spans the card's full width above cover and body. */
+.project.compact .project-grip {
+  flex-basis: 100%;
 }
 
 .project h3 {
@@ -1566,7 +1619,22 @@ nav ul.links a[aria-current="page"] {
   font-size: 0.95rem;
 }
 
+/* Board cards are teasers: the description and the impact metrics are clamped
+   so a row of cards stays level and the cover stays the hero. The full text —
+   and the whole impact list — lives on the project page. */
+.project.compact p:not(.project-track-badge):not(.repo-private-note):not(.Impact),
+.project.compact .Impact {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.project.compact p:not(.project-track-badge):not(.repo-private-note):not(.Impact) {
+  -webkit-line-clamp: 3;
+}
+
 .project .Impact {
+  -webkit-line-clamp: 2;
   color: var(--text-muted);
   font-size: 0.875rem;
   margin-bottom: var(--space-5);
@@ -1650,8 +1718,50 @@ nav ul.links a[aria-current="page"] {
 .project-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
   margin-top: auto;
+}
+
+/* Board cards are horizontal, so the actions sit in a row and the private-repo
+   note drops onto its own line beneath them. */
+.project.compact .project-actions {
+  flex-wrap: wrap;
+}
+
+.project.compact .project-actions .repo-private-note {
+  margin: 0;
+  flex-basis: 100%;
+}
+
+/* Demo / GitHub are secondary to "View project" — quiet links, not a third
+   and fourth button of equal weight. */
+.project-action-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.project .project-action-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.project .project-action-link:hover {
+  color: var(--text-accent);
+}
+
+.project .repo-private-note {
+  margin: var(--space-3) 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
 .project-meta {
@@ -2972,14 +3082,13 @@ button:focus-visible {
 }
 
 /* ============================================================
-   Projects board — category (track) view.
-   One full-width section per category; the category tabs show a
-   single section at a time ("All" shows every section). Cards sit
-   in a responsive grid. Reuses existing theme tokens only, so the
-   contrast-gate stays green.
+   Projects board — category (track) + tool filters.
+   One flat grid: the category tabs and the tool chips both filter the
+   same set of cards, and a card states its category with a badge.
+   Reuses existing theme tokens only, so the contrast-gate stays green.
    ============================================================ */
 
-/* Tabs + tool chips + reorder tools, stacked in one bar that sticks
+/* Tabs, tool chips and the reorder reset, stacked in one bar that sticks
    under the site nav on desktop. */
 .project-filter-bar {
   display: flex;
@@ -2992,17 +3101,29 @@ button:focus-visible {
   margin-bottom: 0;
 }
 
+/* Tool chips on the left, the reorder reset pushed to the right. */
+.project-filter-row {
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.project-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Counts are metadata, not actions — inherit the chip's own ink instead of
+   painting a second accent pill inside it. */
 .filter-count {
   display: inline-block;
   margin-left: 0.35rem;
   font-size: 0.72rem;
   font-weight: 600;
   line-height: 1.5;
-  color: var(--text-accent);
-  background: color-mix(in srgb, var(--text-accent) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--text-accent) 30%, transparent);
-  border-radius: var(--radius-full);
-  padding: 0 0.4rem;
+  opacity: 0.7;
   vertical-align: middle;
 }
 
@@ -3011,63 +3132,45 @@ button:focus-visible {
   cursor: not-allowed;
 }
 
-.project-track[hidden] {
+/* Card filtered out by the category tabs / tool chips. */
+.project.is-hidden {
   display: none;
 }
 
-.project-track-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding-bottom: var(--space-3);
-  margin-bottom: var(--space-5);
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-}
-
-.project-track-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin: 0;
-  font-weight: 700;
-  font-size: 1.25rem;
-  letter-spacing: -0.01em;
-  color: var(--text-normal);
-}
-
-.project-track-title::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--text-accent);
-  flex-shrink: 0;
-}
-
-.project-track-count {
-  font-size: 0.78rem;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--text-accent);
-  background: color-mix(in srgb, var(--text-accent) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--text-accent) 30%, transparent);
-  border-radius: var(--radius-full);
-  padding: 0.25rem 0.55rem;
-  white-space: nowrap;
-}
-
-.project-track-grid {
+/* The board's flat grid. Id + class so it beats the stacked-list rule the
+   topic pages rely on for `#project-list`. */
+#project-list.project-track-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-5);
 }
 
-/* Cards stretch to their row height and pin their actions to the bottom, so a
-   grid of uneven descriptions still reads as a tidy board instead of a
-   masonry of holes. */
-.project-track .project {
-  display: flex;
-  flex-direction: column;
+/* Below the two-column threshold the cover goes back on top (stacked card). */
+@media (max-width: 768px) {
+  .project.compact {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+  .project.compact img {
+    flex: none;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: var(--space-4);
+  }
+  .project.compact .project-body {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/* The track, printed as the card's eyebrow — the only place a card states it. */
+.project .project-track-badge {
+  margin: 0 0 var(--space-3);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .project-empty {
@@ -3077,11 +3180,11 @@ button:focus-visible {
 }
 
 /* Category switch: a short fade, opacity only (no layout shift). */
-#project-list.is-filtering .project-track:not([hidden]) {
-  animation: project-track-fade 0.15s ease-out;
+#project-list.is-filtering .project:not(.is-hidden) {
+  animation: project-card-fade 0.15s ease-out;
 }
 
-@keyframes project-track-fade {
+@keyframes project-card-fade {
   from {
     opacity: 0;
   }
@@ -3090,14 +3193,8 @@ button:focus-visible {
   }
 }
 
-@media (max-width: 480px) {
-  .project-track-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  #project-list.is-filtering .project-track {
+  #project-list.is-filtering .project {
     animation: none;
   }
 }
@@ -3128,11 +3225,11 @@ button:focus-visible {
   }
 }
 
-/* Grip handle — hidden outside the board, subtle three dots inside. */
+/* Grip handle — only a draggable card (the board's) has one. */
 .project-grip {
   display: none;
 }
-.project-track .project .project-grip {
+.project[draggable='true'] .project-grip {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -3143,7 +3240,7 @@ button:focus-visible {
   border-bottom: 1px dashed color-mix(in srgb, var(--border-color) 60%, transparent);
   cursor: grab;
 }
-.project-track .project .project-grip:active {
+.project[draggable='true'] .project-grip:active {
   cursor: grabbing;
 }
 .project-grip span {
@@ -3559,13 +3656,6 @@ button:focus-visible {
 /* ============================================================
    Project board — drag & drop reorder tools
    ============================================================ */
-.project-board-tools {
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-  flex-wrap: wrap;
-}
-
 .board-hint {
   font-size: 0.8rem;
   color: var(--text-muted);
@@ -3639,13 +3729,7 @@ button:focus-visible {
     margin-bottom: var(--space-3) !important;
   }
 
-  .projects-page #projects > h2 {
-    font-size: 1.5rem;
-    margin-bottom: var(--space-4);
-  }
-
-  .projects-page .filter-row,
-  .projects-page .project-board-tools {
+  .projects-page .filter-row {
     margin-bottom: var(--space-4);
     gap: var(--space-3);
   }

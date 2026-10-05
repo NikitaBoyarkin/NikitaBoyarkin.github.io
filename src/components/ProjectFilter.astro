@@ -1,6 +1,8 @@
 ---
 // Tool chips for the projects board. Markup only — ProjectBoard's controller
 // script owns the filtering, the empty-state handling and the disabled chips.
+// The default slot carries board-level controls (the reorder reset + its hint)
+// so they sit in the same row as the chips instead of on a third line.
 import { projectToolFilters } from '../lib/projects';
 
 interface Props {
@@ -10,21 +12,24 @@ const { lang = 'ru' } = Astro.props;
 const tools = projectToolFilters(lang);
 ---
 
-<div
-  class="filter-row project-filter reveal reveal-delay-1"
-  role="group"
-  aria-label={lang === 'en' ? 'Filter by tool' : 'Фильтр по инструменту'}
->
-  {
-    tools.map((tool) => (
-      <button
-        class={`filter-tag ${tool.key === 'all' ? 'active' : ''}`}
-        data-tool-filter={tool.key}
-        aria-pressed={tool.key === 'all' ? 'true' : 'false'}
-        type="button"
-      >
-        {tool.label}
-      </button>
-    ))
-  }
+<div class="filter-row project-filter-row reveal reveal-delay-1">
+  <div
+    class="project-filter"
+    role="group"
+    aria-label={lang === 'en' ? 'Filter by tool' : 'Фильтр по инструменту'}
+  >
+    {
+      tools.map((tool) => (
+        <button
+          class={`filter-tag ${tool.key === 'all' ? 'active' : ''}`}
+          data-tool-filter={tool.key}
+          aria-pressed={tool.key === 'all' ? 'true' : 'false'}
+          type="button"
+        >
+          {tool.label}
+        </button>
+      ))
+    }
+  </div>
+  <slot />
 </div>
