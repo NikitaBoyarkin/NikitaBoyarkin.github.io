@@ -49,8 +49,11 @@ const stats = data
       </dl>
 
       <div class="gh-charts">
-        {data.charts.map((chart) => (
-          <ChartCard chart={chart} lang={lang} />
+        {data.charts.map((chart, i) => (
+          <details class="gh-chart" open={i === 0}>
+            <summary class="gh-chart-summary">{chart.title[lang]}</summary>
+            <ChartCard chart={chart} lang={lang} />
+          </details>
         ))}
       </div>
     </div>
@@ -100,6 +103,45 @@ const stats = data
   .gh-charts {
     display: flex;
     flex-direction: column;
-    gap: var(--space-6);
+    gap: var(--space-4);
+  }
+  /* Five chart cards stacked = ~3900px; each collapses into a summary row, the
+     first left open so the section still shows a chart on load. */
+  .gh-chart > .gh-chart-summary {
+    display: block;
+    cursor: pointer;
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--card-background);
+    color: var(--text-normal);
+    font-weight: 600;
+    list-style: none;
+    transition: border-color 0.2s ease;
+  }
+  .gh-chart > .gh-chart-summary::-webkit-details-marker {
+    display: none;
+  }
+  .gh-chart > .gh-chart-summary::before {
+    content: '▸';
+    display: inline-block;
+    margin-right: var(--space-2);
+    color: var(--text-accent-dataviz);
+    transition: transform 0.2s ease;
+  }
+  .gh-chart > .gh-chart-summary:hover {
+    border-color: var(--border-active);
+  }
+  /* Open: the summary becomes a muted caption above the chart card, which
+     supplies its own surface — so drop the summary's card chrome. */
+  .gh-chart[open] > .gh-chart-summary {
+    padding-bottom: var(--space-2);
+    border-color: transparent;
+    background: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  .gh-chart[open] > .gh-chart-summary::before {
+    transform: rotate(90deg);
   }
 </style>

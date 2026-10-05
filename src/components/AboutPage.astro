@@ -83,6 +83,7 @@ const { Content } = await render(entry);
   }
   .about-head h1 {
     margin: 0;
+    font-family: var(--font-display);
     font-size: clamp(2rem, 1.4rem + 2vw, 2.9rem);
     letter-spacing: -0.02em;
     line-height: 1.05;
@@ -133,6 +134,7 @@ const { Content } = await render(entry);
   /* ── Section headings: Cormorant + coral tick ───────────────── */
   .about-body :global(h2) {
     margin: var(--space-10) 0 var(--space-4);
+    font-family: var(--font-display);
     padding-left: var(--space-4);
     border-left: 4px solid var(--text-accent);
     font-size: clamp(1.5rem, 1.2rem + 1vw, 1.9rem);
@@ -181,7 +183,9 @@ const { Content } = await render(entry);
     border-left: 2px solid color-mix(in srgb, var(--text-accent) 55%, transparent);
   }
 
-  /* ── Bento grid: the five "how to work with me" cards ───────── */
+  /* ── Bento grid: the three "how to work with me" cards ──────── */
+  /* auto-fit, not the global repeat(4,1fr): with three cards it collapses the
+     empty fourth track so they fill the row instead of leaving a trailing gap. */
   .about-body :global(.bento-grid) {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -213,7 +217,8 @@ const { Content } = await render(entry);
   }
   .about-body :global(.wwm-block h3) {
     margin: 0 0 var(--space-3);
-    font-size: 1rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
     letter-spacing: 0.01em;
   }
   .about-body :global(.wwm-block ul) {
@@ -253,15 +258,21 @@ const { Content } = await render(entry);
   }
   .about-body :global(.stack-group h3) {
     margin: 0 0 var(--space-3);
-    font-size: 0.75rem;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
     font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: 0.04em;
     color: var(--text-muted);
   }
 
+  /* Closing links row. Not a titled section: a rule + inline links, so the page
+     ends on a footer while the jump nav keeps its 9 targets (#activity aside). */
   .about-body :global(.about-links) {
+    margin: var(--space-10) 0 var(--space-4);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-color);
     line-height: 2.2;
+    font-size: 0.95rem;
   }
 
   @media (max-width: 640px) {
