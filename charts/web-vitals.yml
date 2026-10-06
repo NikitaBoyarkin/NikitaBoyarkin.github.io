@@ -1,0 +1,137 @@
+title: Lighthouse / Web Vitals
+notes: >
+  Lighthouse category scores and Core Web Vitals across local preview runs.
+  Built from the flattened lhci-reports/*.json table (scripts/build-lh-table.mjs).
+  Gates mirror .lighthouserc.json: performance warn >= 0.85; accessibility,
+  best-practices and seo error >= 0.95; color-contrast must score 1.
+
+source: lhci
+
+variables:
+  locale:
+    input: select
+    notes: Restrict every chart to one language build.
+    options:
+      static: [all, ru, en]
+    default: all
+  page:
+    input: select
+    notes: Restrict every chart to one route.
+    options:
+      query: page_list
+      column: page
+    default: all
+
+queries:
+  page_list: |
+    SELECT 'all' AS page
+    UNION
+    SELECT DISTINCT page FROM reports
+    ORDER BY page
+
+  # Per-page verdict over the whole recorded history.
+  scorecard: |
+    SELECT
+      page,
+      COUNT(*)                                   AS runs,
+      ROUND(AVG(performance), 3)                 AS perf,
+      ROUND(AVG(accessibility), 3)               AS a11y,
+      ROUND(AVG(best_practices), 3)              AS bp,
+      ROUND(AVG(seo), 3)                         AS seo,
+      CAST(SUM(1 - perf_pass)   AS INTEGER)      AS perf_fails,
+      CAST(SUM(1 - strict_pass) AS INTEGER)      AS strict_fails
+    FROM reports
+    WHERE ('{{ locale }}' = 'all' OR locale = '{{ locale }}')
+      AND ('{{ page }}' = 'all' OR page = '{{ page }}')
+    GROUP BY page
+    ORDER BY strict_fails DESC, perf ASC
+
+  # Category performance over time (one series per route).
+  perf_trend: |
+    SELECT fetch_time, page, performance
+    FROM reports
+    WHERE ('{{ locale }}' = 'all' OR locale = '{{ locale }}')
+      AND ('{{ page }}' = 'all' OR page = '{{ page }}')
+      AND performance IS NOT NULL
+    ORDER BY fetch_time
+
+  # Largest Contentful Paint in ms, the metric most often off-gate here.
+  lcp_trend: |
+    SELECT fetch_time, page, lcp_ms
+    FROM reports
+    WHERE ('{{ locale }}' = 'all' OR locale = '{{ locale }}')
+      AND ('{{ page }}' = 'all' OR page = '{{ page }}')
+      AND lcp_ms IS NOT NULL
+    ORDER BY fetch_time
+
+  # Every run that breaks the .lighthouserc gate, newest first.
+  failures: |
+    SELECT
+      run_id,
+      page,
+      performance,
+      accessibility,
+      seo,
+      contrast_score,
+      lcp_ms
+    FROM reports
+    WHERE strict_pass = 0 OR perf_pass = 0
+      AND ('{{ locale }}' = 'all' OR locale = '{{ locale }}')
+      AND ('{{ page }}' = 'all' OR page = '{{ page }}')
+    ORDER BY run_id DESC
+    LIMIT 100
+
+charts:
+  scorecard:
+    query: scorecard
+    type: table
+    title: Per-page verdict
+    subtitle: Averages across all recorded runs, worst first
+    notes: perf_fails counts runs below the 0.85 performance gate; strict_fails counts runs breaking any >= 0.95 gate or color-contrast.
+
+  perf_trend:
+    query: perf_trend
+    type: line
+    title: Performance score over time
+    subtitle: One line per route; the 0.85 warn gate from .lighthouserc.json
+    x: fetch_time
+    y: performance
+    color: page
+    y_label: Lighthouse performance score
+    x_label: Run
+    height: 420
+    style:
+      number_format: ".2f"
+
+  lcp_trend:
+    query: lcp_trend
+    type: line
+    title: Largest Contentful Paint over time
+    subtitle: Milliseconds; Lighthouse flags > 2500 ms as poor
+    x: fetch_time
+    y: lcp_ms
+    color: page
+    y_label: LCP (ms)
+    x_label: Run
+    height: 420
+
+  failures:
+    query: failures
+    type: table
+    title: Gate failures
+    subtitle: Runs breaking the performance warn gate or any error gate
+    style:
+      pagination:
+        page_rows: 10
+
+rows:
+  - text: |
+      ## Lighthouse audit history
+
+      Scores are collected by `lhci autorun` into `lhci-reports/`, flattened to
+      `data/lhci-table.csv`, and re-read here. The source JSON is gitignored, so
+      re-run `bun run scripts/build-lh-table.mjs` before regenerating this board.
+  - scorecard
+  - perf_trend
+  - lcp_trend
+  - failures

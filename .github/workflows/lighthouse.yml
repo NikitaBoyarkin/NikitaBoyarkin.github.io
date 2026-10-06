@@ -59,6 +59,17 @@ jobs:
       - name: Run Lighthouse CI
         run: bunx @lhci/cli autorun
 
+      # Flatten the fresh reports into the board's read surface, then assert the
+      # board still matches the dct schema. Fails the run rather than letting a
+      # silently-stale charts/web-vitals.yml outlive the data it describes.
+      # pipx ships with the ubuntu runner image; swap for `uvx --from dbt-charts`
+      # if that ever stops being true.
+      - name: Rebuild and validate the web-vitals board
+        if: always()
+        run: |
+          bun run scripts/build-lh-table.mjs
+          pipx run --spec dbt-charts dct validate charts/web-vitals.yml --strict
+
       - name: Upload Lighthouse reports
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

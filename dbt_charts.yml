@@ -1,0 +1,14 @@
+# dbt charts project configuration — anchors the project root; `dct` walks up
+# to find this file. Boards live in charts/. Full reference: `dct docs sources`.
+
+sources:
+  # Flattened Lighthouse CI runs (scripts/build-lh-table.mjs).
+  # The source reports in lhci-reports/ are gitignored, so this CSV is the
+  # committed read surface — re-run the flattener after every `lhci autorun`.
+  lhci:
+    type: csv
+    files:
+      reports: data/lhci-table.csv
+
+# serve:
+#   dialect: duckdb
