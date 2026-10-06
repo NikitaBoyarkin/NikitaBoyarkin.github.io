@@ -260,6 +260,14 @@ A loop of four projects beats isolated analyses: the KYC fix found in the funnel
 
 Volta is a fictional bank and all data is synthetic and seeded: the figures (€656K/yr, 44× ROI, +9.2pp) show **the correctness of the methodology on a modelled product**, not a real launch result. ROI is computed against a €15K dev cost without subtracting margin, so it is an upper bound. The RAT v2 layer prices the portfolio's own recommendations, but on the same synthetic assumptions.
 
+## Interactive board
+
+The same case, built a second way — as a declarative [dbt-charts](https://dbtcharts.com) board: 20 charts across 5 tabs (onboarding, KYC A/B with SRM and guardrail metrics, retention, causal DiD, segmentation) and live filters by device, age and acquisition channel. The board is a single YAML file (`charts/volta-core.yml`), and every chart is plain SQL over the same CSVs.
+
+<iframe src="/demos/volta-board/index.html" title="Volta — declarative dbt-charts board: 20 charts in 5 tabs, filters by device, age and channel" height="720" loading="lazy" style="width:100%;border:0;border-radius:10px"></iframe>
+
+[Open the board full-screen →](/demos/volta-board/index.html)
+
 ## Other projects
 
 Volta is the flagship, not the only case: each layer of the loop rests on a separate discipline, broken down in the sibling portfolio projects.

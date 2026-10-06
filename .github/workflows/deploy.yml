@@ -44,6 +44,16 @@ jobs:
           repository: NikitaBoyarkin/sql-analytics-case-study
           path: vendor/sql-analytics-case-study
 
+      # The Volta analytics board (charts/volta-core.yml) and its CSVs live in
+      # the sibling volta-banking repo — the single source of truth. Checked out
+      # into `vendor/` (gitignored) so the deploy can re-render the published
+      # demo from that board instead of trusting a hand-committed HTML copy.
+      - name: Checkout volta-banking (board source)
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          repository: NikitaBoyarkin/volta-banking
+          path: vendor/volta-banking
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
@@ -80,6 +90,18 @@ jobs:
             fi
           done
           exit $status
+
+      - name: Render Volta board demo
+        # Regenerate public/demos/volta-board/index.html from the board in
+        # vendor/volta-banking. `--output` resolves relative to --project-dir,
+        # not the cwd, so the target must be absolute. Runs before the Astro
+        # build so public/ carries the fresh render into dist/.
+        run: |
+          mkdir -p public/demos/volta-board
+          pipx run --spec dbt-charts dct render charts/volta-core.yml \
+            --project-dir vendor/volta-banking \
+            --format html \
+            --output "$GITHUB_WORKSPACE/public/demos/volta-board/index.html"
 
       - name: Build site
         env:
