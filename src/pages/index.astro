@@ -41,7 +41,7 @@ const jsonLd = {
       ],
       speakable: {
         '@type': 'SpeakableSpecification',
-        cssSelector: ['h1', '.tagline'],
+        cssSelector: ['h1'],
       },
     },
     {
@@ -78,14 +78,39 @@ const jsonLd = {
         <HeroAvatar lang="ru" />
         <h1 class="hero-name">Продуктовый аналитик</h1>
         <p class="hero-role">A/B-тесты и retention</p>
-        <p class="hero-pitch tagline">
-          Воспроизводимая аналитика: SQL, Python, CUPED и ship-gates. Каждый вывод перепроверяется кодом, а не принимается на слово.
-        </p>
         <p class="hero-phd">
           PhD по психологии труда — измеряю поведение и причинные эффекты, а не корреляции.
         </p>
 
         <HeroMetrics lang="ru" />
+
+        <div class="bento-grid bento-spaced">
+          <div class="bento-cell bento-cell-wide bento-cell-compact">
+            <h3 class="bento-cell-title">Стек</h3>
+            <div class="stack-groups">
+              <div class="stack-group">
+                <span class="stack-group-name">Анализ</span>
+                <span class="bento-chip">SQL</span>
+                <span class="bento-chip">Python</span>
+                <span class="bento-chip">DuckDB</span>
+              </div>
+              <div class="stack-group">
+                <span class="stack-group-name">Эксперименты</span>
+                <span class="bento-chip">A/B</span>
+                <span class="bento-chip">Causal Inference</span>
+              </div>
+              <div class="stack-group">
+                <span class="stack-group-name">Инфра</span>
+                <span class="bento-chip">GitHub Actions</span>
+                <span class="bento-chip">Supabase</span>
+                <span class="bento-chip">PostHog</span>
+              </div>
+            </div>
+            <a class="bento-cell-link" href={withBase('projects/')} data-analytics="bento_stack">
+              Все проекты →
+            </a>
+          </div>
+        </div>
       </div>
 
       <div class="hero-visual">

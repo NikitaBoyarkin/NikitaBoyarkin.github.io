@@ -41,7 +41,7 @@ const jsonLd = {
       ],
       speakable: {
         '@type': 'SpeakableSpecification',
-        cssSelector: ['h1', '.tagline'],
+        cssSelector: ['h1'],
       },
     },
     {
@@ -78,14 +78,39 @@ const jsonLd = {
         <HeroAvatar lang="en" />
         <h1 class="hero-name">Product Analyst</h1>
         <p class="hero-role">A/B Testing &amp; Retention</p>
-        <p class="hero-pitch tagline">
-          Reproducible analytics: SQL, Python, CUPED and ship-gates. Every conclusion is re-checked in code, not taken on trust.
-        </p>
         <p class="hero-phd">
           PhD in work psychology — I measure behaviour and causal effects, not correlations.
         </p>
 
         <HeroMetrics lang="en" />
+
+        <div class="bento-grid bento-spaced">
+          <div class="bento-cell bento-cell-wide bento-cell-compact">
+            <h3 class="bento-cell-title">Stack</h3>
+            <div class="stack-groups">
+              <div class="stack-group">
+                <span class="stack-group-name">Analysis</span>
+                <span class="bento-chip">SQL</span>
+                <span class="bento-chip">Python</span>
+                <span class="bento-chip">DuckDB</span>
+              </div>
+              <div class="stack-group">
+                <span class="stack-group-name">Experiments</span>
+                <span class="bento-chip">A/B</span>
+                <span class="bento-chip">Causal Inference</span>
+              </div>
+              <div class="stack-group">
+                <span class="stack-group-name">Infra</span>
+                <span class="bento-chip">GitHub Actions</span>
+                <span class="bento-chip">Supabase</span>
+                <span class="bento-chip">PostHog</span>
+              </div>
+            </div>
+            <a class="bento-cell-link" href={withBase('en/projects/')} data-analytics="bento_stack">
+              All projects →
+            </a>
+          </div>
+        </div>
       </div>
 
       <div class="hero-visual">

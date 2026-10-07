@@ -224,9 +224,10 @@ describe('library wiring', () => {
   });
 
   it('keeps the shelf off the homepage — /library/ is the only index', () => {
-    // 2026-10-06: the homepage bento dropped its Library cell (and Stack, which
-    // moved to /about#stack). /library/ is now the single place the shelf is
-    // indexed, so this asserts the removal instead of the old mount.
+    // 2026-10-06: the homepage bento dropped its Library cell — /library/ is
+    // now the single place the shelf is indexed, so this asserts the removal
+    // instead of the old mount. (The Stack cell went in the same commit and
+    // came back on 2026-10-08; only the shelf stays off the homepage.)
     expect(read('src/pages/index.astro')).not.toContain('<ReadingBlock');
     expect(read('src/pages/en/index.astro')).not.toContain('<ReadingBlock');
   });
