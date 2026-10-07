@@ -913,7 +913,10 @@ nav ul.links a[aria-current="page"] {
    ============================================================ */
 #intro:has(.hero-editorial) {
   max-height: none;
-  padding: var(--space-8) 0 var(--space-12);
+  /* Homepage hero must fit one 800px viewport unscrolled. The footer's own
+     margin-top (32px) collapses with this section's margin, so the bottom
+     padding is the only lever that actually moves page height. */
+  padding: var(--space-8) 0 var(--space-2);
   margin-bottom: var(--space-8);
 }
 #intro:has(.hero-editorial)::before {
