@@ -1,13 +1,13 @@
 {
   "slug": "github",
-  "source": "GitHub API · updated 2026-10-07",
-  "updatedAt": "2026-10-07T11:22:39.205Z",
+  "source": "GitHub API · updated 2026-10-08",
+  "updatedAt": "2026-10-08T11:38:19.933Z",
   "stats": {
-    "contributions": 24828,
+    "contributions": 24873,
     "publicRepos": 21,
-    "followers": 399,
-    "currentStreak": 70,
-    "longestStreak": 70,
+    "followers": 402,
+    "currentStreak": 71,
+    "longestStreak": 71,
     "activeSince": 2019
   },
   "charts": [
@@ -32,7 +32,6 @@
       },
       "data": {
         "categories": [
-          "08.09",
           "09.09",
           "10.09",
           "11.09",
@@ -61,13 +60,13 @@
           "04.10",
           "05.10",
           "06.10",
-          "07.10"
+          "07.10",
+          "08.10"
         ],
         "series": [
           {
             "name": "Contributions",
             "values": [
-              5,
               6,
               31,
               8,
@@ -96,7 +95,8 @@
               50,
               21,
               38,
-              1
+              41,
+              5
             ]
           }
         ]
@@ -104,8 +104,8 @@
       "labelEvery": 5,
       "conclusions": [
         {
-          "ru": "За последние 30 дней — 1032 вкладов, в среднем 34.4 в день.",
-          "en": "Over the last 30 days: 1032 contributions, averaging 34.4 per day."
+          "ru": "За последние 30 дней — 1072 вкладов, в среднем 35.7 в день.",
+          "en": "Over the last 30 days: 1072 contributions, averaging 35.7 per day."
         },
         {
           "ru": "Пик активности — 95 вкладов за один день.",
@@ -162,15 +162,15 @@
               171,
               2010,
               1199,
-              185
+              230
             ]
           }
         ]
       },
       "conclusions": [
         {
-          "ru": "За 12 месяцев — 23898 вкладов.",
-          "en": "Over 12 months: 23898 contributions."
+          "ru": "За 12 месяцев — 23943 вкладов.",
+          "en": "Over 12 months: 23943 contributions."
         },
         {
           "ru": "Сильнейший месяц — Apr с 3873 вкладами (16.2% годового объёма).",
@@ -309,7 +309,7 @@
               421,
               225,
               166,
-              60
+              105
             ]
           }
         ]
@@ -317,8 +317,8 @@
       "labelEvery": 6,
       "conclusions": [
         {
-          "ru": "Активных недель — 50 из 53, в среднем 468.5 вкладов в неделю.",
-          "en": "Active weeks: 50 of 53, averaging 468.5 contributions per week."
+          "ru": "Активных недель — 50 из 53, в среднем 469.3 вкладов в неделю.",
+          "en": "Active weeks: 50 of 53, averaging 469.3 contributions per week."
         },
         {
           "ru": "Самая продуктивная неделя — 1186 вкладов.",
@@ -356,7 +356,7 @@
           {
             "name": "Contributions",
             "values": [
-              24810,
+              24855,
               0,
               0,
               2
@@ -366,12 +366,12 @@
       },
       "conclusions": [
         {
-          "ru": "Всего 24812 вкладов за год.",
-          "en": "24812 contributions in total over the year."
+          "ru": "Всего 24857 вкладов за год.",
+          "en": "24857 contributions in total over the year."
         },
         {
-          "ru": "Основной тип — Commits (24810, 100% вкладов).",
-          "en": "The dominant type is Commits (24810, 100% of contributions)."
+          "ru": "Основной тип — Commits (24855, 100% вкладов).",
+          "en": "The dominant type is Commits (24855, 100% of contributions)."
         }
       ]
     },
@@ -411,7 +411,7 @@
             "name": "%",
             "values": [
               28.1,
-              20.2,
+              20.3,
               16.6,
               14.3,
               10.3,
@@ -425,8 +425,8 @@
       },
       "conclusions": [
         {
-          "ru": "Основной язык — Python с долей 28.1% от 4764221 байт кода.",
-          "en": "The primary language is Python at 28.1% of 4764221 bytes of code."
+          "ru": "Основной язык — Python с долей 28.1% от 4769329 байт кода.",
+          "en": "The primary language is Python at 28.1% of 4769329 bytes of code."
         },
         {
           "ru": "Всего в профиле 13 языков, из них 9 показаны на графике.",
