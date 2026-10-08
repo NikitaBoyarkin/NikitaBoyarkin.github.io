@@ -175,6 +175,12 @@ const t = {
   </>
 )}
 
-<section id="contact" class="reveal">
-  <ContactForm locale={lang} />
-</section>
+{/* PRD §8 lists ContactForm on all three versions. HR is the exception: a
+    screening reader came for the role, the stack and the CV, and the footer
+    already carries a contact affordance. Dropping it here also removes the
+    duplicate `id="contact"` — `Base.astro` ships one on `<footer>`. */}
+{role !== 'hr' && (
+  <section id="contact" class="reveal">
+    <ContactForm locale={lang} />
+  </section>
+)}

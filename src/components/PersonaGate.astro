@@ -133,49 +133,109 @@ const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string
     padding: 0;
   }
   .persona-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
     block-size: 100%;
     padding: var(--space-5);
     border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
-    background: var(--surface-secondary);
+    border-radius: var(--radius-lg);
+    /* Depth from a near-flat sheen rather than a second hue: the mix endpoint
+       is teal in the dark theme, so it stays at 14% and only ever tints. */
+    background: linear-gradient(
+      180deg,
+      var(--surface-secondary),
+      color-mix(in srgb, var(--surface-secondary) 86%, var(--background-secondary))
+    );
     color: inherit;
     text-decoration: none;
-    transition: border-color 0.15s ease, transform 0.15s ease;
+    /* Clips the accent spine to the corner radius. */
+    overflow: hidden;
+    transition:
+      border-color 0.15s ease,
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  /* Accent spine. Three cards at full coral would spend the 10% accent budget
+     three times over, so it rests dim and the pointed-at card carries it. */
+  .persona-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    block-size: 2px;
+    background: var(--border-active);
+    opacity: 0.4;
+    transition: opacity 0.15s ease;
   }
   .persona-card:hover,
   .persona-card:focus-visible {
     border-color: var(--border-active);
     transform: translateY(-2px);
+    box-shadow: 0 8px 24px -10px var(--shadow-color);
   }
-  /* The stored choice, applied by the script below. */
+  .persona-card:hover::before,
+  .persona-card:focus-visible::before {
+    opacity: 1;
+  }
+  /* A keyboard visitor gets the same affordance as a pointer one. */
+  .persona-card:focus-visible {
+    outline: 2px solid var(--border-active);
+    outline-offset: 2px;
+  }
+  /* The stored choice, applied by the script below: the returning visitor sees
+     which card they already took, and it stays lit rather than only hovered. */
   .persona-card.is-stored {
     border-color: var(--border-active);
+  }
+  .persona-card.is-stored::before {
+    opacity: 1;
   }
   .persona-card-eyebrow {
     font-size: 0.75rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    opacity: 0.75;
+    color: var(--text-muted);
   }
   .persona-card-title {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     font-weight: 600;
+    line-height: 1.25;
+    text-wrap: balance;
   }
   .persona-card-blurb {
     flex: 1;
     font-size: 0.9375rem;
-    opacity: 0.85;
+    line-height: 1.55;
+    color: var(--text-muted);
+    text-wrap: pretty;
   }
+  /* CTA as the card's footer: a hairline separates the pitch from the action,
+     and `flex: 1` on the blurb keeps the three footers on one baseline. */
   .persona-card-cta {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-color);
     font-size: 0.875rem;
     font-weight: 600;
+  }
+  .persona-card:hover .persona-card-cta,
+  .persona-card:focus-visible .persona-card-cta {
+    color: var(--text-accent);
   }
   .persona-all {
     align-self: flex-start;
     font-size: 0.9375rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .persona-card,
+    .persona-card::before {
+      transition: none;
+    }
+    .persona-card:hover,
+    .persona-card:focus-visible {
+      transform: none;
+    }
   }
 </style>
 
