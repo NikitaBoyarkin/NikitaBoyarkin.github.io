@@ -24,7 +24,8 @@ const PROJECT_EN = ['Situation', 'Task', 'Actions', 'Result', 'Limitations', 'Do
 const PART_RU = ['Ситуация', 'Задача', 'Действия', 'Результат', 'Рекомендации', 'Документация'];
 const PART_EN = ['Situation', 'Task', 'Actions', 'Result', 'Recommendations', 'Documentation'];
 
-// The hub is a dossier, not a project page. Order frozen by `docs/prd-volta-structure.md` D10.
+// The hub is a dossier, not a project page. Order frozen by `docs/prd-volta-structure.md` D10
+// (13 H2; `## Интерактивный борд` / `## Interactive board` amended 2026-10-09).
 // `## Вердикт` (the R) sits after `## Рекомендации и гейты` — intended, not enforced.
 const HUB_RU = [
   'Итог в 30 секунд',
@@ -37,6 +38,7 @@ const HUB_RU = [
   'Рекомендации и гейты',
   'Вердикт',
   'Ограничения',
+  'Интерактивный борд',
   'Остальные проекты',
   'Документация',
 ];
@@ -51,6 +53,7 @@ const HUB_EN = [
   'Recommendations & gates',
   'The Verdict',
   'Limitations',
+  'Interactive board',
   'Other projects',
   'Documentation',
 ];

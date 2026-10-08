@@ -147,6 +147,11 @@ def check_internal_links() -> int:
             path_part = url
             if "#" in url:
                 path_part, fragment = url.split("#", 1)
+            # Query-only refs (e.g. "?tab=kyc") point at the current document;
+            # drop any query string before resolving a file path.
+            path_part = path_part.split("?", 1)[0]
+            if not path_part:
+                continue
             target = resolve_relative(page, path_part)
             if target.is_dir():
                 target = target / "index.html"
