@@ -1,0 +1,180 @@
+---
+// Role landing — the shared body of `/hr/`, `/manager/` and `/colleague/`
+// (and their `/en/` twins), PRD §8. One component, three section matrices: the
+// differences are a role's curation, which optional blocks render, and the hero
+// copy. The route files stay thin wrappers so the head (`<title>`, canonical,
+// `preloadImage`) and the body cannot drift.
+import { getCollection } from 'astro:content';
+import HeroAvatar from './HeroAvatar.astro';
+import HeroMetrics from './HeroMetrics.astro';
+import ContactForm from './ContactForm.astro';
+import GithubActivity from './GithubActivity.astro';
+import KnowledgeGraph from './KnowledgeGraph.astro';
+import ProjectBoard from './ProjectBoard.astro';
+import ReadingBlock from './ReadingBlock.astro';
+import RoleSwitch from './RoleSwitch.astro';
+import StackCard from './StackCard.astro';
+import { withBase } from '../lib/path';
+import { loadFeaturedSources, shelfHref } from '../lib/library';
+import { ROLE_COPY, ROLE_CURATION, type Audience } from '../lib/projects';
+
+interface Props {
+  role: Audience;
+  lang?: 'ru' | 'en';
+}
+const { role, lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+const copy = ROLE_COPY[lang][role];
+
+// Only the colleague version carries the full editorial hero — the avatar, the
+// featured case and (via the wrapper) the image preload. HR and the manager get
+// the compact identity block: a screening reader and a hiring manager both came
+// for the work, not the portrait.
+const isColleague = role === 'colleague';
+
+const collection = isEn ? 'projects-en' : 'projects';
+const linkPrefix = isEn ? 'en/' : '';
+const allProjects = await getCollection(collection, (p) => !p.data.draft);
+const featured = allProjects.find((p) => p.id === 'volta') ?? allProjects[0];
+
+const shelf = isColleague ? await loadFeaturedSources(lang, 3) : [];
+
+const t = {
+  cv: isEn ? 'Download CV (PDF)' : 'Скачать CV (PDF)',
+  shelfHeading: isEn ? 'Library' : 'Библиотека',
+  shelfLink: isEn ? 'All sources →' : 'Все источники →',
+  writing: isEn ? 'Writing' : 'Статьи',
+  notes: isEn ? 'Notes' : 'Заметки',
+  featuredEyebrow: isEn ? 'Featured case' : 'Избранный кейс',
+  caseStudy: isEn ? 'Read the case →' : 'Разбор проекта →',
+  demo: isEn ? 'Demo' : 'Демо',
+};
+---
+
+<RoleSwitch role={role} lang={lang} />
+
+<!-- HERO — editorial split on the colleague version, compact identity otherwise -->
+<section id="intro">
+  <div class={`intro-container ${isColleague ? 'hero-editorial' : ''}`}>
+    <div class="hero-body">
+      {isColleague && <HeroAvatar lang={lang} />}
+      <h1 class="hero-name">{copy.h1}</h1>
+      <p class="hero-role">{copy.role}</p>
+      <p class="hero-phd">{copy.phd}</p>
+
+      {role === 'hr' && (
+        <p class="hero-cv">
+          <a
+            class="button button-secondary"
+            href={withBase('CV-Nikita-Boyarkin.pdf')}
+            download
+            data-analytics="cv_download_pdf">{t.cv}</a>
+        </p>
+      )}
+
+      <HeroMetrics lang={lang} />
+
+      <StackCard lang={lang} />
+    </div>
+
+    {isColleague && (
+      <div class="hero-visual">
+        <article class="featured-card featured-card-hero">
+          {/* LCP element for the colleague landing (Lighthouse
+              largest-contentful-paint-element). It is in the first viewport, so
+              it must not be deferred. */}
+          <img
+            class="featured-card-image"
+            src={withBase(featured.data.hero)}
+            alt=""
+            loading="eager"
+            fetchpriority="high"
+          />
+          <div class="featured-card-body">
+            <p class="featured-card-eyebrow">{t.featuredEyebrow}</p>
+            <h2 class="featured-card-title">{featured.data.title}</h2>
+            <p class="featured-card-description">{featured.data.description}</p>
+            <div class="bento-chip-list">
+              {featured.data.tools?.slice(0, 5).map((tool: string) => (
+                <span class="bento-chip">{tool}</span>
+              ))}
+            </div>
+            <div class="featured-card-actions">
+              <a
+                class="featured-card-link"
+                href={withBase(`${linkPrefix}projects/${featured.id.replace(/\.md$/, '')}/`)}
+                data-analytics="featured_project"
+              >
+                {t.caseStudy}
+              </a>
+              {featured.data.demo && (
+                <a
+                  class="featured-card-chip"
+                  href={featured.data.demo.startsWith('http') ? featured.data.demo : withBase(featured.data.demo)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-analytics="featured_demo"
+                >
+                  {t.demo}
+                </a>
+              )}
+              {featured.data.github && !featured.data.private && (
+                <a
+                  class="featured-card-chip"
+                  href={featured.data.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-analytics="featured_github"
+                >
+                  GitHub
+                </a>
+              )}
+            </div>
+          </div>
+        </article>
+      </div>
+    )}
+  </div>
+</section>
+
+{/* HR reads the card prose; a manager and a colleague read the STAR skeleton,
+    which `ProjectCard` renders whenever `star` is present. */}
+<ProjectBoard
+  collection={collection as 'projects' | 'projects-en'}
+  linkPrefix={linkPrefix}
+  slugs={ROLE_CURATION[role]}
+  showStar={role !== 'hr'}
+/>
+
+{isColleague && (
+  <>
+    <KnowledgeGraph lang={lang} />
+    <GithubActivity lang={lang} />
+
+    <section id="library" class="reveal">
+      <div class="bento-grid bento-spaced">
+        <div class="bento-cell bento-cell-wide bento-cell-compact">
+          <h2 class="bento-cell-title">{t.shelfHeading}</h2>
+          <ReadingBlock sources={shelf} lang={lang} variant="cell" />
+          <p class="bento-cell-link-row">
+            <a class="bento-cell-link" href={shelfHref(lang)} data-analytics="bento_shelf">
+              {t.shelfLink}
+            </a>
+            <a class="bento-cell-link" href={withBase(`${linkPrefix}writing/`)} data-analytics="bento_writing">
+              {t.writing}
+            </a>
+            {!isEn && (
+              <a class="bento-cell-link" href={withBase('notes/')} data-analytics="bento_notes">
+                {t.notes}
+              </a>
+            )}
+          </p>
+        </div>
+      </div>
+    </section>
+  </>
+)}
+
+<section id="contact" class="reveal">
+  <ContactForm locale={lang} />
+</section>

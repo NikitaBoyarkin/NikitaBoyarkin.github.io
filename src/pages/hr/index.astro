@@ -1,0 +1,23 @@
+---
+// `/hr/` — thin wrapper: the head comes from `ROLE_COPY`, the body from the
+// shared `RoleLanding` matrix. Nothing else belongs here (PRD §8/§14: one
+// canonical URL per version, so the head is the only per-route concern).
+import Base from '../../layouts/Base.astro';
+import RoleLanding from '../../components/RoleLanding.astro';
+import { ROLE_COPY } from '../../lib/projects';
+import { withBase } from '../../lib/path';
+
+const lang = 'ru' as const;
+const copy = ROLE_COPY[lang].hr;
+---
+
+<Base
+  title={copy.title}
+  description={copy.description}
+  canonical={withBase('hr/')}
+  activeNav="home"
+  lang={lang}
+  counterpartHref={withBase('en/hr/')}
+>
+  <RoleLanding role="hr" lang={lang} />
+</Base>

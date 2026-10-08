@@ -3,16 +3,30 @@ import { getCollection } from 'astro:content';
 import ProjectCard from './ProjectCard.astro';
 import ProjectFilter from './ProjectFilter.astro';
 import ProjectTrackFilter from './ProjectTrackFilter.astro';
-import { flattenByTrack, projectTracks, sortByProjectOrder, trackCounts } from '../lib/projects';
+import { flattenByTrack, projectTracks, sortByProjectOrder, stripExt, trackCounts } from '../lib/projects';
 
 interface Props {
   collection?: 'projects' | 'projects-en';
   linkPrefix?: string;
+  /** Role-landing subset: render only these slugs, in this order. */
+  slugs?: readonly string[];
+  /** Show the STAR skeleton on each card. Off for HR, whose cards stay prose. */
+  showStar?: boolean;
 }
-const { collection = 'projects', linkPrefix = '' } = Astro.props;
+const { collection = 'projects', linkPrefix = '', slugs, showStar = true } = Astro.props;
 const lang: 'ru' | 'en' = linkPrefix.startsWith('en/') ? 'en' : 'ru';
 
-const projects = sortByProjectOrder(await getCollection(collection, (p) => !p.data.draft));
+const all = sortByProjectOrder(await getCollection(collection, (p) => !p.data.draft));
+// `slugs` picks the membership, not the rendering order: the grid below is
+// grouped track by track (`flattenByTrack`), exactly as the full board is, so a
+// role subset reads as the same board with fewer cards rather than a second
+// layout. Absent `slugs`, the board is the whole catalogue — what `/projects/`
+// rendered before.
+const projects = slugs
+  ? slugs
+      .map((slug) => all.find((project) => stripExt(project.id) === slug))
+      .filter((project): project is (typeof all)[number] => Boolean(project))
+  : all;
 
 // One flat grid, cards grouped track by track. The track is a badge on the card,
 // not a section heading — the card carries `data-track` so the controller can
@@ -64,7 +78,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
           title={project.data.title}
           description={project.data.description}
           image={project.data.hero}
-          star={project.data.star}
+          star={showStar ? project.data.star : undefined}
           impact={project.data.impact}
           tools={project.data.tools}
           github={project.data.github}

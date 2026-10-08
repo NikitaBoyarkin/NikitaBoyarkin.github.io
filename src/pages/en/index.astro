@@ -1,67 +1,40 @@
 ---
+// `/en/` — the gate, see `src/pages/index.astro`.
 import Base from '../../layouts/Base.astro';
-import HeroMetrics from '../../components/HeroMetrics.astro';
-import HeroAvatar from '../../components/HeroAvatar.astro';
-import { getCollection } from 'astro:content';
+import PersonaGate from '../../components/PersonaGate.astro';
 import { withBase } from '../../lib/path';
 
-const allProjects = await getCollection('projects-en', (p) => !p.data.draft);
-const featuredProject =
-  allProjects.find((p) => p.id === 'volta') || allProjects[0];
-
-const siteUrl = 'https://nikitaboyarkin.github.io';
+// Person only: the `ItemList` of all projects would no longer describe this
+// page (the gate lists no projects), and each role version now owns its own
+// canonical URL and its own structured data.
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'Person',
-      name: 'Nikita Boyarkin',
-      url: `${siteUrl}/`,
-      jobTitle: 'Product Analyst',
-      sameAs: [
-        'https://github.com/NikitaBoyarkin',
-        'https://www.linkedin.com/in/nikita-boyarkin',
-      ],
-      hasOccupation: {
-        '@type': 'Occupation',
-        name: 'Product Analyst',
-      },
-      alumniOf: {
-        '@type': 'CollegeOrUniversity',
-        name: 'UMC',
-      },
-      knowsAbout: [
-        'A/B testing',
-        'Product analytics',
-        'Retention analysis',
-        'Customer segmentation (RFM)',
-        'SQL',
-        'Python',
-        'Data visualization',
-      ],
-      speakable: {
-        '@type': 'SpeakableSpecification',
-        cssSelector: ['h1'],
-      },
-    },
-    {
-      '@type': 'ItemList',
-      name: 'Projects',
-      numberOfItems: allProjects.length,
-      itemListElement: allProjects.map((p, i) => ({
-        '@type': 'ListItem',
-        position: i + 1,
-        name: p.data.title,
-        url: `${siteUrl}${withBase(`en/projects/${p.id.replace(/\.md$/, '')}/`)}`,
-      })),
-    },
+  '@type': 'Person',
+  name: 'Nikita Boyarkin',
+  url: 'https://nikitaboyarkin.github.io/en/',
+  jobTitle: 'Product Analyst',
+  sameAs: [
+    'https://github.com/NikitaBoyarkin',
+    'https://www.linkedin.com/in/nikita-boyarkin',
   ],
+  hasOccupation: { '@type': 'Occupation', name: 'Product Analyst' },
+  alumniOf: { '@type': 'CollegeOrUniversity', name: 'UMC' },
+  knowsAbout: [
+    'A/B testing',
+    'Product analytics',
+    'Retention analysis',
+    'Customer segmentation (RFM)',
+    'SQL',
+    'Python',
+    'Data visualization',
+  ],
+  speakable: { '@type': 'SpeakableSpecification', cssSelector: ['h1'] },
 };
 ---
 
 <Base
   title="Nikita Boyarkin | Product Analyst"
-  description="Portfolio of Nikita Boyarkin — product analyst. Specialized in A/B testing and retention: SQL, Python, CUPED, and reproducible methodology."
+  description="Portfolio of Nikita Boyarkin — product analyst. Three versions for three readers: screening, impact, methodology."
   ogImage="/images/og/portfolio-graph-v2.png"
   ogImageAlt="Portfolio content graph: projects, articles and topics linked together. Nikita Boyarkin — Product / Data Analyst."
   canonical={withBase('en/')}
@@ -69,105 +42,6 @@ const jsonLd = {
   lang="en"
   counterpartHref={withBase('/')}
   jsonLd={jsonLd}
-  preloadImage={withBase(featuredProject.data.hero)}
 >
-  <!-- HERO — editorial split: identity left, dataviz panel right -->
-  <section id="intro">
-    <div class="intro-container hero-editorial">
-      <div class="hero-body">
-        <HeroAvatar lang="en" />
-        <h1 class="hero-name">Product Analyst</h1>
-        <p class="hero-role">A/B Testing &amp; Retention</p>
-        <p class="hero-phd">
-          PhD in work psychology — I measure behaviour and causal effects, not correlations.
-        </p>
-
-        <HeroMetrics lang="en" />
-
-        <div class="bento-grid bento-spaced">
-          <div class="bento-cell bento-cell-wide bento-cell-compact">
-            <h3 class="bento-cell-title">Stack</h3>
-            <div class="stack-groups">
-              <div class="stack-group">
-                <span class="stack-group-name">Analysis</span>
-                <span class="bento-chip">SQL</span>
-                <span class="bento-chip">Python</span>
-                <span class="bento-chip">DuckDB</span>
-              </div>
-              <div class="stack-group">
-                <span class="stack-group-name">Experiments</span>
-                <span class="bento-chip">A/B</span>
-                <span class="bento-chip">Causal Inference</span>
-              </div>
-              <div class="stack-group">
-                <span class="stack-group-name">Infra</span>
-                <span class="bento-chip">GitHub Actions</span>
-                <span class="bento-chip">Supabase</span>
-                <span class="bento-chip">PostHog</span>
-              </div>
-            </div>
-            <a class="bento-cell-link" href={withBase('en/projects/')} data-analytics="bento_stack">
-              All projects →
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-visual">
-        <article class="featured-card featured-card-hero">
-          {/* LCP element for `/en/` (Lighthouse largest-contentful-paint-element).
-              54% of the 2 590 ms LCP was Load Delay with loading="lazy" — it is
-              in the first viewport, so it must not be deferred. */}
-          <img
-            class="featured-card-image"
-            src={withBase(featuredProject.data.hero)}
-            alt=""
-            loading="eager"
-            fetchpriority="high"
-          />
-          <div class="featured-card-body">
-            <p class="featured-card-eyebrow">Featured case</p>
-            <h2 class="featured-card-title">{featuredProject.data.title}</h2>
-            <p class="featured-card-description">{featuredProject.data.description}</p>
-            <div class="bento-chip-list">
-              {featuredProject.data.tools?.slice(0, 5).map((tool: string) => (
-                <span class="bento-chip">{tool}</span>
-              ))}
-            </div>
-            <div class="featured-card-actions">
-              <a
-                class="featured-card-link"
-                href={withBase(`en/projects/${featuredProject.id.replace(/\.md$/, '')}/`)}
-                data-analytics="featured_project"
-              >
-                Read the case →
-              </a>
-              {featuredProject.data.demo && (
-                <a
-                  class="featured-card-chip"
-                  href={featuredProject.data.demo.startsWith('http') ? featuredProject.data.demo : withBase(featuredProject.data.demo)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-analytics="featured_demo"
-                >
-                  Demo
-                </a>
-              )}
-              {featuredProject.data.github && !featuredProject.data.private && (
-                <a
-                  class="featured-card-chip"
-                  href={featuredProject.data.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-analytics="featured_github"
-                >
-                  GitHub
-                </a>
-              )}
-            </div>
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
+  <PersonaGate lang="en" />
 </Base>

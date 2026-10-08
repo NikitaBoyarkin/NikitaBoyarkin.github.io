@@ -1,0 +1,213 @@
+---
+// Persona gate — `/` and `/en/` (PRD §9). A compact hero plus three cards that
+// route to the three static role landings. No server logic, no redirect (Q11):
+// a returning visitor with a stored choice still sees the gate, with their card
+// highlighted and a "continue as …" line.
+//
+// Cards carry `data-persona` / `data-source`, deliberately NOT `data-analytics`:
+// the delegated handler in `Analytics.astro` turns every `[data-analytics]` click
+// into `track(kind, { path })`, which would emit `persona_selected` a second
+// time with the wrong props. The component-local script below owns the event.
+import { withBase } from '../lib/path';
+import type { Audience } from '../lib/projects';
+
+interface Props {
+  lang?: 'ru' | 'en';
+}
+const { lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+const t = isEn
+  ? {
+      h1: 'Product Analyst',
+      role: 'A/B Testing & Retention',
+      phd: 'PhD in work psychology — I measure behaviour and causal effects, not correlations.',
+      lead: 'Where to start?',
+      showAll: `Show all ${17} projects →`,
+      continueAs: 'Continue as',
+    }
+  : {
+      h1: 'Продуктовый аналитик',
+      role: 'A/B-тесты и retention',
+      phd: 'PhD по психологии труда — измеряю поведение и причинные эффекты, а не корреляции.',
+      lead: 'С чего начать?',
+      showAll: `Показать все ${17} проектов →`,
+      continueAs: 'Продолжить как',
+    };
+
+const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string; cta: string }> = [
+  {
+    role: 'hr',
+    label: isEn ? 'HR' : 'HR',
+    title: isEn ? 'Hiring / recruiter' : 'HR / рекрутер',
+    blurb: isEn
+      ? 'Role, stack, numbers, CV — for screening against a vacancy.'
+      : 'Роль, стек, метрики, CV — под скрининг по вакансии.',
+    cta: isEn ? 'Screening view' : 'Версия для скрининга',
+  },
+  {
+    role: 'manager',
+    label: isEn ? 'Manager' : 'Менеджер',
+    title: isEn ? 'Hiring manager' : 'Нанимающий менеджер',
+    blurb: isEn
+      ? 'STAR cases: the task, the decision, what changed as a result.'
+      : 'Кейсы STAR: задача, решение, что изменилось в результате.',
+    cta: isEn ? 'Impact view' : 'Версия про результат',
+  },
+  {
+    role: 'colleague',
+    label: isEn ? 'Colleague' : 'Коллега',
+    title: isEn ? 'Analyst / engineer' : 'Коллега-аналитик',
+    blurb: isEn
+      ? 'How it is made: code, data, method, the knowledge graph.'
+      : 'Как это сделано: код, данные, метод, граф знаний.',
+    cta: isEn ? 'Everything' : 'Полная версия',
+  },
+];
+---
+
+<section id="intro" class="persona-gate">
+  <div class="intro-container persona-gate-inner">
+    <header class="persona-hero">
+      <h1 class="hero-name">{t.h1}</h1>
+      <p class="hero-role">{t.role}</p>
+      <p class="hero-phd">{t.phd}</p>
+    </header>
+
+    <h2 class="persona-lead">{t.lead}</h2>
+
+    <ul class="persona-cards">
+      {
+        CARDS.map((card) => (
+          <li>
+            <a
+              class="persona-card"
+              href={withBase(isEn ? `en/${card.role}/` : `${card.role}/`)}
+              data-persona={card.role}
+              data-source="gate"
+              data-continue={`${t.continueAs} ${card.label}`}
+            >
+              <span class="persona-card-eyebrow">{card.label}</span>
+              <span class="persona-card-title">{card.title}</span>
+              <span class="persona-card-blurb">{card.blurb}</span>
+              <span class="persona-card-cta">{card.cta} →</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="audience-note" data-persona-continue hidden></p>
+
+    <a class="persona-all" href={withBase(isEn ? 'en/colleague/' : 'colleague/')}>{t.showAll}</a>
+  </div>
+</section>
+
+<style>
+  /* `#intro` is shared with the old two-column hero: it clips at 75vh and centres
+     its children. The gate is a column of full-width blocks, so both must go —
+     otherwise the three cards are squeezed into a 492px centred column and the
+     last card's CTA plus the "show all" link fall below the clip. `overflow:
+     hidden` stays: it is what keeps the section's oversized hero decoration from
+     widening the document. */
+  #intro.persona-gate {
+    max-height: none;
+  }
+  .persona-gate-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-6);
+  }
+  .persona-lead {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+  }
+  .persona-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: var(--space-4);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .persona-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    block-size: 100%;
+    padding: var(--space-5);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--surface-secondary);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .persona-card:hover,
+  .persona-card:focus-visible {
+    border-color: var(--border-active);
+    transform: translateY(-2px);
+  }
+  /* The stored choice, applied by the script below. */
+  .persona-card.is-stored {
+    border-color: var(--border-active);
+  }
+  .persona-card-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+  .persona-card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+  .persona-card-blurb {
+    flex: 1;
+    font-size: 0.9375rem;
+    opacity: 0.85;
+  }
+  .persona-card-cta {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .persona-all {
+    align-self: flex-start;
+    font-size: 0.9375rem;
+  }
+</style>
+
+<script>
+  import { readAudience, track, writeAudience } from '../lib/analytics';
+  import type { Audience } from '../lib/projects';
+
+  const root = document.querySelector<HTMLElement>('.persona-gate');
+  if (root) {
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'ru';
+    const stored = readAudience();
+
+    if (stored) {
+      const card = root.querySelector<HTMLElement>(`[data-persona="${stored}"]`);
+      card?.classList.add('is-stored');
+      const note = root.querySelector<HTMLElement>('[data-persona-continue]');
+      if (note && card) {
+        note.hidden = false;
+        note.textContent = card.dataset.continue || '';
+      }
+    }
+
+    track('persona_gate_view', { lang, has_stored_choice: Boolean(stored) });
+
+    // No preventDefault: the write and the capture both run before the plain
+    // `<a href>` navigation commits.
+    for (const card of root.querySelectorAll<HTMLElement>('[data-persona]')) {
+      card.addEventListener('click', () => {
+        const persona = card.dataset.persona as Audience;
+        writeAudience(persona);
+        track('persona_selected', { persona, lang, source: 'gate' });
+      });
+    }
+  }
+</script>

@@ -1,0 +1,74 @@
+---
+// Stack bento — the condensed "what I work with" cell. Extracted from the old
+// `pages/index.astro`, which held it inline for one page; the role landings and
+// the gate's colleague branch would otherwise carry six copies of the same
+// markup. The chip literals stay literal (not looped from a data module)
+// because `tests/lib/homepage-stack.test.ts` binds them to the skill badges on
+// /about#stack by reading this file — the `stack:ru|en` markers below are that
+// test's anchor.
+import { withBase } from '../lib/path';
+
+interface Props {
+  lang?: 'ru' | 'en';
+}
+const { lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+---
+
+<div class="bento-grid bento-spaced">
+  <div class="bento-cell bento-cell-wide bento-cell-compact">
+    <h3 class="bento-cell-title">{isEn ? 'Stack' : 'Стек'}</h3>
+    <div class="stack-groups">
+      {
+        isEn ? (
+          <>
+            {/* stack:en:start */}
+            <div class="stack-group">
+              <span class="stack-group-name">Analysis</span>
+              <span class="bento-chip">SQL</span>
+              <span class="bento-chip">Python</span>
+              <span class="bento-chip">DuckDB</span>
+            </div>
+            <div class="stack-group">
+              <span class="stack-group-name">Experiments</span>
+              <span class="bento-chip">A/B</span>
+              <span class="bento-chip">Causal Inference</span>
+            </div>
+            <div class="stack-group">
+              <span class="stack-group-name">Infra</span>
+              <span class="bento-chip">GitHub Actions</span>
+              <span class="bento-chip">Supabase</span>
+              <span class="bento-chip">PostHog</span>
+            </div>
+            {/* stack:en:end */}
+          </>
+        ) : (
+          <>
+            {/* stack:ru:start */}
+            <div class="stack-group">
+              <span class="stack-group-name">Анализ</span>
+              <span class="bento-chip">SQL</span>
+              <span class="bento-chip">Python</span>
+              <span class="bento-chip">DuckDB</span>
+            </div>
+            <div class="stack-group">
+              <span class="stack-group-name">Эксперименты</span>
+              <span class="bento-chip">A/B</span>
+              <span class="bento-chip">Causal Inference</span>
+            </div>
+            <div class="stack-group">
+              <span class="stack-group-name">Инфра</span>
+              <span class="bento-chip">GitHub Actions</span>
+              <span class="bento-chip">Supabase</span>
+              <span class="bento-chip">PostHog</span>
+            </div>
+            {/* stack:ru:end */}
+          </>
+        )
+      }
+    </div>
+    <a class="bento-cell-link" href={withBase(isEn ? 'en/projects/' : 'projects/')} data-analytics="bento_stack">
+      {isEn ? 'All projects →' : 'Все проекты →'}
+    </a>
+  </div>
+</div>

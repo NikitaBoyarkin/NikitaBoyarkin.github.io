@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'bun:test';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
+  AUDIENCES,
+  DEFAULT_AUDIENCE,
   PROJECT_ORDER,
+  ROLE_COPY,
+  ROLE_CURATION,
   ALL_TOOLS,
   emptyToolKeys,
   groupByTrack,
@@ -159,5 +165,62 @@ describe('emptyToolKeys', () => {
       project('e', 'analytics', ['TypeScript']),
     ];
     expect(emptyToolKeys(everything)).toEqual([]);
+  });
+});
+
+describe('ROLE_CURATION', () => {
+  // The curation is data, and a test is what binds it: `PROJECT_ORDER` is a
+  // plain `string[]`, so a slug typo in `ROLE_CURATION` would otherwise only
+  // surface as a role landing that silently renders a shorter board.
+  it('curates only slugs that exist in PROJECT_ORDER', () => {
+    for (const role of AUDIENCES) {
+      for (const slug of ROLE_CURATION[role]) {
+        expect(PROJECT_ORDER, `${role}: "${slug}" is not a project`).toContain(slug);
+      }
+    }
+  });
+
+  it('never repeats a slug inside one role', () => {
+    for (const role of AUDIENCES) {
+      const slugs = ROLE_CURATION[role];
+      expect(new Set(slugs).size, `${role}: duplicate slug`).toBe(slugs.length);
+    }
+  });
+
+  it('keeps each role inside its size band, and colleague is the whole catalogue', () => {
+    expect(ROLE_CURATION.hr.length).toBeGreaterThanOrEqual(5);
+    expect(ROLE_CURATION.hr.length).toBeLessThanOrEqual(6);
+    expect(ROLE_CURATION.manager.length).toBeGreaterThanOrEqual(8);
+    expect(ROLE_CURATION.manager.length).toBeLessThanOrEqual(10);
+    expect(ROLE_CURATION.colleague).toEqual(PROJECT_ORDER);
+  });
+
+  it('gives every role a copy entry in both locales', () => {
+    for (const lang of ['ru', 'en'] as const) {
+      for (const role of AUDIENCES) {
+        const copy = ROLE_COPY[lang][role];
+        for (const key of ['title', 'description', 'h1', 'role', 'phd'] as const) {
+          expect(copy[key]?.length, `${lang}/${role}.${key} is empty`).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  // The pre-paint script in `Base.astro` picks which stored value to trust
+  // before any module can run, so it cannot import `AUDIENCES` — it repeats the
+  // three literals. This is the mechanism that keeps the copy honest.
+  it('mirrors AUDIENCES in the Base.astro pre-paint script', () => {
+    const source = readFileSync(join(__dirname, '..', '..', 'src/layouts/Base.astro'), 'utf8');
+    const from = source.indexOf('Prevent audience flash');
+    const to = source.indexOf('</script>', from);
+    expect(from, 'the audience script is gone from Base.astro').toBeGreaterThan(-1);
+    const script = source.slice(from, to);
+
+    for (const audience of AUDIENCES) {
+      expect(script, `Base.astro does not accept "${audience}"`).toContain(`'${audience}'`);
+    }
+    expect(script, 'the default drifts from DEFAULT_AUDIENCE').toContain(
+      `= '${DEFAULT_AUDIENCE}'`
+    );
   });
 });

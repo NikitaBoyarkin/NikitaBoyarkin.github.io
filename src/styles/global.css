@@ -371,10 +371,55 @@ p {
   background: var(--home-board-bg);
 }
 
+/* Role switcher — the strip under the nav on the three role landings
+   (/hr/, /manager/, /colleague/ and their EN mirrors), per
+   `docs/prd-persona-landing.md` §10.
+
+   The class name is inherited from the 60-30-10 pass, which shipped only media
+   queries keyed to the old hero-sibling placement and never a base rule; this
+   writes the missing base and the queries below now key off `.audience-bar`
+   alone (the gate has no hero sibling for the bar to sit after). A role
+   switch is chrome, not content: secondary surface, small type, one row. */
+.audience-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding-block: var(--space-3);
+  padding-inline: var(--space-4);
+  background: var(--surface-secondary);
+  font-size: 0.875rem;
+}
+.audience-bar-current {
+  font-weight: 600;
+}
+.audience-bar-links {
+  display: flex;
+  gap: var(--space-4);
+  margin-inline-start: auto;
+}
+.audience-bar-links a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.audience-bar-links a:hover,
+.audience-bar-links a:focus-visible {
+  border-bottom-color: currentColor;
+}
+
+/* "Continue as HR →" / stored-choice hint on the gate, and the gate's
+   secondary "show everything" link. */
+.audience-note {
+  margin-block-start: var(--space-4);
+  color: var(--text-secondary, inherit);
+  font-size: 0.9375rem;
+}
+
 @media (max-width: 767px) {
   /* Mobile: narrow the audience bar and shrink the home-board band so less
      30% surface area competes with the text bucket on small screens. */
-  #intro + .audience-bar {
+  .audience-bar {
     max-width: min(220px, 84vw);
     margin-inline: auto;
   }
@@ -387,7 +432,7 @@ p {
   /* Tablet: a large secondary band above the board pushes the dominant
      snap-scroll column out of the initial viewport so the 60% bucket
      stays within budget. */
-  #intro + .audience-bar {
+  .audience-bar {
     padding-block: var(--space-12);
   }
   .home-board {
@@ -396,7 +441,7 @@ p {
 }
 
 @media (min-width: 1100px) {
-  #intro + .audience-bar {
+  .audience-bar {
     padding-block: var(--space-8);
   }
   .home-board {
@@ -416,7 +461,7 @@ p {
   [data-theme="cyberpunk"] .home-board {
     padding-block: 6.4rem;
   }
-  [data-theme="cyberpunk"] #intro + .audience-bar + .audience-note {
+  [data-theme="cyberpunk"] .audience-bar + .audience-note {
     padding-block: var(--space-3);
     margin-bottom: var(--space-6);
   }

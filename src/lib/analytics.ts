@@ -15,6 +15,8 @@
 
 export type Locale = 'ru' | 'en';
 
+import { AUDIENCES, type Audience } from './projects';
+
 /** Normalized first-touch source class (PRD §4.2, REQ-A03). */
 export type ReferrerClass = 'linkedin' | 'github' | 'google' | 'direct' | 'other';
 
@@ -50,6 +52,10 @@ export interface AnalyticsEventMap {
   // a type map that lies about what ships. Locale is still recoverable in PostHog
   // from the event's URL (/en/contact/ vs /contact/).
   booking_click: { path: string };
+  // Persona gate (`docs/prd-persona-landing.md` §11). `source` distinguishes the
+  // gate card from the role switcher so the two paths stay separable in funnels.
+  persona_gate_view: { lang: Locale; has_stored_choice: boolean };
+  persona_selected: { persona: Audience; lang: Locale; source: 'gate' | 'switch' };
 }
 
 export type KnownEventName = keyof AnalyticsEventMap;
@@ -129,11 +135,42 @@ export function localeFromPath(pathname: string): Locale {
   return /^\/en(\/|$)/.test(pathname) ? 'en' : 'ru';
 }
 
+const AUDIENCE_KEY = 'audience';
+
+/**
+ * The stored persona, or `null` when nothing is stored or the value is stale
+ * (`recruiter|analyst|learner` from the never-shipped taxonomy). Returning null
+ * rather than the raw string keeps an unrecognized value out of both the
+ * super-property and the gate's highlight logic.
+ */
+export function readAudience(): Audience | null {
+  try {
+    const saved = window.localStorage.getItem(AUDIENCE_KEY);
+    return AUDIENCES.includes(saved as Audience) ? (saved as Audience) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Persist the persona choice and mirror it onto `<html data-audience>` — the
+ * two writes always happen together, so the attribute never disagrees with the
+ * key it is derived from. Called before the click's navigation commits.
+ */
+export function writeAudience(audience: Audience): void {
+  try {
+    window.localStorage.setItem(AUDIENCE_KEY, audience);
+  } catch {
+    // Storage may be unavailable (private mode, quota) — the attribute still moves.
+  }
+  document.documentElement.setAttribute('data-audience', audience);
+}
+
+
 /**
  * Map a referrer hostname to the normalized first-touch class.
  * Pure and unit-tested (REQ-A03 acceptance).
- */
-export function classifyReferrer(referrer: string | null | undefined): ReferrerClass {
+ */export function classifyReferrer(referrer: string | null | undefined): ReferrerClass {
   if (!referrer) return 'direct';
   const r = referrer.toLowerCase();
   if (r === '$direct' || r === 'direct') return 'direct';
@@ -237,12 +274,10 @@ export function firstTouch(): FirstTouch {
 export function registerSuperProperties(): void {
   if (!isReady() || !ph) return;
 
-  let audience: string | null = null;
-  try {
-    audience = window.localStorage.getItem('audience');
-  } catch {
-    audience = null;
-  }
+  // Validated against the taxonomy rather than passed through raw: an
+  // unrecognized value (a stale `recruiter`, a typo) registers as null instead
+  // of polluting the super-property with a category that no page renders.
+  const audience = readAudience();
 
   const reducedMotion =
     typeof window.matchMedia === 'function'

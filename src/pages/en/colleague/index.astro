@@ -1,0 +1,24 @@
+---
+// `/en/colleague/` — the complete version, see `src/pages/colleague/index.astro`.
+import Base from '../../../layouts/Base.astro';
+import RoleLanding from '../../../components/RoleLanding.astro';
+import { ROLE_COPY } from '../../../lib/projects';
+import { withBase } from '../../../lib/path';
+
+const lang = 'en' as const;
+const copy = ROLE_COPY[lang].colleague;
+---
+
+<Base
+  title={copy.title}
+  description={copy.description}
+  ogImage="/images/og/portfolio-graph-v2.png"
+  ogImageAlt="Portfolio content graph: projects, articles and topics linked together. Nikita Boyarkin — Product / Data Analyst."
+  canonical={withBase('en/colleague/')}
+  activeNav="home"
+  lang={lang}
+  counterpartHref={withBase('colleague/')}
+  preloadImage={withBase('images/volta.svg')}
+>
+  <RoleLanding role="colleague" lang={lang} />
+</Base>

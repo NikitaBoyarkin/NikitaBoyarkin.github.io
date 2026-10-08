@@ -13,6 +13,114 @@ export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'st
 // list until their S2.1–S2.3 compensating artifacts land; then they can swap in.
 export const HEADLINE_PROJECTS = ['volta', 'sql', 'cohort'] as const;
 
+// ---------------------------------------------------------------------------
+// Audience taxonomy — `docs/prd-persona-landing.md` §5. The three personas the
+// site splits into at the gate (`/`), replacing the never-written
+// recruiter|analyst|learner set. The same three literals are mirrored in one
+// place that cannot import them — the pre-paint script in `Base.astro` — and
+// `tests/lib/projects.test.ts` binds the copy.
+// ---------------------------------------------------------------------------
+
+export const AUDIENCES = ['hr', 'manager', 'colleague'] as const;
+export type Audience = (typeof AUDIENCES)[number];
+
+/** Landing for a visitor with no stored choice (PRD Q11 — gate never redirects). */
+export const DEFAULT_AUDIENCE: Audience = 'colleague';
+
+/**
+ * Project subset per role (PRD §7). Slugs must exist in `PROJECT_ORDER`; the
+ * order inside a subset is this array's order, which is what the role page
+ * renders — a shorter board, not a re-sorted one. `colleague` is the whole
+ * catalogue, so it never rots when a project is added.
+ *
+ * Validity is bound by `tests/lib/projects.test.ts`, not by the type system:
+ * `PROJECT_ORDER` is a plain `string[]`, and `as const` would force casts at
+ * four call sites (`sortByProjectOrder`, `HeadlineCases.astro`, both
+ * `projects/[slug].astro`) for a check a test covers more cheaply.
+ */
+export const ROLE_CURATION: Record<Audience, readonly string[]> = {
+  hr: ['volta', 'sql', 'cohort', 'ab', 'python', 'site'],
+  manager: ['volta', 'cohort', 'sql', 'causal', 'churn', 'rfm', 'supabase', 'posthog', 'site'],
+  colleague: PROJECT_ORDER,
+};
+
+/** Curated slugs for a role, in display order. */
+export function curatedSlugs(role: Audience): readonly string[] {
+  return ROLE_CURATION[role];
+}
+
+export interface RoleCopy {
+  /** `<title>` — the visible page title. */
+  title: string;
+  /** `<meta name="description">`. */
+  description: string;
+  /** The hero `<h1>`. */
+  h1: string;
+  /** The role line under the name. */
+  role: string;
+  /** The one-line positioning statement. */
+  phd: string;
+}
+
+// Per-role copy for the three landings (PRD §8: HR reads role/stack, a manager
+// reads impact/decisions, a colleague reads how it is made). One record, read
+// by both the route wrapper (for the `<Base>` head) and `RoleLanding` (for the
+// hero) — the alternative duplicates every string across four files.
+export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
+  ru: {
+    hr: {
+      title: 'Никита Бояркин — продуктовый аналитик, найм',
+      description:
+        'Продуктовый аналитик: 5 лет в данных, SQL, Python, A/B-тесты. Стек, метрики и CV — для скрининга по вакансии.',
+      h1: 'Продуктовый аналитик',
+      role: 'SQL · Python · A/B-тесты · retention',
+      phd: 'PhD по психологии труда. Ищу роль продуктового аналитика — данных и экспериментов.',
+    },
+    manager: {
+      title: 'Никита Бояркин — продуктовый аналитик, результаты',
+      description:
+        'Кейсы продуктовой аналитики с результатом: +2,15 п.п. KYC-конверсии, retention, RFM-сегментация, CUPED, uplift.',
+      h1: 'Продуктовый аналитик',
+      role: 'Решения по данным с измеримым эффектом',
+      phd: 'Считаю не отчёты, а решения: какой фикс включать, кого вернуть, где гипотеза не подтвердилась.',
+    },
+    colleague: {
+      title: 'Никита Бояркин | Продуктовый аналитик',
+      description:
+        'Портфолио Никиты Бояркина — продуктовый аналитик. A/B-тесты и retention: SQL, Python, CUPED, воспроизводимая методология.',
+      h1: 'Продуктовый аналитик',
+      role: 'A/B-тесты и retention',
+      phd: 'PhD по психологии труда — измеряю поведение и причинные эффекты, а не корреляции.',
+    },
+  },
+  en: {
+    hr: {
+      title: 'Nikita Boyarkin — Product Analyst, hiring',
+      description:
+        'Product analyst: 5 years in data, SQL, Python, A/B testing. Stack, metrics and CV — for screening against a vacancy.',
+      h1: 'Product Analyst',
+      role: 'SQL · Python · A/B testing · retention',
+      phd: 'PhD in work psychology. Looking for a product analyst role — data and experiments.',
+    },
+    manager: {
+      title: 'Nikita Boyarkin — Product Analyst, impact',
+      description:
+        'Product analytics cases with a result: +2.15 pp KYC conversion, retention, RFM segmentation, CUPED, uplift.',
+      h1: 'Product Analyst',
+      role: 'Decisions from data, with a measurable effect',
+      phd: 'I ship decisions, not dashboards: which fix to switch on, whom to win back, where the hypothesis failed.',
+    },
+    colleague: {
+      title: 'Nikita Boyarkin | Product Analyst',
+      description:
+        'Portfolio of Nikita Boyarkin — product analyst. A/B testing and retention: SQL, Python, CUPED, reproducible methodology.',
+      h1: 'Product Analyst',
+      role: 'A/B Testing & Retention',
+      phd: 'PhD in work psychology — I measure behaviour and causal effects, not correlations.',
+    },
+  },
+};
+
 const TRACKS = {
   ru: [
     { key: 'experiments', label: 'Эксперименты' },

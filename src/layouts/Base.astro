@@ -237,14 +237,17 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         if (themeColorMeta) themeColorMeta.setAttribute('content', THEME_COLORS[theme] || THEME_COLORS.dark);
       })();
 
-      // Prevent audience-order flash: apply the saved audience before the first
-      // paint so the homepage stack renders in the right order immediately.
+      // Prevent audience flash: apply the stored persona before the first paint
+      // so the role switcher and the board render in the chosen state
+      // immediately. Three values, mirrored from `AUDIENCES` in
+      // `src/lib/projects.ts` — this script is `is:inline`, so it cannot import
+      // them; `tests/lib/projects.test.ts` binds the copy.
       (function () {
         const html = document.documentElement;
-        let audience = 'recruiter';
+        let audience = 'colleague';
         try {
           const saved = localStorage.getItem('audience');
-          if (saved === 'recruiter' || saved === 'analyst' || saved === 'learner') audience = saved;
+          if (saved === 'hr' || saved === 'manager' || saved === 'colleague') audience = saved;
         } catch (e) {
           // localStorage may be unavailable
         }

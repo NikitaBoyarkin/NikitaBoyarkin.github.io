@@ -1,8 +1,11 @@
-// Homepage LCP regression: the hero image is the largest-contentful element on
-// `/` and `/en/`, and it is fetched late unless a head preload names it. When
-// the preload is dropped (or its href drifts from the <img src>), the page
-// silently falls back to a ~1 s FCP→LCP gap — no unit test and no lint would
-// catch it, only a Lighthouse run against production would.
+// Landing LCP regression: the featured-case image is the largest-contentful
+// element on `/colleague/` and `/en/colleague/`, and it is fetched late unless a
+// head preload names it. When the preload is dropped (or its href drifts from the
+// <img src>), the page silently falls back to a ~1 s FCP→LCP gap — no unit test and
+// no lint would catch it, only a Lighthouse run against production would.
+//
+// The pages moved: `/` is now the persona gate, which carries no hero image, so
+// the editorial hero — and this claim with it — lives on the colleague version.
 //
 // Requires `bun run build` first (reads dist/).
 
@@ -12,8 +15,8 @@ import { resolve } from 'node:path';
 
 const DIST = resolve(__dirname, '../../dist');
 
-/** Homepages that carry the hero-avatar split (RU + EN). */
-const HOMEPAGES = ['index.html', 'en/index.html'];
+/** The role landings that carry the featured-case split (RU + EN). */
+const HOMEPAGES = ['colleague/index.html', 'en/colleague/index.html'];
 
 const html = new Map<string, string>();
 

@@ -1,0 +1,60 @@
+---
+// Role switch — the `.audience-bar` that sits at the top of every role landing
+// (PRD §10). It links to the two roles you are NOT on, so the current one is
+// stated in plain text rather than offered as a link to itself.
+//
+// Same trap as the gate: `data-persona` / `data-source="switch"`, never
+// `data-analytics` — the delegated handler in `Analytics.astro` would turn the
+// click into a second, wrong-props `persona_selected`.
+import { withBase } from '../lib/path';
+import { AUDIENCES, type Audience } from '../lib/projects';
+
+interface Props {
+  role: Audience;
+  lang?: 'ru' | 'en';
+}
+const { role, lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+const LABELS: Record<Audience, string> = isEn
+  ? { hr: 'HR', manager: 'Manager', colleague: 'Colleague' }
+  : { hr: 'HR', manager: 'Менеджер', colleague: 'Коллега' };
+
+const href = (target: Audience): string =>
+  withBase(isEn ? `en/${target}/` : `${target}/`);
+
+const others = AUDIENCES.filter((audience) => audience !== role);
+---
+
+<div class="audience-bar" data-role-switch>
+  <span class="audience-bar-current">
+    {isEn ? 'Viewing as' : 'Режим просмотра'}: <strong>{LABELS[role]}</strong>
+  </span>
+  <span class="audience-bar-links">
+    <span>{isEn ? 'Switch' : 'Переключить'}:</span>
+    {
+      others.map((audience) => (
+        <a href={href(audience)} data-persona={audience} data-source="switch">
+          {LABELS[audience]}
+        </a>
+      ))
+    }
+  </span>
+</div>
+
+<script>
+  import { track, writeAudience } from '../lib/analytics';
+  import type { Audience } from '../lib/projects';
+
+  const bar = document.querySelector<HTMLElement>('[data-role-switch]');
+  if (bar) {
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'ru';
+    for (const link of bar.querySelectorAll<HTMLElement>('a[data-persona]')) {
+      link.addEventListener('click', () => {
+        const persona = link.dataset.persona as Audience;
+        writeAudience(persona);
+        track('persona_selected', { persona, lang, source: 'switch' });
+      });
+    }
+  }
+</script>
