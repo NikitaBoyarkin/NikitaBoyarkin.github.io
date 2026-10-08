@@ -91,6 +91,23 @@ jobs:
           done
           exit $status
 
+      - name: Setup uv (Volta board CSV materialisation)
+        # The board's `volta` source reads data/charts/funnel.csv, which
+        # volta-banking gitignores — it is derived from the tracked
+        # data/volta_funnel_data.csv by scripts/build_charts_data.py, because
+        # DuckDB reads the raw timestamp columns as nanoseconds and dbt-charts'
+        # CSV loader cannot convert them. Reproduce that derivation inside the
+        # checkout rather than committing a copy that can silently drift from
+        # the dataset it is built from.
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+      - name: Materialise Volta board CSVs
+        run: |
+          cd vendor/volta-banking
+          # --no-project: the transform only needs pandas. Syncing the project's
+          # own env would pull scikit-learn, shap and scipy for nothing.
+          uv run --no-project --with pandas python scripts/build_charts_data.py
+
       - name: Render Volta board demo
         # Regenerate public/demos/volta-board/index.html from the board in
         # vendor/volta-banking. `--output` resolves relative to --project-dir,
