@@ -1,15 +1,17 @@
 ---
-// Persona gate — `/` and `/en/` (PRD §9). A compact hero plus three cards that
-// route to the three static role landings. No server logic, no redirect (Q11):
-// a returning visitor with a stored choice still sees the gate, with their card
-// highlighted and a "continue as …" line.
+// Persona gate — `/` and `/en/` (PRD §9). Hero-first: the page states what the
+// owner does and offers one primary action, then the three role cards sit below
+// them as a secondary fork ("prefer another way in"). No server logic, no
+// redirect (Q11): a returning visitor with a stored choice still sees the gate,
+// with their card highlighted and a "continue as …" line.
 //
 // Cards carry `data-persona` / `data-source`, deliberately NOT `data-analytics`:
 // the delegated handler in `Analytics.astro` turns every `[data-analytics]` click
 // into `track(kind, { path })`, which would emit `persona_selected` a second
 // time with the wrong props. The component-local script below owns the event.
 import { withBase } from '../lib/path';
-import type { Audience } from '../lib/projects';
+import { PROJECT_ORDER, type Audience } from '../lib/projects';
+import { CAL_BOOKING_URL } from '../lib/contact';
 
 interface Props {
   lang?: 'ru' | 'en';
@@ -22,16 +24,21 @@ const t = isEn
       h1: 'Product Analyst',
       role: 'A/B Testing & Retention',
       phd: 'PhD in work psychology — I measure behaviour and causal effects, not correlations.',
-      lead: 'Where to start?',
-      showAll: `Show all ${17} projects →`,
+      claim:
+        'I turn data into decisions: which fix to ship, whom to win back, where the hypothesis did not hold.',
+      book: 'Book 30 minutes',
+      lead: 'Prefer another way in? Pick your entry point.',
+      showAll: `Show all ${PROJECT_ORDER.length} projects →`,
       continueAs: 'Continue as',
     }
   : {
       h1: 'Продуктовый аналитик',
       role: 'A/B-тесты и retention',
       phd: 'PhD по психологии труда — измеряю поведение и причинные эффекты, а не корреляции.',
-      lead: 'С чего начать?',
-      showAll: `Показать все ${17} проектов →`,
+      claim: 'Считаю не отчёты, а решения: какой фикс включать, кого вернуть, где гипотеза не подтвердилась.',
+      book: 'Забронировать 30 минут',
+      lead: 'Удобнее иначе — выберите вход по роли',
+      showAll: `Показать все ${PROJECT_ORDER.length} проектов →`,
       continueAs: 'Продолжить как',
     };
 
@@ -72,43 +79,49 @@ const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string
       <h1 class="hero-name">{t.h1}</h1>
       <p class="hero-role">{t.role}</p>
       <p class="hero-phd">{t.phd}</p>
+      <p class="persona-claim">{t.claim}</p>
+      <div class="persona-actions">
+        <a class="button" href={CAL_BOOKING_URL} data-analytics="booking_click">{t.book}</a>
+      </div>
     </header>
 
-    <h2 class="persona-lead">{t.lead}</h2>
+    <div class="persona-fork">
+      <h2 class="persona-lead">{t.lead}</h2>
 
-    <ul class="persona-cards">
-      {
-        CARDS.map((card) => (
-          <li>
-            <a
-              class="persona-card"
-              href={withBase(isEn ? `en/${card.role}/` : `${card.role}/`)}
-              data-persona={card.role}
-              data-source="gate"
-              data-continue={`${t.continueAs} ${card.label}`}
-            >
-              <span class="persona-card-eyebrow">{card.label}</span>
-              <span class="persona-card-title">{card.title}</span>
-              <span class="persona-card-blurb">{card.blurb}</span>
-              <span class="persona-card-cta">{card.cta} →</span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+      <ul class="persona-cards">
+        {
+          CARDS.map((card) => (
+            <li>
+              <a
+                class="persona-card"
+                href={withBase(isEn ? `en/${card.role}/` : `${card.role}/`)}
+                data-persona={card.role}
+                data-source="gate"
+                data-continue={`${t.continueAs} ${card.label}`}
+              >
+                <span class="persona-card-eyebrow">{card.label}</span>
+                <span class="persona-card-title">{card.title}</span>
+                <span class="persona-card-blurb">{card.blurb}</span>
+                <span class="persona-card-cta">{card.cta} →</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
 
-    <p class="audience-note" data-persona-continue hidden></p>
+      <p class="audience-note" data-persona-continue hidden></p>
 
-    <a class="persona-all" href={withBase(isEn ? 'en/colleague/' : 'colleague/')}>{t.showAll}</a>
+      <a class="persona-all" href={withBase(isEn ? 'en/projects/' : 'projects/')}>{t.showAll}</a>
+    </div>
   </div>
 </section>
 
 <style>
   /* `#intro` is shared with the old two-column hero: it clips at 75vh and centres
      its children. The gate is a column of full-width blocks, so both must go —
-     otherwise the three cards are squeezed into a 492px centred column and the
-     last card's CTA plus the "show all" link fall below the clip. `overflow:
-     hidden` stays: it is what keeps the section's oversized hero decoration from
+     otherwise the cards are squeezed into a 492px centred column and the last
+     card's CTA plus the "show all" link fall below the clip. `overflow: hidden`
+     stays: it is what keeps the section's oversized hero decoration from
      widening the document. */
   #intro.persona-gate {
     max-height: none;
@@ -118,6 +131,23 @@ const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string
     flex-direction: column;
     align-items: stretch;
     gap: var(--space-6);
+  }
+  /* The assertion sits between the credentials and the action: it is the one
+     line that says what the visitor gets, so it carries body size rather than
+     the muted role/phd styling. Margin is stated outright — the element is new
+     and no global `p` rule is known to reset the UA default. */
+  .persona-claim {
+    max-inline-size: 62ch;
+    margin: var(--space-3) 0 0;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+  .persona-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
   }
   .persona-lead {
     font-size: 1.125rem;
@@ -226,6 +256,13 @@ const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string
   .persona-all {
     align-self: flex-start;
     font-size: 0.9375rem;
+  }
+  /* The fork is one block: the lead, its three cards and the escape hatch share
+     the gap below the hero, not three separate ones. */
+  .persona-fork {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
   }
   @media (prefers-reduced-motion: reduce) {
     .persona-card,

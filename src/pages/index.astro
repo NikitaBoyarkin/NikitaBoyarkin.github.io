@@ -1,9 +1,12 @@
 ---
-// `/` — the gate (PRD §9). It shows the identity, three paths and nothing else;
-// the three versions do the arguing. The gate always renders and never
-// redirects, even for a returning visitor with a stored choice (Q11).
+// `/` — the gate (PRD §9): the identity, one primary action and three paths.
+// Below it, the evidence band attaches a chart to each headline number, so the
+// page argues with results before it asks the visitor to pick a role. The gate
+// always renders and never redirects, even for a returning visitor with a
+// stored choice (Q11).
 import Base from '../layouts/Base.astro';
 import PersonaGate from '../components/PersonaGate.astro';
+import ProofBand from '../components/ProofBand.astro';
 import { withBase } from '../lib/path';
 
 // Person only: the `ItemList` of all projects would no longer describe this
@@ -47,4 +50,5 @@ const jsonLd = {
   jsonLd={jsonLd}
 >
   <PersonaGate lang="ru" />
+  <ProofBand lang="ru" />
 </Base>

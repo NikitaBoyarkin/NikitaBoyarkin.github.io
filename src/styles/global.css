@@ -1113,45 +1113,11 @@ nav ul.links a[aria-current="page"] {
   }
 }
 
-/* ============================================================
-   Editorial + Bento homepage layout (phase 2 redesign).
-   Top section: hero + featured project + capabilities.
-   Bottom section: bento grid of secondary modules.
-   ============================================================ */
-
-.home-layout {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-16);
-  padding: var(--space-16) 0;
-}
-
-.editorial-section {
-  margin: 0;
-}
-
-/* Remove component-level section margins when nested inside editorial/bento wrappers. */
-.editorial-section > .capabilities,
-.editorial-section > .career,
+/* Bento wrappers: strip a nested section's own outer margin so the cell owns
+   the spacing. */
 .bento-cell > .career,
 .bento-cell > .library {
   margin: 0;
-}
-
-.editorial-section h2 {
-  font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: var(--space-3);
-  color: var(--text-normal);
-  letter-spacing: -0.01em;
-}
-
-.editorial-section .section-lead {
-  color: var(--text-muted);
-  max-width: 60ch;
-  margin-bottom: var(--space-8);
-  line-height: 1.5;
 }
 
 /* Bento grid: 4-column desktop, 2 tablet, 1 mobile. */
