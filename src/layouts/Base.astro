@@ -5,6 +5,7 @@ import '../styles/blog.css';
 import '../styles/prose.css';
 import 'katex/dist/katex.min.css';
 import { withBase } from '../lib/path';
+import { CAL_BOOKING_URL } from '../lib/contact';
 import Analytics from '../components/Analytics.astro';
 import LangSwitch from '../components/LangSwitch.astro';
 import SearchBox from '../components/SearchBox.astro';
@@ -27,6 +28,14 @@ interface Props {
   counterpartHref?: string;
   /** Above-the-fold image that is the page's LCP element — preloaded in <head>. */
   preloadImage?: string;
+  /**
+   * Render the sticky action rail in the right-hand gutter. It only appears
+   * from 1860px up, where that gutter is wide enough to hold it without
+   * overlapping the content column (see the `min-width: 1860px` block below);
+   * on `/` the hero already carries both actions, so the rail is a second,
+   * always-reachable entry to the same two links rather than a new ask.
+   */
+  showCtaRail?: boolean;
 }
 
 const {
@@ -44,6 +53,7 @@ const {
   lang = 'ru',
   counterpartHref,
   preloadImage,
+  showCtaRail = false,
 } = Astro.props;
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
@@ -75,6 +85,8 @@ const t = {
   navGraph: isEn ? 'Graph' : 'Граф',
   navLibrary: isEn ? 'Library' : 'Библиотека',
   navContact: isEn ? 'Contact' : 'Контакты',
+  railLabel: isEn ? 'Quick actions' : 'Быстрые действия',
+  railBook: isEn ? 'Book 30 min' : 'Забронировать 30 мин',
   navOpen: isEn ? 'Open menu' : 'Открыть меню',
   navClose: isEn ? 'Close menu' : 'Закрыть меню',
   footerWriting: isEn ? 'Writing' : 'Статьи',
@@ -318,6 +330,26 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
 
     <div class="nav-scrim" id="nav-scrim"></div>
 
+    {
+      /* The right-hand rail. It is `display: none` below 1860px, so it is out of
+         the a11y tree and out of the tab order everywhere it cannot be seen —
+         the two actions it carries are the ones the hero and the nav rail
+         already offer, never a new ask. */
+      showCtaRail && (
+        <aside class="cta-rail" aria-label={t.railLabel}>
+          <a class="button" href={CAL_BOOKING_URL} data-analytics="booking_click">
+            {t.railBook}
+          </a>
+          <a
+            class="button button-secondary"
+            href={withBase('CV-Nikita-Boyarkin.pdf')}
+            download
+            data-analytics="cv_download_pdf">CV</a
+          >
+        </aside>
+      )
+    }
+
     <main id="main" tabindex="-1">
       <slot />
     </main>
@@ -482,6 +514,15 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           theme: document.documentElement.getAttribute('data-theme') || 'dark',
         });
       });
+
+      // Rail exposure — the denominator for its own click rate (D3). Gated on the
+      // breakpoint rather than on the element existing: the rail is in the DOM
+      // but `display: none` below 1860px, and counting a hidden rail as an
+      // exposure would deflate its rate against clicks that could not happen.
+      const rail = document.querySelector('.cta-rail');
+      if (rail && window.matchMedia('(min-width: 1860px)').matches) {
+        track('cta_exposure', { surface: 'home_rail', lang: document.documentElement.lang === 'en' ? 'en' : 'ru' });
+      }
     </script>
 
     <slot name="scripts" />
@@ -504,6 +545,39 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         display: flex;
         align-items: center;
         gap: var(--space-3);
+      }
+
+      /* Right-hand action rail. Hidden by default — it exists only where the
+         layout leaves a gutter for it, and the breakpoint is arithmetic, not a
+         taste call: at ≥1100px the content column is `min(1180px, 100vw - 264px)`
+         centred in the space right of the nav rail, so the free band on the
+         right measures `(100vw - 264 - 1180) / 2`. A 160px rail pinned 24px from
+         the viewport edge needs that band to be ≥ 184px, i.e. ≥ 1860px. At the
+         plan's original 1100px the band is negative and the rail would sit on
+         top of the content. */
+      .cta-rail {
+        display: none;
+      }
+
+      @media (min-width: 1860px) {
+        .cta-rail {
+          position: fixed;
+          top: 50%;
+          right: var(--space-6);
+          transform: translateY(-50%);
+          z-index: var(--z-float);
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-3);
+          inline-size: 160px;
+        }
+        /* Compact: the rail is a persistent affordance, not the hero, so the
+           buttons do not need the hero's padding to stay tappable at a pointer. */
+        .cta-rail .button {
+          padding: var(--space-2) var(--space-4);
+          font-size: 0.875rem;
+          text-align: center;
+        }
       }
     </style>
   </body>

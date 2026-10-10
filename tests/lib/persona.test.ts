@@ -8,8 +8,10 @@ import {
   registerSuperProperties,
   track,
   writeAudience,
+  type AnalyticsEventMap,
 } from '../../src/lib/analytics';
-import { AUDIENCES, DEFAULT_AUDIENCE } from '../../src/lib/projects';
+import { AUDIENCES, DEFAULT_AUDIENCE, PROJECT_ORDER } from '../../src/lib/projects';
+import { CAL_BOOKING_URL } from '../../src/lib/contact';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Ph = any;
@@ -199,5 +201,85 @@ describe('wiring (PRD §6, §9, §10)', () => {
         expect(s, `${file} still mentions "${stale}"`).not.toContain(`'${stale}'`);
       }
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Homepage CTA — the four regressions the "вопрос → ответ" rework left behind.
+// Each one shipped as a bug once: a dead href, a hand-typed project count, a
+// primary action with no exposure event, and a CTA pointing at a placeholder.
+// ---------------------------------------------------------------------------
+describe('homepage primary CTA (docs/cta-inventory.md)', () => {
+  const gate = () => src('src/components/PersonaGate.astro');
+
+  it('the hero CTA is the booking link, not a placeholder', () => {
+    expect(CAL_BOOKING_URL).not.toContain('PROJECT_REF');
+    expect(gate()).toContain('href={CAL_BOOKING_URL}');
+    expect(gate(), 'the CTA lost its delegated tracking hook').toContain(
+      'data-analytics="booking_click"',
+    );
+  });
+
+  it('fires cta_exposure so the click has a denominator', () => {
+    const props = {
+      surface: 'home_hero',
+      lang: 'ru',
+    } satisfies AnalyticsEventMap['cta_exposure'];
+    expect(props.surface).toBe('home_hero');
+    expect(gate()).toContain("track('cta_exposure'");
+  });
+
+  it('"all projects" points at /projects/, not /colleague/', () => {
+    const s = gate();
+    expect(s).toContain("withBase(isEn ? 'en/projects/' : 'projects/')");
+    expect(s, 'regression Q18: the label promised all projects, the href led to one role').not.toContain(
+      "/colleague/'",
+    );
+  });
+
+  it('counts the projects from PROJECT_ORDER instead of a hand-typed number', () => {
+    const s = gate();
+    expect(s).toContain('${PROJECT_ORDER.length}');
+    expect(s, 'a hand-typed project count goes stale on the next project').not.toMatch(
+      /Показать все \d+ проектов/,
+    );
+    // The claim above is only meaningful while the array it counts is non-empty.
+    expect(PROJECT_ORDER.length).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Sticky action rail (D7). Its whole point is the breakpoint: it exists to fill
+// the gutter right of the content column, and that gutter does not exist on a
+// 1440px screen. The numbers below are the arithmetic from global.css
+// (`--rail-total: 264px`, `--content-max: 1180px`) — if either token moves, the
+// 1860px threshold here goes stale and the rail starts overlapping the content.
+// ---------------------------------------------------------------------------
+describe('sticky action rail (Base.astro)', () => {
+  const base = () => src('src/layouts/Base.astro');
+
+  it('carries both actions the hero already offers', () => {
+    const s = base();
+    expect(s).toContain('href={CAL_BOOKING_URL}');
+    expect(s).toContain('data-analytics="booking_click"');
+    expect(s).toContain('data-analytics="cv_download_pdf"');
+  });
+
+  it('is rendered only where a gutter exists, and only when asked for', () => {
+    expect(base()).toContain('@media (min-width: 1860px)');
+    expect(base(), 'the rail is off by default so non-home pages do not get it').toContain(
+      'showCtaRail = false',
+    );
+    expect(src('src/pages/index.astro'), 'the rail never renders without the prop').toMatch(
+      /^\s*showCtaRail$/m,
+    );
+  });
+
+  it('counts its exposure only when the rail is actually visible', () => {
+    const s = base();
+    expect(s).toContain("track('cta_exposure'");
+    expect(s, 'a hidden rail counted as an exposure deflates its own click rate').toContain(
+      "matchMedia('(min-width: 1860px)').matches",
+    );
   });
 });

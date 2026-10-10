@@ -56,6 +56,11 @@ export interface AnalyticsEventMap {
   // gate card from the role switcher so the two paths stay separable in funnels.
   persona_gate_view: { lang: Locale; has_stored_choice: boolean };
   persona_selected: { persona: Audience; lang: Locale; source: 'gate' | 'switch' };
+  // Denominator for the primary-CTA rate (exposure→click). The numerator is the
+  // delegated `booking_click` / `cv_download_pdf` from `[data-analytics]`, which
+  // carries `{ path }` and no surface prop — so the pair is joined on
+  // `surface` against the event's own path in PostHog, not on a shared prop.
+  cta_exposure: { surface: string; lang: Locale };
 }
 
 export type KnownEventName = keyof AnalyticsEventMap;
