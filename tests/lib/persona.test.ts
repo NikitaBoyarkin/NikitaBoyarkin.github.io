@@ -157,8 +157,8 @@ describe('audience storage (AC2)', () => {
 // nothing else fails if the component stops tracking.
 // ---------------------------------------------------------------------------
 describe('wiring (PRD §6, §9, §10)', () => {
-  it('PersonaGate tracks the gate view and gate-sourced selection', () => {
-    const s = src('src/components/PersonaGate.astro');
+  it('PersonaCanvas tracks the gate view and gate-sourced selection', () => {
+    const s = src('src/components/PersonaCanvas.astro');
     expect(s).toContain("track('persona_gate_view'");
     expect(s).toContain("track('persona_selected'");
     expect(s).toMatch(/source:\s*'gate'/);
@@ -172,8 +172,8 @@ describe('wiring (PRD §6, §9, §10)', () => {
   });
 
   it('the gate is mounted on / and /en/ with the right locale', () => {
-    expect(src('src/pages/index.astro')).toMatch(/PersonaGate[^>]*lang="ru"/);
-    expect(src('src/pages/en/index.astro')).toMatch(/PersonaGate[^>]*lang="en"/);
+    expect(src('src/pages/index.astro')).toMatch(/PersonaCanvas[^>]*lang="ru"/);
+    expect(src('src/pages/en/index.astro')).toMatch(/PersonaCanvas[^>]*lang="en"/);
   });
 
   it('ships all six role routes', () => {
@@ -195,7 +195,7 @@ describe('wiring (PRD §6, §9, §10)', () => {
   });
 
   it('does not leak the retired taxonomy into the shipped source', () => {
-    for (const file of ['src/lib/analytics.ts', 'src/lib/projects.ts', 'src/components/PersonaGate.astro']) {
+    for (const file of ['src/lib/analytics.ts', 'src/lib/projects.ts', 'src/components/PersonaCanvas.astro']) {
       const s = src(file);
       for (const stale of ['recruiter', 'learner']) {
         expect(s, `${file} still mentions "${stale}"`).not.toContain(`'${stale}'`);
@@ -210,7 +210,7 @@ describe('wiring (PRD §6, §9, §10)', () => {
 // primary action with no exposure event, and a CTA pointing at a placeholder.
 // ---------------------------------------------------------------------------
 describe('homepage primary CTA (docs/cta-inventory.md)', () => {
-  const gate = () => src('src/components/PersonaGate.astro');
+  const gate = () => src('src/components/PersonaCanvas.astro');
 
   it('the hero CTA is the booking link, not a placeholder', () => {
     expect(CAL_BOOKING_URL).not.toContain('PROJECT_REF');
