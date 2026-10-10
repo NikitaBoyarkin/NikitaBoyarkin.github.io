@@ -3877,12 +3877,6 @@ html.canvas-static .canvas-node {
   inline-size: auto;
   min-block-size: 0;
 }
-html.canvas-static .canvas-lead {
-  margin-block-start: var(--space-6);
-}
-html.canvas-static .persona-claim {
-  margin-block-start: var(--space-4);
-}
 html.canvas-static .persona-card {
   margin-block-start: var(--space-4);
 }
@@ -3921,33 +3915,23 @@ html[data-theme="light"] .persona-card {
   );
 }
 
-/* The role line names the specialisation — identity metadata, not an action — so
-   it does not spend the accent (DESIGN.md:120). Scoped to the canvas node rather
-   than editing `.hero-role` itself, which the role landing pages share. */
-.canvas-node--identity .hero-role {
-  color: var(--text-normal);
-}
-
 /* Interactive frames never sit on a decorative token: --border-active is the
    only stroke that clears the 3:1 non-text floor in all three themes. */
-.canvas-node[data-node^='role-']:focus-visible,
-.canvas-node[data-node^='cta-']:focus-visible {
+.canvas-node[data-node^='role-']:focus-visible {
   outline: 2px solid var(--border-active);
   outline-offset: 3px;
 }
 
-/* The resting border of the interactive node set — role cards and the CTA
-   links — takes the same token, for the same reason: WCAG 1.4.11 puts a 3:1
-   floor under the boundary that identifies a control, and --border-active is
-   the only border token that clears it in all three themes (6.36 / 5.72 /
-   8.27) where the decorative --border-color hairline does not (1.45 / 1.09 /
-   1.44). The role card's resting border is set by `.persona-card` inside
-   PersonaCanvas.astro's scoped <style> — `.persona-card[data-astro-cid-…]`,
-   specificity 0,2,0, emitted later — so these selectors are written at 0,3,0
-   and 0,4,0 to win regardless of emission order.
+/* The resting border of the role cards takes the same token, for the same
+   reason: WCAG 1.4.11 puts a 3:1 floor under the boundary that identifies a
+   control, and --border-active is the only border token that clears it in all
+   three themes (6.36 / 5.72 / 8.27) where the decorative --border-color hairline
+   does not (1.45 / 1.09 / 1.44). The card's resting border is set by
+   `.persona-card` inside PersonaCanvas.astro's scoped <style> —
+   `.persona-card[data-astro-cid-…]`, specificity 0,2,0, emitted later — so this
+   selector is written at 0,3,0 to win regardless of emission order.
    Bound by tests/built/canvas.test.ts → the resting-border assertion. */
-.canvas-viewport .canvas-node[data-node^='role-'],
-.canvas-viewport .canvas-node[data-node^='cta-'] .button {
+.canvas-viewport .canvas-node[data-node^='role-'] {
   border-color: var(--border-active);
 }
 

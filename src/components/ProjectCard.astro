@@ -49,6 +49,9 @@ const i18n = {
   impact: isEn ? 'Impact' : 'Эффект',
   view: isEn ? 'View Project' : 'Открыть проект',
   demo: isEn ? 'Live demo' : 'Демо',
+  // Names the ↗ arrow on the target="_blank" links: without it the new-tab
+  // behaviour is a visual-only cue (WCAG 3.2.5).
+  newTab: isEn ? 'opens in a new tab' : 'открывается в новой вкладке',
   privateNote: isEn ? 'Repo is private — available on request' : 'Репозиторий приватный — доступ по запросу',
 };
 ---
@@ -93,7 +96,7 @@ const i18n = {
               rel="noopener noreferrer"
               data-analytics={`project_demo_${slug}`}
             >
-              {i18n.demo} <ArrowMorph />
+              {i18n.demo} <ArrowMorph label={i18n.newTab} />
             </a>
           )}
           {github && (
@@ -104,7 +107,7 @@ const i18n = {
               rel="noopener noreferrer"
               data-analytics={`project_github_${slug}`}
             >
-              GitHub <ArrowMorph />
+              GitHub <ArrowMorph label={i18n.newTab} />
             </a>
           )}
         </div>

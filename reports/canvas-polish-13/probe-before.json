@@ -1,0 +1,127 @@
+=== DESKTOP 1440x900 ===
+{
+ "docH": 900,
+ "vpRect": {
+  "x": 0,
+  "y": 81,
+  "w": 1440,
+  "h": 782
+ },
+ "htmlClass": "canvas-fullbleed",
+ "frames": [],
+ "overflowing": [],
+ "bodyChildren": [
+  {
+   "tag": "A",
+   "cls": "skip-link",
+   "rect": {
+    "x": 16,
+    "y": -84,
+    "w": 231,
+    "h": 40
+   }
+  },
+  {
+   "tag": "HEADER",
+   "cls": "nav-mobile",
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 65
+   }
+  },
+  {
+   "tag": "NAV",
+   "cls": "",
+   "rect": {
+    "x": -320,
+    "y": 0,
+    "w": 320,
+    "h": 900
+   }
+  },
+  {
+   "tag": "DIV",
+   "cls": "nav-scrim",
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 900
+   }
+  },
+  {
+   "tag": "ASIDE",
+   "cls": "cta-rail",
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "w": 0,
+    "h": 0
+   }
+  },
+  {
+   "tag": "MAIN",
+   "cls": "",
+   "rect": {
+    "x": 0,
+    "y": 81,
+    "w": 1440,
+    "h": 782
+   }
+  },
+  {
+   "tag": "FOOTER",
+   "cls": "",
+   "rect": {
+    "x": 0,
+    "y": 863,
+    "w": 1440,
+    "h": 37
+   }
+  },
+  {
+   "tag": "SCRIPT",
+   "cls": "",
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "w": 0,
+    "h": 0
+   }
+  },
+  {
+   "tag": "SCRIPT",
+   "cls": "",
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "w": 0,
+    "h": 0
+   }
+  },
+  {
+   "tag": "ASTRO-DEV-TOOLBAR",
+   "cls": "",
+   "rect": {
+    "x": 0,
+    "y": 0,
+    "w": 0,
+    "h": 0
+   }
+  }
+ ]
+}
+=== MOBILE 390x844 ===
+{
+ "htmlClass": "canvas-static canvas-fullbleed",
+ "controlsDisplay": "none",
+ "controlsRect": {
+  "x": 0,
+  "y": 0,
+  "w": 0,
+  "h": 0
+ },
+ "docH": 1252
+}

@@ -10,14 +10,7 @@
 // a CSS transform, and its clamp bounds (0.3-4) are wider than the canvas range.
 import type { WorldSize } from './graph-zoom';
 
-export type NodeId =
-  | 'identity'
-  | 'claim'
-  | 'cta-cv'
-  | 'cta-contact'
-  | 'role-hr'
-  | 'role-manager'
-  | 'role-colleague';
+export type NodeId = 'identity' | 'role-hr' | 'role-manager' | 'role-colleague';
 
 export type NodeKind = 'text' | 'link';
 
@@ -46,23 +39,24 @@ export const MAX_ZOOM = 2.2;
  * canvas existed. Coordinates are hand-authored; every box is inset at least 80
  * world px from the world edge, which is the fit padding.
  *
- * Both columns start at y = 90 so the eye reads them as one composition rather
- * than as a shift (the fork's lead-in is the right column's first box, and it
- * sits at the same top as the hero words). They also end together, at 836: the
- * left column's CTA row (780 + 56) and the right column's third role card. The
- * right column carries an even 78 between cards — wider than it once was, since
- * that column lost a fourth box and the three cards spread into the space rather
- * than leaving a void under them. Changing any single `y` here breaks the
- * pairing — move a column, not a box.
+ * One lane, no CTA row (docs/prd-homepage-canvas-polish.md §13, second wave). The
+ * owner took the hero's CV and Contact buttons off the board entirely, so the gate
+ * is just the `h1` with the three role cards under it, reading top-to-bottom in a
+ * single 620px lane. The right half of the 1440px board is deliberately empty.
+ * Three things worth knowing before moving a `y`:
+ *
+ *  - the cards keep an even 40 between them, and the first sits 40 under
+ *    `identity`;
+ *  - the lane's floor is 850, leaving 50 to the world edge;
+ *  - `h` is a FLOOR, not a fixed height — `min-block-size` lets content outgrow a
+ *    box, which is why the cards declare 180 rather than the 160 that rendered at
+ *    178 while the buttons were still on the board.
  */
 export const NODES: NodeBox[] = [
-  { id: 'identity', x: 80, y: 90, w: 620, h: 210, kind: 'text' },
-  { id: 'claim', x: 80, y: 480, w: 620, h: 120, kind: 'text' },
-  { id: 'cta-cv', x: 80, y: 780, w: 240, h: 56, kind: 'link' },
-  { id: 'cta-contact', x: 340, y: 780, w: 130, h: 56, kind: 'link' },
-  { id: 'role-hr', x: 800, y: 140, w: 540, h: 180, kind: 'link' },
-  { id: 'role-manager', x: 800, y: 398, w: 540, h: 180, kind: 'link' },
-  { id: 'role-colleague', x: 800, y: 656, w: 540, h: 180, kind: 'link' },
+  { id: 'identity', x: 80, y: 80, w: 620, h: 110, kind: 'text' },
+  { id: 'role-hr', x: 80, y: 230, w: 620, h: 180, kind: 'link' },
+  { id: 'role-manager', x: 80, y: 450, w: 620, h: 180, kind: 'link' },
+  { id: 'role-colleague', x: 80, y: 670, w: 620, h: 180, kind: 'link' },
 ];
 
 /** A CSS-space viewport: `screen = world * k + (tx, ty)`. */

@@ -1,13 +1,14 @@
 ---
-// The persona gate, re-authored as nodes on the canvas (PRD §9). The content is
-// PersonaGate.astro's, unchanged — only the wrapper differs, so the markup here
-// and there must be kept in step by hand until PersonaGate is retired.
+// The persona gate, re-authored as nodes on the canvas (PRD §9). PersonaGate.astro
+// is the retired ancestor: its content was the source here, but the two have since
+// diverged — the hero's CV and Contact buttons and the "continue as …" note were
+// removed from this board on the owner's call (PRD §13, second wave).
 //
 // `data-node` names the layout box each element occupies (see
 // src/lib/canvas-layout.ts); `data-box` carries its world rect inline, which is
 // the single source of truth for both the stylesheet and the DOM. Reading order
-// and visual position are independent: the DOM goes identity → claim → CTAs →
-// role cards, exactly as the stacked version did.
+// and visual position are independent: the DOM goes identity → role cards,
+// exactly as the stacked version did.
 import CanvasStage from './CanvasStage.astro';
 import { withBase } from '../lib/path';
 import { type Audience } from '../lib/projects';
@@ -22,25 +23,10 @@ const isEn = lang === 'en';
 const t = isEn
   ? {
       h1: 'Product Analyst',
-      role: 'A/B Testing & Retention',
-      phd: 'PhD in work psychology — I measure behaviour and causal effects, not correlations.',
-      claim:
-        'I turn data into decisions: which fix to ship, whom to win back, where the hypothesis did not hold.',
-      cv: 'Download CV (PDF)',
-      contact: 'Contact',
-      lead: 'Prefer another way in? Pick your entry point.',
-      continueAs: 'Continue as',
       canvasLabel: 'Home canvas',
     }
   : {
       h1: 'Продуктовый аналитик',
-      role: 'A/B-тесты и retention',
-      phd: 'PhD по психологии труда — измеряю поведение и причинные эффекты, а не корреляции.',
-      claim: 'Считаю не отчёты, а решения: какой фикс включать, кого вернуть, где гипотеза не подтвердилась.',
-      cv: 'Скачать CV (PDF)',
-      contact: 'Контакты',
-      lead: 'Удобнее иначе — выберите вход по роли',
-      continueAs: 'Продолжить как',
       canvasLabel: 'Холст главной',
     };
 
@@ -91,38 +77,7 @@ const boxStyle = (id: string): string => {
 <CanvasStage ariaLabel={t.canvasLabel}>
   <header class="canvas-node canvas-node--identity" data-node="identity" style={boxStyle('identity')}>
     <h1 class="hero-name">{t.h1}</h1>
-    <p class="hero-role">{t.role}</p>
-    <p class="hero-phd">{t.phd}</p>
   </header>
-
-  <p class="canvas-node persona-claim" data-node="claim" style={boxStyle('claim')}>{t.claim}</p>
-
-  <div class="canvas-node canvas-actions" data-node="cta-cv" style={boxStyle('cta-cv')}>
-    {/* The same `cv_download_pdf` name the nav rail and the footer fire, so one
-        event sums every CV download on the site. */}
-    <a
-      class="button"
-      href={withBase('CV-Nikita-Boyarkin.pdf')}
-      download
-      data-analytics="cv_download_pdf">{t.cv}</a
-    >
-  </div>
-
-  <div class="canvas-node canvas-actions" data-node="cta-contact" style={boxStyle('cta-contact')}>
-    <a class="button button-secondary" href={withBase(isEn ? 'en/contact/' : 'contact/')}>
-      {t.contact}</a
-    >
-  </div>
-
-  {/* The fork's lead-in. It carries no `data-node`: it is a label for the three
-      cards below, not a destination, so it needs no layout box — and reusing
-      `role-hr` here would make Task 7's "every node exactly once" fail.
-      Its `top` is the right column's top edge and must track `identity.y` in
-      canvas-layout.ts: the two columns read as one composition only while they
-      start on the same line (PRD §8.1). */}
-  <h2 class="canvas-node canvas-lead" style="left:800px; top:90px; --box-w:540px;">
-    {t.lead}
-  </h2>
 
   {
     CARDS.map((card, i) => (
@@ -133,10 +88,9 @@ const boxStyle = (id: string): string => {
         href={withBase(isEn ? `en/${card.role}/` : `${card.role}/`)}
         data-persona={card.role}
         data-source="gate"
-        data-continue={`${t.continueAs} ${card.label}`}
       >
         {/* The step number is what separates the three otherwise identical
-            540x180 cards (PRD §8.3): the order is already in the DOM, so this is
+            620x180 cards (PRD §8.3): the order is already in the DOM, so this is
             a visual echo of it and is hidden from assistive tech. */}
         <span class="persona-card-eyebrow"
           ><span class="persona-card-step" aria-hidden="true"
@@ -149,11 +103,6 @@ const boxStyle = (id: string): string => {
       </a>
     ))
   }
-
-  {/* Sits in the 180px gap the left column leaves between the claim (ends at
-      y=600) and the CTA row (starts at y=780), so unhiding it lands on empty
-      board rather than on another node. */}
-  <p class="audience-note canvas-node" data-persona-continue style="left:80px; top:620px; --box-w:620px;" hidden></p>
 </CanvasStage>
 
 <style>
@@ -165,21 +114,6 @@ const boxStyle = (id: string): string => {
        rule. Both fallbacks are for a node added without a layout box. */
     inline-size: var(--box-w, auto);
     min-block-size: var(--box-h, 0);
-  }
-  .persona-claim {
-    max-inline-size: 62ch;
-    font-size: 1.0625rem;
-    line-height: 1.6;
-    text-wrap: pretty;
-  }
-  .canvas-actions {
-    display: flex;
-    gap: var(--space-3);
-    align-items: center;
-  }
-  .canvas-lead {
-    font-size: 1.125rem;
-    font-weight: 600;
   }
   .persona-card {
     display: flex;
@@ -267,12 +201,6 @@ const boxStyle = (id: string): string => {
       inline-size: auto;
       min-block-size: 0;
     }
-    .canvas-lead {
-      margin-block-start: var(--space-6);
-    }
-    .persona-claim {
-      margin-block-start: var(--space-4);
-    }
     .persona-card {
       margin-block-start: var(--space-4);
     }
@@ -307,25 +235,12 @@ const boxStyle = (id: string): string => {
     const highlighted = stored ?? suggested;
 
     if (highlighted) {
-      const card = root.querySelector<HTMLElement>(`[data-persona="${highlighted}"]`);
-      card?.classList.add(stored ? 'is-stored' : 'is-suggested');
-      const note = root.querySelector<HTMLElement>('[data-persona-continue]');
-      // Only a real, stored choice gets the "continue as …" line — a source guess
-      // is a suggestion, and claiming continuity the visitor never chose would be
-      // a lie in the UI.
-      if (note && card && stored) {
-        note.hidden = false;
-        note.textContent = card.dataset.continue || '';
-      }
+      root
+        .querySelector<HTMLElement>(`[data-persona="${highlighted}"]`)
+        ?.classList.add(stored ? 'is-stored' : 'is-suggested');
     }
 
     track('persona_gate_view', { lang, has_stored_choice: Boolean(stored) });
-
-    // Exposure — the denominator of the exposure→click rate (D3). Fired once per
-    // load, unconditionally: a rate whose denominator only counts some views is
-    // not a rate.
-    const primaryCta = root.querySelector<HTMLElement>('[data-analytics="cv_download_pdf"]');
-    if (primaryCta) track('cta_exposure', { surface: 'home_hero', lang });
 
     // No preventDefault: the write and the capture both run before the plain
     // `<a href>` navigation commits.

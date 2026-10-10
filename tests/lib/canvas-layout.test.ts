@@ -38,17 +38,14 @@ const project = (vp: { tx: number; ty: number; k: number }, p: { x: number; y: n
 });
 
 describe('NODES', () => {
-  it('declares all seven nodes with unique ids', () => {
-    expect(NODES.length).toBe(7);
-    expect(new Set(NODES.map((n) => n.id)).size).toBe(7);
+  it('declares all four nodes with unique ids', () => {
+    expect(NODES.length).toBe(4);
+    expect(new Set(NODES.map((n) => n.id)).size).toBe(4);
   });
 
   it('keeps the reading order, independent of visual position', () => {
     expect(NODES.map((n) => n.id)).toEqual([
       'identity',
-      'claim',
-      'cta-cv',
-      'cta-contact',
       'role-hr',
       'role-manager',
       'role-colleague',
@@ -70,30 +67,39 @@ describe('NODES', () => {
     }
   });
 
-  // The two columns are one composition, not two lists that happen to share a
-  // page: they end together. This is the whole point of the layout pass in
-  // docs/prd-homepage-canvas-polish.md §8.2, and it is the invariant a single
-  // moved box destroys — the left column used to stop 290 world px short of the
-  // right one and the bottom-left corner of the board read as empty.
-  it('leaves no void under the CTA row', () => {
-    const boxes = (ids: string[]): NodeBox[] =>
-      ids.map((id) => {
-        const n = NODES.find((b) => b.id === id);
-        expect(n, `${id} is not a declared node`).toBeDefined();
-        return n!;
-      });
-    const bottom = (list: NodeBox[]) => Math.max(...list.map((n) => n.y + n.h));
+  // One lane, no CTA row (docs/prd-homepage-canvas-polish.md §13, second wave).
+  // The board first paired a left hero column with a right column of role cards,
+  // which left a ~290px void under the hero; the owner then took the CV and
+  // Contact buttons off the board entirely. The gate is now the `h1` with the
+  // three cards under it, reading top-to-bottom in a single 620px lane, and the
+  // right half of the 1440px board is deliberately empty. Three things have to
+  // hold for that to stay true, and a single moved `y` breaks at least one.
+  it('stays a single lane with the cards closed up under the h1', () => {
+    const byId = (id: string): NodeBox => {
+      const n = NODES.find((b) => b.id === id);
+      expect(n, `${id} is not a declared node`).toBeDefined();
+      return n!;
+    };
+    const head = byId('identity');
+    const firstCard = byId('role-hr');
 
-    const left = boxes(['identity', 'claim', 'cta-cv', 'cta-contact']);
-    const right = boxes(['role-hr', 'role-manager', 'role-colleague']);
-
-    // The columns are x-disjoint, so the left column's floor is simply the lower
-    // of its two stacked blocks plus the CTA row — no cross-column reasoning.
-    expect(bottom(left)).toBe(780 + 56);
+    // The void that used to open below the hero is what the move fixed.
     expect(
-      bottom(right) - bottom(left),
-      'the gap under the CTA row must stay inside the 100px budget'
-    ).toBeLessThanOrEqual(100);
+      firstCard.y - (head.y + head.h),
+      'the void under the h1 must stay inside the 40px budget'
+    ).toBeLessThanOrEqual(40);
+
+    // The lane fills the board instead of stopping short of the bottom edge.
+    expect(
+      WORLD.h - Math.max(...NODES.map((n) => n.y + n.h)),
+      'the lane must reach the bottom of the world within 60px'
+    ).toBeLessThanOrEqual(60);
+
+    // Every box sits in the left lane. The right half of the board is empty by the
+    // owner's call, and it stops being empty the moment a box is parked there.
+    for (const n of NODES) {
+      expect(n.x, `${n.id} leaves the left lane`).toBeLessThanOrEqual(340);
+    }
   });
 
   it('never overlaps two boxes', () => {
@@ -224,7 +230,7 @@ describe('focusNode', () => {
   });
 
   it('clamps the requested zoom into the canvas range', () => {
-    expect(focusNode(nodeById('claim'), { w: 1200, h: 800 }, 8).k).toBe(MAX_ZOOM);
+    expect(focusNode(nodeById('role-colleague'), { w: 1200, h: 800 }, 8).k).toBe(MAX_ZOOM);
   });
 });
 

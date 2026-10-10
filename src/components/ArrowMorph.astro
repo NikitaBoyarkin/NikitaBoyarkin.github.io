@@ -9,16 +9,25 @@ interface Props {
   from?: string;
   to?: string;
   size?: number;
+  /** Name the arrow when it is the only thing conveying meaning (e.g. a
+   *  `target="_blank"` link, where it says "opens in a new tab"). Passed to the
+   *  shell → `role="img"` + `<title>`, contributing to the host link's
+   *  accessible name. Omit for decorative arrows — they stay `aria-hidden`. */
+  label?: string;
 }
 
 const {
   from = 'M5 12h14M12 5l7 7-7 7',
   to = 'M7 17 17 7M7 7h10v10',
   size = 16,
+  label,
 } = Astro.props;
 ---
 
-<MorphIcon data-arrow aria-hidden="true" data-from-d={from} data-to-d={to} icon={from} spring="snappy" reducedMotion="user" size={size} />
+{/* `aria-hidden` must be dropped when `label` is set: the shell marks the svg
+    role="img", but an aria-hidden on <morph-icon> would hide the whole subtree
+    from AT and the <title> would never be announced. */}
+<MorphIcon data-arrow aria-hidden={label ? undefined : 'true'} label={label} data-from-d={from} data-to-d={to} icon={from} spring="snappy" reducedMotion="user" size={size} />
 
 <script>
   import { defineMorphIcon, type MorphIconElement } from 'morphicons/element';

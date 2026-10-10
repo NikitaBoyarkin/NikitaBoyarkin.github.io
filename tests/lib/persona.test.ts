@@ -8,7 +8,6 @@ import {
   registerSuperProperties,
   track,
   writeAudience,
-  type AnalyticsEventMap,
 } from '../../src/lib/analytics';
 import { AUDIENCES, DEFAULT_AUDIENCE } from '../../src/lib/projects';
 import { CAL_BOOKING_URL } from '../../src/lib/contact';
@@ -205,38 +204,41 @@ describe('wiring (PRD §6, §9, §10)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Homepage CTA — the regressions the "вопрос → ответ" rework left behind.
-// Each one shipped as a bug once: a dead href, a primary action with no exposure
-// event, and a CTA pointing at a placeholder. (The "show all projects" link used
-// to be a fourth entry here; it was removed from the hero on 2026-10-10, so the
-// count it guarded no longer exists to assert.)
+// Homepage CTA — the regressions the "вопрос → ответ" rework left behind, now
+// inverted. Each of those shipped as a bug once: a dead href, a primary action
+// with no exposure event, a CTA pointing at a placeholder. (The "show all
+// projects" link was removed from the hero on 2026-10-10.) The CV and Contact
+// buttons left the board on 2026-10-10 as well (PRD §13, second wave), so these
+// assertions now guard the REMOVAL: the page must not grow the row back, and if
+// it does, no test here goes quietly green. The denominator that used to live in
+// the gate is not gone from the site — the rail still fires it, asserted under
+// "sticky action rail (Base.astro)" below.
 // ---------------------------------------------------------------------------
 describe('homepage primary CTA (docs/cta-inventory.md)', () => {
   const gate = () => src('src/components/PersonaCanvas.astro');
 
-  it('the hero CTA row is CV download + Contact, not the booking link', () => {
+  it('leaves the hero CTA row off the board, and does not grow it back', () => {
     const s = gate();
-    // The homepage hero exposes the CV download (primary) and the contact path
-    // (secondary). The cal.com booking button moved off the homepage on
-    // 2026-10-10 — but the constant survives for /contact and /en/contact.
-    expect(s).toContain("href={withBase('CV-Nikita-Boyarkin.pdf')}");
-    expect(s, 'the primary CTA lost its delegated tracking hook').toContain(
+    // The row used to be CV download (primary) + Contact (secondary). Both left
+    // the body on the owner's call; the contact routes and the CV file are still
+    // reachable from the nav, rail and footer, so nothing is orphaned.
+    expect(s, 'the retired CV download is back on the board').not.toContain(
       'data-analytics="cv_download_pdf"',
     );
-    expect(s).toContain('download');
-    expect(s).toContain("href={withBase(isEn ? 'en/contact/' : 'contact/')}");
+    expect(s, 'the retired CV link is back on the board').not.toContain('CV-Nikita-Boyarkin.pdf');
+    expect(s, 'the retired contact link is back on the board').not.toContain(
+      "href={withBase(isEn ? 'en/contact/' : 'contact/')}",
+    );
     expect(s, 'the booking button must not be back on the homepage').not.toContain('booking_click');
     expect(s, 'the hero must not reference the booking URL').not.toContain('CAL_BOOKING_URL');
     expect(CAL_BOOKING_URL, 'the contact pages still depend on it').toMatch(/^https:\/\/cal\.com\//);
   });
 
-  it('fires cta_exposure so the click has a denominator', () => {
-    const props = {
-      surface: 'home_hero',
-      lang: 'ru',
-    } satisfies AnalyticsEventMap['cta_exposure'];
-    expect(props.surface).toBe('home_hero');
-    expect(gate()).toContain("track('cta_exposure'");
+  it('fires no cta_exposure — the board carries no exposed CTA to have a rate for', () => {
+    // Kept as a NEGATIVE assertion rather than deleted: a rate whose denominator
+    // counts a button that is not on the page is worse than no rate. The event
+    // still fires from the rail, where the CTA is actually visible.
+    expect(gate()).not.toContain("track('cta_exposure'");
   });
 });
 

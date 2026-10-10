@@ -63,13 +63,24 @@ function parseMorphIcons(html: string): MorphElement[] {
   return out;
 }
 
-/** The value of an attribute anywhere on the page (e.g. a toggle's rest-state
- *  `data-icon-menu`). Throws when absent — a missing data attribute is a
- *  finding, not a skip. */
-function attrValue(html: string, name: string): string {
-  const m = new RegExp(`${name}="([^"]*)"`).exec(html);
-  if (!m) throw new Error(`no ${name} in built HTML`);
-  return m[1];
+/** The value of `name` on the widget that owns `id="<iconId>"` — read as the
+ *  nearest occurrence of the attribute BEFORE the icon element itself.
+ *
+ *  Several toggles reuse an attribute name: `data-icon-close` sits on both the
+ *  mobile nav toggle and the search widget with an identical `d` string, so a
+ *  page-global first-match reads the wrong button and can pass for the wrong
+ *  reason. Anchoring the read to the icon that consumes the attribute reads the
+ *  intended one. Throws when absent — a missing attribute is a finding, not a
+ *  skip. */
+function attrBefore(html: string, iconId: string, name: string): string {
+  const at = html.indexOf(`id="${iconId}"`);
+  if (at < 0) throw new Error(`no id="${iconId}" in built HTML`);
+  let val: string | null = null;
+  for (const hit of html.slice(0, at).matchAll(new RegExp(`${name}="([^"]*)"`, "g"))) {
+    val = hit[1];
+  }
+  if (val === null) throw new Error(`no ${name} before #${iconId}`);
+  return val;
 }
 
 function page(path: string): string {
@@ -182,18 +193,24 @@ describe("morph-icon contract (built HTML)", () => {
       // first hover snaps instead of morphing.
       const nav = icons.find((i) => i.attrs.id === "nav-icon");
       const theme = icons.find((i) => i.attrs.id === "theme-icon");
-      expect(nav?.attrs.icon).toBe(attrValue(html, "data-icon-menu"));
-      expect(theme?.attrs.icon).toBe(attrValue(html, "data-icon-dark"));
+      expect(nav?.attrs.icon).toBe(attrBefore(html, "nav-icon", "data-icon-menu"));
+      expect(theme?.attrs.icon).toBe(attrBefore(html, "theme-icon", "data-icon-dark"));
 
       const search = icons.find((i) => i.attrs.id === "search-icon");
-      expect(search?.attrs.icon).toBe(attrValue(html, "data-icon-search"));
+      expect(search?.attrs.icon).toBe(attrBefore(html, "search-icon", "data-icon-search"));
     });
 
     it("has a distinct target endpoint for every toggle", () => {
       // Both endpoints equal = a morph of zero distance, i.e. no animation.
-      expect(attrValue(html, "data-icon-close")).not.toBe(attrValue(html, "data-icon-menu"));
-      expect(attrValue(html, "data-icon-light")).not.toBe(attrValue(html, "data-icon-dark"));
-      expect(attrValue(html, "data-icon-cyber")).not.toBe(attrValue(html, "data-icon-dark"));
+      expect(attrBefore(html, "nav-icon", "data-icon-close")).not.toBe(
+        attrBefore(html, "nav-icon", "data-icon-menu"),
+      );
+      expect(attrBefore(html, "theme-icon", "data-icon-light")).not.toBe(
+        attrBefore(html, "theme-icon", "data-icon-dark"),
+      );
+      expect(attrBefore(html, "theme-icon", "data-icon-cyber")).not.toBe(
+        attrBefore(html, "theme-icon", "data-icon-dark"),
+      );
     });
   });
 
@@ -222,7 +239,28 @@ describe("morph-icon contract (built HTML)", () => {
       // the wrong place (the mismatch lands in sigma, not in an error).
       for (const arrow of arrows) {
         expect(arrow.attrs["data-from-d"]).toMatch(/^[\d\s.,MmLlHhVvCcSsQqTtAaZz-]+$/);
-        expect(arrow.attrs["data-to-d"]).toMatch(/^[\d\s.,MmLlHhVvCcQtAaZz-]+$/);
+        expect(arrow.attrs["data-to-d"]).toMatch(/^[\d\s.,MmLlHhVvCcSsQqTtAaZz-]+$/);
+      }
+    });
+
+    it("names the new-tab arrows and keeps the internal one decorative", () => {
+      // The ↗ sits on target="_blank" links: `label` turns it into role="img" +
+      // <title>, so the link's accessible name says "opens in a new tab"
+      // (WCAG 3.2.5). The internal "View project" arrow carries no label and
+      // must stay hidden from AT.
+      for (const arrow of arrows) {
+        const labelled = arrow.attrs.label !== undefined;
+        const hidden = arrow.ssrAriaHidden || arrow.attrs["aria-hidden"] === "true";
+        if (labelled) {
+          expect(arrow.ssrRole).toBe("img");
+          expect(arrow.ssrTitled).toBe(true);
+          // An aria-hidden on the wrapper would hide the <title> — the exact
+          // regression that makes a "labelled" icon silent.
+          expect(arrow.attrs["aria-hidden"]).not.toBe("true");
+          expect(arrow.ssrAriaHidden).toBe(false);
+        } else {
+          expect(hidden).toBe(true);
+        }
       }
     });
 
@@ -243,12 +281,32 @@ describe("morph-icon contract (built HTML)", () => {
     it("opens as a chat bubble and morphs to a close cross", () => {
       const icon = icons.find((i) => i.attrs.id === "askme-icon");
       expect(icon).toBeDefined();
-      expect(icon?.attrs.icon).toBe(attrValue(html, "data-icon-chat"));
-      expect(attrValue(html, "data-icon-close")).not.toBe(attrValue(html, "data-icon-chat"));
+      expect(icon?.attrs.icon).toBe(attrBefore(html, "askme-icon", "data-icon-chat"));
+      expect(attrBefore(html, "askme-icon", "data-icon-close")).not.toBe(
+        attrBefore(html, "askme-icon", "data-icon-chat"),
+      );
     });
 
     it("ships the toggle chunk", () => {
       expect(html).toMatch(ASKME_CHUNK);
+    });
+  });
+
+  describe("labelled morph coverage", () => {
+    it("exercises the role=img + <title> branch on at least one page", () => {
+      // Guards F1: before this, no morph passed `label`, so the labelled branch
+      // of the a11y contract was dead code — a silent regression in the shell's
+      // label handling could not fail any test. If the new-tab arrows lose their
+      // label, that branch goes dark again and this test fails.
+      const labelled = ARROW_PAGES.flatMap(({ path }) =>
+        parseMorphIcons(page(path)).filter((i) => i.attrs.label !== undefined),
+      );
+      expect(labelled.length).toBeGreaterThan(0);
+      for (const icon of labelled) {
+        expect(icon.ssrRole).toBe("img");
+        expect(icon.ssrTitled).toBe(true);
+        expect(icon.ssrAriaHidden).toBe(false);
+      }
     });
   });
 

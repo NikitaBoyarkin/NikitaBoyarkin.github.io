@@ -58,23 +58,10 @@ describe('canvas homepage (built HTML)', () => {
       for (const suffix of ['hr/', 'manager/', 'colleague/', 'projects/']) {
         expect(d, `${lang}: ${suffix}`).toContain(suffix);
       }
-      // The hero CTA row changed on 2026-10-10: the cal.com booking button left
-      // the homepage and the row is now CV-download (primary) + Contact (secondary).
-      // `cv_download_pdf` also fires from the nav, rail and footer, so assert the
-      // hero's own nodes co-occur with the destination rather than the bare string.
-      expect(
-        d.match(/data-node="cta-cv"[\s\S]*?data-analytics="cv_download_pdf"/),
-        `${lang}: the hero CTA row lost its CV download`
-      ).not.toBeNull();
-      expect(
-        d.match(/data-node="cta-cv"[\s\S]*?download/),
-        `${lang}: the hero CV link must download, not navigate`
-      ).not.toBeNull();
-      expect(
-        d.match(/data-node="cta-contact"[\s\S]*?href="[^"]*contact\//),
-        `${lang}: the hero CTA row lost its contact link`
-      ).not.toBeNull();
-      // The booking button must be gone from the homepage — it now lives only on
+      // The hero CTA row left the homepage on 2026-10-10 (PRD §13, second wave):
+      // the CV download and the Contact button were removed from the canvas body
+      // on the owner's call, and their three assertions went with them. The
+      // booking button had already gone the round before — it now lives only on
       // /contact and /en/contact.
       expect(d, `${lang}: the retired booking button is back on the homepage`).not.toContain(
         'data-analytics="booking_click"'
@@ -115,24 +102,24 @@ describe('canvas homepage (built HTML)', () => {
       expect(grid!, `${lang}: the dot grid lost its aria-hidden`).toContain('aria-hidden="true"');
     });
 
-    // PRD §8.1: the eye reads a mismatch between the two column tops as a shift,
-    // not as intent. The right column's top edge is the fork's lead-in, which is
-    // an `<h2>` label with no layout box of its own — its `top` is hand-written in
-    // PersonaCanvas.astro and has to track `identity.y` in canvas-layout.ts. Two
-    // independent literals is exactly how they drift, so they are compared here.
-    it(`${file}: starts both columns on the same line`, () => {
+    // PRD §13: the gate is one lane, no CTA row. The right half of the 1440px
+    // board is deliberately empty, the fork's lead-in is gone with the second
+    // lane, and the CV and Contact buttons left the body on the owner's call.
+    // Every box the page places has to sit inside the left 340 world px. Keyed on
+    // `data-node`, which only real layout boxes carry.
+    it(`${file}: lays every layout node in a single left lane`, () => {
       const d = doc();
-      const at = (re: RegExp, what: string): number => {
-        const m = d.match(re);
-        expect(m, `${lang}: ${what} carries no inline top`).not.toBeNull();
-        return Number(m![1]);
-      };
-      const heroTop = at(/data-node="identity"[^>]*style="[^"]*\btop:(\d+)px/, 'the hero node');
-      const leadTop = at(
-        /class="[^"]*\bcanvas-lead\b[^"]*"[^>]*style="[^"]*\btop:(\d+)px/,
-        'the fork lead-in'
-      );
-      expect(leadTop, `${lang}: the column tops must align (PRD §8.1)`).toBe(heroTop);
+      expect(d, `${lang}: the retired fork lead-in is back`).not.toContain('canvas-lead');
+      const nodes = [...d.matchAll(/data-node="[^"]+"[^>]*style="([^"]*)"/g)];
+      expect(nodes.length, `${lang}: layout nodes with an inline style`).toBe(NODES.length);
+      for (const [, style] of nodes) {
+        const left = style.match(/\bleft:(\d+)px/);
+        expect(left, `${lang}: a node carries no inline left — ${style}`).not.toBeNull();
+        expect(
+          Number(left![1]),
+          `${lang}: the board is two lanes again — a node sits past the left lane: ${style}`
+        ).toBeLessThanOrEqual(340);
+      }
     });
 
     it(`${file}: exposes the fit constants the inline script reads`, () => {
@@ -310,26 +297,24 @@ it('wins the light-theme card override on specificity, not on source order', () 
 });
 
 it('puts the resting border of the interactive nodes on --border-active', () => {
-  for (const t of ['role-', 'cta-']) {
-    const rules = cssRules().filter(
-      (r) =>
-        r.selector.includes('data-node^=') &&
-        r.selector.includes(t) &&
-        r.body.includes('border-color')
+  const rules = cssRules().filter(
+    (r) =>
+      r.selector.includes('data-node^=') &&
+      r.selector.includes('role-') &&
+      r.body.includes('border-color')
+  );
+  expect(
+    rules.length,
+    `no resting-border rule for [data-node^='role-…'] in the built CSS`
+  ).toBeGreaterThan(0);
+  for (const r of rules) {
+    expect(r.body, `${r.file}: ${r.selector} does not use --border-active`).toContain(
+      '--border-active'
     );
     expect(
-      rules.length,
-      `no resting-border rule for [data-node^='${t}…'] in the built CSS`
-    ).toBeGreaterThan(0);
-    for (const r of rules) {
-      expect(r.body, `${r.file}: ${r.selector} does not use --border-active`).toContain(
-        '--border-active'
-      );
-      expect(
-        beats(specificity(r.selector.split(',')[0]), [0, 2, 0]),
-        `${r.file}: ${r.selector} must out-rank the scoped 0,2,0 border it overrides`
-      ).toBe(true);
-    }
+      beats(specificity(r.selector.split(',')[0]), [0, 2, 0]),
+      `${r.file}: ${r.selector} must out-rank the scoped 0,2,0 border it overrides`
+    ).toBe(true);
   }
 });
 

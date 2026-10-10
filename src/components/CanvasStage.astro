@@ -241,6 +241,14 @@ const fitData = {
     position: relative;
     block-size: 100vh;
     overflow: hidden;
+    /* Hero backdrop: a soft wash behind the panning dot grid. Token-driven, so
+       all three themes tint it with no per-theme override. The cool bloom is
+       --text-accent-dataviz (the board's own teal), not the coral accent —
+       DESIGN.md:120 keeps coral for actions only. */
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--background-tertiary) 72%, transparent) 0%, transparent 46%),
+      radial-gradient(85% 110% at -5% 45%, color-mix(in oklab, var(--text-accent-dataviz) 9%, transparent), transparent 60%),
+      var(--background-primary);
     /* The fixed CTA rail is a sibling and only exists from 1100px up. */
     touch-action: pan-y;
   }
