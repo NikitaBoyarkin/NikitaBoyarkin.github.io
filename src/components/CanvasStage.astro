@@ -1,15 +1,20 @@
 ---
 // The canvas shell: a 100vh viewport whose world layer is panned and zoomed by a
-// CSS transform over real DOM. Nothing here draws text — the sketch frames and
-// the dot grid are decoration (`aria-hidden`), and the actual hero copy is
-// slotted in as ordinary `<h1>` / `<p>` / `<a>`.
+// CSS transform over real DOM. Nothing here draws text — the dot grid is
+// decoration (`aria-hidden`), and the actual hero copy is slotted in as ordinary
+// `<h1>` / `<p>` / `<a>`.
 //
 // The SSR transform is written inline so the first paint is already correct: with
 // no `--vp-*` values the world would render at the origin at scale 1. A tiny
 // `is:inline` script then refits it to the real window and, because it is
 // synchronous and sits immediately after the world, it runs before paint.
-import { fitViewport, NODES, viewportVars, WORLD, MIN_ZOOM, MAX_ZOOM } from '../lib/canvas-layout';
-import { sketchRectFor } from '../lib/sketch';
+import {
+  fitViewport,
+  viewportVars,
+  WORLD,
+  MIN_ZOOM,
+  MAX_ZOOM,
+} from '../lib/canvas-layout';
 
 interface Props {
   ariaLabel: string;
@@ -19,13 +24,6 @@ const { ariaLabel } = Astro.props;
 // Reference window: the value the server can honestly compute. The inline script
 // below corrects it to the real window on load and on resize.
 const initial = viewportVars(fitViewport({ w: WORLD.w, h: WORLD.h }));
-// `identity` holds the hero words. A hand-drawn box around a name fights the
-// typography, so that one node is deliberately unframed — the same exclusion is
-// asserted against the built HTML in tests/built/canvas.test.ts.
-const frames = NODES.filter((n) => n.id !== 'identity').map((n) => ({
-  ...n,
-  sketch: sketchRectFor(n.id, n.w, n.h),
-}));
 
 const fitData = {
   'data-world-w': String(WORLD.w),
@@ -43,24 +41,6 @@ const fitData = {
 >
   <div class="canvas-world">
     <div class="canvas-grid" aria-hidden="true"></div>
-
-    <svg
-      class="canvas-sketch"
-      viewBox={`0 0 ${WORLD.w} ${WORLD.h}`}
-      preserveAspectRatio="none"
-      aria-hidden="true"
-      focusable="false"
-    >
-      {
-        frames.map((n) => (
-          <g data-frame={n.id}>
-            {n.sketch.paths.map((d, i) => (
-              <path d={d} vector-effect="non-scaling-stroke" data-pass={i} />
-            ))}
-          </g>
-        ))
-      }
-    </svg>
 
     <div class="canvas-nodes">
       <slot />
@@ -284,20 +264,6 @@ const fitData = {
     inset: 0;
     background-image: radial-gradient(circle at 1px 1px, var(--wallpaper-line) 1px, transparent 0);
     background-size: 32px 32px;
-  }
-  .canvas-sketch {
-    position: absolute;
-    inset: 0;
-    inline-size: 100%;
-    block-size: 100%;
-    fill: none;
-    stroke: var(--border-color);
-    stroke-width: 1.5;
-    stroke-linecap: round;
-    overflow: visible;
-  }
-  .canvas-sketch path[data-pass='1'] {
-    opacity: 0.45;
   }
   .canvas-nodes {
     position: absolute;

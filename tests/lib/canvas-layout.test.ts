@@ -1,11 +1,11 @@
 // Canvas node geometry and viewport math.
 //
 // Two claims here are load-bearing and neither is visible in a screenshot:
-// (a) every node box sits fully inside the world, so the sketch frame layer can
-// anchor to it without drawing off-board; (b) the fitted viewport contains every
-// node CENTRE at the widths the site actually gets (900, 1024, 1280, 1440), which
-// is what keeps the role gate working without any interaction. A regression in
-// either silently ships a clipped card.
+// (a) every node box sits fully inside the world, so the fitted viewport can
+// place it without clipping it at the board edge; (b) the fitted viewport
+// contains every node CENTRE at the widths the site actually gets (900, 1024,
+// 1280, 1440), which is what keeps the role gate working without any
+// interaction. A regression in either silently ships a clipped card.
 import { describe, it, expect } from 'bun:test';
 import {
   MAX_ZOOM,
@@ -69,6 +69,32 @@ describe('NODES', () => {
     for (const n of NODES) {
       expect(Math.min(n.x, n.y), `${n.id} inset`).toBeGreaterThanOrEqual(80);
     }
+  });
+
+  // The two columns are one composition, not two lists that happen to share a
+  // page: they end together. This is the whole point of the layout pass in
+  // docs/prd-homepage-canvas-polish.md §8.2, and it is the invariant a single
+  // moved box destroys — the left column used to stop 290 world px short of the
+  // right one and the bottom-left corner of the board read as empty.
+  it('leaves no void under the CTA row', () => {
+    const boxes = (ids: string[]): NodeBox[] =>
+      ids.map((id) => {
+        const n = NODES.find((b) => b.id === id);
+        expect(n, `${id} is not a declared node`).toBeDefined();
+        return n!;
+      });
+    const bottom = (list: NodeBox[]) => Math.max(...list.map((n) => n.y + n.h));
+
+    const left = boxes(['identity', 'claim', 'cta-booking', 'cta-cv']);
+    const right = boxes(['role-hr', 'role-manager', 'role-colleague', 'projects-all']);
+
+    // The columns are x-disjoint, so the left column's floor is simply the lower
+    // of its two stacked blocks plus the CTA row — no cross-column reasoning.
+    expect(bottom(left)).toBe(780 + 56);
+    expect(
+      bottom(right) - bottom(left),
+      'the gap under the CTA row must stay inside the 100px budget'
+    ).toBeLessThanOrEqual(100);
   });
 
   it('never overlaps two boxes', () => {

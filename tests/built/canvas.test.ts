@@ -81,26 +81,40 @@ describe('canvas homepage (built HTML)', () => {
       }
     });
 
-    it(`${file}: marks the decorative layers aria-hidden and leaves no text in SVG`, () => {
+    // The hand-drawn frame layer was removed on the owner's call. It had become
+    // a defect rather than decoration: sketchRectFor() generates its rects in
+    // local 0..w × 0..h space (src/lib/sketch.ts), while CanvasStage emitted
+    // `<g data-frame>` with no transform, so every frame landed at the world
+    // origin — stray hairlines across the hero instead of a frame around the
+    // node. Nothing replaces it, so the layer has to stay gone; `canvas-sketch`,
+    // `data-frame` and `data-pass` are the three marks it leaves in the markup.
+    it(`${file}: ships no frame layer and marks the grid aria-hidden`, () => {
       const d = doc();
-      const sketch = d.match(/<svg[^>]*class="canvas-sketch"[^>]*>/)?.[0];
-      expect(sketch, `${lang}: sketch svg missing`).toBeDefined();
-      expect(sketch!).toContain('aria-hidden="true"');
-      expect(sketch!).not.toContain('role="img"');
+      expect(d, `${lang}: the sketch frame layer is back`).not.toContain('canvas-sketch');
+      expect(d, `${lang}: a frame group survived the removal`).not.toContain('data-frame=');
+      expect(d, `${lang}: a jitter pass survived the removal`).not.toContain('data-pass=');
       const grid = d.match(/<div[^>]*class="canvas-grid"[^>]*>/)?.[0];
-      expect(grid!).toContain('aria-hidden="true"');
+      expect(grid!, `${lang}: the dot grid lost its aria-hidden`).toContain('aria-hidden="true"');
     });
 
-    it(`${file}: keeps the sketch frames deterministic and inlined`, () => {
+    // PRD §8.1: the eye reads a mismatch between the two column tops as a shift,
+    // not as intent. The right column's top edge is the fork's lead-in, which is
+    // an `<h2>` label with no layout box of its own — its `top` is hand-written in
+    // PersonaCanvas.astro and has to track `identity.y` in canvas-layout.ts. Two
+    // independent literals is exactly how they drift, so they are compared here.
+    it(`${file}: starts both columns on the same line`, () => {
       const d = doc();
-      // The hero node is deliberately unframed (CanvasStage filters `identity`
-      // out of the frame layer), so the sample frame is one that still renders.
-      expect(d).toContain('data-frame="claim"');
-      expect(d, 'the hero words must stay unframed').not.toContain('data-frame="identity"');
-      expect(d).toContain('data-pass="0"');
-      expect(d).toContain('data-pass="1"');
-      // A path that never made it into the HTML would leave an empty frame.
-      expect(d).toMatch(/<path d="M-?[\d.]+/);
+      const at = (re: RegExp, what: string): number => {
+        const m = d.match(re);
+        expect(m, `${lang}: ${what} carries no inline top`).not.toBeNull();
+        return Number(m![1]);
+      };
+      const heroTop = at(/data-node="identity"[^>]*style="[^"]*\btop:(\d+)px/, 'the hero node');
+      const leadTop = at(
+        /class="[^"]*\bcanvas-lead\b[^"]*"[^>]*style="[^"]*\btop:(\d+)px/,
+        'the fork lead-in'
+      );
+      expect(leadTop, `${lang}: the column tops must align (PRD §8.1)`).toBe(heroTop);
     });
 
     it(`${file}: exposes the fit constants the inline script reads`, () => {
@@ -211,9 +225,8 @@ it('measures the pre-paint fit only after the canvas is live, not stacked', () =
 });
 
 // ── Cascade-order contract (theme override + interactive border) ─────────────
-// CanvasStage.astro's scoped <style> emits `.canvas-sketch[data-astro-cid-…]`
-// and PersonaCanvas.astro's emits `.persona-card[data-astro-cid-…]`, both at
-// specificity 0,2,0, from stylesheets that load AFTER global.css. A rule
+// PersonaCanvas.astro's scoped <style> emits `.persona-card[data-astro-cid-…]`
+// at specificity 0,2,0, from a stylesheet that loads AFTER global.css. A rule
 // written at 0,2,0 therefore loses to source order, whatever its order in the
 // source file. These helpers read the emitted CSS so the assertions below can
 // require the override to out-rank the rule it fights.
@@ -253,28 +266,27 @@ const maxSpec = (rules: { selector: string }[]): Spec =>
     .map((r) => specificity(r.selector.split(',')[0]))
     .reduce((a, b) => (beats(b, a) ? b : a));
 
-it('wins the cyberpunk canvas override on specificity, not on source order', () => {
+it('wins the light-theme card override on specificity, not on source order', () => {
   const all = cssRules();
-  // The rule the override has to beat: the scoped base in CanvasStage.astro,
-  // emitted as `.canvas-sketch[data-astro-cid-…]` from the later stylesheet.
+  // The rule the override has to beat: the scoped base in PersonaCanvas.astro,
+  // emitted as `.persona-card[data-astro-cid-…]` from the later stylesheet. It
+  // paints the card with `--surface-secondary`, a cool grey that reads as a dirty
+  // patch on the cream page; the light override replaces that background and only
+  // lands if it out-ranks the scoped rule. `(?![\w-])` keeps `.persona-card-cta`
+  // and friends out of both sides of the comparison.
+  const card = /\.persona-card(?![\w-])/;
   const base = all.filter(
-    (r) =>
-      r.selector.includes('.canvas-sketch') &&
-      r.selector.includes('data-astro-cid') &&
-      r.body.includes('stroke')
+    (r) => card.test(r.selector) && r.selector.includes('data-astro-cid') && r.body.includes('background')
   );
-  const cyber = all.filter(
-    (r) =>
-      r.selector.includes('.canvas-sketch') &&
-      r.selector.includes('cyberpunk') &&
-      r.body.includes('stroke:')
+  const light = all.filter(
+    (r) => card.test(r.selector) && r.selector.includes('light') && r.body.includes('background')
   );
-  expect(base.length, 'no base .canvas-sketch rule in the built CSS').toBeGreaterThan(0);
-  expect(cyber.length, 'no cyberpunk .canvas-sketch override in the built CSS').toBeGreaterThan(0);
-  for (const r of cyber) {
+  expect(base.length, 'no base .persona-card rule in the built CSS').toBeGreaterThan(0);
+  expect(light.length, 'no light-theme .persona-card override in the built CSS').toBeGreaterThan(0);
+  for (const r of light) {
     expect(
       beats(specificity(r.selector.split(',')[0]), maxSpec(base)),
-      `${r.file}: ${r.selector} must out-rank the base .canvas-sketch rule`
+      `${r.file}: ${r.selector} must out-rank the base .persona-card rule`
     ).toBe(true);
   }
 });

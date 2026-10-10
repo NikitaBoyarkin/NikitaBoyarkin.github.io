@@ -46,16 +46,24 @@ export const MAX_ZOOM = 2.2;
  * this order — a crawler and a screen reader get the same document as before the
  * canvas existed. Coordinates are hand-authored; every box is inset at least 80
  * world px from the world edge, which is the fit padding.
+ *
+ * Both columns start at y = 90 so the eye reads them as one composition rather
+ * than as a shift (the fork's lead-in is the right column's first box, and it
+ * sits at the same top as the hero words). Each column then keeps its own even
+ * rhythm: 180 between the left column's three blocks, 40 between the right
+ * column's four. The two columns end 20 apart (836 against 856), so the board has
+ * no empty corner below the CTAs. Changing any single `y` here breaks that
+ * pairing — move a column, not a box.
  */
 export const NODES: NodeBox[] = [
   { id: 'identity', x: 80, y: 90, w: 620, h: 210, kind: 'text' },
-  { id: 'claim', x: 80, y: 330, w: 620, h: 120, kind: 'text' },
-  { id: 'cta-booking', x: 80, y: 490, w: 240, h: 56, kind: 'link' },
-  { id: 'cta-cv', x: 340, y: 490, w: 130, h: 56, kind: 'link' },
-  { id: 'role-hr', x: 800, y: 120, w: 540, h: 180, kind: 'link' },
-  { id: 'role-manager', x: 800, y: 340, w: 540, h: 180, kind: 'link' },
-  { id: 'role-colleague', x: 800, y: 560, w: 540, h: 180, kind: 'link' },
-  { id: 'projects-all', x: 800, y: 780, w: 540, h: 56, kind: 'link' },
+  { id: 'claim', x: 80, y: 480, w: 620, h: 120, kind: 'text' },
+  { id: 'cta-booking', x: 80, y: 780, w: 240, h: 56, kind: 'link' },
+  { id: 'cta-cv', x: 340, y: 780, w: 130, h: 56, kind: 'link' },
+  { id: 'role-hr', x: 800, y: 140, w: 540, h: 180, kind: 'link' },
+  { id: 'role-manager', x: 800, y: 360, w: 540, h: 180, kind: 'link' },
+  { id: 'role-colleague', x: 800, y: 580, w: 540, h: 180, kind: 'link' },
+  { id: 'projects-all', x: 800, y: 800, w: 540, h: 56, kind: 'link' },
 ];
 
 /** A CSS-space viewport: `screen = world * k + (tx, ty)`. */

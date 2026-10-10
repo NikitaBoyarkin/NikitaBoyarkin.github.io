@@ -3827,15 +3827,13 @@ nav .search-panel {
     overflow: visible;
   }
   .canvas-world,
-  .canvas-grid,
-  .canvas-sketch {
+  .canvas-grid {
     position: static;
     inline-size: auto;
     block-size: auto;
     transform: none;
     transition: none;
   }
-  .canvas-sketch,
   .canvas-grid {
     display: none;
   }
@@ -3848,22 +3846,20 @@ nav .search-panel {
 }
 
 /* Trigger 2 — the canvas is not live. Same declarations as the media block
-   above; the decorative `aria-hidden` layers (.canvas-sketch, .canvas-grid)
-   are hidden here too, so nothing decorative survives into the stacked state. */
+   above; the decorative `aria-hidden` grid is hidden here too, so nothing
+   decorative survives into the stacked state. */
 html.canvas-static .canvas-viewport {
   block-size: auto;
   overflow: visible;
 }
 html.canvas-static .canvas-world,
-html.canvas-static .canvas-grid,
-html.canvas-static .canvas-sketch {
+html.canvas-static .canvas-grid {
   position: static;
   inline-size: auto;
   block-size: auto;
   transform: none;
   transition: none;
 }
-html.canvas-static .canvas-sketch,
 html.canvas-static .canvas-grid {
   display: none;
 }
@@ -3902,34 +3898,45 @@ html.canvas-static .persona-card {
   margin-block-start: var(--space-4);
 }
 
-/* Canvas layer. Deliberately token-only: the sketch strokes reuse
-   --border-color and the dot grid reuses --wallpaper-line, so the canvas
-   introduces no second texture colour and no raw hex. Selectors here are
-   plain: this file is imported directly, not scoped to a component, so
+/* Canvas layer. Deliberately token-only: the dot grid reuses --wallpaper-line,
+   so the canvas introduces no second texture colour and no raw hex. Selectors
+   here are plain: this file is imported directly, not scoped to a component, so
    `[data-theme='…']` ancestors match as written. (`:global()` is only needed
    inside a scoped component's <style> — see reference-astro-pitfalls.)
 
-   The theme overrides are anchored on `html[data-theme='…']` (specificity
-   0,2,1) instead of `[data-theme='…']` (0,2,0). The base `.canvas-sketch` rule
-   lives in CanvasStage.astro's scoped <style> and is emitted as
-   `.canvas-sketch[data-astro-cid-…]` (0,2,0) from a stylesheet that loads
-   *after* this one, so a plain 0,2,0 selector loses the cascade to source
-   order: the cyberpunk stroke colour was silently dropped and only its
-   stroke-opacity survived. The extra type selector makes the override win on
-   specificity, whatever the emission order. Bound by
-   tests/built/canvas.test.ts → the theme override assertion. */
+   The theme override below is anchored on `html[data-theme='…']` (specificity
+   0,2,1) instead of `[data-theme='…']` (0,2,0). The rule it has to beat lives in
+   PersonaCanvas.astro's scoped <style> and is emitted as
+   `.persona-card[data-astro-cid-…]` (0,2,0) from a stylesheet that loads *after*
+   this one, so a plain 0,2,0 selector loses the cascade to source order. The
+   extra type selector makes the override win on specificity, whatever the
+   emission order. Bound by tests/built/canvas.test.ts → the theme override
+   assertion. */
 .canvas-grid {
   background-image: radial-gradient(circle at 1px 1px, var(--wallpaper-line) 1px, transparent 0);
   background-size: 32px 32px;
 }
 
-html[data-theme="light"] .canvas-sketch {
-  stroke: var(--border-color);
+/* The light theme filled the cards with `--surface-secondary` (#d4d4d8), a cool
+   grey that read as a dirty patch on the cream page. `--card-background`
+   (#f8f2da) is the warm token the palette already carries for exactly this —
+   "cards read one step lighter than the page" — and the gradient fades it back
+   toward the page over the card's height so the panel has an edge without a hard
+   seam. Written at 0,2,1 to out-rank the scoped `.persona-card[data-astro-cid-…]`
+   (0,2,0) that ships from a later stylesheet, the same fight documented above. */
+html[data-theme="light"] .persona-card {
+  background: linear-gradient(
+    180deg,
+    var(--card-background),
+    color-mix(in srgb, var(--card-background) 86%, var(--background-primary))
+  );
 }
 
-html[data-theme="cyberpunk"] .canvas-sketch {
-  stroke: var(--border-active);
-  stroke-opacity: 0.35;
+/* The role line names the specialisation — identity metadata, not an action — so
+   it does not spend the accent (DESIGN.md:120). Scoped to the canvas node rather
+   than editing `.hero-role` itself, which the role landing pages share. */
+.canvas-node--identity .hero-role {
+  color: var(--text-normal);
 }
 
 /* Interactive frames never sit on a decorative token: --border-active is the
