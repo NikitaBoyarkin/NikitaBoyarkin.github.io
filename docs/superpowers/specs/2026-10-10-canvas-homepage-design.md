@@ -1,7 +1,7 @@
 # Canvas Homepage — Design
 
 **Date:** 2026-10-10
-**Status:** approved (design), implementation not started
+**Status:** implemented — see docs/superpowers/plans/2026-10-10-canvas-homepage.md
 **Scope:** `/` and `/en/` homepage hero + role gate
 **Supersedes:** nothing — combined with the 2026-10-05 homepage redesign brief
 
@@ -53,7 +53,9 @@ variables by a thin adapter.
 
 ### World and layout
 
-Fixed world **1600×900**. Node boxes are data in `src/lib/canvas-layout.ts`:
+Fixed world **1440×900** (`WORLD = {w:1440,h:900}` in `src/lib/canvas-layout.ts`; an
+earlier draft of this spec said 1600×900 — the implementation, and the plan's own
+DESIGN.md text, use 1440×900). Node boxes are data in `src/lib/canvas-layout.ts`:
 
 | Node id | Content | Kind |
 |---|---|---|
@@ -70,8 +72,10 @@ sane document regardless of where a box sits in the world.
 
 ### Initial view: the whole board
 
-The starting viewport fits **all** nodes (k ≈ 1 for a 1440×900 window against a
-1600×900 world). Zoom is for inspecting a node, not for discovering the page.
+The starting viewport fits **all** nodes (k ≈ 1 for the layout content column against a
+1440×900 world; at a 1440×900 window the measured k is 0.8028, because the viewport is
+the content column rather than the window — see Measured results). Zoom is for
+inspecting a node, not for discovering the page.
 
 This is the load-bearing choice. It keeps h1 and all three role links visible with
 zero interaction, which protects LCP, keeps the gate doing its job, and avoids the
@@ -123,9 +127,13 @@ conflict.
 
 ### Styling and tokens
 
-- Frames and arrows: `currentColor` / existing tokens. Hairlines `--border-color`;
-  interactive node borders and focus `--border-active` (6.36:1 dark, 5.72:1 light,
-  8.27:1 cyberpunk — clears the 3:1 non-text floor in all three themes).
+- Frames and arrows: `currentColor` / existing tokens. Hairlines `--border-color`.
+  Focus rings use `--border-active` — measured **6.36:1 dark / 5.72:1 light / 8.27:1
+  cyberpunk** against the page backdrop (Verified), clearing the 3:1 non-text floor.
+  **Correction (measured):** the *interactive node borders* are **not** `--border-active`
+  as an earlier draft claimed — the role cards use `--border-color` (1.45 / 1.09 / 1.44,
+  below 3:1) and the CTA nodes use `--text-primary` (11.94 / 15.22 / 17.27). See
+  Measured results.
 - Dot grid: `radial-gradient` tile at `--wallpaper-line`, laid on the world layer so
   it pans and zooms with the content. It follows the existing honeycomb wallpaper's
   token rather than introducing a second texture colour.
@@ -193,9 +201,80 @@ canvas branch is the owner's call.
 |---|---|
 | Canvas degrades the gate — a role link off-screen at 1440/1024 | Initial view fits every node; verified by measurement at both widths |
 | Sketchy paths read as cheap rather than hand-drawn | Screenshot before polish; `roughjs` (build-only) is the fallback path |
-| `transform: scale()` blurs text | Screenshot at k=2, not assumed |
-| 100vh canvas + the fixed CTA rail collide | Rail is fixed at ≥1100px; canvas padding accounts for `--rail-total` |
+| `transform: scale()` blurs text | Screenshot at k≈2.2 (dark + light, 1440×900): text renders crisp, no visible blur |
+| 100vh canvas + the fixed CTA rail collide | Rail renders only at ≥1860px (`Base.astro`) and only `/` passes `showCtaRail`, so the inset lives on `index.astro` alone. Measured: no node under the rail at 1860/1920 |
 | Wheel capture annoys visitors | Wheel scrolls; zoom only via modifier, buttons, or keyboard |
+
+## Measured results (implemented)
+
+Measured 2026-10-10 against the built output served with `bun run preview`
+(`http://localhost:4321`), Chromium via Playwright, at 1024×768 and 1440×900 on `/`
+and `/en/`. Themes were driven the way the site actually selects them — the
+`localStorage.theme` key (`dark`/`light`/`cyberpunk`) that the pre-paint script in
+`Base.astro` reads — not by emulating `prefers-color-scheme`, which LHCI does not set.
+Evidence classes follow `.claude/rules/evidence-ledger.md`.
+
+| Measurement | Result | Class | Behind it |
+|---|---|---|---|
+| `bun run build` | 201 pages, 0 errors | Verified | build |
+| `bun run check` | 0 errors, 3 hints | Verified | `astro check` |
+| `make check` | `OK: all checks passed` | Verified | bun test + `check_site.py` |
+| `bun run test:built` | 113 pass / 0 fail | Verified | built-HTML suite |
+| `:global(` in built CSS | 0 occurrences | Verified | `grep -c "global(" dist/_astro/Base.*.css` |
+| theme overrides emitted | `[data-theme=light] .canvas-sketch` and `[data-theme=cyberpunk] .canvas-sketch` present as parsed rules | Verified | grep of `dist/_astro/Base.DpRKwl8o.css` |
+| rail inset scope | `padding-inline-end:var(--rail-total)` inlined **only** in `dist/index.html` (as `@media (width>=1860px)`); 0 in `dist/en/index.html` | Verified | grep of built HTML |
+| `--vp-k` / `padding-inline-end`, `/` | 1024 → 0.6667 / 0px; 1440 → 0.8028 / 0px; 1859 → 0.8194 / 0px; 1860 → 0.6361 / 264px; 1920 → 0.6361 / 264px | Verified | `getComputedStyle('.canvas-viewport')` |
+| same, `/en/` | padding `0px` at every width | Verified | same |
+| rail clearance ≥1860px | no `.canvas-node` intersects the `.cta-rail` rect at 1860 or 1920 | Verified | rect intersection |
+| sketch stroke contrast | 1.45 dark / 1.09 light / 1.10 cyberpunk | Verified | computed stroke colour composited over the page backdrop |
+| dot grid contrast | 1.15 / 1.10 / 1.15 | Verified | `--wallpaper-line` over the backdrop |
+| `--border-active` vs page | **6.36 dark / 5.72 light / 8.27 cyberpunk** | Verified | reproduced numerically — the draft's arithmetic holds |
+| role node border | 1.45 / 1.09 / 1.44 (= `--border-color`), below 3:1 | Verified | measured `border-top-color` |
+| CTA node border | 11.94 / 15.22 / 17.27 (= `--text-primary`) | Verified | measured `border-top-color` |
+| legibility at k≈2.2 | text crisp, no visible blur (dark + light) | Verified | screenshots at max zoom |
+| keyboard order | Tab = reading order (nav → `cta-booking` → `cta-cv` → `role-*`); `window.scrollY` stays 0 throughout | Verified | Tab sequence on `/` and `/en/` |
+| JS off — h1, claim, both CTAs | fully visible at 1024 and 1440 | Verified | JS-disabled context |
+| JS off — 3 role cards, `projects-all` | **clipped:** ~30% visible at 1024, ~66% at 1440; `projects-all` off-screen at 1024 | Verified (partial pass) | same |
+| Lighthouse a11y + perf, both themes | no score | **Blocked (environment)** | `@lhci/cli` + Chrome present, healthcheck passed, but Chrome could not load `localhost:4321` (`CHROME_INTERSTITIAL_ERROR`) |
+
+## PENDING
+
+- `PersonaGate.astro` removal — deferred until the canvas is confirmed better on a real
+  viewport; not deleted in this change.
+- A real-device pass (physical iOS/Android), not emulation.
+- A Lighthouse / axe run once a working headless Chrome is reachable offline (LHCI is
+  Blocked above).
+- The cyberpunk sketch override is still half-dead (cascade order — see Notes); a
+  design-level fix, out of scope for the defect pass.
+- The 768–900px band has no dedicated capture; only 1024 and 1440 were measured.
+
+## Notes — what the measurements refuted
+
+- **`:global()` in a global stylesheet is dead CSS.** `global.css` is imported
+  directly, not scoped to a component, so `:global([data-theme=…])` was emitted
+  verbatim and the browser dropped the rule — the light and cyberpunk sketch overrides
+  never applied. Corrected to plain selectors; bound by `tests/built/canvas.test.ts` →
+  `emits no :global( left in any built stylesheet`.
+- **The rail inset sat on the wrong breakpoint.** It reserved `--rail-total` from
+  1100px, but `.cta-rail` renders only at ≥1860px and only `/` passes `showCtaRail` —
+  so `/en/` reserved 264px for a rail it never renders. Moved onto `index.astro`.
+- **The fit is not `k = 1`.** `.canvas-viewport` is the layout content column (960px at
+  a 1024 window, 1156 at 1440, 1180 at ≥1860), not the window, so k is fractional even
+  with the rail absent (0.8028 at 1440). The padding is absent where the rail is absent,
+  which is the behaviour actually required.
+- **Sketch strokes and the dot grid do not clear 3:1** (1.09–1.45 measured). They are
+  decorative and `aria-hidden`, so the non-text floor does not apply to them — but the
+  draft's "interactive node borders … `--border-active`" was wrong: the interactive
+  borders are `--border-color` (role) and `--text-primary` (CTA).
+- **The cyberpunk sketch override is defeated by cascade order.** `PersonaCanvas.*.css`
+  loads after `Base.*.css`; the scoped `.canvas-sketch[data-astro-cid-…]` (0,2,0) ties
+  with `[data-theme=cyberpunk] .canvas-sketch` (0,2,0), so source order lets the base
+  `stroke: var(--border-color)` win — only `stroke-opacity:.35` survives. The claim
+  "the theme override applies" is therefore **downgraded to unbound for cyberpunk** (the
+  light override is a no-op, its value equalling the base value). Not fixed here;
+  design-level.
+- **The spec said world 1600×900; the implementation is 1440×900**
+  (`WORLD = {w:1440,h:900}`), which the plan's own DESIGN.md text already used.
 
 ## Out of scope
 
