@@ -142,8 +142,16 @@ const NAV_MENU = 'M4 6h16M4 12h16M4 18h16';
 const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
 ---
 
+{
+  /* `canvas-static` marks the canvas as NOT live. It ships in the SSR HTML, so
+     with JavaScript off the homepage renders as the static, stacked list the
+     canvas rules fall back to (see the canvas block at the end of global.css).
+     CanvasStage's synchronous pre-paint script removes it only once it has
+     confirmed a wide viewport, which keeps the no-flash property — and the
+     module script adds it back if its own initialisation throws. */
+}
 <!doctype html>
-<html lang={lang} data-theme="dark">
+<html lang={lang} data-theme="dark" class="canvas-static">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

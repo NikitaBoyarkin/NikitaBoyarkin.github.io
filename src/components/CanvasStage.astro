@@ -87,6 +87,12 @@ const fitData = {
     el.style.setProperty('--vp-tx', (fitW - w * k) / 2 + 'px');
     el.style.setProperty('--vp-ty', (vh - h * k) / 2 + 'px');
     el.style.setProperty('--vp-k', String(k));
+    // The board is fitted: clear the not-live marker so the canvas layer takes
+    // over from the stacked fallback in global.css. The marker survives every
+    // path that cannot reach this line — JavaScript off, a narrow viewport
+    // (the guard above), or a throw in the module script — which is what keeps
+    // the homepage readable with no JavaScript at all.
+    document.documentElement.classList.remove('canvas-static');
   })();
 </script>
 
@@ -104,7 +110,10 @@ const fitData = {
 
   const root = document.querySelector<HTMLElement>('.canvas-viewport');
   const world = root?.querySelector<HTMLElement>('.canvas-world');
-  if (root && world) {
+
+  // `root` is passed in rather than read from the closure so the narrowing from
+  // the guard below survives into the function body.
+  function init(root: HTMLElement): void {
     const desktop = window.matchMedia('(min-width: 900px)');
 
     let vp: CanvasViewport = {
@@ -216,6 +225,17 @@ const fitData = {
     });
 
     paint();
+  }
+
+  if (root && world) {
+    try {
+      init(root);
+    } catch {
+      // A throw here leaves the board half-configured. Put the not-live marker
+      // back — the pre-paint script cleared it — so global.css degrades the
+      // canvas to the static stacked list instead.
+      document.documentElement.classList.add('canvas-static');
+    }
   }
 </script>
 

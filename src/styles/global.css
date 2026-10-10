@@ -3851,8 +3851,21 @@ button:focus-visible {
 }
 
 /* Canvas homepage — the rules that cannot live in CanvasStage.astro's scoped
-   <style>: the stacked fallback below the fit threshold, which has to reach the
-   slotted node elements that Astro scopes to PersonaCanvas.astro. */
+   <style>: the stacked fallback, which has to reach the slotted node elements
+   that Astro scopes to PersonaCanvas.astro.
+
+   The canvas is progressive enhancement, so the stack applies when EITHER
+   trigger fires:
+
+     1. the viewport is below the fit threshold (`max-width: 899px`), or
+     2. the canvas is not live — `html.canvas-static`, the marker the SSR HTML
+        ships and CanvasStage's pre-paint script removes only once it has fitted
+        the board. Trigger 2 is therefore what covers JavaScript off, and a
+        throw inside the module script (which puts the marker back).
+
+   CSS cannot OR a media query with a class selector, so the two triggers are
+   two rule sets with identical declarations. They sit adjacent on purpose —
+   edit them together. */
 @media (max-width: 899px) {
   .canvas-viewport {
     block-size: auto;
@@ -3879,18 +3892,77 @@ button:focus-visible {
   }
 }
 
+/* Trigger 2 — the canvas is not live. Same declarations as the media block
+   above; the decorative `aria-hidden` layers (.canvas-sketch, .canvas-grid)
+   are hidden here too, so nothing decorative survives into the stacked state. */
+html.canvas-static .canvas-viewport {
+  block-size: auto;
+  overflow: visible;
+}
+html.canvas-static .canvas-world,
+html.canvas-static .canvas-grid,
+html.canvas-static .canvas-sketch {
+  position: static;
+  inline-size: auto;
+  block-size: auto;
+  transform: none;
+  transition: none;
+}
+html.canvas-static .canvas-sketch,
+html.canvas-static .canvas-grid {
+  display: none;
+}
+html.canvas-static .canvas-nodes {
+  position: static;
+}
+html.canvas-static .canvas-controls {
+  display: none;
+}
+
+/* The nodes themselves. PersonaCanvas.astro states these inside its own
+   `max-width: 899px` query, which a not-live canvas at a *wide* viewport never
+   reaches — without them the viewport collapses to zero height and the
+   absolutely-positioned nodes spill out of it. Same declarations, same values;
+   the two lists have to stay in step. */
+html.canvas-static .canvas-node {
+  position: static;
+  inset: auto;
+  inline-size: auto;
+  min-block-size: 0;
+}
+html.canvas-static .canvas-lead {
+  margin-block-start: var(--space-6);
+}
+html.canvas-static .persona-claim,
+html.canvas-static .persona-all {
+  margin-block-start: var(--space-4);
+}
+html.canvas-static .persona-card {
+  margin-block-start: var(--space-4);
+}
+
 /* Canvas layer. Deliberately token-only: the sketch strokes reuse
    --border-color and the dot grid reuses --wallpaper-line, so the canvas
    introduces no second texture colour and no raw hex. Selectors here are
    plain: this file is imported directly, not scoped to a component, so
    `[data-theme='…']` ancestors match as written. (`:global()` is only needed
-   inside a scoped component's <style> — see reference-astro-pitfalls.) */
+   inside a scoped component's <style> — see reference-astro-pitfalls.)
+
+   The theme overrides are anchored on `html[data-theme='…']` (specificity
+   0,2,1) instead of `[data-theme='…']` (0,2,0). The base `.canvas-sketch` rule
+   lives in CanvasStage.astro's scoped <style> and is emitted as
+   `.canvas-sketch[data-astro-cid-…]` (0,2,0) from a stylesheet that loads
+   *after* this one, so a plain 0,2,0 selector loses the cascade to source
+   order: the cyberpunk stroke colour was silently dropped and only its
+   stroke-opacity survived. The extra type selector makes the override win on
+   specificity, whatever the emission order. Bound by
+   tests/built/canvas.test.ts → the theme override assertion. */
 .canvas-grid {
   background-image: radial-gradient(circle at 1px 1px, var(--wallpaper-line) 1px, transparent 0);
   background-size: 32px 32px;
 }
 
-[data-theme="light"] .canvas-sketch {
+html[data-theme="light"] .canvas-sketch {
   stroke: var(--border-color);
 }
 

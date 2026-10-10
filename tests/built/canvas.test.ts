@@ -144,3 +144,38 @@ it('emits no :global( left in any built stylesheet', () => {
     `:global( survives into built CSS in: ${offenders.join(', ') || '(none)'}`
   ).toEqual([]);
 });
+
+// ── JS-off degradation contract (Review Focus #1) ────────────────────────────
+// With JavaScript off the SSR fit constants are never corrected, and the real
+// `.canvas-viewport` is narrower than the 1440-wide world, so the right-hand
+// nodes are clipped. The fix is the `canvas-static` marker on <html>: it ships
+// in the markup, and the only code that clears it is CanvasStage's synchronous
+// pre-paint script — which cannot run with JS off. These assertions fail on the
+// pre-fix state, where the marker does not exist at all.
+
+it('ships the not-live canvas marker on <html>', () => {
+  for (const { file } of PAGES) {
+    expect(html.get(file)!, `${file}: <html> carries no canvas-static marker`).toMatch(
+      /<html[^>]*\bclass="[^"]*\bcanvas-static\b/
+    );
+  }
+});
+
+it('clears the marker only from script, and restores it when the module throws', () => {
+  const astro = resolve(DIST, '_astro');
+  const assets = readdirSync(astro).filter((f) => f.endsWith('.js'));
+  expect(assets.length, 'no JS emitted under dist/_astro').toBeGreaterThan(0);
+  const bundled = assets.map((f) => readFileSync(resolve(astro, f), 'utf8')).join('\n');
+  for (const { file } of PAGES) {
+    const d = html.get(file)!;
+    expect(d, `${file}: pre-paint script does not clear the marker`).toMatch(
+      /classList\.remove\(['"`]canvas-static['"`]\)/
+    );
+    // Astro decides per build whether the module script is inlined into the page
+    // or emitted as an asset, so the catch clause is looked for in both.
+    expect(
+      `${d}\n${bundled}`,
+      `${file}: nothing restores the marker when initialisation throws`
+    ).toMatch(/classList\.add\(['"`]canvas-static['"`]\)/);
+  }
+});
