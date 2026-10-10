@@ -3881,19 +3881,20 @@ button:focus-visible {
 
 /* Canvas layer. Deliberately token-only: the sketch strokes reuse
    --border-color and the dot grid reuses --wallpaper-line, so the canvas
-   introduces no second texture colour and no raw hex. The theme-scoped
-   selectors are :global() because a scoped component's style cannot match
-   `[data-theme='…']` ancestors (see reference-astro-pitfalls). */
+   introduces no second texture colour and no raw hex. Selectors here are
+   plain: this file is imported directly, not scoped to a component, so
+   `[data-theme='…']` ancestors match as written. (`:global()` is only needed
+   inside a scoped component's <style> — see reference-astro-pitfalls.) */
 .canvas-grid {
   background-image: radial-gradient(circle at 1px 1px, var(--wallpaper-line) 1px, transparent 0);
   background-size: 32px 32px;
 }
 
-:global([data-theme='light']) .canvas-sketch {
+[data-theme="light"] .canvas-sketch {
   stroke: var(--border-color);
 }
 
-:global([data-theme='cyberpunk']) .canvas-sketch {
+[data-theme="cyberpunk"] .canvas-sketch {
   stroke: var(--border-active);
   stroke-opacity: 0.35;
 }
@@ -3904,13 +3905,4 @@ button:focus-visible {
 .canvas-node[data-node^='cta-']:focus-visible {
   outline: 2px solid var(--border-active);
   outline-offset: 3px;
-}
-
-/* The RU homepage's fixed action rail overlays the right edge from 1100px up.
-   Padding (not a transform offset) is the fix: it also moves .canvas-controls,
-   which is positioned against the same box. */
-@media (min-width: 1100px) {
-  .canvas-viewport {
-    padding-inline-end: var(--rail-total);
-  }
 }

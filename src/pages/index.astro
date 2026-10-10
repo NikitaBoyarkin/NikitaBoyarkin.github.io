@@ -53,3 +53,17 @@ const jsonLd = {
   <PersonaCanvas lang="ru" />
   <ProofBand lang="ru" />
 </Base>
+
+<style>
+  /* The RU homepage carries the fixed action rail, which only renders from
+     1860px up (Base.astro) — so the inset that keeps the board clear of it
+     belongs on the page that renders the rail, not in the global stylesheet,
+     where it leaked 264px onto every page below 1860px. A scoped style is
+     emitted only on this page; `:global()` is required here because .canvas-
+     viewport lives inside PersonaCanvas, not this file. */
+  @media (min-width: 1860px) {
+    :global(.canvas-viewport) {
+      padding-inline-end: var(--rail-total);
+    }
+  }
+</style>
