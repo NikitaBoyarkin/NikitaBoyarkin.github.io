@@ -3978,3 +3978,18 @@ html[data-theme="cyberpunk"] .canvas-sketch {
   outline: 2px solid var(--border-active);
   outline-offset: 3px;
 }
+
+/* The resting border of the interactive node set — role cards and the CTA
+   links — takes the same token, for the same reason: WCAG 1.4.11 puts a 3:1
+   floor under the boundary that identifies a control, and --border-active is
+   the only border token that clears it in all three themes (6.36 / 5.72 /
+   8.27) where the decorative --border-color hairline does not (1.45 / 1.09 /
+   1.44). The role card's resting border is set by `.persona-card` inside
+   PersonaCanvas.astro's scoped <style> — `.persona-card[data-astro-cid-…]`,
+   specificity 0,2,0, emitted later — so these selectors are written at 0,3,0
+   and 0,4,0 to win regardless of emission order.
+   Bound by tests/built/canvas.test.ts → the resting-border assertion. */
+.canvas-viewport .canvas-node[data-node^='role-'],
+.canvas-viewport .canvas-node[data-node^='cta-'] .button {
+  border-color: var(--border-active);
+}

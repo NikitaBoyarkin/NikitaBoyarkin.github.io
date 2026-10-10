@@ -248,3 +248,27 @@ it('wins the cyberpunk canvas override on specificity, not on source order', () 
     ).toBe(true);
   }
 });
+
+it('puts the resting border of the interactive nodes on --border-active', () => {
+  for (const t of ['role-', 'cta-']) {
+    const rules = cssRules().filter(
+      (r) =>
+        r.selector.includes('data-node^=') &&
+        r.selector.includes(t) &&
+        r.body.includes('border-color')
+    );
+    expect(
+      rules.length,
+      `no resting-border rule for [data-node^='${t}…'] in the built CSS`
+    ).toBeGreaterThan(0);
+    for (const r of rules) {
+      expect(r.body, `${r.file}: ${r.selector} does not use --border-active`).toContain(
+        '--border-active'
+      );
+      expect(
+        beats(specificity(r.selector.split(',')[0]), [0, 2, 0]),
+        `${r.file}: ${r.selector} must out-rank the scoped 0,2,0 border it overrides`
+      ).toBe(true);
+    }
+  }
+});
