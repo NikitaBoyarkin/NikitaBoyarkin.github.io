@@ -1,0 +1,300 @@
+---
+// The canvas shell: a 100vh viewport whose world layer is panned and zoomed by a
+// CSS transform over real DOM. Nothing here draws text — the sketch frames and
+// the dot grid are decoration (`aria-hidden`), and the actual hero copy is
+// slotted in as ordinary `<h1>` / `<p>` / `<a>`.
+//
+// The SSR transform is written inline so the first paint is already correct: with
+// no `--vp-*` values the world would render at the origin at scale 1. A tiny
+// `is:inline` script then refits it to the real window and, because it is
+// synchronous and sits immediately after the world, it runs before paint.
+import { fitViewport, NODES, viewportVars, WORLD, MIN_ZOOM, MAX_ZOOM } from '../lib/canvas-layout';
+import { sketchRectFor } from '../lib/sketch';
+
+interface Props {
+  ariaLabel: string;
+}
+const { ariaLabel } = Astro.props;
+
+// Reference window: the value the server can honestly compute. The inline script
+// below corrects it to the real window on load and on resize.
+const initial = viewportVars(fitViewport({ w: WORLD.w, h: WORLD.h }));
+const frames = NODES.map((n) => ({ ...n, sketch: sketchRectFor(n.id, n.w, n.h) }));
+
+const fitData = {
+  'data-world-w': String(WORLD.w),
+  'data-world-h': String(WORLD.h),
+  'data-min-k': String(MIN_ZOOM),
+  'data-max-k': String(MAX_ZOOM),
+};
+---
+
+<section
+  class="canvas-viewport"
+  aria-label={ariaLabel}
+  style={`--vp-tx: ${initial['--vp-tx']}; --vp-ty: ${initial['--vp-ty']}; --vp-k: ${initial['--vp-k']};`}
+  {...fitData}
+>
+  <div class="canvas-world">
+    <div class="canvas-grid" aria-hidden="true"></div>
+
+    <svg
+      class="canvas-sketch"
+      viewBox={`0 0 ${WORLD.w} ${WORLD.h}`}
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {
+        frames.map((n) => (
+          <g data-frame={n.id}>
+            {n.sketch.paths.map((d, i) => (
+              <path d={d} vector-effect="non-scaling-stroke" data-pass={i} />
+            ))}
+          </g>
+        ))
+      }
+    </svg>
+
+    <div class="canvas-nodes">
+      <slot />
+    </div>
+  </div>
+
+  <div class="canvas-controls" role="group" aria-label={ariaLabel}>
+    <button type="button" data-canvas-zoom="out" aria-label="Уменьшить">−</button>
+    <button type="button" data-canvas-zoom="reset" aria-label="Показать всю доску">⤢</button>
+    <button type="button" data-canvas-zoom="in" aria-label="Увеличить">+</button>
+  </div>
+</section>
+
+<script is:inline>
+  // Synchronous fit, before paint. The formula is the same one in
+  // `fitViewport`; the numbers are injected from src/lib/canvas-layout.ts above,
+  // and tests/built/canvas.test.ts binds them so the two cannot drift.
+  (function () {
+    var el = document.querySelector('.canvas-viewport');
+    if (!el || !window.matchMedia('(min-width: 900px)').matches) return;
+    var w = parseFloat(el.dataset.worldW);
+    var h = parseFloat(el.dataset.worldH);
+    var minK = parseFloat(el.dataset.minK);
+    var maxK = parseFloat(el.dataset.maxK);
+    var vw = el.clientWidth;
+    var vh = el.clientHeight;
+    var k = Math.min(vw / w, vh / h);
+    k = Math.min(maxK, Math.max(minK, k));
+    el.style.setProperty('--vp-tx', (vw - w * k) / 2 + 'px');
+    el.style.setProperty('--vp-ty', (vh - h * k) / 2 + 'px');
+    el.style.setProperty('--vp-k', String(k));
+  })();
+</script>
+
+<script>
+  import {
+    applyPan,
+    applyZoomAt,
+    fitViewport,
+    focusNode,
+    nodeById,
+    viewportVars,
+    type CanvasViewport,
+    type NodeId,
+  } from '../lib/canvas-layout';
+
+  const root = document.querySelector<HTMLElement>('.canvas-viewport');
+  const world = root?.querySelector<HTMLElement>('.canvas-world');
+  if (root && world) {
+    const desktop = window.matchMedia('(min-width: 900px)');
+
+    let vp: CanvasViewport = {
+      tx: parseFloat(root.style.getPropertyValue('--vp-tx')) || 0,
+      ty: parseFloat(root.style.getPropertyValue('--vp-ty')) || 0,
+      k: parseFloat(root.style.getPropertyValue('--vp-k')) || 1,
+    };
+
+    function paint(): void {
+      const vars = viewportVars(vp);
+      for (const [name, value] of Object.entries(vars)) root!.style.setProperty(name, value);
+    }
+
+    function size(): { w: number; h: number } {
+      return { w: root!.clientWidth, h: root!.clientHeight };
+    }
+
+    function refit(): void {
+      vp = fitViewport(size());
+      paint();
+    }
+
+    // Wheel deliberately scrolls the page. Zoom has three other routes
+    // (modifier+wheel, the buttons, the keys) — hijacking scroll is the classic
+    // hostile-canvas failure, and this board fits on load anyway.
+    root.addEventListener(
+      'wheel',
+      (e) => {
+        if (!desktop.matches) return;
+        if (!e.ctrlKey && !e.metaKey) return;
+        e.preventDefault();
+        const rect = root.getBoundingClientRect();
+        vp = applyZoomAt(vp, { x: e.clientX - rect.left, y: e.clientY - rect.top }, e.deltaY < 0 ? 1.12 : 1 / 1.12);
+        paint();
+      },
+      { passive: false }
+    );
+
+    let dragId: number | null = null;
+    let last = { x: 0, y: 0 };
+    root.addEventListener('pointerdown', (e) => {
+      if (!desktop.matches || e.button !== 0) return;
+      // A press that starts on a link or a control is a click, not a pan.
+      if ((e.target as Element).closest('a, button')) return;
+      dragId = e.pointerId;
+      last = { x: e.clientX, y: e.clientY };
+      root.setPointerCapture(e.pointerId);
+      root.classList.add('is-panning');
+    });
+    root.addEventListener('pointermove', (e) => {
+      if (dragId !== e.pointerId) return;
+      vp = applyPan(vp, e.clientX - last.x, e.clientY - last.y);
+      last = { x: e.clientX, y: e.clientY };
+      paint();
+    });
+    const endDrag = (e: PointerEvent): void => {
+      if (dragId !== e.pointerId) return;
+      dragId = null;
+      root.classList.remove('is-panning');
+      if (root.hasPointerCapture(e.pointerId)) root.releasePointerCapture(e.pointerId);
+    };
+    root.addEventListener('pointerup', endDrag);
+    root.addEventListener('pointercancel', endDrag);
+
+    function zoomBy(requested: number): void {
+      const s = size();
+      vp = applyZoomAt(vp, { x: s.w / 2, y: s.h / 2 }, requested);
+      paint();
+    }
+
+    for (const btn of root.querySelectorAll<HTMLElement>('[data-canvas-zoom]')) {
+      btn.addEventListener('click', () => {
+        const kind = btn.dataset.canvasZoom;
+        if (kind === 'in') zoomBy(1.25);
+        else if (kind === 'out') zoomBy(1 / 1.25);
+        else refit();
+      });
+    }
+
+    // Keyboard zoom. `0` refits, and these never preventDefault, so the browser's
+    // own zoom and the page's scroll keep working.
+    document.addEventListener('keydown', (e) => {
+      if (!desktop.matches || e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (e.key === '+') zoomBy(1.25);
+      else if (e.key === '-') zoomBy(1 / 1.25);
+      else if (e.key === '0') refit();
+    });
+
+    // Tabbing to a link brings its frame into view. No `preventScroll`: taking
+    // the page's scroll position away from the keyboard visitor would be worse
+    // than the node being off-centre for a moment.
+    root.addEventListener('focusin', (e) => {
+      if (!desktop.matches) return;
+      const node = (e.target as Element).closest?.('[data-node]');
+      const id = node?.getAttribute('data-node');
+      if (!id) return;
+      const k = Math.max(vp.k, 1);
+      vp = focusNode(nodeById(id as NodeId), size(), k);
+      paint();
+    });
+
+    let resizeTimer: number | undefined;
+    window.addEventListener('resize', () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(refit, 150);
+    });
+
+    paint();
+  }
+</script>
+
+<style>
+  .canvas-viewport {
+    position: relative;
+    block-size: 100vh;
+    overflow: hidden;
+    /* The fixed CTA rail is a sibling and only exists from 1100px up. */
+    touch-action: pan-y;
+  }
+  .canvas-viewport.is-panning {
+    cursor: grabbing;
+  }
+  .canvas-world {
+    position: absolute;
+    inset: 0;
+    inline-size: 1440px;
+    block-size: 900px;
+    transform: translate(var(--vp-tx, 0px), var(--vp-ty, 0px)) scale(var(--vp-k, 1));
+    transform-origin: 0 0;
+    /* Zoom and Tab-centring are animated; reduced motion turns both off below. */
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .canvas-viewport.is-panning .canvas-world {
+    transition: none;
+  }
+  .canvas-grid {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, var(--wallpaper-line) 1px, transparent 0);
+    background-size: 32px 32px;
+  }
+  .canvas-sketch {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    overflow: visible;
+  }
+  .canvas-sketch path[data-pass='1'] {
+    opacity: 0.45;
+  }
+  .canvas-nodes {
+    position: absolute;
+    inset: 0;
+  }
+  .canvas-controls {
+    position: absolute;
+    inset-block-end: var(--space-5);
+    inset-inline-end: var(--space-5);
+    display: flex;
+    gap: var(--space-2);
+    z-index: 2;
+  }
+  .canvas-controls button {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--surface-secondary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .canvas-controls button:hover,
+  .canvas-controls button:focus-visible {
+    border-color: var(--border-active);
+  }
+  .canvas-controls button:focus-visible {
+    outline: 2px solid var(--border-active);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .canvas-world {
+      transition: none;
+    }
+  }
+</style>

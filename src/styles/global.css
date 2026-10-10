@@ -3849,3 +3849,32 @@ button:focus-visible {
     width: min(1900px, calc(100vw - var(--rail-total) - var(--space-5)));
   }
 }
+
+/* Canvas homepage — the rules that cannot live in CanvasStage.astro's scoped
+   <style>: the stacked fallback below the fit threshold, which has to reach the
+   slotted node elements that Astro scopes to PersonaCanvas.astro. */
+@media (max-width: 899px) {
+  .canvas-viewport {
+    block-size: auto;
+    overflow: visible;
+  }
+  .canvas-world,
+  .canvas-grid,
+  .canvas-sketch {
+    position: static;
+    inline-size: auto;
+    block-size: auto;
+    transform: none;
+    transition: none;
+  }
+  .canvas-sketch,
+  .canvas-grid {
+    display: none;
+  }
+  .canvas-nodes {
+    position: static;
+  }
+  .canvas-controls {
+    display: none;
+  }
+}
