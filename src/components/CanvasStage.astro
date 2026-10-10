@@ -19,7 +19,13 @@ const { ariaLabel } = Astro.props;
 // Reference window: the value the server can honestly compute. The inline script
 // below corrects it to the real window on load and on resize.
 const initial = viewportVars(fitViewport({ w: WORLD.w, h: WORLD.h }));
-const frames = NODES.map((n) => ({ ...n, sketch: sketchRectFor(n.id, n.w, n.h) }));
+// `identity` holds the hero words. A hand-drawn box around a name fights the
+// typography, so that one node is deliberately unframed — the same exclusion is
+// asserted against the built HTML in tests/built/canvas.test.ts.
+const frames = NODES.filter((n) => n.id !== 'identity').map((n) => ({
+  ...n,
+  sketch: sketchRectFor(n.id, n.w, n.h),
+}));
 
 const fitData = {
   'data-world-w': String(WORLD.w),

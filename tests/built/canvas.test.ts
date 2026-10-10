@@ -93,7 +93,10 @@ describe('canvas homepage (built HTML)', () => {
 
     it(`${file}: keeps the sketch frames deterministic and inlined`, () => {
       const d = doc();
-      expect(d).toContain('data-frame="identity"');
+      // The hero node is deliberately unframed (CanvasStage filters `identity`
+      // out of the frame layer), so the sample frame is one that still renders.
+      expect(d).toContain('data-frame="claim"');
+      expect(d, 'the hero words must stay unframed').not.toContain('data-frame="identity"');
       expect(d).toContain('data-pass="0"');
       expect(d).toContain('data-pass="1"');
       // A path that never made it into the HTML would leave an empty frame.

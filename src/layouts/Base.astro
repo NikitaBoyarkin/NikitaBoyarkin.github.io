@@ -283,11 +283,11 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <a href="#main" class="skip-link">{t.skip}</a>
 
     {
-      /* Below 1100px the navigation is an off-canvas drawer, so the trigger has
-         to live outside it — a control inside a translated panel scrolls away
-         with the panel. The bar carries the brand for the closed state; the
-         rail carries its own copy above 1100px (the duplicate mark is
-         deliberate: one of the two is always `display: none`). */
+      /* The navigation is an off-canvas drawer, so the trigger has to live
+         outside it — a control inside a translated panel scrolls away with the
+         panel. The bar carries the brand for the closed state and the drawer
+         carries its own copy; both are visible only while the drawer is open,
+         and the drawer paints over the bar there. */
     }
     <header class="nav-mobile">
       <a href={homeHref} class="nav-brand">
@@ -460,10 +460,9 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         });
       })();
 
-      // Off-canvas navigation. Below 1100px the rail is a drawer that slides in
-      // from the left; the toggle lives in the mobile bar and morphs ☰ → ✕.
-      // At ≥1100px the rail is always visible, so the drawer state is cleared
-      // and the panel is taken out of the a11y tree only while it is hidden.
+      // Off-canvas navigation. The panel is a drawer at every width — hidden by
+      // default, sliding in from the left; the toggle lives in the top bar and
+      // morphs ☰ → ✕. It is taken out of the a11y tree while it is hidden.
       (function () {
         const toggle = document.getElementById('nav-toggle');
         const links = document.getElementById('nav-links');
@@ -475,15 +474,14 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         const CLOSE = toggle.dataset.iconClose;
         const LABEL_OPEN = toggle.dataset.labelOpen || 'Menu';
         const LABEL_CLOSE = toggle.dataset.labelClose || 'Close';
-        const drawerMq = window.matchMedia('(max-width: 1099px)');
 
         const isOpen = () => document.body.classList.contains('nav-open');
 
         // A drawer that is off-screen is still focusable — inert it while
         // closed so keyboard/AT users never tab into translated-away links.
         function syncInert() {
-          if (drawerMq.matches && !isOpen()) nav.setAttribute('inert', '');
-          else nav.removeAttribute('inert');
+          if (isOpen()) nav.removeAttribute('inert');
+          else nav.setAttribute('inert', '');
         }
 
         function setOpen(open) {
@@ -505,8 +503,6 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') setOpen(false);
         });
-        // Crossing the breakpoint must never leave the page scroll-locked.
-        drawerMq.addEventListener('change', () => setOpen(false));
         syncInert();
       })();
 
@@ -557,12 +553,12 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
 
       /* Right-hand action rail. Hidden by default — it exists only where the
          layout leaves a gutter for it, and the breakpoint is arithmetic, not a
-         taste call: at ≥1100px the content column is `min(1180px, 100vw - 264px)`
-         centred in the space right of the nav rail, so the free band on the
-         right measures `(100vw - 264 - 1180) / 2`. A 160px rail pinned 24px from
-         the viewport edge needs that band to be ≥ 184px, i.e. ≥ 1860px. At the
-         plan's original 1100px the band is negative and the rail would sit on
-         top of the content. */
+         taste call: the content column is 1180px centred in the full viewport,
+         so the free band on the right measures `(100vw - 1180) / 2`. A 160px
+         rail pinned 24px from the viewport edge needs that band to be ≥ 184px,
+         i.e. ≥ 1548px. The threshold stays at 1860px — it was derived when the
+         nav rail still pushed the column 264px right, and the extra margin
+         costs nothing. */
       .cta-rail {
         display: none;
       }

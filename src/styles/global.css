@@ -162,13 +162,14 @@
   --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* Left navigation rail (≥1100px). Below that the same panel is an
-     off-canvas drawer and --rail-total is not applied. */
+  /* Width budget for the right-hand CTA rail (Base.astro, ≥1860px). The nav is
+     an off-canvas drawer at every width now, so this no longer offsets the
+     content column — it only sizes the gutter the CTA rail needs. */
   --rail-w: 240px;
   --rail-gap: var(--space-6);
   --rail-total: calc(var(--rail-w) + var(--rail-gap));
 
-  /* Height of the sticky mobile/tablet bar (`.nav-mobile`, <1100px). The projects
+  /* Height of the sticky top bar (`.nav-mobile`). The projects
      filter bar pins directly below it, and a hand-picked offset there drifted
      from the bar it was meant to sit under — this is the single source for both
      the bar's own min-height and the filter's sticky offset. */
@@ -467,9 +468,8 @@ p {
   }
 }
 
-/* Navigation — a left rail at ≥1100px, an off-canvas drawer below it.
-   The panel is fixed in both states: as a rail it is always on screen, as a
-   drawer it is translated out and pulled back by `body.nav-open`.
+/* Navigation — an off-canvas drawer at every width. Hidden by default; the
+   panel is fixed and translated out of view, pulled back by `body.nav-open`.
 
    Scoped to `#site-nav`: a bare `nav` selector also matched the in-content
    <nav> elements (.prev-next, .pagination, .about-jump) and turned them into
@@ -517,10 +517,11 @@ body.nav-open .nav-scrim {
   pointer-events: auto;
 }
 
-/* Mobile / tablet bar — brand + drawer trigger. Full-bleed: the negative
-   margins cancel body's padding so the sticky bar has no gap above it. */
+/* Top bar — brand + drawer trigger. Visible at every width, since the nav is
+   a drawer everywhere. Full-bleed: the negative margins cancel body's padding
+   so the sticky bar has no gap above it. */
 .nav-mobile {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
@@ -1050,8 +1051,6 @@ nav ul.links a[aria-current="page"] {
   line-height: 1.5;
   color: var(--text-normal);
   max-width: 52ch;
-  border-left: 1px solid var(--border-color);
-  padding-left: var(--space-3);
 }
 
 /* Inter-block rhythm: the lede opens after the identity cluster, the proof
@@ -3230,28 +3229,19 @@ button:focus-visible {
 }
 
 /* Sticky filter bar on desktop. The offset has to equal the height of whatever
-   sticky chrome sits above it, or a band of cards shows through the gap. At
-   ≥1100px that is nothing — the site nav is a fixed LEFT rail, so the bar pins
-   flush to the viewport; the old 4.5rem was measured against a top bar that
-   does not exist there and left a 72px slit of scrolling cards above the filter.
+   sticky chrome sits above it, or a band of cards shows through the gap. That
+   chrome is `.nav-mobile`, which is showing at every width now that the nav is
+   an off-canvas drawer — so the offset comes from the same variable that sets
+   the bar's own height.
    Opaque on purpose — a translucent bar let card text ghost through. */
 @media (min-width: 1024px) {
   .project-filter-bar {
     position: sticky;
-    top: 0;
+    top: var(--nav-mobile-h);
     z-index: var(--z-float);
     padding: var(--space-3) 0;
     background: var(--background-primary);
     border-bottom: 1px solid color-mix(in srgb, var(--border-color) 45%, transparent);
-  }
-}
-
-/* 1024–1099px is the one range where a top bar does exist: the rail has not
-   kicked in yet and `.nav-mobile` is showing. Tuck the filter bar directly
-   under it, from the same variable that sets that bar's height. */
-@media (min-width: 1024px) and (max-width: 1099px) {
-  .project-filter-bar {
-    top: var(--nav-mobile-h);
   }
 }
 
@@ -3766,87 +3756,52 @@ button:focus-visible {
 }
 
 /* ============================================================
-   Navigation layout — left rail (≥1100px) vs off-canvas drawer (<1100px).
-   Declared last so it overrides the earlier nav blocks at equal specificity,
-   without inflating selectors.
+   Navigation layout — the drawer state. Declared last so it overrides the
+   earlier nav blocks at equal specificity, without inflating selectors.
    ============================================================ */
 
-@media (max-width: 1099px) {
-  .nav-mobile {
-    display: flex;
-  }
+/* The trigger belongs to the bar, not the drawer: a control inside a panel
+   that is translated off-screen would travel with it. */
+.nav-toggle {
+  display: inline-flex;
+  position: static;
+  top: auto;
+  right: auto;
+}
 
-  /* The trigger belongs to the bar, not the drawer: a control inside a panel
-     that is translated off-screen would travel with it. */
-  .nav-toggle {
-    display: inline-flex;
-    position: static;
-    top: auto;
-    right: auto;
-  }
+/* Always laid out — the drawer's own transform is what hides it, so the
+   ☰/✕ morph keeps a stable element to open and close. */
+nav ul.links {
+  display: flex;
+}
 
-  /* Always laid out — the drawer's own transform is what hides it, so the
-     ☰/✕ morph keeps a stable element to open and close. */
-  nav ul.links {
-    display: flex;
-  }
+body.nav-open {
+  overflow: hidden;
+}
 
-  body.nav-open {
-    overflow: hidden;
-  }
-
-  /* The drawer is 320px wide, so a 420px panel overhanging it would be cut by
-     the drawer's own scroll box. Fit the panel to the drawer instead — the
-     containing block (.nav-tools) already spans the drawer's content width,
-     and the drawer keeps its scroll while the results are open. */
-  nav .search-panel {
-    left: 0;
-    right: 0;
-    width: auto;
-  }
+/* The drawer is 320px wide, so a 420px panel overhanging it would be cut by
+   the drawer's own scroll box. Fit the panel to the drawer instead — the
+   containing block (.nav-tools) already spans the drawer's content width,
+   and the drawer keeps its scroll while the results are open. */
+nav .search-panel {
+  left: 0;
+  right: 0;
+  width: auto;
 }
 
 @media (min-width: 1100px) {
   body {
     max-width: none;
     margin: 0;
-    padding-inline-start: var(--rail-total);
   }
 
-  #site-nav {
-    width: var(--rail-w);
-    transform: none;
-  }
-
-  /* The rail is 240px but the search dropdown is 420px: it opens rightward,
-     over the content column, and the rail must stop clipping it at its own
-     edge. `overflow: visible` only while the panel is open — the rail keeps
-     its scroll for the short-viewport case, and the dropdown is absolute so it
-     scrolls with the rail's content rather than being cut off. */
-  #site-nav:has(.search-panel:not([hidden])) {
-    overflow: visible;
-  }
-
-  .nav-mobile,
-  .nav-scrim {
-    display: none;
-  }
-
-  /* The reading column keeps its previous 960px measure, centred in the space
-     right of the rail; the footer hairline follows the same width. */
+  /* The reading column keeps its 960px measure, centred in the full viewport
+     now that nothing is pinned to the left edge; the footer hairline follows
+     the same width. */
   main,
   footer {
     max-width: var(--content-max);
     margin-inline: auto;
-  }
-
-  /* The kanban board breaks out of the reading column and must centre on the
-     *content* column, not the viewport: `left` resolves against body (the
-     positioned ancestor), so half the rail offset has to be added back. */
-  #page-board {
-    left: calc(50% + (var(--rail-total) - var(--space-5)) / 2);
-    transform: translateX(-50%);
-    width: min(1900px, calc(100vw - var(--rail-total) - var(--space-5)));
   }
 }
 
