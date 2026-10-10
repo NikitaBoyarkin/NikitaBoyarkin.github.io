@@ -5,7 +5,7 @@
 // always renders and never redirects, even for a returning visitor with a
 // stored choice (Q11).
 import Base from '../layouts/Base.astro';
-import PersonaGate from '../components/PersonaGate.astro';
+import PersonaCanvas from '../components/PersonaCanvas.astro';
 import ProofBand from '../components/ProofBand.astro';
 import { withBase } from '../lib/path';
 
@@ -50,6 +50,6 @@ const jsonLd = {
   jsonLd={jsonLd}
   showCtaRail
 >
-  <PersonaGate lang="ru" />
+  <PersonaCanvas lang="ru" />
   <ProofBand lang="ru" />
 </Base>

@@ -1,7 +1,7 @@
 ---
 // `/en/` — the gate, see `src/pages/index.astro`.
 import Base from '../../layouts/Base.astro';
-import PersonaGate from '../../components/PersonaGate.astro';
+import PersonaCanvas from '../../components/PersonaCanvas.astro';
 import { withBase } from '../../lib/path';
 
 // Person only: the `ItemList` of all projects would no longer describe this
@@ -43,5 +43,5 @@ const jsonLd = {
   counterpartHref={withBase('/')}
   jsonLd={jsonLd}
 >
-  <PersonaGate lang="en" />
+  <PersonaCanvas lang="en" />
 </Base>
