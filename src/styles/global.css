@@ -3966,7 +3966,7 @@ html[data-theme="light"] .canvas-sketch {
   stroke: var(--border-color);
 }
 
-[data-theme="cyberpunk"] .canvas-sketch {
+html[data-theme="cyberpunk"] .canvas-sketch {
   stroke: var(--border-active);
   stroke-opacity: 0.35;
 }

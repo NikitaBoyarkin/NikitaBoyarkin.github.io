@@ -179,3 +179,72 @@ it('clears the marker only from script, and restores it when the module throws',
     ).toMatch(/classList\.add\(['"`]canvas-static['"`]\)/);
   }
 });
+
+// ── Cascade-order contract (theme override + interactive border) ─────────────
+// CanvasStage.astro's scoped <style> emits `.canvas-sketch[data-astro-cid-…]`
+// and PersonaCanvas.astro's emits `.persona-card[data-astro-cid-…]`, both at
+// specificity 0,2,0, from stylesheets that load AFTER global.css. A rule
+// written at 0,2,0 therefore loses to source order, whatever its order in the
+// source file. These helpers read the emitted CSS so the assertions below can
+// require the override to out-rank the rule it fights.
+
+type Spec = [number, number, number];
+
+const specificity = (selector: string): Spec => {
+  const s = selector.replace(/\s*[>+~]\s*/g, ' ');
+  const ids = (s.match(/#[\w-]+/g) ?? []).length;
+  const classes =
+    (s.match(/\.[\w-]+/g) ?? []).length +
+    (s.match(/\[[^\]]+\]/g) ?? []).length +
+    (s.match(/:(?!:)[\w-]+/g) ?? []).length;
+  const types =
+    (s.match(/::[\w-]+/g) ?? []).length +
+    (s.match(/(?:^|[\s,(])[a-zA-Z][\w-]*/g) ?? []).length;
+  return [ids, classes, types];
+};
+
+const beats = (a: Spec, b: Spec): boolean =>
+  a[0] !== b[0] ? a[0] > b[0] : a[1] !== b[1] ? a[1] > b[1] : a[2] > b[2];
+
+const cssRules = (): { selector: string; body: string; file: string }[] => {
+  const astro = resolve(DIST, '_astro');
+  const out: { selector: string; body: string; file: string }[] = [];
+  for (const f of readdirSync(astro).filter((x) => x.endsWith('.css'))) {
+    const text = readFileSync(resolve(astro, f), 'utf8');
+    for (const m of text.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      out.push({ selector: m[1].trim(), body: m[2].trim(), file: f });
+    }
+  }
+  return out;
+};
+
+const maxSpec = (rules: { selector: string }[]): Spec =>
+  rules
+    .map((r) => specificity(r.selector.split(',')[0]))
+    .reduce((a, b) => (beats(b, a) ? b : a));
+
+it('wins the cyberpunk canvas override on specificity, not on source order', () => {
+  const all = cssRules();
+  // The rule the override has to beat: the scoped base in CanvasStage.astro,
+  // emitted as `.canvas-sketch[data-astro-cid-…]` from the later stylesheet.
+  const base = all.filter(
+    (r) =>
+      r.selector.includes('.canvas-sketch') &&
+      r.selector.includes('data-astro-cid') &&
+      r.body.includes('stroke')
+  );
+  const cyber = all.filter(
+    (r) =>
+      r.selector.includes('.canvas-sketch') &&
+      r.selector.includes('cyberpunk') &&
+      r.body.includes('stroke:')
+  );
+  expect(base.length, 'no base .canvas-sketch rule in the built CSS').toBeGreaterThan(0);
+  expect(cyber.length, 'no cyberpunk .canvas-sketch override in the built CSS').toBeGreaterThan(0);
+  for (const r of cyber) {
+    expect(
+      beats(specificity(r.selector.split(',')[0]), maxSpec(base)),
+      `${r.file}: ${r.selector} must out-rank the base .canvas-sketch rule`
+    ).toBe(true);
+  }
+});
