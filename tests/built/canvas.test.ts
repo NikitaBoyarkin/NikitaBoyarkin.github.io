@@ -12,7 +12,7 @@
 // Requires `bun run build` first (reads dist/*.html).
 
 import { describe, it, expect, beforeAll } from 'bun:test';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { NODES, WORLD, MIN_ZOOM, MAX_ZOOM } from '../../src/lib/canvas-layout';
 
@@ -125,4 +125,22 @@ describe('canvas homepage (built HTML)', () => {
       );
     }
   });
+});
+
+// `:global()` is meaningful only inside a scoped component's <style>; in a
+// directly-imported stylesheet like global.css the emitted selector is the
+// literal `:global([data-theme=…]) …`, which browsers drop as unparseable —
+// so a theme override written that way never applies and no HTML assertion
+// above can see it. This reads the emitted CSS from disk and fails on the
+// literal, naming the offending file.
+it('emits no :global( left in any built stylesheet', () => {
+  const astro = resolve(DIST, '_astro');
+  expect(existsSync(astro), `${astro} missing — run \`bun run build\` first`).toBe(true);
+  const cssFiles = readdirSync(astro).filter((f) => f.endsWith('.css'));
+  expect(cssFiles.length, 'no CSS emitted under dist/_astro').toBeGreaterThan(0);
+  const offenders = cssFiles.filter((f) => readFileSync(resolve(astro, f), 'utf8').includes(':global('));
+  expect(
+    offenders,
+    `:global( survives into built CSS in: ${offenders.join(', ') || '(none)'}`
+  ).toEqual([]);
 });
