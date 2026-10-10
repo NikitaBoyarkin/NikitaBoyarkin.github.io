@@ -79,11 +79,12 @@ const fitData = {
     var h = parseFloat(el.dataset.worldH);
     var minK = parseFloat(el.dataset.minK);
     var maxK = parseFloat(el.dataset.maxK);
-    var vw = el.clientWidth;
+    var rail = parseFloat(getComputedStyle(el).paddingInlineEnd) || 0;
+    var fitW = el.clientWidth - rail;
     var vh = el.clientHeight;
-    var k = Math.min(vw / w, vh / h);
+    var k = Math.min(fitW / w, vh / h);
     k = Math.min(maxK, Math.max(minK, k));
-    el.style.setProperty('--vp-tx', (vw - w * k) / 2 + 'px');
+    el.style.setProperty('--vp-tx', (fitW - w * k) / 2 + 'px');
     el.style.setProperty('--vp-ty', (vh - h * k) / 2 + 'px');
     el.style.setProperty('--vp-k', String(k));
   })();
@@ -118,7 +119,8 @@ const fitData = {
     }
 
     function size(): { w: number; h: number } {
-      return { w: root!.clientWidth, h: root!.clientHeight };
+      const rail = parseFloat(getComputedStyle(root!).paddingInlineEnd) || 0;
+      return { w: root!.clientWidth - rail, h: root!.clientHeight };
     }
 
     function refit(): void {
