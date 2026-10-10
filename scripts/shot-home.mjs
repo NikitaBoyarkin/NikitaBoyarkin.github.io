@@ -49,7 +49,6 @@ for (const theme of ['dark', 'light', 'cyberpunk']) {
           roleHr: pick(q('[data-node="role-hr"]')),
           roleManager: pick(q('[data-node="role-manager"]')),
           roleColleague: pick(q('[data-node="role-colleague"]')),
-          all: pick(q('[data-node="projects-all"]')),
           vpVars: (() => {
             const el = document.querySelector('.canvas-world');
             if (!el) return null;

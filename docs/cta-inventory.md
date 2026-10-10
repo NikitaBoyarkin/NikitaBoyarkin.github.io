@@ -7,10 +7,10 @@
 | # | Локация | Текст CTA | Событие PostHog | Целевой URL |
 |---|---|---|---|---|
 | 1 | ~~Hero CTA (index, RU+EN)~~ — **удалён 2026-09-27** | — | `hero_cta_click` / `hero_cta_exposure` — 0 вхождений в `src/` (`HeroCta` удалён в `90630fa`) | — |
-| 2 | Hero (index, RU+EN) | «CV» | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
+| 2 | Hero (index, RU+EN) | «Скачать CV (PDF)» + «Контакты» | `cv_download_pdf` (Контакты — без события) | `CV-Nikita-Boyarkin.pdf` · `contact/` |
 | 3 | Featured card (index) | «Разбор проекта» / «Демо» / «GitHub» | `featured_project` / `featured_demo` / `featured_github` | внутренний + внешние |
-| 4 | Header nav (rail) | «CV» | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
-| 5 | Footer | GitHub · LinkedIn · Telegram · CV · Writing | `github_footer` / `linkedin_footer` / `telegram_footer` / `cv_download_pdf` / `writing_footer` | внешние + внутренние |
+| 4 | Header nav | чипы у бренда: CV (залитый) + рейл ≥1860px | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
+| 5 | Header nav (чипы у бренда) — **переехало из футера 2026-10-10** | GitHub · LinkedIn · Telegram · CV · Writing | `github_footer` / `linkedin_footer` / `telegram_footer` / `cv_download_pdf` / `writing_footer` | внешние + внутренние |
 | 6 | ~~HomeBoard (главная)~~ — **удалён 2026-09-27** | — | `telegram_board` / `github_board` / `linkedin_board` — 0 вхождений в `src/` и `public/` | — |
 | 7 | contact.astro | «Telegram: @lofinibo» | `telegram_contact` | `t.me/lofinibo` |
 | 8 | contact.astro | «Написать с контекстом →» | `telegram_deeplink` | tg deep-link |
@@ -27,11 +27,11 @@
 | 19 | HeadlineCases (главная, PRD v6 S2.6) | 3 кейса + сжатый список 14 | `headline_demo_<slug>` / `headline_github_<slug>` / `headline_all_projects` / `more_project_<slug>` | внутренние проекты + внешние артефакты |
 | 20 | contact.astro (форма, RU+EN) | «Отправить» / «Send» | `contact_submit` (успех); `contact_form_error` с `reason` при отказе | `POST {CONTACT_ENDPOINT}` (Supabase Edge Function `contact`) |
 | 21 | contact.astro (под формой, RU+EN) | «Записаться на 30 минут» / «Book 30 minutes» | `booking_click` | `CAL_BOOKING_URL` (Cal.com) |
-| 22 | Header nav (Base.astro, RU+EN, под «Контакты») | «Записаться на 30 минут» / «Book 30 minutes» | `booking_click` | `CAL_BOOKING_URL` (`cal.com/lofinibo/30min`) |
+| 22 | ~~Header nav (Base.astro, RU+EN)~~ — **удалён 2026-10-10** | — | `booking_click` — остаётся только строка 21 (`/contact`) | — |
 
-Строки 21 и 22 намеренно делят одно событие `booking_click`: это два входа в одно
-действие, а не два разных CTA. Разделять их — только через property (`location`),
-если понадобится различать вклад рельса и страницы контактов.
+После 2026-10-10 кнопка записи через cal.com убрана с главной, рельса и nav: единственный
+`booking_click` — строка 21 (`/contact` и `/en/contact`). Событие осталось неразделённым,
+разделять по property (`location`) по-прежнему незачем.
 
 ## Гэпы, найденные аудитом
 

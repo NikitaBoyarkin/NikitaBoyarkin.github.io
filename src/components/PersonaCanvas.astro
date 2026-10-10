@@ -7,11 +7,10 @@
 // src/lib/canvas-layout.ts); `data-box` carries its world rect inline, which is
 // the single source of truth for both the stylesheet and the DOM. Reading order
 // and visual position are independent: the DOM goes identity → claim → CTAs →
-// role cards → projects-all, exactly as the stacked version did.
+// role cards, exactly as the stacked version did.
 import CanvasStage from './CanvasStage.astro';
 import { withBase } from '../lib/path';
-import { PROJECT_ORDER, type Audience } from '../lib/projects';
-import { CAL_BOOKING_URL } from '../lib/contact';
+import { type Audience } from '../lib/projects';
 import { NODES } from '../lib/canvas-layout';
 
 interface Props {
@@ -27,9 +26,9 @@ const t = isEn
       phd: 'PhD in work psychology — I measure behaviour and causal effects, not correlations.',
       claim:
         'I turn data into decisions: which fix to ship, whom to win back, where the hypothesis did not hold.',
-      book: 'Book 30 minutes',
+      cv: 'Download CV (PDF)',
+      contact: 'Contact',
       lead: 'Prefer another way in? Pick your entry point.',
-      showAll: `Show all ${PROJECT_ORDER.length} projects →`,
       continueAs: 'Continue as',
       canvasLabel: 'Home canvas',
     }
@@ -38,9 +37,9 @@ const t = isEn
       role: 'A/B-тесты и retention',
       phd: 'PhD по психологии труда — измеряю поведение и причинные эффекты, а не корреляции.',
       claim: 'Считаю не отчёты, а решения: какой фикс включать, кого вернуть, где гипотеза не подтвердилась.',
-      book: 'Забронировать 30 минут',
+      cv: 'Скачать CV (PDF)',
+      contact: 'Контакты',
       lead: 'Удобнее иначе — выберите вход по роли',
-      showAll: `Показать все ${PROJECT_ORDER.length} проектов →`,
       continueAs: 'Продолжить как',
       canvasLabel: 'Холст главной',
     };
@@ -98,18 +97,20 @@ const boxStyle = (id: string): string => {
 
   <p class="canvas-node persona-claim" data-node="claim" style={boxStyle('claim')}>{t.claim}</p>
 
-  <div class="canvas-node canvas-actions" data-node="cta-booking" style={boxStyle('cta-booking')}>
-    <a class="button" href={CAL_BOOKING_URL} data-analytics="booking_click">{t.book}</a>
-  </div>
-
   <div class="canvas-node canvas-actions" data-node="cta-cv" style={boxStyle('cta-cv')}>
-    {/* Secondary, not a rival: the same `cv_download_pdf` name the nav rail and
-        the footer fire, so one event sums every CV download on the site. */}
+    {/* The same `cv_download_pdf` name the nav rail and the footer fire, so one
+        event sums every CV download on the site. */}
     <a
-      class="button button-secondary"
+      class="button"
       href={withBase('CV-Nikita-Boyarkin.pdf')}
       download
-      data-analytics="cv_download_pdf">CV</a
+      data-analytics="cv_download_pdf">{t.cv}</a
+    >
+  </div>
+
+  <div class="canvas-node canvas-actions" data-node="cta-contact" style={boxStyle('cta-contact')}>
+    <a class="button button-secondary" href={withBase(isEn ? 'en/contact/' : 'contact/')}>
+      {t.contact}</a
     >
   </div>
 
@@ -153,13 +154,6 @@ const boxStyle = (id: string): string => {
       y=600) and the CTA row (starts at y=780), so unhiding it lands on empty
       board rather than on another node. */}
   <p class="audience-note canvas-node" data-persona-continue style="left:80px; top:620px; --box-w:620px;" hidden></p>
-
-  <a
-    class="canvas-node persona-all"
-    data-node="projects-all"
-    style={boxStyle('projects-all')}
-    href={withBase(isEn ? 'en/projects/' : 'projects/')}>{t.showAll}</a
-  >
 </CanvasStage>
 
 <style>
@@ -259,10 +253,6 @@ const boxStyle = (id: string): string => {
   .persona-card:focus-visible .persona-card-cta {
     color: var(--text-accent);
   }
-  .persona-all {
-    align-self: flex-start;
-    font-size: 0.9375rem;
-  }
   /* Below the fit threshold the stage goes static, so the nodes must too: they
      stop being absolutely positioned and flow in reading order. `inline-size`
      and `min-block-size` here override the variable-reading base rule on equal
@@ -280,8 +270,7 @@ const boxStyle = (id: string): string => {
     .canvas-lead {
       margin-block-start: var(--space-6);
     }
-    .persona-claim,
-    .persona-all {
+    .persona-claim {
       margin-block-start: var(--space-4);
     }
     .persona-card {
@@ -335,7 +324,7 @@ const boxStyle = (id: string): string => {
     // Exposure — the denominator of the exposure→click rate (D3). Fired once per
     // load, unconditionally: a rate whose denominator only counts some views is
     // not a rate.
-    const primaryCta = root.querySelector<HTMLElement>('[data-analytics="booking_click"]');
+    const primaryCta = root.querySelector<HTMLElement>('[data-analytics="cv_download_pdf"]');
     if (primaryCta) track('cta_exposure', { surface: 'home_hero', lang });
 
     // No preventDefault: the write and the capture both run before the plain

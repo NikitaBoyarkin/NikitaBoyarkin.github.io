@@ -26,7 +26,7 @@ Canonical event taxonomy for the portfolio, per
 | `projects_track_filter` | `{ track, results_count, locale }` | a project category tab is selected (`track` is the taxonomy key or `all`) | `ProjectBoard.astro` |
 | `contact_submit` | `{ locale }` | the contact form was submitted and the Edge Function accepted it | `ContactForm.astro` (only on `res.ok`). **Inert in production** until `PROJECT_REF` in `src/lib/contact.ts` is replaced (`CONTACT_FORM_ENABLED=false`, so the form is not rendered at all) |
 | `contact_form_error` | `{ locale, reason }` | a contact-form submission failed (`reason ∈ {validation, rate_limited, server, network}`) | `ContactForm.astro`. **Inert in production** — same reason as `contact_submit` |
-| `booking_click` | `{ path }` | the 30-minute booking CTA (`cal.com/lofinibo/30min`) is clicked | `Base.astro` nav rail, `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
+| `booking_click` | `{ path }` | the 30-minute booking CTA (`cal.com/lofinibo/30min`) is clicked | `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
 
 > `booking_click` carries `{ path }`, not `{ locale }`: the delegated handler owns
 > every `[data-analytics]` CTA and attaches the same props to all of them. The
@@ -51,9 +51,9 @@ These keep their historical names (they are the slider for the "hard naming" cas
 |---|---|
 | `featured_project`, `featured_demo`, `featured_github` | `index.astro` / `en/index.astro` (hero CTAs) |
 | `bento_stack`, `bento_graph`, `bento_notes` | `index.astro` / `en/index.astro` |
-| `cv_download_pdf` | every "CV" button: `Base.astro` nav rail + footer, `contact.astro` / `en/contact.astro` |
-| `telegram_contact`, `telegram_deeplink`, `telegram_footer` | `contact.astro`, `Base.astro` footer |
-| `github_footer`, `linkedin_footer`, `writing_footer` | `Base.astro` footer |
+| `cv_download_pdf` | every "CV" button: `Base.astro` nav chips + nav rail, hero, `contact.astro` / `en/contact.astro` |
+| `telegram_contact`, `telegram_deeplink`, `telegram_footer` | `contact.astro`, `Base.astro` nav chips |
+| `github_footer`, `linkedin_footer`, `writing_footer` | `Base.astro` nav chips (moved out of the footer 2026-10-10; the `_footer` suffix is kept so the PostHog series does not split) |
 | `value_cta`, `value_github` | `ValueOffers.astro` on `/about#value` |
 | `work_with_me_cta`, `whois_cta` | `about.astro` / `en/about.astro` |
 | `search_open` | `SearchBox.astro` |

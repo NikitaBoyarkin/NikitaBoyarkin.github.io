@@ -10,7 +10,7 @@ import {
   writeAudience,
   type AnalyticsEventMap,
 } from '../../src/lib/analytics';
-import { AUDIENCES, DEFAULT_AUDIENCE, PROJECT_ORDER } from '../../src/lib/projects';
+import { AUDIENCES, DEFAULT_AUDIENCE } from '../../src/lib/projects';
 import { CAL_BOOKING_URL } from '../../src/lib/contact';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -205,19 +205,29 @@ describe('wiring (PRD §6, §9, §10)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Homepage CTA — the four regressions the "вопрос → ответ" rework left behind.
-// Each one shipped as a bug once: a dead href, a hand-typed project count, a
-// primary action with no exposure event, and a CTA pointing at a placeholder.
+// Homepage CTA — the regressions the "вопрос → ответ" rework left behind.
+// Each one shipped as a bug once: a dead href, a primary action with no exposure
+// event, and a CTA pointing at a placeholder. (The "show all projects" link used
+// to be a fourth entry here; it was removed from the hero on 2026-10-10, so the
+// count it guarded no longer exists to assert.)
 // ---------------------------------------------------------------------------
 describe('homepage primary CTA (docs/cta-inventory.md)', () => {
   const gate = () => src('src/components/PersonaCanvas.astro');
 
-  it('the hero CTA is the booking link, not a placeholder', () => {
-    expect(CAL_BOOKING_URL).not.toContain('PROJECT_REF');
-    expect(gate()).toContain('href={CAL_BOOKING_URL}');
-    expect(gate(), 'the CTA lost its delegated tracking hook').toContain(
-      'data-analytics="booking_click"',
+  it('the hero CTA row is CV download + Contact, not the booking link', () => {
+    const s = gate();
+    // The homepage hero exposes the CV download (primary) and the contact path
+    // (secondary). The cal.com booking button moved off the homepage on
+    // 2026-10-10 — but the constant survives for /contact and /en/contact.
+    expect(s).toContain("href={withBase('CV-Nikita-Boyarkin.pdf')}");
+    expect(s, 'the primary CTA lost its delegated tracking hook').toContain(
+      'data-analytics="cv_download_pdf"',
     );
+    expect(s).toContain('download');
+    expect(s).toContain("href={withBase(isEn ? 'en/contact/' : 'contact/')}");
+    expect(s, 'the booking button must not be back on the homepage').not.toContain('booking_click');
+    expect(s, 'the hero must not reference the booking URL').not.toContain('CAL_BOOKING_URL');
+    expect(CAL_BOOKING_URL, 'the contact pages still depend on it').toMatch(/^https:\/\/cal\.com\//);
   });
 
   it('fires cta_exposure so the click has a denominator', () => {
@@ -227,24 +237,6 @@ describe('homepage primary CTA (docs/cta-inventory.md)', () => {
     } satisfies AnalyticsEventMap['cta_exposure'];
     expect(props.surface).toBe('home_hero');
     expect(gate()).toContain("track('cta_exposure'");
-  });
-
-  it('"all projects" points at /projects/, not /colleague/', () => {
-    const s = gate();
-    expect(s).toContain("withBase(isEn ? 'en/projects/' : 'projects/')");
-    expect(s, 'regression Q18: the label promised all projects, the href led to one role').not.toContain(
-      "/colleague/'",
-    );
-  });
-
-  it('counts the projects from PROJECT_ORDER instead of a hand-typed number', () => {
-    const s = gate();
-    expect(s).toContain('${PROJECT_ORDER.length}');
-    expect(s, 'a hand-typed project count goes stale on the next project').not.toMatch(
-      /Показать все \d+ проектов/,
-    );
-    // The claim above is only meaningful while the array it counts is non-empty.
-    expect(PROJECT_ORDER.length).toBeGreaterThan(0);
   });
 });
 
@@ -258,11 +250,15 @@ describe('homepage primary CTA (docs/cta-inventory.md)', () => {
 describe('sticky action rail (Base.astro)', () => {
   const base = () => src('src/layouts/Base.astro');
 
-  it('carries both actions the hero already offers', () => {
+  it('carries the CV download the hero already offers', () => {
     const s = base();
-    expect(s).toContain('href={CAL_BOOKING_URL}');
-    expect(s).toContain('data-analytics="booking_click"');
     expect(s).toContain('data-analytics="cv_download_pdf"');
+    // The rail/nav booking button was removed on 2026-10-10; booking_click now
+    // fires only from /contact and /en/contact.
+    expect(s, 'the rail/nav must not carry the retired booking link').not.toContain(
+      'booking_click',
+    );
+    expect(s).not.toContain('CAL_BOOKING_URL');
   });
 
   it('is rendered only where a gutter exists, and only when asked for', () => {

@@ -13,12 +13,11 @@ import type { WorldSize } from './graph-zoom';
 export type NodeId =
   | 'identity'
   | 'claim'
-  | 'cta-booking'
   | 'cta-cv'
+  | 'cta-contact'
   | 'role-hr'
   | 'role-manager'
-  | 'role-colleague'
-  | 'projects-all';
+  | 'role-colleague';
 
 export type NodeKind = 'text' | 'link';
 
@@ -49,21 +48,21 @@ export const MAX_ZOOM = 2.2;
  *
  * Both columns start at y = 90 so the eye reads them as one composition rather
  * than as a shift (the fork's lead-in is the right column's first box, and it
- * sits at the same top as the hero words). Each column then keeps its own even
- * rhythm: 180 between the left column's three blocks, 40 between the right
- * column's four. The two columns end 20 apart (836 against 856), so the board has
- * no empty corner below the CTAs. Changing any single `y` here breaks that
+ * sits at the same top as the hero words). They also end together, at 836: the
+ * left column's CTA row (780 + 56) and the right column's third role card. The
+ * right column carries an even 78 between cards — wider than it once was, since
+ * that column lost a fourth box and the three cards spread into the space rather
+ * than leaving a void under them. Changing any single `y` here breaks the
  * pairing — move a column, not a box.
  */
 export const NODES: NodeBox[] = [
   { id: 'identity', x: 80, y: 90, w: 620, h: 210, kind: 'text' },
   { id: 'claim', x: 80, y: 480, w: 620, h: 120, kind: 'text' },
-  { id: 'cta-booking', x: 80, y: 780, w: 240, h: 56, kind: 'link' },
-  { id: 'cta-cv', x: 340, y: 780, w: 130, h: 56, kind: 'link' },
+  { id: 'cta-cv', x: 80, y: 780, w: 240, h: 56, kind: 'link' },
+  { id: 'cta-contact', x: 340, y: 780, w: 130, h: 56, kind: 'link' },
   { id: 'role-hr', x: 800, y: 140, w: 540, h: 180, kind: 'link' },
-  { id: 'role-manager', x: 800, y: 360, w: 540, h: 180, kind: 'link' },
-  { id: 'role-colleague', x: 800, y: 580, w: 540, h: 180, kind: 'link' },
-  { id: 'projects-all', x: 800, y: 800, w: 540, h: 56, kind: 'link' },
+  { id: 'role-manager', x: 800, y: 398, w: 540, h: 180, kind: 'link' },
+  { id: 'role-colleague', x: 800, y: 656, w: 540, h: 180, kind: 'link' },
 ];
 
 /** A CSS-space viewport: `screen = world * k + (tx, ty)`. */

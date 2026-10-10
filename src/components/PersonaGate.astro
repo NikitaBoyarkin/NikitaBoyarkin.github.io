@@ -11,7 +11,6 @@
 // time with the wrong props. The component-local script below owns the event.
 import { withBase } from '../lib/path';
 import { PROJECT_ORDER, type Audience } from '../lib/projects';
-import { CAL_BOOKING_URL } from '../lib/contact';
 
 interface Props {
   lang?: 'ru' | 'en';
@@ -26,7 +25,8 @@ const t = isEn
       phd: 'PhD in work psychology — I measure behaviour and causal effects, not correlations.',
       claim:
         'I turn data into decisions: which fix to ship, whom to win back, where the hypothesis did not hold.',
-      book: 'Book 30 minutes',
+      cv: 'Download CV (PDF)',
+      contact: 'Contact',
       lead: 'Prefer another way in? Pick your entry point.',
       showAll: `Show all ${PROJECT_ORDER.length} projects →`,
       continueAs: 'Continue as',
@@ -36,7 +36,8 @@ const t = isEn
       role: 'A/B-тесты и retention',
       phd: 'PhD по психологии труда — измеряю поведение и причинные эффекты, а не корреляции.',
       claim: 'Считаю не отчёты, а решения: какой фикс включать, кого вернуть, где гипотеза не подтвердилась.',
-      book: 'Забронировать 30 минут',
+      cv: 'Скачать CV (PDF)',
+      contact: 'Контакты',
       lead: 'Удобнее иначе — выберите вход по роли',
       showAll: `Показать все ${PROJECT_ORDER.length} проектов →`,
       continueAs: 'Продолжить как',
@@ -81,15 +82,18 @@ const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string
       <p class="hero-phd">{t.phd}</p>
       <p class="persona-claim">{t.claim}</p>
       <div class="persona-actions">
-        <a class="button" href={CAL_BOOKING_URL} data-analytics="booking_click">{t.book}</a>
-        {/* Secondary, not a rival: the same `cv_download_pdf` name the nav rail
-            and the footer fire, so one event sums every CV download on the site
-            and the hero does not need an event of its own. */}
+        {/* Primary is the CV download — the same `cv_download_pdf` name the nav
+            rail and the footer fire, so one event sums every CV download on the
+            site. The cal.com booking button left the homepage on 2026-10-10; it
+            now lives only on /contact and /en/contact. */}
         <a
-          class="button button-secondary"
+          class="button"
           href={withBase('CV-Nikita-Boyarkin.pdf')}
           download
-          data-analytics="cv_download_pdf">CV</a
+          data-analytics="cv_download_pdf">{t.cv}</a
+        >
+        <a class="button button-secondary" href={withBase(isEn ? 'en/contact/' : 'contact/')}>
+          {t.contact}</a
         >
       </div>
     </header>
@@ -330,7 +334,7 @@ const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string
     // Exposure — the denominator of the exposure→click rate (D3). Fired once
     // per load, unconditionally: a rate whose denominator only counts some
     // views is not a rate.
-    const primaryCta = root.querySelector<HTMLElement>('[data-analytics="booking_click"]');
+    const primaryCta = root.querySelector<HTMLElement>('[data-analytics="cv_download_pdf"]');
     if (primaryCta) track('cta_exposure', { surface: 'home_hero', lang });
 
     // No preventDefault: the write and the capture both run before the plain

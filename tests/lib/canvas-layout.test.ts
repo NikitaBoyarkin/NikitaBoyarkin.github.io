@@ -38,21 +38,20 @@ const project = (vp: { tx: number; ty: number; k: number }, p: { x: number; y: n
 });
 
 describe('NODES', () => {
-  it('declares all eight nodes with unique ids', () => {
-    expect(NODES.length).toBe(8);
-    expect(new Set(NODES.map((n) => n.id)).size).toBe(8);
+  it('declares all seven nodes with unique ids', () => {
+    expect(NODES.length).toBe(7);
+    expect(new Set(NODES.map((n) => n.id)).size).toBe(7);
   });
 
   it('keeps the reading order, independent of visual position', () => {
     expect(NODES.map((n) => n.id)).toEqual([
       'identity',
       'claim',
-      'cta-booking',
       'cta-cv',
+      'cta-contact',
       'role-hr',
       'role-manager',
       'role-colleague',
-      'projects-all',
     ]);
   });
 
@@ -85,8 +84,8 @@ describe('NODES', () => {
       });
     const bottom = (list: NodeBox[]) => Math.max(...list.map((n) => n.y + n.h));
 
-    const left = boxes(['identity', 'claim', 'cta-booking', 'cta-cv']);
-    const right = boxes(['role-hr', 'role-manager', 'role-colleague', 'projects-all']);
+    const left = boxes(['identity', 'claim', 'cta-cv', 'cta-contact']);
+    const right = boxes(['role-hr', 'role-manager', 'role-colleague']);
 
     // The columns are x-disjoint, so the left column's floor is simply the lower
     // of its two stacked blocks plus the CTA row — no cross-column reasoning.

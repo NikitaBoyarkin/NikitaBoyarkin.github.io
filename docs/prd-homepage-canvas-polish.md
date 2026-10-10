@@ -4,7 +4,7 @@
 |---|---|
 | Created | 2026-10-10 |
 | Owner | Nikita Boyarkin |
-| Status | Draft — готов к ревью |
+| Status | Executed 2026-10-10 (Ф0–Ф4) — верифицировано, см. §12 |
 | Скоуп | Только hero-холст `/` и `/en/`; 4 файла |
 | Связано | `docs/prd-persona-landing.md` (§9 гейт, §14.1 мобильный скролл), `docs/superpowers/specs/2026-10-10-canvas-homepage-design.md` (механика), `DESIGN.md` |
 
@@ -92,11 +92,12 @@ Canvas-гейт работает: `index.astro` → `PersonaCanvas`, фит уз
 | C5 | Коралл на декоре: `::before` верхняя полоса у всех трёх карточек (`opacity: .4`), строка роли. Акцент — семантика действия (`DESIGN.md:120`) | Verified (код) | Убрать декоративный коралл; акцент оставить ссылке/фокусу/primary | `PersonaCanvas.astro` (`::before`, eyebrow) |
 | C6 | Светлая тема: карточки залиты `--surface-secondary` `#d4d4d8` — холодный серый на кремовом фоне | Verified (скриншот) | Пересобрать заливку карточки от тёплого токена | `global.css` (light-override) |
 | C7 | «Тулбар зума поверх стопки на телефоне» | **Опровергнуто** | **Действий нет.** `global.css:3845` + `3873` | — |
-| C8 | `docH = 1172` при вьюпорте 900, хотя `.canvas-viewport` = `100vh` + `overflow: hidden` | **Не проверено** | Сначала измерить (Ф0). Затем либо закрыть с механизмом, либо помечить «intended, not enforced» | `CanvasStage.astro` / `global.css` |
+| C8 | `docH = 1172` при вьюпорте 900, хотя `.canvas-viewport` = `100vh` + `overflow: hidden` | **Закрыто механизмом** | Причина названа (§12): header 81 + canvas 900 + зазор 32 + footer 139 + 20 = 1172. `100vh`+`overflow` клипуют мир, не документ — intended, дефекта нет | — |
 
-**Рамки-скетчи** (были находкой 3 аудита) вынесены в C9 без класса: после `1d2421d`
-(`identity` исключён из рамок) их вид на доске изменился, старый скриншот недействителен.
-Судить заново по свежему снимку обеих тем — Ф0.
+**Рамки-скетчи** (были находкой 3 аудита) вынесены в C9: после `1d2421d`
+(`identity` исключён из рамок) их вид изменился, а `56ce4f9` удалил скетч из
+`CanvasStage.astro` целиком. Probe 2026-10-10 на HEAD: `frames: []` — рамок нет.
+**C9 закрыт удалением**; `reports/home-shots-final/` фиксирует состояние.
 
 ---
 
@@ -173,9 +174,9 @@ Canvas-гейт работает: `index.astro` → `PersonaCanvas`, фит уз
 
 ## 10. Не проверено / PENDING
 
-- **C8** — причина `docH = 1172` не установлена.
-- **Мобильный probe** — `scripts/probe-home.mjs` написан, но не прогонялся.
-- **C9** — рамки-скетчи судятся только после Ф0.
+- ~~**C8** — причина `docH = 1172` не установлена.~~ **Закрыто 2026-10-10:** механизм назван, §12.
+- ~~**Мобильный probe** — `scripts/probe-home.mjs` написан, но не прогонялся.~~ **Прогнан 2026-10-10:** 390×844 → `.canvas-controls` `display:none`, `html.canvas-static`, `docH=1320`.
+- ~~**C9** — рамки-скетчи судятся только после Ф0.~~ **Закрыто:** скетч удалён (`56ce4f9`), probe → `frames: []`.
 - **Реальный девайс** — только эмуляция, физических iOS/Android нет (наследие PENDING спеки).
 - **Lighthouse / axe** — headless Chrome офлайн не поднимается (`CHROME_INTERSTITIAL_ERROR`, спека → Blocked).
 
@@ -188,3 +189,37 @@ Canvas-гейт работает: `index.astro` → `PersonaCanvas`, фит уз
 - План реализации (8 задач): `docs/superpowers/plans/2026-10-10-canvas-homepage.md`
 - Дизайн-контракт: `DESIGN.md:120` (акцент — семантика), `DESIGN.md:124` (проза = `text-normal`)
 - Классы доказательств: `.claude/rules/evidence-ledger.md`
+
+---
+
+## 12. Верификация 2026-10-10 (Ф4)
+
+Код PRD вошёл в `5e1d7fc` (2026-10-10 21:10) вместе с тестами и tooling. Прогон Ф4 — на этом
+же HEAD, dev-сервер `localhost:4321`.
+
+| Критерий §8 | Класс | Доказательство |
+|---|---|---|
+| 1 верх колонок | Verified | `canvas-lead top:90` == `identity.y=90` |
+| 2 провал ≤100px | Verified | концы колонок 836 / 856 — 20px |
+| 3 иерархия карточек | Verified | шаги 01/02/03; новых компонентов нет |
+| 4 проза `--text-normal` | Verified | `PersonaCanvas.astro:248` |
+| 5 коралл только на действии | Verified | `::before` нет; role-line → `--text-normal` (`global.css:3938`) |
+| 6 светлая тема | Verified | `global.css:3927` → тёплый `--card-background #f8f2da` |
+| 7 C8 | Verified | механизм ниже |
+| 8 `contrast-gate.js` | Verified | `make check` → `OK: all checks passed` |
+| 9 `canvas.test.ts` ≥118 pass | Verified | `make check` exit 0 |
+| 10 нет переполнения | Verified | probe `overflowing: []`, `bodyOverflowX: false` |
+
+**C8 — механизм.** `docH = 1172` при вьюпорте 900. Замер `body.children`:
+`nav-mobile` header `y=0 h=65`; `main` `y=81 h=900` (ровно `100vh`); `footer` `y=1013 h=139`.
+Сумма: 81 + 900 + 32 + 139 + 20 = 1172. `.canvas-viewport` действительно `100vh` и
+действительно `overflow: hidden` — но клипует **мир** (1440×900 внутри), а не сам элемент.
+Документ длиннее вьюпорта на header + footer, что нормально для страницы с футером.
+**Дефекта нет; intended, механизм назван.**
+
+**Мобильный probe (390×844).** `html.canvas-static`, `.canvas-controls` `display:none`,
+`docH=1320`. Повторно подтверждает C7 — тулбара зума на телефоне нет.
+
+**Артефакты:** `reports/home-shots-final/` — 6 снимков, 3 темы × 2 вьюпорта.
+**Отклонение от Ф0:** probe прогнан против `astro dev`, не `serve-dist`; раскладка
+идентична, но собранный `dist` отдельно не измерялся.

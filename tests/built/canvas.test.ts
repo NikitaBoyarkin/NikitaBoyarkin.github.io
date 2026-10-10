@@ -58,9 +58,27 @@ describe('canvas homepage (built HTML)', () => {
       for (const suffix of ['hr/', 'manager/', 'colleague/', 'projects/']) {
         expect(d, `${lang}: ${suffix}`).toContain(suffix);
       }
-      expect(d).toContain('data-analytics="booking_click"');
-      expect(d).toContain('data-analytics="cv_download_pdf"');
-      expect(d).toContain('download');
+      // The hero CTA row changed on 2026-10-10: the cal.com booking button left
+      // the homepage and the row is now CV-download (primary) + Contact (secondary).
+      // `cv_download_pdf` also fires from the nav, rail and footer, so assert the
+      // hero's own nodes co-occur with the destination rather than the bare string.
+      expect(
+        d.match(/data-node="cta-cv"[\s\S]*?data-analytics="cv_download_pdf"/),
+        `${lang}: the hero CTA row lost its CV download`
+      ).not.toBeNull();
+      expect(
+        d.match(/data-node="cta-cv"[\s\S]*?download/),
+        `${lang}: the hero CV link must download, not navigate`
+      ).not.toBeNull();
+      expect(
+        d.match(/data-node="cta-contact"[\s\S]*?href="[^"]*contact\//),
+        `${lang}: the hero CTA row lost its contact link`
+      ).not.toBeNull();
+      // The booking button must be gone from the homepage — it now lives only on
+      // /contact and /en/contact.
+      expect(d, `${lang}: the retired booking button is back on the homepage`).not.toContain(
+        'data-analytics="booking_click"'
+      );
     });
 
     it(`${file}: puts the role cards after the h1 in document order`, () => {
@@ -201,8 +219,8 @@ it('clears the marker only from script, and restores it when the module throws',
 // `canvas-static` marker is still on <html>, global.css gives `.canvas-viewport`
 // `block-size: auto`, so `clientHeight` returns the *stacked* list's height
 // (~1122px) rather than the 100vh the live canvas gets. Fitting the board to
-// that taller box centred it ~177px too low and pushed `projects-all` entirely
-// outside the clipped hero on every 768px-tall window from 950px up. This is the
+// that taller box centred it ~177px too low and pushed the bottom role card out
+// of the clipped hero on every 768px-tall window from 950px up. This is the
 // built-HTML half of that fix: the marker removal must precede the height read,
 // and the read must still exist (a deleted measurement is not a pass).
 //

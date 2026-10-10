@@ -65,7 +65,8 @@ const fitData = {
     // global.css gives `.canvas-viewport` `block-size: auto`, so `clientHeight`
     // is the *stacked* list's height (~1122px), not the 100vh the live canvas
     // gets. Fitting the board to that taller box centres it ~177px too low and
-    // pushes `projects-all` outside the clipped hero on any 768px-tall window.
+    // pushes the bottom role card outside the clipped hero on any 768px-tall
+    // window.
     // Removing the class is synchronous and the reads below flush layout, so
     // nothing paints in the live state before the fit is written.
     var root = document.documentElement;
@@ -283,7 +284,10 @@ const fitData = {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     background: var(--surface-secondary);
-    color: var(--text-primary);
+    /* `--text-primary` is defined in no theme (global.css declares
+       `--text-normal`), so this colour silently inherited from <body> instead of
+       being token-driven — the glyphs only looked right by accident. */
+    color: var(--text-normal);
     font-size: 1rem;
     line-height: 1;
     cursor: pointer;
@@ -291,6 +295,7 @@ const fitData = {
   .canvas-controls button:hover,
   .canvas-controls button:focus-visible {
     border-color: var(--border-active);
+    color: var(--text-accent);
   }
   .canvas-controls button:focus-visible {
     outline: 2px solid var(--border-active);

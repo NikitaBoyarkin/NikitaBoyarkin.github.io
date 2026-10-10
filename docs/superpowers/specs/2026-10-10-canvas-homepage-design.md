@@ -85,8 +85,8 @@ DESIGN.md text, use 1440×900). Node boxes are data in `src/lib/canvas-layout.ts
 |---|---|---|
 | `identity` | `<h1>` + role + PhD line | text block |
 | `claim` | the claim paragraph | text block |
-| `cta-booking` | Book 30 minutes (`booking_click`) | `<a>` |
-| `cta-cv` | CV (`cv_download_pdf`, `download`) | `<a>` |
+| `cta-cv` | Download CV (PDF) (`cv_download_pdf`, `download`) | `<a>` |
+| `cta-contact` | Contact — navigates to `/contact/` | `<a>` |
 | `role-hr` / `role-manager` / `role-colleague` | the three gate cards | `<a>` |
 | `projects-all` | "Show all N projects" | `<a>` |
 

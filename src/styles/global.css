@@ -1966,19 +1966,9 @@ footer {
   margin-top: var(--space-8);
 }
 
-footer a {
-  color: var(--text-muted);
-  text-decoration: none;
-  margin: 0 var(--space-3);
-  font-weight: 500;
-  transition: color 0.2s ease;
-  position: relative;
-}
-
-footer a:hover {
-  color: var(--text-accent);
-}
-
+/* The footer carries a single line — the copyright — and no anchors at all: the
+   site's outbound links are chips in the sticky top bar, next to the brand they
+   belong to. */
 footer p {
   margin-top: var(--space-4);
   opacity: 0.9;
@@ -3890,8 +3880,7 @@ html.canvas-static .canvas-node {
 html.canvas-static .canvas-lead {
   margin-block-start: var(--space-6);
 }
-html.canvas-static .persona-claim,
-html.canvas-static .persona-all {
+html.canvas-static .persona-claim {
   margin-block-start: var(--space-4);
 }
 html.canvas-static .persona-card {
@@ -3960,4 +3949,91 @@ html[data-theme="light"] .persona-card {
 .canvas-viewport .canvas-node[data-node^='role-'],
 .canvas-viewport .canvas-node[data-node^='cta-'] .button {
   border-color: var(--border-active);
+}
+
+/* Full-bleed homepage — `/` and `/en/` only (Base.astro prop `canvasFullBleed`,
+   which puts `canvas-fullbleed` on <html>).
+
+   The board is a 1440x900 world fitted to `.canvas-viewport`, and that element
+   used to be a 1180px box centred in the reading column: 130px of dead page on
+   either side, plus a sticky bar and a full-height footer that pushed the
+   document to 1172px on a 900px window. The board sat in a column narrower than
+   its own composition, and the page scrolled.
+
+   Gated on `min-width: 900px` AND `html:not(.canvas-static)` — the two stacked-
+   fallback triggers of the canvas block above, inverted. The lock therefore
+   applies only while the canvas is genuinely live: a phone, or a desktop with
+   JavaScript off, keeps the ordinary scrolling document. `min-height` is the
+   third gate — below ~700px the bar, the board and the strip cannot share a
+   window without the fit clamping at MIN_ZOOM, and a board that overflows a
+   non-scrolling page is clipped rather than scrollable. */
+@media (min-width: 900px) and (min-height: 700px) {
+  html.canvas-fullbleed:not(.canvas-static) body {
+    /* One screen, no scroll: bar, board and strip are sized to fill it. */
+    block-size: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    /* The 20px page gutter would hold the board off both edges. `.nav-mobile`
+       cancels that gutter with an equal negative margin, so an explicit `0`
+       here would have left the bar 20px wide of the viewport — the bar's own
+       margins are zeroed below, not just the padding here. */
+    padding: 0;
+    max-width: none;
+    margin: 0;
+  }
+
+  /* Zeroed, not left alone: the bar's negative inline margins existed only to
+     undo the body gutter they no longer sit in. Its 16px block-end margin
+     stays — that is the gap between the bar and the board, and the band the fit
+     script measures starts below it. */
+  html.canvas-fullbleed:not(.canvas-static) .nav-mobile {
+    flex: none;
+    margin-block-start: 0;
+    margin-inline: 0;
+  }
+
+  /* The board takes the space the bar and the strip leave. `min-block-size: 0`
+     is load-bearing: a flex item defaults to `min-height: auto`, which refuses
+     to shrink below its content, so the 100vh viewport inside would push the
+     footer past the bottom of the 100dvh body — and clip it, since the body no
+     longer scrolls. */
+  html.canvas-fullbleed:not(.canvas-static) main {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    max-width: none;
+    margin-inline: 0;
+  }
+
+  /* CanvasStage.astro scopes the viewport to `block-size: 100vh` (0,2,0) from a
+     later stylesheet; 0,3,0 here out-ranks it whatever the emission order, the
+     same fight the theme override above documents. `100%` of a flex item of
+     definite height, not `100vh`: the viewport is now exactly the band between
+     the bar and the strip, and that band is what the fit measures. */
+  html.canvas-fullbleed:not(.canvas-static) .canvas-viewport {
+    block-size: 100%;
+  }
+
+  /* The footer becomes the strip: one centred row, ~36px instead of ~170px, so
+     the links survive the lock instead of being cut off by it. */
+  html.canvas-fullbleed:not(.canvas-static) footer {
+    flex: none;
+    max-width: none;
+    /* `margin-inline: auto` too, not just `margin-top`. A flex item with an
+       auto cross-axis margin is excluded from `align-items: stretch`, so the
+       strip kept its fit-content width and its hairline stopped a third of the
+       way across the page. */
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0 var(--space-2);
+    padding: var(--space-2) 0;
+    font-size: 0.8rem;
+  }
+  /* The copyright moves up to sit on the strip's single line. */
+  html.canvas-fullbleed:not(.canvas-static) footer p {
+    margin: 0;
+  }
 }
