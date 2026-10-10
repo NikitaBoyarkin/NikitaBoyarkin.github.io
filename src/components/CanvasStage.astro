@@ -75,24 +75,34 @@ const fitData = {
   (function () {
     var el = document.querySelector('.canvas-viewport');
     if (!el || !window.matchMedia('(min-width: 900px)').matches) return;
-    var w = parseFloat(el.dataset.worldW);
-    var h = parseFloat(el.dataset.worldH);
-    var minK = parseFloat(el.dataset.minK);
-    var maxK = parseFloat(el.dataset.maxK);
-    var rail = parseFloat(getComputedStyle(el).paddingInlineEnd) || 0;
-    var fitW = el.clientWidth - rail;
-    var vh = el.clientHeight;
-    var k = Math.min(fitW / w, vh / h);
-    k = Math.min(maxK, Math.max(minK, k));
-    el.style.setProperty('--vp-tx', (fitW - w * k) / 2 + 'px');
-    el.style.setProperty('--vp-ty', (vh - h * k) / 2 + 'px');
-    el.style.setProperty('--vp-k', String(k));
-    // The board is fitted: clear the not-live marker so the canvas layer takes
-    // over from the stacked fallback in global.css. The marker survives every
-    // path that cannot reach this line — JavaScript off, a narrow viewport
-    // (the guard above), or a throw in the module script — which is what keeps
-    // the homepage readable with no JavaScript at all.
-    document.documentElement.classList.remove('canvas-static');
+    // Go live BEFORE measuring. While `canvas-static` is still on <html>,
+    // global.css gives `.canvas-viewport` `block-size: auto`, so `clientHeight`
+    // is the *stacked* list's height (~1122px), not the 100vh the live canvas
+    // gets. Fitting the board to that taller box centres it ~177px too low and
+    // pushes `projects-all` outside the clipped hero on any 768px-tall window.
+    // Removing the class is synchronous and the reads below flush layout, so
+    // nothing paints in the live state before the fit is written.
+    var root = document.documentElement;
+    root.classList.remove('canvas-static');
+    try {
+      var w = parseFloat(el.dataset.worldW);
+      var h = parseFloat(el.dataset.worldH);
+      var minK = parseFloat(el.dataset.minK);
+      var maxK = parseFloat(el.dataset.maxK);
+      var rail = parseFloat(getComputedStyle(el).paddingInlineEnd) || 0;
+      var fitW = el.clientWidth - rail;
+      var vh = el.clientHeight;
+      var k = Math.min(fitW / w, vh / h);
+      k = Math.min(maxK, Math.max(minK, k));
+      el.style.setProperty('--vp-tx', (fitW - w * k) / 2 + 'px');
+      el.style.setProperty('--vp-ty', (vh - h * k) / 2 + 'px');
+      el.style.setProperty('--vp-k', String(k));
+    } catch (e) {
+      // Could not fit: put the not-live marker back so global.css degrades the
+      // canvas to the static stacked list instead. JavaScript off and a narrow
+      // viewport still never reach the removal above.
+      root.classList.add('canvas-static');
+    }
   })();
 </script>
 

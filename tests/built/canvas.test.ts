@@ -180,6 +180,33 @@ it('clears the marker only from script, and restores it when the module throws',
   }
 });
 
+// The pre-paint fit has to be measured with the canvas ALREADY live. While the
+// `canvas-static` marker is still on <html>, global.css gives `.canvas-viewport`
+// `block-size: auto`, so `clientHeight` returns the *stacked* list's height
+// (~1122px) rather than the 100vh the live canvas gets. Fitting the board to
+// that taller box centred it ~177px too low and pushed `projects-all` entirely
+// outside the clipped hero on every 768px-tall window from 950px up. This is the
+// built-HTML half of that fix: the marker removal must precede the height read,
+// and the read must still exist (a deleted measurement is not a pass).
+//
+// The browser-observed half — every node ≥100% visible across the 900–1440px
+// band at 768/900 tall, JavaScript on — is a one-off Playwright measurement
+// recorded in the spec, NOT an assertion here. Built-HTML string checks cannot
+// see computed layout, so that sweep is unguarded by construction.
+it('measures the pre-paint fit only after the canvas is live, not stacked', () => {
+  for (const { file } of PAGES) {
+    const d = html.get(file)!;
+    const remove = d.match(/classList\.remove\(['"`]canvas-static['"`]\)/);
+    const reads = [...d.matchAll(/el\.clientHeight/g)];
+    expect(remove, `${file}: no marker removal in the pre-paint script`).not.toBeNull();
+    expect(reads.length, `${file}: pre-paint script no longer measures clientHeight`).toBe(1);
+    expect(
+      remove!.index!,
+      `${file}: clientHeight is read while <html> is still canvas-static`
+    ).toBeLessThan(reads[0].index!);
+  }
+});
+
 // ── Cascade-order contract (theme override + interactive border) ─────────────
 // CanvasStage.astro's scoped <style> emits `.canvas-sketch[data-astro-cid-…]`
 // and PersonaCanvas.astro's emits `.persona-card[data-astro-cid-…]`, both at

@@ -245,7 +245,7 @@ Evidence classes follow `.claude/rules/evidence-ledger.md`.
 | `bun run build` | 201 pages, 0 errors | Verified | build |
 | `bun run check` | 0 errors, 3 hints | Verified | `astro check` |
 | `make check` | `OK: all checks passed` | Verified | bun test + `check_site.py` |
-| `bun run test:built` | 117 pass / 0 fail | Verified | built-HTML suite |
+| `bun run test:built` | 118 pass / 0 fail | Verified | built-HTML suite |
 | `:global(` in built CSS | 0 occurrences | Verified | `grep -c "global(" dist/_astro/Base.*.css` |
 | theme overrides emitted | `html[data-theme=light] .canvas-sketch` and `html[data-theme=cyberpunk] .canvas-sketch` present as parsed rules, specificity 0,2,1 against the scoped base's 0,2,0 | Verified | parsed out of `dist/_astro/Base.*.css` |
 | cyberpunk sketch override actually applies | `.canvas-sketch` computes `stroke: rgb(255,133,105)` (= `--border-active`), `stroke-opacity: 0.35` — before the fix it computed `rgb(42,42,74)` (= `--border-color`) | Verified | `getComputedStyle` on the built page, theme via `localStorage.theme` |
@@ -264,6 +264,10 @@ Evidence classes follow `.claude/rules/evidence-ledger.md`.
 | JS off — h1, claim, both CTAs | fully visible at 1024 and 1440, `/` and `/en/` | Verified | JS-disabled context, CDP `DOM.getBoxModel` intersected with `.canvas-viewport` |
 | JS off — 3 role cards, `projects-all` | **fully visible (100%)** at 1024 and 1440 on both pages | Verified | same. Before the fix: ~30% at 1024, ~66% at 1440, `projects-all` off-screen at 1024 |
 | JS off — decorative layers | `.canvas-grid` and `.canvas-sketch` are `display: none` in the stacked state | Verified | `DOM.getBoxModel` returns no box |
+| **live canvas, 900–1440px band, JS on** | **100% of every `.canvas-node` visible in all 32 cells** (8 widths × {768, 900} × `/` + `/en/`). Tightest = 950–1440 at h=768, where `projects-all` now sits fully inside the clip; no node touches the clip edge | Verified | rect intersection with `.canvas-viewport`; `<html>` carries no `canvas-static` and `--vp-k` is numeric in every cell |
+| same sweep, **pre-fix build** | `projects-all` **0%** at 950/1024/1280/1366/1440 × 768 (clipped out entirely); 28.27% at 900/901/1100 × 768 from the `k=0.6` floor; `role-colleague` 82.48% at 1440×768. All h=900 rows were already 100% | Verified | same method, against the build before the fit fix — this is the measurement the fix answers |
+| `prefers-reduced-motion: no-preference` | `.canvas-world` computes `transition-duration: 0.22s`, `transition-property: transform`; Tab-focusing `role-hr` produced **14 distinct** transform values across 31 rAF samples, with an intermediate value strictly between start and final | Verified | `getComputedStyle` + per-rAF sampling; Playwright `emulateMedia({reducedMotion})` |
+| same, `prefers-reduced-motion: reduce` | the same focus lands on the final transform **within the same frame**: `transition-duration: 1e-05s`, `transition-property: none`, immediate read === final read, **1 distinct** value across 32 samples, no intermediate | Verified | same. The media query demonstrably changes behaviour (14 frames → 1); it is not a no-op |
 | Lighthouse a11y + perf, both themes | no score | **Blocked (environment)** | `@lhci/cli` + Chrome present, healthcheck passed, but Chrome could not load `localhost:4321` (`CHROME_INTERSTITIAL_ERROR`) |
 
 ### Mutation controls (2026-10-10)
@@ -277,7 +281,8 @@ runs, nothing re-stated from memory.
 | `class="canvas-static"` dropped from `<html>` | `ships the not-live canvas marker on <html>` | red | green |
 | `html[data-theme="cyberpunk"]` back to `[data-theme="cyberpunk"]` | `wins the cyberpunk canvas override on specificity, not on source order` | red | green |
 | the resting-border rule deleted | `puts the resting border of the interactive nodes on --border-active` | red | green |
-| (suite total) | — | 114 pass / 3 fail | 117 pass / 0 fail |
+| `canvas-static` cleared *after* the `clientHeight` read again (the fit measured while still stacked) | `measures the pre-paint fit only after the canvas is live, not stacked` | red | green |
+| (suite total) | — | 114 pass / 3 fail | 118 pass / 0 fail |
 
 ## PENDING
 
@@ -292,7 +297,10 @@ runs, nothing re-stated from memory.
   is not expressible without editing `PersonaCanvas.astro` (out of this change's scope) or
   dropping the media query. They are kept adjacent and commented; nothing binds them to
   stay in step.
-- The 768–900px band has no dedicated capture; only 1024 and 1440 were measured.
+- ~~The 768–900px band has no dedicated capture; only 1024 and 1440 were measured.~~
+  Closed 2026-10-10: the live-canvas band sweep now covers 900/901/950/1024/1100/1280/1366/1440
+  at 768 and 900 tall on both pages (see the results table). Only the *stacked* (JS-off) path
+  still has just the two original points, and that path is unchanged by this work.
 
 ## Notes — what the measurements refuted
 
@@ -322,6 +330,19 @@ runs, nothing re-stated from memory.
   source: `.canvas-sketch` now computes `stroke: rgb(255,133,105)`. Bound by
   `tests/built/canvas.test.ts` → `wins the cyberpunk canvas override on specificity, not on
   source order`, which compares specificities parsed out of the emitted CSS.
+- **The pre-paint fit measured the *stacked* box, not the live one.** The synchronous
+  `is:inline` script in `CanvasStage.astro` read `el.clientHeight` while `canvas-static` was
+  still on `<html>`, and in that state `global.css` gives `.canvas-viewport`
+  `block-size: auto` — so it measured the stacked list's height (~1122px) instead of the
+  100vh (768px) the live canvas gets, and wrote `--vp-ty: 261px` where `84px` was correct.
+  The board was centred for the wrong box, which pushed `projects-all` completely outside the
+  clipped hero at 950–1440 × 768. Earlier coverage missed it because only `--vp-k` (derived
+  from width, correctly) and the JS-off stacked path had been recorded. *Fixed 2026-10-10* by
+  clearing the marker before measuring, with a `try`/`catch` that puts it back so the
+  not-live contract still holds on every path that cannot complete the fit. Bound by
+  `tests/built/canvas.test.ts` → `measures the pre-paint fit only after the canvas is live,
+  not stacked`. The band sweep itself is **not** guarded — a built-HTML string check cannot
+  see computed layout, so it stays a one-off Playwright measurement recorded above.
 - **JS off used to clip the gate.** With no script to correct the SSR fit, `.canvas-viewport`
   is narrower than the 1440-wide world and the right-hand nodes fell outside it. *Fixed
   2026-10-10* by shipping a `canvas-static` marker on `<html>` that only the pre-paint script
