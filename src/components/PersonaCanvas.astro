@@ -1,0 +1,330 @@
+---
+// The persona gate, re-authored as nodes on the canvas (PRD §9). The content is
+// PersonaGate.astro's, unchanged — only the wrapper differs, so the markup here
+// and there must be kept in step by hand until PersonaGate is retired.
+//
+// `data-node` names the layout box each element occupies (see
+// src/lib/canvas-layout.ts); `data-box` carries its world rect inline, which is
+// the single source of truth for both the stylesheet and the DOM. Reading order
+// and visual position are independent: the DOM goes identity → claim → CTAs →
+// role cards → projects-all, exactly as the stacked version did.
+import CanvasStage from './CanvasStage.astro';
+import { withBase } from '../lib/path';
+import { PROJECT_ORDER, type Audience } from '../lib/projects';
+import { CAL_BOOKING_URL } from '../lib/contact';
+import { NODES } from '../lib/canvas-layout';
+
+interface Props {
+  lang?: 'ru' | 'en';
+}
+const { lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+const t = isEn
+  ? {
+      h1: 'Product Analyst',
+      role: 'A/B Testing & Retention',
+      phd: 'PhD in work psychology — I measure behaviour and causal effects, not correlations.',
+      claim:
+        'I turn data into decisions: which fix to ship, whom to win back, where the hypothesis did not hold.',
+      book: 'Book 30 minutes',
+      lead: 'Prefer another way in? Pick your entry point.',
+      showAll: `Show all ${PROJECT_ORDER.length} projects →`,
+      continueAs: 'Continue as',
+      canvasLabel: 'Home canvas',
+    }
+  : {
+      h1: 'Продуктовый аналитик',
+      role: 'A/B-тесты и retention',
+      phd: 'PhD по психологии труда — измеряю поведение и причинные эффекты, а не корреляции.',
+      claim: 'Считаю не отчёты, а решения: какой фикс включать, кого вернуть, где гипотеза не подтвердилась.',
+      book: 'Забронировать 30 минут',
+      lead: 'Удобнее иначе — выберите вход по роли',
+      showAll: `Показать все ${PROJECT_ORDER.length} проектов →`,
+      continueAs: 'Продолжить как',
+      canvasLabel: 'Холст главной',
+    };
+
+const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string; cta: string }> = [
+  {
+    role: 'hr',
+    label: isEn ? 'HR' : 'HR',
+    title: isEn ? 'Hiring / recruiter' : 'HR / рекрутер',
+    blurb: isEn
+      ? 'Role, stack, numbers, CV — for screening against a vacancy.'
+      : 'Роль, стек, метрики, CV — под скрининг по вакансии.',
+    cta: isEn ? 'Screening view' : 'Версия для скрининга',
+  },
+  {
+    role: 'manager',
+    label: isEn ? 'Manager' : 'Менеджер',
+    title: isEn ? 'Hiring manager' : 'Нанимающий менеджер',
+    blurb: isEn
+      ? 'STAR cases: the task, the decision, what changed as a result.'
+      : 'Кейсы STAR: задача, решение, что изменилось в результате.',
+    cta: isEn ? 'Impact view' : 'Версия про результат',
+  },
+  {
+    role: 'colleague',
+    label: isEn ? 'Colleague' : 'Коллега',
+    title: isEn ? 'Analyst / engineer' : 'Коллега-аналитик',
+    blurb: isEn
+      ? 'How it is made: code, data, method, the knowledge graph.'
+      : 'Как это сделано: код, данные, метод, граф знаний.',
+    cta: isEn ? 'Everything' : 'Полная версия',
+  },
+];
+
+/** `style` for one node, from its layout box. */
+const boxStyle = (id: string): string => {
+  const b = NODES.find((n) => n.id === id);
+  if (!b) throw new Error(`PersonaCanvas: no layout box for "${id}"`);
+  return `left:${b.x}px; top:${b.y}px; width:${b.w}px; min-height:${b.h}px;`;
+};
+---
+
+<CanvasStage ariaLabel={t.canvasLabel}>
+  <header class="canvas-node canvas-node--identity" data-node="identity" style={boxStyle('identity')}>
+    <h1 class="hero-name">{t.h1}</h1>
+    <p class="hero-role">{t.role}</p>
+    <p class="hero-phd">{t.phd}</p>
+  </header>
+
+  <p class="canvas-node persona-claim" data-node="claim" style={boxStyle('claim')}>{t.claim}</p>
+
+  <div class="canvas-node canvas-actions" data-node="cta-booking" style={boxStyle('cta-booking')}>
+    <a class="button" href={CAL_BOOKING_URL} data-analytics="booking_click">{t.book}</a>
+  </div>
+
+  <div class="canvas-node canvas-actions" data-node="cta-cv" style={boxStyle('cta-cv')}>
+    {/* Secondary, not a rival: the same `cv_download_pdf` name the nav rail and
+        the footer fire, so one event sums every CV download on the site. */}
+    <a
+      class="button button-secondary"
+      href={withBase('CV-Nikita-Boyarkin.pdf')}
+      download
+      data-analytics="cv_download_pdf">CV</a
+    >
+  </div>
+
+  {/* The fork's lead-in. It carries no `data-node`: it is a label for the three
+      cards below, not a destination, so it needs no layout box — and reusing
+      `role-hr` here would make Task 7's "every node exactly once" fail. */}
+  <h2 class="canvas-node canvas-lead" style="left:800px; top:40px; width:540px;">
+    {t.lead}
+  </h2>
+
+  {
+    CARDS.map((card) => (
+      <a
+        class="canvas-node persona-card"
+        data-node={`role-${card.role}`}
+        style={boxStyle(`role-${card.role}`)}
+        href={withBase(isEn ? `en/${card.role}/` : `${card.role}/`)}
+        data-persona={card.role}
+        data-source="gate"
+        data-continue={`${t.continueAs} ${card.label}`}
+      >
+        <span class="persona-card-eyebrow">{card.label}</span>
+        <span class="persona-card-title">{card.title}</span>
+        <span class="persona-card-blurb">{card.blurb}</span>
+        <span class="persona-card-cta">{card.cta} →</span>
+      </a>
+    ))
+  }
+
+  {/* Placed in the left column's free space below the CTAs, so unhiding it does
+      not land it on top of another node. */}
+  <p class="audience-note canvas-node" data-persona-continue style="left:80px; top:600px; width:620px;" hidden></p>
+
+  <a
+    class="canvas-node persona-all"
+    data-node="projects-all"
+    style={boxStyle('projects-all')}
+    href={withBase(isEn ? 'en/projects/' : 'projects/')}>{t.showAll}</a
+  >
+</CanvasStage>
+
+<style>
+  .canvas-node {
+    position: absolute;
+    margin: 0;
+  }
+  .persona-claim {
+    max-inline-size: 62ch;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+  .canvas-actions {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+  }
+  .canvas-lead {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+  .persona-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(
+      180deg,
+      var(--surface-secondary),
+      color-mix(in srgb, var(--surface-secondary) 86%, var(--background-secondary))
+    );
+    color: inherit;
+    text-decoration: none;
+    overflow: hidden;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .persona-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    block-size: 2px;
+    background: var(--border-active);
+    opacity: 0.4;
+    transition: opacity 0.15s ease;
+  }
+  .persona-card:hover,
+  .persona-card:focus-visible {
+    border-color: var(--border-active);
+    box-shadow: 0 8px 24px -10px var(--shadow-color);
+  }
+  .persona-card:hover::before,
+  .persona-card:focus-visible::before {
+    opacity: 1;
+  }
+  .persona-card:focus-visible {
+    outline: 2px solid var(--border-active);
+    outline-offset: 2px;
+  }
+  .persona-card.is-stored,
+  .persona-card.is-suggested {
+    border-color: var(--border-active);
+  }
+  .persona-card.is-stored::before,
+  .persona-card.is-suggested::before {
+    opacity: 1;
+  }
+  .persona-card-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .persona-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+  .persona-card-blurb {
+    flex: 1;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+  .persona-card-cta {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-color);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .persona-card:hover .persona-card-cta,
+  .persona-card:focus-visible .persona-card-cta {
+    color: var(--text-accent);
+  }
+  .persona-all {
+    align-self: flex-start;
+    font-size: 0.9375rem;
+  }
+  /* Below the fit threshold the stage goes static, so the nodes must too: they
+     stop being absolutely positioned and flow in reading order. */
+  @media (max-width: 899px) {
+    .canvas-node {
+      position: static;
+      inset: auto;
+      inline-size: auto;
+      min-block-size: 0;
+    }
+    .canvas-lead {
+      margin-block-start: var(--space-6);
+    }
+    .persona-claim,
+    .persona-all {
+      margin-block-start: var(--space-4);
+    }
+    .persona-card {
+      margin-block-start: var(--space-4);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .persona-card,
+    .persona-card::before {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { firstTouch, readAudience, track, writeAudience, type ReferrerClass } from '../lib/analytics';
+  import type { Audience } from '../lib/projects';
+
+  // Referrer → the entry most visitors from that source actually want. GitHub
+  // traffic is analysts and engineers, LinkedIn is recruiters. `google`, `other`
+  // and `direct` get no hint — the hero stays neutral rather than guessing.
+  const REFERRER_ROLE: Partial<Record<ReferrerClass, Audience>> = {
+    github: 'colleague',
+    linkedin: 'hr',
+  };
+
+  const root = document.querySelector<HTMLElement>('.canvas-nodes');
+  if (root) {
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'ru';
+    const stored = readAudience();
+    // The visitor's own pick outranks the source guess: a returning recruiter who
+    // happened to arrive from GitHub still gets `hr`. The guess only fills the gap
+    // where there is no choice to honour (Q11 — neither redirects).
+    const suggested = stored ? null : (REFERRER_ROLE[firstTouch().referrer_class] ?? null);
+    const highlighted = stored ?? suggested;
+
+    if (highlighted) {
+      const card = root.querySelector<HTMLElement>(`[data-persona="${highlighted}"]`);
+      card?.classList.add(stored ? 'is-stored' : 'is-suggested');
+      const note = root.querySelector<HTMLElement>('[data-persona-continue]');
+      // Only a real, stored choice gets the "continue as …" line — a source guess
+      // is a suggestion, and claiming continuity the visitor never chose would be
+      // a lie in the UI.
+      if (note && card && stored) {
+        note.hidden = false;
+        note.textContent = card.dataset.continue || '';
+      }
+    }
+
+    track('persona_gate_view', { lang, has_stored_choice: Boolean(stored) });
+
+    // Exposure — the denominator of the exposure→click rate (D3). Fired once per
+    // load, unconditionally: a rate whose denominator only counts some views is
+    // not a rate.
+    const primaryCta = root.querySelector<HTMLElement>('[data-analytics="booking_click"]');
+    if (primaryCta) track('cta_exposure', { surface: 'home_hero', lang });
+
+    // No preventDefault: the write and the capture both run before the plain
+    // `<a href>` navigation commits.
+    for (const card of root.querySelectorAll<HTMLElement>('[data-persona]')) {
+      card.addEventListener('click', () => {
+        const persona = card.dataset.persona as Audience;
+        writeAudience(persona);
+        track('persona_selected', { persona, lang, source: 'gate' });
+      });
+    }
+  }
+</script>
