@@ -75,11 +75,17 @@ const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string
   },
 ];
 
-/** `style` for one node, from its layout box. */
+/** `style` for one node, from its layout box.
+ *
+ * The size goes out as custom properties, never as `width` / `min-height`
+ * declarations: an inline declaration out-ranks every stylesheet rule, so the
+ * stacked fallback in global.css could not clear it and `/` stayed 620px wide
+ * on a 375px phone (PRD §14.1). As a variable it is just a value the stylesheet
+ * reads — clearing it costs one ordinary rule. */
 const boxStyle = (id: string): string => {
   const b = NODES.find((n) => n.id === id);
   if (!b) throw new Error(`PersonaCanvas: no layout box for "${id}"`);
-  return `left:${b.x}px; top:${b.y}px; width:${b.w}px; min-height:${b.h}px;`;
+  return `left:${b.x}px; top:${b.y}px; --box-w:${b.w}px; --box-h:${b.h}px;`;
 };
 ---
 
@@ -110,7 +116,7 @@ const boxStyle = (id: string): string => {
   {/* The fork's lead-in. It carries no `data-node`: it is a label for the three
       cards below, not a destination, so it needs no layout box — and reusing
       `role-hr` here would make Task 7's "every node exactly once" fail. */}
-  <h2 class="canvas-node canvas-lead" style="left:800px; top:40px; width:540px;">
+  <h2 class="canvas-node canvas-lead" style="left:800px; top:40px; --box-w:540px;">
     {t.lead}
   </h2>
 
@@ -135,7 +141,7 @@ const boxStyle = (id: string): string => {
 
   {/* Placed in the left column's free space below the CTAs, so unhiding it does
       not land it on top of another node. */}
-  <p class="audience-note canvas-node" data-persona-continue style="left:80px; top:600px; width:620px;" hidden></p>
+  <p class="audience-note canvas-node" data-persona-continue style="left:80px; top:600px; --box-w:620px;" hidden></p>
 
   <a
     class="canvas-node persona-all"
@@ -149,6 +155,11 @@ const boxStyle = (id: string): string => {
   .canvas-node {
     position: absolute;
     margin: 0;
+    /* The size is a variable, not a declaration, so the stacked reset below
+       (and global.css's `html.canvas-static` twin) clears it with an ordinary
+       rule. Both fallbacks are for a node added without a layout box. */
+    inline-size: var(--box-w, auto);
+    min-block-size: var(--box-h, 0);
   }
   .persona-claim {
     max-inline-size: 62ch;
@@ -247,7 +258,12 @@ const boxStyle = (id: string): string => {
     font-size: 0.9375rem;
   }
   /* Below the fit threshold the stage goes static, so the nodes must too: they
-     stop being absolutely positioned and flow in reading order. */
+     stop being absolutely positioned and flow in reading order. `inline-size`
+     and `min-block-size` here override the variable-reading base rule on equal
+     specificity + later source order — the `left`/`top` are left alone because
+     `position: static` already makes them inert. Must stay in step with the
+     `html.canvas-static` twin in global.css; tests/built/canvas.test.ts binds
+     the two lists against each other. */
   @media (max-width: 899px) {
     .canvas-node {
       position: static;

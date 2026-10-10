@@ -302,3 +302,102 @@ it('puts the resting border of the interactive nodes on --border-active', () => 
     }
   }
 });
+
+// ── Mobile width contract (PRD §14.1) ────────────────────────────────────────
+// `/` measured 635px wide on a 375, 390 and 412px phone. Every node's size was
+// an inline `width: 620px` / `540px` declaration, and an inline declaration
+// out-ranks *every* stylesheet rule — so the stacked fallback's `inline-size:
+// auto`, however specific, never applied and the board kept its world width.
+//
+// The fix moves the size into the `--box-w` / `--box-h` custom properties that
+// the stylesheet reads, so clearing it costs one ordinary rule. These assertions
+// bind the root cause rather than the symptom: no node writes a size inline, the
+// base rule reads the variable, and the reset that clears it out-ranks that
+// base. A node re-adding an inline `width` fails the first one.
+
+/** Every rule the built site ships — `_astro/*.css` plus any `<style>` inlined
+ * into a page, since Astro decides per build which of the two a scoped block
+ * becomes. */
+/** Whitespace-insensitive: the build minifies CSS, so `inline-size: auto`
+ * arrives as `inline-size:auto`. */
+const flat = (s: string): string => s.replace(/\s+/g, '');
+
+const allRules = (): { selector: string; body: string; file: string }[] => {
+  const out = cssRules();
+  for (const { file } of PAGES) {
+    for (const block of html.get(file)!.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
+      for (const r of block[1].matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        out.push({ selector: r[1].trim(), body: r[2].trim(), file: `${file} <style>` });
+      }
+    }
+  }
+  return out;
+};
+
+it('writes no node size inline, so the stacked reset can always win', () => {
+  for (const { file } of PAGES) {
+    const tags = [...html.get(file)!.matchAll(/<[^>]*\bclass="[^"]*\bcanvas-node\b[^"]*"[^>]*>/g)].map(
+      (m) => m[0]
+    );
+    expect(tags.length, `${file}: no .canvas-node elements in the built HTML`).toBeGreaterThan(0);
+    for (const tag of tags) {
+      const style = tag.match(/\bstyle="([^"]*)"/)?.[1] ?? '';
+      expect(
+        style,
+        `${file}: a node declares its width inline — an inline declaration out-ranks the stacked reset: ${tag}`
+      ).not.toMatch(/(?:^|;)\s*(?:inline-size|width)\s*:/);
+      expect(
+        style,
+        `${file}: a node declares its height inline — an inline declaration out-ranks the stacked reset: ${tag}`
+      ).not.toMatch(/(?:^|;)\s*(?:min-block-size|min-height)\s*:/);
+    }
+  }
+});
+
+it('stacks the nodes with a reset that out-ranks the variable-reading base', () => {
+  const all = allRules();
+  const base = all.filter(
+    (r) => r.selector.includes('.canvas-node') && flat(r.body).includes('inline-size:var(--box-w')
+  );
+  const reset = all.filter(
+    (r) =>
+      r.selector.includes('canvas-static') &&
+      r.selector.includes('.canvas-node') &&
+      flat(r.body).includes('inline-size:auto')
+  );
+  expect(base.length, 'no .canvas-node rule reads --box-w in the built CSS').toBeGreaterThan(0);
+  expect(reset.length, 'no html.canvas-static .canvas-node reset in the built CSS').toBeGreaterThan(0);
+  for (const r of reset) {
+    expect(
+      beats(specificity(r.selector.split(',')[0]), maxSpec(base)),
+      `${r.file}: ${r.selector} does not out-rank the --box-w base rule`
+    ).toBe(true);
+  }
+});
+
+it('keeps the two stacked-reset lists in step', () => {
+  const all = allRules();
+  const decls = (body: string): string[] =>
+    body
+      .split(';')
+      .map((s) => s.replace(/\s*:\s*/g, ':').replace(/\s+/g, ' ').trim())
+      .filter(Boolean)
+      .sort();
+  const resets = all.filter(
+    (r) => r.selector.includes('.canvas-node') && flat(r.body).includes('inline-size:auto')
+  );
+  const staticReset = resets.filter((r) => r.selector.includes('canvas-static'));
+  const thresholdReset = resets.filter((r) => !r.selector.includes('canvas-static'));
+  expect(staticReset.length, 'no html.canvas-static .canvas-node reset').toBeGreaterThan(0);
+  expect(
+    thresholdReset.length,
+    'no `max-width: 899px` .canvas-node reset'
+  ).toBeGreaterThan(0);
+  const reference = decls(staticReset[0].body);
+  for (const r of [...staticReset, ...thresholdReset]) {
+    expect(
+      decls(r.body),
+      `${r.file}: ${r.selector} has drifted from the shared stacked-reset list`
+    ).toEqual(reference);
+  }
+});

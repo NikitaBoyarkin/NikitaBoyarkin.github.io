@@ -3878,7 +3878,13 @@ html.canvas-static .canvas-controls {
    `max-width: 899px` query, which a not-live canvas at a *wide* viewport never
    reaches — without them the viewport collapses to zero height and the
    absolutely-positioned nodes spill out of it. Same declarations, same values;
-   the two lists have to stay in step. */
+   the two lists have to stay in step (tests/built/canvas.test.ts compares them).
+
+   These win without `!important` because the node's size arrives as the
+   `--box-w`/`--box-h` custom properties, not as inline `width`/`min-height`
+   declarations: `html.canvas-static .canvas-node` is 0,2,1 against the scoped
+   0,2,0 base rule that reads the variable. An inline `width` would out-rank
+   both and leave `/` 635px wide on a 375px phone (PRD §14.1). */
 html.canvas-static .canvas-node {
   position: static;
   inset: auto;
