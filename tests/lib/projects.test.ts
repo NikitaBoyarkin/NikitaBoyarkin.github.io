@@ -187,15 +187,16 @@ describe('ROLE_CURATION', () => {
     }
   });
 
-  it('keeps manager inside its size band, and reads the whole catalogue for hr and colleague', () => {
-    // HR used to be a 5–6 slug subset like the manager's. It is not any more:
-    // the HR landing renders the catalogue chronologically (`ProjectList` +
-    // `groupByYear`), so a curated subset would only hide the timeline. The
-    // claim moved with the behaviour instead of being deleted.
-    expect(ROLE_CURATION.hr).toEqual(PROJECT_ORDER);
-    expect(ROLE_CURATION.manager.length).toBeGreaterThanOrEqual(8);
-    expect(ROLE_CURATION.manager.length).toBeLessThanOrEqual(10);
-    expect(ROLE_CURATION.colleague).toEqual(PROJECT_ORDER);
+  it('reads the whole catalogue for every role', () => {
+    // No role is curated any more. HR stopped being a 5–6 slug subset when its
+    // landing moved to a chronological list (`ProjectList` + `groupByYear`); the
+    // manager stopped being an 8–10 one on 2026-10-11. All three landings now
+    // read the whole catalogue — HR as a list, the other two as the board. The
+    // claim moved with the behaviour instead of being deleted, so reintroducing
+    // a subset turns this red.
+    for (const role of AUDIENCES) {
+      expect(ROLE_CURATION[role], `${role} is still curated`).toEqual(PROJECT_ORDER);
+    }
   });
 
   it('gives every role a copy entry in both locales', () => {

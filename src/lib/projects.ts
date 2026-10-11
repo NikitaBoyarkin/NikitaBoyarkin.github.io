@@ -30,14 +30,14 @@ export const DEFAULT_AUDIENCE: Audience = 'colleague';
 /**
  * Project subset per role (PRD §7). Slugs must exist in `PROJECT_ORDER`; the
  * order inside a subset is this array's order, which is what the role page
- * renders — a shorter board, not a re-sorted one. `colleague` is the whole
- * catalogue, so it never rots when a project is added.
+ * renders — a shorter board, not a re-sorted one.
  *
- * `hr` is the whole catalogue too, but for a different reason: the HR landing
- * renders it chronologically (`ProjectList.astro`, `groupByYear`), so a curated
- * subset would only hide the timeline a screening reader came for. The key
- * stays in the record to keep it total; `RoleLanding` reads it for the board
- * roles only.
+ * No role is curated any more (2026-10-11). A role is an angle on the
+ * portfolio, not a filter over it, so no version hides a project. The key
+ * survives as the one place the three roles are enumerated: `RoleLanding`
+ * renders `hr` chronologically (`ProjectList.astro`, `groupByYear`) and hands
+ * the key to `ProjectBoard` as its `slugs` prop for `manager`/`colleague` —
+ * `PROJECT_ORDER` in all three cases, so nothing rots when a project is added.
  *
  * Validity is bound by `tests/lib/projects.test.ts`, not by the type system:
  * `PROJECT_ORDER` is a plain `string[]`, and `as const` would force casts at
@@ -46,7 +46,7 @@ export const DEFAULT_AUDIENCE: Audience = 'colleague';
  */
 export const ROLE_CURATION: Record<Audience, readonly string[]> = {
   hr: PROJECT_ORDER,
-  manager: ['volta', 'cohort', 'sql', 'causal', 'rag', 'churn', 'rfm', 'supabase', 'posthog', 'site'],
+  manager: PROJECT_ORDER,
   colleague: PROJECT_ORDER,
 };
 
