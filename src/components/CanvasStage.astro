@@ -278,35 +278,49 @@ const fitData = {
     position: absolute;
     inset: 0;
   }
+  /* The three canvas buttons now follow the graph page's control idiom
+     (`.kg-btn` in KnowledgeGraph.astro): a 2rem square on `--background-primary`,
+     hairline border, small radius, accent on hover. They used to be 44px squares
+     on `--surface-secondary` — the token global.css reserves for the large 30%
+     surfaces — so three pieces of chrome read as a slab, and the same control did
+     not look alike on `/graph/` and on the landing canvas.
+     Not a tap-target regression: the canvas is live only at >=900px, where both
+     `html.canvas-static` and PersonaCanvas's `max-width: 899px` query hide this
+     group. (The old `--text-primary` here was defined in no theme — global.css
+     declares `--text-normal` — so the glyph colour used to inherit from <body>
+     by accident; it is explicit now.) */
   .canvas-controls {
     position: absolute;
     inset-block-end: var(--space-5);
     inset-inline-end: var(--space-5);
     display: flex;
-    gap: var(--space-2);
+    gap: 0.35rem;
     z-index: 2;
   }
   .canvas-controls button {
-    min-inline-size: 44px;
-    min-block-size: 44px;
+    inline-size: 2rem;
+    block-size: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    background: var(--surface-secondary);
-    /* `--text-primary` is defined in no theme (global.css declares
-       `--text-normal`), so this colour silently inherited from <body> instead of
-       being token-driven — the glyphs only looked right by accident. */
+    border-radius: var(--radius-sm);
+    background: var(--background-primary);
     color: var(--text-normal);
     font-size: 1rem;
     line-height: 1;
     cursor: pointer;
+    transition:
+      color 0.15s ease,
+      border-color 0.15s ease;
   }
   .canvas-controls button:hover,
   .canvas-controls button:focus-visible {
-    border-color: var(--border-active);
+    border-color: var(--text-accent);
     color: var(--text-accent);
   }
   .canvas-controls button:focus-visible {
-    outline: 2px solid var(--border-active);
+    outline: 2px solid var(--text-accent);
     outline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {

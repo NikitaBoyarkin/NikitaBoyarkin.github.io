@@ -53,7 +53,7 @@ These keep their historical names (they are the slider for the "hard naming" cas
 | `bento_stack`, `bento_graph`, `bento_notes` | `index.astro` / `en/index.astro` |
 | `cv_download_pdf` | every "CV" button: `Base.astro` nav chips + nav rail, hero, `contact.astro` / `en/contact.astro` |
 | `telegram_contact`, `telegram_deeplink`, `telegram_footer` | `contact.astro`, `Base.astro` nav chips |
-| `github_footer`, `linkedin_footer`, `writing_footer` | `Base.astro` nav chips (moved out of the footer 2026-10-10; the `_footer` suffix is kept so the PostHog series does not split) |
+| `github_footer`, `linkedin_footer` | `Base.astro` nav chips (moved out of the footer 2026-10-10; the `_footer` suffix is kept so the PostHog series does not split) |
 | `value_cta`, `value_github` | `ValueOffers.astro` on `/about#value` |
 | `work_with_me_cta`, `whois_cta` | `about.astro` / `en/about.astro` |
 | `search_open` | `SearchBox.astro` |
@@ -99,6 +99,7 @@ tracking off; PRD Phase A4).
 | `hero_projects`, `hero_contact` | removed | never wired; `HeroCta.astro` deleted with the A/B test (2026-09-27). Live hero CTAs: `featured_project`, `featured_demo`, `featured_github` |
 | `hero_cv`, `cv_footer`, `cv_pdf_footer`, `cv_source_github` | removed | CV unified into one "CV" download button → `cv_download_pdf` (2026-09-19); `/cv/` page deleted |
 | `projects_shuffle` | removed | "Shuffle" button deleted with the category-view rewrite (2026-09-21); random order fought `PROJECT_ORDER` |
+| `writing_footer` | removed | the "Статьи" header chip was deleted 2026-10-11 on the owner's call. `/writing/` moved into the drawer's link list (no event, like the other five nav links) and stays reachable from the homepage bento (`bento_writing`) and from post pages |
 
 Historical rows for every retired/removed event stay in PostHog and must not be
 deleted (PRD §0 rule 3).

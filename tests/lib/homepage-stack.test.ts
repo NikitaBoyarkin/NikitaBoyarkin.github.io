@@ -1,10 +1,9 @@
 // Stack card vs /about#stack.
 //
-// The card is a condensed view of the about page's stack section: the card
-// carries a subset of the same skills, grouped the same way, in both locales.
-// Nothing in the build ties the two together — edit one and the other silently
-// drifts — so this file binds the relation. It is deliberately a *subset*, not
-// equality: /about may list more (AA-tests, pandas, RFM) than the card shows.
+// The card mirrors the about page's stack section: the same groups, the same
+// skills, in both locales. Nothing in the build ties the two together — edit
+// one and the other silently drifts — so this file binds the relation. The
+// chip check stays a *subset*: /about may list more than the card shows.
 //
 // Drift it catches: a chip on the card that names a skill the about page never
 // declares, or a RU/EN card that stops matching its counterpart.
@@ -51,6 +50,24 @@ function badgesIn(rel: string): string[] {
   );
 }
 
+/** One locale's group headings — the structural half of the parity claim. */
+function groupsIn(lang: Lang): string[] {
+  return [...branch(lang).matchAll(/class="stack-group-name">([^<{]+)<\/span>/g)].map((m) =>
+    m[1].trim()
+  );
+}
+
+/**
+ * The chip labels /about#stack translates. The card mirrors /about label for
+ * label, so the two branches differ by exactly these; comparing raw strings
+ * would report them as drift.
+ */
+const LOCALISED: Record<string, string> = {
+  визуализация: 'visualization',
+  'когортный анализ': 'cohort analysis',
+  'retention-кривые': 'retention curves',
+};
+
 describe('Stack card vs /about#stack', () => {
   it('extracts both lists — a parser that returned [] would make the rest vacuous', () => {
     for (const lang of LANGS) {
@@ -70,8 +87,18 @@ describe('Stack card vs /about#stack', () => {
     }
   });
 
-  it('keeps the two locale branches on the same chip set', () => {
-    const set = (lang: Lang) => [...new Set(chipsIn(lang))].sort();
-    expect(set('ru')).toEqual(set('en'));
+  it('keeps the two locale branches in step, allowing for the translated labels', () => {
+    const ru = chipsIn('ru');
+    const en = chipsIn('en');
+    // Pin the map to the branches first: a renamed chip would otherwise leave
+    // the comparison below passing while the pair quietly covered nothing.
+    for (const [ruLabel, enLabel] of Object.entries(LOCALISED)) {
+      expect(ru, `ru branch lost "${ruLabel}"`).toContain(ruLabel);
+      expect(en, `en branch lost "${enLabel}"`).toContain(enLabel);
+    }
+    const normalise = (chips: string[]) =>
+      [...new Set(chips.map((chip) => LOCALISED[chip] ?? chip))].sort();
+    expect(normalise(ru)).toEqual(normalise(en));
+    expect(groupsIn('ru').length, 'group count').toBe(groupsIn('en').length);
   });
 });

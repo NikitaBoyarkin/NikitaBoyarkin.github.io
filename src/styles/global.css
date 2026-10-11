@@ -372,35 +372,44 @@ p {
   background: var(--home-board-bg);
 }
 
-/* Role switcher — the strip under the nav on the three role landings
+/* Role switcher — the strip above the hero on the three role landings
    (/hr/, /manager/, /colleague/ and their EN mirrors), per
    `docs/prd-persona-landing.md` §10.
 
-   The class name is inherited from the 60-30-10 pass, which shipped only media
-   queries keyed to the old hero-sibling placement and never a base rule; this
-   writes the missing base and the queries below now key off `.audience-bar`
-   alone (the gate has no hero sibling for the bar to sit after). A role
-   switch is chrome, not content: secondary surface, small type, one row. */
+   The class name is inherited from the 60-30-10 pass, whose rules were sized
+   for a placement this bar no longer has: a full-bleed `--surface-secondary`
+   band, two to three rems tall on desktop, keyed to a sibling of the home hero.
+   The gate ships no bar at all, so those rules only ever inflated the role
+   landings — a slab that reads as a section, not as chrome. They are gone. The
+   bar now shares the content column's edges and rides on a hairline, the same
+   treatment the year headings on `/hr/` use. */
 .audience-bar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-4);
-  padding-block: var(--space-3);
-  padding-inline: var(--space-4);
-  background: var(--surface-secondary);
-  font-size: 0.875rem;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-6);
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding: var(--space-4) var(--page-pad);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
 }
 .audience-bar-current {
+  color: var(--text-normal);
+}
+.audience-bar-current strong {
   font-weight: 600;
 }
 .audience-bar-links {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-4);
-  margin-inline-start: auto;
 }
 .audience-bar-links a {
-  color: inherit;
+  color: var(--text-accent);
   text-decoration: none;
   border-bottom: 1px solid transparent;
 }
@@ -420,10 +429,6 @@ p {
 @media (max-width: 767px) {
   /* Mobile: narrow the audience bar and shrink the home-board band so less
      30% surface area competes with the text bucket on small screens. */
-  .audience-bar {
-    max-width: min(220px, 84vw);
-    margin-inline: auto;
-  }
   .home-board {
     padding-block: 0;
   }
@@ -433,18 +438,12 @@ p {
   /* Tablet: a large secondary band above the board pushes the dominant
      snap-scroll column out of the initial viewport so the 60% bucket
      stays within budget. */
-  .audience-bar {
-    padding-block: var(--space-12);
-  }
   .home-board {
     padding-block: 2.5rem;
   }
 }
 
 @media (min-width: 1100px) {
-  .audience-bar {
-    padding-block: var(--space-8);
-  }
   .home-board {
     padding-block: 3rem;
   }
@@ -636,9 +635,25 @@ nav ul.links {
   gap: var(--space-1);
 }
 
-/* Full-width hit area — the rail reads as a list of rows, not a pill row. */
+/* Full-width hit area — the rail reads as a list of rows, not a pill row. The
+   glyph and the label share one flex row, so the icons stack in a column whatever
+   the label lengths are. */
 nav ul.links a {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* The glyph rides the row's colour (currentColor) and only steps back in
+   weight, so hover/current need no second rule for it. */
+nav ul.links .link-icon {
+  flex: none;
+  opacity: 0.7;
+}
+
+nav ul.links a:hover .link-icon,
+nav ul.links a[aria-current="page"] .link-icon {
+  opacity: 1;
 }
 
 nav ul.links a {

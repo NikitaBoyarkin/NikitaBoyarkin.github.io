@@ -7,7 +7,6 @@
 import { getCollection } from 'astro:content';
 import HeroAvatar from './HeroAvatar.astro';
 import HeroMetrics from './HeroMetrics.astro';
-import ContactForm from './ContactForm.astro';
 import GithubActivity from './GithubActivity.astro';
 import KnowledgeGraph from './KnowledgeGraph.astro';
 import ProjectBoard from './ProjectBoard.astro';
@@ -181,12 +180,8 @@ const t = {
   </>
 )}
 
-{/* PRD §8 lists ContactForm on all three versions. HR is the exception: a
-    screening reader came for the role, the stack and the CV, and the footer
-    already carries a contact affordance. Dropping it here also removes the
-    duplicate `id="contact"` — `Base.astro` ships one on `<footer>`. */}
-{role !== 'hr' && (
-  <section id="contact" class="reveal">
-    <ContactForm locale={lang} />
-  </section>
-)}
+{/* PRD §8 listed ContactForm on all three versions; no role page carries one
+    now. Every reader — the screening HR, the hiring manager, the colleague —
+    leaves through the footer, which already owns `id="contact"` and the contact
+    affordances, so a page-level copy only duplicated that id and stacked a
+    second form under the board. The form itself is untouched on `/contact/`. */}

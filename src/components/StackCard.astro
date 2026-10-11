@@ -1,11 +1,19 @@
 ---
-// Stack bento — the condensed "what I work with" cell. Extracted from the old
+// Stack bento — the "what I work with" cell. Extracted from the old
 // `pages/index.astro`, which held it inline for one page; the role landings and
 // the gate's colleague branch would otherwise carry six copies of the same
 // markup. The chip literals stay literal (not looped from a data module)
 // because `tests/lib/homepage-stack.test.ts` binds them to the skill badges on
 // /about#stack by reading this file — the `stack:ru|en` markers below are that
 // test's anchor.
+//
+// All five groups of the /about#stack taxonomy. The card used to be a
+// three-group digest; on the HR landing the stack is one of the two formal
+// signals a screening reader looks for (the other is the CV), so a digest left
+// them without the thing they came for. Three labels /about localises —
+// visualization, cohort analysis, retention curves — are localised here too,
+// which is why the parity test carries an explicit pair map rather than a plain
+// set comparison.
 import { withBase } from '../lib/path';
 
 interface Props {
@@ -27,16 +35,35 @@ const isEn = lang === 'en';
               <span class="stack-group-name">Analysis</span>
               <span class="bento-chip">SQL</span>
               <span class="bento-chip">Python</span>
+              <span class="bento-chip">pandas</span>
+              <span class="bento-chip">scikit-learn</span>
               <span class="bento-chip">DuckDB</span>
+              <span class="bento-chip">visualization</span>
+            </div>
+            <div class="stack-group">
+              <span class="stack-group-name">Visualization</span>
+              <span class="bento-chip">Plotly</span>
+              <span class="bento-chip">Tableau</span>
+              <span class="bento-chip">Superset</span>
+              <span class="bento-chip">Astro</span>
             </div>
             <div class="stack-group">
               <span class="stack-group-name">Experiments</span>
               <span class="bento-chip">A/B</span>
+              <span class="bento-chip">AA-tests</span>
               <span class="bento-chip">Causal Inference</span>
+            </div>
+            <div class="stack-group">
+              <span class="stack-group-name">Retention and segmentation</span>
+              <span class="bento-chip">cohort analysis</span>
+              <span class="bento-chip">retention curves</span>
+              <span class="bento-chip">RFM</span>
             </div>
             <div class="stack-group">
               <span class="stack-group-name">Infra</span>
               <span class="bento-chip">GitHub Actions</span>
+              <span class="bento-chip">Docker</span>
+              <span class="bento-chip">Airflow</span>
               <span class="bento-chip">Supabase</span>
               <span class="bento-chip">PostHog</span>
             </div>
@@ -49,16 +76,35 @@ const isEn = lang === 'en';
               <span class="stack-group-name">Анализ</span>
               <span class="bento-chip">SQL</span>
               <span class="bento-chip">Python</span>
+              <span class="bento-chip">pandas</span>
+              <span class="bento-chip">scikit-learn</span>
               <span class="bento-chip">DuckDB</span>
+              <span class="bento-chip">визуализация</span>
+            </div>
+            <div class="stack-group">
+              <span class="stack-group-name">Визуализация</span>
+              <span class="bento-chip">Plotly</span>
+              <span class="bento-chip">Tableau</span>
+              <span class="bento-chip">Superset</span>
+              <span class="bento-chip">Astro</span>
             </div>
             <div class="stack-group">
               <span class="stack-group-name">Эксперименты</span>
               <span class="bento-chip">A/B</span>
+              <span class="bento-chip">AA-tests</span>
               <span class="bento-chip">Causal Inference</span>
+            </div>
+            <div class="stack-group">
+              <span class="stack-group-name">Удержание и сегментация</span>
+              <span class="bento-chip">когортный анализ</span>
+              <span class="bento-chip">retention-кривые</span>
+              <span class="bento-chip">RFM</span>
             </div>
             <div class="stack-group">
               <span class="stack-group-name">Инфра</span>
               <span class="bento-chip">GitHub Actions</span>
+              <span class="bento-chip">Docker</span>
+              <span class="bento-chip">Airflow</span>
               <span class="bento-chip">Supabase</span>
               <span class="bento-chip">PostHog</span>
             </div>

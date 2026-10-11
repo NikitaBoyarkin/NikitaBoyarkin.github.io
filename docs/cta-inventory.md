@@ -10,7 +10,7 @@
 | 2 | Hero (index, RU+EN) | «Скачать CV (PDF)» + «Контакты» | `cv_download_pdf` (Контакты — без события) | `CV-Nikita-Boyarkin.pdf` · `contact/` |
 | 3 | Featured card (index) | «Разбор проекта» / «Демо» / «GitHub» | `featured_project` / `featured_demo` / `featured_github` | внутренний + внешние |
 | 4 | Header nav | чипы у бренда: CV (залитый) + рейл ≥1860px | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
-| 5 | Header nav (чипы у бренда) — **переехало из футера 2026-10-10** | GitHub · LinkedIn · Telegram · CV · Writing | `github_footer` / `linkedin_footer` / `telegram_footer` / `cv_download_pdf` / `writing_footer` | внешние + внутренние |
+| 5 | Header nav (чипы у бренда) — **переехало из футера 2026-10-10** | GitHub · LinkedIn · Telegram · CV | `github_footer` / `linkedin_footer` / `telegram_footer` / `cv_download_pdf` | внешние + внутренние |
 | 6 | ~~HomeBoard (главная)~~ — **удалён 2026-09-27** | — | `telegram_board` / `github_board` / `linkedin_board` — 0 вхождений в `src/` и `public/` | — |
 | 7 | contact.astro | «Telegram: @lofinibo» | `telegram_contact` | `t.me/lofinibo` |
 | 8 | contact.astro | «Написать с контекстом →» | `telegram_deeplink` | tg deep-link |
@@ -28,6 +28,12 @@
 | 20 | contact.astro (форма, RU+EN) | «Отправить» / «Send» | `contact_submit` (успех); `contact_form_error` с `reason` при отказе | `POST {CONTACT_ENDPOINT}` (Supabase Edge Function `contact`) |
 | 21 | contact.astro (под формой, RU+EN) | «Записаться на 30 минут» / «Book 30 minutes» | `booking_click` | `CAL_BOOKING_URL` (Cal.com) |
 | 22 | ~~Header nav (Base.astro, RU+EN)~~ — **удалён 2026-10-10** | — | `booking_click` — остаётся только строка 21 (`/contact`) | — |
+| 23 | Боковая навигация (drawer `nav ul.links`, Base.astro, RU+EN) | Проекты · Обо мне · Словарь · Граф · Библиотека · **Статьи** (2026-10-11) | — (без `data-analytics`, как у остальных ссылок drawer'а) | внутренние |
+
+> **«Статьи»: чип → навигация, 2026-10-11.** Чип убран из ряда бренд-чипов (вместе с ним ушёл
+> `writing_footer`, см. `analytics-events.md` §4) и вернулся ссылкой в боковую навигацию — рядом
+> с остальными внутренними разделами, без события. У всех шести ссылок drawer'а теперь иконка
+> (`nav ul.links .link-icon`).
 
 После 2026-10-10 кнопка записи через cal.com убрана с главной, рельса и nav: единственный
 `booking_click` — строка 21 (`/contact` и `/en/contact`). Событие осталось неразделённым,
