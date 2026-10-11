@@ -50,9 +50,13 @@ function badgesIn(rel: string): string[] {
   );
 }
 
-/** One locale's group headings — the structural half of the parity claim. */
+/**
+ * One locale's group headings — the structural half of the parity claim. The
+ * card renders each category as its own cell, so the heading is the card's
+ * `bento-cell-title`; it used to be a `stack-group-name` span inside one cell.
+ */
 function groupsIn(lang: Lang): string[] {
-  return [...branch(lang).matchAll(/class="stack-group-name">([^<{]+)<\/span>/g)].map((m) =>
+  return [...branch(lang).matchAll(/class="bento-cell-title">([^<{]+)<\/h3>/g)].map((m) =>
     m[1].trim()
   );
 }
@@ -72,6 +76,9 @@ describe('Stack card vs /about#stack', () => {
   it('extracts both lists — a parser that returned [] would make the rest vacuous', () => {
     for (const lang of LANGS) {
       expect(chipsIn(lang).length, `${lang}: card chips`).toBeGreaterThan(0);
+      // The group parser is the one that fails silently: its only other use is
+      // the count equality below, and [] === [] passes.
+      expect(groupsIn(lang).length, `${lang}: card groups`).toBeGreaterThan(0);
       expect(badgesIn(ABOUT[lang]).length, `${lang}: about badges`).toBeGreaterThan(0);
     }
   });

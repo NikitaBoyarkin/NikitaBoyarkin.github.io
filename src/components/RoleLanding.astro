@@ -1,12 +1,11 @@
 ---
 // Role landing — the shared body of `/hr/`, `/manager/` and `/colleague/`
 // (and their `/en/` twins), PRD §8. One component, three section matrices: the
-// differences are a role's curation, which optional blocks render, and the hero
-// copy. The route files stay thin wrappers so the head (`<title>`, canonical,
-// `preloadImage`) and the body cannot drift.
+// differences are a role's curation and which optional blocks render. The route
+// files stay thin wrappers so the head (`<title>`, canonical, `preloadImage`)
+// and the body cannot drift.
 import { getCollection } from 'astro:content';
 import HeroAvatar from './HeroAvatar.astro';
-import HeroMetrics from './HeroMetrics.astro';
 import GithubActivity from './GithubActivity.astro';
 import KnowledgeGraph from './KnowledgeGraph.astro';
 import ProjectBoard from './ProjectBoard.astro';
@@ -40,7 +39,6 @@ const featured = allProjects.find((p) => p.id === 'volta') ?? allProjects[0];
 const shelf = isColleague ? await loadFeaturedSources(lang, 3) : [];
 
 const t = {
-  cv: isEn ? 'Download CV (PDF)' : 'Скачать CV (PDF)',
   shelfHeading: isEn ? 'Library' : 'Библиотека',
   shelfLink: isEn ? 'All sources →' : 'Все источники →',
   writing: isEn ? 'Writing' : 'Статьи',
@@ -59,20 +57,6 @@ const t = {
     <div class="hero-body">
       {isColleague && <HeroAvatar lang={lang} />}
       <h1 class="hero-name">{copy.h1}</h1>
-      <p class="hero-role">{copy.role}</p>
-      <p class="hero-phd">{copy.phd}</p>
-
-      {role === 'hr' && (
-        <p class="hero-cv">
-          <a
-            class="button button-secondary"
-            href={withBase('CV-Nikita-Boyarkin.pdf')}
-            download
-            data-analytics="cv_download_pdf">{t.cv}</a>
-        </p>
-      )}
-
-      <HeroMetrics lang={lang} />
 
       <StackCard lang={lang} />
     </div>

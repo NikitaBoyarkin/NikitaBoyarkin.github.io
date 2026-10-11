@@ -62,16 +62,12 @@ export interface RoleCopy {
   description: string;
   /** The hero `<h1>`. */
   h1: string;
-  /** The role line under the name. */
-  role: string;
-  /** The one-line positioning statement. */
-  phd: string;
 }
 
 // Per-role copy for the three landings (PRD §8: HR reads role/stack, a manager
 // reads impact/decisions, a colleague reads how it is made). One record, read
-// by both the route wrapper (for the `<Base>` head) and `RoleLanding` (for the
-// hero) — the alternative duplicates every string across four files.
+// by the route wrappers for the `<Base>` head — the alternative duplicates every
+// string across six files.
 export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
   ru: {
     hr: {
@@ -79,24 +75,18 @@ export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
       description:
         'Продуктовый аналитик: 5 лет в исследованиях, SQL, Python, A/B-тесты. Стек, метрики и CV — для скрининга по вакансии.',
       h1: 'Продуктовый аналитик',
-      role: 'SQL · Python · A/B-тесты · retention',
-      phd: 'PhD по психологии труда. Ищу роль продуктового аналитика — данных и экспериментов.',
     },
     manager: {
       title: 'Никита Бояркин — продуктовый аналитик, результаты',
       description:
         'Кейсы продуктовой аналитики с результатом: +5,72 п.п. KYC-конверсии, retention, RFM-сегментация, CUPED, uplift.',
       h1: 'Продуктовый аналитик',
-      role: 'Решения по данным с измеримым эффектом',
-      phd: 'Считаю не отчёты, а решения: какой фикс включать, кого вернуть, где гипотеза не подтвердилась.',
     },
     colleague: {
       title: 'Никита Бояркин | Продуктовый аналитик',
       description:
         'Портфолио Никиты Бояркина — продуктовый аналитик. A/B-тесты и retention: SQL, Python, CUPED, воспроизводимая методология.',
       h1: 'Продуктовый аналитик',
-      role: 'A/B-тесты и retention',
-      phd: 'PhD по психологии труда — измеряю поведение и причинные эффекты, а не корреляции.',
     },
   },
   en: {
@@ -105,24 +95,18 @@ export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
       description:
         'Product analyst: 5 years in research, SQL, Python, A/B testing. Stack, metrics and CV — for screening against a vacancy.',
       h1: 'Product Analyst',
-      role: 'SQL · Python · A/B testing · retention',
-      phd: 'PhD in work psychology. Looking for a product analyst role — data and experiments.',
     },
     manager: {
       title: 'Nikita Boyarkin — Product Analyst, impact',
       description:
         'Product analytics cases with a result: +5.72 pp KYC conversion, retention, RFM segmentation, CUPED, uplift.',
       h1: 'Product Analyst',
-      role: 'Decisions from data, with a measurable effect',
-      phd: 'I ship decisions, not dashboards: which fix to switch on, whom to win back, where the hypothesis failed.',
     },
     colleague: {
       title: 'Nikita Boyarkin | Product Analyst',
       description:
         'Portfolio of Nikita Boyarkin — product analyst. A/B testing and retention: SQL, Python, CUPED, reproducible methodology.',
       h1: 'Product Analyst',
-      role: 'A/B Testing & Retention',
-      phd: 'PhD in work psychology — I measure behaviour and causal effects, not correlations.',
     },
   },
 };

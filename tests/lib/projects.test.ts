@@ -202,7 +202,7 @@ describe('ROLE_CURATION', () => {
     for (const lang of ['ru', 'en'] as const) {
       for (const role of AUDIENCES) {
         const copy = ROLE_COPY[lang][role];
-        for (const key of ['title', 'description', 'h1', 'role', 'phd'] as const) {
+        for (const key of ['title', 'description', 'h1'] as const) {
           expect(copy[key]?.length, `${lang}/${role}.${key} is empty`).toBeGreaterThan(0);
         }
       }

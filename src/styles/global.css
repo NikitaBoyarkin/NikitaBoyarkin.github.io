@@ -1206,6 +1206,28 @@ nav ul.links a[aria-current="page"] {
   gap: var(--space-2);
 }
 
+/* Stack mosaic: three columns, wide cells spanning two — Анализ | Визуализация,
+   Эксперименты | Удержание, Инфра. Declared after the `bento-spaced` overrides
+   at the same specificity, so it wins the one-cell-per-row reset above. The
+   child rules also need equal specificity, not less: `.bento-grid.bento-spaced
+   .bento-cell-wide` is what collapsed the spans. */
+.bento-grid.bento-mosaic {
+  grid-template-columns: repeat(3, 1fr);
+  /* A row of a mosaic shares its bottom edge — `start` (the grid default here)
+     left the short card in a row floating above its neighbour's baseline. */
+  align-items: stretch;
+}
+
+.bento-grid.bento-mosaic .bento-cell-wide {
+  grid-column: span 2;
+}
+
+/* The catalogue link sits outside the grid, where the cell rule's
+   `margin-top: auto` has no flex parent to push against. */
+.bento-grid.bento-mosaic ~ .bento-cell-link {
+  margin-top: var(--space-4);
+}
+
 .bento-cell {
   display: flex;
   flex-direction: column;
@@ -1474,6 +1496,11 @@ nav ul.links a[aria-current="page"] {
   .bento-cell-full {
     grid-column: span 2;
   }
+  /* The mosaic's 3 columns outrank the reset above, so it needs its own step
+     down. Wide cells stay spanning 2 — at two columns that is the full row. */
+  .bento-grid.bento-mosaic {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 640px) {
@@ -1482,6 +1509,12 @@ nav ul.links a[aria-current="page"] {
   }
   .bento-cell-wide,
   .bento-cell-full {
+    grid-column: span 1;
+  }
+  .bento-grid.bento-mosaic {
+    grid-template-columns: 1fr;
+  }
+  .bento-grid.bento-mosaic .bento-cell-wide {
     grid-column: span 1;
   }
 

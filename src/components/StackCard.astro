@@ -1,11 +1,18 @@
 ---
-// Stack bento — the "what I work with" cell. Extracted from the old
+// Stack bento — the "what I work with" mosaic. Extracted from the old
 // `pages/index.astro`, which held it inline for one page; the role landings and
 // the gate's colleague branch would otherwise carry six copies of the same
 // markup. The chip literals stay literal (not looped from a data module)
 // because `tests/lib/homepage-stack.test.ts` binds them to the skill badges on
 // /about#stack by reading this file — the `stack:ru|en` markers below are that
 // test's anchor.
+//
+// One cell per category since the split: five cards on a 3-column mosaic
+// (`bento-mosaic`), the category name as the card's own heading. The single
+// "Стек" cell made a screening reader skim five labels inside one box; separate
+// cards let the one they came for be found by shape. The link to the full
+// catalogue moved out of the cell and stands below the grid — it is a
+// section-level exit, not a property of any one category.
 //
 // All five groups of the /about#stack taxonomy. The card used to be a
 // three-group digest; on the HR landing the stack is one of the two formal
@@ -23,98 +30,113 @@ const { lang = 'ru' } = Astro.props;
 const isEn = lang === 'en';
 ---
 
-<div class="bento-grid bento-spaced">
-  <div class="bento-cell bento-cell-wide bento-cell-compact">
-    <h3 class="bento-cell-title">{isEn ? 'Stack' : 'Стек'}</h3>
-    <div class="stack-groups">
-      {
-        isEn ? (
-          <>
-            {/* stack:en:start */}
-            <div class="stack-group">
-              <span class="stack-group-name">Analysis</span>
-              <span class="bento-chip">SQL</span>
-              <span class="bento-chip">Python</span>
-              <span class="bento-chip">pandas</span>
-              <span class="bento-chip">scikit-learn</span>
-              <span class="bento-chip">DuckDB</span>
-              <span class="bento-chip">visualization</span>
-            </div>
-            <div class="stack-group">
-              <span class="stack-group-name">Visualization</span>
-              <span class="bento-chip">Plotly</span>
-              <span class="bento-chip">Tableau</span>
-              <span class="bento-chip">Superset</span>
-              <span class="bento-chip">Astro</span>
-            </div>
-            <div class="stack-group">
-              <span class="stack-group-name">Experiments</span>
-              <span class="bento-chip">A/B</span>
-              <span class="bento-chip">AA-tests</span>
-              <span class="bento-chip">Causal Inference</span>
-            </div>
-            <div class="stack-group">
-              <span class="stack-group-name">Retention and segmentation</span>
-              <span class="bento-chip">cohort analysis</span>
-              <span class="bento-chip">retention curves</span>
-              <span class="bento-chip">RFM</span>
-            </div>
-            <div class="stack-group">
-              <span class="stack-group-name">Infra</span>
-              <span class="bento-chip">GitHub Actions</span>
-              <span class="bento-chip">Docker</span>
-              <span class="bento-chip">Airflow</span>
-              <span class="bento-chip">Supabase</span>
-              <span class="bento-chip">PostHog</span>
-            </div>
-            {/* stack:en:end */}
-          </>
-        ) : (
-          <>
-            {/* stack:ru:start */}
-            <div class="stack-group">
-              <span class="stack-group-name">Анализ</span>
-              <span class="bento-chip">SQL</span>
-              <span class="bento-chip">Python</span>
-              <span class="bento-chip">pandas</span>
-              <span class="bento-chip">scikit-learn</span>
-              <span class="bento-chip">DuckDB</span>
-              <span class="bento-chip">визуализация</span>
-            </div>
-            <div class="stack-group">
-              <span class="stack-group-name">Визуализация</span>
-              <span class="bento-chip">Plotly</span>
-              <span class="bento-chip">Tableau</span>
-              <span class="bento-chip">Superset</span>
-              <span class="bento-chip">Astro</span>
-            </div>
-            <div class="stack-group">
-              <span class="stack-group-name">Эксперименты</span>
-              <span class="bento-chip">A/B</span>
-              <span class="bento-chip">AA-tests</span>
-              <span class="bento-chip">Causal Inference</span>
-            </div>
-            <div class="stack-group">
-              <span class="stack-group-name">Удержание и сегментация</span>
-              <span class="bento-chip">когортный анализ</span>
-              <span class="bento-chip">retention-кривые</span>
-              <span class="bento-chip">RFM</span>
-            </div>
-            <div class="stack-group">
-              <span class="stack-group-name">Инфра</span>
-              <span class="bento-chip">GitHub Actions</span>
-              <span class="bento-chip">Docker</span>
-              <span class="bento-chip">Airflow</span>
-              <span class="bento-chip">Supabase</span>
-              <span class="bento-chip">PostHog</span>
-            </div>
-            {/* stack:ru:end */}
-          </>
-        )
-      }
-    </div>
-    <a class="bento-cell-link" href={withBase(isEn ? 'en/projects/' : 'projects/')} data-analytics="bento_stack">
-      {isEn ? 'All projects →' : 'Все проекты →'}
-    </a>
-  </div>
+<div class="bento-grid bento-spaced bento-mosaic">
+  {
+    isEn ? (
+      <>
+        {/* stack:en:start */}
+        <div class="bento-cell bento-cell-wide bento-cell-compact">
+          <h3 class="bento-cell-title">Analysis</h3>
+          <div class="bento-chip-list">
+            <span class="bento-chip">SQL</span>
+            <span class="bento-chip">Python</span>
+            <span class="bento-chip">pandas</span>
+            <span class="bento-chip">scikit-learn</span>
+            <span class="bento-chip">DuckDB</span>
+            <span class="bento-chip">visualization</span>
+          </div>
+        </div>
+        <div class="bento-cell bento-cell-compact">
+          <h3 class="bento-cell-title">Visualization</h3>
+          <div class="bento-chip-list">
+            <span class="bento-chip">Plotly</span>
+            <span class="bento-chip">Tableau</span>
+            <span class="bento-chip">Superset</span>
+            <span class="bento-chip">Astro</span>
+          </div>
+        </div>
+        <div class="bento-cell bento-cell-compact">
+          <h3 class="bento-cell-title">Experiments</h3>
+          <div class="bento-chip-list">
+            <span class="bento-chip">A/B</span>
+            <span class="bento-chip">AA-tests</span>
+            <span class="bento-chip">Causal Inference</span>
+          </div>
+        </div>
+        <div class="bento-cell bento-cell-wide bento-cell-compact">
+          <h3 class="bento-cell-title">Retention and segmentation</h3>
+          <div class="bento-chip-list">
+            <span class="bento-chip">cohort analysis</span>
+            <span class="bento-chip">retention curves</span>
+            <span class="bento-chip">RFM</span>
+          </div>
+        </div>
+        <div class="bento-cell bento-cell-wide bento-cell-compact">
+          <h3 class="bento-cell-title">Infra</h3>
+          <div class="bento-chip-list">
+            <span class="bento-chip">GitHub Actions</span>
+            <span class="bento-chip">Docker</span>
+            <span class="bento-chip">Airflow</span>
+            <span class="bento-chip">Supabase</span>
+            <span class="bento-chip">PostHog</span>
+          </div>
+        </div>
+        {/* stack:en:end */}
+      </>
+    ) : (
+      <>
+        {/* stack:ru:start */}
+        <div class="bento-cell bento-cell-wide bento-cell-compact">
+          <h3 class="bento-cell-title">Анализ</h3>
+          <div class="bento-chip-list">
+            <span class="bento-chip">SQL</span>
+            <span class="bento-chip">Python</span>
+            <span class="bento-chip">pandas</span>
+            <span class="bento-chip">scikit-learn</span>
+            <span class="bento-chip">DuckDB</span>
+            <span class="bento-chip">визуализация</span>
+          </div>
+        </div>
+        <div class="bento-cell bento-cell-compact">
+          <h3 class="bento-cell-title">Визуализация</h3>
+          <div class="bento-chip-list">
+            <span class="bento-chip">Plotly</span>
+            <span class="bento-chip">Tableau</span>
+            <span class="bento-chip">Superset</span>
+            <span class="bento-chip">Astro</span>
+          </div>
+        </div>
+        <div class="bento-cell bento-cell-compact">
+          <h3 class="bento-cell-title">Эксперименты</h3>
+          <div class="bento-chip-list">
+            <span class="bento-chip">A/B</span>
+            <span class="bento-chip">AA-tests</span>
+            <span class="bento-chip">Causal Inference</span>
+          </div>
+        </div>
+        <div class="bento-cell bento-cell-wide bento-cell-compact">
+          <h3 class="bento-cell-title">Удержание и сегментация</h3>
+          <div class="bento-chip-list">
+            <span class="bento-chip">когортный анализ</span>
+            <span class="bento-chip">retention-кривые</span>
+            <span class="bento-chip">RFM</span>
+          </div>
+        </div>
+        <div class="bento-cell bento-cell-wide bento-cell-compact">
+          <h3 class="bento-cell-title">Инфра</h3>
+          <div class="bento-chip-list">
+            <span class="bento-chip">GitHub Actions</span>
+            <span class="bento-chip">Docker</span>
+            <span class="bento-chip">Airflow</span>
+            <span class="bento-chip">Supabase</span>
+            <span class="bento-chip">PostHog</span>
+          </div>
+        </div>
+        {/* stack:ru:end */}
+      </>
+    )
+  }
 </div>
+<a class="bento-cell-link" href={withBase(isEn ? 'en/projects/' : 'projects/')} data-analytics="bento_stack">
+  {isEn ? 'All projects →' : 'Все проекты →'}
+</a>
