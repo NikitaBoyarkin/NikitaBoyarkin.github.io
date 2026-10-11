@@ -78,8 +78,9 @@ These keep their historical names (they are the slider for the "hard naming" cas
 ## 3. SDK / auto-captured events
 
 `$pageview`, `$pageleave`, `$web_vitals`, `$autocapture`, `$rageclick`,
-`$dead_click` — emitted by `posthog-js`. `$exception` is not yet captured (error
-tracking off; PRD Phase A4).
+`$dead_click`, `$exception` — emitted by `posthog-js`. Exception autocapture is
+on since 12.10.2026 (`capture_exceptions: true` in `Analytics.astro` plus
+`autocapture_exceptions_opt_in` on the project; closes PRD Phase A4).
 
 > Layering note: a click on an external CTA emits both the frozen
 > `[data-analytics]` event and `outbound_click` (plus `$autocapture`) — up to

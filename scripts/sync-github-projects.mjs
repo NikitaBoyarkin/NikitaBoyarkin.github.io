@@ -22,6 +22,10 @@ import path from 'node:path';
 
 const ROOT = process.cwd();
 const COLLECTIONS = ['src/content/projects', 'src/content/projects-en'];
+// Read-only counterparts: referenced for candidate detection, never written.
+// `volta-parts` files carry `github:` but no `updated:` field, so stamping a
+// date there would write a field their schema does not declare.
+const READONLY_COLLECTIONS = ['src/content/volta-parts', 'src/content/volta-parts-en'];
 const OWNER = 'NikitaBoyarkin';
 const API = 'https://api.github.com';
 const TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
@@ -170,12 +174,24 @@ async function processRepo(repoKey, group, dry) {
   }
 
   const pushed = (meta.pushed_at || '').slice(0, 10);
-  if (pushed && updated !== pushed) {
-    if (mode === 'apply') {
-      report.push(`  [sync] ${repoKey}: updated ${updated ?? '—'} → ${pushed}`);
-      if (!dry) for (const p of group) await writeProject(p, { private: meta.private, updated: pushed });
-    } else {
-      report.push(`  [info] ${repoKey}: updated ${updated ?? '—'} ≠ ${pushed} (запусти sync:gh --apply)`);
+  const dateDrift = Boolean(pushed) && updated !== pushed;
+  // Visibility is independent of the date: a repo that flips private↔public with
+  // an already-current `updated:` must still be recorded.
+  const visibilityDrift = Boolean(meta.private) !== isPrivate;
+
+  if (!dateDrift && !visibilityDrift) return;
+
+  if (mode !== 'apply') {
+    if (dateDrift) report.push(`  [info] ${repoKey}: updated ${updated ?? '—'} ≠ ${pushed} (запусти sync:gh --apply)`);
+    if (visibilityDrift) report.push(`  [info] ${repoKey}: private ${isPrivate} ≠ ${Boolean(meta.private)} (запусти sync:gh --apply)`);
+    return;
+  }
+
+  if (dateDrift) report.push(`  [sync] ${repoKey}: updated ${updated ?? '—'} → ${pushed}`);
+  if (visibilityDrift) report.push(`  [sync] ${repoKey}: private ${isPrivate} → ${Boolean(meta.private)}`);
+  if (!dry) {
+    for (const p of group) {
+      await writeProject(p, { private: meta.private, updated: dateDrift ? pushed : updated });
     }
   }
 }
@@ -196,6 +212,17 @@ async function listCandidates(projects) {
       .filter(Boolean)
       .map(({ repo }) => repo.toLowerCase()),
   );
+  // A repo referenced only by a volta-part is still on the site — without this
+  // the 23 `case-*` repos are reported as missing when they are not.
+  for (const dir of READONLY_COLLECTIONS) {
+    for (const name of await readdir(path.join(ROOT, dir))) {
+      if (!name.endsWith('.md')) continue;
+      const text = await readFile(path.join(ROOT, dir, name), 'utf8');
+      const url = text.match(/^github:[ \t]*(\S+)/m)?.[1];
+      const repo = url ? extractRepo(url)?.repo?.toLowerCase() : null;
+      if (repo) referenced.add(repo);
+    }
+  }
   const repos = await gh(`/users/${OWNER}/repos?per_page=100&sort=updated`);
   if (!repos) return;
   const candidates = repos
@@ -227,7 +254,14 @@ for (const p of projects) {
 
 report.push(`GitHub ↔ портфолио (${mode}${dryRun ? ' · dry-run' : ''}):`);
 for (const [repo, group] of byRepo) {
-  await processRepo(repo, group, dryRun);
+  // A rate limit or network error must not abort the loop after earlier files
+  // were already written — record it and carry on so the summary still prints.
+  try {
+    await processRepo(repo, group, dryRun);
+  } catch (err) {
+    hardDrift = true;
+    report.push(`  [ERR] ${repo}: ${err.message}`);
+  }
 }
 
 if (showCandidates || mode === 'check') {

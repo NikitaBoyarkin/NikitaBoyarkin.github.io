@@ -87,7 +87,7 @@ uv run streamlit run app.py           # dashboard on :8501
 
 | Check | Result | Reading |
 |-------|--------|---------|
-| NDCG@10 vs revenue/search | relevance-first: 1.000 / 869.5, revenue-first: 0.931 / 1,193.7 | the policies move in opposite directions |
+| NDCG@10 vs revenue/search | relevance-first: 1.000 / 869.5, revenue-first: 0.931 / 1,193.7 | the policies move in opposite directions — revenue 38% higher |
 | Naive vs position-free CTR | 0.163 vs 0.629 | understated roughly fourfold |
 | SRM vs the planned 90/10 | χ² = 0.119, p = 0.730 | the split is sound |
 | Ratio metric, delta method vs naive | SE 69.0 vs 88.5 | the naive SE is 1.28× too wide |

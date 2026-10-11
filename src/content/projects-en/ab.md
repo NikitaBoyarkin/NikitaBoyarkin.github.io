@@ -1,16 +1,16 @@
 ---
 title: A/B Testing Methodology Toolkit
-description: "15 A/B methodology modules, each calibrated by simulation: an A/A null check holds Type I error at α, and power curves show the effect size each method can actually detect."
+description: "18 A/B methodology modules, each calibrated by simulation: an A/A null check holds Type I error at α, and power curves show the effect size each method can actually detect."
 star:
   situation: "An A/B method is only as good as its Type I error under the null and its power under a real effect"
   task: "Make the method guarantees verifiable, backed by a simulation run rather than by a citation"
   action: "Modules from the primary literature — SRM, CUPED, delta method, mSPRT, HTE, BH — each calibrated by simulation"
-  result: "Type I error ≈ α for every method under its null; CI coverage ≈ 95% for the bootstrap; 15 modules calibrated by simulation"
+  result: "Type I error ≈ α for every method under its null; CI coverage ≈ 95% for the bootstrap; 18 modules calibrated by simulation"
 track: experiments
 hero: images/ab.svg
 ogImage: /images/og/ab.png
 impact:
-  - "15 modules, each calibrated by simulation: Type I error ≈ α, power curves"
+  - "18 modules, each calibrated by simulation: Type I error ≈ α, power curves"
   - "CUPED drops variance by ρ², so the standard error by ~ρ"
   - "Naive peeking inflates Type I error — Pocock/OBF and mSPRT keep it under control"
   - "Delta method gives the correct SE for ratio metrics (CTR, RPC) — the naive per-unit t-test is biased"
@@ -42,7 +42,7 @@ faq:
 
 ## Situation
 
-An A/B testing method is only as good as its Type I error under the null and its power under a real effect. In practice those promises are rarely checked: naive peeking, a wrong SE for ratio metrics, and multiple testing silently break decisions. The toolkit implements 15 methods from the primary literature and calibrates each one by simulation instead of trusting asymptotics.
+An A/B testing method is only as good as its Type I error under the null and its power under a real effect. In practice those promises are rarely checked: naive peeking, a wrong SE for ratio metrics, and multiple testing silently break decisions. The toolkit implements 18 methods from the primary literature and calibrates each one by simulation instead of trusting asymptotics.
 
 ## Task
 

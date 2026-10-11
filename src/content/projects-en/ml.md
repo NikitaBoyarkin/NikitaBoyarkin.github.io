@@ -5,7 +5,7 @@ star:
   situation: "Preprocessing is the foundation of all later ML work: a test leak into training or hand-rolled imputation invalidates every model above it"
   task: "Build preprocessing correctly for modern scikit-learn: no leakage, no reliance on a random seed, reproducible at every pipeline stage"
   action: "ColumnTransformer (SimpleImputer → StandardScaler for numerics, OneHotEncoder for categoricals) fit on train only; a deterministic split by sorting on (Country, Age); a dataset generator and EDA plots"
-  result: "A split reproducible without a seed: Train (8, 5), Test (2, 5); six course datasets plus four synthetic ones (400/300/500/800 rows); EDA in dark_background at 300 dpi"
+  result: "A split reproducible without a seed: Train (8, 5), Test (2, 5); six course datasets plus four synthetic ones (400, 300, 500 and 800 rows); EDA in dark_background at 300 dpi"
 track: analytics
 hero: images/ml.svg
 ogImage: /images/og/ml.png

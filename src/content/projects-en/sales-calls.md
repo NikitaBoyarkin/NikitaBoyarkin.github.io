@@ -79,7 +79,7 @@ The dashboard gives an answer in a minute: which step loses the client and what 
 
 ## Limitations
 
-The dataset is synthetic and the step labels come from a templated script's markers: on a live bot with freer replies the heuristics would need revision. The value of the card is the method of breaking down an export on safe data, not the specific funnel values.
+The dataset is synthetic and the step labels come from a templated script's markers: on a live bot with freer replies the heuristics would need revision. The value of the card is the method of breaking down an export on safe data, not the specific funnel values. The dashboard is built on a fork of a base repository (`vmamaevawork-bit/sales-calls-dashboard`): the analytics layer is mine, the original dashboard scaffolding is not.
 
 ## Documentation
 

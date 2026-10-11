@@ -13,7 +13,7 @@ describe('METRICS (CV-authoritative)', () => {
     expect(METRICS.retention).toEqual({ deltaPp: 9.2, ltvEurK: 227 });
     expect(METRICS.rfm).toEqual({ revenueBeforePct: 12, revenueAfterPct: 41 });
     expect(METRICS.bot).toEqual({ hoursBefore: 2, minutesAfter: 5 });
-    expect(METRICS.portfolio).toEqual({ projects: 18, sqlCases: 26 });
+    expect(METRICS.portfolio).toEqual({ projects: 22, sqlCases: 26 });
   });
 });
 
