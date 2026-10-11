@@ -1,0 +1,37 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="RAG evaluation harness — retrieval and generation metrics on 20 labeled questions">
+  <defs>
+    <linearGradient id="rag-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f2a2b"/>
+      <stop offset="1" stop-color="#1a3435"/>
+    </linearGradient>
+    <linearGradient id="rag-accent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff8569"/>
+      <stop offset="1" stop-color="#ff6643"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="600" fill="url(#rag-bg)"/>
+  <line x1="620" y1="110" x2="620" y2="500" stroke="#234044" stroke-width="4"/>
+
+  <g font-family="Inter, system-ui, sans-serif">
+    <text x="80" y="180" font-size="72" font-weight="700" letter-spacing="1" fill="#ff8569">RAG EVAL</text>
+    <text x="80" y="230" font-size="28" fill="#c9d6d5">retrieval + generation, measured offline</text>
+
+    <text x="80" y="330" font-size="22" fill="#8aa3a2">12 concept docs · 20 labeled questions</text>
+    <text x="80" y="372" font-size="22" fill="#8aa3a2">TF-IDF retrieval · zero API keys</text>
+
+    <text x="680" y="170" font-size="26" fill="#8aa3a2">recall@5</text>
+    <text x="1120" y="170" font-size="34" font-weight="700" fill="#ff8569" text-anchor="end">1.00</text>
+
+    <text x="680" y="245" font-size="26" fill="#8aa3a2">MRR</text>
+    <text x="1120" y="245" font-size="34" font-weight="700" fill="#ff8569" text-anchor="end">1.00</text>
+
+    <text x="680" y="320" font-size="26" fill="#8aa3a2">faithfulness</text>
+    <text x="1120" y="320" font-size="34" font-weight="700" fill="#ff8569" text-anchor="end">1.00</text>
+
+    <text x="680" y="395" font-size="26" fill="#8aa3a2">correctness</text>
+    <text x="1120" y="395" font-size="34" font-weight="700" fill="#c9d6d5" text-anchor="end">0.37</text>
+
+    <text x="680" y="470" font-size="20" fill="#5f7a79">baseline · extractive fallback</text>
+  </g>
+</svg>

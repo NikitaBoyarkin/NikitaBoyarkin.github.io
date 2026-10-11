@@ -1,0 +1,82 @@
+---
+title: RAG Evaluation Harness — retrieval and generation metrics
+description: "RAG-пайплайн с офлайн-харнессом оценки: recall@5 и MRR = 1.00 на 20 размеченных вопросах, faithfulness 1.00, correctness 0.37. TF-IDF-ретрив, работает без API-ключей."
+star:
+  situation: "RAG-демо легко показать, но не измерить: непонятно, ошибка в поиске или в генерации, и воспроизводится ли результат вообще"
+  task: "Собрать пайплайн с офлайн-харнессом оценки, который разделяет метрики ретрива и генерации и работает без API-ключей"
+  action: "TF-IDF-индекс на корпусе концепт-документов, cosine top-k, детерминированный экстрактивный ответчик; Claude подключается флагом --llm, харнесс тот же"
+  result: "recall@5 и MRR = 1.00 на 20 вопросах; faithfulness 1.00, correctness 0.37 у офлайн-базлайна; ретрив и генерация оцениваются раздельно"
+track: analytics
+hero: images/rag.svg
+ogImage: /images/og/rag.png
+impact:
+  - "recall@5 и MRR = 1.00, precision@5 = 0.20 на 20 размеченных вопросах"
+  - "faithfulness 1.00 у офлайн-базлайна: ответы полностью опираются на найденный контекст"
+  - "correctness 0.37 по Jaccard-пересечению с эталонным ответом; --llm поднимает генерацию, ретрив фиксирован"
+  - "Работает end-to-end без ключей: TF-IDF + экстрактивный фолбэк, воспроизводимо"
+  - "5 тестов pytest на индекс, поиск, заземление и сводку метрик"
+tools:
+  - Python
+  - scikit-learn
+  - pandas / NumPy
+  - TF-IDF
+  - pytest
+  - uv
+github: https://github.com/NikitaBoyarkin/rag-eval-harness
+updated: 2026-10-10
+date: 2026-10-10
+related:
+  - /projects/causal/
+---
+
+# RAG Evaluation Harness — retrieval and generation metrics
+
+## Ситуация
+
+RAG-пайплайн легко показать на одном удачном вопросе и почти невозможно измерить: непонятно, где именно теряется качество — в поиске документов или в генерации ответа, — и воспроизводится ли результат вообще без внешних сервисов. Без офлайн-харнесса любое «стало лучше» остаётся впечатлением, а не числом.
+
+## Задача
+
+От меня требовалось собрать RAG end-to-end и отдельно измерить каждый слой: метрики ретрива (recall@k, MRR, precision@k) на размеченном наборе вопросов и метрики генерации (faithfulness, answer correctness). Харнесс должен работать без API-ключей и оставаться тем же при подключении LLM.
+
+## Действия
+
+Корпус — 12 коротких документов по аналитике (A/B-тесты, CUPED, uplift, retention, churn, RFM, воронка, LTV, атрибуция, когорты, DAU/MAU, оконные функции SQL), нарезанных на чанки и проиндексированных TF-IDF с 1–2-граммами.
+
+- **Retrieval** — cosine top-k по TF-IDF-матрице; зависимостей минимум, полностью офлайн. Эмбеддинг-бэкенд можно подключить, не трогая код оценки.
+- **Generation** — Claude, заземлённый на найденном контексте, если задан ключ; иначе детерминированный экстрактивный фолбэк возвращает самое релевантное предложение из top-документа. Оба пути возвращают одну и ту же запись `Generation`, поэтому оценка воспроизводима офлайн.
+- **Evaluation** — 20 размеченных вопросов (`data/eval.jsonl`) с gold doc id и эталонным ответом. Ретрив: recall@k, MRR, precision@k. Генерация: faithfulness (доля токенов ответа, заземлённых в контексте) и answer correctness (Jaccard-пересечение с эталоном).
+
+| Метрика | Значение |
+|---|---|
+| recall@5 | 1.00 |
+| MRR | 1.00 |
+| precision@5 | 0.20 |
+| faithfulness | 1.00 |
+| correctness | 0.37 |
+
+### Запуск
+
+```bash
+uv run --with scikit-learn --with pandas --with numpy python run.py query "How is the CUPED theta coefficient computed?"
+uv run --with scikit-learn --with pandas --with numpy python run.py eval
+# с реальной LLM (нужен ANTHROPIC_API_KEY):
+uv run --with scikit-learn --with pandas --with numpy --with anthropic python run.py eval --llm
+uv run --with scikit-learn --with pandas --with numpy --with pytest pytest -q
+```
+
+Разбор по вопросам: `reports/retrieval_per_question.csv`, `reports/generation_per_question.csv`.
+
+## Результат
+
+Ретрив на этом корпусе идеален: recall@5 и MRR = 1.00, gold-документ стоит на ранге 1 для всех 20 вопросов — TF-IDF хватает при таком масштабе и хорошем разделении тем. Офлайн-экстрактивный базлайн полностью заземлён (faithfulness 1.00) и набирает 0.37 correctness по пересечению токенов.
+
+Главная ценность — не числа сами по себе, а то, что харнесс разводит слои. С `--llm` и ключом качество генерации растёт, а метрики ретрива не меняются, поэтому видно, какой именно слой улучшать. Это тот же принцип, что и в A/B: сначала измерь, потом меняй.
+
+## Ограничения
+
+Faithfulness здесь — прокси заземлённости (токены ответа в контексте), а не проверка истинности: ответ может опираться на найденный контекст и всё равно быть неверным. Correctness по Jaccard чувствителен к формулировке — низкий балл не всегда ошибка. Корпус мал (12 документов, 20 вопросов), поэтому recall@5 = 1.00 — свойство этого набора, а не обещание на реальных данных; при росте корпуса метрику нужно пересчитать.
+
+## Документация
+
+- [GitHub → rag-eval-harness](https://github.com/NikitaBoyarkin/rag-eval-harness)

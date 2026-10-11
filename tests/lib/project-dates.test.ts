@@ -6,8 +6,8 @@ import { parse as parseYaml } from 'yaml';
 /**
  * Binds the F6 fix: `datePublished` on a project page is `date ?? updated`
  * (`src/pages/projects/[slug].astro`), so a project without `date` silently
- * publishes its last-edit date as if it were its publication date. 13 of 17
- * projects were in that state.
+ * publishes its last-edit date as if it were its publication date. 13 of the
+ * 17 projects then on disk were in that state.
  *
  * What fails when the claim stops being true: a new project added without
  * `date`, a translation dated differently from its RU original, or a `date`

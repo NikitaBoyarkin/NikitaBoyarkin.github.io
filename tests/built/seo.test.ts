@@ -94,10 +94,10 @@ function jsonLdNodes(html: string): Record<string, unknown>[] {
 }
 
 describe('built projects index', () => {
-  // 17 published projects, no drafts — the count the board renders.
+  // 18 published projects, no drafts — the count the board renders.
   const cases: Array<[string, number]> = [
-    ['projects', 17],
-    ['en/projects', 17],
+    ['projects', 18],
+    ['en/projects', 18],
   ];
 
   it('emits CollectionPage + ItemList for the catalog', () => {

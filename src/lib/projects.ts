@@ -2,7 +2,7 @@
 // Single source of truth for the display order and the track (category) taxonomy
 // used by ProjectBoard and ProjectSpotlight.
 
-export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'streamlit', 'sales-calls', 'sql', 'rfm', 'cohort', 'churn', 'causal', 'python', 'bot', 'scrolly', 'garden', 'site'];
+export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'streamlit', 'sales-calls', 'sql', 'rfm', 'cohort', 'churn', 'causal', 'rag', 'python', 'bot', 'scrolly', 'garden', 'site'];
 
 // PRD v6 S2.6 — three headline case studies on the home page, each a distinct
 // proof with at least one reachable public artifact:
@@ -40,7 +40,7 @@ export const DEFAULT_AUDIENCE: Audience = 'colleague';
  */
 export const ROLE_CURATION: Record<Audience, readonly string[]> = {
   hr: ['volta', 'sql', 'cohort', 'ab', 'python', 'site'],
-  manager: ['volta', 'cohort', 'sql', 'causal', 'churn', 'rfm', 'supabase', 'posthog', 'site'],
+  manager: ['volta', 'cohort', 'sql', 'causal', 'rag', 'churn', 'rfm', 'supabase', 'posthog', 'site'],
   colleague: PROJECT_ORDER,
 };
 
@@ -71,7 +71,7 @@ export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
     hr: {
       title: 'Никита Бояркин — продуктовый аналитик, найм',
       description:
-        'Продуктовый аналитик: 5 лет в данных, SQL, Python, A/B-тесты. Стек, метрики и CV — для скрининга по вакансии.',
+        'Продуктовый аналитик: 5 лет в исследованиях, SQL, Python, A/B-тесты. Стек, метрики и CV — для скрининга по вакансии.',
       h1: 'Продуктовый аналитик',
       role: 'SQL · Python · A/B-тесты · retention',
       phd: 'PhD по психологии труда. Ищу роль продуктового аналитика — данных и экспериментов.',
@@ -79,7 +79,7 @@ export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
     manager: {
       title: 'Никита Бояркин — продуктовый аналитик, результаты',
       description:
-        'Кейсы продуктовой аналитики с результатом: +2,15 п.п. KYC-конверсии, retention, RFM-сегментация, CUPED, uplift.',
+        'Кейсы продуктовой аналитики с результатом: +5,72 п.п. KYC-конверсии, retention, RFM-сегментация, CUPED, uplift.',
       h1: 'Продуктовый аналитик',
       role: 'Решения по данным с измеримым эффектом',
       phd: 'Считаю не отчёты, а решения: какой фикс включать, кого вернуть, где гипотеза не подтвердилась.',
@@ -97,7 +97,7 @@ export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
     hr: {
       title: 'Nikita Boyarkin — Product Analyst, hiring',
       description:
-        'Product analyst: 5 years in data, SQL, Python, A/B testing. Stack, metrics and CV — for screening against a vacancy.',
+        'Product analyst: 5 years in research, SQL, Python, A/B testing. Stack, metrics and CV — for screening against a vacancy.',
       h1: 'Product Analyst',
       role: 'SQL · Python · A/B testing · retention',
       phd: 'PhD in work psychology. Looking for a product analyst role — data and experiments.',
@@ -105,7 +105,7 @@ export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
     manager: {
       title: 'Nikita Boyarkin — Product Analyst, impact',
       description:
-        'Product analytics cases with a result: +2.15 pp KYC conversion, retention, RFM segmentation, CUPED, uplift.',
+        'Product analytics cases with a result: +5.72 pp KYC conversion, retention, RFM segmentation, CUPED, uplift.',
       h1: 'Product Analyst',
       role: 'Decisions from data, with a measurable effect',
       phd: 'I ship decisions, not dashboards: which fix to switch on, whom to win back, where the hypothesis failed.',

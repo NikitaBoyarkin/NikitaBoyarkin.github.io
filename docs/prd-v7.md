@@ -1,5 +1,7 @@
 # PRD v7 — Validate Before You Polish
 
+> **Обновление 2026-10-11:** грейд-цель устарела — **junior** (CV — источник истины). Тело не переписываю: баннер помечает расхождение.
+
 | Field | Value |
 |---|---|
 | Status | Draft — ready for execution |

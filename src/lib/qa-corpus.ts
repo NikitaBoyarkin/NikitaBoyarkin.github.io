@@ -49,13 +49,13 @@ export const QA_CORPUS: QAPair[] = [
     ru: {
       question: "На какую роль целишься?",
       answer:
-        "Открыт к Data Analyst / Product Analyst ролям (middle). Сейчас активно готовлюсь к интервью в BI / DA / Product Analytics: SQL, pandas, алгоритмы и мок-собеседования.",
+        "Открыт к Data Analyst / Product Analyst ролям (junior). Сейчас активно готовлюсь к интервью в BI / DA / Product Analytics: SQL, pandas, алгоритмы и мок-собеседования.",
       links: [{ label: "Контакты", href: "contact/" }],
     },
     en: {
       question: "What role are you looking for?",
       answer:
-        "Open to Data Analyst / Product Analyst roles (middle). Currently preparing for BI / DA / Product Analytics interviews: SQL, pandas, algorithms and mock interviews.",
+        "Open to Data Analyst / Product Analyst roles (junior). Currently preparing for BI / DA / Product Analytics interviews: SQL, pandas, algorithms and mock interviews.",
       links: [{ label: "Contact", href: "en/contact/" }],
     },
   },
@@ -340,12 +340,12 @@ export const QA_CORPUS: QAPair[] = [
     ru: {
       question: "Условия: зарплата, график, старт?",
       answer:
-        "Условия обсуждаю индивидуально на интервью — публично не озвучиваю. Открыт к data / product analyst middle-ролям; формат (офис/гибрид/удалёнка) и сроки выхода — по договорённости.",
+        "Условия обсуждаю индивидуально на интервью — публично не озвучиваю. Открыт к data / product analyst junior-ролям; формат (офис/гибрид/удалёнка) и сроки выхода — по договорённости.",
     },
     en: {
       question: "Salary, schedule, start date?",
       answer:
-        "I discuss terms individually at the interview stage — I don't publish them. Open to data / product analyst middle roles; format (office/hybrid/remote) and start date are negotiable.",
+        "I discuss terms individually at the interview stage — I don't publish them. Open to data / product analyst junior roles; format (office/hybrid/remote) and start date are negotiable.",
     },
   },
   {
