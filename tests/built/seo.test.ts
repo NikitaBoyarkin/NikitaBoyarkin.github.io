@@ -16,7 +16,7 @@
 // Requires `bun run build` first (reads dist/).
 
 import { describe, it, expect, beforeAll } from 'bun:test';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
@@ -94,10 +94,15 @@ function jsonLdNodes(html: string): Record<string, unknown>[] {
 }
 
 describe('built projects index', () => {
-  // 18 published projects, no drafts — the count the board renders.
+  // Published cards, counted from source rather than pinned to a literal.
+  // `test:built` reads whatever dist/ is on disk and never rebuilds it, so a
+  // hardcoded count passes against a stale build and fails only in CI — which
+  // is how 18 outlived the four cards that made it 22.
+  const cardsIn = (dir: string) =>
+    readdirSync(resolve(ROOT, 'src', 'content', dir)).filter((f) => f.endsWith('.md')).length;
   const cases: Array<[string, number]> = [
-    ['projects', 18],
-    ['en/projects', 18],
+    ['projects', cardsIn('projects')],
+    ['en/projects', cardsIn('projects-en')],
   ];
 
   it('emits CollectionPage + ItemList for the catalog', () => {
