@@ -74,7 +74,7 @@
   padding: var(--space-5);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  background: var(--card-background);
+  background: var(--gradient-surface);
   text-decoration: none;
   position: relative;
   overflow: hidden;

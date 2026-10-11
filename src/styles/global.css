@@ -136,6 +136,24 @@
      right, R = 14px, so the rectangular repeat unit is exactly 3R × √3R. */
   --wallpaper-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='24' viewBox='0 0 42 24'%3E%3Cpath d='M35 12 28 24 14 24 7 12 14 0 28 0Z' fill='none' stroke='%23fff'/%3E%3Cpath d='M0 12h7M35 12h7' fill='none' stroke='%23fff'/%3E%3C/svg%3E");
 
+  /* Gradients — one named family for the four decorative surfaces (DESIGN.md,
+     "Gradients"). Every stop is an existing brand token or `transparent`, so
+     the stops resolve per theme through `var()` and no hex is duplicated here.
+     Bound by tests/lib/gradient-tokens.test.ts: a raw hex stop is rejected, and
+     the ramp is composited against the text token that sits on it. */
+  --gradient-hero: radial-gradient(
+    60% 80% at 85% 8%,
+    color-mix(in srgb, var(--text-accent) 10%, transparent),
+    transparent 70%
+  );
+  --gradient-surface: linear-gradient(
+    180deg,
+    var(--card-background),
+    color-mix(in srgb, var(--card-background) 88%, var(--background-primary))
+  );
+  --gradient-button: linear-gradient(135deg, var(--button-bg), var(--button-bg-hover));
+  --gradient-rule: linear-gradient(90deg, var(--text-accent) 0%, transparent 70%);
+
   /* Spacing scale */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -222,6 +240,16 @@
 
   /* Wallpaper line — the light-theme adaptation: same teal family, on cream. */
   --wallpaper-line: rgba(13, 115, 119, 0.07);
+
+  /* Cream page: the dark theme's 12% step reads as a smudge here, so the card
+     ramp is gentler — the same recipe the light `.persona-card` override below
+     already ships. Only the composition moves; the colour still comes from
+     --card-background. */
+  --gradient-surface: linear-gradient(
+    180deg,
+    var(--card-background),
+    color-mix(in srgb, var(--card-background) 94%, var(--background-primary))
+  );
 
   --shadow-color: rgba(0, 0, 0, 0.08);
 }
@@ -725,11 +753,7 @@ nav ul.links a[aria-current="page"] {
   right: -100px;
   width: 400px;
   height: 400px;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--text-accent) 8%, transparent) 0%,
-    transparent 70%
-  );
+  background: var(--gradient-hero);
   pointer-events: none;
   z-index: 0;
 }
@@ -781,7 +805,9 @@ nav ul.links a[aria-current="page"] {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  background: var(--button-bg);
+  /* Subtle diagonal ramp across the fill. Both stops are the already-gated
+     button tokens, so --button-ink keeps its 5.23:1 / 5.44:1 anywhere on it. */
+  background: var(--gradient-button);
   color: var(--button-ink);
   padding: var(--space-3) var(--space-5);
   border-radius: var(--radius-md);
@@ -1294,7 +1320,7 @@ nav ul.links a[aria-current="page"] {
   grid-template-columns: 220px 1fr;
   gap: var(--space-6);
   padding: var(--space-6);
-  background: var(--card-background);
+  background: var(--gradient-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
@@ -1528,7 +1554,7 @@ nav ul.links a[aria-current="page"] {
   transform: translateX(-50%);
   width: 48px;
   height: 3px;
-  background: var(--text-accent);
+  background: var(--gradient-rule);
   border-radius: var(--radius-full);
 }
 
@@ -1545,7 +1571,7 @@ nav ul.links a[aria-current="page"] {
      buttons to the bottom of a stretched grid row. */
   display: flex;
   flex-direction: column;
-  background: var(--card-background);
+  background: var(--gradient-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
@@ -2541,7 +2567,30 @@ button:focus-visible {
      theme's 0.07: the same alpha disappears against #0a0a12. */
   --wallpaper-line: rgba(78, 205, 196, 0.1);
 
+  /* Cyberpunk runs its lattice at 0.10 where the other themes sit at 0.07, so
+     the hero glow steps up to match. Composition only — --text-accent is
+     unchanged, so accent-tint recipes keep their contrast here. */
+  --gradient-hero: radial-gradient(
+    60% 80% at 85% 8%,
+    color-mix(in srgb, var(--text-accent) 14%, transparent),
+    transparent 70%
+  );
+
   --shadow-color: rgba(255, 133, 105, 0.15);
+}
+
+/* Gradients are decoration. Print drops background images, and a forced-colour
+   or stronger-contrast request wants flat user-chosen surfaces — so the tokens
+   collapse to their flat equivalents here instead of each consuming rule being
+   suppressed one by one. `html:root` outranks the theme blocks on specificity
+   (0,1,1 > 0,1,0), so this holds wherever the blocks sit, not by source order. */
+@media print, (forced-colors: active), (prefers-contrast: more) {
+  html:root {
+    --gradient-hero: none;
+    --gradient-surface: var(--card-background);
+    --gradient-button: var(--button-bg);
+    --gradient-rule: none;
+  }
 }
 
 /* Generic secondary button (used in intro CTAs, not just .project) */

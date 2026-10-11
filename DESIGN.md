@@ -233,6 +233,8 @@ WCAG AA contrast is bound to a mechanism — `.claude/hooks/contrast-gate.js`, a
 | button-bg / bg-primary (3:1) | 4.55:1 | 2.86:1 | 6.17:1 | measured, not gated |
 | border-active / bg-primary (3:1) | 6.36:1 | 5.72:1 | 8.27:1 | hook |
 
+Gradients are the one contrast surface that hook cannot see, and it says so itself (`contrast-gate.js:37` resolves solid hex and single-level `var()`, and skips gradient backgrounds). `tests/lib/gradient-tokens.test.ts` binds that gap: it parses every `--gradient-*` token per theme, rejects any stop that is not an existing token or `transparent`, and composites the ramp at 0/25/50/75/100% over the surface it replaces, asserting the text token sitting there holds AA. Narrowest margin is the light-theme hero under `--text-accent` at **4.93:1** — raising that tint past roughly 11% turns the gate red.
+
 ## Themes
 
 The default (dark) values live in the frontmatter. Light and cyberpunk re-map the same semantic tokens:
@@ -292,6 +294,25 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 - Hover lift is translateY plus a shadow derived from the shadow token — never scale or opacity alone.
 - Cards lift more than buttons; buttons get an accent-tinted shadow.
 - Reveal animations use the shared easing with a downward translate; stagger via the delay classes.
+
+## Gradients
+
+Four named tokens, one family, declared once in `:root` and consumed at four surfaces. `tests/lib/gradient-tokens.test.ts` binds them.
+
+| Token | Value | Applied to | Text on it |
+|---|---|---|---|
+| `--gradient-hero` | `radial-gradient(60% 80% at 85% 8%, color-mix(… --text-accent 10%, transparent), transparent 70%)` | `#intro::before` (hero backdrop) | `--text-normal`, `--text-accent` |
+| `--gradient-surface` | `linear-gradient(180deg, var(--card-background), color-mix(… --card-background 88%, --background-primary))` | `.featured-card`, `.project`, `.blog-card` | `--text-normal` |
+| `--gradient-button` | `linear-gradient(135deg, var(--button-bg), var(--button-bg-hover))` | `.button` | `--button-ink` |
+| `--gradient-rule` | `linear-gradient(90deg, var(--text-accent) 0%, transparent 70%)` | `#projects h2::after` | — (hairline) |
+
+- **Every stop is an existing brand token or `transparent`.** No hex is spelled inside the family, so `src/lib/brand.ts` stays the only source of colour and the drift gate keeps covering the stops. A raw hex stop is a defect the test rejects.
+- **Stops resolve per theme through `var()`**, so a definition lives once. A theme block may override only the *composition*, never the colour. Two do: light raises the card ramp from 88% to 94% (on cream the dark theme's 12% step reads as a smudge), cyberpunk steps the hero tint from 10% to 14% (that theme runs its lattice at 0.10 too).
+- **The family adds no accent area**, so the 60-30-10 budget holds: the hero glow is a ≤14% tint and the rule is a 48px hairline, neither of which moves the share measured by `## Visual Area Audit`.
+- **Nothing interpolates toward a colour that was not already AA.** Each ramp runs between two endpoints that individually clear AA, which is what makes a subtle gradient safe by construction rather than by inspection.
+- **No gradient paints text** — `background-clip: text` is absent, and the test asserts it stays absent. Gradient-filled text is unmeasurable by axe and dies under forced-colors, so a heading's accent lives in the rule beside it.
+- **Removed in `@media print`, `@media (forced-colors: active)` and `@media (prefers-contrast: more)`**: one block collapses all four tokens to their flat equivalents, the same list and the same reasoning as the wallpaper below. `html:root` wins the theme blocks on specificity, not on source order.
+- **Not transitionable.** A gradient cannot be animated by the `background-color` transition the components already carry, so hover stays on `transform` and `box-shadow`; a `background-image` transition was deliberately not added.
 
 ## Wallpaper
 
