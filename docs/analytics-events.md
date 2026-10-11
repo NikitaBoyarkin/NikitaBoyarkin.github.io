@@ -11,7 +11,7 @@ Canonical event taxonomy for the portfolio, per
 
 | Event | Properties | Fires when | Where |
 |---|---|---|---|
-| `project_viewed` | `{ slug, locale, surface? }` | a project page loads, or a project link is clicked | `Analytics.astro` (page, `surface:'page'`), `ProjectCard.astro` / `HeadlineCases.astro` (`surface:'card'`/`'headline'`) |
+| `project_viewed` | `{ slug, locale, surface? }` | a project page loads, or a project link is clicked | `Analytics.astro` (page, `surface:'page'`), `ProjectCard.astro` / `HeadlineCases.astro` / `ProjectList.astro` (`surface:'card'`/`'headline'`/`'list'`) |
 | `post_read` | `{ slug, locale }` | a blog post page loads | `Analytics.astro` |
 | `lang_switched` | `{ from, to, path }` | the RU/EN switch is clicked | `Analytics.astro` (special-cases `data-analytics="lang_switch_*"`) |
 | `theme_change` | `{ theme }` | the theme toggle is clicked | `Base.astro` (bundled script) |

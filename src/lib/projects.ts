@@ -33,13 +33,19 @@ export const DEFAULT_AUDIENCE: Audience = 'colleague';
  * renders — a shorter board, not a re-sorted one. `colleague` is the whole
  * catalogue, so it never rots when a project is added.
  *
+ * `hr` is the whole catalogue too, but for a different reason: the HR landing
+ * renders it chronologically (`ProjectList.astro`, `groupByYear`), so a curated
+ * subset would only hide the timeline a screening reader came for. The key
+ * stays in the record to keep it total; `RoleLanding` reads it for the board
+ * roles only.
+ *
  * Validity is bound by `tests/lib/projects.test.ts`, not by the type system:
  * `PROJECT_ORDER` is a plain `string[]`, and `as const` would force casts at
  * four call sites (`sortByProjectOrder`, `HeadlineCases.astro`, both
  * `projects/[slug].astro`) for a check a test covers more cheaply.
  */
 export const ROLE_CURATION: Record<Audience, readonly string[]> = {
-  hr: ['volta', 'sql', 'cohort', 'ab', 'python', 'site'],
+  hr: PROJECT_ORDER,
   manager: ['volta', 'cohort', 'sql', 'causal', 'rag', 'churn', 'rfm', 'supabase', 'posthog', 'site'],
   colleague: PROJECT_ORDER,
 };
@@ -158,13 +164,15 @@ export function stripExt(id: string): string {
   return id.replace(/\.md$/, '');
 }
 
+/** Rank of a project slug in `PROJECT_ORDER`; unknown slugs sink to the end. */
+export function projectRank(id: string): number {
+  const index = PROJECT_ORDER.indexOf(stripExt(id));
+  return index === -1 ? PROJECT_ORDER.length : index;
+}
+
 /** Canonical board order (`PROJECT_ORDER`); unknown slugs sink to the end. */
 export function sortByProjectOrder<T extends { id: string }>(projects: readonly T[]): T[] {
-  const rank = (id: string): number => {
-    const index = PROJECT_ORDER.indexOf(stripExt(id));
-    return index === -1 ? PROJECT_ORDER.length : index;
-  };
-  return [...projects].sort((a, b) => rank(a.id) - rank(b.id));
+  return [...projects].sort((a, b) => projectRank(a.id) - projectRank(b.id));
 }
 
 /** Non-empty tracks in taxonomy order, each with its projects. */
@@ -192,6 +200,44 @@ export function flattenByTrack<T extends { track: string }>(
   return projectTracks(lang).flatMap(({ key, label }) =>
     projects.filter((p) => p.track === key).map((project) => ({ project, trackLabel: label })),
   );
+}
+
+/** Track key → localized label, for views that print the label without a grid. */
+export function projectTrackLabels(lang: 'ru' | 'en' = 'ru'): Record<string, string> {
+  return Object.fromEntries(projectTracks(lang).map(({ key, label }) => [key, label]));
+}
+
+export interface YearGroup<T> {
+  year: number;
+  projects: T[];
+}
+
+/**
+ * Reverse-chronological groups, one per year of `date ?? updated` — the HR
+ * landing's list order (`ProjectList.astro`). Newest year first, newest project
+ * first inside it; several projects share a publication date, so
+ * `PROJECT_ORDER` breaks the tie and the order is stable across builds.
+ *
+ * Undated projects are dropped rather than bucketed under a fake year:
+ * `tests/lib/project-dates.test.ts` binds `date` on every project file, so a
+ * drop here is unreachable until that test goes red.
+ */
+export function groupByYear<T extends { id: string; date?: Date; updated?: Date }>(
+  projects: readonly T[],
+): YearGroup<T>[] {
+  const when = (project: T): Date => (project.date ?? project.updated) as Date;
+  const ordered = projects
+    .filter((project) => Boolean(project.date ?? project.updated))
+    .sort((a, b) => when(b).getTime() - when(a).getTime() || projectRank(a.id) - projectRank(b.id));
+
+  const groups: YearGroup<T>[] = [];
+  for (const project of ordered) {
+    const year = when(project).getFullYear();
+    const last = groups[groups.length - 1];
+    if (last && last.year === year) last.projects.push(project);
+    else groups.push({ year, projects: [project] });
+  }
+  return groups;
 }
 
 /** Project count per track key, including empty tracks (`0`). */

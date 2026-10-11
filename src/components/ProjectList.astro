@@ -1,0 +1,182 @@
+---
+// HR's project section — the whole catalogue as a reverse-chronological list,
+// one group per year, in place of the track-grouped card grid the other two
+// roles read (`ProjectBoard.astro`). A screening reader scans titles and dates;
+// the cards' images and impact lines belong to the manager/colleague boards.
+// Server-rendered with no client script: the list has nothing to filter or
+// reorder, so it ships no JavaScript.
+import { getCollection } from 'astro:content';
+import { groupByYear, projectTrackLabels } from '../lib/projects';
+import { withBase } from '../lib/path';
+
+interface Props {
+  collection?: 'projects' | 'projects-en';
+  linkPrefix?: string;
+}
+
+const { collection = 'projects', linkPrefix = '' } = Astro.props;
+const lang: 'ru' | 'en' = linkPrefix.startsWith('en/') ? 'en' : 'ru';
+
+const trackLabels = projectTrackLabels(lang);
+const projects = await getCollection(collection, (p) => !p.data.draft);
+// `groupByYear` reads `date`/`updated` off the object it is handed, while a
+// collection entry carries them under `data` — the lift is what keeps the
+// helper testable without Astro. `data` rides along (spread), so the rows below
+// still read `title`/`description`/`tools` from the entry.
+const groups = groupByYear(
+  projects.map((project) => ({
+    ...project,
+    date: project.data.date,
+    updated: project.data.updated,
+  })),
+);
+
+// The row is a scanning aid, not the full tool list — the project page owns
+// that. Four read as one line at 1180px and still cover the headline stack.
+const TOOL_LIMIT = 4;
+
+const t = {
+  heading: lang === 'en' ? 'All projects' : 'Все проекты',
+};
+---
+
+<section id="projects" class="reveal reveal-delay-2" aria-labelledby="projects-heading">
+  {/* Mirrors `ProjectBoard.astro`: the rows are h4 under a year h3, so the
+      section needs its own h2 or the outline jumps h1 -> h3 and the Lighthouse
+      heading-order audit fails. Kept visually hidden — the year headings carry
+      the visible structure. */}
+  <h2 id="projects-heading" class="visually-hidden">{t.heading}</h2>
+
+  {
+    groups.map(({ year, projects: inYear }) => (
+      <section class="project-year" aria-labelledby={`project-year-${year}`}>
+        <h3 id={`project-year-${year}`} class="project-year-heading">
+          {year}
+        </h3>
+        <ul class="project-year-list">
+          {inYear.map((project) => {
+            const slug = project.id.replace(/\.md$/, '');
+            const tools = project.data.tools.slice(0, TOOL_LIMIT);
+            return (
+              <li class="project-row">
+                <div class="project-row-head">
+                  <h4 class="project-row-title">
+                    <a
+                      href={withBase(`${linkPrefix}projects/${slug}/`)}
+                      data-analytics-project={slug}
+                      data-analytics-surface="list"
+                    >
+                      {project.data.title}
+                    </a>
+                  </h4>
+                  <p class="project-row-track">{trackLabels[project.data.track]}</p>
+                </div>
+                <p class="project-row-description">{project.data.description}</p>
+                {tools.length > 0 && <p class="project-row-tools">{tools.join(' · ')}</p>}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ))
+  }
+</section>
+
+<style>
+  /* One rule per year, labelled at the left: the label sits in the gutter the
+     card grid used for its images, so the list keeps the page's left edge. */
+  .project-year-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    margin: 2.5rem 0 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+  }
+
+  .project-year-heading::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--surface-secondary);
+  }
+
+  .project-year-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .project-row {
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--surface-secondary);
+  }
+
+  .project-row:last-child {
+    border-bottom: none;
+  }
+
+  .project-row-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .project-row-title {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.35;
+  }
+
+  .project-row-title a {
+    color: var(--text-normal);
+    text-decoration: none;
+  }
+
+  .project-row-title a:hover {
+    color: var(--text-accent);
+    text-decoration: underline;
+  }
+
+  .project-row-title a:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+
+  .project-row-track {
+    flex: 0 0 auto;
+    margin: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .project-row-description {
+    max-width: 68ch;
+    margin: 0.35rem 0 0;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .project-row-tools {
+    margin: 0.4rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    opacity: 0.85;
+  }
+
+  /* The track label moves under the title rather than shrinking the title to a
+     sliver: at 375px a baseline row leaves ~180px for a 40-character title. */
+  @media (max-width: 640px) {
+    .project-row-head {
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+  }
+</style>

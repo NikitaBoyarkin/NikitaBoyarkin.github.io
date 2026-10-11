@@ -11,6 +11,7 @@ import ContactForm from './ContactForm.astro';
 import GithubActivity from './GithubActivity.astro';
 import KnowledgeGraph from './KnowledgeGraph.astro';
 import ProjectBoard from './ProjectBoard.astro';
+import ProjectList from './ProjectList.astro';
 import ReadingBlock from './ReadingBlock.astro';
 import RoleSwitch from './RoleSwitch.astro';
 import StackCard from './StackCard.astro';
@@ -137,14 +138,19 @@ const t = {
   </div>
 </section>
 
-{/* HR reads the card prose; a manager and a colleague read the STAR skeleton,
-    which `ProjectCard` renders whenever `star` is present. */}
-<ProjectBoard
-  collection={collection as 'projects' | 'projects-en'}
-  linkPrefix={linkPrefix}
-  slugs={ROLE_CURATION[role]}
-  showStar={role !== 'hr'}
-/>
+{/* HR reads the whole catalogue as a list grouped by year — a screening reader
+    wants the timeline, not a curated grid. A manager and a colleague read the
+    board, curated per role, with the STAR skeleton `ProjectCard` renders
+    whenever `star` is present. */}
+{role === 'hr' ? (
+  <ProjectList collection={collection as 'projects' | 'projects-en'} linkPrefix={linkPrefix} />
+) : (
+  <ProjectBoard
+    collection={collection as 'projects' | 'projects-en'}
+    linkPrefix={linkPrefix}
+    slugs={ROLE_CURATION[role]}
+  />
+)}
 
 {isColleague && (
   <>

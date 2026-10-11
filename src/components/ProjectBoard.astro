@@ -10,10 +10,8 @@ interface Props {
   linkPrefix?: string;
   /** Role-landing subset: render only these slugs, in this order. */
   slugs?: readonly string[];
-  /** Show the STAR skeleton on each card. Off for HR, whose cards stay prose. */
-  showStar?: boolean;
 }
-const { collection = 'projects', linkPrefix = '', slugs, showStar = true } = Astro.props;
+const { collection = 'projects', linkPrefix = '', slugs } = Astro.props;
 const lang: 'ru' | 'en' = linkPrefix.startsWith('en/') ? 'en' : 'ru';
 
 const all = sortByProjectOrder(await getCollection(collection, (p) => !p.data.draft));
@@ -78,7 +76,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
           title={project.data.title}
           description={project.data.description}
           image={project.data.hero}
-          star={showStar ? project.data.star : undefined}
+          star={project.data.star}
           impact={project.data.impact}
           tools={project.data.tools}
           github={project.data.github}

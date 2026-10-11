@@ -187,9 +187,12 @@ describe('ROLE_CURATION', () => {
     }
   });
 
-  it('keeps each role inside its size band, and colleague is the whole catalogue', () => {
-    expect(ROLE_CURATION.hr.length).toBeGreaterThanOrEqual(5);
-    expect(ROLE_CURATION.hr.length).toBeLessThanOrEqual(6);
+  it('keeps manager inside its size band, and reads the whole catalogue for hr and colleague', () => {
+    // HR used to be a 5–6 slug subset like the manager's. It is not any more:
+    // the HR landing renders the catalogue chronologically (`ProjectList` +
+    // `groupByYear`), so a curated subset would only hide the timeline. The
+    // claim moved with the behaviour instead of being deleted.
+    expect(ROLE_CURATION.hr).toEqual(PROJECT_ORDER);
     expect(ROLE_CURATION.manager.length).toBeGreaterThanOrEqual(8);
     expect(ROLE_CURATION.manager.length).toBeLessThanOrEqual(10);
     expect(ROLE_CURATION.colleague).toEqual(PROJECT_ORDER);
