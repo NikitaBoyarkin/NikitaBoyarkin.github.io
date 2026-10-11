@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "premium-upsell-by-segment"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-premium-upsell
 ---
 
 # Volta — Premium-апселл
@@ -55,4 +55,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-premium-upsell](https://github.com/NikitaBoyarkin/case-premium-upsell)

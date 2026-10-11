@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "clv-by-method"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-clv
 ---
 
 # Volta — CLV Modeling
@@ -53,4 +53,4 @@ I needed a forward-looking value estimate rather than a backward-looking revenue
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-clv](https://github.com/NikitaBoyarkin/case-clv)

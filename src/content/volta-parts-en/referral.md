@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "referral-conversion-by-segment"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-referral
 ---
 
 # Volta — Referral Segments
@@ -55,4 +55,4 @@ Since referral is the strongest channel in the funnel, my job was to find out wh
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-referral](https://github.com/NikitaBoyarkin/case-referral)

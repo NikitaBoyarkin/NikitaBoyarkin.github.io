@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "cs-churn-by-tickets"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-support-churn
 ---
 
 # Volta — Поддержка и отток
@@ -54,4 +54,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-support-churn](https://github.com/NikitaBoyarkin/case-support-churn)

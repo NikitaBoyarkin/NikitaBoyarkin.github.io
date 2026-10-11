@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "assisted-ltv-cac"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-assisted-cac
 ---
 
 # Volta — Assisted CAC vs LTV
@@ -56,4 +56,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-assisted-cac](https://github.com/NikitaBoyarkin/case-assisted-cac)

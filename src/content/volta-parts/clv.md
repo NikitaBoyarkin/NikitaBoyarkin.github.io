@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "clv-by-method"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-clv
 ---
 
 # Volta — Моделирование CLV
@@ -53,4 +53,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-clv](https://github.com/NikitaBoyarkin/case-clv)

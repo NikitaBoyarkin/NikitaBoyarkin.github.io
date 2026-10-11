@@ -23,7 +23,7 @@ tools:
 charts:
   - "causal-naive-vs-did"
   - "causal-recovery"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-causal-kyc
 ---
 
 # Volta — Причинная валидация KYC (DiD)
@@ -60,4 +60,4 @@ Project 3 показал, что фикс KYC совпал с ростом уд�
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-causal-kyc](https://github.com/NikitaBoyarkin/case-causal-kyc)

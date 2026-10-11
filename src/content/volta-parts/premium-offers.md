@@ -23,7 +23,7 @@ tools:
 charts:
   - "premium-offers-conversion"
   - "premium-offers-lift"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-premium-offers
 ---
 
 # Volta — Сегментные premium-офферы
@@ -56,4 +56,4 @@ Project 15 показал, что generic-апселл не переноситс
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-premium-offers](https://github.com/NikitaBoyarkin/case-premium-offers)

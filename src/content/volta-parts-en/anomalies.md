@@ -23,7 +23,7 @@ tools:
 charts:
   - "anomaly-detection"
   - "anomaly-hour-amount"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-anomalies
 ---
 
 # Volta — Anomaly Detection
@@ -55,4 +55,4 @@ My job was to compare the fraud and anomaly detectors honestly against ground tr
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-anomalies](https://github.com/NikitaBoyarkin/case-anomalies)

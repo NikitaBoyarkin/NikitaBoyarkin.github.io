@@ -23,7 +23,7 @@ tools:
 charts:
   - "nps-monthly"
   - "nps-drivers"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-nps
 ---
 
 # Volta — NPS Trends
@@ -55,4 +55,4 @@ I needed to see where customers sit between promoter and neutral, and my job was
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-nps](https://github.com/NikitaBoyarkin/case-nps)

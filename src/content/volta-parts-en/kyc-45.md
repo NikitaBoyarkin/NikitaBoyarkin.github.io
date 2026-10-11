@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "kyc-lift-by-age"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-kyc-45
 ---
 
 # Volta — 45+ KYC Deep-Dive
@@ -55,4 +55,4 @@ With the overall lift confirmed, my job was to isolate the senior segment — th
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-kyc-45](https://github.com/NikitaBoyarkin/case-kyc-45)

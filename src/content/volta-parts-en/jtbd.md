@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "jtbd-cohort-heatmap"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-jtbd
 ---
 
 # Volta — JTBD × Cohorts
@@ -55,4 +55,4 @@ I opened the market and jobs layer by checking whether segments defined by the j
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-jtbd](https://github.com/NikitaBoyarkin/case-jtbd)

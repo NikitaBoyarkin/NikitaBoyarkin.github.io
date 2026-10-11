@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "referral-conversion-by-segment"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-referral
 ---
 
 # Volta — Реферальные сегменты
@@ -55,4 +55,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-referral](https://github.com/NikitaBoyarkin/case-referral)

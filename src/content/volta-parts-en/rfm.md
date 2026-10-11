@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "rfm-heatmap"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-rfm
 ---
 
 # Volta — RFM Analysis
@@ -54,4 +54,4 @@ I needed a value layer that stays simple and interpretable, so I owned adding it
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-rfm](https://github.com/NikitaBoyarkin/case-rfm)

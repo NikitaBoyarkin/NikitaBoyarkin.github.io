@@ -24,7 +24,7 @@ charts:
   - "churn-feature-importance"
   - "churn-roc-curves"
   - "churn-shap-importance"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-churn
 ---
 
 # Volta — Прогноз оттока
@@ -62,4 +62,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-churn](https://github.com/NikitaBoyarkin/case-churn)

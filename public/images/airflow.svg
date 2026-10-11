@@ -1,0 +1,43 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Airflow DAG platform: a fetch to validate to write to record_metrics task pipeline with a failure branch to an alert callback">
+  <defs>
+    <linearGradient id="af-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f2a2b"/>
+      <stop offset="1" stop-color="#1a3435"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="600" fill="url(#af-bg)"/>
+
+  <text x="600" y="120" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7" text-anchor="middle">AIRFLOW DAG PLATFORM</text>
+
+  <!-- task edges: fetch -> validate -> write -> record_metrics -->
+  <line x1="285" y1="268" x2="388" y2="268" stroke="#ff6643" stroke-width="4" marker-end="url(#af-arrow)"/>
+  <line x1="575" y1="268" x2="678" y2="268" stroke="#ff6643" stroke-width="4"/>
+  <line x1="865" y1="268" x2="968" y2="268" stroke="#ff6643" stroke-width="4"/>
+
+  <!-- failure branch: write -> alert -->
+  <line x1="770" y1="318" x2="770" y2="420" stroke="#a1a1aa" stroke-width="4" stroke-dasharray="10 10"/>
+
+  <defs>
+    <marker id="af-arrow" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff6643"/>
+    </marker>
+  </defs>
+
+  <!-- nodes -->
+  <rect x="95" y="218" width="190" height="100" rx="14" fill="#ff8569"/>
+  <text x="190" y="278" font-family="Inter, system-ui, sans-serif" font-size="38" font-weight="700" fill="#0f2a2b" text-anchor="middle">FETCH</text>
+
+  <rect x="385" y="218" width="190" height="100" rx="14" fill="#123638" stroke="#ff6643" stroke-width="3"/>
+  <text x="480" y="278" font-family="Inter, system-ui, sans-serif" font-size="38" font-weight="700" fill="#e4e4e7" text-anchor="middle">VALIDATE</text>
+
+  <rect x="675" y="218" width="190" height="100" rx="14" fill="#123638" stroke="#ff6643" stroke-width="3"/>
+  <text x="770" y="278" font-family="Inter, system-ui, sans-serif" font-size="38" font-weight="700" fill="#e4e4e7" text-anchor="middle">WRITE</text>
+
+  <rect x="965" y="218" width="190" height="100" rx="14" fill="#123638" stroke="#ff6643" stroke-width="3"/>
+  <text x="1060" y="266" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700" fill="#e4e4e7" text-anchor="middle">RECORD</text>
+  <text x="1060" y="300" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700" fill="#e4e4e7" text-anchor="middle">METRICS</text>
+
+  <rect x="645" y="425" width="250" height="86" rx="14" fill="none" stroke="#a1a1aa" stroke-width="3"/>
+  <text x="770" y="478" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="600" fill="#a1a1aa" text-anchor="middle">ON FAILURE</text>
+</svg>

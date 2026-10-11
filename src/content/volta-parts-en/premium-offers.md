@@ -23,7 +23,7 @@ tools:
 charts:
   - "premium-offers-conversion"
   - "premium-offers-lift"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-premium-offers
 ---
 
 # Volta — Segment Premium Offers
@@ -56,4 +56,4 @@ The preceding project recommended segment offers but left them untested, so I ow
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-premium-offers](https://github.com/NikitaBoyarkin/case-premium-offers)

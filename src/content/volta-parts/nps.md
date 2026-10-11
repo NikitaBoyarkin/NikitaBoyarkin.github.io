@@ -23,7 +23,7 @@ tools:
 charts:
   - "nps-monthly"
   - "nps-drivers"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-nps
 ---
 
 # Volta — Тренды NPS
@@ -55,4 +55,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-nps](https://github.com/NikitaBoyarkin/case-nps)

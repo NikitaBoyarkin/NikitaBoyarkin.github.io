@@ -23,7 +23,7 @@ tools:
 charts:
   - "anchor-ltv-cac-vs-scale"
   - "anchor-marginal-cac"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-anchor-cac
 ---
 
 # Volta — Anchor Launch CAC at Scale
@@ -56,4 +56,4 @@ I owned the question of whether the anchor segment stays economically viable onc
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-anchor-cac](https://github.com/NikitaBoyarkin/case-anchor-cac)

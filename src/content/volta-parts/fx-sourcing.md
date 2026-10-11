@@ -23,7 +23,7 @@ tools:
 charts:
   - "fx-sourcing-volume"
   - "fx-provider-ranking"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-fx-sourcing
 ---
 
 # Volta — Feasibility FX-сорсинга
@@ -56,4 +56,4 @@ Project 14 установил безубыточный FX-cost (0,55%), но *п
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-fx-sourcing](https://github.com/NikitaBoyarkin/case-fx-sourcing)

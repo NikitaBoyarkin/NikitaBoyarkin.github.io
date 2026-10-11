@@ -25,7 +25,7 @@ charts:
   - "funnel-waterfall"
   - "funnel-age-heatmap"
   - "channel-end-to-end-conversion"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-funnel
 ---
 
 # Volta — Анализ воронки
@@ -60,4 +60,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-funnel](https://github.com/NikitaBoyarkin/case-funnel)

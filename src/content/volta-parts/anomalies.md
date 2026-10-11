@@ -23,7 +23,7 @@ tools:
 charts:
   - "anomaly-detection"
   - "anomaly-hour-amount"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-anomalies
 ---
 
 # Volta — Поиск аномалий
@@ -55,4 +55,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-anomalies](https://github.com/NikitaBoyarkin/case-anomalies)

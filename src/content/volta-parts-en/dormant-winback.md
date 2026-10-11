@@ -23,7 +23,7 @@ tools:
 charts:
   - "dormant-reactivation"
   - "dormant-roi"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-dormant-winback
 ---
 
 # Volta — Dormant 45+ Win-back
@@ -56,4 +56,4 @@ I owned the closing check of the validation round: whether assisted reactivation
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-dormant-winback](https://github.com/NikitaBoyarkin/case-dormant-winback)

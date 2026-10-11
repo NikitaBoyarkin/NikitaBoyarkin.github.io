@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "attribution-models"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-attribution
 ---
 
 # Volta — Маркетинговая атрибуция
@@ -54,4 +54,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-attribution](https://github.com/NikitaBoyarkin/case-attribution)

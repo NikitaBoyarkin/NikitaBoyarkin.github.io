@@ -23,7 +23,7 @@ tools:
 charts:
   - "dormant-reactivation"
   - "dormant-roi"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-dormant-winback
 ---
 
 # Volta — Win-back дормантов 45+
@@ -56,4 +56,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-dormant-winback](https://github.com/NikitaBoyarkin/case-dormant-winback)

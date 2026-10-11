@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "jtbd-cohort-heatmap"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-jtbd
 ---
 
 # Volta — JTBD × когорты
@@ -55,4 +55,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-jtbd](https://github.com/NikitaBoyarkin/case-jtbd)

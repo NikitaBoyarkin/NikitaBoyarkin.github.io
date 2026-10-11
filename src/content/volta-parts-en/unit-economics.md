@@ -23,7 +23,7 @@ tools:
 charts:
   - "traveler-fx-break-even"
   - "traveler-fx-sensitivity"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-unit-economics
 ---
 
 # Volta — Traveler Unit Economics
@@ -56,4 +56,4 @@ I needed to know whether the traveler segment's promise of a fair rate survives 
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-unit-economics](https://github.com/NikitaBoyarkin/case-unit-economics)

@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "premium-upsell-by-segment"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-premium-upsell
 ---
 
 # Volta — Premium Upsell
@@ -55,4 +55,4 @@ My job in the market and jobs layer was to check whether the upsell that worked 
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-premium-upsell](https://github.com/NikitaBoyarkin/case-premium-upsell)

@@ -23,7 +23,7 @@ tools:
 charts:
   - "anchor-ltv-cac-vs-scale"
   - "anchor-marginal-cac"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-anchor-cac
 ---
 
 # Volta — CAC запуска якоря при масштабе
@@ -56,4 +56,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-anchor-cac](https://github.com/NikitaBoyarkin/case-anchor-cac)

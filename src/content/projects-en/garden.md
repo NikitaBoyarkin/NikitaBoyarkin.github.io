@@ -1,6 +1,6 @@
 ---
-title: Digital Garden
-description: "A personal digital garden and Zettelkasten published as a Quartz v4 site: linked notes, backlinks and a graph view instead of a chronological blog feed."
+title: Digital Garden — EQ in IT
+description: "A digital garden about emotional intelligence in IT, published as a Quartz v4 site: backlinks and a graph view link notes into a network instead of a chronological blog feed."
 star:
   situation: "Chronological posts age and lose connections; a digital garden links notes with wikilinks instead"
   task: "Publish a personal Zettelkasten as a static site where the links between notes are visible to the reader"
@@ -10,6 +10,7 @@ track: engineering
 hero: images/garden.svg
 ogImage: /images/og/garden.png
 impact:
+  - "Subject: emotional intelligence in IT — self-awareness, self-regulation, empathy, social skills"
   - Linked-notes Zettelkasten with backlinks + graph view
   - Atomic evergreen notes over chronological posts
   - Quartz v4 — TypeScript-extensible, static output
@@ -21,17 +22,17 @@ tools:
   - Obsidian
 github: https://github.com/NikitaBoyarkin/digital_garden
 date: 2026-08-11
-updated: 2026-08-12
+updated: 2026-10-12
 related:
   - /projects/site/
   - /projects/scrolly/
 ---
 
-# Digital Garden
+# Digital Garden — EQ in IT
 
 ## Situation
 
-Knowledge as chronological posts ages quickly and loses connections. A digital garden is the opposite of a blog: notes are not ordered by date but linked with `[[wikilinks]]`, have maturity stages (seedling → evergreen), and evolve over time. The task: publish a personal Zettelkasten as a static site where the reader sees a network of ideas and navigates by meaning, not chronology.
+Knowledge as chronological posts ages quickly and loses connections. A digital garden is the opposite of a blog: notes are not ordered by date but linked with `[[wikilinks]]`, have maturity stages (seedling → evergreen), and evolve over time. The task: publish a personal Zettelkasten as a static site where the reader sees a network of ideas and navigates by meaning, not chronology. The garden's subject is emotional intelligence in IT: self-awareness, self-regulation, empathy and social skills.
 
 ## Task
 

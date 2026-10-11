@@ -23,7 +23,7 @@ tools:
 charts:
   - "fx-sourcing-volume"
   - "fx-provider-ranking"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-fx-sourcing
 ---
 
 # Volta — FX Sourcing Feasibility
@@ -56,4 +56,4 @@ The preceding project set the break-even FX cost but only assumed it was buyable
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-fx-sourcing](https://github.com/NikitaBoyarkin/case-fx-sourcing)

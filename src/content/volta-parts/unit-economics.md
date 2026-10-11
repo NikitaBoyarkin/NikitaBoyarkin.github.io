@@ -23,7 +23,7 @@ tools:
 charts:
   - "traveler-fx-break-even"
   - "traveler-fx-sensitivity"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-unit-economics
 ---
 
 # Volta — Юнит-экономика путешественников
@@ -56,4 +56,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-unit-economics](https://github.com/NikitaBoyarkin/case-unit-economics)

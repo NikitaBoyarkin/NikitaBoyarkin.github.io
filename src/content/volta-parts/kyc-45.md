@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "kyc-lift-by-age"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-kyc-45
 ---
 
 # Volta — Глубокий разбор KYC 45+
@@ -55,4 +55,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-kyc-45](https://github.com/NikitaBoyarkin/case-kyc-45)

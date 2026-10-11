@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "rfm-heatmap"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-rfm
 ---
 
 # Volta — RFM-анализ
@@ -54,4 +54,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-rfm](https://github.com/NikitaBoyarkin/case-rfm)

@@ -25,7 +25,7 @@ charts:
   - "segmentation-pareto-cumulative"
   - "segmentation-pca-scatter"
   - "segmentation-k-selection"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-segmentation
 ---
 
 # Volta — Сегментация пользователей
@@ -59,4 +59,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-segmentation](https://github.com/NikitaBoyarkin/case-segmentation)

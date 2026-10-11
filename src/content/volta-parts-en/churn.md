@@ -24,7 +24,7 @@ charts:
   - "churn-feature-importance"
   - "churn-roc-curves"
   - "churn-shap-importance"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-churn
 ---
 
 # Volta — Churn Prediction
@@ -62,4 +62,4 @@ My job was to find out what actually drives customers to leave, since churn is n
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-churn](https://github.com/NikitaBoyarkin/case-churn)

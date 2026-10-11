@@ -24,7 +24,7 @@ charts:
   - "cohort-retention-heatmap"
   - "retention-pre-post"
   - "retention-free-vs-premium"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-retention
 ---
 
 # Volta — Retention & Cohorts
@@ -58,4 +58,4 @@ I owned the retention check after the KYC fix shipped, reading the effect throug
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-retention](https://github.com/NikitaBoyarkin/case-retention)

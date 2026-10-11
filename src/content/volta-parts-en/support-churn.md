@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "cs-churn-by-tickets"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-support-churn
 ---
 
 # Volta — Support & Churn
@@ -54,4 +54,4 @@ My job was to check whether a poor support experience actually drives churn, and
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-support-churn](https://github.com/NikitaBoyarkin/case-support-churn)

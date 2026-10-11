@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "spend-by-category"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-spend
 ---
 
 # Volta — Spend Analysis
@@ -54,4 +54,4 @@ I needed to establish where and on what customers spend, so I owned the spending
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-spend](https://github.com/NikitaBoyarkin/case-spend)

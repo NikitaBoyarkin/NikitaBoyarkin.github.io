@@ -1,0 +1,45 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LinkedIn post analytics: series efficiency bars with 95% bootstrap confidence intervals">
+  <defs>
+    <linearGradient id="li-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f2a2b"/>
+      <stop offset="1" stop-color="#1a3435"/>
+    </linearGradient>
+    <linearGradient id="li-bar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff8569"/>
+      <stop offset="1" stop-color="#ff6643"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="600" fill="url(#li-bg)"/>
+
+  <text x="80" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7">LINKEDIN ANALYTICS</text>
+  <text x="80" y="190" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="500" fill="#a1a1aa">SERIES EFFICIENCY · 95% BOOTSTRAP CI BY POST</text>
+
+  <!-- baseline -->
+  <line x1="120" y1="470" x2="1120" y2="470" stroke="#a1a1aa" stroke-width="3"/>
+
+  <!-- bars + confidence intervals -->
+  <g opacity="0.9">
+    <rect x="140" y="195" width="100" height="275" rx="10" fill="url(#li-bar)"/>
+    <rect x="360" y="226" width="100" height="244" rx="10" fill="url(#li-bar)"/>
+    <rect x="580" y="271" width="100" height="199" rx="10" fill="url(#li-bar)"/>
+    <rect x="800" y="277" width="100" height="193" rx="10" fill="url(#li-bar)"/>
+    <rect x="1020" y="315" width="100" height="155" rx="10" fill="url(#li-bar)"/>
+  </g>
+
+  <g stroke="#e4e4e7" stroke-width="4" stroke-linecap="round">
+    <line x1="190" y1="151" x2="190" y2="239"/><line x1="172" y1="151" x2="208" y2="151"/><line x1="172" y1="239" x2="208" y2="239"/>
+    <line x1="410" y1="215" x2="410" y2="237"/><line x1="392" y1="215" x2="428" y2="215"/><line x1="392" y1="237" x2="428" y2="237"/>
+    <line x1="630" y1="199" x2="630" y2="343"/><line x1="612" y1="199" x2="648" y2="199"/><line x1="612" y1="343" x2="648" y2="343"/>
+    <line x1="850" y1="237" x2="850" y2="317"/><line x1="832" y1="237" x2="868" y2="237"/><line x1="832" y1="317" x2="868" y2="317"/>
+    <line x1="1070" y1="277" x2="1070" y2="353"/><line x1="1052" y1="277" x2="1088" y2="277"/><line x1="1052" y1="353" x2="1088" y2="353"/>
+  </g>
+
+  <g font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="600" fill="#a1a1aa" text-anchor="middle">
+    <text x="190" y="520">SWIPE</text>
+    <text x="410" y="520">PREP</text>
+    <text x="630" y="520">SOFA</text>
+    <text x="850" y="520">OTHER</text>
+    <text x="1070" y="520">A/B</text>
+  </g>
+</svg>

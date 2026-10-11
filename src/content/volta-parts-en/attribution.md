@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "attribution-models"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-attribution
 ---
 
 # Volta — Marketing Attribution
@@ -54,4 +54,4 @@ I needed to settle which channel can be credited with revenue, so I owned the si
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-attribution](https://github.com/NikitaBoyarkin/case-attribution)

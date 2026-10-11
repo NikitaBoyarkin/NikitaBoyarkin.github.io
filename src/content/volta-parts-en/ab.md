@@ -23,7 +23,7 @@ tools:
 charts:
   - "kyc-ab-conversion"
   - "ab-power-curve"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-ab
 ---
 
 # Volta — KYC Progress-Bar A/B Test
@@ -58,4 +58,4 @@ I needed to show that the onboarding snapshot held up under a controlled test, s
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-ab](https://github.com/NikitaBoyarkin/case-ab)

@@ -23,7 +23,7 @@ tools:
 charts:
   - "causal-naive-vs-did"
   - "causal-recovery"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-causal-kyc
 ---
 
 # Volta — Causal Validation of KYC (DiD)
@@ -60,4 +60,4 @@ I owned the move from correlation to a causal estimate for the KYC fix: I needed
 
 ## Documentation
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-causal-kyc](https://github.com/NikitaBoyarkin/case-causal-kyc)

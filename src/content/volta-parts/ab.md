@@ -23,7 +23,7 @@ tools:
 charts:
   - "kyc-ab-conversion"
   - "ab-power-curve"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-ab
 ---
 
 # Volta — A/B-тест прогресс-бара KYC
@@ -58,4 +58,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-ab](https://github.com/NikitaBoyarkin/case-ab)

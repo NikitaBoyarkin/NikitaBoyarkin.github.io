@@ -22,7 +22,7 @@ tools:
   - "uv + ruff"
 charts:
   - "spend-by-category"
-github: https://github.com/NikitaBoyarkin/volta-banking
+github: https://github.com/NikitaBoyarkin/case-spend
 ---
 
 # Volta — Анализ трат
@@ -54,4 +54,4 @@ github: https://github.com/NikitaBoyarkin/volta-banking
 
 ## Документация
 
-- [GitHub → volta-banking](https://github.com/NikitaBoyarkin/volta-banking)
+- [GitHub → case-spend](https://github.com/NikitaBoyarkin/case-spend)
