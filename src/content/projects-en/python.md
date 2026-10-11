@@ -1,6 +1,6 @@
 ---
 title: Python Analytics Playground
-description: "A module-based Python analytics toolkit — loading, cleaning, EDA, visualization — assembled into one pipeline with ≥80% pytest coverage. The base I copy into every new analysis."
+description: "≥80% pytest coverage on a module-based Python analytics toolkit: loading, cleaning, EDA and visualization assembled into one reusable pipeline — the base I copy into every new analysis."
 star:
   situation: "In product analytics most tasks start the same way: load an export, clean it, check distributions, chart it — from scratch each time"
   task: "Turn the routine into shared modules that teammates can extend without fear of breaking existing behavior"

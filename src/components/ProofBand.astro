@@ -11,6 +11,7 @@
 import ChartCard from './charts/ChartCard.astro';
 import { loadChartFile, type ChartObject } from '../lib/charts';
 import { METRICS as SIG } from '../lib/metrics';
+import { formatNumber } from '../lib/format';
 
 interface Props {
   lang?: 'ru' | 'en';
@@ -65,7 +66,7 @@ const STEPS: Step[] = [
       ? 'Split KYC into steps with a progress bar, then tested it against control. Primary metric is KYC completion; a result counted only if it was statistically significant and cleared the pre-registered threshold.'
       : 'KYC разбили на шаги с прогресс-баром и проверили против контроля. Первичная метрика — завершение KYC; результат засчитывали, только если он статистически значим и превышает заранее заложенный порог.',
     chips: [
-      isEn ? `+${abKyc.deltaPp} pp` : `+${abKyc.deltaPp} п.п.`,
+      `+${formatNumber(abKyc.deltaPp, undefined, lang)}${isEn ? ' pp' : ' п.п.'}`,
       isEn ? `€${abKyc.annualEurK}K/yr` : `€${abKyc.annualEurK}K в год`,
     ],
     chart: abChart,
@@ -77,7 +78,7 @@ const STEPS: Step[] = [
       ? 'Retention by join cohort, month over month. The matrix shows where each cohort flattens — and what one more retained month is worth.'
       : 'Удержание по когорте прихода, месяц за месяцем. Матрица показывает, где кривая выравнивается и сколько стоит ещё один удержанный месяц.',
     chips: [
-      isEn ? `+${retention.deltaPp} pp M3` : `+${retention.deltaPp} п.п. M3`,
+      `+${formatNumber(retention.deltaPp, undefined, lang)}${isEn ? ' pp M3' : ' п.п. M3'}`,
       isEn ? `€${retention.ltvEurK}K LTV` : `€${retention.ltvEurK}K LTV`,
     ],
     chart: cohortChart,

@@ -37,7 +37,18 @@ export async function getGraphLayouts(
 ): Promise<{ group: GraphData; community: GraphData }> {
   const graph = await buildGraphFor(lang);
   return {
-    group: layoutGraph(graph),
+    // The default view is the single-center radial layout, fitted to the
+    // KnowledgeGraph's fixed 900x560 world (the component's zoom math depends on
+    // that world, so the radial rings are placed inside it, not around it).
+    group: layoutRadial(graph, {
+      width: 900,
+      height: 560,
+      minArc: 34,
+      ringStep: 48,
+      startRadius: 84,
+    }),
+    // Community mode keeps the force-clustered view: the toggle swaps both the
+    // colors and the arrangement, so the emergent clusters stay legible.
     community: layoutGraph(graph, { groupBy: "community" }),
   };
 }

@@ -34,7 +34,9 @@ related:
 
 ## Situation
 
-A standard two-sample t-test answers only "does the treatment work on average" and ignores the pre-period. Experiments therefore ask for more traffic than they need, and retention offers go to everyone while only part of the audience responds. The project closes both gaps: CUPED reduces variance using a pre-period covariate, and uplift modeling estimates the individual treatment effect (ITE). Both run on a synthetic randomized experiment with a known heterogeneous effect, so the estimates can be checked against ground truth.
+A standard two-sample t-test answers only "does the treatment work on average" and ignores the pre-period. Experiments therefore ask for more traffic than they need, and retention offers go to everyone while only part of the audience responds.
+
+The project closes both gaps: CUPED reduces variance using a pre-period covariate, and uplift modeling estimates the individual treatment effect (ITE). Both run on a synthetic randomized experiment with a known heterogeneous effect, so the estimates can be checked against ground truth.
 
 ## Task
 
@@ -88,7 +90,9 @@ Uplift answers a different question than A/B testing: not "does the treatment wo
 
 ## Limitations
 
-The latent ground-truth τ is 0.60 (new) / 0.08 (returning), but the *conversion* uplift is ~0.11 / 0.01 because the sigmoid at a high baseline conversion (~71%) damps large latent effects. Comparing predicted binary uplift to latent τ would be a scale mismatch, so the report uses rank correlation (scale-free) and per-segment empirical recovery. On real data the ITE is never observed — synthetic data with a true heterogeneous effect is the only reason recovery can be checked at all; that is the fundamental problem of causal inference, not a flaw of the method.
+The latent ground-truth τ is 0.60 (new) / 0.08 (returning), but the *conversion* uplift is ~0.11 / 0.01 because the sigmoid at a high baseline conversion (~71%) damps large latent effects. Comparing predicted binary uplift to latent τ would be a scale mismatch, so the report uses rank correlation (scale-free) and per-segment empirical recovery.
+
+On real data the ITE is never observed — synthetic data with a true heterogeneous effect is the only reason recovery can be checked at all; that is the fundamental problem of causal inference, not a flaw of the method.
 
 ## Documentation
 

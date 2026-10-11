@@ -89,7 +89,7 @@ const definedTermSetJsonLd = {
         groups.map((g) => (
           <div class="level-group">
             <div class="level-heading">
-              <span class="level-name">{g.label}</span>
+              <h2 class="level-name">{g.label}</h2>
               <span class="level-blurb">{g.items.length}</span>
             </div>
             <div class="term-grid">
@@ -127,6 +127,7 @@ const definedTermSetJsonLd = {
     margin-bottom: var(--space-3);
   }
   .level-name {
+    margin: 0;
     font-size: 1.15rem;
     font-weight: 600;
     color: var(--text-normal);

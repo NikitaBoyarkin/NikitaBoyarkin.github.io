@@ -287,4 +287,46 @@ describe('layoutRadial (the single-center index graph)', () => {
     expect(out.nodes.map((n) => n.id).sort()).toEqual(graph.nodes.map((n) => n.id).sort());
     expect(out.links).toHaveLength(graph.links.length);
   });
+
+  it('fits the /graph 900x560 world with the root at its centre', () => {
+    const out = layoutRadial(sampleGraph(), {
+      width: 900,
+      height: 560,
+      minArc: 34,
+      ringStep: 48,
+      startRadius: 84,
+    });
+    const root = out.nodes.find((n) => n.id === ROOT_ID)!;
+    expect(root.x).toBe(450);
+    expect(root.y).toBe(280);
+    for (const n of out.nodes) {
+      expect(n.x, `${n.id} x`).toBeGreaterThanOrEqual(0);
+      expect(n.x, `${n.id} x`).toBeLessThanOrEqual(900);
+      expect(n.y, `${n.id} y`).toBeGreaterThanOrEqual(0);
+      expect(n.y, `${n.id} y`).toBeLessThanOrEqual(560);
+    }
+  });
+
+  it('scales the rings down when a big graph would overflow the world', () => {
+    const big = buildGraph({
+      projects: Array.from({ length: 120 }, (_, i) => project(`p${i}`)),
+      posts: [],
+      parts: [],
+      topics: [],
+      lang: 'ru',
+    });
+    const out = layoutRadial(big, {
+      width: 900,
+      height: 560,
+      minArc: 34,
+      ringStep: 48,
+      startRadius: 84,
+    });
+    for (const n of out.nodes) {
+      expect(n.x, `${n.id} x`).toBeGreaterThanOrEqual(0);
+      expect(n.x, `${n.id} x`).toBeLessThanOrEqual(900);
+      expect(n.y, `${n.id} y`).toBeGreaterThanOrEqual(0);
+      expect(n.y, `${n.id} y`).toBeLessThanOrEqual(560);
+    }
+  });
 });

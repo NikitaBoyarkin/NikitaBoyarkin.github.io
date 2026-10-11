@@ -1,6 +1,6 @@
 ---
 title: Digital Garden — EQ in IT
-description: "A digital garden about emotional intelligence in IT, published as a Quartz v4 site: backlinks and a graph view link notes into a network instead of a chronological blog feed."
+description: "Notes linked into a network, not a feed: a digital garden about emotional intelligence in IT on Quartz v4 — backlinks and a graph turn note accumulation into a navigable structure."
 star:
   situation: "Chronological posts age and lose connections; a digital garden links notes with wikilinks instead"
   task: "Publish a personal Zettelkasten as a static site where the links between notes are visible to the reader"
@@ -32,7 +32,9 @@ related:
 
 ## Situation
 
-Knowledge as chronological posts ages quickly and loses connections. A digital garden is the opposite of a blog: notes are not ordered by date but linked with `[[wikilinks]]`, have maturity stages (seedling → evergreen), and evolve over time. The task: publish a personal Zettelkasten as a static site where the reader sees a network of ideas and navigates by meaning, not chronology. The garden's subject is emotional intelligence in IT: self-awareness, self-regulation, empathy and social skills.
+Knowledge as chronological posts ages quickly and loses connections. A digital garden is the opposite of a blog: notes are not ordered by date but linked with `[[wikilinks]]`, have maturity stages (seedling → evergreen), and evolve over time.
+
+The task: publish a personal Zettelkasten as a static site where the reader sees a network of ideas and navigates by meaning, not chronology.
 
 ## Task
 

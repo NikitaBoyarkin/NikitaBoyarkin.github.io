@@ -96,7 +96,7 @@ export const QA_CORPUS: QAPair[] = [
     ru: {
       question: "Что у тебя с A/B-тестами?",
       answer:
-        "Полный toolkit: CUPED (сжатие SE), AA-тесты на Type I error, коррекция множественных сравнений (Bonferroni/BH), alpha-spending и always-valid p-values (mSPRT), delta-method для ratio-метрик. В кейсе Volta — ship-gate из 3 условий и +5.72pp KYC-конверсии (p<0.0001).",
+        "Полный toolkit: CUPED (сжатие SE), AA-тесты на Type I error, коррекция множественных сравнений (Bonferroni/BH), alpha-spending и always-valid p-values (mSPRT), delta-method для ratio-метрик. В кейсе Volta — ship-gate из 3 условий и +5,72 п.п. KYC-конверсии (p<0.0001).",
       links: [
         { label: "A/B Toolkit", href: "projects/ab/" },
         { label: "Volta", href: "projects/volta/" },
@@ -182,7 +182,7 @@ export const QA_CORPUS: QAPair[] = [
     ru: {
       question: "Что за проект Volta?",
       answer:
-        "End-to-end аналитика необанка на синтетических fintech-данных: 22 проекта — funnel, A/B-тест, retention и сегментация одной петлёй, слой Market & Jobs и валидация RAT v2. Ключевой результат — +5.72pp KYC-конверсии (Z=5.82, p<0.0001), €656K/yr (44× ROI), с CUPED, AA-тестом и Bonferroni.",
+        "End-to-end аналитика необанка на синтетических fintech-данных: 22 проекта — funnel, A/B-тест, retention и сегментация одной петлёй, слой Market & Jobs и валидация RAT v2. Ключевой результат — +5,72 п.п. KYC-конверсии (Z=5.82, p<0.0001), €656K/yr (44× ROI), с CUPED, AA-тестом и Bonferroni.",
       links: [{ label: "Volta", href: "projects/volta/" }],
     },
     en: {

@@ -205,10 +205,35 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     <g class="kg-nodes">
       {nodes.map((n, i) => {
         const r = (n.size || 6) * NODE_SIZE;
-        // Post labels are hover/focus-only: with ~50 nodes always-on labels
-        // read as a text cloud. Projects, topics, cores and Volta parts stay
-        // labeled — they're the graph's anchors.
-        const labelClass = n.id.startsWith('post:') ? 'kg-label kg-label-hover' : 'kg-label';
+        // Only the anchors stay labeled: the root, the type hubs, projects and
+        // topics. Posts, Volta parts and glossary terms are hover/focus-only —
+        // with ~100 nodes on concentric rings, always-on labels read as a text
+        // cloud (the radial layout aligns them, so the overlap is worse than the
+        // old cloud's). The one center and its hubs never lose their names.
+        const anchor =
+          n.id.startsWith('core:') || n.id.startsWith('p:') || n.id.startsWith('topic:');
+        const labelClass = anchor ? 'kg-label' : 'kg-label kg-label-hover';
+        // Place each label radially OUTWARD from the world centre (450,280), so
+        // labels on a ring fan out instead of all running right into each other.
+        // The root's label sits above it; near-vertical nodes get a centred label.
+        let tx = r + 6;
+        let ty = 4;
+        let ta = 'start';
+        if (n.id === 'core:me') {
+          tx = 0;
+          ty = -(r + 8);
+          ta = 'middle';
+        } else {
+          const dx = n.x - 450;
+          const dy = n.y - 280;
+          const d = Math.hypot(dx, dy) || 1;
+          const ux = dx / d;
+          const uy = dy / d;
+          const vertical = Math.abs(ux) < 0.35;
+          tx = vertical ? 0 : ux * (r + 6);
+          ty = vertical ? (uy >= 0 ? r + 12 : -(r + 12)) : uy * (r + 6) + 4;
+          ta = vertical ? 'middle' : ux >= 0 ? 'start' : 'end';
+        }
         return (
           <g
             tabindex="0"
@@ -219,7 +244,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
           >
             <title>{tooltips.node[i].join('\n')}</title>
             <circle r={r} fill={GRAPH_GROUP_COLORS[n.group] || 'var(--text-muted)'} />
-            <text x={r + 6} y="4" class={labelClass}>{n.label}</text>
+            <text x={tx} y={ty} text-anchor={ta} class={labelClass}>{n.label}</text>
           </g>
         );
       })}
@@ -1197,9 +1222,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     pointer-events: none;
     transition: opacity 120ms ease;
   }
-  /* Post labels are hover/focus-only (see the SSR template): with ~50 nodes
-     always-on labels read as a text cloud. Projects, topics, cores and Volta
-     parts stay labeled. */
+  /* Non-anchor labels are hover/focus-only (see the SSR template): with ~100
+     nodes on concentric rings, always-on labels read as a text cloud. The root,
+     the hubs, projects and topics stay labeled. */
   .kg-label-hover {
     opacity: 0;
   }

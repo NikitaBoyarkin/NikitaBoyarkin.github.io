@@ -70,6 +70,18 @@ const pageUrl = canonical ? `${siteUrl}${canonical}` : Astro.url.toString();
 const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${withBase(ogImage)}`;
 const faviconUrl = withBase('favicon.svg');
 
+// Search-result snippet: clamped to ~160 characters on a word boundary. The
+// authored `description:` is 120–200 chars (PRD D12) and stays full for
+// og/twitter, but Google truncates near 155–160, so an untruncated long line was
+// cut mid-phrase in the results. Only <meta name="description"> is clamped.
+const metaDescription = (() => {
+  const d = description.trim();
+  if (d.length <= 160) return d;
+  const cut = d.slice(0, 157);
+  const at = cut.lastIndexOf(' ');
+  return `${at > 0 ? cut.slice(0, at) : cut}…`;
+})();
+
 // i18n: locale-aware nav hrefs + hreflang alternates.
 const isEn = lang === 'en';
 const homeHref = isEn ? withBase('en/') : withBase('/');
@@ -216,7 +228,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
-    <meta name="description" content={description} />
+    <meta name="description" content={metaDescription} />
     {keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
     {canonical && <link rel="canonical" href={pageUrl} />}
     {relPrev && <link rel="prev" href={relPrev} />}

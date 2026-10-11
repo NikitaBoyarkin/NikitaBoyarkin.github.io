@@ -9,7 +9,7 @@
 // alpha-decay schedule. The same input always produces the same layout, which
 // keeps the SSR SVG and the /graph.json endpoints in agreement across builds.
 import type { GraphData, GraphNode, LinkType } from "./graph";
-import { ROOT_ID } from "./graph";
+import { NODE_SIZE, ROOT_ID } from "./graph";
 
 export interface LayoutOptions {
   /** World width in viewBox units. */
@@ -283,6 +283,25 @@ export function layoutRadial(graph: GraphData, opts: RadialOptions = {}): GraphD
       }
       i += slice.length;
       radius += ringStep;
+    }
+  }
+
+  // Fit safety: if the outermost ring overflows the world, scale every position
+  // toward the center so nothing is clipped at k = 1 (the /graph page renders
+  // this layout in its fixed 900x560 viewBox). Spacing shrinks with it, which is
+  // acceptable for a zoomable view and never triggers on the square index world.
+  let used = 0;
+  for (const n of graph.nodes) {
+    const p = pos.get(n.id);
+    if (!p) continue;
+    const r = Math.hypot(p.x - cx, p.y - cy) + (n.size ?? 6) * NODE_SIZE;
+    if (r > used) used = r;
+  }
+  const allowed = Math.min(cx, cy) - 20;
+  if (used > allowed && used > 0) {
+    const scale = allowed / used;
+    for (const [id, p] of pos) {
+      pos.set(id, { x: cx + (p.x - cx) * scale, y: cy + (p.y - cy) * scale });
     }
   }
 

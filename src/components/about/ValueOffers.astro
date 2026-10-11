@@ -10,6 +10,7 @@
 // that need to be computed: the proof strip and the offer cards.
 import { METRICS } from '../../lib/metrics';
 import { withBase } from '../../lib/path';
+import { formatNumber } from '../../lib/format';
 
 interface Props {
   lang: 'ru' | 'en';
@@ -18,8 +19,8 @@ const { lang } = Astro.props;
 const isEn = lang === 'en';
 
 const proof = [
-  { value: `+${METRICS.abKyc.deltaPp}pp`, label: isEn ? 'A/B on the KYC step' : 'A/B на KYC-шаге' },
-  { value: `+${METRICS.retention.deltaPp}pp`, label: isEn ? 'M3 retention' : 'Retention M3' },
+  { value: `+${formatNumber(METRICS.abKyc.deltaPp, undefined, lang)}pp`, label: isEn ? 'A/B on the KYC step' : 'A/B на KYC-шаге' },
+  { value: `+${formatNumber(METRICS.retention.deltaPp, undefined, lang)}pp`, label: isEn ? 'M3 retention' : 'Retention M3' },
   {
     value: `${METRICS.rfm.revenueBeforePct}→${METRICS.rfm.revenueAfterPct}%`,
     label: isEn ? 'Revenue in the 4 key segments' : 'Выручка в 4 ключевых сегментах',

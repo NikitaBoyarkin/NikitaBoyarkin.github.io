@@ -9,6 +9,7 @@ const { lang = "ru" } = Astro.props;
 const isEn = lang === "en";
 
 import { METRICS as SIG } from "../lib/metrics";
+import { formatNumber } from "../lib/format";
 
 type Metric = {
   value: number;
@@ -27,7 +28,7 @@ const METRICS: Metric[] = [
   { value: SIG.abKyc.annualEurK, prefix: "€", suffix: isEn ? "K/yr" : "K/год", label: isEn ? "annual impact of the change" : "годовой эффект от изменения" },
 ];
 
-const fmt = (v: number, d: number) => (d > 0 ? v.toFixed(d) : String(Math.round(v)));
+const fmt = (v: number, d: number) => formatNumber(v, d || undefined, lang);
 ---
 
 <div class="hero-metrics" role="group" aria-label={isEn ? "Key metrics" : "Ключевые метрики"}>
@@ -55,16 +56,19 @@ const fmt = (v: number, d: number) => (d > 0 ? v.toFixed(d) : String(Math.round(
 </div>
 
 <script>
+  import { formatNumber } from "../lib/format";
+
   function init() {
     const strip = document.querySelector<HTMLElement>(".hero-metrics");
     if (!strip) return;
     const cells = Array.from(strip.querySelectorAll<HTMLElement>(".hero-metric-value"));
     if (!cells.length) return;
 
+    const lang = document.documentElement.lang === "en" ? "en" : "ru";
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     function format(v: number, decimals: number): string {
-      return decimals > 0 ? v.toFixed(decimals) : String(Math.round(v));
+      return formatNumber(v, decimals || undefined, lang);
     }
 
     function setFinal(cell: HTMLElement) {

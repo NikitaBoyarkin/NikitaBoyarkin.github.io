@@ -56,7 +56,7 @@ function badgesIn(rel: string): string[] {
  * `bento-cell-title`; it used to be a `stack-group-name` span inside one cell.
  */
 function groupsIn(lang: Lang): string[] {
-  return [...branch(lang).matchAll(/class="bento-cell-title">([^<{]+)<\/h3>/g)].map((m) =>
+  return [...branch(lang).matchAll(/class="bento-cell-title">([^<{]+)<\/h2>/g)].map((m) =>
     m[1].trim()
   );
 }

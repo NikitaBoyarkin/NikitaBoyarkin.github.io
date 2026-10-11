@@ -206,7 +206,7 @@ const hiddenTags = tags.filter((t) => t.count < 2);
           if (!items.length) return '';
           return `<div class="level-group">
             <div class="level-heading">
-              <span class="level-name">${escapeHtml(labelOf.get(key) ?? key)}</span>
+              <h2 class="level-name">${escapeHtml(labelOf.get(key) ?? key)}</h2>
               <span class="level-blurb">${items.length}</span>
             </div>
             <div class="term-grid">${items.map(cardHtml).join('')}</div>

@@ -28,7 +28,7 @@ typography:
   sans:
     fontFamily: Inter
     fontSize: 16px
-    lineHeight: 1.6
+    lineHeight: 1.5
   display:
     fontFamily: Cormorant / Georgia / Times New Roman / Literata / Noto Serif / PT Serif
   mono:
@@ -271,7 +271,7 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 - Project and post prose is justified (`text-align: justify`) with automatic hyphenation (`hyphens: auto`) so the even right edge does not open word gaps.
 - Paragraphs separate by a first-line indent (`text-indent: 1.5em`) with only a tight vertical gap, not by extra air; the indent drops after a heading, at the start of a section, and inside lists and quotes.
 - Justification is turned off below 640px — in a narrow column it produces rivers and uneven spacing.
-- **The measure is 65ch on both reading surfaces**, project pages (`#project-content`) and posts (`.post-content`). They used to disagree — projects ran to the full 736px column (≈84 characters per line) while posts were already capped (≈72) — which read as two different type systems rather than one. 65ch lands at ≈656px, at the top of the comfortable 45–75ch range.
+- **The measure is 75ch on both reading surfaces**, project pages (`#project-content`) and posts (`.post-content`), set by `--prose-measure` in `src/styles/prose.css`. They used to disagree — projects ran to the full 736px column (≈84 characters per line) while posts were already capped (≈72) — which read as two different type systems rather than one. 75ch lands at ≈794px inside the 880px `.container-wide`, at the top of the comfortable 45–75ch range.
 - **Prose size is `1.05rem` (16.8px) wherever prose appears** — body paragraphs, list items, quotes, card descriptions. One role, one size; the previous 16px / 16.8px / 15.2px spread was drift, not hierarchy.
 - **The root font size is `1rem`, never `16px`.** At the browser default the two are identical, but `rem` honours a reader who has raised the default text size — a hard `16px` on `body` throws that setting away.
 - **Micro-label floor is `0.72rem` (≈11.5px).** Badge and compact-label styles (`.strip-badge`, `.star-compact .star-label`) sat at 0.66–0.68rem (10.5–10.9px), below any legible floor.
@@ -284,7 +284,7 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 - Below 1100px the nav is an off-canvas drawer over a scrim, opened from a sticky top bar; the panel holds the page scroll only while it is open.
 - The kanban board is the only element that breaks out of the reading column, to a wider viewport-capped width — it centres on the content column, not the viewport, so it never slides under the rail.
 - Project grids use auto-fit with a minimum card width so cards reflow without media queries.
-- Both reading surfaces are capped at the same 65ch measure — project content and post content. Intro and card paragraphs are narrower by their own containers, not by a second type scale.
+- Both reading surfaces are capped at the same 75ch measure — project content and post content. Intro and card paragraphs are narrower by their own containers, not by a second type scale.
 - The rail utility cluster (language, search, contacts CTA, theme) sits directly under the brand, above the primary links — the search dropdown opens downward from its toggle, so it needs the headroom the rail's bottom edge could not give it.
 - The search dropdown anchors to the left edge of its toggle and opens rightward; on the rail it overhangs into the content column, and the rail stops clipping only while the panel is open. Inside the mobile drawer the panel fits the drawer width instead of overhanging a box that would cut it.
 - The rail is opaque with a single inline-end hairline. Blur belongs to the mobile bar, which does have content scrolling under it.

@@ -82,6 +82,8 @@ python python/eda_plots.py           # charts into output/
 
 ## Result
 
+The outcome is a correct, reproducible preprocessing pipeline rather than a model: the test set does not leak into training, and the split repeats on any machine.
+
 - Preprocessing is one pipeline fit on the training split only: the test set does not leak into training.
 - The split reproduces without a seed: on `Data.csv` — Train `(8, 5)`, Test `(2, 5)`.
 - Six course datasets plus four synthetic ones (400, 300, 500 and 800 rows).

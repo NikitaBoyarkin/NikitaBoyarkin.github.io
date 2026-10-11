@@ -254,7 +254,12 @@ A summary of decisions across all 22 projects: what to do, on what evidence, und
 
 ## The Verdict
 
-A loop of four projects beats isolated analyses: the KYC fix found in the funnel was validated in the A/B test, confirmed in retention, and translated into money through segmentation. The core is the **three-condition ship-gate** (significance ∧ lift ≥ MDE ∧ no SRM): it protects against shipping statistically-significant but business-insignificant changes. Order matters more than numbers: calibrate the instrument first (AA-test, CUPED), then conclude. Causality is checked separately with DiD, not left as correlation.
+A loop of four projects beats isolated analyses:
+
+- the KYC fix found in the funnel was validated in the A/B test, confirmed in retention, and translated into money through segmentation.
+- The core is the **three-condition ship-gate** (significance ∧ lift ≥ MDE ∧ no SRM): it protects against shipping statistically-significant but business-insignificant changes.
+- Order matters more than numbers: calibrate the instrument first (AA-test, CUPED), then conclude.
+- Causality is checked separately with DiD, not left as correlation.
 
 ## Limitations
 
