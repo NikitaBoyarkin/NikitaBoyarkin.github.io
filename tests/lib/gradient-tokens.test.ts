@@ -13,7 +13,7 @@ import { dirname, join } from 'node:path';
 // which made it prose. This is the mechanism.
 //
 // Three things it holds:
-//   1. Completeness — the four tokens exist, and a theme block may only
+//   1. Completeness — the five tokens exist, and a theme block may only
 //      override a token that `:root` already defines. Deleting a token to
 //      "fix" a failure therefore fails.
 //   2. Stop allowlist — every colour stop is an existing brand token or
@@ -71,8 +71,8 @@ function resolve(source: string, selector: ThemeSelector, token: string): string
 
 // --- gradient shape --------------------------------------------------------
 
-/** The four names the family is allowed to use. A fifth is a typo or a stray. */
-const GRADIENTS = ['gradient-hero', 'gradient-surface', 'gradient-button', 'gradient-rule'];
+/** The five names the family is allowed to use. Any other is a typo or a stray. */
+const GRADIENTS = ['gradient-hero', 'gradient-surface', 'gradient-button', 'gradient-rule', 'gradient-page'];
 
 const N = String.raw`\d+(?:\.\d+)?`;
 const TOKEN = String.raw`var\(--([a-z0-9-]+)\)`;
@@ -222,6 +222,10 @@ const FAMILY = [
   { token: 'gradient-hero', surface: 'background-primary', ink: ['text-normal', 'text-accent'] },
   { token: 'gradient-surface', surface: 'card-background', ink: ['text-normal'] },
   { token: 'gradient-button', surface: 'button-bg', ink: ['button-ink'] },
+  // The page wash sits behind every page's copy, so it carries the full ink set
+  // the hero does. `--text-muted` is a known gap across the whole FAMILY, not
+  // one this member introduces.
+  { token: 'gradient-page', surface: 'background-primary', ink: ['text-normal', 'text-accent'] },
 ] as const;
 
 /** Every (theme, gradient, sample, ink) pair that fails AA. */
@@ -272,7 +276,7 @@ function rawHexStops(source: string): string[] {
 // --- the gate --------------------------------------------------------------
 
 describe('gradient family tokens', () => {
-  it('defines all four tokens in :root', () => {
+  it('defines all five tokens in :root', () => {
     const root = themeVars(GLOBAL, ':root');
     expect(GRADIENTS.filter((name) => root[name] === undefined)).toEqual([]);
   });

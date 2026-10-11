@@ -1,6 +1,6 @@
 # PRD — Gradient family
 
-**Status:** implemented 2026-10-11, gate chain green. Nothing committed. Visual pass in a real browser **not** performed — see "Evidence".
+**Status:** implemented 2026-10-11, committed (`5aabc3a`, by the owner). Gate chain green. Built-CSS binding and the mechanical half of the browser pass added the same day — `tests/built/gradient.test.ts`, `scripts/probe-gradient.mjs`. The aesthetic pass is still open; see "Remaining work" and "Evidence".
 **Owner request:** `/astro` — *«добавь градиента в стиль»*.
 
 ## 1. Problem
@@ -21,7 +21,7 @@ Consequences: each new gradient re-derives its own stop list; a theme that needs
 
 ## 2. Goal
 
-One named, theme-aware gradient family in the token layer, applied at four surfaces, bound by a test — so a later edit to a stop or a theme cannot silently ship unreadable text.
+One named, theme-aware gradient family in the token layer, applied at five surfaces, bound by a test — so a later edit to a stop or a theme cannot silently ship unreadable text.
 
 **Non-goals.** No second accent. No gradient-filled text. No new hexes. No change to `public/games` or `src/lib/graph.ts` palettes.
 
@@ -38,11 +38,11 @@ Also: **axe/Lighthouse cannot measure text over a gradient**, which is why gradi
 
 | ID | Requirement |
 |---|---|
-| REQ-01 | Four tokens — `--gradient-hero`, `--gradient-surface`, `--gradient-button`, `--gradient-rule` — defined in `:root`. |
+| REQ-01 | Five tokens — `--gradient-hero`, `--gradient-surface`, `--gradient-button`, `--gradient-rule`, `--gradient-page` — defined in `:root`. |
 | REQ-02 | Every colour stop is an **existing brand token** or `transparent`. A raw hex in a gradient token is a defect. |
 | REQ-03 | Because stops are `var()` references, they resolve per theme with no per-theme duplication. Per-theme blocks override **composition only** (a percentage), never colour. |
 | REQ-04 | No gradient is applied to text (`background-clip: text`). Section headings keep `--text-normal`; the accent lives in a rule/underline beside them. |
-| REQ-05 | Intensity is subtle: alpha ≤14% on large surfaces, so the accent area budget (≤15%, `DESIGN.md`) holds. |
+| REQ-05 | Intensity is subtle: alpha ≤14% on large surfaces, so the accent area budget (≤15%, `DESIGN.md`) holds. `--gradient-page` is the widest member (α 6/7% over the whole viewport) and the first whose accent share is not provable from the recipe — it is re-measured by `scripts/audit-palette-coverage.mjs`. |
 | REQ-06 | A test binds the invariant: stop allowlist + worst-case ramp composite vs the text token that sits on that surface, with mutation control. |
 | REQ-07 | Gradients are removed under `@media print`, `@media (forced-colors: active)`, `@media (prefers-contrast: more)` — joining the wallpaper removal list at `DESIGN.md:303`. |
 | REQ-08 | `DESIGN.md` documents the family and names the binding test. |
@@ -113,11 +113,14 @@ Per-theme overrides — composition only:
 - [x] `DESIGN.md` — Gradients section, token table, line in Contrast Verification (**REQ-08**).
 - [x] `@media print` / `forced-colors` / `prefers-contrast: more` removal (**REQ-07**).
 - [x] Gate chain run — see "Evidence".
+- [x] **Built-CSS binding** (`tests/built/gradient.test.ts`, 2026-10-11) — the collapse block, the five token definitions, the two per-theme overrides and the application rules are now asserted against `dist/_astro/*.css`. Previously the emitted block was confirmed by hand and nothing enforced it.
+- [x] **Browser pass, mechanical half** (`scripts/probe-gradient.mjs`, 2026-10-11) — three themes × desktop/mobile over the routes that actually carry the surfaces: computed styles, hover, screenshots. REQ-07 is re-checked in the engine, not in the source text.
 
 Open, deliberately not closed:
 
-- [ ] **Visual pass in a browser was not performed.** The suite proves the numbers; it does not prove the gradients look right.
-- [ ] The media-removal test asserts against **source**, not built CSS — a rule silently dropped at build time would pass. The emitted block was confirmed by hand this session (`dist/_astro/Base.*.css`: `@media print,(forced-colors:active),(prefers-contrast:more){html:root{…}}`), but nothing enforces it. Binding it would mean moving that assertion into `tests/built/`.
+- [ ] **Aesthetic judgement.** The probe proves each surface paints *a* gradient and that the collapse works; it cannot say the ramp looks right. Screenshots in `reports/gradient-shots/` await a human (or vision) pass.
+- [ ] **Route drift in §1/§5.** The surfaces are not on `/`. `#intro` and `.featured-card` live on the persona routes (`/hr/`, `/manager/`, `/colleague/`, plus EN), `.blog-card` on the writing routes (`/notes/`, `/en/writing/`, `/topics/*`). §1's table reads as if these were homepage rules — true of the source, misleading about where they render.
+- [ ] **`.featured-card-hero` is deliberately unfilled.** On `/colleague/` the first `.featured-card` also carries `featured-card-hero`, and `.hero-visual .featured-card-hero` (`global.css:1414`) sets `background: none` at higher specificity — so the family reaches non-hero cards only. Verified, not a defect; §11's `.featured-card → --gradient-surface` holds for the non-hero class alone.
 
 ## 10. Evidence
 
@@ -129,17 +132,22 @@ Open, deliberately not closed:
 | Ramp holds AA in all three themes | Verified | composite at 0/25/50/75/100%; narrowest **4.93:1** (light hero under `--text-accent`) |
 | The gate bites | Verified | 5 mutation-control cases in-file assert red |
 | Tokens and 4 application rules reach `dist` | Verified | grep on `dist/_astro/Base.*.css` |
-| The gradients *look* right | **Not verified** | no browser pass |
-| Hover on `.project` / `.blog-card` still reads correctly | **Not verified** | `.project::before` accent bar is a separate pseudo-element; no cascade conflict found by reading, but unseen |
+| The built CSS is bound, not just the source | Verified | `tests/built/gradient.test.ts`, 8 tests / 20 assertions, incl. 3 mutation controls |
+| The collapse is real in the engine | Verified | `probe-gradient.mjs`: under `print`, `forced-colors: active` and `prefers-contrast: more` the hero's `background-image` is `none` and no `--gradient-*` token still holds a gradient |
+| Every declared surface paints a gradient | Verified | same probe, `reports/gradient-shots/probe-gradient.json` (per-surface rows, three themes). **Computed style only** — it says the declaration parses, not that anything is perceptible. See the two rows below. |
+| The gradients are *perceptible* | **Not verified — fails** | pixel diff, surface vs same surface with `--gradient-*: none`, dark theme, 1440×900: `#intro` meanΔ **0.04/255** (0.8% of pixels move >6), `.button` meanΔ **0** (maxΔ 0 — the `--button-bg`→`--button-bg-hover` ramp is between two visually identical tokens, so removing it changes nothing), `.blog-card` meanΔ 5.87 (66% of pixels), `.project` meanΔ 11.7. The hero glow, the surface the design was built around, is not visible. |
+| Aesthetic judgement | **Not verified** | screenshots in `reports/gradient-shots/`; owner reads them |
+| `.featured-card-hero` has no fill | Verified | computed `background-image: none`; cause is the `.hero-visual .featured-card-hero` specificity, not a broken token |
+| Hover on `.project` / `.blog-card` keeps its ramp | Verified | probe hover rows, all three themes; the hero card is excluded — see the `.featured-card-hero` row |
+| The gradients *look* right | **Not verified** | screenshots only; no aesthetic pass |
 
-## 11. Implemented (uncommitted)
+## 11. Implemented
+
+Committed as `5aabc3a` (owner) — `src/styles/global.css`, `src/styles/blog.css`, `tests/lib/gradient-tokens.test.ts`, `DESIGN.md`, this document. Added uncommitted on 2026-10-11:
 
 | File | Change |
 |---|---|
-| `src/styles/global.css` | four token definitions in `:root`; `--gradient-surface` override in `[data-theme="light"]`; `--gradient-hero` override in `[data-theme="cyberpunk"]`; `.button` → `--gradient-button`; `.featured-card`, `.project` → `--gradient-surface`; `#intro::before` → `--gradient-hero`; `#projects h2::after` → `--gradient-rule`; flat-collapse block under print / forced-colors / prefers-contrast |
-| `src/styles/blog.css` | `.blog-card` → `--gradient-surface` |
-| `tests/lib/gradient-tokens.test.ts` | **new** — the binding mechanism |
-| `DESIGN.md` | `## Gradients` section + Contrast Verification paragraph |
-| `docs/prd-gradient-family.md` | this document |
+| `tests/built/gradient.test.ts` | **new** — binds the family against `dist/_astro/*.css`: five definitions, both composition overrides, the application rules, the flat-collapse block, plus a guard that the collapse does not leak into the default cascade. Mutation controls included. |
+| `scripts/probe-gradient.mjs` | **new** — the browser pass: route-aware surfaces × three themes × two viewports, computed styles, hover, screenshots to `reports/gradient-shots/`, and REQ-07 across the three collapse contexts. |
 
-No commit, no push. Rollback: `git restore src/styles/ DESIGN.md tests/lib/ docs/prd-gradient-family.md`.
+Rollback for the uncommitted pair: `git clean -n` then remove the two files.

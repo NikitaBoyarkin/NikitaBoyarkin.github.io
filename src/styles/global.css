@@ -153,6 +153,17 @@
   );
   --gradient-button: linear-gradient(135deg, var(--button-bg), var(--button-bg-hover));
   --gradient-rule: linear-gradient(90deg, var(--text-accent) 0%, transparent 70%);
+  /* Full-page wash — the fifth surface, a coral→teal ramp over the page itself
+     (DESIGN.md, "Gradients"). Same family rules: token stops only, α ≤7% so the
+     accent-area budget still holds, and it collapses flat under print /
+     forced-colors / stronger contrast. Consumed by `body::after`, one layer
+     above the wallpaper lattice. */
+  --gradient-page: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--text-accent) 6%, transparent) 0%,
+    color-mix(in srgb, var(--text-accent-dataviz) 7%, transparent) 55%,
+    transparent 100%
+  );
 
   /* Spacing scale */
   --space-1: 0.25rem;
@@ -2495,17 +2506,32 @@ body::before {
   mask-position: center;
 }
 
+/* The full-page wash (--gradient-page): a fixed layer over the lattice and
+   under the content. It shares `--z-decor` with `body::before`, so source order
+   decides — `::after` paints over `::before`, which tints the lattice rather
+   than sitting beneath it. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-decor);
+  pointer-events: none;
+  background: var(--gradient-page);
+}
+
 /* Forced-colours drops background images but not masks — a tinted lattice over
    a user-chosen high-contrast palette is noise, so opt out entirely. The same
    reasoning covers a user who asked the OS for stronger contrast directly. */
 @media (forced-colors: active) {
-  body::before {
+  body::before,
+  body::after {
     display: none;
   }
 }
 
 @media (prefers-contrast: more) {
-  body::before {
+  body::before,
+  body::after {
     display: none;
   }
 }
@@ -2590,6 +2616,7 @@ button:focus-visible {
     --gradient-surface: var(--card-background);
     --gradient-button: var(--button-bg);
     --gradient-rule: none;
+    --gradient-page: none;
   }
 }
 

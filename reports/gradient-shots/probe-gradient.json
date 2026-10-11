@@ -1,0 +1,344 @@
+{
+  "base": "http://localhost:4399",
+  "failures": [],
+  "absences": [],
+  "rows": [
+    {
+      "tag": "dark/desktop/hr/",
+      "surface": "hero glow",
+      "token": "--gradient-hero",
+      "sel": "#intro::before",
+      "bg": "radial-gradient(60% 80% at 85% 8%, color(srgb 1 0.521569 0.411765 / 0.1), rgba(0, 0, 0, 0) 70%)"
+    },
+    {
+      "tag": "dark/desktop/hr/",
+      "surface": "section rule",
+      "token": "--gradient-rule",
+      "sel": "#projects h2::after",
+      "bg": "linear-gradient(90deg, rgb(255, 133, 105) 0%, rgba(0, 0, 0, 0) 70%)"
+    },
+    {
+      "tag": "dark/desktop/hr/",
+      "surface": "primary button",
+      "token": "--gradient-button",
+      "sel": ".button",
+      "bg": "linear-gradient(135deg, rgb(254, 78, 2), rgb(255, 106, 31))"
+    },
+    {
+      "tag": "dark/desktop/hr/",
+      "surface": "page wash",
+      "token": "--gradient-page",
+      "sel": "body::after",
+      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "tag": "dark/mobile/hr/",
+      "surface": "hero glow",
+      "token": "--gradient-hero",
+      "sel": "#intro::before",
+      "bg": "radial-gradient(60% 80% at 85% 8%, color(srgb 1 0.521569 0.411765 / 0.1), rgba(0, 0, 0, 0) 70%)"
+    },
+    {
+      "tag": "dark/mobile/hr/",
+      "surface": "section rule",
+      "token": "--gradient-rule",
+      "sel": "#projects h2::after",
+      "bg": "linear-gradient(90deg, rgb(255, 133, 105) 0%, rgba(0, 0, 0, 0) 70%)"
+    },
+    {
+      "tag": "dark/mobile/hr/",
+      "surface": "primary button",
+      "token": "--gradient-button",
+      "sel": ".button",
+      "bg": "linear-gradient(135deg, rgb(254, 78, 2), rgb(255, 106, 31))"
+    },
+    {
+      "tag": "dark/mobile/hr/",
+      "surface": "page wash",
+      "token": "--gradient-page",
+      "sel": "body::after",
+      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "tag": "dark/desktop/colleague/",
+      "surface": "featured card",
+      "token": "--gradient-surface",
+      "sel": ".project",
+      "bg": "linear-gradient(rgb(26, 52, 53), color(srgb 0.0967843 0.199216 0.203137))"
+    },
+    {
+      "tag": "dark/desktop/colleague/",
+      "surface": "page wash",
+      "token": "--gradient-page",
+      "sel": "body::after",
+      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "tag": "dark/desktop/colleague/",
+      "surface": "card hover",
+      "token": "—",
+      "sel": ".project",
+      "bg": "linear-gradient(rgb(26, 52, 53), color(srgb 0.0967843 0.199216 0.203137))"
+    },
+    {
+      "tag": "dark/desktop/notes/",
+      "surface": "blog card",
+      "token": "--gradient-surface",
+      "sel": ".blog-card",
+      "bg": "linear-gradient(rgb(26, 52, 53), color(srgb 0.0967843 0.199216 0.203137))"
+    },
+    {
+      "tag": "dark/desktop/notes/",
+      "surface": "page wash",
+      "token": "--gradient-page",
+      "sel": "body::after",
+      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "tag": "dark/desktop/notes/",
+      "surface": "card hover",
+      "token": "—",
+      "sel": ".blog-card",
+      "bg": "linear-gradient(rgb(26, 52, 53), color(srgb 0.0967843 0.199216 0.203137))"
+    },
+    {
+      "tag": "light/desktop/hr/",
+      "surface": "hero glow",
+      "token": "--gradient-hero",
+      "sel": "#intro::before",
+      "bg": "radial-gradient(60% 80% at 85% 8%, color(srgb 0.658824 0.2 0.101961 / 0.1), rgba(0, 0, 0, 0) 70%)"
+    },
+    {
+      "tag": "light/desktop/hr/",
+      "surface": "section rule",
+      "token": "--gradient-rule",
+      "sel": "#projects h2::after",
+      "bg": "linear-gradient(90deg, rgb(168, 51, 26) 0%, rgba(0, 0, 0, 0) 70%)"
+    },
+    {
+      "tag": "light/desktop/hr/",
+      "surface": "primary button",
+      "token": "--gradient-button",
+      "sel": ".button",
+      "bg": "linear-gradient(135deg, rgb(254, 78, 2), rgb(255, 106, 31))"
+    },
+    {
+      "tag": "light/desktop/hr/",
+      "surface": "page wash",
+      "token": "--gradient-page",
+      "sel": "body::after",
+      "bg": "linear-gradient(color(srgb 0.658824 0.2 0.101961 / 0.06) 0%, color(srgb 0.0509804 0.45098 0.466667 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "tag": "light/mobile/hr/",
+      "surface": "hero glow",
+      "token": "--gradient-hero",
+      "sel": "#intro::before",
+      "bg": "radial-gradient(60% 80% at 85% 8%, color(srgb 0.658824 0.2 0.101961 / 0.1), rgba(0, 0, 0, 0) 70%)"
+    },
+    {
+      "tag": "light/mobile/hr/",
+      "surface": "section rule",
+      "token": "--gradient-rule",
+      "sel": "#projects h2::after",
+      "bg": "linear-gradient(90deg, rgb(168, 51, 26) 0%, rgba(0, 0, 0, 0) 70%)"
+    },
+    {
+      "tag": "light/mobile/hr/",
+      "surface": "primary button",
+      "token": "--gradient-button",
+      "sel": ".button",
+      "bg": "linear-gradient(135deg, rgb(254, 78, 2), rgb(255, 106, 31))"
+    },
+    {
+      "tag": "light/mobile/hr/",
+      "surface": "page wash",
+      "token": "--gradient-page",
+      "sel": "body::after",
+      "bg": "linear-gradient(color(srgb 0.658824 0.2 0.101961 / 0.06) 0%, color(srgb 0.0509804 0.45098 0.466667 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "tag": "light/desktop/colleague/",
+      "surface": "featured card",
+      "token": "--gradient-surface",
+      "sel": ".project",
+      "bg": "linear-gradient(rgb(248, 242, 218), color(srgb 0.971608 0.948314 0.851137))"
+    },
+    {
+      "tag": "light/desktop/colleague/",
+      "surface": "page wash",
+      "token": "--gradient-page",
+      "sel": "body::after",
+      "bg": "linear-gradient(color(srgb 0.658824 0.2 0.101961 / 0.06) 0%, color(srgb 0.0509804 0.45098 0.466667 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "tag": "light/desktop/colleague/",
+      "surface": "card hover",
+      "token": "—",
+      "sel": ".project",
+      "bg": "linear-gradient(rgb(248, 242, 218), color(srgb 0.971608 0.948314 0.851137))"
+    },
+    {
+      "tag": "light/desktop/notes/",
+      "surface": "blog card",
+      "token": "--gradient-surface",
+      "sel": ".blog-card",
+      "bg": "linear-gradient(rgb(248, 242, 218), color(srgb 0.971608 0.948314 0.851137))"
+    },
+    {
+      "tag": "light/desktop/notes/",
+      "surface": "page wash",
+      "token": "--gradient-page",
+      "sel": "body::after",
+      "bg": "linear-gradient(color(srgb 0.658824 0.2 0.101961 / 0.06) 0%, color(srgb 0.0509804 0.45098 0.466667 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "tag": "light/desktop/notes/",
+      "surface": "card hover",
+      "token": "—",
+      "sel": ".blog-card",
+      "bg": "linear-gradient(rgb(248, 242, 218), color(srgb 0.971608 0.948314 0.851137))"
+    },
+    {
+      "tag": "cyberpunk/desktop/hr/",
+      "surface": "hero glow",
+      "token": "--gradient-hero",
+      "sel": "#intro::before",
+      "bg": "radial-gradient(60% 80% at 85% 8%, color(srgb 1 0.521569 0.411765 / 0.14), rgba(0, 0, 0, 0) 70%)"
+    },
+    {
+      "tag": "cyberpunk/desktop/hr/",
+      "surface": "section rule",
+      "token": "--gradient-rule",
+      "sel": "#projects h2::after",
+      "bg": "linear-gradient(90deg, rgb(255, 133, 105) 0%, rgba(0, 0, 0, 0) 70%)"
+    },
+    {
+      "tag": "cyberpunk/desktop/hr/",
+      "surface": "primary button",
+      "token": "--gradient-button",
+      "sel": ".button",
+      "bg": "linear-gradient(135deg, rgb(255, 43, 214), rgb(255, 92, 224))"
+    },
+    {
+      "tag": "cyberpunk/desktop/hr/",
+      "surface": "page wash",
+      "token": "--gradient-page",
+      "sel": "body::after",
+      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "tag": "cyberpunk/mobile/hr/",
+      "surface": "hero glow",
+      "token": "--gradient-hero",
+      "sel": "#intro::before",
+      "bg": "radial-gradient(60% 80% at 85% 8%, color(srgb 1 0.521569 0.411765 / 0.14), rgba(0, 0, 0, 0) 70%)"
+    },
+    {
+      "tag": "cyberpunk/mobile/hr/",
+      "surface": "section rule",
+      "token": "--gradient-rule",
+      "sel": "#projects h2::after",
+      "bg": "linear-gradient(90deg, rgb(255, 133, 105) 0%, rgba(0, 0, 0, 0) 70%)"
+    },
+    {
+      "tag": "cyberpunk/mobile/hr/",
+      "surface": "primary button",
+      "token": "--gradient-button",
+      "sel": ".button",
+      "bg": "linear-gradient(135deg, rgb(255, 43, 214), rgb(255, 92, 224))"
+    },
+    {
+      "tag": "cyberpunk/mobile/hr/",
+      "surface": "page wash",
+      "token": "--gradient-page",
+      "sel": "body::after",
+      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "tag": "cyberpunk/desktop/colleague/",
+      "surface": "featured card",
+      "token": "--gradient-surface",
+      "sel": ".project",
+      "bg": "linear-gradient(rgb(17, 17, 29), color(srgb 0.0633726 0.0633726 0.108549))"
+    },
+    {
+      "tag": "cyberpunk/desktop/colleague/",
+      "surface": "page wash",
+      "token": "--gradient-page",
+      "sel": "body::after",
+      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "tag": "cyberpunk/desktop/colleague/",
+      "surface": "card hover",
+      "token": "—",
+      "sel": ".project",
+      "bg": "linear-gradient(rgb(17, 17, 29), color(srgb 0.0633726 0.0633726 0.108549))"
+    },
+    {
+      "tag": "cyberpunk/desktop/notes/",
+      "surface": "blog card",
+      "token": "--gradient-surface",
+      "sel": ".blog-card",
+      "bg": "linear-gradient(rgb(17, 17, 29), color(srgb 0.0633726 0.0633726 0.108549))"
+    },
+    {
+      "tag": "cyberpunk/desktop/notes/",
+      "surface": "page wash",
+      "token": "--gradient-page",
+      "sel": "body::after",
+      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+    },
+    {
+      "tag": "cyberpunk/desktop/notes/",
+      "surface": "card hover",
+      "token": "—",
+      "sel": ".blog-card",
+      "bg": "linear-gradient(rgb(17, 17, 29), color(srgb 0.0633726 0.0633726 0.108549))"
+    },
+    {
+      "tag": "@print",
+      "surface": "hero glow",
+      "token": "—",
+      "sel": "#intro::before",
+      "bg": "none"
+    },
+    {
+      "tag": "@print",
+      "surface": "page wash",
+      "token": "—",
+      "sel": "body::after",
+      "bg": "none"
+    },
+    {
+      "tag": "@forced-colors",
+      "surface": "hero glow",
+      "token": "—",
+      "sel": "#intro::before",
+      "bg": "none"
+    },
+    {
+      "tag": "@forced-colors",
+      "surface": "page wash",
+      "token": "—",
+      "sel": "body::after",
+      "bg": "none"
+    },
+    {
+      "tag": "@prefers-contrast:more",
+      "surface": "hero glow",
+      "token": "—",
+      "sel": "#intro::before",
+      "bg": "none"
+    },
+    {
+      "tag": "@prefers-contrast:more",
+      "surface": "page wash",
+      "token": "—",
+      "sel": "body::after",
+      "bg": "none"
+    }
+  ],
+  "generatedAt": "2026-10-11T14:39:26.078Z"
+}

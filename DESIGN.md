@@ -297,7 +297,7 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 
 ## Gradients
 
-Four named tokens, one family, declared once in `:root` and consumed at four surfaces. `tests/lib/gradient-tokens.test.ts` binds them.
+Five named tokens, one family, declared once in `:root` and consumed at five surfaces. `tests/lib/gradient-tokens.test.ts` binds them.
 
 | Token | Value | Applied to | Text on it |
 |---|---|---|---|
@@ -305,13 +305,14 @@ Four named tokens, one family, declared once in `:root` and consumed at four sur
 | `--gradient-surface` | `linear-gradient(180deg, var(--card-background), color-mix(… --card-background 88%, --background-primary))` | `.featured-card`, `.project`, `.blog-card` | `--text-normal` |
 | `--gradient-button` | `linear-gradient(135deg, var(--button-bg), var(--button-bg-hover))` | `.button` | `--button-ink` |
 | `--gradient-rule` | `linear-gradient(90deg, var(--text-accent) 0%, transparent 70%)` | `#projects h2::after` | — (hairline) |
+| `--gradient-page` | `linear-gradient(180deg, color-mix(… --text-accent 6%, transparent), color-mix(… --text-accent-dataviz 7%, transparent) 55%, transparent)` | `body::after` (full-page wash) | `--text-normal`, `--text-accent` |
 
 - **Every stop is an existing brand token or `transparent`.** No hex is spelled inside the family, so `src/lib/brand.ts` stays the only source of colour and the drift gate keeps covering the stops. A raw hex stop is a defect the test rejects.
 - **Stops resolve per theme through `var()`**, so a definition lives once. A theme block may override only the *composition*, never the colour. Two do: light raises the card ramp from 88% to 94% (on cream the dark theme's 12% step reads as a smudge), cyberpunk steps the hero tint from 10% to 14% (that theme runs its lattice at 0.10 too).
-- **The family adds no accent area**, so the 60-30-10 budget holds: the hero glow is a ≤14% tint and the rule is a 48px hairline, neither of which moves the share measured by `## Visual Area Audit`.
+- **Four of the five add no accent area**; the 60-30-10 budget held on that basis — the hero glow is a ≤14% tint and the rule is a 48px hairline, neither of which moved the share measured by `## Visual Area Audit`. `--gradient-page` is the exception and the reason this bullet no longer reads as a proof: the wash covers the whole viewport at α 6/7%, so its accent share is a **measurement, not an argument**. `scripts/audit-palette-coverage.mjs` is what decides it, and the ≤15% accent ceiling now depends on that re-run rather than on the recipe's shape.
 - **Nothing interpolates toward a colour that was not already AA.** Each ramp runs between two endpoints that individually clear AA, which is what makes a subtle gradient safe by construction rather than by inspection.
 - **No gradient paints text** — `background-clip: text` is absent, and the test asserts it stays absent. Gradient-filled text is unmeasurable by axe and dies under forced-colors, so a heading's accent lives in the rule beside it.
-- **Removed in `@media print`, `@media (forced-colors: active)` and `@media (prefers-contrast: more)`**: one block collapses all four tokens to their flat equivalents, the same list and the same reasoning as the wallpaper below. `html:root` wins the theme blocks on specificity, not on source order.
+- **Removed in `@media print`, `@media (forced-colors: active)` and `@media (prefers-contrast: more)`**: one block collapses all five tokens to their flat equivalents, the same list and the same reasoning as the wallpaper below. `html:root` wins the theme blocks on specificity, not on source order.
 - **Not transitionable.** A gradient cannot be animated by the `background-color` transition the components already carry, so hover stays on `transform` and `box-shadow`; a `background-image` transition was deliberately not added.
 
 ## Wallpaper
