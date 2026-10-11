@@ -33,13 +33,21 @@ The first RAT v2 validation project: the v1 recommendation 'a separate trust tra
 
 ## Task
 
-I owned the first check in the validation round that put the earlier recommendation — a separate trust track for the senior segment — to a money test.
+I owned the money verdict on the earlier recommendation: whether a separate track for the senior segment pays for itself, not merely whether it lifts retention. The call had to rest on a calculation, not on the direction of the effect.
 
 ## Actions
 
-- LTV per user (ARPU × contribution margin × retention months).
-- Blended CAC by segment × channel, LTV/CAC with bootstrap CIs, payback.
-- Welch t-test anchor vs 45+ on assisted LTV.
+I built the check as an economic comparison of two segments across channels, not as a verdict on one channel. I assembled value and acquisition cost first, then reduced them to a gate and tested the gap statistically.
+
+**Data preparation.** For each user I assembled value as revenue times contribution margin times retention months, and split acquisition cost by segment and channel: referral, assisted, blended. I kept channels separate so the assisted price is not diluted by cheaper sources.
+
+**Ratio estimate.** I reduced value and cost to LTV/CAC and compared it against the gate the team holds for a launch. I also computed the acquisition payback — how many months of value it takes to return the cost.
+
+**Uncertainty.** I added bootstrap confidence intervals to the ratio so the verdict does not hinge on a single point estimate. That separates a stable clearing of the gate from noise.
+
+**Statistical test.** I compared assisted value across the two segments, anchor and 45+, with a Welch t-test, which does not assume equal variances. That tests whether the gap between segments is significant rather than scatter.
+
+**Validation.** I recomputed acquisition cost from an independent source and checked that changing the retention assumption does not flip the verdict.
 
 ## Result
 

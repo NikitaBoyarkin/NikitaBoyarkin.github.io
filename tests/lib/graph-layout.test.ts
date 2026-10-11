@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { buildGraph, type GraphNode } from '../../src/lib/graph';
-import { layoutGraph } from '../../src/lib/graph-layout';
+import { buildGraph, ROOT_ID, type GraphNode } from '../../src/lib/graph';
+import { layoutGraph, layoutRadial } from '../../src/lib/graph-layout';
 import { TOPICS } from '../../src/lib/topics';
 
 // layoutGraph fills x/y on every node; the GraphNode type keeps them optional
@@ -212,5 +212,79 @@ describe('layoutGraph community mode', () => {
       expect(out.links[i].source).toBe(graph.links[i].source);
       expect(out.links[i].target).toBe(graph.links[i].target);
     }
+  });
+});
+
+describe('layoutRadial (the single-center index graph)', () => {
+  const radial = (graph = sampleGraph()) =>
+    layoutRadial(graph, { width: 1000, height: 1000 }) as {
+      nodes: LaidNode[];
+      links: ReturnType<typeof buildGraph>['links'];
+    };
+
+  it('pins the root at the exact center', () => {
+    const out = radial();
+    const root = out.nodes.find((n) => n.id === ROOT_ID)!;
+    expect(root).toBeDefined();
+    expect(root.x).toBe(500);
+    expect(root.y).toBe(500);
+  });
+
+  it('is deterministic: the same input always produces the same positions', () => {
+    const a = radial();
+    const b = radial();
+    for (let i = 0; i < a.nodes.length; i++) {
+      expect(a.nodes[i].x).toBe(b.nodes[i].x);
+      expect(a.nodes[i].y).toBe(b.nodes[i].y);
+    }
+  });
+
+  it('places nodes farther out the more hops they are from the root', () => {
+    const g = sampleGraph();
+    const out = radial(g);
+    const dist = (n: { x: number; y: number }) => Math.hypot(n.x - 500, n.y - 500);
+    // Hop distance from the root, over the same undirected graph.
+    const adj = new Map<string, string[]>();
+    for (const n of g.nodes) adj.set(n.id, []);
+    for (const l of g.links) {
+      adj.get(l.source)?.push(l.target);
+      adj.get(l.target)?.push(l.source);
+    }
+    const level = new Map<string, number>([[ROOT_ID, 0]]);
+    let frontier = [ROOT_ID];
+    for (let d = 1; frontier.length; d++) {
+      const next: string[] = [];
+      for (const id of frontier)
+        for (const nb of adj.get(id) ?? [])
+          if (!level.has(nb)) {
+            level.set(nb, d);
+            next.push(nb);
+          }
+      frontier = next;
+    }
+    const maxAt = (lv: number) =>
+      Math.max(...out.nodes.filter((n) => level.get(n.id) === lv).map(dist));
+    const minAt = (lv: number) =>
+      Math.min(...out.nodes.filter((n) => level.get(n.id) === lv).map(dist));
+    // Ring 2 begins beyond ring 1's farthest node.
+    expect(minAt(2)).toBeGreaterThan(maxAt(1));
+  });
+
+  it('keeps every node finite and inside the world', () => {
+    for (const n of radial().nodes) {
+      expect(Number.isFinite(n.x)).toBe(true);
+      expect(Number.isFinite(n.y)).toBe(true);
+      expect(n.x).toBeGreaterThanOrEqual(0);
+      expect(n.x).toBeLessThanOrEqual(1000);
+      expect(n.y).toBeGreaterThanOrEqual(0);
+      expect(n.y).toBeLessThanOrEqual(1000);
+    }
+  });
+
+  it('keeps the node set and links intact', () => {
+    const graph = sampleGraph();
+    const out = radial(graph);
+    expect(out.nodes.map((n) => n.id).sort()).toEqual(graph.nodes.map((n) => n.id).sort());
+    expect(out.links).toHaveLength(graph.links.length);
   });
 });

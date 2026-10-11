@@ -38,9 +38,9 @@ const project = (vp: { tx: number; ty: number; k: number }, p: { x: number; y: n
 });
 
 describe('NODES', () => {
-  it('declares all four nodes with unique ids', () => {
-    expect(NODES.length).toBe(4);
-    expect(new Set(NODES.map((n) => n.id)).size).toBe(4);
+  it('declares all five nodes with unique ids', () => {
+    expect(NODES.length).toBe(5);
+    expect(new Set(NODES.map((n) => n.id)).size).toBe(5);
   });
 
   it('keeps the reading order, independent of visual position', () => {
@@ -49,6 +49,7 @@ describe('NODES', () => {
       'role-hr',
       'role-manager',
       'role-colleague',
+      'graph',
     ]);
   });
 
@@ -67,14 +68,11 @@ describe('NODES', () => {
     }
   });
 
-  // One lane, no CTA row (docs/prd-homepage-canvas-polish.md §13, second wave).
-  // The board first paired a left hero column with a right column of role cards,
-  // which left a ~290px void under the hero; the owner then took the CV and
-  // Contact buttons off the board entirely. The gate is now the `h1` with the
-  // three cards under it, reading top-to-bottom in a single 620px lane, and the
-  // right half of the 1440px board is deliberately empty. Three things have to
-  // hold for that to stay true, and a single moved `y` breaks at least one.
-  it('stays a single lane with the cards closed up under the h1', () => {
+  // Two lanes now (docs/prd-index-graph.md): the role gate on the left, the
+  // single-center graph on the right. The gate is the `h1` with the three cards
+  // under it in a single 620px lane; the graph owns the right half. Three things
+  // have to hold for that to stay true, and a single moved `y` breaks at least one.
+  it('keeps the gate in the left lane and the graph in the right', () => {
     const byId = (id: string): NodeBox => {
       const n = NODES.find((b) => b.id === id);
       expect(n, `${id} is not a declared node`).toBeDefined();
@@ -89,16 +87,19 @@ describe('NODES', () => {
       'the void under the h1 must stay inside the 40px budget'
     ).toBeLessThanOrEqual(40);
 
-    // The lane fills the board instead of stopping short of the bottom edge.
+    // The gate lane fills the board instead of stopping short of the bottom edge.
     expect(
-      WORLD.h - Math.max(...NODES.map((n) => n.y + n.h)),
-      'the lane must reach the bottom of the world within 60px'
+      WORLD.h - Math.max(...NODES.filter((n) => n.id !== 'graph').map((n) => n.y + n.h)),
+      'the gate lane must reach the bottom of the world within 60px'
     ).toBeLessThanOrEqual(60);
 
-    // Every box sits in the left lane. The right half of the board is empty by the
-    // owner's call, and it stops being empty the moment a box is parked there.
+    // The gate occupies the left lane; only the graph lives past it.
     for (const n of NODES) {
-      expect(n.x, `${n.id} leaves the left lane`).toBeLessThanOrEqual(340);
+      if (n.id === 'graph') {
+        expect(n.x, 'the graph must sit in the right lane').toBeGreaterThan(340);
+      } else {
+        expect(n.x, `${n.id} leaves the left lane`).toBeLessThanOrEqual(340);
+      }
     }
   });
 

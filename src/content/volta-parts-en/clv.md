@@ -33,11 +33,21 @@ To set CAC ceilings and retention priorities we need an estimate of future value
 
 ## Task
 
-I needed a forward-looking value estimate rather than a backward-looking revenue total, so I owned the basis for setting CAC ceilings and retention priorities.
+I owned the basis for CAC ceilings and retention priorities: comparing several ways to value a customer's future and showing which one survives scrutiny. The decision could not rest on past revenue.
 
 ## Actions
 
-- Historical CLV (actuals), retention-curve (power-fit), probabilistic Gamma-Gamma.
+I valued customers three independent ways so the conclusion would not hang on a single method. Each method is stricter than the last — from actuals, to a retention curve, to a probabilistic model.
+
+**Data preparation.** I split each customer's revenue into frequency and average order value, put amounts into one currency, and matched them to lifetime. I removed one-off and anomalous transactions, and split active customers by their existing segments so value is computed within each segment.
+
+**Historical CLV.** The first method is the direct sum of actual revenue over the observed window. It is honest but systematically low: it only sees customers who already reached the end of the window and cannot see future purchases.
+
+**Retention curve.** The second method is a power-law retention curve fitted across cohorts. It extends the observed lifetime and builds the expected revenue over the horizon, so it yields a forecast rather than a fact.
+
+**Probabilistic model.** The third method is Gamma-Gamma over a frequency–monetary model: it estimates future value through a probability distribution over frequency and average order value. It is the most data-hungry estimate and I used it as the upper benchmark.
+
+**Validation.** I compared the segment ordering across all methods: a stable ranking is the key test here. I then checked that the predictive methods run above the historical one, and by how much, so future value is not overstated.
 
 ## Result
 

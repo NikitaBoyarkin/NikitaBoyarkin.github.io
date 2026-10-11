@@ -10,6 +10,7 @@
 // and visual position are independent: the DOM goes identity → role cards,
 // exactly as the stacked version did.
 import CanvasStage from './CanvasStage.astro';
+import IndexGraph from './IndexGraph.astro';
 import { withBase } from '../lib/path';
 import { type Audience } from '../lib/projects';
 import { NODES } from '../lib/canvas-layout';
@@ -20,13 +21,25 @@ interface Props {
 const { lang = 'ru' } = Astro.props;
 const isEn = lang === 'en';
 
+// The hero says who → what → how they work: the name (absent from <main> since
+// the identity node was h1-only), the role, and the claim that used to live on
+// the retired PersonaGate. The CV/Contact CTA row stays off the board by the
+// owner's call (PRD §13, second wave) — the rail, nav and footer carry them.
 const t = isEn
   ? {
+      name: 'Nikita Boyarkin',
       h1: 'Product Analyst',
+      role: 'A/B testing & retention',
+      claim:
+        'I turn data into decisions: which fix to ship, whom to win back, where the hypothesis did not hold.',
       canvasLabel: 'Home canvas',
     }
   : {
+      name: 'Никита Бояркин',
       h1: 'Продуктовый аналитик',
+      role: 'A/B-тесты и retention',
+      claim:
+        'Считаю не отчёты, а решения: какой фикс включать, кого вернуть, где гипотеза не подтвердилась.',
       canvasLabel: 'Холст главной',
     };
 
@@ -76,7 +89,10 @@ const boxStyle = (id: string): string => {
 
 <CanvasStage ariaLabel={t.canvasLabel}>
   <header class="canvas-node canvas-node--identity" data-node="identity" style={boxStyle('identity')}>
+    <p class="hero-person">{t.name}</p>
     <h1 class="hero-name">{t.h1}</h1>
+    <p class="hero-role">{t.role}</p>
+    <p class="hero-claim">{t.claim}</p>
   </header>
 
   {
@@ -103,6 +119,13 @@ const boxStyle = (id: string): string => {
       </a>
     ))
   }
+
+  {/* The graph: person at the center, everything radiating out (PRD §
+      docs/prd-index-graph.md). Decorative by design — one caption link carries the
+      keyboard / screen-reader visitor to the full accessible graph. */}
+  <div class="canvas-node canvas-node--graph" data-node="graph" style={boxStyle('graph')}>
+    <IndexGraph lang={lang} />
+  </div>
 </CanvasStage>
 
 <style>
@@ -114,6 +137,36 @@ const boxStyle = (id: string): string => {
        rule. Both fallbacks are for a node added without a layout box. */
     inline-size: var(--box-w, auto);
     min-block-size: var(--box-h, 0);
+  }
+  /* The identity node is a stack — name · h1 · role · claim — centred inside the
+     180px floor, with the UA margins the `h1` and `p` carry reset so the 20px gap
+     to the first card is the only one measured. */
+  .canvas-node--identity {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .canvas-node--identity > * {
+    margin: 0;
+  }
+  .hero-person {
+    margin-bottom: var(--space-2);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .hero-role {
+    margin-top: var(--space-1);
+  }
+  .hero-claim {
+    margin-top: var(--space-2);
+    max-inline-size: 56ch;
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    color: var(--text-normal);
+    text-wrap: pretty;
   }
   .persona-card {
     display: flex;
@@ -187,6 +240,21 @@ const boxStyle = (id: string): string => {
   .persona-card:focus-visible .persona-card-cta {
     color: var(--text-accent);
   }
+  /* The graph sits in the right lane on the same surface language as the cards
+     (docs/prd-index-graph.md): person at the center, everything radiating out. */
+  .canvas-node--graph {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-5);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(
+      180deg,
+      var(--surface-secondary),
+      color-mix(in srgb, var(--surface-secondary) 86%, var(--background-secondary))
+    );
+    overflow: hidden;
+  }
   /* Below the fit threshold the stage goes static, so the nodes must too: they
      stop being absolutely positioned and flow in reading order. `inline-size`
      and `min-block-size` here override the variable-reading base rule on equal
@@ -202,6 +270,9 @@ const boxStyle = (id: string): string => {
       min-block-size: 0;
     }
     .persona-card {
+      margin-block-start: var(--space-4);
+    }
+    .canvas-node--graph {
       margin-block-start: var(--space-4);
     }
   }

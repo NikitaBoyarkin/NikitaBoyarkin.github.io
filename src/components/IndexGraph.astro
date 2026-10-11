@@ -1,0 +1,226 @@
+---
+// Compact, server-rendered single-center graph for the index canvas.
+//
+// The layout is radial (src/lib/graph-layout.ts `layoutRadial`): the root — the
+// person — owns the exact center, the type hubs sit on the first ring, content
+// on the next, topics on the last. One center, everything radiating out.
+//
+// No client script: the SVG is static and hover is CSS only. The graphic is
+// `aria-hidden` (a 60-node tab chain on a landing page is a trap); the single
+// caption link below carries keyboard and screen-reader visitors to the full,
+// accessible graph at /graph/.
+import { withBase } from '../lib/path';
+import { getIndexGraph } from '../lib/graph-data';
+import {
+  GRAPH_GROUP_COLORS,
+  GRAPH_EDGE_COLOR,
+  NODE_SIZE,
+  LINK_THICKNESS,
+  isRootNode,
+  type GraphLink,
+  type GraphNode,
+} from '../lib/graph';
+
+interface Props {
+  lang?: 'ru' | 'en';
+}
+const { lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+const graph = await getIndexGraph(lang);
+const nodes = graph.nodes as (GraphNode & { x: number; y: number })[];
+const links = graph.links;
+const nodeById = new Map(nodes.map((n) => [n.id, n]));
+
+// layoutRadial world is 1000x1000, so the center is (500, 500).
+const CENTER = 500;
+const radiusOf = (n: GraphNode) => (n.size || 6) * NODE_SIZE;
+
+// Crop the viewBox to the used radius (+ room for the outward labels) so the
+// picture always fits its box, whatever the node count.
+let maxR = 0;
+for (const n of nodes) {
+  const r = Math.hypot(n.x - CENTER, n.y - CENTER) + radiusOf(n);
+  if (r > maxR) maxR = r;
+}
+const PAD = 95;
+const R = Math.max(200, Math.ceil(maxR + PAD));
+const viewBox = `${CENTER - R} ${CENTER - R} ${R * 2} ${R * 2}`;
+
+// Labels: only the one center and the type hubs are always named — that is what
+// carries the "one center" read. Everything else labels on hover, so a dense
+// ring never collapses into a text cloud.
+const alwaysLabel = (id: string) => isRootNode(id) || id.startsWith('core:');
+
+/** Stop each line at the target's edge so lines don't run under the circles. */
+function edgeEndpoints(l: GraphLink) {
+  const a = nodeById.get(l.source);
+  const b = nodeById.get(l.target);
+  if (!a || !b) return null;
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const d = Math.hypot(dx, dy) || 1;
+  const r = radiusOf(b) + 2;
+  return { x1: a.x, y1: a.y, x2: b.x - (dx / d) * r, y2: b.y - (dy / d) * r };
+}
+---
+
+<div class="ig-root">
+  <svg
+    class="ig-svg"
+    viewBox={viewBox}
+    preserveAspectRatio="xMidYMid meet"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <g class="ig-edges">
+      {
+        links.map((l) => {
+          const e = edgeEndpoints(l);
+          if (!e) return null;
+          return (
+            <line
+              class="ig-edge"
+              x1={e.x1}
+              y1={e.y1}
+              x2={e.x2}
+              y2={e.y2}
+              stroke={GRAPH_EDGE_COLOR[l.type] || GRAPH_EDGE_COLOR.related}
+              style={`stroke-width:${LINK_THICKNESS * (0.6 + 1.6 * (l.weight || 1)) + 0.4}`}
+            />
+          );
+        })
+      }
+    </g>
+    <g class="ig-nodes">
+      {
+        nodes.map((n) => {
+          const r = radiusOf(n);
+          const root = isRootNode(n.id);
+          return (
+            <a
+              class:list={['ig-node', { 'ig-node--root': root }]}
+              href={withBase(n.url)}
+              tabindex="-1"
+            >
+              <circle
+                class="ig-circle"
+                cx={n.x}
+                cy={n.y}
+                r={r}
+                fill={GRAPH_GROUP_COLORS[n.group] || 'var(--text-muted)'}
+              />
+              {!alwaysLabel(n.id) && (
+                <text class="ig-label ig-label--hover" x={n.x + r + 5} y={n.y + 4}>
+                  {n.label}
+                </text>
+              )}
+            </a>
+          );
+        })
+      }
+    </g>
+
+    {/* The anchors' names sit in their own layer ON TOP of every node, so a dense
+        ring can't paint over the one label that carries the center. Hub labels are
+        pushed radially OUTWARD (not always right), so they clear the inner nodes. */}
+    <g class="ig-labels-top" aria-hidden="true">
+      {
+        nodes
+          .filter((n) => alwaysLabel(n.id))
+          .map((n) => {
+            const r = radiusOf(n);
+            if (isRootNode(n.id)) {
+              return (
+                <text class="ig-label ig-label--root" x={n.x} y={n.y - r - 6} text-anchor="middle">
+                  {n.label}
+                </text>
+              );
+            }
+            const dx = n.x - CENTER;
+            const dy = n.y - CENTER;
+            const d = Math.hypot(dx, dy) || 1;
+            const out = r + 6;
+            const lx = n.x + (dx / d) * out;
+            const ly = n.y + (dy / d) * out + 4;
+            return (
+              <text class="ig-label" x={lx} y={ly} text-anchor={dx >= 0 ? 'start' : 'end'}>
+                {n.label}
+              </text>
+            );
+          })
+      }
+    </g>
+  </svg>
+
+  <a class="ig-caption" href={withBase(isEn ? 'en/graph/' : 'graph/')}>
+    {isEn ? 'Full knowledge graph →' : 'Полный граф знаний →'}
+  </a>
+</div>
+
+<style>
+  .ig-root {
+    display: flex;
+    flex-direction: column;
+    inline-size: 100%;
+    flex: 1 1 auto;
+    min-block-size: 0;
+    gap: var(--space-3);
+  }
+  .ig-svg {
+    display: block;
+    inline-size: 100%;
+    flex: 1 1 auto;
+    min-block-size: 0;
+    overflow: visible;
+  }
+  .ig-edge {
+    fill: none;
+  }
+  .ig-circle {
+    transition: r 0.15s ease, stroke 0.15s ease;
+    stroke: transparent;
+    stroke-width: 1.5;
+  }
+  /* The one center: a hairline ring so it reads as the hub of everything. */
+  .ig-node--root .ig-circle {
+    stroke: var(--background-primary);
+    stroke-width: 2.5;
+  }
+  .ig-label {
+    font-size: 13px;
+    fill: var(--text-normal);
+    pointer-events: none;
+    paint-order: stroke;
+    stroke: var(--background-primary);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+  .ig-label--root {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .ig-label--hover {
+    opacity: 0;
+  }
+  .ig-node:hover .ig-label--hover,
+  .ig-node:focus-visible .ig-label--hover {
+    opacity: 1;
+  }
+  .ig-node:hover .ig-circle,
+  .ig-node:focus-visible .ig-circle {
+    stroke: var(--text-accent);
+  }
+  .ig-node--root:hover .ig-circle {
+    stroke: var(--text-accent);
+  }
+  .ig-caption {
+    align-self: flex-start;
+    font-size: 0.9rem;
+    color: var(--text-accent);
+    text-decoration: none;
+  }
+  .ig-caption:hover {
+    text-decoration: underline;
+  }
+</style>

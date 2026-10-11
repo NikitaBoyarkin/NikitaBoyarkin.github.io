@@ -34,9 +34,11 @@ Project 3 showed the KYC fix coincided with better retention, but a pre/post Wel
 
 ## Task
 
-I owned the move from correlation to a causal estimate for the KYC fix: I needed a difference-in-differences design against a flow the fix did not touch, not the earlier before-and-after test.
+I owned turning the KYC-fix reading from correlation into a causal estimate, by designing a comparison against a flow the fix did not touch.
 
 ## Actions
+
+The design compares a flow the fix acted on with a flow it did not touch — that is what stands in for an experiment. Below are the data, the estimates and the diagnostics that test whether the estimate is causal rather than correlational.
 
 - Design: treated — in-app KYC (subject to the progress bar), comparison — partner KYC (agent-assisted; the fix does not apply), cutoff 2024-09.
 - N = 84,000 (50,400 treated / 33,600 comparison), 24 registration cohorts (2023-01 … 2024-12).
@@ -44,7 +46,13 @@ I owned the move from correlation to a causal estimate for the KYC fix: I needed
 - Diagnostics: parallel trends (pre-period gap slope), a placebo at a fake 2024-01 cutoff, covariate balance (SMD), propensity overlap.
 - The data is synthetic: the generator injects a known ATT (+5.7 / +8.5 / +9.0 pp), so this is a methods demonstration — the estimator must recover the effect.
 
+**Why this way.** Synthetic data with a planted effect exists to test the method: if the estimator recovers a known magnitude, it can be trusted on real observational data, where the truth is unknown.
+
+**Estimator choice.** I chose covariate-adjusted DiD because it allows a different composition of the two flows and reduces sensitivity to random imbalance in characteristics; I clustered standard errors by registration cohort, since correlation within a cohort would otherwise overstate precision.
+
 ## Result
+
+The estimator recovered the planted effect and the diagnostics passed — so the gap can be read as causal.
 
 - **M3 retention: DiD ATT +9.09pp** (95% CI [+6.21, +11.96], p<0.001) — the causal estimate matches Project 3 (+9.2pp).
 - **Activation: naive +6.29pp → DiD +4.92pp** (95% CI [+4.07, +5.77]) — pre/post overstates the effect because it does not net out the shared trend.

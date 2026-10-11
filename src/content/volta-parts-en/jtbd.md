@@ -33,13 +33,19 @@ The first Market & Jobs project: do job segments (JTBD) match the behavioral coh
 
 ## Task
 
-I opened the market and jobs layer by checking whether segments defined by the job to be done line up with the behavioral cohorts that segmentation produced.
+I owned testing the hypothesis that two independent cuts of the customer base — by job and by behaviour — describe the same people, and whether one retention decision can rest on both cuts at once.
 
 ## Actions
 
-- Cross-table JTBD segment × cohort.
-- Chi-square for independence, two-proportion z-test for Dormant.
-- UX-friction contrast (support tickets, KYC duration).
+I framed the check as a statistical comparison of two splits rather than a visual one. I first joined both cuts on one key, then tested independence and unpacked the largest deviations.
+
+**Data preparation.** I joined the JTBD job segments to the behavioural cohorts from segmentation on a single user key, dropped users missing a label in either cut, and built a segment-by-cohort cross-table.
+
+**Dependency test.** I tested independence with a chi-square test, which asks whether the observed table filling differs from what independence would predict. I also read the standardized residuals to see which cells drive the dependency.
+
+**Targeted test.** For the largest cell — where the Dormant cohort meets digital newcomers in the older segment — I ran a two-proportion z-test to see whether the Dormant share is significantly above the base rate or just noise.
+
+**Friction contrast.** I unpacked that same intersection by UX friction: support ticket counts and KYC duration for Dormant versus the other cohorts. That separates 'no suitable job' from 'friction gets in the way'.
 
 ## Result
 

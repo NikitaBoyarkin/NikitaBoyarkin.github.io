@@ -34,13 +34,21 @@ Project 14 established the break-even FX cost (0.55%) but *assumed* such a price
 
 ## Task
 
-The preceding project set the break-even FX cost but only assumed it was buyable, so my job was to model what liquidity providers actually quote.
+I owned testing whether the required price is actually buyable: turning 'is it possible' into a model of how providers quote price against volume. The answer had to say what volume unlocks the target level.
 
 ## Actions
 
-- Provider quotes: interbank log-linear in volume, hedge cost falls with term.
-- Required volume for the gate (log-interpolation).
-- Provider ranking (quote vs hedge), hedge-term effect.
+I modelled not a single quote but the price-to-volume relationship: at every provider the price falls as volume grows, and that relationship decides whether the target level is reachable. I then solved for the volume needed to reach the gate.
+
+**Data preparation.** I collected liquidity-provider quotes together with their hedge-term and deal-type conditions. I compared providers at like-for-like volumes and normalised everything onto one basis of comparison.
+
+**Price-versus-volume curve.** For each provider I fitted a log-linear relationship between price and volume: on a log scale the volume discount becomes a slope that is easy to compare across providers. That gives a function rather than a point.
+
+**Required volume.** I solved the inverse problem by log-interpolation: at what volume does the price cross the break-even level. That turns the question from 'expensive or cheap' into a concrete volume threshold.
+
+**Provider ranking.** I ranked providers by total cost including the hedge term and checked whether the leader changes under different assumptions. I also looked at the long-hedge effect as a second discount after volume.
+
+**Validation.** I checked the modelled quotes against market references and tested the volume threshold for stability to quote scatter.
 
 ## Result
 

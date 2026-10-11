@@ -58,6 +58,12 @@ export interface GraphData {
   links: GraphLink[];
 }
 
+/** The single root of the graph — the person / portfolio itself. It is the one
+ *  center the layout pins, and every other node radiates from it: hubs on the
+ *  first ring, content on the next, topics on the last. */
+export const ROOT_ID = "core:me";
+export const isRootNode = (id: string): boolean => id === ROOT_ID;
+
 /** Group colors shared by the SSR legend and the client-side renderer. */
 export const GRAPH_GROUP_COLORS: Record<string, string> = {
   experiments: '#5db8b0',
@@ -74,6 +80,9 @@ export const GRAPH_GROUP_COLORS: Record<string, string> = {
   // clearly against the track/category palette in both themes.
   projects: '#ff8c42',
   articles: '#4cc9f0',
+  // The single root of the graph (the person / portfolio itself). Teal so the
+  // one center reads as its own thing against every track/category hue.
+  root: 'var(--text-accent-dataviz)',
   // Glossary terms (and their hub). Magenta-pink — a hue none of the
   // track/category colors use; ~3.3:1 on the light (#ffffff) background and
   // ~4:1 on the dark teal (#1a3435) one, so term nodes read in both themes.
@@ -270,6 +279,7 @@ const COMMUNITY_LABELS: Record<'ru' | 'en', [string, string][]> = {
   ru: [
     // Cores are isolated in the community graph (their edges are excluded from
     // clustering), so each is its own singleton community — label them.
+    ['core:me', 'Ядро'],
     ['core:projects', 'Проекты'],
     ['core:posts', 'Статьи'],
     ['core:glossary', 'Словарь'],
@@ -278,6 +288,7 @@ const COMMUNITY_LABELS: Record<'ru' | 'en', [string, string][]> = {
     ['p:volta', 'Эксперименты и петля Volta'],
   ],
   en: [
+    ['core:me', 'Core'],
     ['core:projects', 'Projects'],
     ['core:posts', 'Articles'],
     ['core:glossary', 'Glossary'],
@@ -420,6 +431,14 @@ export function buildGraph(opts: {
   const localePrefix = lang === "en" ? "en/" : "";
 
   // Node pass.
+  // The single root — the person. It owns the one center the radial index
+  // layout pins; the type hubs hang off it on the first ring.
+  addNode({
+    id: ROOT_ID,
+    label: lang === "en" ? "Nikita Boyarkin" : "Никита Бояркин",
+    group: "root",
+    url: `${localePrefix}about/`,
+  });
   // Core (hub) nodes — the "00" index notes of the graph. Each aggregates a
   // content type: every project links to the projects core, every post to the
   // posts core. Strong (weight 1) edges pull each group's members toward its
@@ -490,7 +509,11 @@ export function buildGraph(opts: {
       id: `topic:${t.key}`,
       label: lang === "en" ? t.key : t.label,
       group: "topic",
-      url: `${localePrefix}topics/${t.key}/`,
+      // Topics have no EN pages (they are RU-only, src/pages/topics/[tag].astro),
+      // so the EN graph links to the RU topic page — the same graceful fallback
+      // posts use for untranslated entries. A locale-prefixed EN url here would
+      // be a dead link the moment a node is rendered as a real anchor.
+      url: `topics/${t.key}/`,
     });
   }
 
@@ -537,6 +560,13 @@ export function buildGraph(opts: {
   for (const term of glossary) {
     addLink("core:glossary", `g:${slugOf(term.id)}`, 1, "core");
   }
+
+  // Root edges: the person → each non-empty type hub. A hub with no members is
+  // skipped, so a content-less graph stays edge-less and the root never points
+  // at a dead stub. These make the root the single, connected center.
+  if (projects.length > 0) addLink(ROOT_ID, "core:projects", 1, "core");
+  if (posts.length > 0) addLink(ROOT_ID, "core:posts", 1, "core");
+  if (glossary.length > 0) addLink(ROOT_ID, "core:glossary", 1, "core");
 
   // post↔topic by tag match.
   for (const post of posts) {
@@ -669,7 +699,9 @@ export function buildGraph(opts: {
   ).map((n) => {
     const kind = n.id.split(":")[0];
     const deg = degrees.get(n.id) ?? 0;
-    const base = BASE_SIZE[kind] ?? 6.5;
+    // The root is the one center, so it always out-sizes every hub regardless
+    // of how many members each hub happens to have.
+    const base = isRootNode(n.id) ? 15 : (BASE_SIZE[kind] ?? 6.5);
     const size = base * (1 + 0.18 * Math.log1p(deg));
     return { ...n, size: Math.round(size * 10) / 10 };
   });

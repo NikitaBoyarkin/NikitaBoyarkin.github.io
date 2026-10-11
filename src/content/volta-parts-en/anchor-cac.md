@@ -34,13 +34,21 @@ The 25–34 anchor is the growth point, but does the launch scale economically w
 
 ## Task
 
-I owned the question of whether the anchor segment stays economically viable once the launch is scaled to the serviceable market.
+I owned the scaling call on the anchor: whether its launch stays profitable as it grows, not merely whether growth is possible. The output had to say at what volume the economics hold and where they break.
 
 ## Actions
 
-- Marginal-CAC curves by channel (saturation).
-- Cheap-first greedy allocation, blended LTV/CAC and payback vs scale.
-- Break-even scale, channel-mix and capacity analysis.
+I measured how acquisition cost rises with scale rather than averaging it: cheap channels run out, and that changes the answer. So I built cost curves per channel and allocated volume greedily, cheapest first.
+
+**Data preparation.** I collected per-channel acquisition cost and capacity — how many users a channel can deliver before its price climbs. I estimated capacity from historical data so the model does not assume endless cheap traffic.
+
+**Cost curves.** For each channel I built a marginal-cost curve: price rises as it approaches capacity. This is the key correction to a blended figure, which averages cheap and expensive together.
+
+**Volume allocation.** I added users greedily, each time taking the cheapest available channel, and assembled a blended cost at any scale. From that curve you can see where the average cost stops holding the gate.
+
+**Gate recomputation.** I reduced cost and value to LTV/CAC and payback as functions of scale and marked the point where both gates stop holding. I also computed the marginal user's cost at the target volume.
+
+**Validation.** I compared the model against actual cost at the current scale and checked that the channel ordering by price is stable to the capacity assumption.
 
 ## Result
 

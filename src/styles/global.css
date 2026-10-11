@@ -4030,8 +4030,11 @@ html.canvas-static .persona-card {
    "cards read one step lighter than the page" — and the gradient fades it back
    toward the page over the card's height so the panel has an edge without a hard
    seam. Written at 0,2,1 to out-rank the scoped `.persona-card[data-astro-cid-…]`
-   (0,2,0) that ships from a later stylesheet, the same fight documented above. */
-html[data-theme="light"] .persona-card {
+   (0,2,0) that ships from a later stylesheet, the same fight documented above.
+   The index graph panel wears the same surface as the cards (docs/prd-index-graph.md),
+   so it takes the same override. */
+html[data-theme="light"] .persona-card,
+html[data-theme="light"] .canvas-node--graph {
   background: linear-gradient(
     180deg,
     var(--card-background),

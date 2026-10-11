@@ -10,7 +10,7 @@
 // a CSS transform, and its clamp bounds (0.3-4) are wider than the canvas range.
 import type { WorldSize } from './graph-zoom';
 
-export type NodeId = 'identity' | 'role-hr' | 'role-manager' | 'role-colleague';
+export type NodeId = 'identity' | 'role-hr' | 'role-manager' | 'role-colleague' | 'graph';
 
 export type NodeKind = 'text' | 'link';
 
@@ -41,22 +41,28 @@ export const MAX_ZOOM = 2.2;
  *
  * One lane, no CTA row (docs/prd-homepage-canvas-polish.md §13, second wave). The
  * owner took the hero's CV and Contact buttons off the board entirely, so the gate
- * is just the `h1` with the three role cards under it, reading top-to-bottom in a
- * single 620px lane. The right half of the 1440px board is deliberately empty.
+ * is the identity block with the three role cards under it, reading top-to-bottom
+ * in a single 620px lane. The right half of the 1440px board now carries the
+ * single-center graph (docs/prd-index-graph.md): the role gate on the left, the
+ * graph — person at the center, everything radiating out — on the right.
+ *
  * Three things worth knowing before moving a `y`:
  *
- *  - the cards keep an even 40 between them, and the first sits 40 under
+ *  - the cards keep an even 40 between them, and the first sits 20 under
  *    `identity`;
- *  - the lane's floor is 850, leaving 50 to the world edge;
+ *  - the lane's floor is 860, leaving 40 to the world edge;
  *  - `h` is a FLOOR, not a fixed height — `min-block-size` lets content outgrow a
- *    box, which is why the cards declare 180 rather than the 160 that rendered at
- *    178 while the buttons were still on the board.
+ *    box. `identity` declares 180 because it now carries the name, the claim line
+ *    and the `h1`; the cards declare 180 because the STAR blurb can run to three
+ *    lines on a narrow box.
  */
 export const NODES: NodeBox[] = [
-  { id: 'identity', x: 80, y: 80, w: 620, h: 110, kind: 'text' },
-  { id: 'role-hr', x: 80, y: 230, w: 620, h: 180, kind: 'link' },
-  { id: 'role-manager', x: 80, y: 450, w: 620, h: 180, kind: 'link' },
-  { id: 'role-colleague', x: 80, y: 670, w: 620, h: 180, kind: 'link' },
+  { id: 'identity', x: 80, y: 80, w: 620, h: 180, kind: 'text' },
+  { id: 'role-hr', x: 80, y: 280, w: 620, h: 180, kind: 'link' },
+  { id: 'role-manager', x: 80, y: 480, w: 620, h: 180, kind: 'link' },
+  { id: 'role-colleague', x: 80, y: 680, w: 620, h: 180, kind: 'link' },
+  // The right lane: the graph. Inset 80 from the right world edge like the left.
+  { id: 'graph', x: 780, y: 80, w: 580, h: 740, kind: 'text' },
 ];
 
 /** A CSS-space viewport: `screen = world * k + (tx, ty)`. */

@@ -3,7 +3,7 @@ title: "Volta — Retention & Cohorts"
 description: "Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€227K/yr LTV. Premium LTV is 4.3× Free."
 star:
   situation: "Shipping is not the end: the KYC-fix effect was checked on retention with cohort triangles instead of one flat average"
-  task: "Own the retention check after the KYC fix shipped, reading the effect through cohort triangles by signup month and age"
+  task: "Own the retention check and a method that does not blur the effect into one average"
   action: "Cohort curves and a retention matrix, pre/post Welch t-test with Cohen's d, bootstrap CIs, plan-specific LTV on ARPU × retention"
   result: "Post-fix cohorts hold 61–67% at M1 vs 51–53% pre-fix; M3 +9.2pp, Premium LTV 4.3× Free, +€227K/yr"
 part: retention
@@ -35,13 +35,18 @@ Shipping is not the end: the KYC-fix effect was checked on retention with cohort
 
 ## Task
 
-I owned the retention check after the KYC fix shipped, reading the effect through cohort triangles by signup month and age instead of one average across the base.
+I owned the retention check and the choice of a method that does not blur the effect into one average.
 
 ## Actions
 
-- Cohort curves and an M0–M11 retention matrix.
-- Pre/post Welch t-test + Cohen's d, bootstrap CIs at M1/M3/M6.
-- Plan-specific LTV decomposed into ARPU × retention.
+I read the retention effect through cohort triangles rather than a flat base average — by signup month and cohort age, so the shift is visible over time.
+
+- **Cohort matrix.** Cohort curves and an M0–M11 retention matrix: rows by signup month, columns by cohort age.
+- **Pre/post comparison.** Welch t-test + Cohen's d, bootstrap CIs at M1/M3/M6: split cohorts into before and after the KYC fix and compared retention at the key months.
+- **LTV by plan.** Plan-specific LTV decomposed into ARPU × retention, to see what makes Premium worth more than Free.
+- **Robustness.** Checked whether the gap holds at the later months, not only the first — the effect should not fade.
+- **Cohort cleaning.** Dropped incomplete cohorts and short observation windows, so the step-change would not be an artifact of unequal period counts.
+- **Tooling.** Python and pandas/NumPy for the cohorts, SciPy/Statsmodels for the tests, Matplotlib/Seaborn for the heatmap and curves; runs through uv + ruff.
 
 ## Result
 

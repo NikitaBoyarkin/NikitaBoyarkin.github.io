@@ -102,23 +102,29 @@ describe('canvas homepage (built HTML)', () => {
       expect(grid!, `${lang}: the dot grid lost its aria-hidden`).toContain('aria-hidden="true"');
     });
 
-    // PRD §13: the gate is one lane, no CTA row. The right half of the 1440px
-    // board is deliberately empty, the fork's lead-in is gone with the second
-    // lane, and the CV and Contact buttons left the body on the owner's call.
-    // Every box the page places has to sit inside the left 340 world px. Keyed on
-    // `data-node`, which only real layout boxes carry.
-    it(`${file}: lays every layout node in a single left lane`, () => {
+    // Two lanes now (docs/prd-index-graph.md): the role gate on the left, the
+    // single-center graph on the right. Every gate box has to sit inside the left
+    // 340 world px, and the graph has to sit past it. Keyed on `data-node`, which
+    // only real layout boxes carry.
+    it(`${file}: keeps the gate in the left lane and the graph in the right`, () => {
       const d = doc();
       expect(d, `${lang}: the retired fork lead-in is back`).not.toContain('canvas-lead');
-      const nodes = [...d.matchAll(/data-node="[^"]+"[^>]*style="([^"]*)"/g)];
+      const nodes = [...d.matchAll(/data-node="([^"]+)"[^>]*style="([^"]*)"/g)];
       expect(nodes.length, `${lang}: layout nodes with an inline style`).toBe(NODES.length);
-      for (const [, style] of nodes) {
+      for (const [, id, style] of nodes) {
         const left = style.match(/\bleft:(\d+)px/);
         expect(left, `${lang}: a node carries no inline left — ${style}`).not.toBeNull();
-        expect(
-          Number(left![1]),
-          `${lang}: the board is two lanes again — a node sits past the left lane: ${style}`
-        ).toBeLessThanOrEqual(340);
+        if (id === 'graph') {
+          expect(
+            Number(left![1]),
+            `${lang}: the graph must sit in the right lane: ${style}`
+          ).toBeGreaterThan(340);
+        } else {
+          expect(
+            Number(left![1]),
+            `${lang}: a gate node sits past the left lane: ${style}`
+          ).toBeLessThanOrEqual(340);
+        }
       }
     });
 

@@ -84,7 +84,7 @@ const I18N = {
   </ul>
 
   {
-    showChrome && (
+    showChrome && !standalone && (
       <p class="library-foot">
         <a href={shelfHref(lang)}>{I18N.footLabel} →</a>
       </p>

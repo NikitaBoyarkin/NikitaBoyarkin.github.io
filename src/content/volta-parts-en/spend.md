@@ -3,7 +3,7 @@ title: "Volta — Spend Analysis"
 description: "Spend breakdown by category and channel: bills (25.8%) and travel (20.2%) make up nearly half the turnover, groceries is the most frequent category."
 star:
   situation: "Where and on what customers spend — the basis for cashback and offer strategy"
-  task: "Establish where and on what customers spend, and give the cashback and offer strategy a factual base"
+  task: "Own the structure of the spend breakdown and its fitness for product decisions"
   action: "Spend aggregation by category, channel and merchant; decline rate by category and monthly trend"
   result: "Bills (25.8%) and travel (20.2%) — nearly half the turnover; groceries most frequent (18,238 transactions, €45.8 ticket)"
 part: spend
@@ -33,12 +33,18 @@ Where and on what customers spend — the basis for cashback and offer strategy.
 
 ## Task
 
-I needed to establish where and on what customers spend, so I owned the spending layer that the cashback and offer strategy is built on.
+I owned the structure of the spend breakdown and its fitness for product decisions.
 
 ## Actions
 
-- Spend aggregation by category/channel/merchant.
-- Decline rate by category, monthly trend.
+I split spending along several axes at once, so that behind the total you can see the type of expense, the channel and the specific merchant.
+
+- **Aggregation.** Rolled transactions into breakdowns by category, channel and merchant — the same turnover read from three sides.
+- **Frequency vs volume.** Compared categories by transaction count and by amount, so the most frequent category is not confused with the largest.
+- **Average ticket.** Computed the average ticket by category, to separate frequent small spends from rare large ones.
+- **Declines.** Added the decline rate by category as a separate signal about payment quality, not just demand.
+- **Trend.** Built a monthly trend to tell a lasting shift from a one-off spike.
+- **Tooling.** Python and pandas/NumPy for the aggregations, Matplotlib/Seaborn for the breakdown and the trend.
 
 ## Result
 

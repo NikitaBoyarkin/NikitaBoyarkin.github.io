@@ -3,7 +3,7 @@ title: "Volta — KYC Progress-Bar A/B Test"
 description: "A KYC progress bar lifted conversion +5.72pp (Z=5.82, p<0.0001) against a +5pp MDE. CUPED, AA-test and Bonferroni protect the conclusion; +€656K/yr at 44× ROI."
 star:
   situation: "Validating the funnel finding: a snapshot is not proof, so the KYC progress-bar hypothesis was tested as an experiment"
-  task: "Turn the funnel observation into a testable hypothesis and own the interpretation of the KYC split experiment"
+  task: "Own the correctness of the experiment: design the test, run it, and protect the conclusion from statistical pitfalls"
   action: "Sample-size calculation for the MDE, SRM check, bootstrap CI, CUPED with a sessions covariate, AA-test and Bonferroni"
   result: "KYC conversion 55.8% → 61.5%: +5.72pp at p<0.0001, above the MDE; gate passed, +€656K/yr"
 part: ab
@@ -34,14 +34,19 @@ Validating the funnel finding: a snapshot is not proof, so the hypothesis (split
 
 ## Task
 
-I needed to show that the onboarding snapshot held up under a controlled test, so I owned the experiment that split KYC into steps with a progress bar.
+I owned the correctness of the experiment: designing the hypothesis test, running it, and protecting the conclusion from statistical pitfalls.
 
 ## Actions
 
-- Sample-size calculation for the MDE, SRM check (p=1.00), bootstrap CI.
-- **CUPED** with 'sessions before the test' as covariate (control-only θ).
-- **AA-test** under H₀ (type-I = 0.050) and multiple-comparison correction (Bonferroni/Holm/BH).
-- Sensitivity at the MDE (not post-hoc power).
+The project is built as a full experiment, not a comparison of two snapshots: I fixed the design and the decision metric first, verified the split, then estimated the effect and its robustness.
+
+- **Design.** Set the primary metric (KYC step conversion), the hypothesis and the minimum detectable effect, then sized each arm against that effect.
+- **Split hygiene.** Checked SRM (p=1.00) to confirm traffic was divided without systematic skew, and compared the covariate distributions before the test started.
+- **Effect estimate.** Compared the group proportions and built a bootstrap confidence interval for the lift.
+- **CUPED** with 'sessions before the test' as covariate (control-only θ) — cuts variance without biasing the estimate.
+- **AA-test** under H₀ (type-I = 0.050) and multiple-comparison correction (Bonferroni/Holm/BH) for the segment cuts.
+- **Sensitivity and segments.** Looked at behaviour at the MDE rather than post-hoc power, and read the segments separately to separate a real effect from multiple-comparison noise.
+- **Tooling.** Python and pandas/NumPy to prepare the data, SciPy/Statsmodels for the tests, scikit-learn for the covariates, Matplotlib/Seaborn for the charts; runs are reproducible through uv + ruff.
 
 ## Result
 

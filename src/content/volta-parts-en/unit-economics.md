@@ -34,13 +34,21 @@ The traveler segment promises a 'fair rate' — we test whether it survives econ
 
 ## Task
 
-I needed to know whether the traveler segment's promise of a fair rate survives economically, so I owned the unit economics behind it.
+I owned giving the traveler segment a calculation, not an opinion: where the economics lose money and what has to change for it to break even. The question could not be closed with a vague 'it's profitable'.
 
 ## Actions
 
-- Revenue/cost/margin per transaction by segment.
-- FX break-even (cost vs spread), one-at-a-time sensitivity.
-- Scale projection to SOM.
+I built the economics per source of revenue and cost on a transaction, not on an average, to see exactly where the segment loses money. I then tested the condition under which it breaks even.
+
+**Data preparation.** I collected per transaction the revenue from spread and fees and the cost of the interbank rate, processing and support, and folded them into a contribution margin. I attached the segment volume separately so the result can scale to different levels.
+
+**Break-even model.** I built the break-even point on the key parameter — the cost of an FX transaction: I solved for the level at which margin turns to zero. That turns the question from 'worth it or not' into a concrete condition.
+
+**Sensitivity.** I ran a one-parameter-at-a-time sensitivity on the spread, the interbank rate and the repeat-transaction share. That shows which lever moves the result most and which barely matters.
+
+**Scale.** I projected margin onto the target market volume and checked how the loss behaves as volume grows: linearly or with saturation. That decides whether volume alone can fix the economics.
+
+**Validation.** I reconciled revenue and cost totals against the source extracts and recomputed margin a second way. I kept the scenario assumptions explicit so the decision does not rest on hidden estimates.
 
 ## Result
 

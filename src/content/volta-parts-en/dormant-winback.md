@@ -3,7 +3,7 @@ title: "Volta — Dormant 45+ Win-back"
 description: "Three-arm win-back: human +5.34pp and light-touch +2.77pp vs control. Light-touch pays off at 30–90d (ROI 2.54 / 1.26), human ROI 0.40 — kill as a mass channel."
 star:
   situation: "Closing project of the validation round: an earlier part tied senior dormancy to a UX barrier but never tested reactivation"
-  task: "Own the check of whether assisted reactivation actually brings dormant senior users back and whether it pays for itself"
+  task: "Own the reactivation test and an honest verdict on its economics, including a possible kill of the channel"
   action: "Three-arm win-back, four dormancy buckets, z-tests by arm and bucket with Holm correction, ROI and targeting boundary"
   result: "human +5.34pp, light-touch +2.77pp; light-touch pays off at 30–60d (ROI 2.54) and 60–90d (1.26), human overall 0.40"
 part: dormant-winback
@@ -34,13 +34,18 @@ The last RAT v2 project: Project 13 argued that 45+ dormancy is a UX barrier. We
 
 ## Task
 
-I owned the closing check of the validation round: whether assisted reactivation actually brings dormant senior users back, and whether that effort pays for itself.
+I owned the reactivation test and an honest verdict on its economics, including a possible kill of the channel.
 
 ## Actions
 
-- Three-arm randomized win-back: automated / light-touch / human.
-- Four dormancy buckets; z-tests by arm and bucket with Holm correction.
-- ROI per 10K treated, targeting boundary, break-even LTV.
+I built the win-back as a three-arm randomized experiment, so both the mechanism and the economics are measured on comparable groups rather than historical cuts.
+
+- **Three arms.** Split users into automated, light-touch and human, plus control — so both the effect and its price are visible.
+- **Dormancy buckets.** Divided dormant users by how long they had been away, so targeting rests on recency rather than an average segment.
+- **Tests.** Checked the lift for each arm and bucket with a Holm correction — otherwise multiple comparisons produce false wins.
+- **Economics.** ROI per 10K treated, targeting boundary, break-even LTV — to separate a statistically significant effect from a payable one.
+- **Randomisation.** Checked group balance before the start, so a difference in response could not be explained by a different mix of dormant users.
+- **Tooling.** Python and pandas/NumPy for the calculations, SciPy/Statsmodels for the tests, Matplotlib/Seaborn for the reactivation and ROI charts.
 
 ## Result
 

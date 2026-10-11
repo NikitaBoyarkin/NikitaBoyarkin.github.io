@@ -334,11 +334,49 @@ describe('buildGraph', () => {
       topics: TOPICS,
     });
     const coreEdges = g.links.filter((l) => l.type === 'core');
-    expect(coreEdges).toHaveLength(4);
+    // 4 member→hub edges + the 2 root→hub edges (projects, posts).
+    expect(coreEdges).toHaveLength(6);
     expect(coreEdges.some((l) => l.source === 'core:projects' && l.target === 'p:a' && l.weight === 1)).toBe(true);
     expect(coreEdges.some((l) => l.source === 'core:projects' && l.target === 'p:b')).toBe(true);
     expect(coreEdges.some((l) => l.source === 'core:posts' && l.target === 'post:x')).toBe(true);
     expect(coreEdges.some((l) => l.source === 'core:posts' && l.target === 'post:y')).toBe(true);
+  });
+
+  it('adds the single root and wires it to the non-empty type hubs', () => {
+    const g = buildGraph({
+      projects: [project('a')],
+      posts: [post('x')],
+      parts: [],
+      topics: TOPICS,
+    });
+    const root = g.nodes.find((n) => n.id === 'core:me');
+    expect(root, 'the graph has no root').toBeDefined();
+    expect(root?.group).toBe('root');
+    const rootEdges = g.links.filter((l) => l.type === 'core' && l.source === 'core:me');
+    expect(rootEdges.map((l) => l.target).sort()).toEqual(['core:posts', 'core:projects']);
+    // Every real node is reachable from the root (one connected center).
+    const adj = new Map<string, string[]>();
+    for (const n of g.nodes) adj.set(n.id, []);
+    for (const l of g.links) {
+      adj.get(l.source)?.push(l.target);
+      adj.get(l.target)?.push(l.source);
+    }
+    const seen = new Set<string>(['core:me']);
+    const queue = ['core:me'];
+    while (queue.length) {
+      for (const nb of adj.get(queue.shift()!) ?? []) {
+        if (!seen.has(nb)) {
+          seen.add(nb);
+          queue.push(nb);
+        }
+      }
+    }
+    expect(seen.size).toBe(g.nodes.length);
+  });
+
+  it('skips root edges to empty hubs, so a content-less graph stays edge-less', () => {
+    const g = buildGraph({ projects: [], posts: [], parts: [], topics: TOPICS });
+    expect(g.links).toEqual([]);
   });
 
   it('uses english labels and urls for cores in en mode', () => {

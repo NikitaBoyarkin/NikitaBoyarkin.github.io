@@ -62,8 +62,8 @@ const STEPS: Step[] = [
     num: '01',
     title: isEn ? 'Experiment' : 'Эксперимент',
     text: isEn
-      ? 'Split KYC into steps with a progress bar, then tested it against control. Primary metric is KYC completion; the ship-gate demanded significance and a pass over the pre-registered MDE.'
-      : 'KYC разбили на шаги с прогресс-баром и проверили против контроля. Первичная метрика — завершение KYC; ship-gate требовал значимости и выхода за предзарегистрированный MDE.',
+      ? 'Split KYC into steps with a progress bar, then tested it against control. Primary metric is KYC completion; a result counted only if it was statistically significant and cleared the pre-registered threshold.'
+      : 'KYC разбили на шаги с прогресс-баром и проверили против контроля. Первичная метрика — завершение KYC; результат засчитывали, только если он статистически значим и превышает заранее заложенный порог.',
     chips: [
       isEn ? `+${abKyc.deltaPp} pp` : `+${abKyc.deltaPp} п.п.`,
       isEn ? `€${abKyc.annualEurK}K/yr` : `€${abKyc.annualEurK}K в год`,
@@ -86,8 +86,8 @@ const STEPS: Step[] = [
     num: '03',
     title: isEn ? 'Segmentation' : 'Сегментация',
     text: isEn
-      ? 'RFM splits clients by recency, frequency and monetary value. Reprioritising the four key segments moved their share of revenue from the baseline to the shipped figure.'
-      : 'RFM делит клиентов по давности, частоте и сумме. Переприоритизация четырёх ключевых сегментов изменила их долю в выручке.',
+      ? 'RFM splits clients by recency, frequency and monetary value. Reprioritising the four key segments shifted their share of revenue — from the baseline to the shipped figure.'
+      : 'RFM делит клиентов по давности, частоте и сумме. Переприоритизация четырёх ключевых сегментов сдвинула их долю в выручке — от базовой к итоговой.',
     chips: [
       `${rfm.revenueBeforePct}% → ${rfm.revenueAfterPct}%`,
       isEn ? '4 key segments' : '4 ключевых сегмента',

@@ -36,7 +36,7 @@ export const TOPICS: Topic[] = [
     "ab-testing",
     "A/B-тестирование",
     "middle",
-    "Методология экспериментов: CUPED, AA-тесты, байесовский вывод.",
+    "Методология экспериментов: дизайн, AA-тесты, поправки на множественные сравнения, байесовский вывод.",
     ["ab-testing", "bayesian", "statistics"],
   ),
   topic("retention", "Retention / когорты", "middle", "Когортный анализ, кривые retention, отток.", [
@@ -66,14 +66,14 @@ export const TOPICS: Topic[] = [
     "causal-inference",
     "Causal-вывод",
     "senior",
-    "Feature impact, DiD, synthetic control — причинность вне рамок A/B.",
+    "Причинность вне рамок A/B: feature impact, разность разностей, синтетический контроль.",
     ["causal-inference", "feature-impact", "causal"],
   ),
   topic(
     "metric-design",
     "Metric design",
     "senior",
-    "North Star, дерево метрик, конфликты метрик и Goodhart.",
+    "North Star, дерево метрик, конфликты метрик и закон Гудхарта.",
     ["metric-design", "north-star", "metrics", "goodhart"],
   ),
 ];

@@ -34,12 +34,19 @@ Are customers promoters or neutrals? And which drivers move NPS.
 
 ## Task
 
-I needed to see where customers sit between promoter and neutral, and my job was to find which drivers actually move the score.
+I owned turning raw survey responses into a picture the team could act on: how customers actually feel and which drivers move that perception. The goal was a recurring read, not a one-off report.
 
 ## Actions
 
-- Monthly NPS across 18 survey months.
-- NPS by driver and promoter mix.
+I worked from the data outward: first collected and cleaned the survey responses, then built the metric and broke it down by driver. I computed the monthly NPS across 18 survey months, which shows a trend rather than a single reading.
+
+**Data preparation.** I merged the survey exports into one dataset, mapped the scales onto a common scale, dropped incomplete answers and technical duplicates, and attached customer metadata. I checked that each respondent lands in the sample exactly once.
+
+**Metric.** I split respondents into promoters, neutrals and detractors, computed the headline index by month, and read the trend. In the same pass I built NPS per driver and the promoter mix, so the score is never read in isolation.
+
+**Driver breakdown.** For every driver I built a separate NPS — the promoter share minus the detractor share among those who rated it. That shows a driver's own contribution and makes the drivers comparable to one another.
+
+**Validation.** I checked the response distribution across waves, trimmed outliers, and tested that the reading holds under a different aggregation. I then lined the result up against the bottlenecks from the earlier portfolio projects.
 
 ## Result
 

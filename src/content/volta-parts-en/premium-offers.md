@@ -3,7 +3,7 @@ title: "Volta — Segment Premium Offers"
 description: "A/B: a segment offer lifts gap segments (+3.3pp 45+, +4.2pp families, +3.8pp travelers) — Holm-significant, but the anchor barely moves."
 star:
   situation: "The generic upsell doesn't transfer — the previous project recommended segment offers, but they went untested"
-  task: "Own the head-to-head test of the generic upsell against the segment offer the earlier project left unverified"
+  task: "Own the head-to-head test of the segment offer against the generic one under control"
   action: "Randomized A/B, sample-size and SRM checks, z-test by segment with Holm correction, segment × arm interaction (DiD)"
   result: "45+ 1.6%→5.0%, families 4.4%→8.6%, travelers 8.8%→12.6%; anchor +0.86pp — the gap is not closed"
 part: premium-offers
@@ -34,13 +34,19 @@ Project 15 showed the generic upsell doesn't transfer and recommended segment of
 
 ## Task
 
-The preceding project recommended segment offers but left them untested, so I owned the head-to-head test of the generic upsell against the segment offer.
+I owned testing the unverified recommendation: a head-to-head of the segment offer against the generic one under control.
 
 ## Actions
 
-- Randomized A/B, sample-size/SRM checks.
-- z-test by segment with 95% CIs, Holm correction.
-- Segment × arm interaction (DiD), residual-gap analysis.
+I turned the earlier project's recommendation into a controlled test: the generic offer as control, the segment offer as treatment, randomized per user.
+
+- **Design and randomisation.** Fixed the primary metric and split users across arms so the groups are comparable.
+- **Pre-checks.** Confirmed the sample was large enough and that there was no SRM — otherwise the lift could be blamed on a split skew.
+- **Segment tests.** Compared conversion by segment with 95% CIs, Holm correction.
+- **Interaction.** Estimated the segment × arm interaction (DiD), to separate the offer effect from a general time shift.
+- **Residual gap.** Checked separately whether the treatment closes the gap with the anchor or only shifts it.
+- **Segment cuts.** Fixed the list of segments and their sizes in advance, so the winning cut is not chosen after seeing the result.
+- **Tooling.** Python and pandas/NumPy, SciPy/Statsmodels for the z-tests and the correction, Matplotlib/Seaborn for the lift charts.
 
 ## Result
 

@@ -9,6 +9,7 @@
 // alpha-decay schedule. The same input always produces the same layout, which
 // keeps the SSR SVG and the /graph.json endpoints in agreement across builds.
 import type { GraphData, GraphNode, LinkType } from "./graph";
+import { ROOT_ID } from "./graph";
 
 export interface LayoutOptions {
   /** World width in viewBox units. */
@@ -177,6 +178,119 @@ export function layoutGraph(graph: GraphData, opts: LayoutOptions = {}): GraphDa
 
   return {
     nodes: nodes.map(({ vx, vy, ...n }) => ({ ...n, x: round2(n.x), y: round2(n.y) })),
+    links: graph.links,
+  };
+}
+
+// ── Root-centered radial layout (the "one center" index graph) ───────────────
+//
+// Unlike `layoutGraph` — whose forces settle everything into one cloud with the
+// hubs merely near the middle — this is a pure, geometric radial placement: the
+// root sits at the exact center and every other node is placed on a concentric
+// ring by its hop-distance from the root (hubs on ring 1, content on ring 2,
+// topics on ring 3). No simulation, no randomness: the same graph always yields
+// the same picture, which is what lets a compact SVG ship server-rendered.
+//
+// The ring radius grows with the number of nodes so the layout can never
+// overflow: rings are filled to their arc capacity (`minArc` world px between
+// neighbours) and the next ring opens only when the current one is full.
+
+export interface RadialOptions {
+  /** World width; the center is at (width/2, height/2). */
+  width?: number;
+  /** World height. */
+  height?: number;
+  /** Which node owns the center. Defaults to the graph root. */
+  rootId?: string;
+  /** Minimum world distance between neighbours on the same ring. */
+  minArc?: number;
+  /** Radial distance added when a ring fills up. */
+  ringStep?: number;
+  /** Radius of the first ring (the hub ring). */
+  startRadius?: number;
+}
+
+export function layoutRadial(graph: GraphData, opts: RadialOptions = {}): GraphData {
+  const width = opts.width ?? 1000;
+  const height = opts.height ?? 1000;
+  const rootId = opts.rootId ?? ROOT_ID;
+  const minArc = opts.minArc ?? 40;
+  const ringStep = opts.ringStep ?? 64;
+  const startRadius = opts.startRadius ?? 84;
+  const cx = width / 2;
+  const cy = height / 2;
+
+  // Undirected adjacency over the real nodes only.
+  const adj = new Map<string, string[]>();
+  for (const n of graph.nodes) adj.set(n.id, []);
+  for (const l of graph.links) {
+    if (!adj.has(l.source) || !adj.has(l.target)) continue;
+    adj.get(l.source)!.push(l.target);
+    adj.get(l.target)!.push(l.source);
+  }
+
+  // BFS hop-distance from the root.
+  const level = new Map<string, number>();
+  const hasRoot = graph.nodes.some((n) => n.id === rootId);
+  if (hasRoot) {
+    level.set(rootId, 0);
+    let frontier: string[] = [rootId];
+    let depth = 0;
+    while (frontier.length > 0) {
+      depth++;
+      const next: string[] = [];
+      for (const id of frontier) {
+        for (const nb of adj.get(id) ?? []) {
+          if (!level.has(nb)) {
+            level.set(nb, depth);
+            next.push(nb);
+          }
+        }
+      }
+      frontier = next;
+    }
+  }
+  // Anything the root can't reach still has to land somewhere finite.
+  const deepest = level.size > 0 ? Math.max(...level.values()) : 0;
+  for (const n of graph.nodes) if (!level.has(n.id)) level.set(n.id, deepest + 1);
+
+  // Group by ring, preserving the graph's node order for determinism.
+  const byLevel = new Map<number, GraphNode[]>();
+  for (const n of graph.nodes) {
+    if (n.id === rootId) continue;
+    const lv = level.get(n.id)!;
+    const bucket = byLevel.get(lv);
+    if (bucket) bucket.push(n);
+    else byLevel.set(lv, [n]);
+  }
+
+  const pos = new Map<string, { x: number; y: number }>();
+  if (hasRoot) pos.set(rootId, { x: cx, y: cy });
+
+  let radius = startRadius;
+  for (const lv of [...byLevel.keys()].sort((a, b) => a - b)) {
+    const ring = byLevel.get(lv)!;
+    let i = 0;
+    while (i < ring.length) {
+      // `-1` so a ring always takes at least one node, even when tiny.
+      const capacity = Math.max(1, Math.floor((2 * Math.PI * radius) / minArc));
+      const slice = ring.slice(i, i + capacity);
+      // Half-slot offset per ring so consecutive rings never line up radially.
+      const offset = (radius / minArc) * 0.5 + Math.PI / 2;
+      for (let k = 0; k < slice.length; k++) {
+        const a = (k / slice.length) * 2 * Math.PI + offset;
+        pos.set(slice[k].id, { x: cx + Math.cos(a) * radius, y: cy + Math.sin(a) * radius });
+      }
+      i += slice.length;
+      radius += ringStep;
+    }
+  }
+
+  return {
+    nodes: graph.nodes.map((n) => {
+      const p = pos.get(n.id) ?? { x: cx, y: cy };
+      return { ...n, x: round2(p.x), y: round2(p.y) };
+    }),
     links: graph.links,
   };
 }

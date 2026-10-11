@@ -60,33 +60,40 @@ export interface RoleCopy {
   title: string;
   /** `<meta name="description">`. */
   description: string;
-  /** The hero `<h1>`. */
+  /** The hero `<h1>`. Role-specific, so the heading carries the persona. */
   h1: string;
+  /** One-line role pitch rendered under the `h1`. */
+  lead: string;
 }
 
 // Per-role copy for the three landings (PRD §8: HR reads role/stack, a manager
 // reads impact/decisions, a colleague reads how it is made). One record, read
-// by the route wrappers for the `<Base>` head — the alternative duplicates every
-// string across six files.
+// by the route wrappers for the `<Base>` head and by `RoleLanding` for the body.
+// The `h1` is role-specific: three pages that all announced "Продуктовый
+// аналитик" gave the heading no information (the persona lived only in the small
+// role-switch label), so each now names its own angle.
 export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
   ru: {
     hr: {
       title: 'Никита Бояркин — продуктовый аналитик, найм',
       description:
         'Продуктовый аналитик: 5 лет в исследованиях, SQL, Python, A/B-тесты. Стек, метрики и CV — для скрининга по вакансии.',
-      h1: 'Продуктовый аналитик',
+      h1: 'Продуктовый аналитик — для найма',
+      lead: 'Роль, стек, метрики и CV — чтобы сверить с вакансией.',
     },
     manager: {
       title: 'Никита Бояркин — продуктовый аналитик, результаты',
       description:
-        'Кейсы продуктовой аналитики с результатом: +5,72 п.п. KYC-конверсии, retention, RFM-сегментация, CUPED, uplift.',
-      h1: 'Продуктовый аналитик',
+        'Кейсы продуктовой аналитики с результатом: +5,72 п.п. KYC-конверсии, retention, RFM-сегментация, причинные эффекты.',
+      h1: 'Продуктовый аналитик — результат',
+      lead: 'Кейсы с решением и результатом: что изменилось и почему.',
     },
     colleague: {
       title: 'Никита Бояркин | Продуктовый аналитик',
       description:
-        'Портфолио Никиты Бояркина — продуктовый аналитик. A/B-тесты и retention: SQL, Python, CUPED, воспроизводимая методология.',
-      h1: 'Продуктовый аналитик',
+        'Портфолио Никиты Бояркина — продуктовый аналитик. A/B-тесты и retention: SQL, Python, воспроизводимая методология.',
+      h1: 'Продуктовый аналитик — как это сделано',
+      lead: 'Код, данные, метод и граф знаний — весь путь до решения.',
     },
   },
   en: {
@@ -94,19 +101,22 @@ export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
       title: 'Nikita Boyarkin — Product Analyst, hiring',
       description:
         'Product analyst: 5 years in research, SQL, Python, A/B testing. Stack, metrics and CV — for screening against a vacancy.',
-      h1: 'Product Analyst',
+      h1: 'Product Analyst — for hiring',
+      lead: 'Role, stack, metrics and CV — to match against a vacancy.',
     },
     manager: {
       title: 'Nikita Boyarkin — Product Analyst, impact',
       description:
-        'Product analytics cases with a result: +5.72 pp KYC conversion, retention, RFM segmentation, CUPED, uplift.',
-      h1: 'Product Analyst',
+        'Product analytics cases with a result: +5.72 pp KYC conversion, retention, RFM segmentation, causal effects.',
+      h1: 'Product Analyst — impact',
+      lead: 'Cases with the decision and the result: what changed, and why.',
     },
     colleague: {
       title: 'Nikita Boyarkin | Product Analyst',
       description:
-        'Portfolio of Nikita Boyarkin — product analyst. A/B testing and retention: SQL, Python, CUPED, reproducible methodology.',
-      h1: 'Product Analyst',
+        'Portfolio of Nikita Boyarkin — product analyst. A/B testing and retention: SQL, Python, reproducible methodology.',
+      h1: 'Product Analyst — how it is made',
+      lead: 'Code, data, method and the knowledge graph — the whole path to the decision.',
     },
   },
 };

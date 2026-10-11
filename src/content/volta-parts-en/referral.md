@@ -3,7 +3,7 @@ title: "Volta — Referral Segments"
 description: "Referral funnel by JTBD segment: anchor 29.6% vs Digital Newcomers 45+ 4.8% and families 8.6%. The gap opens at accept, not KYC."
 star:
   situation: "Referral is the best funnel channel: I test whether it scales beyond the anchor segment"
-  task: "Find out whether referral holds up outside the anchor and stays the strongest channel as it widens"
+  task: "Own the check of whether the channel's strength holds outside the anchor, and not to scale it blindly"
   action: "Referral funnel by JTBD segment, chi² segment × status, two-proportion z-test, channel effect within gap segments"
   result: "Anchor 29.6% vs 45+ 4.8% and families 8.6%; the gap opens at accept (78% vs 26% vs 40%), in-app 20.6% vs link 14.3%"
 part: referral
@@ -33,13 +33,18 @@ Referral is the best funnel channel. We test whether it scales beyond the anchor
 
 ## Task
 
-Since referral is the strongest channel in the funnel, my job was to find out whether it holds up outside the anchor segment.
+I owned the check of whether the channel's strength holds outside the anchor, and the rule not to scale it blindly.
 
 ## Actions
 
-- Referral funnel (sent→accepted→KYC→first-tx) by JTBD segment.
-- Chi² segment × status, two-proportion z-test anchor vs gap.
-- Channel effect within gap segments.
+I broke referral down by funnel step and by segment to see exactly where the channel's strength is lost outside the anchor.
+
+- **Funnel.** Built the referral funnel (sent→accepted→KYC→first-tx) separately for each JTBD segment.
+- **Difference test.** Compared segments with a chi-square over the 'segment × status' table and a two-proportion z-test (anchor vs gap).
+- **Where it breaks.** Located the step at which the gap opens, rather than stopping at the end-to-end conversion.
+- **Channel.** Checked how the invitation method affects conversion, within the gap segments.
+- **Scaling verdict.** Recorded that the budget cannot be scaled without segment incentives.
+- **Tooling.** Python and pandas/NumPy for the funnel, SciPy/Statsmodels for the tests, Matplotlib/Seaborn for the conversion-by-segment chart.
 
 ## Result
 

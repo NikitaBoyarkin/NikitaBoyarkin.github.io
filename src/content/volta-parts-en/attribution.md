@@ -33,12 +33,19 @@ Different attribution models give different answers about which channel 'brings'
 
 ## Task
 
-I needed to settle which channel can be credited with revenue, so I owned the side-by-side run of the competing attribution models on one dataset.
+I owned giving marketing a budget basis that survives the choice of model: showing where the models agree, where they diverge, and why. The decision had to rest on more than one convenient model.
 
 ## Actions
 
-- Journey dataset (touch_order × channel × revenue).
-- First-touch, last-touch, linear and Shapley attribution.
+I started by turning the customer path into one ordered sequence of touches, and only then credited channels against it. The point is to compare models on the same touch log, not on different exports.
+
+**Data preparation.** I built a touch log where each event carries an order, a channel and attributed revenue, collapsed duplicates, and mapped channels onto one reference list. I checked that every conversion has at least one touch and labelled the path as a step sequence.
+
+**Model implementation.** I implemented the heuristic models — first-touch, last-touch and linear — as simple credit rules, and computed Shapley attribution as a channel's contribution in a cooperative game over all touch orders. Every model received the same input, so the differences reflect the method, not the data.
+
+**Comparison.** I put the results into one channel-by-model table and looked at whether the leader changes and how budget shifts between the top and bottom of the funnel. I noted which models understate upper channels and overstate the last click.
+
+**Validation.** I checked that credited revenue across channels sums to the total, and that Shapley keeps the additive property of the linear model. I then tested the conclusion: the leader stays the leader under every model.
 
 ## Result
 

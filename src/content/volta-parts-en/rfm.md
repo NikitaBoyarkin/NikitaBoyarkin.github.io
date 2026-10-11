@@ -3,7 +3,7 @@ title: "Volta — RFM Analysis"
 description: "R/F/M scoring 1–5 splits the base into lifecycle segments from Champions to Lost; recency and monetary diverge — 'frequent but cheap' and 'rare but large'."
 star:
   situation: "Needed a simple, interpretable customer-value layer to complement cluster segmentation"
-  task: "Build a value layer that stays simple and interpretable alongside cluster segmentation"
+  task: "Own the interpretability of the layer and its consistency with the segmentation already in place"
   action: "R/F/M quintile scoring → lifecycle tiers, plus a heatmap of mean R/F/M by segment"
   result: "Champions — 23.9% of the base with all three axes high (91/93/93); At Risk 11.5% and Lost 23.2% are a large reactivation reserve"
 part: rfm
@@ -33,12 +33,18 @@ We need a simple, interpretable customer-value layer complementing cluster segme
 
 ## Task
 
-I needed a value layer that stays simple and interpretable, so I owned adding it as a complement to the cluster segmentation.
+I owned the interpretability of the layer and its consistency with the segmentation already in place.
 
 ## Actions
 
-- R/F/M quintile scoring → lifecycle tiers.
-- Heatmap of mean R/F/M by segment.
+I built the value layer to stay simple and explainable: each axis went onto a readable scale, and the axes then assembled into lifecycle tiers.
+
+- **Scoring.** Gave each axis (recency, frequency, monetary) a quintile score, so the scales are comparable and do not depend on absolute magnitudes.
+- **Tiers.** Assembled the three scores into lifecycle segments from Champions to Lost — a profile that reads without extra explanation.
+- **Axis divergence.** Checked where recency and monetary diverge, to separate 'frequent but cheap' from 'rare but large'.
+- **Visualisation.** Built a heatmap of mean R/F/M by segment — every tier's profile in one picture.
+- **Reactivation reserve.** Read the size of the already-lost tiers separately, as an estimate of win-back potential.
+- **Tooling.** Python and pandas/NumPy for the scoring, Matplotlib/Seaborn for the heatmap.
 
 ## Result
 

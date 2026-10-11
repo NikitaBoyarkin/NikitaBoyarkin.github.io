@@ -3,7 +3,7 @@ title: "Volta — Premium Upsell"
 description: "Free→Premium conversion concentrates in the anchor (17.3%) and status-seekers (41.2%); Digital Newcomers 45+ convert just 1.8% — the value prop doesn't transfer."
 star:
   situation: "Second Market & Jobs project: does the upsell found in the anchor carry over to new segments"
-  task: "Check whether the upsell that worked for the anchor segment carries over to the others, and where its limits are"
+  task: "Own the assessment of whether the upsell transfers and an honest boundary for where it holds"
   action: "Free→Premium conversion by JTBD segment and cohort, chi-square and z-test, upgrade drivers, offer-channel effect"
   result: "Premium Status 41.2%, anchor 17.3% vs Digital Newcomers 45+ 1.8% (z=34, p<0.001)"
 part: premium-upsell
@@ -33,13 +33,18 @@ The second Market & Jobs project: does the upsell found in the anchor transfer t
 
 ## Task
 
-My job in the market and jobs layer was to check whether the upsell that worked for the anchor segment carries over to segments outside it.
+I owned the assessment of whether the upsell transfers and an honest boundary for where the finding holds.
 
 ## Actions
 
-- Free→Premium conversion by JTBD segment and cohort.
-- Chi² + z-test (anchor vs gap), driver importance (logistic regression).
-- Offer-channel effect and top upgrade reason by segment.
+I tested the upsell across JTBD segments rather than on the base average, to see where the mechanic works and where it breaks.
+
+- **Conversion cut.** Computed Free→Premium conversion per JTBD segment and within cohorts, to separate a segment effect from a timing effect.
+- **Difference test.** Compared the anchor with the gap segments using a chi-square and a z-test, not raw conversion levels.
+- **Drivers.** Estimated the importance of upgrade reasons with logistic regression, to see what each segment actually pays for.
+- **Offer channel.** Checked how the channel that shows the offer affects conversion.
+- **Boundaries.** Stated explicitly that the transferability claim is bounded and cannot be generalised to every segment.
+- **Tooling.** Python and pandas/NumPy for the cuts, SciPy/Statsmodels for the tests, scikit-learn for the logistic regression, Matplotlib/Seaborn for the charts.
 
 ## Result
 
