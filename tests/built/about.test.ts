@@ -31,7 +31,7 @@ const PAGES = [
 const REDIRECT_ANCHORS = ['start', 'who', 'now', 'work', 'value'];
 
 /** Values Analytics.astro observes via [data-analytics-section]. */
-const ANALYTICS_SECTIONS = ['who', 'how', 'now', 'work', 'location', 'value'];
+const ANALYTICS_SECTIONS = ['who', 'now', 'work', 'location', 'value'];
 
 /** Tab ids in SSR order — the frozen /about tab contract. */
 const TAB_IDS = ['profile', 'now', 'value', 'work', 'stack'];

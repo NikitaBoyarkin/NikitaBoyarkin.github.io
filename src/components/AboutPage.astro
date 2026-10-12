@@ -10,15 +10,14 @@
 // observes [data-analytics-section] to emit `section_viewed`. Do not rename an
 // anchor or drop a data-analytics-section without updating that test.
 //
-// Numbers are never typed anywhere: CareerSnapshot and HeroMetrics both read
-// src/lib/metrics.ts (CV-authoritative), so the strip, the bullets and the OG
-// banners cannot drift apart.
+// Numbers are never typed anywhere: CareerSnapshot and ValueOffers both read
+// src/lib/metrics.ts (CV-authoritative), so the bullets and the OG banners
+// cannot drift apart.
 import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 import AskMe from './AskMe.astro';
 import CareerSnapshot from './CareerSnapshot.astro';
 import GithubActivity from './GithubActivity.astro';
-import HeroMetrics from './HeroMetrics.astro';
 import NowReading from './NowReading.astro';
 import AboutTabs from './about/AboutTabs.astro';
 import TabPanel from './about/TabPanel.astro';
@@ -34,7 +33,7 @@ const lang = entry.data.lang;
 const isEn = lang === 'en';
 
 // Rendered here, not in the pages: `components` resolves the MDX tags
-// (<HeroMetrics /> etc.) so the .mdx files import nothing.
+// (<CareerSnapshot /> etc.) so the .mdx files import nothing.
 const { Content } = await render(entry);
 ---
 
@@ -57,7 +56,6 @@ const { Content } = await render(entry);
 
   <Content
     components={{
-      HeroMetrics,
       CareerSnapshot,
       GithubActivity,
       TelegramCta,
@@ -182,6 +180,22 @@ const { Content } = await render(entry);
   .about-body :global(.location-list li) {
     padding-left: var(--space-4);
     border-left: 2px solid color-mix(in srgb, var(--text-accent) 55%, transparent);
+  }
+
+  /* ── Profile bento: «Кто я» as cards ────────────────────────── */
+  /* The global .bento-cell supplies the card (surface, radius-xl, hover lift);
+     this grid is 2-up on desktop, 1-up on mobile. Not `.bento-grid`: About
+     overrides that class to auto-fit. */
+  .about-body :global(.profile-bento) {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    margin: var(--space-4) 0 var(--space-6);
+  }
+  @media (min-width: 720px) {
+    .about-body :global(.profile-bento) {
+      grid-template-columns: 1fr 1fr;
+    }
   }
 
   /* ── Bento grid: the three "how to work with me" cards ──────── */

@@ -1,0 +1,49 @@
+---
+// One panel of a <SectionTabs> dashboard. A `section[role=tabpanel]` so the
+// ARIA tab wiring in SectionTabs.astro resolves, and a plain block when JS is
+// off or when the page has a single section.
+//
+// `active` marks the panel shown before any script runs: server-render it open
+// and hide the rest, so there is no flash of every panel before the inline
+// controller runs. A <noscript> rule in SectionTabs.astro re-reveals the hidden
+// panels for visitors without JS.
+//
+// `ownsRail` marks the panel whose content the fixed #inner-toc rail describes:
+// the controller shows the rail only while this panel is active.
+//
+// `tabbed` is false on single-section pages, where the page renders the panel
+// outside a meaningful tablist — the ARIA tabpattern would then be incomplete,
+// so the panel drops role/aria-controls and renders as a plain section.
+interface Props {
+  id: string;
+  active?: boolean;
+  ownsRail?: boolean;
+  tabbed?: boolean;
+}
+const { id, active = false, ownsRail = false, tabbed = true } = Astro.props;
+const aria = tabbed
+  ? { role: 'tabpanel' as const, 'aria-labelledby': `tab-${id}`, tabindex: '0' }
+  : {};
+---
+
+<section
+  class="section-panel"
+  id={`panel-${id}`}
+  data-panel={id}
+  {...aria}
+  {...(ownsRail ? { 'data-owns-rail': true } : {})}
+  {...(active ? {} : { hidden: true })}
+>
+  <slot />
+</section>
+
+<style>
+  .section-panel {
+    display: block;
+  }
+  /* Beats the UA [hidden] rule that a scoped `display: block` above would
+     otherwise override. */
+  .section-panel[hidden] {
+    display: none;
+  }
+</style>

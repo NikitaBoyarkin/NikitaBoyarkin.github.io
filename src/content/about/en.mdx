@@ -15,8 +15,8 @@ lang: en
       Analytics.astro emits `section_viewed` when a panel becomes active;
     · the CV link carries download and data-analytics="cv_download_pdf".
 
-  No number is typed here: <HeroMetrics> and <CareerSnapshot> read
-  src/lib/metrics.ts, so the strip, the bullets and the OG banners stay aligned.
+  No number is typed here: <CareerSnapshot> and <ValueOffers> read
+  src/lib/metrics.ts, so the bullets and the OG banners stay aligned.
 */}
 
 <AboutTabs
@@ -28,17 +28,16 @@ lang: en
 
 <h2 id="who" data-analytics-section="who">Who I am</h2>
 
-Nikita Boyarkin, data and product analyst. Focus — experiments, retention and segmentation: from hypothesis to metric, with code and SQL sitting next to every conclusion.
-
-I came to analytics from work psychology (PhD, 2022–2025), which is why I start with "what exactly are we measuring" and only then run the numbers. There is no employer history on my CV — the portfolio is built from project work on synthetic and open data.
-
-<HeroMetrics lang="en" />
-
-<h2 id="how" data-analytics-section="how">How I work</h2>
-
-From hypothesis to metric. Every conclusion can be re-checked: code, SQL and visualization sit next to each case, so you verify the calculation instead of trusting the number.
-
-The methodology is reproducible: CUPED, AA-tests, multiple-comparison correction, ship-gates. I would rather have a pre-registered MDE stop a decision than a lucky chart.
+<div class="profile-bento">
+  <div class="bento-cell">
+    <h3 class="bento-cell-heading">Profile</h3>
+    <p class="bento-cell-text">Nikita Boyarkin, data and product analyst. Focus — experiments, retention and segmentation: from hypothesis to metric, with code and SQL sitting next to every conclusion.</p>
+  </div>
+  <div class="bento-cell">
+    <h3 class="bento-cell-heading">Background</h3>
+    <p class="bento-cell-text">I came to analytics from work psychology (PhD, 2022–2025), which is why I start with "what exactly are we measuring" and only then run the numbers.</p>
+  </div>
+</div>
 
 <CareerSnapshot lang="en" />
 

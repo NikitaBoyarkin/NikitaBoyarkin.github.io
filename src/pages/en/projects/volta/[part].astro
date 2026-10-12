@@ -2,10 +2,13 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../../../../layouts/Base.astro';
 import ChartsSection from '../../../../components/charts/ChartsSection.astro';
+import SectionTabs from '../../../../components/SectionTabs.astro';
+import SectionPanel from '../../../../components/SectionPanel.astro';
 import InnerTOC from '../../../../components/InnerTOC.astro';
 import InlineTOC from '../../../../components/InlineTOC.astro';
 import StarBlock from '../../../../components/StarBlock.astro';
 import { withBase } from '../../../../lib/path';
+import { loadChartFile } from '../../../../lib/charts';
 
 export async function getStaticPaths() {
   const parts = await getCollection('volta-parts-en', (p) => !p.data.draft);
@@ -18,6 +21,18 @@ export async function getStaticPaths() {
 const { part, allParts } = Astro.props;
 const { Content, headings } = await render(part);
 const slug = part.data.part;
+
+const partChartIds = part.data.charts ?? [];
+const voltaCharts = loadChartFile('volta');
+const hasCharts = Boolean(
+  voltaCharts && partChartIds.some((id) => voltaCharts.charts.some((c) => c.id === id)),
+);
+const partTabs = [
+  { id: 'case', label: 'Case study' },
+  ...(hasCharts ? [{ id: 'charts', label: 'Analytics' }] : []),
+  { id: 'map', label: 'Map' },
+];
+const tabbed = partTabs.length > 1;
 
 const LAYER_LABELS: Record<string, string> = {
   core: 'Core',
@@ -125,13 +140,48 @@ const partJsonLd = {
       }
     </div>
 
-    <InlineTOC lang="en" headings={headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth }))} />
+    <SectionTabs tabs={partTabs} label="Subproject sections" railId="inner-toc" single={!tabbed}>
+      <SectionPanel id="case" active ownsRail tabbed={tabbed}>
+        <InlineTOC lang="en" headings={headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth }))} />
 
-    <article id="project-content" class="prose">
-      <Content />
-    </article>
+        <article id="project-content" class="prose">
+          <Content />
+        </article>
+      </SectionPanel>
 
-    <ChartsSection slug="volta" ids={part.data.charts} lang="en" />
+      {
+        hasCharts && (
+          <SectionPanel id="charts" tabbed={tabbed}>
+            <ChartsSection slug="volta" ids={part.data.charts} lang="en" />
+          </SectionPanel>
+        )
+      }
+
+      <SectionPanel id="map" tabbed={tabbed}>
+        <section class="post-related reveal reveal-delay-2" aria-label="Volta project map">
+          <h2>Volta project map</h2>
+          <a class="part-map-hub" href={withBase('en/projects/volta/')}>Volta overview →</a>
+          {groups.map((g) => (
+            <div class="part-map-group">
+              <h3>{g.label}</h3>
+              <ul>
+                {g.parts.map((s) =>
+                  s.data.part === slug ? (
+                    <li>
+                      <span class="part-map-current" aria-current="page">{s.data.title}</span>
+                    </li>
+                  ) : (
+                    <li>
+                      <a href={withBase(`en/projects/volta/${s.data.part}/`)}>{s.data.title}</a>
+                    </li>
+                  ),
+                )}
+              </ul>
+            </div>
+          ))}
+        </section>
+      </SectionPanel>
+    </SectionTabs>
 
     {
       (prev || next) && (
@@ -150,31 +200,6 @@ const partJsonLd = {
           )}
         </nav>
       )
-    }
-
-    {
-      <section class="post-related reveal reveal-delay-2" aria-label="Volta project map">
-        <h2>Volta project map</h2>
-        <a class="part-map-hub" href={withBase('en/projects/volta/')}>Volta overview →</a>
-        {groups.map((g) => (
-          <div class="part-map-group">
-            <h3>{g.label}</h3>
-            <ul>
-              {g.parts.map((s) =>
-                s.data.part === slug ? (
-                  <li>
-                    <span class="part-map-current" aria-current="page">{s.data.title}</span>
-                  </li>
-                ) : (
-                  <li>
-                    <a href={withBase(`en/projects/volta/${s.data.part}/`)}>{s.data.title}</a>
-                  </li>
-                ),
-              )}
-            </ul>
-          </div>
-        ))}
-      </section>
     }
   </div>
 </Base>

@@ -6,7 +6,10 @@ import InlineTOC from '../../../components/InlineTOC.astro';
 import StarBlock from '../../../components/StarBlock.astro';
 import ProjectGraph from '../../../components/ProjectGraph.astro';
 import ChartsSection from '../../../components/charts/ChartsSection.astro';
+import SectionTabs from '../../../components/SectionTabs.astro';
+import SectionPanel from '../../../components/SectionPanel.astro';
 import { withBase } from '../../../lib/path';
+import { loadChartFile } from '../../../lib/charts';
 import { formatDate } from '../../../lib/date';
 import { buildGraph, mergePostsForLocale, subgraphAround } from '../../../lib/graph';
 import { TOPICS } from '../../../lib/topics';
@@ -76,6 +79,25 @@ const related = (project.data.related ?? [])
 const posts = mergePostsForLocale(allPosts, postsEn);
 const graph = buildGraph({ projects: allProjects, posts, parts: allParts, topics: TOPICS, lang: 'en' });
 const sub = subgraphAround(graph, `p:${slug}`);
+
+// Dashboard tabs are derived from what actually renders: a tab that opens onto
+// nothing is worse than no tab. `loadChartFile` is the same loader ChartsSection
+// uses, so the "Analytics" tab and the section under it can never disagree; the
+// "Connections" tab mirrors the two `post-related` blocks below.
+const chartIds = slug === 'volta' ? HUB_CHART_IDS : undefined;
+const chartPayload = loadChartFile(slug);
+const hasCharts = Boolean(
+  chartPayload &&
+    chartPayload.charts.length > 0 &&
+    (chartIds ? chartIds.some((id) => chartPayload.charts.some((c) => c.id === id)) : true),
+);
+const hasConnections = related.length > 0 || sub.nodes.length > 1;
+const projectTabs = [
+  { id: 'case', label: 'Case study' },
+  ...(hasCharts ? [{ id: 'charts', label: 'Analytics' }] : []),
+  ...(hasConnections ? [{ id: 'connections', label: 'Connections' }] : []),
+];
+const tabbed = projectTabs.length > 1;
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
 const pageUrl = `${siteUrl}${withBase(`en/projects/${slug}/`)}`;
@@ -213,13 +235,47 @@ const pageJsonLd = {
       }
     </div>
 
-    <InlineTOC lang="en" headings={headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth }))} />
+    <SectionTabs tabs={projectTabs} label="Sections" railId="inner-toc" single={!tabbed}>
+      <SectionPanel id="case" active ownsRail tabbed={tabbed}>
+        <InlineTOC lang="en" headings={headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth }))} />
 
-    <article id="project-content" class="prose">
-      <Content />
-    </article>
+        <article id="project-content" class="prose">
+          <Content />
+        </article>
+      </SectionPanel>
 
-    <ChartsSection slug={slug} ids={slug === 'volta' ? HUB_CHART_IDS : undefined} lang="en" />
+      {
+        hasCharts && (
+          <SectionPanel id="charts" tabbed={tabbed}>
+            <ChartsSection slug={slug} ids={chartIds} lang="en" />
+          </SectionPanel>
+        )
+      }
+
+      {
+        hasConnections && (
+          <SectionPanel id="connections" tabbed={tabbed}>
+            {related.length > 0 && (
+              <section class="post-related reveal reveal-delay-2" aria-label="See also">
+                <h2>See also</h2>
+                <ul>
+                  {related.map((r) => (
+                    <li><a href={r.href}>{r.title}</a></li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {sub.nodes.length > 1 && (
+              <section class="post-related reveal reveal-delay-3" aria-label="Connection map">
+                <h2>Connection map</h2>
+                <ProjectGraph nodes={sub.nodes} links={sub.links} centerId={`p:${slug}`} lang="en" />
+              </section>
+            )}
+          </SectionPanel>
+        )
+      }
+    </SectionTabs>
 
     {
       (prev || next) && (
@@ -237,28 +293,6 @@ const pageJsonLd = {
             </a>
           )}
         </nav>
-      )
-    }
-
-    {
-      related.length > 0 && (
-        <section class="post-related reveal reveal-delay-2" aria-label="See also">
-          <h2>See also</h2>
-          <ul>
-            {related.map((r) => (
-              <li><a href={r.href}>{r.title}</a></li>
-            ))}
-          </ul>
-        </section>
-      )
-    }
-
-    {
-      sub.nodes.length > 1 && (
-        <section class="post-related reveal reveal-delay-3" aria-label="Connection map">
-          <h2>Connection map</h2>
-          <ProjectGraph nodes={sub.nodes} links={sub.links} centerId={`p:${slug}`} lang="en" />
-        </section>
       )
     }
   </div>

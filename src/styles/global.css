@@ -2153,6 +2153,14 @@ footer p {
   }
 }
 
+/* The project dashboard shows the rail only while the panel it describes (the
+   case study) is active, and hides it otherwise — `SectionTabs`'s controller
+   sets [hidden]. This author rule must beat the `display: block` in the media
+   query above (id + attribute > id). */
+#inner-toc[hidden] {
+  display: none;
+}
+
 #inner-toc::-webkit-scrollbar {
   display: none;
 }
@@ -3935,17 +3943,17 @@ nav .search-panel {
      right. `:has(main > #inner-toc)` keeps pages without a rail untouched.
      The full-bleed top bar cancels the wider start gutter with an equal
      negative margin so it still spans the viewport. */
-  body:has(main > #inner-toc) {
+  body:has(main > #inner-toc:not([hidden])) {
     padding-inline-start: var(--toc-rail-total);
   }
 
-  body:has(main > #inner-toc) .nav-mobile {
+  body:has(main > #inner-toc:not([hidden])) .nav-mobile {
     margin-inline-start: calc(-1 * var(--toc-rail-total));
   }
 
   /* The rail now carries the table of contents where it is visible, so the
      in-flow duplicate steps aside. It is the only TOC below this breakpoint. */
-  body:has(main > #inner-toc) .inline-toc {
+  body:has(main > #inner-toc:not([hidden])) .inline-toc {
     display: none;
   }
 

@@ -1,0 +1,248 @@
+---
+// Generic section dashboard: groups a page's sections into a small set of
+// client-side switchable panels so a project page reads on one URL.
+//
+// Deliberately a sibling of about/AboutTabs.astro, not a shared component: the
+// /about one has its ids ("start"), classes (.about-*) and panel ids frozen by
+// tests/built/about.test.ts. This one owns the `data-section-tabs` root and the
+// `.section-*` classes, so the two tab widgets on the site never collide.
+//
+// Contract, mirroring the /about dashboard:
+//   · the tablist carries role="tablist" with one <button role="tab"> per tab;
+//   · every panel is a <SectionPanel> (this directory) with data-panel;
+//   · the first tab is selected and focusable server-side — the rest is
+//     progressive enhancement, so there is no flash and no tab is required.
+//   · no JS: a <noscript> rule reveals every panel and hides the tablist, so the
+//     page degrades to the previous long-scroll layout.
+//   · with JS: the inline controller below reveals one panel, wires the ARIA tab
+//     pattern (click + arrows/Home/End), maps any anchor inside a panel to that
+//     panel (so #heading deep-links open the right tab), reveals `.reveal`
+//     nodes in the freshly shown panel, and — when `railId` points at a fixed
+//     table-of-contents rail — shows that rail only while a panel marked
+//     `ownsRail` is active (otherwise a hidden panel's TOC would sit over the
+//     section that replaced it).
+//
+// Markup is untyped on purpose: a page assembles the panels as children.
+interface TabDef {
+  id: string;
+  label: string;
+  // Hash set in the URL on switch. Defaults to the tab id, which needs no
+  // element of its own — the controller maps it back to the panel.
+  anchor?: string;
+}
+interface Props {
+  tabs: TabDef[];
+  label: string;
+  // Element id to keep in sync with the `ownsRail` panel (e.g. "inner-toc").
+  railId?: string;
+  // With one section the tablist is noise; the page passes this so it is not
+  // rendered and its panel drops the tabpanel role.
+  single?: boolean;
+}
+const { tabs = [], label, railId = '', single = false } = Astro.props;
+
+// set:html, not a literal <style>: Astro would scope a nested style to this
+// component, and the panels it must reveal live in SectionPanel.
+const noScriptFallback =
+  '<style>.section-panel[hidden]{display:block !important}.section-tablist{display:none !important}</style>';
+---
+
+<div class="section-tabs" data-section-tabs data-rail-id={railId}>
+  <div class="section-tablist" role="tablist" aria-label={label} {...(single ? { hidden: true } : {})}>
+    {
+      tabs.map((tab, i) => (
+        <button
+          type="button"
+          role="tab"
+          class="section-tab"
+          id={`tab-${tab.id}`}
+          data-tab={tab.id}
+          data-anchor={tab.anchor ?? tab.id}
+          aria-controls={`panel-${tab.id}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? '0' : '-1'}
+        >
+          {tab.label}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="section-panels">
+    <slot />
+  </div>
+
+  <noscript set:html={noScriptFallback} />
+
+  <script is:inline>
+    (function () {
+      var root = document.querySelector('[data-section-tabs]');
+      if (!root) return;
+      var tabs = Array.prototype.slice.call(root.querySelectorAll('[role="tab"]'));
+      var panels = Array.prototype.slice.call(root.querySelectorAll('[data-panel]'));
+      if (!panels.length) return;
+
+      var railId = root.getAttribute('data-rail-id') || '';
+      var rail = railId ? document.getElementById(railId) : null;
+      var first = panels[0].getAttribute('data-panel');
+
+      // Anchor id -> panel id. Derived from the DOM, so a new heading inside a
+      // panel (or a new panel) needs no change here.
+      var anchors = {};
+      panels.forEach(function (panel) {
+        var id = panel.getAttribute('data-panel');
+        anchors[id] = id;
+        Array.prototype.forEach.call(panel.querySelectorAll('[id]'), function (el) {
+          anchors[el.id] = id;
+        });
+      });
+
+      function fromHash() {
+        var hash = (location.hash || '').replace(/^#/, '');
+        return anchors[hash] || first;
+      }
+
+      function activate(id, focus) {
+        if (!id) id = first;
+        var ownsRail = false;
+        panels.forEach(function (panel) {
+          var on = panel.getAttribute('data-panel') === id;
+          panel.hidden = !on;
+          if (on) {
+            if (panel.hasAttribute('data-owns-rail')) ownsRail = true;
+            // `.reveal` nodes start at opacity 0; an IntersectionObserver cannot
+            // see a panel that was display:none at parse time, so reveal them
+            // here or a switched-to panel (charts, graph) stays blank.
+            Array.prototype.forEach.call(panel.querySelectorAll('.reveal'), function (el) {
+              el.classList.add('visible');
+            });
+          }
+        });
+        tabs.forEach(function (tab) {
+          var on = tab.dataset.tab === id;
+          tab.setAttribute('aria-selected', on ? 'true' : 'false');
+          tab.tabIndex = on ? 0 : -1;
+          if (on && focus) tab.focus();
+        });
+        // The fixed TOC rail belongs to the case-study panel: hide it with the
+        // panel it describes, or its links scroll to headings nobody can see.
+        if (rail) rail.hidden = !ownsRail;
+        root.setAttribute('data-active', id);
+      }
+
+      function scrollToAnchor(id) {
+        var el = id && document.getElementById(id);
+        if (el) el.scrollIntoView({ block: 'start' });
+      }
+
+      function setAnchor(anchor) {
+        if (anchor && location.hash !== '#' + anchor) {
+          history.replaceState(null, '', '#' + anchor);
+        }
+      }
+
+      var initial = (location.hash || '').replace(/^#/, '');
+      activate(fromHash(), false);
+      if (initial) requestAnimationFrame(function () {
+        scrollToAnchor(initial);
+      });
+
+      root.addEventListener('click', function (event) {
+        var tab = event.target.closest('[role="tab"]');
+        if (!tab || !root.contains(tab)) return;
+        event.preventDefault();
+        activate(tab.dataset.tab, false);
+        setAnchor(tab.dataset.anchor);
+      });
+
+      root.addEventListener('keydown', function (event) {
+        var tab = event.target.closest('[role="tab"]');
+        if (!tab) return;
+        var i = tabs.indexOf(tab);
+        if (i < 0) return;
+        var n = -1;
+        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') n = (i + 1) % tabs.length;
+        else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') n = (i - 1 + tabs.length) % tabs.length;
+        else if (event.key === 'Home') n = 0;
+        else if (event.key === 'End') n = tabs.length - 1;
+        else return;
+        event.preventDefault();
+        var next = tabs[n];
+        activate(next.dataset.tab, true);
+        setAnchor(next.dataset.anchor);
+      });
+
+      window.addEventListener('hashchange', function () {
+        var hash = (location.hash || '').replace(/^#/, '');
+        activate(fromHash(), false);
+        scrollToAnchor(hash);
+      });
+    })();
+  </script>
+</div>
+
+<style>
+  .section-tablist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-6);
+    padding: 0 0 var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+  }
+  /* Segmented control, matching .filter-tag / .about-tab: muted at rest, accent
+     as a signal only (text + border + underline), never as a surface fill. */
+  .section-tab {
+    appearance: none;
+    cursor: pointer;
+    position: relative;
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text-muted);
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+  .section-tab:hover {
+    color: var(--text-accent);
+    border-color: var(--border-active);
+  }
+  .section-tab[aria-selected='true'] {
+    color: var(--text-accent);
+    border-color: var(--border-active);
+    background: color-mix(in srgb, var(--text-accent) 8%, transparent);
+  }
+  /* Non-color cue (WCAG 1.4.1): the selected tab keeps a shape change, so the
+     state is not signalled by hue alone. */
+  .section-tab[aria-selected='true']::after {
+    content: '';
+    position: absolute;
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: calc(var(--space-4) * -1 - 1px);
+    height: 2px;
+    background: var(--text-accent);
+  }
+  .section-tab:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+  /* Deep-link anchors and TOC jumps land under the sticky nav without this.
+     Applies to any element with an id inside a panel. */
+  :global(.section-panel [id]) {
+    scroll-margin-top: calc(var(--nav-mobile-h) + var(--space-4));
+  }
+  @media (max-width: 640px) {
+    .section-tablist {
+      gap: var(--space-1);
+    }
+    .section-tab {
+      padding: var(--space-1) var(--space-3);
+      font-size: 0.82rem;
+    }
+  }
+</style>
