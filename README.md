@@ -9,6 +9,45 @@ Static Astro build, bilingual (RU / EN), 17 case studies, client JS only where i
 
 ![Homepage banner](public/images/og/portfolio-banner-v2.png)
 
+> 17 case studies, bilingual RU/EN Astro portfolio — the flagship Volta case found the onboarding bottleneck and closed it with +5.72 pp KYC conversion.
+
+## Navigation
+
+- 🌐 [Portfolio site](https://nikitaboyarkin.github.io)
+- 🏦 [Flagship: Volta neobank](https://github.com/NikitaBoyarkin/volta-banking)
+- 🧪 Related: [A/B Testing Toolkit](https://github.com/NikitaBoyarkin/ab_test) · [Causal / Uplift](https://github.com/NikitaBoyarkin/causal-uplift) · [SQL Analytics Case Study](https://github.com/NikitaBoyarkin/sql-analytics-case-study) · [Churn Prediction](https://github.com/NikitaBoyarkin/churn-prediction)
+
+**On this page:** [Situation](#situation) · [Task](#task) · [Actions](#actions) · [Result](#result) · [What's on the site](#whats-on-the-site) · [Projects](#projects) · [Stack](#stack) · [Quick start](#quick-start) · [Project structure](#project-structure) · [License](#license)
+
+## Situation
+
+The portfolio had to prove analytical work, not merely describe it: a Product /
+Data Analyst with a growing body of case studies and no single reachable
+artifact tying each method to its result.
+
+## Task
+
+Ship a static, bilingual (RU / EN) site where every case study is navigable,
+every headline number is frozen and machine-checked, and each project page
+follows the mandated STAR order — `Ситуация → Задача → Действия → Результат →
+Ограничения → Документация` (EN: `Situation → Task → Actions → Result →
+Limitations → Documentation`).
+
+## Actions
+
+Built on Astro 7 + TypeScript, with all non-trivial logic in `src/lib/` under
+unit tests. 17 case studies across the four `track`s, 23 linked Volta sub-parts,
+and 24 notes. Headline numbers are authored in `src/lib/metrics.ts` and
+cross-checked by `check_metrics_drift`; `bun run audit:content` diffs every
+numeric token against `docs/content-baseline.json`. Project pages follow the
+mandated STAR skeleton, enforced by `tests/lib/content-skeleton.test.ts`.
+
+## Result
+
+A live static site at https://nikitaboyarkin.github.io with an EN mirror,
+self-checking builds (`make check` inspects the built `dist/`), Lighthouse gates,
+and frozen metrics. The flagship Volta case: +5.72 pp KYC conversion, €656K/yr.
+
 ## Contents
 
 - [What's on the site](#whats-on-the-site)
