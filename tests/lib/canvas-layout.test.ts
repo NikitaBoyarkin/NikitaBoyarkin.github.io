@@ -38,9 +38,9 @@ const project = (vp: { tx: number; ty: number; k: number }, p: { x: number; y: n
 });
 
 describe('NODES', () => {
-  it('declares all five nodes with unique ids', () => {
-    expect(NODES.length).toBe(5);
-    expect(new Set(NODES.map((n) => n.id)).size).toBe(5);
+  it('declares all four nodes with unique ids', () => {
+    expect(NODES.length).toBe(4);
+    expect(new Set(NODES.map((n) => n.id)).size).toBe(4);
   });
 
   it('keeps the reading order, independent of visual position', () => {
@@ -49,7 +49,6 @@ describe('NODES', () => {
       'role-hr',
       'role-manager',
       'role-colleague',
-      'graph',
     ]);
   });
 
@@ -68,11 +67,11 @@ describe('NODES', () => {
     }
   });
 
-  // Two lanes now (docs/prd-index-graph.md): the role gate on the left, the
-  // single-center graph on the right. The gate is the `h1` with the three cards
-  // under it in a single 620px lane; the graph owns the right half. Three things
-  // have to hold for that to stay true, and a single moved `y` breaks at least one.
-  it('keeps the gate in the left lane and the graph in the right', () => {
+  // One centred lane now: the homepage graph was removed on the owner's call,
+  // so the gate is the `h1` with the three cards under it in a single 620px lane
+  // centred in the world. Three things have to hold for that to stay true, and a
+  // single moved `x` or `y` breaks at least one.
+  it('centres the single gate lane and fills the board with it', () => {
     const byId = (id: string): NodeBox => {
       const n = NODES.find((b) => b.id === id);
       expect(n, `${id} is not a declared node`).toBeDefined();
@@ -87,20 +86,17 @@ describe('NODES', () => {
       'the void under the h1 must stay inside the 40px budget'
     ).toBeLessThanOrEqual(40);
 
-    // The gate lane fills the board instead of stopping short of the bottom edge.
+    // The lane fills the board instead of stopping short of the bottom edge.
     expect(
-      WORLD.h - Math.max(...NODES.filter((n) => n.id !== 'graph').map((n) => n.y + n.h)),
+      WORLD.h - Math.max(...NODES.map((n) => n.y + n.h)),
       'the gate lane must reach the bottom of the world within 60px'
     ).toBeLessThanOrEqual(60);
 
-    // The gate occupies the left lane; only the graph lives past it.
-    for (const n of NODES) {
-      if (n.id === 'graph') {
-        expect(n.x, 'the graph must sit in the right lane').toBeGreaterThan(340);
-      } else {
-        expect(n.x, `${n.id} leaves the left lane`).toBeLessThanOrEqual(340);
-      }
-    }
+    // Every box shares one lane, centred in the world: the gap on the left
+    // equals the gap on the right.
+    const left = Math.min(...NODES.map((n) => n.x));
+    const right = Math.max(...NODES.map((n) => n.x + n.w));
+    expect(WORLD.w - right, 'the lane is not centred in the world').toBe(left);
   });
 
   it('never overlaps two boxes', () => {

@@ -10,7 +10,6 @@
 // and visual position are independent: the DOM goes identity → role cards,
 // exactly as the stacked version did.
 import CanvasStage from './CanvasStage.astro';
-import IndexGraph from './IndexGraph.astro';
 import { withBase } from '../lib/path';
 import { type Audience } from '../lib/projects';
 import { NODES } from '../lib/canvas-layout';
@@ -119,20 +118,6 @@ const boxStyle = (id: string): string => {
       </a>
     ))
   }
-
-  {/* The graph: person at the center, everything radiating out (docs/prd-index-graph.md).
-      Wears the site's bento card (`.bento-cell`, the same surface the role landings'
-      StackCard uses) so it reads as one of the site's cards, not a bare box.
-      Decorative by design — one caption link carries the keyboard / screen-reader
-      visitor to the full accessible graph. */}
-  <div
-    class="canvas-node canvas-node--graph bento-cell"
-    data-node="graph"
-    style={boxStyle('graph')}
-  >
-    <h2 class="bento-cell-title">{isEn ? 'Knowledge graph' : 'Граф знаний'}</h2>
-    <IndexGraph lang={lang} />
-  </div>
 </CanvasStage>
 
 <style>
@@ -247,14 +232,6 @@ const boxStyle = (id: string): string => {
   .persona-card:focus-visible .persona-card-cta {
     color: var(--text-accent);
   }
-  /* The graph sits in the right lane. Its surface is the site's bento card
-     (`.bento-cell`, applied in the markup) — this rule only owns the canvas
-     layout: it must stretch to the box and clip its own corners. */
-  .canvas-node--graph {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
   /* Below the fit threshold the stage goes static, so the nodes must too: they
      stop being absolutely positioned and flow in reading order. `inline-size`
      and `min-block-size` here override the variable-reading base rule on equal
@@ -270,9 +247,6 @@ const boxStyle = (id: string): string => {
       min-block-size: 0;
     }
     .persona-card {
-      margin-block-start: var(--space-4);
-    }
-    .canvas-node--graph {
       margin-block-start: var(--space-4);
     }
   }

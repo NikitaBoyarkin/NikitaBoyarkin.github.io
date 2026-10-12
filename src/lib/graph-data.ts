@@ -56,16 +56,3 @@ export async function getGraphLayouts(
 export async function getGraphData(lang: "ru" | "en"): Promise<GraphData> {
   return (await getGraphLayouts(lang)).group;
 }
-
-/** Root-centered radial layout for the index canvas graph: the person node owns
- *  the single center, hubs sit on the first ring, content on the next, topics on
- *  the last. Pure geometry — the same graph always yields the same picture. */
-export async function getIndexGraph(lang: "ru" | "en"): Promise<GraphData> {
-  // Tighter rings than the /graph page: this is a compact embed, so the picture
-  // has to read as "one center" at a glance rather than for exploration.
-  return layoutRadial(await buildGraphFor(lang), {
-    minArc: 34,
-    ringStep: 52,
-    startRadius: 108,
-  });
-}

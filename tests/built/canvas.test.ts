@@ -102,29 +102,22 @@ describe('canvas homepage (built HTML)', () => {
       expect(grid!, `${lang}: the dot grid lost its aria-hidden`).toContain('aria-hidden="true"');
     });
 
-    // Two lanes now (docs/prd-index-graph.md): the role gate on the left, the
-    // single-center graph on the right. Every gate box has to sit inside the left
-    // 340 world px, and the graph has to sit past it. Keyed on `data-node`, which
-    // only real layout boxes carry.
-    it(`${file}: keeps the gate in the left lane and the graph in the right`, () => {
+    // One centred lane now (the homepage graph was removed): every layout box
+    // shares the same left edge, and that edge is the one the layout source
+    // declares. Keyed on `data-node`, which only real layout boxes carry.
+    it(`${file}: keeps the gate in a single centred lane`, () => {
       const d = doc();
       expect(d, `${lang}: the retired fork lead-in is back`).not.toContain('canvas-lead');
       const nodes = [...d.matchAll(/data-node="([^"]+)"[^>]*style="([^"]*)"/g)];
       expect(nodes.length, `${lang}: layout nodes with an inline style`).toBe(NODES.length);
-      for (const [, id, style] of nodes) {
+      const declared = NODES.find((n) => n.id === 'identity')!.x;
+      for (const [, , style] of nodes) {
         const left = style.match(/\bleft:(\d+)px/);
         expect(left, `${lang}: a node carries no inline left — ${style}`).not.toBeNull();
-        if (id === 'graph') {
-          expect(
-            Number(left![1]),
-            `${lang}: the graph must sit in the right lane: ${style}`
-          ).toBeGreaterThan(340);
-        } else {
-          expect(
-            Number(left![1]),
-            `${lang}: a gate node sits past the left lane: ${style}`
-          ).toBeLessThanOrEqual(340);
-        }
+        expect(
+          Number(left![1]),
+          `${lang}: a gate node left the shared centred lane — ${style}`
+        ).toBe(declared);
       }
     });
 

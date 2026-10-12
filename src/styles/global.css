@@ -198,6 +198,16 @@
   --rail-gap: var(--space-6);
   --rail-total: calc(var(--rail-w) + var(--rail-gap));
 
+  /* Width budget for the left-hand table-of-contents rail (InnerTOC, ≥1100px).
+     The rail is fixed and left-anchored, so it needs a strip of its own or it
+     lands on the reading column. `--toc-rail-total` is that strip: the left
+     offset (`--toc-rail-gap`, mirrored as `env(safe-area-inset-left)`) + the
+     rail's own width + one more gap before the column. Pages that render the
+     rail reserve exactly this much on the body's start edge. */
+  --toc-rail-w: 200px;
+  --toc-rail-gap: var(--space-6);
+  --toc-rail-total: calc(var(--toc-rail-w) + 2 * var(--toc-rail-gap));
+
   /* Height of the sticky top bar (`.nav-mobile`). The projects
      filter bar pins directly below it, and a hand-picked offset there drifted
      from the bar it was meant to sit under — this is the single source for both
@@ -2096,18 +2106,20 @@ footer p {
   border: 1px solid var(--border-color);
 }
 
-/* Inner TOC for project pages.
-   The rail shares the page with a 220px sidebar and a single 1180px centred
-   column (`--content-max`), so the left gutter is not free — `left: 40px` put it
-   *behind the nav*, where it was invisible on every width. It lives in the right
-   gutter now, and only renders where that gutter is wide enough to hold it;
-   below ~1700px it would overlap the text, so the in-flow `.inline-toc` covers
-   those widths. */
+/* Inner TOC for project and post pages.
+   A fixed, left-anchored rail. It used to live in the right gutter and only
+   render at ≥1700px, where that gutter was wide enough to hold it — so on a
+   laptop there was no rail at all. It sits on the left now and is visible from
+   the desktop breakpoint up. A fixed rail cannot share space with the centred
+   column, so the pages that render it reserve a strip on the body's start edge
+   (`--toc-rail-total`, applied at ≥1100px below); the rail is never drawn over
+   the text. Below 1100px the in-flow `.inline-toc` is the only table of
+   contents. */
 #inner-toc {
   position: fixed;
   top: 120px;
-  right: max(24px, env(safe-area-inset-right));
-  width: 200px;
+  left: max(var(--toc-rail-gap), env(safe-area-inset-left));
+  width: var(--toc-rail-w);
   padding-left: 12px;
   border-left: 1px solid var(--border-color);
   font-size: 0.9rem;
@@ -2118,7 +2130,7 @@ footer p {
   display: none;
 }
 
-@media (min-width: 1700px) {
+@media (min-width: 1100px) {
   #inner-toc {
     display: block;
   }
@@ -3897,6 +3909,27 @@ nav .search-panel {
   body {
     max-width: none;
     margin: 0;
+  }
+
+  /* Pages that render the TOC rail reserve the rail's strip on the body's start
+     edge, so the fixed rail never lands on the reading column at any width
+     where it shows. The reservation goes on the body, not `main`: the centred
+     column then re-centres in the space the rail leaves instead of drifting
+     right. `:has(main > #inner-toc)` keeps pages without a rail untouched.
+     The full-bleed top bar cancels the wider start gutter with an equal
+     negative margin so it still spans the viewport. */
+  body:has(main > #inner-toc) {
+    padding-inline-start: var(--toc-rail-total);
+  }
+
+  body:has(main > #inner-toc) .nav-mobile {
+    margin-inline-start: calc(-1 * var(--toc-rail-total));
+  }
+
+  /* The rail now carries the table of contents where it is visible, so the
+     in-flow duplicate steps aside. It is the only TOC below this breakpoint. */
+  body:has(main > #inner-toc) .inline-toc {
+    display: none;
   }
 
   /* The reading column keeps its 960px measure, centred in the full viewport
