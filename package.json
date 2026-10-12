@@ -34,7 +34,8 @@
     "sync:contacts:apply": "bun run scripts/sync-contact-log.mjs --apply",
     "audit:content": "bun run scripts/content-drift-audit.mjs",
     "audit:content:snapshot": "bun run scripts/content-drift-audit.mjs --snapshot",
-    "volta:map": "bun run scripts/gen-volta-map.mjs"
+    "volta:map": "bun run scripts/gen-volta-map.mjs",
+    "export:projects": "bun run scripts/export-projects-registry.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^8.0.2",

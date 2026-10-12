@@ -70,6 +70,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Projects registry drift check
+        # public/projects.json is the machine-readable registry the GitHub
+        # profile (NikitaBoyarkin/) fetches daily from raw.githubusercontent.
+        # It is generated from the project/volta-parts collections, so a content
+        # edit that forgets `bun run export:projects` would drift the profile
+        # silently. Regenerate and fail if the committed file differs — same
+        # guard shape as the GitHub ↔ portfolio drift check above.
+        run: |
+          bun run export:projects
+          if ! git diff --quiet -- public/projects.json; then
+            echo "::error::public/projects.json is stale — run 'bun run export:projects' and commit it"
+            git --no-pager diff --stat -- public/projects.json
+            exit 1
+          fi
+
       - name: Games hub PostHog key drift check
         # public/games/* hardcode the capture token (static files cannot read
         # env at runtime). Bind that literal to the secret the main site uses:
