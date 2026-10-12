@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-12T17:38:51.855Z",
+  "generated_at": "2026-10-12T22:20:10.669Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -64,8 +64,8 @@
       "track": "experiments",
       "title": "Volta Neobank — Product Analytics",
       "title_en": "Volta Neobank — Product Analytics",
-      "description": "Нашёл узкое место в онбординге необанка и закрыл A/B-тестом: +5,72 пп конверсии KYC и €656K в год. 22 проекта: воронка → A/B → retention → сегментация → Market & Jobs → RAT v2 → causal.",
-      "description_en": "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €656K/year. 22 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2 → causal.",
+      "description": "Нашёл узкое место в онбординге необанка и закрыл A/B-тестом: +5,72 пп конверсии KYC и €656K в год. 23 проекта: воронка → A/B → retention → сегментация → Market & Jobs → RAT v2 → causal.",
+      "description_en": "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €656K/year. 23 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2 → causal.",
       "tools": [
         "Python",
         "pandas / NumPy",
@@ -84,8 +84,8 @@
       "track": "analytics",
       "title": "Churn Prediction — Leakage-Free Retention Model",
       "title_en": "Churn Prediction — Leakage-Free Retention Model",
-      "description": "Leakage-free churn-модель: recall@top-10% = 0.53 и lift 3,07× при ROC-AUC 0.904 на хронологическом сплите — без утечки будущей активности в признаки.",
-      "description_en": "A leakage-free churn model: recall@top-10% of 0.53 and 3.07x lift at 0.904 ROC-AUC, on a chronological split with no future activity leaking into features.",
+      "description": "Leakage-free churn-модель: recall@top-10% = 0.544 и lift 5,44× при ROC-AUC 0.916 на хронологическом сплите — без утечки будущей активности в признаки.",
+      "description_en": "A leakage-free churn model: recall@top-10% of 0.544 and 5.44x lift at 0.916 ROC-AUC, on a chronological split with no future activity leaking into features.",
       "tools": [
         "Python",
         "LightGBM",
@@ -201,8 +201,8 @@
       "track": "analytics",
       "title": "RFM Analysis of Bank Clients",
       "title_en": "RFM Analysis of Bank Clients",
-      "description": "Разбил клиентскую базу банка на 4 RFM-сегмента и показал, что малая доля high-value приносит основную выручку. Маркетинг перешёл от массовых рассылок к сегментированным сценариям.",
-      "description_en": "Segmented a bank's clients into 4 RFM groups and showed that a small high-value share drives most revenue. Marketing moved from mass sends to targeted scenarios.",
+      "description": "Разбил клиентскую базу банка на 6 RFM-сегментов: топ-20% клиентов держат 38,2% выручки (Gini 0,324). Синтетический датасет — 1 983 клиента, 9 492 транзакции.",
+      "description_en": "Segmented a bank's clients into 6 RFM segments: the top 20% hold 38.2% of revenue (Gini 0.324). Synthetic dataset — 1,983 clients, 9,492 transactions.",
       "tools": [
         "Python",
         "SQL",
@@ -275,8 +275,8 @@
       "track": "product",
       "title": "Product Analytics + A/B on Supabase",
       "title_en": "Product Analytics + A/B on Supabase",
-      "description": "Full-stack аналитика на Supabase: A/B-эксперимент дал +5,1 пп (p = 0.0034, chi-square), а Streamlit-дашборд читает живые данные через Row Level Security и SQL-вьюхи.",
-      "description_en": "Full-stack analytics on Supabase: an A/B experiment lifted conversion +5.1pp (p = 0.0034, chi-square), with a Streamlit dashboard reading live data through Row Level Security.",
+      "description": "Full-stack аналитика на Supabase: A/B-эксперимент дал +11,1 пп (p ≈ 1,7·10⁻¹⁰, χ²), а Streamlit-дашборд читает живые данные через Row Level Security и SQL-вьюхи.",
+      "description_en": "Full-stack analytics on Supabase: an A/B experiment lifted conversion +11.1pp (p ≈ 1.7e-10, chi-square), with a Streamlit dashboard reading live data through Row Level Security.",
       "tools": [
         "Python",
         "Streamlit",
