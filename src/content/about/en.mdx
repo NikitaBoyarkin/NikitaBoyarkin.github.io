@@ -3,29 +3,28 @@ lang: en
 ---
 
 {/*
-  Body of /about. Edit like plain Markdown.
+  Body of /about — a tabbed dashboard. Sections are grouped into
+  <AboutTabs>/<TabPanel> (src/components/about/), so the HTML is complete and the
+  panels switch on the client; without JS the whole page stays visible.
 
   Do not break (tests/built/about.test.ts asserts these):
-    · id="start" / "who" / "now" / "work" / "career" — seven redirects target them;
-    · data-analytics-section values who / how / now / work / location —
-      Analytics.astro emits `section_viewed` from them;
+    · id="start" — the tablist; "who" / "now" / "work" / "value" — inside the
+      panels; redirects target them (astro.config.mjs);
+    · id="career" comes from <CareerSnapshot>;
+    · data-analytics-section values who / how / now / work / location / value —
+      Analytics.astro emits `section_viewed` when a panel becomes active;
     · the CV link carries download and data-analytics="cv_download_pdf".
 
   No number is typed here: <HeroMetrics> and <CareerSnapshot> read
   src/lib/metrics.ts, so the strip, the bullets and the OG banners stay aligned.
 */}
 
-<nav id="start" class="about-jump" aria-label="Page contents">
-  <a href="#who">Who I am</a>
-  <a href="#how">How I work</a>
-  <a href="#career">Experience</a>
-  <a href="#now">Now</a>
-  <a href="#location">Location / format</a>
-  <a href="#value">What I can help with</a>
-  <a href="#work">How to work with me</a>
-  <a href="#stack">Stack</a>
-  <a href="#activity">Activity</a>
-</nav>
+<AboutTabs
+  label="Page sections"
+  tabs={[{ id: 'profile', label: 'Profile', anchor: 'who' }, { id: 'now', label: 'Now', anchor: 'now' }, { id: 'value', label: 'Value', anchor: 'value' }, { id: 'work', label: 'Format', anchor: 'work' }, { id: 'stack', label: 'Stack', anchor: 'stack' }]}
+>
+
+<TabPanel id="profile" active>
 
 <h2 id="who" data-analytics-section="who">Who I am</h2>
 
@@ -42,6 +41,10 @@ From hypothesis to metric. Every conclusion can be re-checked: code, SQL and vis
 The methodology is reproducible: CUPED, AA-tests, multiple-comparison correction, ship-gates. I would rather have a pre-registered MDE stop a decision than a lucky chart.
 
 <CareerSnapshot lang="en" />
+
+</TabPanel>
+
+<TabPanel id="now">
 
 <h2 id="now" data-analytics-section="now">Now</h2>
 
@@ -64,6 +67,10 @@ The methodology is reproducible: CUPED, AA-tests, multiple-comparison correction
   <li>Full-time. Open to offers.</li>
 </ul>
 
+</TabPanel>
+
+<TabPanel id="value">
+
 <h2 id="value" data-analytics-section="value">What I can help with</h2>
 
 Offers plus proof. One contact — Telegram.
@@ -73,6 +80,10 @@ Offers plus proof. One contact — Telegram.
 Cases with code, SQL and methodology live under [Projects](/en/projects/).
 
 <TelegramCta text='Hi! I read the "What I can help with" section — let us discuss working together.' analytics="value_cta">Message me on Telegram →</TelegramCta>
+
+</TabPanel>
+
+<TabPanel id="work">
 
 <h2 id="work" data-analytics-section="work">How to work with me</h2>
 
@@ -108,6 +119,10 @@ Cases with code, SQL and methodology live under [Projects](/en/projects/).
 </div>
 
 <TelegramCta text='Hi! I read "How I work" — let us discuss the format.' analytics="work_with_me_cta">Discuss the format →</TelegramCta>
+
+</TabPanel>
+
+<TabPanel id="stack">
 
 <h2 id="stack">Stack</h2>
 
@@ -175,3 +190,7 @@ Cases with code, SQL and methodology live under [Projects](/en/projects/).
 <TelegramCta text='Hi! I read "Who I am" — let us talk analytics.' analytics="whois_cta">Message me on Telegram →</TelegramCta>
 
 <GithubActivity lang="en" />
+
+</TabPanel>
+
+</AboutTabs>

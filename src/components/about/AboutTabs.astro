@@ -1,0 +1,210 @@
+---
+// Tab shell for the /about dashboard. Groups the page's sections into a small
+// set of client-side switchable panels so the whole profile reads on one URL.
+//
+// Contract kept by tests/built/about.test.ts:
+//   · the tablist itself carries id="start" — the `/start/` redirect targets it;
+//   · every panel is a <TagPanel> (about/TabPanel.astro) with data-panel;
+//   · the first tab is selected server-side; the rest is progressive enhancement.
+//
+// No JS: every panel is visible (a <noscript> rule reveals the hidden ones) and
+// the tablist is hidden — the page degrades to the previous long-scroll layout.
+// With JS: the inline controller below reveals one panel, wires the ARIA tab
+// pattern, and maps every legacy anchor (#who, #work, #now, #value, #start) to
+// its panel, so the seven deep-link redirects keep landing on the right content.
+//
+// Numbers are still never typed here — HeroMetrics/CareerSnapshot own them.
+interface TabDef {
+  id: string;
+  label: string;
+  anchor: string;
+}
+interface Props {
+  tabs: TabDef[];
+  label: string;
+}
+const { tabs = [], label } = Astro.props;
+
+// set:html, not a literal <style> in the template: Astro would scope a nested
+// style to this component, and the panels it must reveal live in TabPanel.
+const noScriptFallback =
+  '<style>.about-panel[hidden]{display:block !important}.about-tablist{display:none !important}</style>';
+---
+
+<div class="about-tabs" data-about-tabs>
+  <div class="about-tablist" role="tablist" id="start" aria-label={label}>
+    {
+      tabs.map((tab, i) => (
+        <button
+          type="button"
+          role="tab"
+          class="about-tab"
+          id={`tab-${tab.id}`}
+          data-tab={tab.id}
+          data-anchor={tab.anchor}
+          aria-controls={`panel-${tab.id}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? '0' : '-1'}
+        >
+          {tab.label}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="about-panels">
+    <slot />
+  </div>
+
+  <noscript set:html={noScriptFallback} />
+
+  <script is:inline>
+    (function () {
+      var root = document.querySelector('[data-about-tabs]');
+      if (!root) return;
+      var tabs = Array.prototype.slice.call(root.querySelectorAll('[role="tab"]'));
+      var panels = Array.prototype.slice.call(root.querySelectorAll('[data-panel]'));
+      if (!tabs.length || !panels.length) return;
+
+      var first = tabs[0].dataset.tab;
+      // Anchor id -> panel id. Derived from the DOM, so a new anchor inside a
+      // panel (or a new panel) needs no change here.
+      var anchors = {};
+      panels.forEach(function (panel) {
+        var id = panel.getAttribute('data-panel');
+        anchors[id] = id;
+        Array.prototype.forEach.call(panel.querySelectorAll('[id]'), function (el) {
+          anchors[el.id] = id;
+        });
+      });
+
+      function fromHash() {
+        var hash = (location.hash || '').replace(/^#/, '');
+        return anchors[hash] || first;
+      }
+
+      function activate(id, focus) {
+        if (!id) id = first;
+        panels.forEach(function (panel) {
+          panel.hidden = panel.getAttribute('data-panel') !== id;
+        });
+        tabs.forEach(function (tab) {
+          var on = tab.dataset.tab === id;
+          tab.setAttribute('aria-selected', on ? 'true' : 'false');
+          tab.tabIndex = on ? 0 : -1;
+          if (on && focus) tab.focus();
+        });
+        root.setAttribute('data-active', id);
+      }
+
+      function scrollToAnchor(id) {
+        var el = id && document.getElementById(id);
+        if (el) el.scrollIntoView({ block: 'start' });
+      }
+
+      function setAnchor(anchor) {
+        if (anchor && location.hash !== '#' + anchor) {
+          history.replaceState(null, '', '#' + anchor);
+        }
+      }
+
+      var initial = (location.hash || '').replace(/^#/, '');
+      activate(fromHash(), false);
+      if (initial) requestAnimationFrame(function () {
+        scrollToAnchor(initial);
+      });
+
+      root.addEventListener('click', function (event) {
+        var tab = event.target.closest('[role="tab"]');
+        if (!tab || !root.contains(tab)) return;
+        event.preventDefault();
+        activate(tab.dataset.tab, false);
+        setAnchor(tab.dataset.anchor);
+      });
+
+      root.addEventListener('keydown', function (event) {
+        var tab = event.target.closest('[role="tab"]');
+        if (!tab) return;
+        var i = tabs.indexOf(tab);
+        if (i < 0) return;
+        var n = -1;
+        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') n = (i + 1) % tabs.length;
+        else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') n = (i - 1 + tabs.length) % tabs.length;
+        else if (event.key === 'Home') n = 0;
+        else if (event.key === 'End') n = tabs.length - 1;
+        else return;
+        event.preventDefault();
+        var next = tabs[n];
+        activate(next.dataset.tab, true);
+        setAnchor(next.dataset.anchor);
+      });
+
+      window.addEventListener('hashchange', function () {
+        var hash = (location.hash || '').replace(/^#/, '');
+        activate(fromHash(), false);
+        scrollToAnchor(hash);
+      });
+    })();
+  </script>
+</div>
+
+<style>
+  .about-tablist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-6);
+    padding: 0 0 var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+  }
+  /* Segmented control, matching .filter-tag / .nav-role: muted at rest, accent
+     as a signal only (text + border + underline), never as a surface fill. */
+  .about-tab {
+    appearance: none;
+    cursor: pointer;
+    position: relative;
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text-muted);
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+  .about-tab:hover {
+    color: var(--text-accent);
+    border-color: var(--border-active);
+  }
+  .about-tab[aria-selected='true'] {
+    color: var(--text-accent);
+    border-color: var(--border-active);
+    background: color-mix(in srgb, var(--text-accent) 8%, transparent);
+  }
+  /* Non-color cue (WCAG 1.4.1): the selected tab keeps a shape change, so the
+     state is not signalled by hue alone. */
+  .about-tab[aria-selected='true']::after {
+    content: '';
+    position: absolute;
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: calc(var(--space-4) * -1 - 1px);
+    height: 2px;
+    background: var(--text-accent);
+  }
+  .about-tab:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+  @media (max-width: 640px) {
+    .about-tablist {
+      gap: var(--space-1);
+    }
+    .about-tab {
+      padding: var(--space-1) var(--space-3);
+      font-size: 0.82rem;
+    }
+  }
+</style>

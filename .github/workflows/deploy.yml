@@ -135,19 +135,15 @@ jobs:
             --format html \
             --output "$GITHUB_WORKSPACE/public/demos/volta-board/index.html"
 
-      - name: Build site
+      - name: Build & validate site
+        # Build then run the single gate. `make check` depends on `build`, so
+        # test:built always sees a fresh dist/ — a stale dist/ let the local
+        # gate pass while CI failed (prd-v9.md G7). Building inside `check`
+        # also means we never build twice.
         env:
           PUBLIC_POSTHOG_KEY: ${{ secrets.PUBLIC_POSTHOG_KEY }}
           PUBLIC_POSTHOG_HOST: ${{ secrets.PUBLIC_POSTHOG_HOST }}
           PUBLIC_BEACON_ENDPOINT: ${{ secrets.PUBLIC_BEACON_ENDPOINT }}
-        run: bun run build
-
-      - name: Validate built site
-        # The single gate. `make check` runs `bun run check` (astro check + tsc),
-        # the unit suite, test:monitoring, test:built and scripts/check_site.py;
-        # running it here also means test:built sees a real dist/. Type-check and
-        # Unit tests used to run as separate pre-build steps as well, paying for
-        # the same astro check and the same suite twice.
         run: make check
 
       - name: Upload artifact

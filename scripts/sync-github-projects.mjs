@@ -265,7 +265,13 @@ for (const [repo, group] of byRepo) {
 }
 
 if (showCandidates || mode === 'check') {
-  await listCandidates(projects);
+  // A rate limit here must not discard the report already assembled above —
+  // record it and carry on (prd-v9.md G4).
+  try {
+    await listCandidates(projects);
+  } catch (err) {
+    report.push(`  [ERR] candidates: ${err.message}`);
+  }
 }
 
 console.log(report.join('\n'));

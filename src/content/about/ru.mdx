@@ -3,29 +3,28 @@ lang: ru
 ---
 
 {/*
-  Тело страницы /about. Правится как обычный Markdown.
+  Тело страницы /about — дашборд с вкладками. Секции сгруппированы в
+  <AboutTabs>/<TabPanel> (srс/components/about/), поэтому HTML собирается
+  целиком, а панели переключаются на клиенте; без JS виден весь контент.
 
   Что важно не сломать (это проверяет tests/built/about.test.ts):
-    · id="start" / "who" / "now" / "work" / "career" — на них ведут 7 редиректов;
-    · data-analytics-section со значениями who / how / now / work / location —
-      из них Analytics.astro эмитит событие `section_viewed`;
+    · id="start" — на таб-листе; "who" / "now" / "work" / "value" — внутри
+      панелей; на них ведут редиректы (astro.config.mjs);
+    · id="career" приходит из <CareerSnapshot>;
+    · data-analytics-section со значениями who / how / now / work / location /
+      value — из них Analytics.astro эмитит `section_viewed` при активации панели;
     · ссылка на CV несёт download и data-analytics="cv_download_pdf".
 
   Цифры здесь не набираются: <HeroMetrics> и <CareerSnapshot> читают
   src/lib/metrics.ts, поэтому полоса цифр, буллеты и OG-баннеры не разъезжаются.
 */}
 
-<nav id="start" class="about-jump" aria-label="Содержание страницы">
-  <a href="#who">Кто я</a>
-  <a href="#how">Как работаю</a>
-  <a href="#career">Опыт</a>
-  <a href="#now">Сейчас</a>
-  <a href="#location">Локация / формат</a>
-  <a href="#value">Чем могу быть полезен</a>
-  <a href="#work">Как со мной работать</a>
-  <a href="#stack">Стек</a>
-  <a href="#activity">Активность</a>
-</nav>
+<AboutTabs
+  label="Разделы страницы"
+  tabs={[{ id: 'profile', label: 'Профиль', anchor: 'who' }, { id: 'now', label: 'Сейчас', anchor: 'now' }, { id: 'value', label: 'Ценность', anchor: 'value' }, { id: 'work', label: 'Формат', anchor: 'work' }, { id: 'stack', label: 'Стек', anchor: 'stack' }]}
+>
+
+<TabPanel id="profile" active>
 
 <h2 id="who" data-analytics-section="who">Кто я</h2>
 
@@ -42,6 +41,10 @@ lang: ru
 Методология воспроизводимая: A/B- и AA-тесты, CUPED для снижения дисперсии, поправка на множественные сравнения. Порог решения (MDE) фиксируется заранее — лучше пусть решение остановит заложенный порог, чем удачный график.
 
 <CareerSnapshot lang="ru" />
+
+</TabPanel>
+
+<TabPanel id="now">
 
 <h2 id="now" data-analytics-section="now">Сейчас</h2>
 
@@ -64,6 +67,10 @@ lang: ru
   <li>Полная занятость. Открыт к предложениям.</li>
 </ul>
 
+</TabPanel>
+
+<TabPanel id="value">
+
 <h2 id="value" data-analytics-section="value">Чем могу быть полезен</h2>
 
 С чем могу помочь — и чем это подтверждено. Один контакт — Telegram.
@@ -73,6 +80,10 @@ lang: ru
 Кейсы с кодом, SQL и методологией — в разделе [«Проекты»](/projects/).
 
 <TelegramCta text="Привет! Прочитал раздел «Чем могу быть полезен» — обсудим сотрудничество." analytics="value_cta">Написать в Telegram →</TelegramCta>
+
+</TabPanel>
+
+<TabPanel id="work">
 
 <h2 id="work" data-analytics-section="work">Как со мной работать</h2>
 
@@ -108,6 +119,10 @@ lang: ru
 </div>
 
 <TelegramCta text="Привет! Прочитал «Как со мной работать» — обсудим формат." analytics="work_with_me_cta">Обсудить формат →</TelegramCta>
+
+</TabPanel>
+
+<TabPanel id="stack">
 
 <h2 id="stack">Стек</h2>
 
@@ -175,3 +190,7 @@ lang: ru
 <TelegramCta text="Привет! Прочитал «Кто я» — обсудим аналитику." analytics="whois_cta">Написать в Telegram →</TelegramCta>
 
 <GithubActivity lang="ru" />
+
+</TabPanel>
+
+</AboutTabs>

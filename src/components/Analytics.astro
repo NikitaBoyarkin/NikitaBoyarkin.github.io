@@ -197,9 +197,15 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
           // never cross the threshold while it is live — their
           // isIntersecting stays false. Credit any section whose top has
           // already passed mid-viewport (it was seen while the SDK loaded).
+          // A section with no rendered box (e.g. inside an inactive tab
+          // panel, HTML `hidden`) is NOT credited here — a display:none
+          // element reports rect.top 0 and would falsely pass. It is credited
+          // later, when its panel becomes visible and the still-live
+          // IntersectionObserver fires.
           sections.forEach((el) => {
             const section = el.dataset.analyticsSection;
             if (!section || seen.has(section)) return;
+            if (el.getClientRects().length === 0) return;
             if (el.getBoundingClientRect().top < window.innerHeight / 2) {
               seen.add(section);
               track('section_viewed', { section, path });

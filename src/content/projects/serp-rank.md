@@ -79,7 +79,7 @@ faq:
 ```bash
 uv sync --all-groups
 uv run python run.py --stage all      # ingest → sessions → serp → sql → rank → experiment → business
-uv run pytest -q                      # 80 тестов (78 pass, 2 skip без данных-соседа)
+uv run pytest -q                      # 110 тестов (108 pass, 2 skip без данных-соседа)
 uv run streamlit run app.py           # дашборд на :8501
 ```
 
@@ -94,7 +94,7 @@ uv run streamlit run app.py           # дашборд на :8501
 | Peeking, фиксированный горизонт | FPR 14.5% за десять взглядов | 2.9× от номинала |
 | Peeking, mSPRT | FPR 0.25% | всегда-валидный порог держит уровень |
 
-Пайплайн проходит end-to-end из фиксированного seed; 78 тестов проходят, 2 пропускаются без опциональных данных-соседа.
+Пайплайн проходит end-to-end из фиксированного seed; 108 тестов проходят, 2 пропускаются без опциональных данных-соседа.
 
 ## Ограничения
 

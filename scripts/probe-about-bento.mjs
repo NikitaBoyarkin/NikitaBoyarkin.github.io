@@ -25,6 +25,9 @@ const MEASURE = () => {
     const [x, y] = [lum(parse(a)), lum(parse(b))].sort((m, n) => n - m);
     return +((x + 0.05) / (y + 0.05)).toFixed(2);
   };
+  // The bento lives in the "work" tab of the /about dashboard now, hidden until
+  // its tab is active — reveal it so the cells have a real layout to measure.
+  document.querySelector('[data-tab="work"]')?.click();
   const cards = [...document.querySelectorAll('.bento-grid .wwm-block')];
   const cw = document.createElement('span');
   cw.style.cssText = 'position:absolute;visibility:hidden;white-space:pre';

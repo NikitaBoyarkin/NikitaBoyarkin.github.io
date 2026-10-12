@@ -403,6 +403,8 @@ Pushing to `master` (or `main`) triggers `.github/workflows/deploy.yml`, which:
 6. Runs `make check` — `bun run check`, the test suite (`test`), `test:monitoring`, `test:built`, and `scripts/check_site.py`.
 7. Deploys `dist/` to GitHub Pages; Lighthouse runs in a parallel job.
 
+**Local green ≠ published.** `make check` passing on your machine means the gate passes locally; it does *not* mean the site is live. `make check` now depends on `build`, so it validates a fresh `dist/`, but publication is confirmed only by a green `deploy.yml` run on `master` (`gh run list --limit 1 --json conclusion,status`). A red deploy is invisible unless someone looks — check the run, not the local command.
+
 Do **not** push directly to `master` without confirming the workflow is enabled in the repository settings (`Settings → Pages → Build and deployment → GitHub Actions`).
 
 ## Legacy Files

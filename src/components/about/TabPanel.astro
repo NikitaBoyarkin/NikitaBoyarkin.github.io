@@ -1,0 +1,37 @@
+---
+// One panel of the /about dashboard. A `section[role=tabpanel]` so the ARIA
+// tab wiring in AboutTabs.astro resolves, and a plain block when JS is off.
+//
+// `active` marks the panel shown before any script runs: server-render it open
+// and hide the rest, so there is no flash of every panel before the inline
+// controller runs. A <noscript> rule in AboutTabs.astro re-reveals the hidden
+// panels for visitors without JS.
+interface Props {
+  id: string;
+  active?: boolean;
+}
+const { id, active = false } = Astro.props;
+---
+
+<section
+  class="about-panel"
+  role="tabpanel"
+  id={`panel-${id}`}
+  data-panel={id}
+  aria-labelledby={`tab-${id}`}
+  tabindex="0"
+  {...(active ? {} : { hidden: true })}
+>
+  <slot />
+</section>
+
+<style>
+  .about-panel {
+    display: block;
+  }
+  /* Beats the UA [hidden] rule that a scoped `display: block` above would
+     otherwise override. */
+  .about-panel[hidden] {
+    display: none;
+  }
+</style>

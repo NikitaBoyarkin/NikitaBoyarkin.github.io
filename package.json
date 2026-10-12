@@ -43,7 +43,6 @@
     "@astrojs/sitemap": "^3.7.3",
     "@oneworks/avatar": "1.0.0-rc.9",
     "@oneworks/avatar-web": "1.0.0-rc.9",
-    "@paper-design/shaders": "^0.0.78",
     "astro": "^7.2.9",
     "katex": "^0.19.0",
     "morphicons": "^1.7.0",

@@ -2,8 +2,11 @@
 // Shell for /about. The body copy lives in src/content/about/{ru,en}.mdx so it
 // is editable without touching this file.
 //
-// Contract kept by tests/built/about.test.ts: the 7 redirects in
-// astro.config.mjs point at #who / #work / #now / #start, and Analytics.astro
+// The page is a tabbed dashboard: the MDX groups its sections into
+// <AboutTabs>/<TabPanel> (src/components/about/), so the whole profile reads on
+// one URL. Contract kept by tests/built/about.test.ts: the redirects in
+// astro.config.mjs point at #who / #work / #now / #start / #value — those ids
+// live inside the panels (and `#start` is the tablist) — and Analytics.astro
 // observes [data-analytics-section] to emit `section_viewed`. Do not rename an
 // anchor or drop a data-analytics-section without updating that test.
 //
@@ -17,6 +20,8 @@ import CareerSnapshot from './CareerSnapshot.astro';
 import GithubActivity from './GithubActivity.astro';
 import HeroMetrics from './HeroMetrics.astro';
 import NowReading from './NowReading.astro';
+import AboutTabs from './about/AboutTabs.astro';
+import TabPanel from './about/TabPanel.astro';
 import TelegramCta from './about/TelegramCta.astro';
 import ValueOffers from './about/ValueOffers.astro';
 import { withBase } from '../lib/path';
@@ -51,7 +56,16 @@ const { Content } = await render(entry);
   </header>
 
   <Content
-    components={{ HeroMetrics, CareerSnapshot, GithubActivity, TelegramCta, ValueOffers, NowReading }}
+    components={{
+      HeroMetrics,
+      CareerSnapshot,
+      GithubActivity,
+      TelegramCta,
+      ValueOffers,
+      NowReading,
+      AboutTabs,
+      TabPanel,
+    }}
   />
 </section>
 
@@ -105,30 +119,17 @@ const { Content } = await render(entry);
     font-size: 1.05rem;
   }
 
-  /* ── Jump-nav → chips ───────────────────────────────────────── */
-  .about-body :global(.about-jump) {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin: var(--space-8) 0;
-    padding: 0;
-    border: 0;
-    background: none;
+  /* ── Dashboard: tab panels ──────────────────────────────────── */
+  /* The tablist/pill styling lives in about/AboutTabs.astro. Here it is only
+     the panel rhythm: the first rendered heading in a panel drops the section
+     top-margin, since the tablist already separates it. */
+  .about-body :global(.about-panel > h2:first-child) {
+    margin-top: 0;
   }
-  .about-body :global(.about-jump a) {
-    padding: var(--space-1) var(--space-3);
-    font-size: 0.8rem;
-    color: var(--text-normal);
-    text-decoration: none;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-full);
-    background: var(--background-secondary);
-    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-  }
-  .about-body :global(.about-jump a:hover) {
-    color: var(--text-accent);
-    border-color: var(--border-active);
-    background: color-mix(in srgb, var(--text-accent) 8%, transparent);
+  /* Deep links (#who, #work, #value, #start) and the in-page panel switch scroll
+     to an anchor — keep it clear of the sticky nav bar. */
+  .about-body :global([id]) {
+    scroll-margin-top: calc(var(--nav-mobile-h) + var(--space-4));
   }
 
   /* ── Section headings: Cormorant + coral tick ───────────────── */
@@ -270,7 +271,8 @@ const { Content } = await render(entry);
   }
 
   /* Closing links row. Not a titled section: a rule + inline links, so the page
-     ends on a footer while the jump nav keeps its 9 targets (#activity aside). */
+     ends on a footer inside the stack panel; the dashboard keeps every anchor
+     reachable through its tab. */
   .about-body :global(.about-links) {
     margin: var(--space-10) 0 var(--space-4);
     padding-top: var(--space-5);

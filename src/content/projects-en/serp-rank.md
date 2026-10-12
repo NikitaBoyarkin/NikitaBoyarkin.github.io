@@ -79,7 +79,7 @@ I needed to build the measurement substrate for that surface — an unbiased (po
 ```bash
 uv sync --all-groups
 uv run python run.py --stage all      # ingest → sessions → serp → sql → rank → experiment → business
-uv run pytest -q                      # 80 tests (78 pass, 2 skip without sibling data)
+uv run pytest -q                      # 110 tests (108 pass, 2 skip without sibling data)
 uv run streamlit run app.py           # dashboard on :8501
 ```
 
@@ -94,7 +94,7 @@ uv run streamlit run app.py           # dashboard on :8501
 | Peeking, fixed horizon | FPR 14.5% over ten looks | 2.9× the nominal rate |
 | Peeking, mSPRT | FPR 0.25% | the always-valid threshold holds the level |
 
-The pipeline runs end-to-end from a fixed seed; 78 tests pass, 2 skip without the optional sibling data.
+The pipeline runs end-to-end from a fixed seed; 108 tests pass, 2 skip without the optional sibling data.
 
 ## Limitations
 

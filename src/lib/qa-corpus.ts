@@ -220,7 +220,7 @@ export const QA_CORPUS: QAPair[] = [
     ru: {
       question: "Как устроено портфолио?",
       answer:
-        "Начни со страницы «Обо мне» — там jump-nav с маршрутом по портфолио. Проекты сгруппированы по трекам (эксперименты / аналитика / продукт / инженерия), есть статьи, граф знаний и аркада мини-игр. Поиск открывается клавишей «/».",
+        "Начни со страницы «Обо мне» — там вкладки с маршрутом по портфолио: Профиль, Сейчас, Ценность, Формат, Стек. Проекты сгруппированы по трекам (эксперименты / аналитика / продукт / инженерия), есть статьи, граф знаний и аркада мини-игр. Поиск открывается клавишей «/».",
       links: [
         { label: "Обо мне", href: "about/" },
         { label: "Проекты", href: "projects/" },
@@ -229,7 +229,7 @@ export const QA_CORPUS: QAPair[] = [
     en: {
       question: "How is the portfolio organized?",
       answer:
-        "Start with the «About» page — it has a jump nav with a route through the portfolio. Projects are grouped by track (experiments / analytics / product / engineering), plus writing, a knowledge graph and a mini-game arcade. Search opens with «/».",
+        "Start with the «About» page — its sections are tabs (Profile, Now, Value, Format, Stack) that map a route through the portfolio. Projects are grouped by track (experiments / analytics / product / engineering), plus writing, a knowledge graph and a mini-game arcade. Search opens with «/».",
       links: [
         { label: "About", href: "en/about/" },
         { label: "Projects", href: "en/projects/" },

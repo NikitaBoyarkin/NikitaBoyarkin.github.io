@@ -1,6 +1,6 @@
 ---
 title: Volta Neobank — Product Analytics
-description: "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €656K/year. 22 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2 → causal."
+description: "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €656K/year. 23 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2 → causal."
 star:
   situation: "«Volta» is a fictional neobank losing users during onboarding: every team had its own number, and none explained where the money leaked"
   task: "Find the critical onboarding step and prove it so the conclusion cannot be dismissed as a convenient sample"
@@ -16,7 +16,7 @@ impact:
   - CUPED variance reduction + AA-test (type-I = 0.050) + Bonferroni correction
   - "DiD check: the KYC fix causally lifted M3 retention by +9.09pp (95% CI [+6.21, +11.96])"
   - "RAT v2: 5 audit risks priced in money — 3 confirmed, 1 refuted by mechanism, 1 refined"
-  - "22 projects: 12 analytical domains + Market & Jobs (JTBD) + the RAT v2 validation layer + causal"
+  - "23 projects: 12 analytical domains + Market & Jobs (JTBD) + the RAT v2 validation layer + causal"
 tools:
   - Python
   - pandas / NumPy
@@ -208,7 +208,7 @@ Bottom line: **3 risks confirmed, 1 refuted, 1 refined** — the audit survived 
 
 ## Recommendations & gates
 
-A summary of decisions across all 22 projects: what to do, on what evidence, under which gate, with what caveat.
+A summary of decisions across all 23 projects: what to do, on what evidence, under which gate, with what caveat.
 
 **1. Onboarding & KYC — remove the main bottleneck**
 

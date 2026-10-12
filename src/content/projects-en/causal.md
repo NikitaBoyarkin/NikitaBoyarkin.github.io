@@ -5,14 +5,14 @@ star:
   situation: "A two-sample t-test ignores the pre-period: experiments ask for more traffic than needed and retention offers go to everyone"
   task: "Implement CUPED and uplift modeling and prove neither is biased where the true answer is known in advance"
   action: "CUPED on a pre-period covariate and T-/S-learners on LightGBM; checked against ground truth with AUUC and QINI"
-  result: "Standard error down ~26%; 5.5k users per arm instead of 10k; new users respond ~10x more than returning ones"
+  result: "Standard error down ~26%; 5.5k users per arm instead of 10k; new users respond ~8x more than returning ones"
 track: experiments
 hero: images/causal.svg
 ogImage: /images/og/causal.png
 impact:
   - CUPED keeps the ATE (0.270 → 0.276) and cuts the standard error ~26%
   - Same power with ~5.5k users/arm instead of 10k (95% CI narrows 1.35x)
-  - Uplift models recover that new users respond ~10x more than returning users
+  - Uplift models recover that new users respond ~8x more than returning users
   - Implemented from scratch on LightGBM — no causalml/econml dependency
 tools:
   - Python
@@ -81,7 +81,7 @@ Outputs: `reports/metrics.json` + `reports/uplift.png` (QINI curves + segment up
 
 CUPED buys power for free: no new experiment design is needed, only a better estimator on data you already collected — provided a pre-period covariate exists. The point estimate is unchanged (0.270 → 0.276, within noise), the standard error shrinks by ~26%, and the CI narrows 1.35x — an experiment that needed 10k users per arm now needs ~5.5k. Variance reduction is ~45% actual vs 55% theoretical (the gap is the covariate being a pre-period proxy, not the outcome itself).
 
-Uplift answers a different question than A/B testing: not "does the treatment work on average" but "who does it work on". Both learners beat random on AUUC, Qini and uplift@20%. The model recovered the shape of the effect: "new" users respond ~10x more than "returning" users — the targeting signal a discount campaign would act on.
+Uplift answers a different question than A/B testing: not "does the treatment work on average" but "who does it work on". Both learners beat random on AUUC, Qini and uplift@20%. The model recovered the shape of the effect: "new" users respond ~8x more than "returning" users — the targeting signal a discount campaign would act on.
 
 | Segment | Truth (binary uplift) | T-learner | S-learner |
 |---|---|---|---|

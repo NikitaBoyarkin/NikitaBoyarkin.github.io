@@ -9,7 +9,7 @@ build:
 preview:
 	bun run preview
 
-check:
+check: build
 	bun run check
 	bun run test
 	bun run test:monitoring
