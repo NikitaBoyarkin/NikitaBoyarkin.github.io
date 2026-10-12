@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-12T16:50:01.889Z",
+  "generated_at": "2026-10-12T17:38:51.855Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -8,6 +8,7 @@
       "title": "A/B Testing Methodology Toolkit",
       "title_en": "A/B Testing Methodology Toolkit",
       "description": "18 модулей A/B-методологии, каждый откалиброван симуляцией: A/A-тест держит Type I error на уровне α, power-кривые показывают реальную мощность.",
+      "description_en": "18 A/B methodology modules, each calibrated by simulation: an A/A null check holds Type I error at α, and power curves show the effect size each method can actually detect.",
       "tools": [
         "Python",
         "NumPy / SciPy",
@@ -25,6 +26,7 @@
       "title": "Browser Mini-Games — Analytics Arcade",
       "title_en": "Browser Mini-Games — Analytics Arcade",
       "description": "10 играбельных мини-игр в self-contained SVG: 7 аналитических (A/B до p<0.05, funnel drop, cohort catch, retention day) и 3 аркадных. Один файл — вся игра, без сборки.",
+      "description_en": "10 playable mini-games as self-contained SVGs: 7 analytics (A/B to p<0.05, funnel drop, cohort catch, retention day) and 3 arcade. One file per game, zero dependencies, no build.",
       "tools": [
         "SVG",
         "JavaScript",
@@ -42,6 +44,7 @@
       "title": "Causal / Uplift — CUPED and Individual Treatment Effects",
       "title_en": "Causal / Uplift — CUPED and Individual Treatment Effects",
       "description": "CUPED срезал стандартную ошибку на 26%: та же мощность достигается на 5,5k пользователей на руку вместо 10k. Uplift-метрики на n=6000 шумят: QINI и AUUC не отличают oracle от случайного.",
+      "description_en": "CUPED cut the standard error by 26% — the same power on 5.5k users per arm instead of 10k. At n=6000 uplift metrics stay noise-dominated: QINI and AUUC cannot separate an oracle from random.",
       "tools": [
         "Python",
         "LightGBM",
@@ -62,6 +65,7 @@
       "title": "Volta Neobank — Product Analytics",
       "title_en": "Volta Neobank — Product Analytics",
       "description": "Нашёл узкое место в онбординге необанка и закрыл A/B-тестом: +5,72 пп конверсии KYC и €656K в год. 22 проекта: воронка → A/B → retention → сегментация → Market & Jobs → RAT v2 → causal.",
+      "description_en": "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €656K/year. 22 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2 → causal.",
       "tools": [
         "Python",
         "pandas / NumPy",
@@ -81,6 +85,7 @@
       "title": "Churn Prediction — Leakage-Free Retention Model",
       "title_en": "Churn Prediction — Leakage-Free Retention Model",
       "description": "Leakage-free churn-модель: recall@top-10% = 0.53 и lift 3,07× при ROC-AUC 0.904 на хронологическом сплите — без утечки будущей активности в признаки.",
+      "description_en": "A leakage-free churn model: recall@top-10% of 0.53 and 3.07x lift at 0.904 ROC-AUC, on a chronological split with no future activity leaking into features.",
       "tools": [
         "Python",
         "LightGBM",
@@ -101,6 +106,7 @@
       "title": "Cohort Analysis Dashboard",
       "title_en": "Cohort Analysis Dashboard",
       "description": "Треугольная когортная матрица удержания и LTV на синтетических данных: ARPU и LTV по когортам с поправкой на observation age, выгрузка в Tableau (CSV + Hyper).",
+      "description_en": "A triangular cohort retention and LTV matrix on synthetic data: per-cohort ARPU and LTV with an observation-age caveat, plus a Tableau-ready CSV and Hyper export.",
       "tools": [
         "Python",
         "pandas",
@@ -119,6 +125,7 @@
       "title": "LinkedIn Content Analytics",
       "title_en": "LinkedIn Content Analytics",
       "description": "Аналитика моих постов в LinkedIn: один парсер, четыре рендера. Форматы сравниваются с доверительными интервалами — и шум называется шумом, а не рейтингом.",
+      "description_en": "Analytics on my own LinkedIn posts: one parser, four renderers. Formats are compared with confidence intervals — and noise is called noise, not a ranking.",
       "tools": [
         "Python",
         "openpyxl",
@@ -137,6 +144,7 @@
       "title": "ML Fundamentals — scikit-learn Pipeline",
       "title_en": "ML Fundamentals — scikit-learn Pipeline",
       "description": "Пайплайн scikit-learn без утечки данных: импутация пропусков, кодирование категорий, детерминированный сплит и масштабирование — в одном ColumnTransformer, обученном только на трейне.",
+      "description_en": "A leak-free scikit-learn pipeline: missing-data imputation, categorical encoding, a deterministic split and feature scaling, all in one ColumnTransformer fit on the training split only.",
       "tools": [
         "Python",
         "scikit-learn",
@@ -155,6 +163,7 @@
       "title": "Python Analytics Playground",
       "title_en": "Python Analytics Playground",
       "description": "Покрытие pytest ≥80% у модульного Python-тулкита для аналитики: загрузка, чистка, EDA и визуализация собраны в один переиспользуемый пайплайн — база для каждого нового анализа.",
+      "description_en": "≥80% pytest coverage on a module-based Python analytics toolkit: loading, cleaning, EDA and visualization assembled into one reusable pipeline — the base I copy into every new analysis.",
       "tools": [
         "Python",
         "pandas / NumPy",
@@ -173,6 +182,7 @@
       "title": "RAG Evaluation Harness — retrieval and generation metrics",
       "title_en": "RAG Evaluation Harness — retrieval and generation metrics",
       "description": "RAG-пайплайн с офлайн-харнессом оценки: recall@5 и MRR = 1.00 на 20 размеченных вопросах, faithfulness 1.00, correctness 0.37. TF-IDF-ретрив, работает без API-ключей.",
+      "description_en": "A RAG pipeline with a real offline evaluation harness: recall@5 and MRR = 1.00 over 20 labeled questions, faithfulness 1.00, correctness 0.37. TF-IDF retrieval, runs with zero API keys.",
       "tools": [
         "Python",
         "scikit-learn",
@@ -192,6 +202,7 @@
       "title": "RFM Analysis of Bank Clients",
       "title_en": "RFM Analysis of Bank Clients",
       "description": "Разбил клиентскую базу банка на 4 RFM-сегмента и показал, что малая доля high-value приносит основную выручку. Маркетинг перешёл от массовых рассылок к сегментированным сценариям.",
+      "description_en": "Segmented a bank's clients into 4 RFM groups and showed that a small high-value share drives most revenue. Marketing moved from mass sends to targeted scenarios.",
       "tools": [
         "Python",
         "SQL",
@@ -208,6 +219,7 @@
       "title": "Sales Calls Analytics Dashboard",
       "title_en": "Sales Calls Analytics Dashboard",
       "description": "Streamlit-дашборд ИИ-обзвона на 16 891 синтетическом звонке: 4-шаговая воронка (приветствие → оффер → встреча → квалификация), разбор утечки по типам и drill-down в транскрипты.",
+      "description_en": "A Streamlit dashboard for AI sales calls on 16,891 synthetic calls: a 4-step funnel (greeting → offer → meeting → qualification), leak breakdown by type, and transcript drill-down.",
       "tools": [
         "Python",
         "Streamlit",
@@ -224,6 +236,7 @@
       "title": "SERP Rank Lab",
       "title_en": "SERP Rank Lab",
       "description": "Лаборатория аналитики выдачи метапоиска: позиционное смещение правит IPW, NDCG и revenue per search расходятся, а всегда-валидный mSPRT держит false-positive rate ниже фиксированного горизонта.",
+      "description_en": "Metasearch SERP analytics lab: inverse-propensity weighting corrects position bias, NDCG and revenue per search disagree, and always-valid mSPRT holds the false-positive rate under repeated looks.",
       "tools": [
         "Python",
         "DuckDB",
@@ -243,6 +256,7 @@
       "title": "SQL Analytics Case Study",
       "title_en": "SQL Analytics Case Study",
       "description": "26 SQL-кейсов: 25 на синтетике (~183k событий) + 1 real-data на UCI Online Retail II. Воронка, retention, LTV, атрибуция, аномалии, dbt-слой на DuckDB, живой отчёт на GitHub Pages.",
+      "description_en": "26 SQL cases: 25 on a synthetic ~183k-event dataset + 1 real-data case on UCI Online Retail II. Funnel, retention, LTV, attribution, anomalies, dbt layer on DuckDB, live report on GitHub Pages.",
       "tools": [
         "SQL",
         "dbt",
@@ -262,6 +276,7 @@
       "title": "Product Analytics + A/B on Supabase",
       "title_en": "Product Analytics + A/B on Supabase",
       "description": "Full-stack аналитика на Supabase: A/B-эксперимент дал +5,1 пп (p = 0.0034, chi-square), а Streamlit-дашборд читает живые данные через Row Level Security и SQL-вьюхи.",
+      "description_en": "Full-stack analytics on Supabase: an A/B experiment lifted conversion +5.1pp (p = 0.0034, chi-square), with a Streamlit dashboard reading live data through Row Level Security.",
       "tools": [
         "Python",
         "Streamlit",
@@ -280,6 +295,7 @@
       "title": "Product Analytics Dashboard (Streamlit)",
       "title_en": "Product Analytics Dashboard (Streamlit)",
       "description": "Продуктовый дашборд на синтетическом SaaS-датасете (8 000 пользователей): AARRR-воронка, cohort retention, выручка (MRR, ARPU, churn) и сегментация — 5 страниц на Streamlit.",
+      "description_en": "A product analytics dashboard on a synthetic SaaS dataset (8,000 users): AARRR funnel, cohort retention, revenue (MRR, ARPU, churn) and segmentation — 5 Streamlit pages.",
       "tools": [
         "Python",
         "Streamlit",
@@ -296,6 +312,7 @@
       "title": "TaskFlow — PostHog Product Analytics Pipeline",
       "title_en": "TaskFlow — PostHog Product Analytics Pipeline",
       "description": "7 анализов из типизированного каталога событий: SaaS-продукт инструментирован PostHog end-to-end — воронка, retention, A/B, revenue/LTV и time-to-convert, а не демо на готовом CSV.",
+      "description_en": "7 analyses from a typed event catalog: a SaaS product instrumented with PostHog end-to-end — funnel, retention, A/B, revenue/LTV and time-to-convert, not a demo on a ready-made CSV.",
       "tools": [
         "Python",
         "PostHog",
@@ -316,6 +333,7 @@
       "title": "Airflow DAG Platform",
       "title_en": "Airflow DAG Platform",
       "description": "Платформа отчётов на Apache Airflow 3: каждый отчёт — версионируемый DAG по шаблону fetch → validate → write → record_metrics, с DQ-валидацией, алертами и метриками запусков.",
+      "description_en": "Report platform on Apache Airflow 3: every report is a versioned DAG on a fetch → validate → write → record_metrics template, with DQ validation, run alerts and observability metrics.",
       "tools": [
         "Python",
         "Apache Airflow 3",
@@ -335,6 +353,7 @@
       "title": "Digital Garden — EQ in IT",
       "title_en": "Digital Garden — EQ in IT",
       "description": "Заметки связаны в сеть, а не в ленту: цифровой сад про эмоциональный интеллект в IT на Quartz v4 — бэклинки и граф превращают накопление заметок в навигируемую структуру.",
+      "description_en": "Notes linked into a network, not a feed: a digital garden about emotional intelligence in IT on Quartz v4 — backlinks and a graph turn note accumulation into a navigable structure.",
       "tools": [
         "TypeScript",
         "Quartz v4",
@@ -352,6 +371,7 @@
       "title": "Reporting Automation Telegram Bot",
       "title_en": "Reporting Automation Telegram Bot",
       "description": "Telegram-бот заменил ручную подготовку недельного отчёта на cron: 1–2 часа работы вручную превратились в отчёт по расписанию с KPI-таблицей и спарклайнами.",
+      "description_en": "A Telegram bot replaced manual weekly reporting with a cron job: 1–2 hours of prep became a scheduled report with a KPI table and sparklines.",
       "tools": [
         "Python",
         "aiogram / telegram-bot",
@@ -370,6 +390,7 @@
       "title": "Scrolly English Speaking",
       "title_en": "Scrolly English Speaking",
       "description": "Scrollytelling-гайд по spoken English для рабочих разговоров (A2–B1): MDX-нарратив и D3-визуализации, где контент и визуализации разделены. Astro 6, деплой на GitHub Pages.",
+      "description_en": "A scrollytelling guide to spoken English for workplace conversations (A2–B1): an MDX narrative with D3 visualizations, content and visuals decoupled. Built on Astro 6.",
       "tools": [
         "Astro",
         "TypeScript",
@@ -388,6 +409,7 @@
       "title": "This Portfolio Site",
       "title_en": "This Portfolio Site",
       "description": "Сайт, который вы читаете: Astro 7, TypeScript и Markdown-коллекции, статическая сборка, тёмная/светлая тема, RSS, sitemap, JSON-LD и деплой на GitHub Pages.",
+      "description_en": "The site you are reading: Astro 7, TypeScript and Markdown content collections, static output, dark/light theme, RSS, sitemap, JSON-LD and GitHub Pages deployment.",
       "tools": [
         "Astro",
         "TypeScript",
@@ -406,7 +428,9 @@
       "order": 1,
       "layer": "core",
       "title": "Volta — Анализ воронки",
+      "title_en": "Volta — Funnel Analysis",
       "description": "Воронка онбординга необанка: KYC — узкое место с 56,6% step conversion, регистрация теряет больше всех в абсолюте (2 682). Разбивка по каналам и платформам.",
+      "description_en": "The neobank onboarding funnel: KYC is the bottleneck at 56.6% step conversion, registration loses the most in absolute terms (2,682). Broken down by channel and platform.",
       "github": "https://github.com/NikitaBoyarkin/case-funnel",
       "href": "https://nikitaboyarkin.github.io/projects/volta/funnel/"
     },
@@ -415,7 +439,9 @@
       "order": 2,
       "layer": "core",
       "title": "Volta — A/B-тест прогресс-бара KYC",
+      "title_en": "Volta — KYC Progress-Bar A/B Test",
       "description": "Progress-bar в KYC дал +5,72 п.п. конверсии (Z=5,82, p<0,0001) при MDE +5 п.п. CUPED, AA-тест и Bonferroni защищают вывод; +€656K/год при 44× ROI.",
+      "description_en": "A KYC progress bar lifted conversion +5.72pp (Z=5.82, p<0.0001) against a +5pp MDE. CUPED, AA-test and Bonferroni protect the conclusion; +€656K/yr at 44× ROI.",
       "github": "https://github.com/NikitaBoyarkin/case-ab",
       "href": "https://nikitaboyarkin.github.io/projects/volta/ab/"
     },
@@ -424,7 +450,9 @@
       "order": 3,
       "layer": "core",
       "title": "Volta — Retention и когорты",
+      "title_en": "Volta — Retention & Cohorts",
       "description": "Когортные треугольники показали ступенчатый сдвиг после KYC-фикса: M1 +11,8 п.п., M3 +9,2 п.п. и +€227K/год LTV. LTV Premium в 4,3× выше Free.",
+      "description_en": "Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€227K/yr LTV. Premium LTV is 4.3× Free.",
       "github": "https://github.com/NikitaBoyarkin/case-retention",
       "href": "https://nikitaboyarkin.github.io/projects/volta/retention/"
     },
@@ -433,7 +461,9 @@
       "order": 4,
       "layer": "core",
       "title": "Volta — Сегментация пользователей",
+      "title_en": "Volta — User Segmentation",
       "description": "KMeans с data-driven K=4: Power 12% дают 41% выручки, 68% — 92%. Сценарии миграции между сегментами стоят до +€310K/год.",
+      "description_en": "KMeans with data-driven K=4: Power 12% drive 41% of revenue, 68% drive 92%. Cross-segment migration is worth up to +€310K/yr.",
       "github": "https://github.com/NikitaBoyarkin/case-segmentation",
       "href": "https://nikitaboyarkin.github.io/projects/volta/segmentation/"
     },
@@ -442,7 +472,9 @@
       "order": 5,
       "layer": "extended",
       "title": "Volta — Прогноз оттока",
+      "title_en": "Volta — Churn Prediction",
       "description": "Random Forest даёт +0,03 ROC-AUC над логистической регрессией; топ-драйвер оттока — частота ошибок устройства (23,7%), а не баланс или активность.",
+      "description_en": "Random Forest adds +0.03 ROC-AUC over logistic regression; the top churn driver is device-error rate (23.7%), not balance or activity.",
       "github": "https://github.com/NikitaBoyarkin/case-churn",
       "href": "https://nikitaboyarkin.github.io/projects/volta/churn/"
     },
@@ -451,7 +483,9 @@
       "order": 6,
       "layer": "extended",
       "title": "Volta — RFM-анализ",
+      "title_en": "Volta — RFM Analysis",
       "description": "R/F/M-скоринг 1–5 делит базу на жизненные сегменты от Champions до Lost; recentness и monetary расходятся — «частые, но дешёвые» и «редкие, но крупные».",
+      "description_en": "R/F/M scoring 1–5 splits the base into lifecycle segments from Champions to Lost; recency and monetary diverge — 'frequent but cheap' and 'rare but large'.",
       "github": "https://github.com/NikitaBoyarkin/case-rfm",
       "href": "https://nikitaboyarkin.github.io/projects/volta/rfm/"
     },
@@ -460,7 +494,9 @@
       "order": 7,
       "layer": "extended",
       "title": "Volta — Моделирование CLV",
+      "title_en": "Volta — CLV Modeling",
       "description": "Три метода оценки пожизненной ценности: исторический, retention-кривая и Gamma-Gamma. Порядок Power > Growth > Casual > Dormant устойчив ко всем методам.",
+      "description_en": "Three lifetime-value methods: historical, retention-curve and Gamma-Gamma. The order Power > Growth > Casual > Dormant is robust across all methods.",
       "github": "https://github.com/NikitaBoyarkin/case-clv",
       "href": "https://nikitaboyarkin.github.io/projects/volta/clv/"
     },
@@ -469,7 +505,9 @@
       "order": 8,
       "layer": "extended",
       "title": "Volta — Маркетинговая атрибуция",
+      "title_en": "Volta — Marketing Attribution",
       "description": "First-touch, last-touch, linear и Shapley-атрибуция. Shapley (data-driven) перераспределяет бюджет и ведёт реферал; вывод устойчив к выбору модели.",
+      "description_en": "First-touch, last-touch, linear and Shapley attribution. Shapley (data-driven) reallocates budget and leads with referral; the conclusion is robust to model choice.",
       "github": "https://github.com/NikitaBoyarkin/case-attribution",
       "href": "https://nikitaboyarkin.github.io/projects/volta/attribution/"
     },
@@ -478,7 +516,9 @@
       "order": 9,
       "layer": "extended",
       "title": "Volta — Поиск аномалий",
+      "title_en": "Volta — Anomaly Detection",
       "description": "Isolation Forest — лучший F1 (50,4%): ловит аномалии суммы, ночных часов и частоты. Z-score точен, но осторожен; сравнение трёх детекторов шло против ground truth.",
+      "description_en": "Isolation Forest has the best F1 (50.4%), catching amount, night-hour and frequency anomalies. Z-score is precise but cautious; the comparison of the three detectors ran against ground truth.",
       "github": "https://github.com/NikitaBoyarkin/case-anomalies",
       "href": "https://nikitaboyarkin.github.io/projects/volta/anomalies/"
     },
@@ -487,7 +527,9 @@
       "order": 10,
       "layer": "extended",
       "title": "Volta — Анализ трат",
+      "title_en": "Volta — Spend Analysis",
       "description": "Разбивка трат по категориям и каналам: bills (25,8%) и travel (20,2%) дают почти половину оборота, groceries — самая частая категория.",
+      "description_en": "Spend breakdown by category and channel: bills (25.8%) and travel (20.2%) make up nearly half the turnover, groceries is the most frequent category.",
       "github": "https://github.com/NikitaBoyarkin/case-spend",
       "href": "https://nikitaboyarkin.github.io/projects/volta/spend/"
     },
@@ -496,7 +538,9 @@
       "order": 11,
       "layer": "extended",
       "title": "Volta — Поддержка и отток",
+      "title_en": "Volta — Support & Churn",
       "description": "Отток растёт с числом тикетов: 37,1% при нуле обращений против 81,1% при 3+. Поддержка — измеримый retention-рычаг, а не только cost-центр.",
+      "description_en": "Churn rises with ticket count: 37.1% at zero contacts vs 81.1% at 3+. Support is a measurable retention lever, not just a cost center.",
       "github": "https://github.com/NikitaBoyarkin/case-support-churn",
       "href": "https://nikitaboyarkin.github.io/projects/volta/support-churn/"
     },
@@ -505,7 +549,9 @@
       "order": 12,
       "layer": "extended",
       "title": "Volta — Тренды NPS",
+      "title_en": "Volta — NPS Trends",
       "description": "Месячный NPS держится около нуля; сильнейшие драйверы — app quality (+30,3) и product (+29,4), главный источник недовольства — fees (−59,4).",
+      "description_en": "Monthly NPS hovers near zero; the strongest drivers are app quality (+30.3) and product (+29.4), the main source of dissatisfaction is fees (−59.4).",
       "github": "https://github.com/NikitaBoyarkin/case-nps",
       "href": "https://nikitaboyarkin.github.io/projects/volta/nps/"
     },
@@ -514,7 +560,9 @@
       "order": 13,
       "layer": "market-jobs",
       "title": "Volta — JTBD × когорты",
+      "title_en": "Volta — JTBD × Cohorts",
       "description": "Job-сегменты и поведенческие когорты не независимы (chi² p<0,001): Dormant концентрируется в Цифровых новичках 45+ (39,4%) против Семейных бюджетов (15,1%).",
+      "description_en": "Job segments and behavioral cohorts are not independent (chi² p<0.001): Dormant concentrates in Digital Newcomers 45+ (39.4%) vs Family Budgeters (15.1%).",
       "github": "https://github.com/NikitaBoyarkin/case-jtbd",
       "href": "https://nikitaboyarkin.github.io/projects/volta/jtbd/"
     },
@@ -523,7 +571,9 @@
       "order": 14,
       "layer": "market-jobs",
       "title": "Volta — Юнит-экономика путешественников",
+      "title_en": "Volta — Traveler Unit Economics",
       "description": "Путешественники теряют €0,45 на каждых €100 FX-операции; безубыточность требует снизить FX-cost с 1,00% до 0,55%, иначе убыток растёт с объёмом.",
+      "description_en": "Travelers lose €0.45 per €100 FX transaction; break-even needs FX cost cut from 1.00% to 0.55%, otherwise the loss grows with volume.",
       "github": "https://github.com/NikitaBoyarkin/case-unit-economics",
       "href": "https://nikitaboyarkin.github.io/projects/volta/unit-economics/"
     },
@@ -532,7 +582,9 @@
       "order": 15,
       "layer": "market-jobs",
       "title": "Volta — Premium-апселл",
+      "title_en": "Volta — Premium Upsell",
       "description": "Конверсия Free→Premium концентрируется в якоре (17,3%) и статус-сикерах (41,2%); у Цифровых новичков 45+ всего 1,8% — ценность не переносится.",
+      "description_en": "Free→Premium conversion concentrates in the anchor (17.3%) and status-seekers (41.2%); Digital Newcomers 45+ convert just 1.8% — the value prop doesn't transfer.",
       "github": "https://github.com/NikitaBoyarkin/case-premium-upsell",
       "href": "https://nikitaboyarkin.github.io/projects/volta/premium-upsell/"
     },
@@ -541,7 +593,9 @@
       "order": 16,
       "layer": "market-jobs",
       "title": "Volta — Глубокий разбор KYC 45+",
+      "title_en": "Volta — 45+ KYC Deep-Dive",
       "description": "HTE-разрез A/B по возрасту: 35–44 +11,0 п.п. и 18–24 +5,3 п.п., но 45+ +1,4 п.п. (ns). Реферал (доверие) конвертит 45+ лучше всех — трение в доверии, не в UX.",
+      "description_en": "Age-sliced A/B HTE: 35–44 +11.0pp and 18–24 +5.3pp, but 45+ +1.4pp (ns). Referral (trust) converts 45+ best — friction is trust, not UX.",
       "github": "https://github.com/NikitaBoyarkin/case-kyc-45",
       "href": "https://nikitaboyarkin.github.io/projects/volta/kyc-45/"
     },
@@ -550,7 +604,9 @@
       "order": 17,
       "layer": "market-jobs",
       "title": "Volta — Реферальные сегменты",
+      "title_en": "Volta — Referral Segments",
       "description": "Реферальная воронка по JTBD-сегментам: якорь 29,6% против Цифровых новичков 45+ 4,8% и семейных 8,6%. Разрыв открывается на accept, а не на KYC.",
+      "description_en": "Referral funnel by JTBD segment: anchor 29.6% vs Digital Newcomers 45+ 4.8% and families 8.6%. The gap opens at accept, not KYC.",
       "github": "https://github.com/NikitaBoyarkin/case-referral",
       "href": "https://nikitaboyarkin.github.io/projects/volta/referral/"
     },
@@ -559,7 +615,9 @@
       "order": 18,
       "layer": "rat-v2",
       "title": "Volta — Assisted CAC vs LTV",
+      "title_en": "Volta — Assisted CAC vs LTV",
       "description": "Окупается ли trust-трек 45+: LTV/CAC 45+ = 0,66 при гейте ≥3; assisted CAC €120 в ~3× дороже реферала и не окупается (payback 50 мес).",
+      "description_en": "Does the 45+ trust track pay off: 45+ LTV/CAC = 0.66 against a ≥3 gate; assisted CAC €120 is ~3× referral and doesn't pay back (50-month payback).",
       "github": "https://github.com/NikitaBoyarkin/case-assisted-cac",
       "href": "https://nikitaboyarkin.github.io/projects/volta/assisted-cac/"
     },
@@ -568,7 +626,9 @@
       "order": 19,
       "layer": "rat-v2",
       "title": "Volta — Feasibility FX-сорсинга",
+      "title_en": "Volta — FX Sourcing Feasibility",
       "description": "Гейт 0,55% достижим только на SOM-масштабе (~€332M/мес, 122× от текущего) — cold-start, а не «невозможно». Лучшее предложение — Interbank Prime 0,745%.",
+      "description_en": "The 0.55% gate is reachable only at SOM scale (~€332M/mo, 122× today) — a cold-start, not 'impossible'. Best quote is Interbank Prime at 0.745%.",
       "github": "https://github.com/NikitaBoyarkin/case-fx-sourcing",
       "href": "https://nikitaboyarkin.github.io/projects/volta/fx-sourcing/"
     },
@@ -577,7 +637,9 @@
       "order": 20,
       "layer": "rat-v2",
       "title": "Volta — Сегментные premium-офферы",
+      "title_en": "Volta — Segment Premium Offers",
       "description": "A/B: сегментный оффер поднимает gap-сегменты (+3,3 п.п. 45+, +4,2 п.п. семейные, +3,8 п.п. путешественники) — значимо после Holm, но якорь почти не двигается.",
+      "description_en": "A/B: a segment offer lifts gap segments (+3.3pp 45+, +4.2pp families, +3.8pp travelers) — Holm-significant, but the anchor barely moves.",
       "github": "https://github.com/NikitaBoyarkin/case-premium-offers",
       "href": "https://nikitaboyarkin.github.io/projects/volta/premium-offers/"
     },
@@ -586,7 +648,9 @@
       "order": 21,
       "layer": "rat-v2",
       "title": "Volta — CAC запуска якоря при масштабе",
+      "title_en": "Volta — Anchor Launch CAC at Scale",
       "description": "LTV/CAC ≥3 держится только до ~70K пользователей; на SOM падает до 1,76× и payback 17 мес. Ограничение — ёмкость дешёвых каналов, а не бюджет.",
+      "description_en": "LTV/CAC ≥3 holds only to ~70K users; at SOM it falls to 1.76× and a 17-month payback. The constraint is cheap-channel capacity, not budget.",
       "github": "https://github.com/NikitaBoyarkin/case-anchor-cac",
       "href": "https://nikitaboyarkin.github.io/projects/volta/anchor-cac/"
     },
@@ -595,7 +659,9 @@
       "order": 22,
       "layer": "rat-v2",
       "title": "Volta — Win-back дормантов 45+",
+      "title_en": "Volta — Dormant 45+ Win-back",
       "description": "Трёхармный win-back: human +5,34 п.п. и light-touch +2,77 п.п. против control. Light-touch окупается на 30–90d (ROI 2,54 / 1,26), human ROI 0,40 — kill как массовый канал.",
+      "description_en": "Three-arm win-back: human +5.34pp and light-touch +2.77pp vs control. Light-touch pays off at 30–90d (ROI 2.54 / 1.26), human ROI 0.40 — kill as a mass channel.",
       "github": "https://github.com/NikitaBoyarkin/case-dormant-winback",
       "href": "https://nikitaboyarkin.github.io/projects/volta/dormant-winback/"
     },
@@ -604,7 +670,9 @@
       "order": 23,
       "layer": "causal",
       "title": "Volta — Причинная валидация KYC (DiD)",
+      "title_en": "Volta — Causal Validation of KYC (DiD)",
       "description": "DiD-проверка: фикс KYC причинно поднял M3-удержание на +9,09 п.п. (95% ДИ [+6,21; +11,96]) — pre-trends плоские, placebo ≈ 0, max |SMD| 0,157 < 0,2.",
+      "description_en": "A DiD test shows the KYC fix causally lifted M3 retention by +9.09pp (95% CI [+6.21, +11.96]) — flat pre-trends, placebo ≈ 0, max |SMD| 0.157 < 0.2.",
       "github": "https://github.com/NikitaBoyarkin/case-causal-kyc",
       "href": "https://nikitaboyarkin.github.io/projects/volta/causal-kyc/"
     }

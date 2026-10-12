@@ -7,6 +7,13 @@
 // anything marked `draft: true`, and writes a single JSON document consumed by
 // external tools (analytics, feeds, agents).
 //
+// The registry is bilingual and symmetric: every text field carries both the RU
+// value (`title` / `description`) and its EN twin (`title_en` / `description_en`,
+// each falling back to the RU value when the twin is absent). The RU/EN split
+// mirrors the site's own collections — an EN twin is authored independently for
+// meaning parity, not a literal translation — so a consumer can render either
+// language without a second fetch.
+//
 // Usage:
 //   node scripts/export-projects-registry.mjs
 //   bun run scripts/export-projects-registry.mjs     (same output)
@@ -19,6 +26,7 @@ const ROOT = process.cwd();
 const PROJECTS_DIR = path.join(ROOT, 'src/content/projects');
 const PROJECTS_EN_DIR = path.join(ROOT, 'src/content/projects-en');
 const VOLTA_DIR = path.join(ROOT, 'src/content/volta-parts');
+const VOLTA_EN_DIR = path.join(ROOT, 'src/content/volta-parts-en');
 const OUT_FILE = path.join(ROOT, 'public/projects.json');
 
 const SITE_URL = 'https://nikitaboyarkin.github.io';
@@ -84,6 +92,8 @@ async function buildProjects() {
       title: oneLine(fm.title),
       title_en: enFm && oneLine(enFm.title) !== '' ? oneLine(enFm.title) : oneLine(fm.title),
       description: oneLine(fm.description),
+      description_en:
+        enFm && oneLine(enFm.description) !== '' ? oneLine(enFm.description) : oneLine(fm.description),
       tools: asStringList(fm.tools),
       github: asUrlOrNull(fm.github),
       demo: asUrlOrNull(fm.demo),
@@ -106,16 +116,25 @@ async function buildProjects() {
 
 async function buildVoltaCases() {
   const parts = await readCollection(VOLTA_DIR);
+  const enParts = await readCollection(VOLTA_EN_DIR);
+  // EN twins are keyed by `part`, not by filename slug, so a renamed file cannot
+  // silently detach a case from its translation.
+  const enByPart = new Map();
+  for (const fm of enParts.values()) enByPart.set(oneLine(fm.part), fm);
   const cases = [];
   for (const fm of parts.values()) {
     if (fm.draft === true) continue;
     const part = oneLine(fm.part);
+    const enFm = enByPart.get(part);
     cases.push({
       slug: part,
       order: Number(fm.order),
       layer: oneLine(fm.layer),
       title: oneLine(fm.title),
+      title_en: enFm && oneLine(enFm.title) !== '' ? oneLine(enFm.title) : oneLine(fm.title),
       description: oneLine(fm.description),
+      description_en:
+        enFm && oneLine(enFm.description) !== '' ? oneLine(enFm.description) : oneLine(fm.description),
       github: asUrlOrNull(fm.github),
       href: `${SITE_URL}/projects/volta/${part}/`,
     });
