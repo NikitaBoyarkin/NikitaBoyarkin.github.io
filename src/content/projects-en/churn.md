@@ -1,19 +1,19 @@
 ---
 title: Churn Prediction — Leakage-Free Retention Model
-description: "A leakage-free churn model: recall@top-10% of 0.53 and 3.07x lift at 0.904 ROC-AUC, on a chronological split with no future activity leaking into features."
+description: "A leakage-free churn model: recall@top-10% of 0.544 and 5.44x lift at 0.916 ROC-AUC, on a chronological split with no future activity leaking into features."
 star:
   situation: "A churn model for a subscription product: a random split leaks future activity into training"
   task: "Score the model so its offline quality is not an artifact of leakage"
   action: "As-of features, a future inactivity label, a chronological split, decisions driven by recall@top-decile and lift"
-  result: "In the top 10% riskiest the model catches 53% of real churners at 3.07x lift"
+  result: "In the top 10% riskiest the model catches 54.4% of real churners at 5.44x lift"
 track: analytics
 hero: images/churn.svg
 ogImage: /images/og/churn.png
 impact:
   - Chronological snapshot split (train/val/test) — no future activity leaks into training
   - Churn label = a future 30-day inactivity window for recently active users only
-  - "Decision metric: recall@top-10% = 0.53, lift@top-10% = 3.07x"
-  - LightGBM Brier 0.068 vs 0.099 for the balanced logistic baseline
+  - "Decision metric: recall@top-10% = 0.544, lift@top-10% = 5.44x"
+  - LightGBM Brier 0.063 vs 0.062 for a fairly-fitted logistic baseline — an honest tie, not a boosting win
 tools:
   - Python
   - LightGBM
@@ -23,7 +23,7 @@ tools:
   - pytest
   - uv
 github: https://github.com/NikitaBoyarkin/churn-prediction
-updated: 2026-09-18
+updated: 2026-10-12
 date: 2026-09-18
 related:
   - /posts/churn-uplift-discount/
@@ -33,11 +33,11 @@ faq:
   - question: "How is the churn label defined?"
     answer: "As a future 30-day inactivity window, applied only to recently active users."
   - question: "How good is the model?"
-    answer: "ROC-AUC 0.904: in the top 10% riskiest the model catches 53% of real churners at 3.07x lift."
+    answer: "ROC-AUC 0.916: in the top 10% riskiest the model catches 54.4% of real churners at 5.44x lift."
   - question: "Why is the decision metric recall and not AUC alone?"
     answer: "A retention campaign works the top of the risk list, so the decision follows recall@top-10% and lift."
   - question: "Why look at Brier?"
-    answer: "Brier is sensitive to probability calibration: 0.068 for LightGBM versus 0.099 for the balanced logistic baseline."
+    answer: "Brier is sensitive to probability calibration: 0.063 for LightGBM versus 0.062 for a fairly-fitted logistic baseline — a tie. The earlier 0.068/0.099 gap was an artifact of an unbalanced baseline."
 ---
 
 # Churn Prediction — Leakage-Free Retention Model
@@ -69,16 +69,16 @@ The data is synthetic and deterministic (seed = 42): 12,000 users sign up betwee
 ### Model and tests
 
 - **SHAP** — LightGBM's native `predict_proba(pred_contrib=True)` (TreeSHAP without the `shap` package). `recency_days` dominates.
-- **Baseline** — a balanced logistic regression.
-- **Tests** — 5 pytest tests: balance, leakage, recency correctness, model beats baseline.
+- **Baseline** — a fairly-fitted logistic regression (no `class_weight="balanced"`, which distorted its probabilities).
+- **Tests** — 21 pytest: leakage properties (deleting post-snapshot activity leaves features unchanged), config integrity, metrics and plots.
 
-| Metric (test snapshot) | LightGBM | LogReg (balanced) |
+| Metric (test snapshot) | LightGBM | LogReg |
 |---|---|---|
-| ROC-AUC | 0.904 | 0.917 |
-| PR-AUC | 0.809 | 0.825 |
-| Recall@top-10% | 0.53 | 0.54 |
-| Lift@top-10% | 3.07x | 3.08x |
-| Brier (calibration) | **0.068** | 0.099 |
+| ROC-AUC | 0.916 | **0.917** |
+| PR-AUC | 0.824 | **0.828** |
+| Recall@top-10% | **0.544** | 0.537 |
+| Lift@top-10% | **5.44x** | 5.37x |
+| Brier (calibration) | 0.063 | **0.062** |
 
 ### Run
 
@@ -93,7 +93,7 @@ Outputs land in `reports/`: `metrics.json` + `evaluation.png` (ROC, PR, SHAP bar
 
 ## Result
 
-LightGBM and logistic regression run nearly even on AUC: the synthetic features are nearly linear, and a linear model handles that. The difference is calibration. Brier 0.068 vs 0.099, and calibration is what decides whether the score can drive retention spend. `recency_days` is so strong that the lift ceiling is low for any model: within the top 10% riskiest users the model catches 53% of real churners at 3.07x lift.
+LightGBM and logistic regression run even: the synthetic features are nearly linear, and the linear model is no worse — LogReg is marginally ahead on AUC, PR-AUC and Brier (0.062 vs 0.063). The honest finding: boosting earns no trophy here. The project demonstrates a leakage-free evaluation setup, not that GBM beats logistic regression. `recency_days` is so strong that the lift ceiling is low for any model: within the top 10% riskiest users the model catches 54.4% of real churners at 5.44x lift.
 
 ## Limitations
 

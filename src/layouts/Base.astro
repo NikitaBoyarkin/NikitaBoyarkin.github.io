@@ -7,6 +7,7 @@ import 'katex/dist/katex.min.css';
 import { withBase } from '../lib/path';
 import Analytics from '../components/Analytics.astro';
 import LangSwitch from '../components/LangSwitch.astro';
+import NavRoles from '../components/NavRoles.astro';
 import SearchBox from '../components/SearchBox.astro';
 import MorphIcon from 'morphicons/astro';
 import BeaconMetrics from '../components/BeaconMetrics.astro';
@@ -84,7 +85,6 @@ const metaDescription = (() => {
 
 // i18n: locale-aware nav hrefs + hreflang alternates.
 const isEn = lang === 'en';
-const homeHref = isEn ? withBase('en/') : withBase('/');
 const aboutHref = isEn ? withBase('en/about/') : withBase('about/');
 const projectsHref = isEn ? withBase('en/projects/') : withBase('projects/');
 const contactHref = isEn ? withBase('en/contact/') : withBase('contact/');
@@ -92,6 +92,11 @@ const glossaryHref = isEn ? withBase('en/glossary/') : withBase('glossary/');
 const graphHref = isEn ? withBase('en/graph/') : withBase('graph/');
 const libraryHref = isEn ? withBase('en/library/') : withBase('library/');
 const writingHref = isEn ? withBase('en/writing/') : withBase('writing/');
+
+// Which role landing (if any) this page is, so NavRoles can mark it current
+// (`aria-current="page"`) the way the drawer's own links do. Derived from the
+// URL because the role routes pass `activeNav="home"`, not their own key.
+const activeRole = Astro.url.pathname.match(/^\/(?:en\/)?(hr|manager|colleague)\/?$/)?.[1];
 
 // i18n: header / footer chrome labels.
 const t = {
@@ -362,13 +367,17 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
          and the drawer paints over the bar there. */
     }
     <header class="nav-mobile">
-      <a href={homeHref} class="nav-brand">
-        <svg class="nav-logo" aria-hidden="true" viewBox="0 0 100 100" width="28" height="28">
-          <path class="cell" d="M96 50 73 89.8 27 89.8 4 50 27 10.2 73 10.2Z"/>
-          <text class="mono" x="50" y="61" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.5" text-anchor="middle">NB</text>
+      <a href={aboutHref} class="nav-brand">
+        <svg class="nav-brand-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="7" r="4"/>
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
         </svg>
         <b>Nikita Boyarkin</b>
       </a>
+      {/* The three audience landings, one tap from the top bar. They read as a
+          left-hand cluster with the brand ("who" + "viewing as"); the outbound
+          chips stay pushed right by their own auto margin. */}
+      <NavRoles lang={lang} active={activeRole} />
       {/* The site's off-site and download links live in the top bar, next to
           the brand they belong to. The CV chip is the row's primary action,
           so it carries the fill and there is no second CV `.nav-cta` beside
@@ -405,30 +414,36 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         >
       </div>
 
+      {/* Theme toggle — moved to the always-visible top bar. It is a global
+          preference, and the drawer it used to live in is closed by default. */}
+      <button id="theme-toggle" class="theme-toggle" aria-label={`${t.themeLabel}dark${t.themeCycle}`} data-theme-label={t.themeLabel} data-theme-cycle={t.themeCycle} type="button" title={t.themeTitle} data-icon-dark={THEME_MOON} data-icon-light={THEME_SUN} data-icon-cyber={THEME_CYBER}>
+        <MorphIcon id="theme-icon" icon={THEME_MOON} spring="snappy" reducedMotion="user" size={18} />
+      </button>
+
       <button id="nav-toggle" class="nav-toggle" type="button" aria-label={t.navOpen} aria-expanded="false" aria-controls="nav-links" data-label-open={t.navOpen} data-label-close={t.navClose} data-icon-menu={NAV_MENU} data-icon-close={NAV_CLOSE}>
         <MorphIcon id="nav-icon" icon={NAV_MENU} spring="snappy" reducedMotion="user" size={20} />
       </button>
     </header>
 
     <nav id="site-nav" aria-label={isEn ? 'Main navigation' : 'Основная навигация'}>
-      <a href={homeHref} class="nav-brand">
-        <svg class="nav-logo" aria-hidden="true" viewBox="0 0 100 100" width="28" height="28">
-          <path class="cell" d="M96 50 73 89.8 27 89.8 4 50 27 10.2 73 10.2Z"/>
-          <text class="mono" x="50" y="61" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.5" text-anchor="middle">NB</text>
+      <a href={aboutHref} class="nav-brand">
+        <svg class="nav-brand-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="7" r="4"/>
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
         </svg>
         <b>Nikita Boyarkin</b>
       </a>
+      {/* On phones the top bar yields the persona buttons to this copy (see
+          NavRoles.astro) — inside the drawer there is room for the full labels. */}
+      <NavRoles lang={lang} variant="menu" active={activeRole} />
       {/* Utilities sit above the primary links: the search dropdown opens
           downward from its toggle, and at the rail's bottom edge there was no
-          room for it. The three compact controls share one row — search and
-          theme side by side — and the contact CTA keeps the full rail width. */}
+          room for it. Search + language share one row; the theme toggle now
+          lives in the top bar, so it is reachable with the drawer closed. */}
       <div class="nav-aux">
         <div class="nav-tools">
           {counterpartHref && <LangSwitch locale={lang} counterpartHref={counterpartHref} />}
           <SearchBox lang={lang} />
-          <button id="theme-toggle" class="theme-toggle" aria-label={`${t.themeLabel}dark${t.themeCycle}`} data-theme-label={t.themeLabel} data-theme-cycle={t.themeCycle} type="button" title={t.themeTitle} data-icon-dark={THEME_MOON} data-icon-light={THEME_SUN} data-icon-cyber={THEME_CYBER}>
-            <MorphIcon id="theme-icon" icon={THEME_MOON} spring="snappy" reducedMotion="user" size={18} />
-          </button>
         </div>
         <a class="button nav-cta" href={contactHref}>{t.navContact}</a>
       </div>
@@ -740,15 +755,30 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         outline-offset: 2px;
       }
 
-      /* Below the canvas breakpoint the bar cannot hold brand + five labelled
-         chips + toggle. The labels go visually hidden — NOT `display: none`,
-         which would strip the anchor of its accessible name, since the glyph
-         beside it is `aria-hidden`. The wordmark follows for the same reason:
-         the logo is decorative, so `Nikita Boyarkin` is the brand link's only
-         name and has to stay in the accessibility tree. */
+      /* Below the canvas breakpoint the wordmark goes visually hidden — NOT
+         `display: none`, which would strip the brand anchor of its accessible
+         name, since the logo beside it is `aria-hidden`. */
       @media (max-width: 899px) {
-        .nav-chip-label,
         .nav-mobile .nav-brand b {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          margin: -1px;
+          padding: 0;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+          white-space: nowrap;
+          border: 0;
+        }
+      }
+
+      /* The chips need the wider cutover. With the persona group (≥768px) and the
+         theme toggle (every width) now sharing the bar, brand + four labelled
+         chips + two controls no longer fit below 1024px, so the chip labels go
+         icon-only there. Visually hidden, not `display: none`, so each anchor
+         keeps its accessible name (the glyph beside it is `aria-hidden`). */
+      @media (max-width: 1023px) {
+        .nav-chip-label {
           position: absolute;
           width: 1px;
           height: 1px;

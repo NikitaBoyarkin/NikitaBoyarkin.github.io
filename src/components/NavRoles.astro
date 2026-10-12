@@ -1,0 +1,188 @@
+---
+// Persona switch — the three audience landings (HR · manager · colleague) as
+// icon + label buttons. Two instances exist so exactly one is visible at any
+// width: `variant="bar"` (default) lives in the top bar and shows from 768px up;
+// `variant="menu"` lives in the drawer and shows below 768px, where the top bar
+// has no room for a fourth group. The CSS at the bottom owns that cutover.
+//
+// `data-persona` / `data-source`, never `data-analytics`: the delegated handler
+// in Analytics.astro would turn the click into a second, wrong-props
+// `persona_selected` — the same trap RoleSwitch.astro documents. The write +
+// capture happen in the module script below before the plain `<a href>` commits.
+import { withBase } from '../lib/path';
+import { AUDIENCES, type Audience } from '../lib/projects';
+
+interface Props {
+  lang?: 'ru' | 'en';
+  /** `bar` = top bar (won't fit on phones); `menu` = drawer (phones + up). */
+  variant?: 'bar' | 'menu';
+  /** Audience of the current page, marked `aria-current="page"`. */
+  active?: string;
+}
+const { lang = 'ru', variant = 'bar', active } = Astro.props;
+const isEn = lang === 'en';
+const source = variant === 'menu' ? 'menu' : 'header';
+
+const LABELS: Record<Audience, string> = isEn
+  ? { hr: 'HR', manager: 'Manager', colleague: 'Colleague' }
+  : { hr: 'HR', manager: 'Менеджер', colleague: 'Коллега' };
+
+// 24×24 stroke glyphs (lucide-style). Inner markup only — the six nav links in
+// Base.astro use the same `<svg>` scaffold + `set:html` split. Literals, never
+// page content, so `set:html` cannot reach anything a visitor controls.
+const ICONS: Record<Audience, string> = {
+  hr: '<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M5 16h6"/><path d="M14 10h5"/><path d="M14 14h5"/>',
+  manager:
+    '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>',
+  colleague:
+    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+};
+
+const href = (target: Audience): string => withBase(isEn ? `en/${target}/` : `${target}/`);
+---
+
+<div
+  class:list={['nav-roles', `nav-roles--${variant}`]}
+  role="group"
+  aria-label={isEn ? 'View as' : 'Режим просмотра'}
+>
+  {
+    AUDIENCES.map((audience) => (
+      <a
+        class:list={['nav-role', active === audience && 'is-active']}
+        href={href(audience)}
+        data-persona={audience}
+        data-source={source}
+        title={LABELS[audience]}
+        aria-current={active === audience ? 'page' : undefined}
+      >
+        <svg
+          class="nav-role-icon"
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+          set:html={ICONS[audience]}
+        />
+        <span class="nav-role-label">{LABELS[audience]}</span>
+      </a>
+    ))
+  }
+</div>
+
+<script>
+  import { track, writeAudience } from '../lib/analytics';
+  import type { Audience } from '../lib/projects';
+
+  // One pass over both instances (bar + menu). Astro hoists this module once
+  // even though the component is rendered twice. `data-source` distinguishes
+  // the surface in `persona_selected`.
+  const lang = document.documentElement.lang === 'en' ? 'en' : 'ru';
+  for (const link of document.querySelectorAll<HTMLElement>('.nav-role[data-persona]')) {
+    link.addEventListener('click', () => {
+      const persona = link.dataset.persona as Audience;
+      writeAudience(persona);
+      track('persona_selected', {
+        persona,
+        lang,
+        source: link.dataset.source || 'header',
+      });
+    });
+  }
+</script>
+
+<style>
+  /* A quiet outline group, distinct from the filled CV action: these are
+     routes, not asks. `--text-muted` at rest leans them back so they do not
+     compete with the brand or the outbound chips. */
+  .nav-roles {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .nav-role {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  /* `display: block` kills the inline descender gap under an inline-level <svg>
+     so the icon sits optically centred against the label. */
+  .nav-role svg {
+    flex: none;
+    display: block;
+  }
+
+  .nav-role:hover {
+    color: var(--text-accent);
+    border-color: var(--text-accent);
+  }
+
+  /* The current role landing, marked the same way the drawer's own links mark
+     the active page (accent ink + `aria-current`). */
+  .nav-role.is-active {
+    color: var(--text-accent);
+    border-color: var(--border-active);
+  }
+
+  .nav-role:focus-visible {
+    outline: 2px solid var(--border-active);
+    outline-offset: 2px;
+  }
+
+  /* One copy at a time. Below 768px the top bar has no room for a fourth group,
+     so the bar copy yields to the drawer copy; from 768px up the drawer copy
+     steps aside and the bar owns the control. */
+  @media (max-width: 767px) {
+    .nav-roles--bar {
+      display: none;
+    }
+  }
+  @media (min-width: 768px) {
+    .nav-roles--menu {
+      display: none;
+    }
+  }
+
+  /* In the top bar the labels cannot survive until the viewport is wide enough
+     to hold brand + labelled roles + four chips + toggle, so they go visually
+     hidden — NOT `display: none` — below 1200px, keeping each link's accessible
+     name (the `title` supplies the tooltip). The drawer copy always has room
+     for the full labels, so this rule is scoped to the bar variant. */
+  @media (max-width: 1199px) {
+    .nav-roles--bar .nav-role-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .nav-roles--bar .nav-role {
+      padding: var(--space-1) var(--space-2);
+    }
+  }
+</style>

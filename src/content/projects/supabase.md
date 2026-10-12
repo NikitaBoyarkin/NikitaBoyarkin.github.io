@@ -1,11 +1,11 @@
 ---
 title: Product Analytics + A/B on Supabase
-description: "Full-stack аналитика на Supabase: A/B-эксперимент дал +5,1 пп (p = 0.0034, chi-square), а Streamlit-дашборд читает живые данные через Row Level Security и SQL-вьюхи."
+description: "Full-stack аналитика на Supabase: A/B-эксперимент дал +11,1 пп (p ≈ 1,7·10⁻¹⁰, χ²), а Streamlit-дашборд читает живые данные через Row Level Security и SQL-вьюхи."
 star:
   situation: "Аналитическое портфолио показывает метрики на чистом CSV, а невидимой остаётся аналитика внутри multi-tenant продукта"
   task: "Собрать слой целиком: авторизация, изоляция по организациям, приём событий и результат эксперимента, считаемый в базе"
   action: "SQL-вьюхи считают funnel, cohort, MRR и DAU; v_results считает A/B в базе; RLS изолирует строки по организациям"
-  result: "Итог A/B: control 32.1% против treatment 37.2%, +5,1 пп при p = 0.0034 (χ²); метрики считаются в базе для любого клиента"
+  result: "Итог A/B: control 29,6% против treatment 40,7%, +11,1 пп при p ≈ 1,7·10⁻¹⁰ (χ²); метрики считаются в базе для любого клиента"
 track: product
 hero: images/supabase.svg
 ogImage: /images/og/supabase.png
@@ -13,7 +13,7 @@ impact:
   - "Full-stack: Streamlit UI + Supabase Postgres + Edge Function ingest (auth по API-ключу)"
   - Row Level Security на каждой таблице — пользователь видит только строки своей организации
   - SQL-вьюхи считают funnel, cohort, MRR, DAU и channel conversion — дашборд переформатирует, а не агрегирует
-  - "A/B-результат в базе: control 32.1% против treatment 37.2%, p = 0.0034 (χ²)"
+  - "A/B-результат в базе: control 29,6% против treatment 40,7%, p ≈ 1,7·10⁻¹⁰ (χ²)"
 tools:
   - Python
   - Streamlit
@@ -22,7 +22,7 @@ tools:
   - supabase-py
 github: https://github.com/NikitaBoyarkin/supabase-product-analytics
 date: 2026-08-14
-updated: 2026-09-15
+updated: 2026-10-12
 private: true
 related:
   - /projects/streamlit/
@@ -61,7 +61,7 @@ dashboard        (supabase-py, anon key)                      analytics + experi
 
 ## Результат
 
-Аналитика считается там же, где лежат данные: SQL-views и `v_results` означают, что метрики и экспериментальные результаты согласованы между любым клиентом, который подключается к базе — дашборд, BI-инструмент или ad-hoc SQL-запрос видят одни и те же цифры. Завершённый A/B даёт control 32.1% против treatment 37.2%, **+5,1 пп** при p = 0.0034 (χ²).
+Аналитика считается там же, где лежат данные: SQL-views и `v_results` означают, что метрики и экспериментальные результаты согласованы между любым клиентом, который подключается к базе — дашборд, BI-инструмент или ad-hoc SQL-запрос видят одни и те же цифры. Завершённый A/B даёт control 29,6% против treatment 40,7%, **+11,1 пп** при p ≈ 1,7·10⁻¹⁰ (χ²).
 
 ## Ограничения
 

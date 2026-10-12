@@ -72,9 +72,12 @@ describe('canvas homepage (built HTML)', () => {
       const d = doc();
       const h1At = d.indexOf('<h1');
       expect(h1At).toBeGreaterThan(-1);
+      // Keyed on the gate card's `data-node` (unique per card), not
+      // `data-persona`: since NavRoles landed in the header, `data-persona`
+      // also appears before the h1, and first-indexOf would find that instead.
       for (const role of ['hr', 'manager', 'colleague']) {
-        const at = d.indexOf(`data-persona="${role}"`);
-        expect(at, `${lang}: data-persona="${role}" missing`).toBeGreaterThan(h1At);
+        const at = d.indexOf(`data-node="role-${role}"`);
+        expect(at, `${lang}: the ${role} gate card is missing`).toBeGreaterThan(h1At);
       }
     });
 

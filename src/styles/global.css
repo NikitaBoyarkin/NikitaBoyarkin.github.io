@@ -586,13 +586,46 @@ body.nav-open .nav-scrim {
   backdrop-filter: blur(14px) saturate(1.1);
 }
 
-/* Nav Brand — name + logo, no decorative accent on the wordmark */
+/* The bar carries a fourth group now (the persona buttons, ≥768px). The wider
+   16px gutter no longer fits brand + roles + four chips + toggle around 900px,
+   so narrow it to the 8px step until the viewport is roomy again. */
+@media (max-width: 1023px) {
+  .nav-mobile {
+    gap: var(--space-2);
+  }
+}
+
+/* Nav Brand — a pill button: person icon + wordmark. It links to the About
+   page, so it carries a real control's affordances (fill, border, hover) rather
+   than reading as inert page chrome. */
 .nav-brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.8rem;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-md);
+  background: var(--background-secondary);
+  color: var(--text-normal);
   text-decoration: none;
-  color: inherit;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.nav-brand:hover {
+  color: var(--text-accent);
+  border-color: var(--text-accent);
+}
+
+.nav-brand:focus-visible {
+  outline: 2px solid var(--border-active);
+  outline-offset: 2px;
+}
+
+.nav-brand-icon {
+  flex: none;
+  display: block;
+  color: var(--text-accent);
 }
 
 .nav-brand b {
@@ -601,22 +634,6 @@ body.nav-open .nav-scrim {
   color: var(--text-normal);
   font-weight: 700;
   letter-spacing: -0.01em;
-}
-
-.nav-logo {
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-}
-
-.nav-logo .cell {
-  fill: var(--background-secondary);
-  stroke: var(--text-accent);
-  stroke-width: 3;
-}
-
-.nav-logo .mono {
-  fill: var(--text-accent);
 }
 
 /* Theme Toggle Button in Nav */

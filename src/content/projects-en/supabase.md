@@ -1,11 +1,11 @@
 ---
 title: Product Analytics + A/B on Supabase
-description: "Full-stack analytics on Supabase: an A/B experiment lifted conversion +5.1pp (p = 0.0034, chi-square), with a Streamlit dashboard reading live data through Row Level Security."
+description: "Full-stack analytics on Supabase: an A/B experiment lifted conversion +11.1pp (p ≈ 1.7e-10, chi-square), with a Streamlit dashboard reading live data through Row Level Security."
 star:
   situation: "Analytics portfolios show metrics on a clean CSV; the hard part is analytics embedded in a real multi-tenant product"
   task: "Own the multi-tenant setup end to end: auth, per-org isolation, event ingest, and the experiment result computed in the database"
   action: "SQL views compute funnel, cohort, MRR, and DAU; v_results computes A/B in the DB; RLS isolates rows per organization"
-  result: "A/B concluded: control 32.1% vs treatment 37.2%, +5.1pp at p = 0.0034 (χ²); metrics computed in the DB for any client"
+  result: "A/B concluded: control 29.6% vs treatment 40.7%, +11.1pp at p ≈ 1.7e-10 (chi-square); metrics computed in the DB for any client"
 track: product
 hero: images/supabase.svg
 ogImage: /images/og/supabase.png
@@ -13,7 +13,7 @@ impact:
   - "Full-stack: Streamlit UI + Supabase Postgres + Edge Function ingest (API-key auth)"
   - Row Level Security on every table — a user sees only their org's rows
   - SQL views compute funnel, cohort, MRR, DAU, channel conversion — the dashboard reshapes, it does not aggregate
-  - "A/B result in the DB: control 32.1% vs treatment 37.2%, p = 0.0034 (chi-square)"
+  - "A/B result in the DB: control 29.6% vs treatment 40.7%, p ≈ 1.7e-10 (chi-square)"
 tools:
   - Python
   - Streamlit
@@ -22,7 +22,7 @@ tools:
   - supabase-py
 github: https://github.com/NikitaBoyarkin/supabase-product-analytics
 date: 2026-08-14
-updated: 2026-09-15
+updated: 2026-10-12
 private: true
 related:
   - /projects/streamlit/
@@ -60,7 +60,7 @@ Every table has Row Level Security enabled. A user only ever sees rows of their 
 
 ## Result
 
-Analytics is computed where the data lives: SQL views and `v_results` mean metrics and experiment results are consistent across any client that connects to the database — dashboard, BI tool, or ad-hoc SQL all see the same numbers. The concluded A/B shows control 32.1% vs treatment 37.2%, **+5.1pp** at p = 0.0034 (χ²).
+Analytics is computed where the data lives: SQL views and `v_results` mean metrics and experiment results are consistent across any client that connects to the database — dashboard, BI tool, or ad-hoc SQL all see the same numbers. The concluded A/B shows control 29.6% vs treatment 40.7%, **+11.1pp** at p ≈ 1.7e-10 (χ²).
 
 ## Limitations
 
