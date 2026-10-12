@@ -260,11 +260,12 @@ button.blog-card-tag:hover {
 }
 
 .post-content {
-  /* The whole post column — header, body, related, prev/next — so the header
-     aligns with the body instead of stepping in. `--prose-measure` is in `ch`,
-     which resolves against this element's own font-size, so the size has to be
-     set here too or the measure would land 5% narrower than on project pages. */
-  max-width: var(--prose-measure);
+  /* The page frame for a post/term — now the site-wide wide frame, so the
+     header, related list and prev/next share the same edge as every other page.
+     The reading measure itself stays on the prose body (`.post-body.prose`,
+     set by prose.css), so paragraphs remain ~75ch. `font-size` is still set
+     here because `ch` resolves against an element's own size. */
+  max-width: var(--content-max);
   font-size: var(--prose-size);
   margin: 0 auto;
 }
@@ -317,9 +318,9 @@ button.blog-card-tag:hover {
   color: var(--text-accent-hover);
 }
 
-/* Contact section — card-page frame (`.container.container-content`, same as
-   /graph/ and /library/). Single reading-order column: title, intro, call to
-   action, channels, then what-I'm-looking-for. */
+/* Contact section — the single `.container` frame (same wide frame as /graph/
+   and /library/). Single reading-order column: title, intro, call to action,
+   channels, then what-I'm-looking-for. */
 .contact-title {
   font-family: var(--font-display);
   font-size: 2rem;

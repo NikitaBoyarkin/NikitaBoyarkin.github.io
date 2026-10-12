@@ -153,7 +153,7 @@ function edgeEndpoints(l: GraphLink) {
     </g>
   </svg>
 
-  <a class="ig-caption" href={withBase(isEn ? 'en/graph/' : 'graph/')}>
+  <a class="bento-cell-link" href={withBase(isEn ? 'en/graph/' : 'graph/')}>
     {isEn ? 'Full knowledge graph →' : 'Полный граф знаний →'}
   </a>
 </div>
@@ -213,14 +213,5 @@ function edgeEndpoints(l: GraphLink) {
   }
   .ig-node--root:hover .ig-circle {
     stroke: var(--text-accent);
-  }
-  .ig-caption {
-    align-self: flex-start;
-    font-size: 0.9rem;
-    color: var(--text-accent);
-    text-decoration: none;
-  }
-  .ig-caption:hover {
-    text-decoration: underline;
   }
 </style>

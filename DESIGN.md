@@ -271,7 +271,7 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 - Project and post prose is justified (`text-align: justify`) with automatic hyphenation (`hyphens: auto`) so the even right edge does not open word gaps.
 - Paragraphs separate by a first-line indent (`text-indent: 1.5em`) with only a tight vertical gap, not by extra air; the indent drops after a heading, at the start of a section, and inside lists and quotes.
 - Justification is turned off below 640px — in a narrow column it produces rivers and uneven spacing.
-- **The measure is 75ch on both reading surfaces**, project pages (`#project-content`) and posts (`.post-content`), set by `--prose-measure` in `src/styles/prose.css`. They used to disagree — projects ran to the full 736px column (≈84 characters per line) while posts were already capped (≈72) — which read as two different type systems rather than one. 75ch lands at ≈794px inside the 880px `.container-wide`, at the top of the comfortable 45–75ch range.
+- **The measure is 75ch on both reading surfaces**, project pages (`#project-content`) and posts (`.post-content`), set by `--prose-measure` in `src/styles/prose.css`. They used to disagree — projects ran to the full 736px column (≈84 characters per line) while posts were already capped (≈72) — which read as two different type systems rather than one. 75ch lands at ≈794px inside the single wide `--content-max` (1180px) frame, at the top of the comfortable 45–75ch range.
 - **Prose size is `1.05rem` (16.8px) wherever prose appears** — body paragraphs, list items, quotes, card descriptions. One role, one size; the previous 16px / 16.8px / 15.2px spread was drift, not hierarchy.
 - **The root font size is `1rem`, never `16px`.** At the browser default the two are identical, but `rem` honours a reader who has raised the default text size — a hard `16px` on `body` throws that setting away.
 - **Micro-label floor is `0.72rem` (≈11.5px).** Badge and compact-label styles (`.strip-badge`, `.star-compact .star-label`) sat at 0.66–0.68rem (10.5–10.9px), below any legible floor.
@@ -280,7 +280,7 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 ## Layout
 
 - The body spans the viewport; at ≥1100px it reserves `--rail-total` on the inline start for the fixed nav rail, and the reading column stays centred at the `--content-max` measure inside the remaining space.
-- Three container widths, each scoped: `.container` (800px) for prose pages, `.container-wide` (880px) for case studies, and `.container-content` (`--content-max`) for pages whose bulk is cards rather than paragraphs — about and the glossary, so they fill the same frame `/projects/` is built on. Widening to `.container-content` does not stretch prose: the 65ch cap lives on the paragraphs, not on the container.
+- One container width site-wide: `.container` is `--content-max` (1180px), so every page — prose, case studies, card pages — shares the same frame. The reading measure is not stretched by it: the 75ch prose cap and the 65ch source-paragraph cap live on the content elements, not on the container.
 - Below 1100px the nav is an off-canvas drawer over a scrim, opened from a sticky top bar; the panel holds the page scroll only while it is open.
 - The kanban board is the only element that breaks out of the reading column, to a wider viewport-capped width — it centres on the content column, not the viewport, so it never slides under the rail.
 - Project grids use auto-fit with a minimum card width so cards reflow without media queries.

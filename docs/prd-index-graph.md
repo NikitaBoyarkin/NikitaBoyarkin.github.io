@@ -183,8 +183,8 @@
 | `src/components/KnowledgeGraph.astro` | `/graph`: подписи только у якорей (корень/хабы/проекты/темы), расходятся радиально от центра |
 | `src/pages/graph.astro`, `src/pages/en/graph.astro` | интро описывает один центр |
 | `src/lib/canvas-layout.ts` | узел `graph` в правой полосе (780,80,580×740); `NodeId += 'graph'` |
-| `src/components/PersonaCanvas.astro` | рендер узла-графа в правой полосе; поверхность как у карточек; мобильный стек |
-| `src/styles/global.css` | light-тема: тот же тёплый `--card-background` для `.canvas-node--graph`, что и для `.persona-card` |
+| `src/components/PersonaCanvas.astro` | рендер узла-графа в правой полосе; карточка — сайтовый bento (`.bento-cell`, как `StackCard`): заголовок `bento-cell-title`, ссылка `bento-cell-link`; мобильный стек |
+| `src/styles/global.css` | поверхность граф-карточки даёт `.bento-cell` (site-стиль), поэтому точечный light-override для `.canvas-node--graph` не нужен — убран; `.persona-card` override без изменений |
 | `tests/lib/graph.test.ts` | + корень: 6 core-рёбер, связность, отсутствие рёбер к пустым хабам |
 | `tests/lib/graph-layout.test.ts` | + `layoutRadial`: детерминизм, корень в центре, монотонность колец |
 | `tests/lib/canvas-layout.test.ts` | 5 узлов, две полосы (гейт слева, граф справа) |

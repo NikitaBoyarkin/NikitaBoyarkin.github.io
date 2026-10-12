@@ -2061,23 +2061,12 @@ footer p {
 
 /* Project Page Styles */
 .container {
-  /* 800px is the site-wide default. Prose pages opt into the wider column with
-     `.container-wide`, so widening the measure does not move about / value /
-     graph / topics. */
-  max-width: var(--container-max, 800px);
+  /* One width site-wide: every page renders in the widest frame. The reading
+     measure still lives on the prose elements themselves (prose.css), not on
+     this container, so widening it does not stretch paragraphs. */
+  max-width: var(--content-max);
   margin: 0 auto;
   padding: 2rem;
-}
-
-.container-wide {
-  --container-max: 880px;
-}
-.container-content {
-  /* Fills <main>'s reading column instead of the 800px prose measure. For pages
-     whose bulk is cards/grids rather than paragraphs (about, glossary), so they
-     match the frame /projects/ is built on. Prose stays readable because the
-     65ch cap lives on the paragraphs themselves, not on this container. */
-  --container-max: var(--content-max);
 }
 
 .back {
@@ -2108,11 +2097,12 @@ footer p {
 }
 
 /* Inner TOC for project pages.
-   The rail shares the page with a 220px sidebar and an 800px centred column, so
-   the left gutter is not free — `left: 40px` put it *behind the nav*, where it
-   was invisible on every width. It lives in the right gutter now, and only
-   renders where that gutter is wide enough to hold it; below ~1520px it would
-   overlap the text, so the in-flow `.inline-toc` covers those widths. */
+   The rail shares the page with a 220px sidebar and a single 1180px centred
+   column (`--content-max`), so the left gutter is not free — `left: 40px` put it
+   *behind the nav*, where it was invisible on every width. It lives in the right
+   gutter now, and only renders where that gutter is wide enough to hold it;
+   below ~1700px it would overlap the text, so the in-flow `.inline-toc` covers
+   those widths. */
 #inner-toc {
   position: fixed;
   top: 120px;
@@ -2128,7 +2118,7 @@ footer p {
   display: none;
 }
 
-@media (min-width: 1520px) {
+@media (min-width: 1700px) {
   #inner-toc {
     display: block;
   }
@@ -4031,10 +4021,9 @@ html.canvas-static .persona-card {
    toward the page over the card's height so the panel has an edge without a hard
    seam. Written at 0,2,1 to out-rank the scoped `.persona-card[data-astro-cid-…]`
    (0,2,0) that ships from a later stylesheet, the same fight documented above.
-   The index graph panel wears the same surface as the cards (docs/prd-index-graph.md),
-   so it takes the same override. */
-html[data-theme="light"] .persona-card,
-html[data-theme="light"] .canvas-node--graph {
+   (The index graph panel is a `.bento-cell`, which already carries the site's
+   own card surface — it needs no override here.) */
+html[data-theme="light"] .persona-card {
   background: linear-gradient(
     180deg,
     var(--card-background),

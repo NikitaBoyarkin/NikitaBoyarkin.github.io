@@ -23,6 +23,12 @@ import path from 'node:path';
  *    hook resolves only solid hex and reads only global.css)
  *  - `prose.css` being imported before the sheets it must win against
  *
+ * The same change also collapses the three container widths (`.container` 800px,
+ * `.container-wide` 880px, `.container-content`) into one wide frame: `global.css`
+ * declares `.container { max-width: var(--content-max) }` and both modifiers are
+ * gone from CSS and from every page's markup. The reading measure now lives only
+ * on `.prose`; `.post-content` takes the wide frame as well.
+ *
  * NOT bound here: the rendered result (does the heading actually look right,
  * is the measure actually ~75ch). That is «Verified by eye» in the PRD, not a test.
  */
@@ -116,10 +122,11 @@ describe('migration — the old ID-scoped blocks are gone, not duplicated', () =
     }
   });
 
-  it('keeps the post column aligned with the prose measure', () => {
+  it('gives posts the wide frame while the reading measure stays on .prose', () => {
     const css = stripComments(read(BLOG));
-    // Both declarations are required: `ch` resolves against this element's own size.
-    expect(css).toMatch(/\.post-content\s*\{[^}]*max-width:\s*var\(--prose-measure\)/);
+    // Posts share the site-wide wide frame; the ~75ch reading measure lives on
+    // `.prose` (see the first describe), so the column no longer carries it.
+    expect(css).toMatch(/\.post-content\s*\{[^}]*max-width:\s*var\(--content-max\)/);
     expect(css).toMatch(/\.post-content\s*\{[^}]*font-size:\s*var\(--prose-size\)/);
   });
 
@@ -134,50 +141,23 @@ describe('wiring — the class styles, the id stays', () => {
     expect(read(file)).toContain(markup);
   });
 
-  it('binds each container width modifier to its page set', () => {
+  it('binds the single wide container frame and keeps the removed modifiers gone', () => {
+    // One frame for every page: the three widths collapsed into `.container`.
     const css = stripComments(read(GLOBAL));
-    expect(css).toMatch(/\.container\s*\{[^}]*max-width:\s*var\(--container-max,\s*800px\)/);
-    expect(css).toMatch(/\.container-wide\s*\{\s*--container-max:\s*880px/);
-    expect(css).toMatch(/\.container-content\s*\{\s*--container-max:\s*var\(--content-max\)/);
+    expect(css).toMatch(/\.container\s*\{[^}]*max-width:\s*var\(--content-max\)/);
+    expect(css).not.toContain('.container-wide');
+    expect(css).not.toContain('.container-content');
 
-    // Both modifiers are scoped on purpose. The remaining `.container` page
-    // (topics) keeps the 800px column.
+    // The deletion has to reach the markup too. About keeps its body in
+    // src/components/, so the scan spans src/pages *and* that file; a single
+    // surviving modifier would silently keep a page on the old narrow frame.
     const pages = fs
       .readdirSync(path.join(ROOT, 'src/pages'), { recursive: true, encoding: 'utf8' })
       .filter((f) => f.endsWith('.astro'))
       .map((f) => `src/pages/${f}`);
-    const wide = pages.filter((f) => read(f).includes('container-wide'));
-    expect(wide.sort()).toEqual(
-      [
-        'src/pages/en/projects/[slug].astro',
-        'src/pages/en/projects/volta/[part].astro',
-        'src/pages/projects/[slug].astro',
-        'src/pages/projects/volta/[part].astro',
-      ].sort(),
+    const dead = [...pages, 'src/components/AboutPage.astro'].filter((f) =>
+      /container-(wide|content)/.test(read(f)),
     );
-
-    // About keeps its body in src/components/, so the scan has to span both.
-    // The shelf *index* is a tile grid and takes the same full reading frame as
-    // /graph/ — a grid in the 800px column reads cramped. Only the source pages,
-    // which are prose, narrow to the reading measure. The contact pages take the
-    // frame too: their bulk is the CTA row and cards, not paragraphs.
-    const content = [...pages, 'src/components/AboutPage.astro'].filter((f) =>
-      read(f).includes('container-content'),
-    );
-    expect(content.sort()).toEqual(
-      [
-        'src/components/AboutPage.astro',
-        'src/pages/contact.astro',
-        'src/pages/en/contact.astro',
-        'src/pages/en/glossary/index.astro',
-        'src/pages/en/graph.astro',
-        'src/pages/en/library.astro',
-        'src/pages/en/library/[slug].astro',
-        'src/pages/glossary/index.astro',
-        'src/pages/graph.astro',
-        'src/pages/library.astro',
-        'src/pages/library/[slug].astro',
-      ].sort(),
-    );
+    expect(dead).toEqual([]);
   });
 });
