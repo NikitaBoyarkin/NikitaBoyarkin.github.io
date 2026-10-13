@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Portfolio index — NikitaBoyarkin</title>
+<style>
+:root{
+  --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#2b3441;
+  --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --accent2:#3fb950;
+  --warn:#d29922; --chip:#21262d;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text);
+  font:15px/1.65 ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 72px}
+.crumbs{
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  font-size:13px;color:var(--muted);margin-bottom:22px;
+}
+.crumbs .sep{opacity:.5}
+main h1{
+  font-size:26px;line-height:1.25;margin:0 0 18px;
+  padding-bottom:12px;border-bottom:1px solid var(--border);
+}
+main h2{
+  font-size:18px;margin:34px 0 12px;padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+main h3{font-size:15px;margin:24px 0 10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+p{margin:10px 0}
+ul,ol{margin:10px 0 10px 22px;padding:0}
+li{margin:6px 0}
+code{
+  background:var(--chip);border:1px solid var(--border);border-radius:5px;
+  padding:1px 5px;font-size:.9em;
+}
+pre{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;overflow:auto}
+pre code{background:none;border:0;padding:0}
+blockquote{
+  margin:14px 0;padding:8px 14px;border-left:3px solid var(--accent);
+  background:var(--panel);color:var(--muted);
+}
+table{
+  width:100%;border-collapse:collapse;margin:14px 0 22px;
+  font-size:13.5px;background:var(--panel);
+  border:1px solid var(--border);border-radius:8px;overflow:hidden;
+}
+th,td{padding:8px 11px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:var(--panel2);font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--panel2)}
+td:first-child{white-space:nowrap}
+strong{color:#fff}
+hr{border:0;border-top:1px solid var(--border);margin:30px 0}
+@media (max-width:700px){ .wrap{padding:20px 12px 56px} table{font-size:12.5px} th,td{padding:6px 8px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="crumbs">
+  <a href="index.html">← Repo audit dashboard</a>
+  <span class="sep">·</span>
+  <a href="/">nikitaboyarkin.github.io</a>
+</nav>
+<main>
+<h1 id="portfolio-index--nikitaboyarkin-47-authored-repos">Portfolio
+index — NikitaBoyarkin (47 authored repos)</h1>
+<p>Single resume/landing-ready index. Every number below is extracted
+from the repo's own README; nothing is inferred. Where a README states
+no quantified result, the cell says
+<code>no quantified result</code>.</p>
+<ul>
+<li><strong>Repos:</strong> 47 (23 <code>case-*</code> sub-studies +
+<code>volta-banking</code> umbrella, 17 tooling/infra, 6
+learning/legacy)</li>
+<li><strong>With a quantified headline result:</strong> 33 / 47</li>
+<li><strong>Without one:</strong> 14 (see <em>Gaps in the
+evidence</em>)</li>
+<li>Evidence strength = significance + ROI/effect size + sample size (or
+real data).</li>
+</ul>
+<hr />
+<h2 id="1-flagship--case-studies-24">1. Flagship — case studies
+(24)</h2>
+<p>Ordered by strength of evidence, strongest first.</p>
+<table>
+<thead>
+<tr>
+<th>repo</th>
+<th>showcase metric</th>
+<th>stack</th>
+<th>result</th>
+<th>evidence</th>
+<th>link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>volta-banking</td>
+<td>+5.72pp KYC conversion, p&lt;0.0001</td>
+<td>Python · pandas · scipy · sklearn · shap</td>
+<td>€656K/yr at 44× ROI on €15K dev-cost; M1 +11.8pp, M3 +9.2pp,
++€227K/yr</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/volta-banking">https://github.com/NikitaBoyarkin/volta-banking</a></td>
+</tr>
+<tr>
+<td>case-ab</td>
+<td>+5.72pp KYC conversion, Z=5.82, p&lt;0.0001 (95% CI
++3.78…+7.66)</td>
+<td>Python · pandas · scipy · sklearn</td>
+<td>Ship-gate passed (no SRM, lift ≥ MDE); +€656K/yr at 44× ROI</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-ab">https://github.com/NikitaBoyarkin/case-ab</a></td>
+</tr>
+<tr>
+<td>case-causal-kyc</td>
+<td>DiD ATT M3 +9.09pp (95% CI +6.21…+11.96), p&lt;0.001</td>
+<td>Python · scipy · statsmodels</td>
+<td>N=84,000; pre-trends flat, placebo ≈ 0, max abs SMD 0.157; 3/3 CIs
+cover injected effect</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-causal-kyc">https://github.com/NikitaBoyarkin/case-causal-kyc</a></td>
+</tr>
+<tr>
+<td>case-retention</td>
+<td>M1 +11.8pp, M3 +9.2pp step-change</td>
+<td>Python · pandas · scipy</td>
+<td>+€227K/yr incremental LTV; Premium LTV 4.3× Free (M6 60% vs
+31%)</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-retention">https://github.com/NikitaBoyarkin/case-retention</a></td>
+</tr>
+<tr>
+<td>case-dormant-winback</td>
+<td>human +5.34pp, light-touch +2.77pp (3-arm RCT)</td>
+<td>Python · scipy · statsmodels</td>
+<td>Light-touch ROI 2.54 (30–60d) and 1.26 (60–90d); human ROI 0.40 →
+kill as mass channel</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-dormant-winback">https://github.com/NikitaBoyarkin/case-dormant-winback</a></td>
+</tr>
+<tr>
+<td>case-anchor-cac</td>
+<td>LTV/CAC 1.76× at SOM (225K)</td>
+<td>Python · pandas · scipy</td>
+<td>≥3 gate holds only to ~70K; 17.0-month payback; marginal SOM user
+costs €80</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-anchor-cac">https://github.com/NikitaBoyarkin/case-anchor-cac</a></td>
+</tr>
+<tr>
+<td>case-assisted-cac</td>
+<td>45+ blended LTV/CAC 0.66 (gate ≥3)</td>
+<td>Python · scipy · statsmodels</td>
+<td>Assisted CAC €120 → 50-month payback; Welch anchor−45+ = €43.99,
+p≈2e-13</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-assisted-cac">https://github.com/NikitaBoyarkin/case-assisted-cac</a></td>
+</tr>
+<tr>
+<td>case-premium-offers</td>
+<td>+3.33pp 45+, +4.16pp families, +3.79pp travelers (all
+Holm-significant)</td>
+<td>Python · scipy · statsmodels</td>
+<td>Segment offers lift gap segments; anchor barely moves (+0.86pp,
+ns)</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-premium-offers">https://github.com/NikitaBoyarkin/case-premium-offers</a></td>
+</tr>
+<tr>
+<td>case-kyc-45</td>
+<td>35–44 +11.0pp (p&lt;0.001); 45+ +1.4pp (ns)</td>
+<td>Python · scipy · statsmodels</td>
+<td>45+ gap persists 53.2% vs 61.2% (chi² p&lt;0.001); referral converts
+45+ best (64.1%)</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-kyc-45">https://github.com/NikitaBoyarkin/case-kyc-45</a></td>
+</tr>
+<tr>
+<td>case-segmentation</td>
+<td>Power = 12% of users → 41% of revenue</td>
+<td>Python · pandas · sklearn</td>
+<td>K=4 chosen from data (elbow + silhouette); migration scenarios
++€310K/yr</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-segmentation">https://github.com/NikitaBoyarkin/case-segmentation</a></td>
+</tr>
+<tr>
+<td>case-referral</td>
+<td>anchor 29.6% vs 45+ 4.8% and families 8.6%</td>
+<td>Python · scipy · statsmodels</td>
+<td>chi² p&lt;0.001, z=43.3; gap opens at accept (78% vs 26% vs
+40%)</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-referral">https://github.com/NikitaBoyarkin/case-referral</a></td>
+</tr>
+<tr>
+<td>case-premium-upsell</td>
+<td>Premium Status 41.2%, anchor 17.3%, 45+ 1.8%</td>
+<td>Python · scipy · sklearn</td>
+<td>z=34, p&lt;0.001; gap persists within every cohort (Power 26% vs
+Dormant 2%)</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-premium-upsell">https://github.com/NikitaBoyarkin/case-premium-upsell</a></td>
+</tr>
+<tr>
+<td>case-funnel</td>
+<td>KYC 56.6% step conversion (2,781 of 4,917)</td>
+<td>Python · pandas · scipy</td>
+<td>10,000 installs → 1,269 first tx (12.7%); registration loses 2,682
+(73.2%)</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-funnel">https://github.com/NikitaBoyarkin/case-funnel</a></td>
+</tr>
+<tr>
+<td>case-unit-economics</td>
+<td>−€0.45 net margin per €100 FX transaction</td>
+<td>Python · pandas · scipy</td>
+<td>Break-even needs FX cost 1.00% → 0.55%; loss grows with volume</td>
+<td>medium</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-unit-economics">https://github.com/NikitaBoyarkin/case-unit-economics</a></td>
+</tr>
+<tr>
+<td>case-fx-sourcing</td>
+<td>0.55% gate reachable at €332M/mo (122× today)</td>
+<td>Python · scipy</td>
+<td>~0.20pp discount per order of magnitude; best provider Interbank
+Prime 0.745%</td>
+<td>medium</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-fx-sourcing">https://github.com/NikitaBoyarkin/case-fx-sourcing</a></td>
+</tr>
+<tr>
+<td>case-attribution</td>
+<td>Shapley: referral €263.7K vs display €125.0K</td>
+<td>Python · pandas · scipy</td>
+<td>Referral leads all 4 models (€218–264K); heuristics overstate the
+last click</td>
+<td>medium</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-attribution">https://github.com/NikitaBoyarkin/case-attribution</a></td>
+</tr>
+<tr>
+<td>case-support-churn</td>
+<td>churn 37.1% (0 tickets) → 81.1% (3+)</td>
+<td>Python · pandas · scipy</td>
+<td>3+ tickets churn 2.2× the base; CSAT bands barely discriminate
+(52–55%)</td>
+<td>medium</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-support-churn">https://github.com/NikitaBoyarkin/case-support-churn</a></td>
+</tr>
+<tr>
+<td>case-clv</td>
+<td>Gamma-Gamma: Power €5,166 vs Dormant €27.7</td>
+<td>Python · scipy · statsmodels</td>
+<td>Order Power &gt; Growth &gt; Casual &gt; Dormant robust across 3
+methods; predictive 2.9–5.9× historical</td>
+<td>medium</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-clv">https://github.com/NikitaBoyarkin/case-clv</a></td>
+</tr>
+<tr>
+<td>case-jtbd</td>
+<td>Dormant 39.4% (45+) vs 15.1% (families), chi² p&lt;0.001</td>
+<td>Python · scipy</td>
+<td>JTBD segments ≠ behavioral cohorts; dormancy driven by UX, not "no
+job"</td>
+<td>medium</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-jtbd">https://github.com/NikitaBoyarkin/case-jtbd</a></td>
+</tr>
+<tr>
+<td>case-anomalies</td>
+<td>Isolation Forest best F1 50.4% (401 detections)</td>
+<td>Python · sklearn · scipy</td>
+<td>Z-score precision 80.5% at recall 24.7%; all scored against ground
+truth</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-anomalies">https://github.com/NikitaBoyarkin/case-anomalies</a></td>
+</tr>
+<tr>
+<td>case-churn</td>
+<td>Random Forest +0.03 ROC-AUC over logistic regression</td>
+<td>Python · sklearn · shap</td>
+<td>Top churn driver is device-error rate 23.7%, above balance and
+activity</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-churn">https://github.com/NikitaBoyarkin/case-churn</a></td>
+</tr>
+<tr>
+<td>case-nps</td>
+<td>NPS near zero: peak +12.9, bottom −1.8</td>
+<td>Python · pandas · scipy</td>
+<td>Drivers: app_quality +30.3, product +29.4; fees −59.4, onboarding
+−23.6</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-nps">https://github.com/NikitaBoyarkin/case-nps</a></td>
+</tr>
+<tr>
+<td>case-spend</td>
+<td>bills 25.8% + travel 20.2% ≈ half the turnover</td>
+<td>Python · pandas · scipy</td>
+<td>Groceries most frequent (18,238 tx, €45.8 avg); travel is
+thin-margin</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-spend">https://github.com/NikitaBoyarkin/case-spend</a></td>
+</tr>
+<tr>
+<td>case-rfm</td>
+<td>Champions = 23.9% of the base</td>
+<td>Python · pandas · sklearn</td>
+<td>At Risk 11.5% + Lost 23.2% form a large reactivation reserve</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/case-rfm">https://github.com/NikitaBoyarkin/case-rfm</a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-tooling--infra-17">2. Tooling / infra (17)</h2>
+<table>
+<thead>
+<tr>
+<th>repo</th>
+<th>showcase metric</th>
+<th>stack</th>
+<th>result</th>
+<th>evidence</th>
+<th>link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ab_test</td>
+<td>CUPED removes 17.7% of variance; delta-method CTR +0.51pp,
+p&lt;0.0001</td>
+<td>Python · statsmodels · scipy</td>
+<td>18 calibration modules, each re-run as a test; SRM p=0.8376;
+BH-corrected, no segment differs</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/ab_test">https://github.com/NikitaBoyarkin/ab_test</a></td>
+</tr>
+<tr>
+<td>serp-rank-lab</td>
+<td>revenue-optimum earns +38% per search (1,196.6 vs 868.9)</td>
+<td>Python · DuckDB · Streamlit · scipy</td>
+<td>IPW-weighted logs +19.3% revenue; position 1 = 47.3% of revenue;
+mSPRT FPR 0.25% vs 14.5% peeking</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/serp-rank-lab">https://github.com/NikitaBoyarkin/serp-rank-lab</a></td>
+</tr>
+<tr>
+<td>sql-analytics-case-study</td>
+<td>funnel drops 54% at cart→checkout</td>
+<td>SQL · DuckDB · dbt</td>
+<td>D1→D30 retention 21%→5%; repeat rate 3.5%; real case (UCI, 1.07M
+lines) 72.4% repeat</td>
+<td>strong</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/sql-analytics-case-study">https://github.com/NikitaBoyarkin/sql-analytics-case-study</a></td>
+</tr>
+<tr>
+<td>causal-uplift</td>
+<td>CUPED cuts standard error ~26% (×0.742)</td>
+<td>Python · LightGBM</td>
+<td>10k → ~5.5k users/arm for same power; "new" respond ~8× vs
+"returning" (0.1108 vs 0.0132)</td>
+<td>medium</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/causal-uplift">https://github.com/NikitaBoyarkin/causal-uplift</a></td>
+</tr>
+<tr>
+<td>churn-prediction</td>
+<td>lift@top-decile 5.44× (recall 0.544), AUC 0.916</td>
+<td>Python · LightGBM · sklearn</td>
+<td>Leakage-free chronological split; at-risk subgroup lift 1.75×, AUC
+0.901</td>
+<td>medium</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/churn-prediction">https://github.com/NikitaBoyarkin/churn-prediction</a></td>
+</tr>
+<tr>
+<td>crm-experiment-lab</td>
+<td>GCG cumulative uplift +0.9968 purchases/user by day 27 [+0.9433,
++1.0502]</td>
+<td>Python · statsmodels · scipy</td>
+<td>Net +50.5 per 1,000 treated (uplift +212.8 − unsub 162.3); 0
+daily-cap violations</td>
+<td>medium</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/crm-experiment-lab">https://github.com/NikitaBoyarkin/crm-experiment-lab</a></td>
+</tr>
+<tr>
+<td>rag-eval-harness</td>
+<td>recall@5 1.00, MRR 1.00, faithfulness 1.00</td>
+<td>Python · scikit-learn · TF-IDF</td>
+<td>correctness 0.37, precision@5 0.20 on 20 labeled questions; runs
+with zero API keys</td>
+<td>medium</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/rag-eval-harness">https://github.com/NikitaBoyarkin/rag-eval-harness</a></td>
+</tr>
+<tr>
+<td>rfm-analysis-of-bank-clients</td>
+<td>Gini 0.324; top 20% hold 38.2% of revenue</td>
+<td>Python · pandas · Streamlit</td>
+<td>1,983 clients / 9,492 tx; Champions 6.4% of clients → 12.1% of
+revenue</td>
+<td>medium</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/rfm-analysis-of-bank-clients">https://github.com/NikitaBoyarkin/rfm-analysis-of-bank-clients</a></td>
+</tr>
+<tr>
+<td>NikitaBoyarkin (profile)</td>
+<td>+5.72pp KYC conversion, €656K/yr; A/B p=0.0034 on 8,000 users</td>
+<td>Markdown · SVG · CI</td>
+<td>Aggregates 22 projects / 4 tracks / 23 Volta case studies; every
+evidence link HTTP-checked in CI</td>
+<td>medium</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/NikitaBoyarkin">https://github.com/NikitaBoyarkin/NikitaBoyarkin</a></td>
+</tr>
+<tr>
+<td>tableau_cohort_analysis</td>
+<td>no quantified result</td>
+<td>Python · pandas · Tableau Hyper API</td>
+<td>Enables cohort retention/LTV export (CSV + .hyper); 34 tests,
+6-column contract</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/tableau_cohort_analysis">https://github.com/NikitaBoyarkin/tableau_cohort_analysis</a></td>
+</tr>
+<tr>
+<td>airflow</td>
+<td>no quantified result</td>
+<td>Airflow 3 · Postgres · Google Sheets · uv</td>
+<td>Enables idempotent Postgres→Sheets reports; 2 DAGs, 64 tests, DQ
+validation + alerts</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/airflow">https://github.com/NikitaBoyarkin/airflow</a></td>
+</tr>
+<tr>
+<td>python</td>
+<td>no quantified result</td>
+<td>Python · pandas · matplotlib</td>
+<td>Enables reusable load→clean→EDA→viz pipeline; 34 tests, ≥80%
+coverage</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/python">https://github.com/NikitaBoyarkin/python</a></td>
+</tr>
+<tr>
+<td>ml</td>
+<td>no quantified result</td>
+<td>Python · scikit-learn</td>
+<td>Enables leakage-free ColumnTransformer preprocessing; 21 tests</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/ml">https://github.com/NikitaBoyarkin/ml</a></td>
+</tr>
+<tr>
+<td>browser-mini-games</td>
+<td>no quantified result</td>
+<td>Astro · SVG · PostHog · Playwright</td>
+<td>Enables 10 playable self-contained SVG games; 9 PostHog events,
+Playwright smoke tests</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/browser-mini-games">https://github.com/NikitaBoyarkin/browser-mini-games</a></td>
+</tr>
+<tr>
+<td>digital_garden</td>
+<td>no quantified result</td>
+<td>Quartz v4 · TypeScript</td>
+<td>Publishes an "EQ in IT" digital garden (wikilink graph, GitHub
+Pages)</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/digital_garden">https://github.com/NikitaBoyarkin/digital_garden</a></td>
+</tr>
+<tr>
+<td>scrolly-english-speaking</td>
+<td>no quantified result</td>
+<td>Astro 6 · MDX · D3 v7</td>
+<td>Publishes a scrollytelling spoken-English guide (GitHub Pages)</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/scrolly-english-speaking">https://github.com/NikitaBoyarkin/scrolly-english-speaking</a></td>
+</tr>
+<tr>
+<td>NikitaBoyarkin.github.io</td>
+<td>no quantified result</td>
+<td>Astro 7 · TypeScript</td>
+<td>Publishes a bilingual RU/EN portfolio: 17 case studies, 23 Volta
+sub-parts, 24 notes</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io">https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io</a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-learning--legacy-6">3. Learning / legacy (6)</h2>
+<table>
+<thead>
+<tr>
+<th>repo</th>
+<th>showcase metric</th>
+<th>stack</th>
+<th>result</th>
+<th>evidence</th>
+<th>link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>my_cv</td>
+<td>no quantified result</td>
+<td>—</td>
+<td>Single-page CV (roadmap.sh project), README + LICENSE only</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/my_cv">https://github.com/NikitaBoyarkin/my_cv</a></td>
+</tr>
+<tr>
+<td>telegram_bot_public</td>
+<td>no quantified result</td>
+<td>—</td>
+<td>Public placeholder for telegram_bot; README only</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/telegram_bot_public">https://github.com/NikitaBoyarkin/telegram_bot_public</a></td>
+</tr>
+<tr>
+<td>NLTK</td>
+<td>no quantified result</td>
+<td>Python · NLTK</td>
+<td>Legacy NLP learning scripts/notebooks, no test suite</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/NLTK">https://github.com/NikitaBoyarkin/NLTK</a></td>
+</tr>
+<tr>
+<td>Python_algorithms</td>
+<td>no quantified result</td>
+<td>Python</td>
+<td>Legacy algorithm-practice repo, no tests</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/Python_algorithms">https://github.com/NikitaBoyarkin/Python_algorithms</a></td>
+</tr>
+<tr>
+<td>Python_data_structures</td>
+<td>no quantified result</td>
+<td>Python</td>
+<td>Legacy data-structures practice repo, no tests</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/Python_data_structures">https://github.com/NikitaBoyarkin/Python_data_structures</a></td>
+</tr>
+<tr>
+<td>TensorFlow-and-Keras</td>
+<td>no quantified result</td>
+<td>Jupyter Notebook · TF/Keras</td>
+<td>Legacy single-notebook repo, no tests</td>
+<td>weak</td>
+<td><a
+href="https://github.com/NikitaBoyarkin/TensorFlow-and-Keras">https://github.com/NikitaBoyarkin/TensorFlow-and-Keras</a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-how-to-present">4. How to present</h2>
+<ul>
+<li><strong>Headline number:</strong> lead with <strong>"+5.72pp KYC
+conversion (p&lt;0.0001) → €656K/yr at 44× ROI"</strong>. It is the only
+figure with significance, a business unit, <em>and</em> an ROI in one
+line — and it is the one the profile README and the portfolio site
+already promote.</li>
+<li><strong>Feature 3–5, in this order:</strong> (1)
+<code>volta-banking</code> as the umbrella; (2) <code>case-ab</code>
+(the randomized proof behind the headline); (3)
+<code>case-causal-kyc</code> (DiD +9.09pp on N=84,000 — shows you don't
+confuse correlation with causation); (4) <code>case-retention</code> (M1
++11.8pp, +€227K/yr — shows the effect survived in cohorts); (5)
+<code>serp-rank-lab</code> (+38% revenue/search) <em>or</em>
+<code>sql-analytics-case-study</code> (funnel −54%) for a second
+domain.</li>
+<li><strong>Second headline for method depth:</strong> "CUPED removes
+26% of variance — same power on 5.5k users/arm instead of 10k"
+(<code>causal-uplift</code>) and "18 A/B modules, each calibration
+re-run as a test" (<code>ab_test</code>). This is what separates a
+methods portfolio from a charts portfolio.</li>
+<li><strong>Show decision-grade judgment, not just wins.</strong> Three
+READMEs state <em>negative</em> results as results:
+<code>case-dormant-winback</code> (human ROI 0.40 → kill),
+<code>case-assisted-cac</code> (45+ LTV/CAC 0.66 → hold),
+<code>case-anchor-cac</code> (LTV/CAC 1.76 at SOM → hold). Lead a bullet
+with "killed a channel and held a launch on the evidence" — it is more
+credible than another positive lift.</li>
+<li><strong>Quantify breadth with one line:</strong> "23 linked case
+studies under one neobank flagship; 17 case studies on the live
+bilingual portfolio site."</li>
+<li><strong>For a BI/analytics role</strong>, swap the top tooling pick
+to <code>sql-analytics-case-study</code> (25 DuckDB cases + dbt layer +
+a real-data case) and <code>churn-prediction</code> (leakage-free split,
+lift@top-decile 5.44×).</li>
+<li><strong>Be explicit that the Volta numbers are synthetic</strong>
+(seeded generators) and point to the one real-data artifact: SQL case 26
+on UCI Online Retail II (1,067,371 invoice lines, 72.4% repeat). Honesty
+here protects the headline.</li>
+<li><strong>Drop from the resume/landing entirely:</strong>
+<code>NLTK</code>, <code>Python_algorithms</code>,
+<code>Python_data_structures</code>, <code>TensorFlow-and-Keras</code>,
+<code>my_cv</code>, <code>telegram_bot_public</code> — no quantified
+result and they dilute the analyst signal. Keep them only as a one-line
+"archive" link if a breadth signal is needed.</li>
+<li><strong>Do not headline the infra repo counts.</strong> "10 games",
+"2 DAGs", "64 tests", "34 tests", "≥80% coverage" are engineering
+metadata, not outcomes. Mention tooling as <em>capability</em> (Airflow,
+dbt, DuckDB, Streamlit, Postgres, Supabase) rather than as results.</li>
+<li><strong>If one number must carry a landing hero,</strong> use
+<code>+5.72pp</code> / <code>€656K/yr</code>; if two, add
+<code>+38% revenue per search</code> (serp-rank-lab) to show the same
+rigor outside the flagship's domain.</li>
+</ul>
+<hr />
+<h2 id="5-gaps-in-the-evidence">5. Gaps in the evidence</h2>
+<p>14 of 47 repos state <strong>no quantified result</strong>. What
+single number would fix each:</p>
+<table>
+<thead>
+<tr>
+<th>repo</th>
+<th>gap</th>
+<th>the one number that would make it stronger</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tableau_cohort_analysis</td>
+<td>methodology + test count only; no business metric</td>
+<td>LTV at a fixed horizon per cohort (e.g. "LTV@k=3 = €X; Premium
+cohort holds €Y of 12-month value")</td>
+</tr>
+<tr>
+<td>airflow</td>
+<td>pipeline described, no measured outcome</td>
+<td>"Manual report 45 min → 0; 30-day success rate 9x.x%; p95 duration Z
+s" from <code>dag_metrics</code></td>
+</tr>
+<tr>
+<td>python</td>
+<td>coverage is not an outcome</td>
+<td>the analysis result from <code>segmentation_report.md</code> (e.g.
+"top quartile = X% of spend")</td>
+</tr>
+<tr>
+<td>ml</td>
+<td>only split shape <code>(8,5)/(2,5)</code> and 21 tests</td>
+<td>a model metric on a named dataset (Customer_Churn accuracy / AUC, or
+Housing RMSE)</td>
+</tr>
+<tr>
+<td>browser-mini-games</td>
+<td>game and event counts</td>
+<td>a real engagement figure (sessions played, play-through, or a
+Lighthouse performance score)</td>
+</tr>
+<tr>
+<td>digital_garden</td>
+<td>content site, no metric</td>
+<td>reach: monthly visitors, or number of published notes/graph
+nodes</td>
+</tr>
+<tr>
+<td>scrolly-english-speaking</td>
+<td>"live page" only</td>
+<td>a measured outcome: Lighthouse score, or learners/visits</td>
+</tr>
+<tr>
+<td>NikitaBoyarkin.github.io</td>
+<td>17/23/24 are counts, not results</td>
+<td>a site metric: Lighthouse score, monthly traffic, or PostHog
+visitors</td>
+</tr>
+<tr>
+<td>NikitaBoyarkin (profile)</td>
+<td>numbers are inherited from the flagship</td>
+<td>add "N public repos / N case studies" and a traffic figure to make
+the roll-up self-standing</td>
+</tr>
+<tr>
+<td>my_cv</td>
+<td>README + LICENSE only</td>
+<td>nothing worth adding — fold into the portfolio site and drop the
+repo</td>
+</tr>
+<tr>
+<td>telegram_bot_public</td>
+<td>placeholder, README only</td>
+<td>ship the real bot and report users or commands/day, or drop</td>
+</tr>
+<tr>
+<td>NLTK</td>
+<td>legacy scripts, no tests</td>
+<td>number of exercises/notebooks, or a small task accuracy — otherwise
+drop</td>
+</tr>
+<tr>
+<td>Python_algorithms</td>
+<td>legacy practice</td>
+<td>number of solved problems + tests — otherwise drop</td>
+</tr>
+<tr>
+<td>Python_data_structures</td>
+<td>legacy practice</td>
+<td>number of implemented structures + tests — otherwise drop</td>
+</tr>
+<tr>
+<td>TensorFlow-and-Keras</td>
+<td>single notebook</td>
+<td>a training metric (accuracy/loss) on a named dataset — otherwise
+drop</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note on <code>volta-banking</code> vs its 23
+<code>case-*</code> repos:</strong> the umbrella README and the
+sub-study READMEs state the <em>same</em> headline
+(<code>+5.72pp</code>, <code>€656K/yr</code>). On a resume this should
+be presented as <strong>one</strong> flagship with sub-studies, not as
+24 separate results, to avoid the appearance of double-counting.</p>
+<p><strong>Note on synthetic data:</strong> every Volta / CRM / churn /
+SERP / RAG figure comes from a seeded synthetic generator (stated in
+each README). The only real-data result in the set is
+<code>sql-analytics-case-study</code> case 26 (UCI Online Retail II).
+Present synthetic results as <em>reproducible methods
+demonstrations</em>, and cite case 26 when a real-data proof point is
+needed.</p>
+
+</main>
+</div>
+</body>
+</html>
