@@ -5,7 +5,7 @@ star:
   situation: "No production data, and textbook exercises do not show systems thinking: 25 cases on a synthetic dataset"
   task: "Build cases where every query answers a product question and reproduces with one command"
   action: "One self-contained .sql per case, data generator on DuckDB, dbt staging → marts layer, regression tests, live report on Pages"
-  result: "The funnel drops 54% at add-to-cart → checkout; retention falls from ~21% (D1) to ~5% (D30); only 3.5% repeat; on real data 72.4% return"
+  result: "The funnel drops 78% at add-to-cart → checkout (54% is the view→cart step); retention falls from ~19.5% (D1) to ~4% (D30); only 3.5% repeat; on real data 72.4% return"
 track: analytics
 hero: images/sql.svg
 ogImage: /images/og/sql.png
@@ -30,9 +30,9 @@ faq:
   - question: "What data do the cases run on?"
     answer: "25 cases on a synthetic dataset (~183k events, seed=42 plus an additive seed=43) and 1 real-data case on UCI Online Retail II."
   - question: "Where does the funnel lose the most?"
-    answer: "At add-to-cart → checkout: 54% of users drop off there."
+    answer: "At add-to-cart → checkout: 78% drop off (54% is the view→cart step)."
   - question: "What does retention look like?"
-    answer: "Retention falls from ~21% on D1 to ~5% on D30 and only 3.5% repeat; on the real dataset 72.4% return."
+    answer: "Retention falls from ~19.5% on D1 to ~4% on D30 and only 3.5% repeat; on the real dataset 72.4% return."
   - question: "What does the dbt layer add?"
     answer: "A staging → marts model layer on DuckDB, 17 dbt tests, and a regression test with deterministic invariants per case."
 ---
@@ -114,8 +114,8 @@ The runner prints the case question, executes the SQL against `data/analytics.du
 
 Each case covers a specific window-function pattern, and the findings are honest rather than engineered. Three teaser signals (numbers pinned to `cases.md`):
 
-- the funnel drops **54%** at add-to-cart → checkout;
-- retention falls from **~21%** (D1) to **~5%** (D30) — the leak is the onboarding window;
+- the funnel drops **78%** at add-to-cart → checkout (54% is the view→cart step);
+- retention falls from **~19.5%** (D1) to **~4%** (D30) — the leak is the onboarding window;
 - only **3.5%** of buyers repeat (896 buyers, 31 repeat) — a one-and-done purchase engine.
 
 Also:
