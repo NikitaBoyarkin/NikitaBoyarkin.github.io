@@ -35,6 +35,24 @@ const shikiTheme = {
   }),
 };
 
+// Vite's dev server does not resolve a directory index inside `public/`, so
+// `/repo-audit/` 404s under `astro dev` while working on Pages (which does
+// resolve it). The same is true of the pre-existing `/games/` and `/demos/`.
+// Rewrite only when `public/<path>/index.html` actually exists, so a real Astro
+// route can never be shadowed. Dev-only: `configureServer` never runs in a build.
+const publicDirIndex = () => ({
+  name: "public-dir-index",
+  configureServer(server) {
+    server.middlewares.use((req, _res, next) => {
+      const [pathname, query] = (req.url ?? "").split("?");
+      if (pathname.endsWith("/") && fs.existsSync(path.join("public", pathname, "index.html"))) {
+        req.url = `${pathname}index.html${query ? `?${query}` : ""}`;
+      }
+      next();
+    });
+  },
+});
+
 // Per-URL `lastmod` for the sitemap. A single `lastmod: new Date()` stamps every
 // URL as "changed today" on every deploy — the one form crawlers learn to ignore.
 // Frontmatter is the only honest signal available at config time, so read it
@@ -120,6 +138,8 @@ export default defineConfig({
   // `dist/index.html`: `avatar-3d` is reachable only through the dynamic
   // `import("./avatar-3d...")` inside HeroAvatar, never on the default load.
   vite: {
+    // Dev-only: makes `astro dev` resolve `public/<dir>/` the way Pages does.
+    plugins: [publicDirIndex()],
     build: {
       rollupOptions: {
         output: {
