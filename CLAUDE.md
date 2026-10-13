@@ -407,6 +407,17 @@ Pushing to `master` (or `main`) triggers `.github/workflows/deploy.yml`, which:
 
 Do **not** push directly to `master` without confirming the workflow is enabled in the repository settings (`Settings → Pages → Build and deployment → GitHub Actions`).
 
+### Lighthouse assertions and the /repo-audit/ exception
+
+`.lighthouserc.json` gates every URL listed in `collect.url`. `public/repo-audit/` is not an ordinary page, so the gate is split with `assertMatrix` into two mutually exclusive patterns:
+
+- `^(?!.*repo-audit).*$` — the default set (accessibility ≥ 0.95, best-practices ≥ 0.95, seo ≥ 0.95, `color-contrast` = 1).
+- `/repo-audit/` — same, but `categories:seo` and `valid-source-maps` are `off`. Those two pages are deliberately `noindex, nofollow` working documents, so `is-crawlable` can never pass, and ~560 KB of inline `window.DATA` can never carry a source map. Accessibility and contrast stay enforced — that is the part that actually regresses (the portfolio theme port fixed a real `aria-sort`-on-`role="button"` violation there).
+
+**The two patterns must not overlap.** `assertMatrix` is a *union*: `getAllAssertionResults` re-tests every entry against every URL, so a `.*` catch-all silently layers its assertions on top of a specific entry's and overrides them. That is why the default pattern is a negative lookahead rather than `.*`.
+
+CLS on `/repo-audit/` sits around 0.5 and is `warn`-only. It is **pre-existing**, not a font regression: the KPI grid and the 1,500-row table are injected by JS after parse, so everything below them moves. The pre-theme build measured 0.604 and the current one 0.612 — inside the run-to-run spread. Adding `font-display: optional` buys only ~0.08 and loses the brand font, so the page keeps `swap` plus metric-matched fallbacks (`size-adjust`, measured — see the `FONTS` block in `.firecrawl/NikitaBoyarkin/_build_dashboard.py`).
+
 ## Legacy Files
 
 The original HTML5 UP "Massively" template assets (`public/assets/`, `public/design/`) have been removed.

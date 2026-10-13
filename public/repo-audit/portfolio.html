@@ -4,22 +4,57 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="description" content="The 47 authored repositories behind the portfolio: showcase metric, stack, result and evidence strength for every one.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <title>Portfolio index — NikitaBoyarkin</title>
 <style>
+@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;
+  src:url('/fonts/inter-cyrillic-ext.woff2') format('woff2');
+  unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}
+@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;
+  src:url('/fonts/inter-cyrillic.woff2') format('woff2');
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;
+  src:url('/fonts/inter-latin-ext.woff2') format('woff2');
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;
+  src:url('/fonts/inter-latin.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Cormorant';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url('/fonts/cormorant-latin-ext.woff2') format('woff2');
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Cormorant';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url('/fonts/cormorant-latin.woff2') format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+/* Metric-matched fallbacks — `size-adjust` measured over one sample string (see
+   _build_dashboard.py for the derivation): Cormorant 88.67% of Georgia, Inter
+   106.17% of Arial. Keeps the font swap from reflowing the page. */
+@font-face{font-family:'Inter Fallback';font-display:swap;
+  src:local('Arial'),local('Helvetica Neue'),local('Liberation Sans');
+  size-adjust:106.17%}
+@font-face{font-family:'Cormorant Fallback';font-display:swap;
+  src:local('Georgia'),local('Liberation Serif'),local('Times New Roman');
+  size-adjust:88.67%}
+
 :root{
-  --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#2b3441;
-  --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --accent2:#3fb950;
-  --warn:#d29922; --chip:#21262d;
+  /* Mirrors the dark theme in NikitaBoyarkin.github.io/src/styles/global.css:
+     60-30-10 — teal surfaces, zinc text/borders, one coral accent. */
+  --bg:#0f2a2b; --panel:#1a3435; --panel2:#234044; --border:#3f3f46;
+  --text:#e4e4e7; --muted:#a1a1aa; --accent:#ff8569; --accent-hover:#ffa68a;
+  --accent2:#4ecdc4; --warn:#fe4e02; --ink:#1a1a1a; --chip:#234044;
+  --font-sans:'Inter','Inter Fallback',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,sans-serif;
+  --font-display:'Cormorant','Cormorant Fallback',Georgia,"Times New Roman",Literata,"Noto Serif","PT Serif",serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
   background:var(--bg); color:var(--text);
-  font:15px/1.65 ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font:15px/1.65 var(--font-sans);
   -webkit-font-smoothing:antialiased;
 }
 a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
+a:hover{color:var(--accent-hover);text-decoration:underline}
 .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 72px}
 .crumbs{
   display:flex;gap:10px;align-items:center;flex-wrap:wrap;
@@ -27,13 +62,16 @@ a:hover{text-decoration:underline}
 }
 .crumbs .sep{opacity:.5}
 main h1{
-  font-size:26px;line-height:1.25;margin:0 0 18px;
+  font-family:var(--font-display);font-size:32px;font-weight:600;line-height:1.18;
+  letter-spacing:.005em;margin:0 0 18px;
   padding-bottom:12px;border-bottom:1px solid var(--border);
 }
 main h2{
-  font-size:18px;margin:34px 0 12px;padding-bottom:8px;
-  border-bottom:1px solid var(--border);
+  font-size:18px;margin:34px 0 14px;padding-bottom:8px;
+  border-bottom:1px solid var(--border);position:relative;
 }
+main h2::after{content:"";position:absolute;left:0;bottom:-1px;width:72px;height:2px;
+  border-radius:2px;background:linear-gradient(90deg,var(--accent),transparent)}
 main h3{font-size:15px;margin:24px 0 10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 p{margin:10px 0}
 ul,ol{margin:10px 0 10px 22px;padding:0}
