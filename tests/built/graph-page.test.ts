@@ -77,11 +77,13 @@ describe('graph page board (built HTML)', () => {
     });
 
     it(`${file}: both cores carry their owner-specified colour`, () => {
-      // articles is a theme token, not a hex: #1400c3 is unreadable on the dark
-      // page, so the themes lighten it (see the token test below). projects is
-      // one orange in every theme.
-      expect(doc()).toContain('fill="var(--kg-core-articles)"');
-      expect(doc()).toContain('fill="#ff4e02"');
+      // The ring paints through a custom property, so the colour lives in the
+      // node's inline style rather than in a `fill` attribute. articles is a
+      // theme token, not a hex: #1400c3 is unreadable on the dark page, so the
+      // themes lighten it (see the token test below). projects is one orange in
+      // every theme.
+      expect(doc()).toContain('--kg-ring:var(--kg-core-articles)');
+      expect(doc()).toContain('--kg-ring:#ff4e02');
     });
   }
 
@@ -91,50 +93,52 @@ describe('graph page board (built HTML)', () => {
     expect(doc).not.toContain('kg-bare');
     expect(doc).not.toContain('class="graph-board');
   });
-  it('every anchor-family hub ships as an empty ring; the leaves keep their fill', () => {
-    // The hollow ring covers the whole anchor family — the root, the four type
-    // hubs, the projects and the topic indices — not just `core:*`. These are the
-    // biggest disks in the graph and as solid fills they were the loudest thing
-    // in it. They now paint nothing at rest: the colour is parked in a custom
-    // property on the <g> and applied on hover/focus, because the client's mode
-    // switch writes the `fill` *attribute* — which a class rule outranks — so the
-    // variable is the only path that survives community mode.
+  it('every node ships as an empty ring, coloured only through --kg-ring', () => {
+    // The whole drawing is contour at rest: a node paints nothing until it is
+    // hovered or focused ("touch"), and its colour is parked in a custom property
+    // on the <g>. It has to be the property rather than the `fill` attribute —
+    // the client's community switch recolours nodes, and a class rule outranks an
+    // attribute, so an attribute would be silently dead.
     for (const { file } of PAGES) {
       const doc = html.get(file)!;
-      const hubs = doc.match(/<circle r="[^"]*" class="kg-hub-dot"[^>]*>/g) ?? [];
-      // 4 cores + 22 projects + 9 topics, not the 4 cores alone.
-      expect(hubs.length, file).toBeGreaterThan(30);
-      for (const hub of hubs) expect(hub).not.toContain('fill=');
+      const data = JSON.parse(doc.match(/id="kg-data"[^>]*>([\s\S]*?)<\/script>/)![1]);
+      const rings = doc.match(/<circle r="[^"]*" class="kg-ring"[^>]*>/g) ?? [];
 
-      const gs = doc.match(/<g[^>]*style="[^"]*--kg-hub:[^"]*"[^>]*>/g) ?? [];
-      expect(gs.length, file).toBe(hubs.length);
+      // One ring per node in the serialized graph — not a subset of them.
+      expect(rings.length, file).toBe(data.nodes.length);
+      for (const ring of rings) expect(ring).not.toContain('fill=');
 
-      // Scoped to the anchors: every leaf still ships its section colour, so this
-      // did not flatten the graph into one silhouette.
-      const plain = doc.match(/<circle r="[^"]*" fill="[^"]*"/g) ?? [];
-      expect(plain.length, file).toBeGreaterThan(50);
+      const gs = doc.match(/<g[^>]*style="[^"]*--kg-ring:[^"]*"[^>]*>/g) ?? [];
+      expect(gs.length, file).toBe(rings.length);
+
+      // Still sectioned rather than one grey silhouette.
+      const hues = new Set(gs.map((g) => g.match(/--kg-ring:([^;"]*)/)![1]));
+      expect(hues.size, file).toBeGreaterThan(1);
+
+      // Nothing anywhere keeps a painted fill: the contour is the whole look.
+      expect(doc.match(/<circle [^>]*fill="/g) ?? [], file).toHaveLength(0);
     }
   });
 
-  it('the hub ring is hollow at rest and painted on hover or focus (built CSS)', () => {
+  it('the ring is hollow at rest and painted on hover or focus (built CSS)', () => {
     const dir = resolve(DIST, '_astro');
     const css = readdirSync(dir)
       .filter((f) => f.endsWith('.css'))
       .map((f) => readFileSync(resolve(dir, f), 'utf8'))
       .join('\n');
 
-    const base = css.match(/\.kg-hub-dot[^{]*\{[^}]*\}/)?.[0] ?? '';
+    const base = css.match(/\.kg-ring[^{]*\{[^}]*\}/)?.[0] ?? '';
     expect(base).toContain('fill:none');
-    expect(base).toContain('stroke:var(--kg-hub)');
+    expect(base).toContain('stroke:var(--kg-ring)');
     // Without this a hollow circle is not hit-testable (SVG's default is
-    // `visiblePainted`), so the hub's interior would be a dead zone the pointer
+    // `visiblePainted`), so a node's interior would be a dead zone the pointer
     // fell through to the transparent edge hit-lines — and the hover that fills
     // the ring could never fire.
     expect(base).toContain('pointer-events:all');
 
-    const painted = css.match(/[^{}]*:is\(g\[tabindex\]:hover\)[^{}]*kg-hub-dot[^{}]*\{[^}]*\}/)?.[0] ?? '';
-    expect(painted).toContain('fill:var(--kg-hub)');
-    expect(css).toMatch(/:is\(g\[tabindex\]:focus\)[^{}]*kg-hub-dot/);
+    const painted = css.match(/[^{}]*:is\(g\[tabindex\]:hover\)[^{}]*kg-ring[^{}]*\{[^}]*\}/)?.[0] ?? '';
+    expect(painted).toContain('fill:var(--kg-ring)');
+    expect(css).toMatch(/:is\(g\[tabindex\]:focus\)[^{}]*kg-ring/);
   });
 });
 

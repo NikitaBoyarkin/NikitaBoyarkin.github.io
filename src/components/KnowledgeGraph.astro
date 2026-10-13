@@ -288,26 +288,23 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         const p = isAnchor(n.id) ? placements.get(n.id) : undefined;
         const geo = p ?? radialLabel(n);
         const labelClass = p && p.placed ? 'kg-label' : 'kg-label kg-label-hover';
-        // The anchor family — the root, the four type hubs, projects and topics,
-        // i.e. exactly the nodes `isAnchor` keeps an always-on label on — ships as
-        // an empty ring. These are the big disks, and as solid fills they were the
-        // loudest thing in the graph: at rest each now carries no fill, only its
-        // colour as a stroke, and the fill arrives on hover/focus ("touch"). The
-        // colour lives in a CSS variable because the client's `colorFor(n)` writes
-        // the `fill` *attribute*, which a class rule outranks — so community mode
-        // repaints the ring through `--kg-hub` instead (see applyModeLayout).
-        const isHubDot = isAnchor(n.id);
-        const dotColor = GRAPH_SECTION_COLORS[n.section] || 'var(--text-muted)';
+        // Every node ships as an empty ring: at rest the graph reads as pure
+        // contour, and a node's colour arrives on hover/focus ("touch"). The
+        // colour lives in a CSS variable because the client recolours nodes on the
+        // community switch — a class rule outranks the `fill` *attribute*, so the
+        // variable is the only path that survives the mode change (see
+        // applyModeLayout).
+        const ringColor = GRAPH_SECTION_COLORS[n.section] || 'var(--text-muted)';
         return (
           <g
             tabindex="0"
             role="link"
             aria-label={n.label}
             transform={`translate(${n.x},${n.y})`}
-            style={isHubDot ? `cursor:pointer;--kg-hub:${dotColor}` : 'cursor:pointer'}
+            style={`cursor:pointer;--kg-ring:${ringColor}`}
           >
             <title>{tooltips.node[i].join('\n')}</title>
-            <circle r={r} class={isHubDot ? 'kg-hub-dot' : undefined} fill={isHubDot ? undefined : dotColor} />
+            <circle r={r} class="kg-ring" />
             <text x={geo.tx} y={geo.ty} text-anchor={geo.anchor} class={labelClass}>{n.label}</text>
           </g>
         );
@@ -639,9 +636,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     schedule();
   }
 
-  /** The anchor family — the same set the SSR template draws as hollow rings and
-   *  the label pass keeps always-on. One predicate, two callers, so a ring and a
-   *  label can never disagree about which nodes are hubs. */
+  /** The always-on label set: the root, the four type hubs, projects and topics.
+   *  Same predicate as the template's `isAnchor`, so the two label passes cannot
+   *  disagree about which labels are permanent. */
   const isAnchorId = (id: string) =>
     id.startsWith('core:') || id.startsWith('p:') || id.startsWith('topic:');
 
@@ -655,17 +652,14 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     nodes.forEach((n, i) => {
       n.x = incoming[i].x;
       n.y = incoming[i].y;
-      nodeEls[i].setAttribute('transform', `translate(${n.x},${n.y})`);
-      const circle = nodeEls[i].querySelector('circle');
-      if (circle) {
-        const c = colorFor(n);
-        circle.setAttribute('fill', c);
-        // A hub's paint is CSS (`fill: none` at rest, `--kg-hub` on hover), and
-        // a class rule outranks the attribute, so the variable is what actually
-        // colours it — without this the ring would keep the section hue in
-        // community mode instead of taking the community's.
-        if (isAnchorId(n.id)) nodeEls[i].style.setProperty('--kg-hub', c);
-      }
+      const g = nodeEls[i];
+      g.setAttribute('transform', `translate(${n.x},${n.y})`);
+      // The ring's paint is CSS (`fill: none` at rest, `--kg-ring` on hover), and
+      // a class rule outranks the `fill` attribute — so the variable is what
+      // actually colours a node, and writing the attribute too would be dead
+      // weight. Without this the rings would keep their section hue in community
+      // mode instead of taking the community's.
+      g.style.setProperty('--kg-ring', colorFor(n));
     });
     // The SSR placements were resolved against the group layout; the community
     // layout puts the same nodes somewhere else, so the labels are re-placed
@@ -1727,31 +1721,29 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   .kg-root :is(g.kg-dim) .kg-label-hover {
     opacity: 0;
   }
-  /* The hub ring: every anchor-family node (the root, the four type hubs, the
-     projects, the topic indices) carries no fill at rest, so the big disks stop
-     competing with the leaves. `--kg-hub` is set inline on the <g> by the
-     template (and refreshed by applyModeLayout in community mode). The colour
-     therefore arrives on hover — and on focus, which is what a keyboard or a tap
-     actually produces. */
-  .kg-hub-dot {
+  /* Every node is a ring: no fill at rest, so the graph reads as contour and the
+     colour arrives on hover — and on focus, which is what a keyboard or a tap
+     actually produces. `--kg-ring` is set inline on the <g> by the template (and
+     refreshed by applyModeLayout in community mode). */
+  .kg-ring {
     fill: none;
-    stroke: var(--kg-hub);
+    stroke: var(--kg-ring);
     stroke-width: 1.6;
     transition: fill 120ms ease;
     /* An unpainted fill is not hit-testable (SVG default is `visiblePainted`),
-       so a hollow hub's interior would be a dead zone: the pointer would fall
-       through to the transparent edge hit-lines that cross every hub and the
+       so a hollow node's interior would be a dead zone: the pointer would fall
+       through to the transparent edge hit-lines that cross the graph and the
        hover — the whole point of the empty ring — would never fire. */
     pointer-events: all;
   }
-  .kg-root :is(g[tabindex]:hover) .kg-hub-dot,
-  .kg-root :is(g[tabindex]:focus) .kg-hub-dot {
-    fill: var(--kg-hub);
+  .kg-root :is(g[tabindex]:hover) .kg-ring,
+  .kg-root :is(g[tabindex]:focus) .kg-ring {
+    fill: var(--kg-ring);
   }
-  /* A dimmed hub keeps its ring hollow even under the pointer: the dim is
+  /* A dimmed node keeps its ring hollow even under the pointer: the dim is
      deliberate (a search hit, or the far side of a highlight), and the group's
      own opacity already fades the ring to the background. */
-  .kg-root :is(g.kg-dim:hover) .kg-hub-dot {
+  .kg-root :is(g.kg-dim:hover) .kg-ring {
     fill: none;
   }
   .kg-root :is(g[tabindex]) {
