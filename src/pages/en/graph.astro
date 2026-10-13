@@ -11,39 +11,18 @@ import { withBase } from '../../lib/path';
   counterpartHref={withBase('graph/')}
   activeNav="graph"
   lang="en"
+  bleed
 >
-  <section class="container reveal">
-    <h1 class="page-title">Content graph</h1>
-    <p class="graph-intro">
-      The portfolio's content graph: me at the center, the type hubs (projects, articles, glossary)
-      on the first ring, then posts and topics radiating out — linked by actual references
-      (<code>related</code>, tags, Volta's composition).
-    </p>
+  <section class="graph-board reveal">
+    <header class="graph-board-head">
+      <h1 class="page-title">Content graph</h1>
 
-    <dl class="graph-legend">
-      <div class="graph-legend-item">
-        <dt>Color</dt>
-        <dd>project track or post category; the button switches to community</dd>
-      </div>
-      <div class="graph-legend-item">
-        <dt>Size</dt>
-        <dd>connection count — hubs are bigger</dd>
-      </div>
-      <div class="graph-legend-item">
-        <dt>Edges</dt>
-        <dd>thickness — link strength; solid — explicit links, dashed — thematic and lateral</dd>
-      </div>
-      <div class="graph-legend-item">
-        <dt>Controls</dt>
-        <dd>Arrows — link direction; Focus — highlight neighbors on click (Esc clears); Edges — filter by link type; chips “All / Projects / Posts / Topics / Volta” — quick filter by node type; checkboxes — hide groups; wheel — zoom; drag — pan and move nodes; ⛶ — fullscreen; mode, preset, hidden groups and edges are kept in the URL, so views are shareable</dd>
-      </div>
-    </dl>
+      <p class="graph-note">Built from the content collections at build time — always current.</p>
+    </header>
 
-    <p class="graph-note">Built from the content collections at build time — always current.</p>
+    <KnowledgeGraph lang="en" bare />
 
-    <KnowledgeGraph lang="en" />
-
-    <p style="color: var(--text-muted); margin-top: var(--space-8); font-size: 0.9rem;">
+    <p class="graph-board-gen">
       Generator — <code>src/lib/graph.ts</code>; edge sources — <code>related</code> in frontmatter,
       post tags and the Volta project's <code>children</code>.
     </p>

@@ -14,7 +14,13 @@ import { TOPICS, type Topic } from "./topics";
 export interface GraphNode {
   id: string;
   label: string;
+  /** Taxonomy bucket — the project track, the post category, `topic`,
+   *  `glossary`. `layoutGraph` clusters by it, so it stays the taxonomy and is
+   *  deliberately NOT what a node is painted: see `section`. */
   group: string;
+  /** The section the node reads as — its colour and legend key. Hub and members
+   *  share one value, so a project shows as "Проекты" wherever it sits. */
+  section: string;
   /** Relative page URL (no base, locale-prefixed), e.g. `projects/volta/`. */
   url: string;
   /** Node radius in world units, derived from kind + degree (hub ≈ bigger). */
@@ -64,28 +70,27 @@ export interface GraphData {
 export const ROOT_ID = "core:me";
 export const isRootNode = (id: string): boolean => id === ROOT_ID;
 
-/** Group colors shared by the SSR legend and the client-side renderer. */
-export const GRAPH_GROUP_COLORS: Record<string, string> = {
-  experiments: '#5db8b0',
-  analytics: 'var(--text-accent)',
-  product: '#c9a24a',
-  engineering: '#9d7bd8',
-  guide: '#4caf78',
-  framework: '#e06c6c',
-  'decision-log': '#5b9bd5',
-  // Fixed slate (not var(--text-muted)) so note nodes don't blend into edges.
-  note: '#8fa3b8',
-  topic: '#b48ce0',
-  // Core (hub) groups — the "00" index notes. Bright so the anchors read
-  // clearly against the track/category palette in both themes.
-  projects: '#ff8c42',
-  articles: '#4cc9f0',
+/** Section colors shared by the SSR legend and the client-side renderer. One
+ *  key per section, not per taxonomy bucket: every project paints as «Проекты»
+ *  and every post as «Статьи», so the graph reads as four sections around the
+ *  root instead of a nine-hue taxonomy. */
+export const GRAPH_SECTION_COLORS: Record<string, string> = {
+  // Cyan, not lavender: `topic` is the class a reader meets most often in the
+  // dense ring, and at #b48ce0 it sat 10° from `engineering`'s violet — the two
+  // were indistinguishable in the graph.
+  topic: '#38b2c4',
+  // Sections — the "00" index notes and everything filed under them. Saturated
+  // so they read clearly in both themes. `articles` is a theme token, not a
+  // hex: the brand #1400c3 sits at 1.3:1 on the dark teal page, so dark and
+  // cyberpunk lighten it to #6a5cff while light keeps the exact hex.
+  projects: '#ff4e02',
+  articles: 'var(--kg-core-articles)',
   // The single root of the graph (the person / portfolio itself). Teal so the
-  // one center reads as its own thing against every track/category hue.
+  // one center reads as its own thing against every section hue.
   root: 'var(--text-accent-dataviz)',
-  // Glossary terms (and their hub). Magenta-pink — a hue none of the
-  // track/category colors use; ~3.3:1 on the light (#ffffff) background and
-  // ~4:1 on the dark teal (#1a3435) one, so term nodes read in both themes.
+  // Glossary terms (and their hub). Magenta-pink — a hue none of the sections
+  // use; ~3.3:1 on the light (#ffffff) background and ~4:1 on the dark teal
+  // (#1a3435) one, so term nodes read in both themes.
   glossary: '#e0609b',
 };
 
@@ -437,6 +442,7 @@ export function buildGraph(opts: {
     id: ROOT_ID,
     label: lang === "en" ? "Nikita Boyarkin" : "Никита Бояркин",
     group: "root",
+    section: "root",
     url: `${localePrefix}about/`,
   });
   // Core (hub) nodes — the "00" index notes of the graph. Each aggregates a
@@ -447,12 +453,14 @@ export function buildGraph(opts: {
     id: "core:projects",
     label: lang === "en" ? "Projects" : "Проекты",
     group: "projects",
+    section: "projects",
     url: `${localePrefix}projects/`,
   });
   addNode({
     id: "core:posts",
     label: lang === "en" ? "Articles" : "Статьи",
     group: "articles",
+    section: "articles",
     url: `${localePrefix}writing/`,
   });
   // Glossary hub — added only when the locale actually has terms, so a
@@ -462,6 +470,7 @@ export function buildGraph(opts: {
       id: "core:glossary",
       label: lang === "en" ? "Glossary" : "Словарь",
       group: "glossary",
+      section: "glossary",
       url: `${localePrefix}glossary/`,
     });
   }
@@ -471,6 +480,7 @@ export function buildGraph(opts: {
       id: `p:${slug}`,
       label: p.data.title,
       group: p.data.track || "analytics",
+      section: "projects",
       url: `${localePrefix}projects/${slug}/`,
     });
   }
@@ -480,6 +490,7 @@ export function buildGraph(opts: {
       id: `post:${slug}`,
       label: post.data.title,
       group: post.data.category || "note",
+      section: "articles",
       url: post.data.url ?? `${localePrefix}posts/${slug}/`,
     });
   }
@@ -489,6 +500,7 @@ export function buildGraph(opts: {
       id: `vp:${slug}`,
       label: part.data.title,
       group: "experiments",
+      section: "projects",
       url: `${localePrefix}projects/volta/${slug}/`,
     });
   }
@@ -498,6 +510,7 @@ export function buildGraph(opts: {
       id: `g:${slug}`,
       label: term.data.title,
       group: "glossary",
+      section: "glossary",
       // Same relative, locale-prefixed shape as every other node url (the
       // components run it through `withBase`), mirroring lib/glossary's
       // `termHref` without the leading slash.
@@ -509,6 +522,7 @@ export function buildGraph(opts: {
       id: `topic:${t.key}`,
       label: lang === "en" ? t.key : t.label,
       group: "topic",
+      section: "topic",
       // Topics have no EN pages (they are RU-only, src/pages/topics/[tag].astro),
       // so the EN graph links to the RU topic page — the same graceful fallback
       // posts use for untranslated entries. A locale-prefixed EN url here would
@@ -692,19 +706,47 @@ export function buildGraph(opts: {
     vp: 7,
     g: 7,
     topic: 6.5,
-    core: 10,
   };
-  const nodesWithSize = nodes.filter(
+  // A hub is the one node a reader reads size as a quantity on — "how much is
+  // in here" — so it tracks its edge count linearly. The log-damped kind
+  // formula below suits leaves, where 2 links vs 8 must not double the dot, but
+  // it flattened the hubs into each other: 23 vs 28 members came out 0.4 world
+  // units apart, and the root — which reaches the three hubs, never the
+  // content, so its degree is 3 — out-sized all of them only because it was
+  // pinned. Floor keeps a near-empty hub reading as a hub; ceiling keeps a much
+  // larger vault from handing the biggest group a node that swallows the world.
+  const CORE_PER_EDGE = 0.75;
+  const CORE_FLOOR = 12;
+  const CORE_CEIL = 24;
+  const hubSize = (deg: number): number =>
+    Math.min(CORE_CEIL, Math.max(CORE_FLOOR, CORE_PER_EDGE * deg));
+
+  const visibleNodes = nodes.filter(
     (n) => !(n.id.startsWith("topic:") && !edgeIds.has(n.id)),
-  ).map((n) => {
-    const kind = n.id.split(":")[0];
+  );
+
+  const sizes = new Map<string, number>();
+  let biggestHub = CORE_FLOOR;
+  for (const n of visibleNodes) {
+    if (isRootNode(n.id)) continue;
     const deg = degrees.get(n.id) ?? 0;
-    // The root is the one center, so it always out-sizes every hub regardless
-    // of how many members each hub happens to have.
-    const base = isRootNode(n.id) ? 15 : (BASE_SIZE[kind] ?? 6.5);
-    const size = base * (1 + 0.18 * Math.log1p(deg));
-    return { ...n, size: Math.round(size * 10) / 10 };
-  });
+    if (n.id.startsWith("core:")) {
+      const s = hubSize(deg);
+      sizes.set(n.id, s);
+      if (s > biggestHub) biggestHub = s;
+      continue;
+    }
+    const base = BASE_SIZE[n.id.split(":")[0]] ?? 6.5;
+    sizes.set(n.id, base * (1 + 0.18 * Math.log1p(deg)));
+  }
+  // The root stays the anchor — the layout is built around it — so it sits
+  // just above the largest hub rather than at its own degree of 3.
+  sizes.set(ROOT_ID, biggestHub + 2);
+
+  const nodesWithSize = visibleNodes.map((n) => ({
+    ...n,
+    size: Math.round((sizes.get(n.id) ?? 6.5) * 10) / 10,
+  }));
 
   // Community detection — emergent clusters that cut across the fixed
   // track/category taxonomy (e.g. "A/B methodology", "Volta loop").

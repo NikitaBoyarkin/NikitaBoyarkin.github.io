@@ -11,39 +11,18 @@ import { withBase } from '../lib/path';
   counterpartHref={withBase('en/graph/')}
   activeNav="graph"
   lang="ru"
+  bleed
 >
-  <section class="container reveal">
-    <h1 class="page-title">Граф контента</h1>
-    <p class="graph-intro">
-      Граф контента портфолио: в центре — я, вокруг концентрическими кольцами — хабы
-      (проекты, статьи, словарь), затем записи и темы, связанные реальными ссылками
-      (<code>related</code>, теги, состав Volta).
-    </p>
+  <section class="graph-board reveal">
+    <header class="graph-board-head">
+      <h1 class="page-title">Граф контента</h1>
 
-    <dl class="graph-legend">
-      <div class="graph-legend-item">
-        <dt>Цвет</dt>
-        <dd>трек проекта или категория записи; кнопка переключает на комьюнити</dd>
-      </div>
-      <div class="graph-legend-item">
-        <dt>Размер</dt>
-        <dd>число связей — хабы крупнее</dd>
-      </div>
-      <div class="graph-legend-item">
-        <dt>Рёбра</dt>
-        <dd>толщина — сила связи; сплошные — явные ссылки, пунктирные — тематические и латеральные</dd>
-      </div>
-      <div class="graph-legend-item">
-        <dt>Управление</dt>
-        <dd>«Стрелки» — направление ссылок; «Фокус» — подсветить соседей по клику (Esc снимает); «Рёбра» — фильтр по типу связей; чипы «Все/Проекты/Записи/Темы/Volta» — быстрый фильтр по типу узла; чекбоксы — скрыть группы; колесо — зум; перетаскивание — панорамирование и узлы; ⛶ — полный экран; режим, пресет, скрытые группы и рёбра сохраняются в адресной строке — ссылкой можно поделиться</dd>
-      </div>
-    </dl>
+      <p class="graph-note">Собирается из коллекций на build-time — всегда актуален.</p>
+    </header>
 
-    <p class="graph-note">Собирается из коллекций на build-time — всегда актуален.</p>
+    <KnowledgeGraph bare />
 
-    <KnowledgeGraph />
-
-    <p style="color: var(--text-muted); margin-top: var(--space-8); font-size: 0.9rem;">
+    <p class="graph-board-gen">
       Генератор — <code>src/lib/graph.ts</code>; источник рёбер — <code>related</code> в frontmatter,
       теги записей и <code>children</code> проекта Volta.
     </p>

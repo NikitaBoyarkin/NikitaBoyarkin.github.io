@@ -59,7 +59,7 @@ const caption =
 
 <script>
   import {
-    GRAPH_GROUP_COLORS,
+    GRAPH_SECTION_COLORS,
     GRAPH_EDGE_STYLE,
     GRAPH_EDGE_COLOR,
     edgeWidth,
@@ -172,7 +172,7 @@ const caption =
       const r = (n.size || 6) * NODE_SIZE;
       const c = el('circle');
       c.setAttribute('r', String(r));
-      c.setAttribute('fill', GRAPH_GROUP_COLORS[n.group] || 'var(--text-accent)');
+      c.setAttribute('fill', GRAPH_SECTION_COLORS[n.section] || 'var(--text-accent)');
       const txt = el('text');
       txt.setAttribute('x', String(r + 6));
       txt.setAttribute('y', '4');

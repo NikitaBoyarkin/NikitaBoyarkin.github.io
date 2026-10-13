@@ -6,7 +6,7 @@
 import { withBase } from '../lib/path';
 import { getGraphLayouts } from '../lib/graph-data';
 import {
-  GRAPH_GROUP_COLORS,
+  GRAPH_SECTION_COLORS,
   GRAPH_EDGE_STYLE,
   GRAPH_EDGE_COLOR,
   NODE_SIZE,
@@ -15,11 +15,16 @@ import {
   type GraphNode,
 } from '../lib/graph';
 import { buildGraphTooltips } from '../lib/graph-tooltip';
+import { placeLabels } from '../lib/graph-labels';
 
 interface Props {
   lang?: 'ru' | 'en';
+  /** Render the graph as a bare node on the page — no card surface. `/graph/`
+   *  presents it the way the homepage presents its board; the role-landing
+   *  embeds keep the card. */
+  bare?: boolean;
 }
-const { lang = 'ru' } = Astro.props;
+const { lang = 'ru', bare = false } = Astro.props;
 const isEn = lang === 'en';
 const ariaLabel = isEn
   ? 'Knowledge graph of portfolio content'
@@ -54,6 +59,7 @@ const t = {
     core: isEn ? 'Hubs' : 'Хабы',
   } as Record<string, string>,
   presetLabel: isEn ? 'Quick filters' : 'Быстрые фильтры',
+  zoomGroup: isEn ? 'Zoom' : 'Масштаб',
   presetAll: isEn ? 'All' : 'Все',
   presetProject: isEn ? 'Projects' : 'Проекты',
   presetPost: isEn ? 'Posts' : 'Записи',
@@ -73,6 +79,56 @@ const nodeById = new Map(nodes.map((n) => [n.id, n]));
 // Tooltip lines (per node / per edge, aligned by index) rendered into the SVG
 // <title> elements and embedded for the interactive tooltip below.
 const tooltips = buildGraphTooltips(nodes, links, lang);
+
+// World size must match the client's `world` constant and the viewBox below.
+const WORLD = { w: 900, h: 560 };
+const LABEL_FONT_SIZE = 11;
+
+// The always-on labels: the root, the type hubs, projects and topics. Posts,
+// Volta parts and glossary terms stay hover/focus-only.
+const isAnchor = (id: string) =>
+  id.startsWith('core:') || id.startsWith('p:') || id.startsWith('topic:');
+/** Lower wins a contested slot. */
+const labelPriority = (id: string) =>
+  id === 'core:me' ? 0 : id.startsWith('core:') ? 1 : id.startsWith('p:') ? 2 : 3;
+const labelRadius = (size?: number) => (size || 6) * NODE_SIZE;
+
+// Collision-resolved positions for the always-on labels. A label that finds no
+// clear slot comes back `placed: false` and is drawn hover-only instead of on
+// top of its neighbour — which also thins the text cloud in the dense centre.
+const placements = placeLabels(
+  nodes
+    .filter((n) => isAnchor(n.id))
+    .map((n) => ({
+      id: n.id,
+      label: n.label,
+      x: n.x,
+      y: n.y,
+      size: labelRadius(n.size),
+      priority: labelPriority(n.id),
+    })),
+  { width: WORLD.w, height: WORLD.h, fontSize: LABEL_FONT_SIZE, pad: 4 },
+);
+
+/** The original offset rule — straight outward from the world centre, above the
+ *  node for the root. Still used for hover-only labels, which never show at the
+ *  same time and so cannot collide, and as the fallback geometry for an
+ *  unplaced always-on label. */
+function radialLabel(n: GraphNode & { x: number; y: number }) {
+  const r = labelRadius(n.size);
+  if (n.id === 'core:me') return { tx: 0, ty: -(r + 8), anchor: 'middle' as const };
+  const dx = n.x - WORLD.w / 2;
+  const dy = n.y - WORLD.h / 2;
+  const d = Math.hypot(dx, dy) || 1;
+  const ux = dx / d;
+  const uy = dy / d;
+  const vertical = Math.abs(ux) < 0.35;
+  return {
+    tx: vertical ? 0 : ux * (r + 6),
+    ty: vertical ? (uy >= 0 ? r + 12 : -(r + 12)) : uy * (r + 6) + 4,
+    anchor: (vertical ? 'middle' : ux >= 0 ? 'start' : 'end') as 'start' | 'middle' | 'end',
+  };
+}
 
 // Screen-reader text alternative: per-node connection lines ("label (edge
 // type)"), rendered into the visually-hidden list below the SVG. The SVG
@@ -123,7 +179,7 @@ const clientData = {
 const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
 ---
 
-<div id="kg-root" class="kg-root" data-search-empty={isEn ? 'No matches' : 'Ничего не найдено'} data-search-reset={isEn ? 'Clear search' : 'Очистить поиск'}>
+<div id="kg-root" class:list={['kg-root', { 'kg-bare': bare }]} data-search-empty={isEn ? 'No matches' : 'Ничего не найдено'} data-search-reset={isEn ? 'Clear search' : 'Очистить поиск'}>
   <div class="kg-topbar">
     <div class="kg-search" role="search">
       <input
@@ -150,26 +206,40 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         <div id="kg-edge-panel" class="kg-edge-panel" role="group" aria-label={t.edgesLabel} hidden>
           {(['related', 'children', 'topic', 'shared', 'core'] as const).map((ty) => (
             <label class="kg-edge-toggle">
-              <span class="kg-edge-swatch" data-kg-swatch={ty}></span>
               <input type="checkbox" data-kg-type={ty} checked />
+              <span class="kg-edge-swatch" data-kg-swatch={ty}></span>
               {t.edgeType[ty]}
             </label>
           ))}
         </div>
       </div>
-      <button type="button" class="kg-btn" data-kg-action="zoom-in" aria-label={t.zoomIn} title={t.zoomIn}>+</button>
-      <button type="button" class="kg-btn" data-kg-action="zoom-out" aria-label={t.zoomOut} title={t.zoomOut}>−</button>
-      <button type="button" class="kg-btn" data-kg-action="reset" aria-label={t.reset} title={t.reset}>⟲</button>
-      <button type="button" class="kg-btn" data-kg-action="fullscreen" aria-label={t.fullscreen} title={t.fullscreen} data-label-fs={t.fullscreen} data-label-fs-exit={t.fullscreenExit}>⛶</button>
+      <!-- Inline SVG, not text glyphs (`+ − ⟲ ⛶`): those come from whatever font
+           wins the fallback chain, so weight and optical size drifted between
+           platforms and `⟲`/`⛶` risked a tofu box. The paths are 16×16 and
+           stroked with `currentColor`, so hover/focus still recolour them. -->
+      <div class="kg-zoom" role="group" aria-label={t.zoomGroup}>
+        <button type="button" class="kg-btn" data-kg-action="zoom-in" aria-label={t.zoomIn} title={t.zoomIn}>
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6" /><path d="M8 5.4v5.2M5.4 8h5.2" /></svg>
+        </button>
+        <button type="button" class="kg-btn" data-kg-action="zoom-out" aria-label={t.zoomOut} title={t.zoomOut}>
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6" /><path d="M5.4 8h5.2" /></svg>
+        </button>
+        <button type="button" class="kg-btn" data-kg-action="reset" aria-label={t.reset} title={t.reset}>
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M13.9 8a6 6 0 1 1-6-6c1.68 0 3.29.67 4.49 1.83L13.9 5.4" /><path d="M13.9 2.1v3.3h-3.3" /></svg>
+        </button>
+      </div>
+      <button type="button" class="kg-btn" data-kg-action="fullscreen" aria-label={t.fullscreen} title={t.fullscreen} data-label-fs={t.fullscreen} data-label-fs-exit={t.fullscreenExit}>
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.6 6V2.6H6M10 2.6h3.4V6M13.4 10v3.4H10M6 13.4H2.6V10" /></svg>
+      </button>
     </div>
   </div>
   <div class="kg-presets" role="group" aria-label={t.presetLabel}>
-    <button type="button" class="kg-chip" data-kg-preset="" aria-pressed="true" data-label={t.presetAll}>{t.presetAll}</button>
-    <button type="button" class="kg-chip" data-kg-preset="project" aria-pressed="false" data-label={t.presetProject}>{t.presetProject}</button>
-    <button type="button" class="kg-chip" data-kg-preset="post" aria-pressed="false" data-label={t.presetPost}>{t.presetPost}</button>
-    <button type="button" class="kg-chip" data-kg-preset="topic" aria-pressed="false" data-label={t.presetTopic}>{t.presetTopic}</button>
-    <button type="button" class="kg-chip" data-kg-preset="volta" aria-pressed="false" data-label={t.presetVolta}>{t.presetVolta}</button>
-    <button type="button" class="kg-chip" data-kg-preset="glossary" aria-pressed="false" data-label={t.presetGlossary}>{t.presetGlossary}</button>
+    <button type="button" class="kg-chip" data-kg-preset="" aria-pressed="true" data-label={t.presetAll}><span class="kg-chip-label">{t.presetAll}</span><span class="kg-chip-count"></span></button>
+    <button type="button" class="kg-chip" data-kg-preset="project" aria-pressed="false" data-label={t.presetProject}><span class="kg-chip-label">{t.presetProject}</span><span class="kg-chip-count"></span></button>
+    <button type="button" class="kg-chip" data-kg-preset="post" aria-pressed="false" data-label={t.presetPost}><span class="kg-chip-label">{t.presetPost}</span><span class="kg-chip-count"></span></button>
+    <button type="button" class="kg-chip" data-kg-preset="topic" aria-pressed="false" data-label={t.presetTopic}><span class="kg-chip-label">{t.presetTopic}</span><span class="kg-chip-count"></span></button>
+    <button type="button" class="kg-chip" data-kg-preset="volta" aria-pressed="false" data-label={t.presetVolta}><span class="kg-chip-label">{t.presetVolta}</span><span class="kg-chip-count"></span></button>
+    <button type="button" class="kg-chip" data-kg-preset="glossary" aria-pressed="false" data-label={t.presetGlossary}><span class="kg-chip-label">{t.presetGlossary}</span><span class="kg-chip-count"></span></button>
   </div>
   <!-- role="group" (not "img"): ARIA "img" has presentational children, which
        would flatten the 75 focusable node links inside the SVG out of the
@@ -204,36 +274,13 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     </g>
     <g class="kg-nodes">
       {nodes.map((n, i) => {
-        const r = (n.size || 6) * NODE_SIZE;
-        // Only the anchors stay labeled: the root, the type hubs, projects and
-        // topics. Posts, Volta parts and glossary terms are hover/focus-only —
-        // with ~100 nodes on concentric rings, always-on labels read as a text
-        // cloud (the radial layout aligns them, so the overlap is worse than the
-        // old cloud's). The one center and its hubs never lose their names.
-        const anchor =
-          n.id.startsWith('core:') || n.id.startsWith('p:') || n.id.startsWith('topic:');
-        const labelClass = anchor ? 'kg-label' : 'kg-label kg-label-hover';
-        // Place each label radially OUTWARD from the world centre (450,280), so
-        // labels on a ring fan out instead of all running right into each other.
-        // The root's label sits above it; near-vertical nodes get a centred label.
-        let tx = r + 6;
-        let ty = 4;
-        let ta = 'start';
-        if (n.id === 'core:me') {
-          tx = 0;
-          ty = -(r + 8);
-          ta = 'middle';
-        } else {
-          const dx = n.x - 450;
-          const dy = n.y - 280;
-          const d = Math.hypot(dx, dy) || 1;
-          const ux = dx / d;
-          const uy = dy / d;
-          const vertical = Math.abs(ux) < 0.35;
-          tx = vertical ? 0 : ux * (r + 6);
-          ty = vertical ? (uy >= 0 ? r + 12 : -(r + 12)) : uy * (r + 6) + 4;
-          ta = vertical ? 'middle' : ux >= 0 ? 'start' : 'end';
-        }
+        const r = labelRadius(n.size);
+        // Always-on labels use the collision-resolved placement; hover-only
+        // labels keep the radial rule (only one is ever visible at a time, so
+        // they cannot collide with each other).
+        const p = isAnchor(n.id) ? placements.get(n.id) : undefined;
+        const geo = p ?? radialLabel(n);
+        const labelClass = p && p.placed ? 'kg-label' : 'kg-label kg-label-hover';
         return (
           <g
             tabindex="0"
@@ -243,8 +290,8 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
             style="cursor:pointer"
           >
             <title>{tooltips.node[i].join('\n')}</title>
-            <circle r={r} fill={GRAPH_GROUP_COLORS[n.group] || 'var(--text-muted)'} />
-            <text x={tx} y={ty} text-anchor={ta} class={labelClass}>{n.label}</text>
+            <circle r={r} fill={GRAPH_SECTION_COLORS[n.section] || 'var(--text-muted)'} />
+            <text x={geo.tx} y={geo.ty} text-anchor={geo.anchor} class={labelClass}>{n.label}</text>
           </g>
         );
       })}
@@ -265,10 +312,11 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
 <script is:inline type="application/json" id="kg-data" set:html={json}></script>
 
 <script>
-  import { GRAPH_GROUP_COLORS, GRAPH_COMMUNITY_COLORS, isDirected } from '../lib/graph';
+  import { GRAPH_SECTION_COLORS, GRAPH_COMMUNITY_COLORS, NODE_SIZE, isDirected } from '../lib/graph';
   import { clampZoom, viewBoxOf, zoomAt, panBy, centerOn } from '../lib/graph-zoom';
   import { decodeGraphState, encodeGraphState } from '../lib/graph-url';
   import { nodeKindOf } from '../lib/graph-tooltip';
+  import { placeLabels } from '../lib/graph-labels';
 
   const rootEl = document.getElementById('kg-root');
   const svgEl = document.getElementById('kg-svg');
@@ -278,9 +326,33 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   const svg = svgEl as unknown as SVGSVGElement;
   const data = JSON.parse(dataEl.textContent || '{}');
 
+  // Astro scopes this component's <style> by stamping `data-astro-cid-…` on every
+  // element it renders. Nodes built below with `createElement` never got that
+  // attribute, so not one rule for them matched: the legend rendered as loose
+  // unstyled text with a native checkbox in it, and the search dropdown's items
+  // and empty state lost their styling the same way. Copying the attribute onto
+  // JS-made nodes repairs every such rule at once, instead of wrapping each of
+  // them in `:global()`.
+  const scopeAttr = Array.from(root.attributes)
+    .map((a) => a.name)
+    .find((n) => n.startsWith('data-astro-cid-'));
+  /** `createElement`, carrying this component's style scope. */
+  function mk<K extends keyof HTMLElementTagNameMap>(
+    tag: K,
+    className?: string,
+  ): HTMLElementTagNameMap[K] {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (scopeAttr) el.setAttribute(scopeAttr, '');
+    return el;
+  }
+
   // World size must match the SSR viewBox (see the template above).
   const world = { w: 900, h: 560 };
-  const groupList = Object.keys(GRAPH_GROUP_COLORS);
+  // Must match the label font-size in the component styles and the build-time
+  // placement call in the template above.
+  const LABEL_FONT_SIZE = 11;
+  const sectionList = Object.keys(GRAPH_SECTION_COLORS);
   // Color mode: fixed track/category taxonomy vs emergent communities.
   let mode: 'group' | 'community' = 'group';
   // Obsidian "Arrows": show link direction on directed edge types.
@@ -290,7 +362,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   let hiddenGroups = new Set<string | number>();
   let hiddenCommunities = new Set<string | number>();
   const hiddenSet = () => (mode === 'community' ? hiddenCommunities : hiddenGroups);
-  const keyOf = (n: any) => (mode === 'community' ? (n.community ?? 0) : n.group);
+  const keyOf = (n: any) => (mode === 'community' ? (n.community ?? 0) : n.section);
   // Edge-type filter (mode-independent): hidden link types, kept in the URL.
   let hiddenEdgeTypes = new Set<string>();
   // Focus mode: clicking a node keeps its 1-hop neighborhood highlighted.
@@ -355,7 +427,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   const colorFor = (n: any) =>
     mode === 'community'
       ? GRAPH_COMMUNITY_COLORS[(n.community ?? 0) % GRAPH_COMMUNITY_COLORS.length]
-      : GRAPH_GROUP_COLORS[n.group] || 'var(--text-muted)';
+      : GRAPH_SECTION_COLORS[n.section] || 'var(--text-muted)';
 
   /** Move every node onto the current mode's build-time positions and recolor
    *  (used by the color toggle and by URL restore — the SVG ships the group
@@ -368,6 +440,42 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       nodeEls[i].setAttribute('transform', `translate(${n.x},${n.y})`);
       const circle = nodeEls[i].querySelector('circle');
       if (circle) circle.setAttribute('fill', colorFor(n));
+    });
+    // The SSR placements were resolved against the group layout; the community
+    // layout puts the same nodes somewhere else, so the labels are re-placed
+    // with the same pure function rather than left to collide.
+    placeAnchorLabels();
+  }
+
+  /** Re-run the collision pass for the always-on labels on the current
+   *  positions. Mirrors the build-time call in the template above. */
+  function placeAnchorLabels() {
+    const isAnchor = (id: string) =>
+      id.startsWith('core:') || id.startsWith('p:') || id.startsWith('topic:');
+    const priorityOf = (id: string) =>
+      id === 'core:me' ? 0 : id.startsWith('core:') ? 1 : id.startsWith('p:') ? 2 : 3;
+    const map = placeLabels(
+      nodes
+        .filter((n) => isAnchor(n.id))
+        .map((n) => ({
+          id: n.id,
+          label: n.label,
+          x: n.x,
+          y: n.y,
+          size: (n.size || 6) * NODE_SIZE,
+          priority: priorityOf(n.id),
+        })),
+      { width: world.w, height: world.h, fontSize: LABEL_FONT_SIZE, pad: 4 },
+    );
+    nodes.forEach((n, i) => {
+      if (!isAnchor(n.id)) return;
+      const p = map.get(n.id);
+      const text = nodeEls[i].querySelector('text');
+      if (!p || !text) return;
+      text.setAttribute('x', String(p.tx));
+      text.setAttribute('y', String(p.ty));
+      text.setAttribute('text-anchor', p.anchor);
+      text.classList.toggle('kg-label-hover', !p.placed);
     });
   }
 
@@ -392,28 +500,26 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
           label: communityLabels.get(c) ?? `#${c}`,
           color: GRAPH_COMMUNITY_COLORS[c % GRAPH_COMMUNITY_COLORS.length],
         }))
-      : groupList.map((g) => ({ key: g, label: g, color: GRAPH_GROUP_COLORS[g] }));
+      : sectionList.map((g) => ({ key: g, label: g, color: GRAPH_SECTION_COLORS[g] }));
     const hidden = hiddenSet();
     const total = items.length;
     // Per-chip node counts, so the legend shows how much each group/community
     // contributes to the graph (counted across all nodes).
     const counts = new Map<string | number, number>();
     for (const n of nodes) {
-      const k = isCommunity ? (n.community ?? 0) : n.group;
+      const k = isCommunity ? (n.community ?? 0) : n.section;
       counts.set(k, (counts.get(k) ?? 0) + 1);
     }
     for (const it of items) {
-      const span = document.createElement('span');
-      span.className = 'kg-legend-item';
+      const span = mk('span', 'kg-legend-item');
       span.setAttribute('role', 'listitem');
-      const i = document.createElement('i');
+      const i = mk('i');
       i.style.background = it.color;
       span.appendChild(i);
       // Obsidian "Tags" filter: checkbox chips show/hide a whole group
       // (or community in community mode).
-      const label = document.createElement('label');
-      label.className = 'kg-legend-toggle';
-      const cb = document.createElement('input');
+      const label = mk('label', 'kg-legend-toggle');
+      const cb = mk('input');
       cb.type = 'checkbox';
       cb.checked = !hidden.has(it.key);
       cb.setAttribute('aria-label', it.label);
@@ -432,9 +538,10 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         syncURL();
       });
       label.appendChild(cb);
-      label.appendChild(document.createTextNode(`${it.label} `));
-      const count = document.createElement('span');
-      count.className = 'kg-legend-count';
+      const name = mk('span', 'kg-legend-name');
+      name.textContent = it.label;
+      label.appendChild(name);
+      const count = mk('span', 'kg-legend-count');
       count.textContent = String(counts.get(it.key) ?? 0);
       label.appendChild(count);
       span.appendChild(label);
@@ -502,23 +609,45 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
 
   // --- Hover: highlight neighbors; the label appears via CSS on hover/focus ---
   let hoveredId: string | null = null;
+
+  /** Single writer for node dim state. Hover/focus highlight and the search
+   *  filter both dim nodes, and the `kg-dim` class must never drift from the
+   *  inline opacity: a dimmed group's opacity is inherited by its text, so a
+   *  class left behind by an interrupted highlight keeps always-on labels
+   *  invisible over an otherwise fully lit graph. */
+  function applyNodeStates(explicitId?: string | null, query?: string) {
+    const hl = explicitId ?? (hoveredId || (focusMode ? focusedId : null));
+    const lit = hl ? adjacency.get(hl) || new Set<string>() : null;
+    if (lit && hl) lit.add(hl);
+    // `query` is passed by the search paths, which must keep working when the
+    // input is blurred but still holds text (blur deliberately clears the filter).
+    const q = (query ?? searchInput?.value ?? '').trim().toLowerCase();
+    nodes.forEach((n, i) => {
+      if (lit && !lit.has(n.id)) {
+        nodeEls[i].style.opacity = '0.12';
+        nodeEls[i].classList.add('kg-dim');
+      } else if (q && !n.label.toLowerCase().includes(q)) {
+        nodeEls[i].style.opacity = '0.08';
+        nodeEls[i].classList.add('kg-dim');
+      } else {
+        nodeEls[i].style.opacity = '';
+        nodeEls[i].classList.remove('kg-dim');
+      }
+    });
+  }
+
   function clearHighlight() {
     hoveredId = null;
+    applyNodeStates();
+    edgeEls.forEach((e) => (e.style.opacity = ''));
     // A persistent 1-hop focus survives the transient hover fading.
     if (focusMode && focusedId) {
       highlight(focusedId);
-      return;
     }
-    nodes.forEach((_, i) => nodeEls[i].style.opacity = '');
-    edgeEls.forEach((e) => (e.style.opacity = ''));
   }
 
   function highlight(id: string) {
-    const neighbors = adjacency.get(id) || new Set<string>();
-    neighbors.add(id);
-    nodes.forEach((n, i) => {
-      nodeEls[i].style.opacity = neighbors.has(n.id) ? '1' : '0.12';
-    });
+    applyNodeStates(id);
     edgeEls.forEach((e, i) => {
       const l = links[i];
       const on = l.source === id || l.target === id;
@@ -747,11 +876,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   let searchActive = -1;
 
   function applySearchFilter(query: string) {
-    const q = query.trim().toLowerCase();
-    nodes.forEach((n, i) => {
-      const match = !q || n.label.toLowerCase().includes(q);
-      nodeEls[i].style.opacity = match ? '' : '0.08';
-    });
+    applyNodeStates(null, query);
   }
 
   function renderSearchResults(query: string) {
@@ -766,14 +891,12 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     searchResults.hidden = false;
     searchActive = -1;
     if (matches.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'kg-search-empty';
+      const empty = mk('div', 'kg-search-empty');
       empty.textContent = root.dataset.searchEmpty || 'No matches';
       // Empty state needs one clear next action: a button that clears the
       // query and restores the full graph.
-      const reset = document.createElement('button');
+      const reset = mk('button', 'kg-search-empty-btn');
       reset.type = 'button';
-      reset.className = 'kg-search-empty-btn';
       reset.textContent = root.dataset.searchReset || 'Clear search';
       reset.addEventListener('click', () => {
         if (!searchInput) return;
@@ -788,9 +911,8 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       return;
     }
     matches.forEach((n, _i) => {
-      const item = document.createElement('button');
+      const item = mk('button', 'kg-search-item');
       item.type = 'button';
-      item.className = 'kg-search-item';
       item.setAttribute('role', 'option');
       item.textContent = n.label;
       item.addEventListener('click', () => {
@@ -926,9 +1048,12 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   }
   presetBtns.forEach((b) => {
     const kind = b.dataset.kgPreset ? b.dataset.kgPreset : null;
-    // Append the live node count so each chip shows how much it reveals.
+    // The live node count goes into its own span, not appended to the label's
+    // text: the count is a pill in the chip's styling, and rewriting `textContent`
+    // here would throw that span away on every render.
     const count = nodes.filter((n) => kind === null || kindOf(n) === kind).length;
-    b.textContent = `${b.dataset.label} (${count})`;
+    const countEl = b.querySelector<HTMLElement>('.kg-chip-count');
+    if (countEl) countEl.textContent = String(count);
     b.addEventListener('click', () => {
       // Clicking the active chip again (or "All") clears the preset; any other
       // chip swaps in. Combines with the legend checkboxes, which stay intact.
@@ -963,6 +1088,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         });
         const live = posFor(mode);
         for (let i = 0; i < live.length; i++) live[i] = { ...pristinePos[i] };
+        // The placements were resolved for the positions the nodes had before
+        // the drag, so they are re-resolved for the restored ones.
+        placeAnchorLabels();
       } else if (action === 'fullscreen') {
         toggleFullscreen();
       } else if (action === 'toggle-color') {
@@ -1095,6 +1223,25 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     border-radius: var(--radius-lg);
     padding: var(--space-5);
   }
+  /* Bare: the card surface goes, the page's own inline gutter stays — the search
+     bar and the controls would otherwise start at the window edge. `:not(.kg-
+     fullscreen)` because the fullscreen overlay takes its surface from `.kg-root`
+     above and would turn transparent under a bare reset. */
+  .kg-root.kg-bare:not(.kg-fullscreen) {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding-block: 0;
+    padding-inline: var(--page-pad);
+  }
+  /* The bare board runs the window's width; uncapped, the 900:560 viewBox is
+     ~896px tall at 1440px and pushes the controls off a laptop screen. The box
+     is capped, not the drawing: `preserveAspectRatio="meet"` letterboxes inside
+     it, so nothing is ever stretched. */
+  .kg-root.kg-bare .kg-svg {
+    inline-size: min(100%, calc(74svh * (900 / 560)));
+    margin-inline: auto;
+  }
   .kg-root.kg-fullscreen {
     position: fixed;
     inset: 0;
@@ -1121,6 +1268,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   }
   .kg-chip {
     appearance: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.9rem;
     border: 1px solid var(--border-color);
     background: transparent;
     color: var(--text-muted);
@@ -1131,6 +1281,18 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     cursor: pointer;
     line-height: 1.4;
     white-space: nowrap;
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+  }
+  /* The count is a pill of its own rather than `Все (109)`: the parenthesised
+     form read as part of the label and made every chip a different width. */
+  .kg-chip-count {
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.35rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    background: color-mix(in srgb, var(--text-muted) 16%, transparent);
   }
   .kg-chip:hover {
     border-color: var(--text-accent);
@@ -1142,12 +1304,20 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     color: #1a1a1a; /* dark ink on the coral accent — 7.3:1, AA */
     font-weight: 600;
   }
+  .kg-chip[aria-pressed='true'] .kg-chip-count {
+    color: #1a1a1a;
+    background: rgb(0 0 0 / 0.14);
+  }
   /* Light theme's --text-accent is dark sienna (#a8331a), where the dark ink
      above drops to 2.61:1. `:global()` keeps Astro from scoping the ancestor —
      without it the compiled selector demands `data-theme` on the button itself
      and never matches. White ink on sienna is 6.66:1. */
   :global([data-theme='light']) .kg-chip[aria-pressed='true'] {
     color: #ffffff;
+  }
+  :global([data-theme='light']) .kg-chip[aria-pressed='true'] .kg-chip-count {
+    color: #ffffff;
+    background: rgb(255 255 255 / 0.22);
   }
   .kg-chip:focus-visible {
     outline: 2px solid var(--text-accent);
@@ -1168,11 +1338,12 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   .kg-controls {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 0.35rem;
   }
   .kg-btn {
-    width: 2rem;
-    height: 2rem;
+    width: 2.1rem;
+    height: 2.1rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1180,9 +1351,21 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     background: var(--background-primary);
     color: var(--text-normal);
     border-radius: var(--radius-sm);
-    font-size: 1rem;
+    font-size: 0.95rem;
     cursor: pointer;
     line-height: 1;
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+  }
+  /* Icons are drawn, not typed: every control shares one stroke weight and one
+     16px optical box, so the row stops looking like assorted font glyphs. */
+  .kg-btn svg {
+    inline-size: 1rem;
+    block-size: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
   .kg-btn:hover {
     border-color: var(--text-accent);
@@ -1190,14 +1373,42 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   }
   .kg-btn-toggle {
     width: auto;
-    padding: 0 0.6rem;
+    padding: 0 0.65rem;
     font-size: 0.8rem;
     font-weight: 600;
     white-space: nowrap;
   }
+  /* Pressed state was border + text colour only, which read as "hovered", not
+     "on". A tinted fill separates the two at a glance; the plain background
+     first is a fallback for engines without `color-mix`. */
   .kg-btn-toggle[aria-pressed='true'] {
+    background: var(--background-secondary);
+    background: color-mix(in srgb, var(--text-accent) 16%, var(--background-primary));
     border-color: var(--text-accent);
     color: var(--text-accent);
+  }
+  /* Zoom trio as one segmented control: joined borders, outer corners rounded,
+     and the hovered button lifted so its accent border is not clipped by the
+     neighbour it overlaps. */
+  .kg-zoom {
+    display: inline-flex;
+  }
+  .kg-zoom .kg-btn {
+    border-radius: 0;
+  }
+  .kg-zoom .kg-btn + .kg-btn {
+    margin-left: -1px;
+  }
+  .kg-zoom .kg-btn:first-child {
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  }
+  .kg-zoom .kg-btn:last-child {
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .kg-btn:hover,
+  .kg-btn:focus-visible {
+    position: relative;
+    z-index: 1;
   }
   /* Per-type stroke comes from the server-rendered `stroke` attribute. Do NOT
      set `stroke` here: a scoped CSS class rule outranks a presentation
@@ -1232,6 +1443,13 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   .kg-root :is(g[tabindex]:focus) .kg-label-hover {
     opacity: 1;
   }
+  /* A dimmed node's group opacity is inherited by its text, which made every
+     hover-only label faintly readable around a highlight. Hide the text of a
+     dimmed node outright so only the highlighted neighbourhood is legible. */
+  .kg-root :is(g.kg-dim) .kg-label,
+  .kg-root :is(g.kg-dim) .kg-label-hover {
+    opacity: 0;
+  }
   .kg-root :is(g[tabindex]) {
     outline: none;
   }
@@ -1242,34 +1460,68 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   .kg-root :is(g[tabindex]:focus) text {
     fill: var(--text-accent);
   }
+  /* Legend entries are chips, not a run of loose text: each filter owns a border
+     and a background, so the row reads as N discrete toggles rather than one
+     sentence with squares in it. The checkbox stays a real checkbox — keyboard
+     support and the accessible name come free — but is visually hidden, and
+     `:has()` carries its checked state onto the whole chip. */
   .kg-legend {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-3);
-    text-transform: capitalize;
-    font-size: 0.8rem;
+    gap: 0.4rem;
+    font-size: 0.78rem;
     color: var(--text-normal);
   }
   .kg-legend-item {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--background-primary);
+    cursor: pointer;
+    transition: opacity 120ms ease, border-color 120ms ease;
+  }
+  /* Only the off state is signalled. Tinting every checked chip made a dozen of
+     them read as "selected", competing with the accent-filled preset chip. */
+  .kg-legend-item:has(input:not(:checked)) {
+    opacity: 0.5;
+    border-style: dashed;
+  }
+  .kg-legend-item:has(input:focus-visible) {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
   }
   .kg-legend-item i {
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     display: inline-block;
+    flex: none;
   }
   .kg-legend-toggle {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.35rem;
     cursor: pointer;
   }
+  /* Visually hidden, not `display: none` — a hidden input would drop out of the
+     tab order and take the accessible name with it. */
   .kg-legend-toggle input {
-    accent-color: var(--text-accent);
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
     cursor: pointer;
+  }
+  .kg-legend-name {
+    text-transform: capitalize;
   }
   .kg-search {
     position: relative;
@@ -1378,10 +1630,28 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
+    padding: 0.3rem 0.4rem;
+    border-radius: var(--radius-sm);
     font-size: 0.8rem;
     color: var(--text-normal);
     cursor: pointer;
     white-space: nowrap;
+    transition: background-color 120ms ease, color 120ms ease;
+  }
+  .kg-edge-toggle:hover {
+    background: var(--background-secondary);
+  }
+  /* An unchecked edge type dims its whole row — swatch, box and label — so the
+     eye can tell "off" from "on" without reading the checkbox. */
+  .kg-edge-toggle:has(input:not(:checked)) {
+    color: var(--text-muted);
+  }
+  .kg-edge-toggle:has(input:not(:checked)) .kg-edge-swatch {
+    opacity: 0.35;
+  }
+  .kg-edge-toggle:has(input:focus-visible) {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 1px;
   }
   .kg-edge-toggle input {
     accent-color: var(--text-accent);
@@ -1396,7 +1666,11 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   .kg-legend-count {
     color: var(--text-muted);
     font-weight: 400;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+    padding: 0.05rem 0.32rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text-muted) 16%, transparent);
   }
   .kg-tooltip {
     position: absolute;

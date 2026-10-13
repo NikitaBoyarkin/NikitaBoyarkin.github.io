@@ -404,4 +404,67 @@ describe('buildGraph', () => {
     const a = g.nodes.find((n) => n.id === 'p:a');
     expect(core?.size).toBeGreaterThan(a?.size ?? 0);
   });
+
+  // Member counts chosen so every core clears the floor (16 edges) — below it
+  // the hubs are deliberately pinned equal, which is the floor's job, not the
+  // behaviour under test.
+  const hubFixture = () =>
+    buildGraph({
+      projects: Array.from({ length: 18 }, (_, i) => project(`p${i}`)),
+      posts: Array.from({ length: 22 }, (_, i) => post(`a${i}`)),
+      parts: [],
+      glossary: Array.from({ length: 28 }, (_, i) => ({ id: `t${i}.md`, data: { title: `t${i}` } })),
+      topics: TOPICS,
+    });
+
+  it('paints every member by its section, not by its taxonomy group', () => {
+    const g = buildGraph({
+      projects: [project('volta', { track: 'experiments' }), project('ab', { track: 'analytics' })],
+      posts: [post('x', { category: 'guide' })],
+      parts: [{ id: 'funnel.md', data: { title: 'Funnel' } }],
+      topics: TOPICS,
+    });
+    const sec = (id: string) => g.nodes.find((n) => n.id === id)?.section;
+    // Hub and every member of the family share one section, so «Проекты» reads
+    // as one colour wherever a node sits.
+    for (const id of ['core:projects', 'p:volta', 'p:ab', 'vp:funnel']) {
+      expect(sec(id), id).toBe('projects');
+    }
+    expect(sec('core:posts')).toBe('articles');
+    expect(sec('post:x')).toBe('articles');
+    // The taxonomy survives as `group`, which is what the layout clusters by —
+    // recolouring a section must not reshuffle the graph.
+    expect(g.nodes.find((n) => n.id === 'p:volta')?.group).toBe('experiments');
+    expect(g.nodes.find((n) => n.id === 'post:x')?.group).toBe('guide');
+  });
+
+  it('sizes each hub by its own edge count, not all alike', () => {
+    const g = hubFixture();
+    const size = (id: string) => g.nodes.find((n) => n.id === id)?.size ?? 0;
+    const projects = size('core:projects');
+    const posts = size('core:posts');
+    const glossary = size('core:glossary');
+    // Each core also holds one edge to the root: 19 / 23 / 29 edges.
+    expect(posts).toBeGreaterThan(projects);
+    expect(glossary).toBeGreaterThan(posts);
+    // The old log curve kept these within half a world unit of each other,
+    // which is why every hub read as the same size on screen.
+    expect(glossary - projects).toBeGreaterThan(3);
+  });
+
+  it('keeps the root above every hub even though it has the fewest edges', () => {
+    const g = hubFixture();
+    const deg = new Map<string, number>();
+    for (const l of g.links) {
+      deg.set(l.source, (deg.get(l.source) ?? 0) + 1);
+      deg.set(l.target, (deg.get(l.target) ?? 0) + 1);
+    }
+    const rootSize = g.nodes.find((n) => n.id === 'core:me')?.size ?? 0;
+    const hubs = g.nodes.filter((n) => n.id.startsWith('core:') && n.id !== 'core:me');
+    expect(deg.get('core:me')).toBe(3);
+    for (const h of hubs) {
+      expect(deg.get(h.id) ?? 0).toBeGreaterThan(3);
+      expect(rootSize).toBeGreaterThan(h.size ?? 0);
+    }
+  });
 });

@@ -122,6 +122,11 @@
      read as information, not as interactive calls-to-action. */
   --text-accent-dataviz: #4ecdc4;
 
+  /* Graph core «Статьи». The owner's #1400c3 is a deep indigo sitting at
+     1.3:1 on this page's teal, so the dark theme carries the lightened
+     #6a5cff (4.2:1); the light theme below restores the exact hex. */
+  --kg-core-articles: #6a5cff;
+
   /* Wallpaper — the honeycomb lattice behind every page (DESIGN.md). Alpha is
      deliberately tiny: the grid is texture on the 60% surface, never a second
      surface, so it must not read as a card or a panel. The colour follows the
@@ -258,6 +263,10 @@
   --button-ink: #1a1a1a;                     /* dark ink on orange (5.22:1, AA) */
   --border-active: #a8331a;
   --text-accent-dataviz: #0d7377;
+
+  /* Graph core «Статьи» — the owner's exact #1400c3, which clears AA on the
+     cream page (10.9:1). */
+  --kg-core-articles: #1400c3;
 
   /* Wallpaper line — the light-theme adaptation: same teal family, on cream. */
   --wallpaper-line: rgba(13, 115, 119, 0.07);
@@ -2648,6 +2657,10 @@ button:focus-visible {
   --border-active: #ff8569;
   --text-accent-dataviz: #4ecdc4;
 
+  /* Graph core «Статьи» — same lightened indigo as the dark theme: #1400c3
+     disappears on the near-black page. */
+  --kg-core-articles: #6a5cff;
+
   /* Wallpaper line — neon lattice on near-black. Stepped up from the dark
      theme's 0.07: the same alpha disappears against #0a0a12. */
   --wallpaper-line: rgba(78, 205, 196, 0.1);
@@ -3967,6 +3980,46 @@ nav .search-panel {
   }
 }
 
+/* Full-width board — `/graph/` and `/en/graph/` only (Base.astro prop `bleed`,
+   which puts `bleed` on <html>). The graph page is presented the way the
+   homepage presents its board: bare on the page, edge to edge, no card frame.
+
+   The cap it has to lift is not only `.container`'s: `body` carries
+   `max-width: 1000px` and its own page gutter, and from the desktop breakpoint
+   `main` carries `--content-max`. Both go, for this page only — every other
+   page keeps its reading column. No 100vh lock here: the graph page scrolls. */
+html.bleed body,
+html.bleed main {
+  max-width: none;
+  margin-inline: 0;
+}
+html.bleed body {
+  padding-inline: 0;
+}
+/* `.nav-mobile` cancels the page gutter with an equal negative margin; with the
+   gutter gone, those margins would push the bar 20px past each edge. */
+html.bleed .nav-mobile {
+  margin-inline: 0;
+}
+
+/* The board itself carries the dot texture (shared with `.canvas-grid` above)
+   and the vertical rhythm; the heading and the generator line keep the site's
+   reading measure and gutter, so prose does not start at the window edge. */
+.graph-board {
+  padding-block: var(--space-6) var(--space-8);
+}
+.graph-board-head,
+.graph-board-gen {
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding-inline: var(--page-pad);
+}
+.graph-board-gen {
+  margin-top: var(--space-8);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
 /* Canvas homepage — the rules that cannot live in CanvasStage.astro's scoped
    <style>: the stacked fallback, which has to reach the slotted node elements
    that Astro scopes to PersonaCanvas.astro.
@@ -4067,7 +4120,8 @@ html.canvas-static .persona-card {
    extra type selector makes the override win on specificity, whatever the
    emission order. Bound by tests/built/canvas.test.ts → the theme override
    assertion. */
-.canvas-grid {
+.canvas-grid,
+.graph-board {
   background-image: radial-gradient(circle at 1px 1px, var(--wallpaper-line) 1px, transparent 0);
   background-size: 32px 32px;
 }

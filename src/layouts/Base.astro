@@ -45,6 +45,10 @@ interface Props {
    * `/` and `/en/` pass it — every other page keeps its reading column.
    */
   canvasFullBleed?: boolean;
+  /** Full-width page: lifts the body's own width cap and gutter so a board can
+   *  run edge to edge. Unlike `canvasFullBleed` it locks nothing — the document
+   *  still scrolls. Only `/graph/` and `/en/graph/` pass it. */
+  bleed?: boolean;
 }
 
 const {
@@ -64,6 +68,7 @@ const {
   preloadImage,
   showCtaRail = false,
   canvasFullBleed = false,
+  bleed = false,
 } = Astro.props;
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
@@ -227,7 +232,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
 <html
   lang={lang}
   data-theme="dark"
-  class:list={['canvas-static', { 'canvas-fullbleed': canvasFullBleed }]}
+  class:list={['canvas-static', { 'canvas-fullbleed': canvasFullBleed, bleed }]}
 >
   <head>
     <meta charset="utf-8" />
