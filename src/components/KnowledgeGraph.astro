@@ -1,8 +1,10 @@
 ---
 // Server-rendered knowledge graph. The force layout runs at build time
 // (src/lib/graph-layout.ts) so the SVG ships static; the client script is a
-// thin layer that only wires up zoom/pan, cosmetic node drag, hover, search,
-// legend, color/arrow toggles and fullscreen. No fetch, no simulation.
+// thin layer that wires up zoom/pan, hover, search, legend, color/arrow
+// toggles, fullscreen and — behind an opt-in toggle — a live simulation that
+// runs only while a node is being dragged. No fetch, and no animation loop at
+// rest: the build-time layout *is* the resting state.
 import { withBase } from '../lib/path';
 import { getGraphLayouts } from '../lib/graph-data';
 import {
@@ -49,6 +51,10 @@ const t = {
   arrowsLabel: isEn ? 'Arrows: show link direction' : 'Стрелки: показать направление ссылок',
   focus: isEn ? 'Focus' : 'Фокус',
   focusLabel: isEn ? 'Focus: highlight 1-hop neighbors on click (Esc clears)' : 'Фокус: подсветить соседей по клику (Esc снимает)',
+  physics: isEn ? 'Physics' : 'Физика',
+  physicsLabel: isEn
+    ? 'Physics: drag a node and its neighbors follow — released nodes return home'
+    : 'Физика: тяните узел, соседи поедут за ним — брошенный вернётся на место',
   edges: isEn ? 'Edges' : 'Рёбра',
   edgesLabel: isEn ? 'Filter by link type' : 'Фильтр по типу связей',
   edgeType: {
@@ -201,6 +207,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-color" aria-pressed="false" aria-label={t.colorMode} title={t.colorByGroup} data-label-group={t.colorByGroup} data-label-community={t.colorByCommunity}>{t.colorByGroup}</button>
       <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-arrows" aria-pressed="false" aria-label={t.arrowsLabel} title={t.arrowsLabel}>{t.arrows}</button>
       <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-focus" aria-pressed="false" aria-label={t.focusLabel} title={t.focusLabel}>{t.focus}</button>
+      <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-physics" aria-pressed="false" aria-label={t.physicsLabel} title={t.physicsLabel}>{t.physics}</button>
       <div class="kg-popover">
         <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-edge-panel" aria-haspopup="true" aria-expanded="false" aria-label={`${t.edges}: ${t.edgesLabel}`} title={t.edgesLabel}>{t.edges}</button>
         <div id="kg-edge-panel" class="kg-edge-panel" role="group" aria-label={t.edgesLabel} hidden>
@@ -281,16 +288,26 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         const p = isAnchor(n.id) ? placements.get(n.id) : undefined;
         const geo = p ?? radialLabel(n);
         const labelClass = p && p.placed ? 'kg-label' : 'kg-label kg-label-hover';
+        // The anchor family — the root, the four type hubs, projects and topics,
+        // i.e. exactly the nodes `isAnchor` keeps an always-on label on — ships as
+        // an empty ring. These are the big disks, and as solid fills they were the
+        // loudest thing in the graph: at rest each now carries no fill, only its
+        // colour as a stroke, and the fill arrives on hover/focus ("touch"). The
+        // colour lives in a CSS variable because the client's `colorFor(n)` writes
+        // the `fill` *attribute*, which a class rule outranks — so community mode
+        // repaints the ring through `--kg-hub` instead (see applyModeLayout).
+        const isHubDot = isAnchor(n.id);
+        const dotColor = GRAPH_SECTION_COLORS[n.section] || 'var(--text-muted)';
         return (
           <g
             tabindex="0"
             role="link"
             aria-label={n.label}
             transform={`translate(${n.x},${n.y})`}
-            style="cursor:pointer"
+            style={isHubDot ? `cursor:pointer;--kg-hub:${dotColor}` : 'cursor:pointer'}
           >
             <title>{tooltips.node[i].join('\n')}</title>
-            <circle r={r} fill={GRAPH_SECTION_COLORS[n.section] || 'var(--text-muted)'} />
+            <circle r={r} class={isHubDot ? 'kg-hub-dot' : undefined} fill={isHubDot ? undefined : dotColor} />
             <text x={geo.tx} y={geo.ty} text-anchor={geo.anchor} class={labelClass}>{n.label}</text>
           </g>
         );
@@ -315,6 +332,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   import { GRAPH_SECTION_COLORS, GRAPH_COMMUNITY_COLORS, NODE_SIZE, isDirected } from '../lib/graph';
   import { clampZoom, viewBoxOf, zoomAt, panBy, centerOn } from '../lib/graph-zoom';
   import { decodeGraphState, encodeGraphState } from '../lib/graph-url';
+  import { easeTo, physicsParams, stepSim, type Point, type SimLink, type SimNode } from '../lib/graph-physics';
   import { nodeKindOf } from '../lib/graph-tooltip';
   import { placeLabels } from '../lib/graph-labels';
 
@@ -391,8 +409,8 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     if (!edgeColor.has(ty)) edgeColor.set(ty, e.getAttribute('stroke') || 'var(--text-muted)');
   });
   // Wide transparent hit areas (behind the nodes) so the thin links are
-  // actually hoverable for the tooltip. Static — node dragging is cosmetic and
-  // edges don't follow anyway.
+  // actually hoverable for the tooltip. Each carries a copy of its line's
+  // endpoints; `applyPositions` keeps both in step while physics runs.
   const edgeHitEls = edgeEls.map((e) => {
     const hit = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     for (const attr of ['x1', 'y1', 'x2', 'y2']) {
@@ -405,11 +423,11 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     e.after(hit);
     return hit;
   });
-  // Build-time positions per mode — reset restores these (node drag is
-  // cosmetic). `groupPos` starts where the SSR rendered; `communityPos` is the
-  // second layout embedded in the data blob. `pristine` snapshots both so reset
-  // always returns to the untouched build-time layout, and `posFor` points at
-  // the live array for the current mode.
+  // Build-time positions per mode — reset restores these (a node drag is
+  // cosmetic unless physics is on). `groupPos` starts where the SSR rendered;
+  // `communityPos` is the second layout embedded in the data blob. `pristine`
+  // snapshots both so reset always returns to the untouched build-time layout,
+  // and `posFor` points at the live array for the current mode.
   const groupPos = nodes.map((n: any) => ({ x: n.x, y: n.y }));
   const communityPos: { x: number; y: number }[] = data.communityPos;
   const pristine = {
@@ -429,17 +447,225 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       ? GRAPH_COMMUNITY_COLORS[(n.community ?? 0) % GRAPH_COMMUNITY_COLORS.length]
       : GRAPH_SECTION_COLORS[n.section] || 'var(--text-muted)';
 
+  // --- Live physics: only while a node is dragged, plus the ease home ───────
+  //
+  // The build-time layout is the resting state and stays the resting state. The
+  // simulation is built from the coordinates already on screen, runs only while
+  // a pointer holds a node, and then hands over to a fixed-duration ease that
+  // ends exactly on `pristine` — at which point the rAF is cancelled outright.
+  // Nothing here runs at rest.
+  //
+  // The last leg is an ease rather than "run until it stops" for two reasons:
+  // the simulation's own equilibrium is NOT the build-time coordinate (the home
+  // spring and a filtered subset both shift it), and the alpha-decay schedule
+  // freezes mid-flight instead of converging — waiting for it would strand the
+  // graph wherever it happened to be, with no threshold to snap on.
+  let physicsOn = false;
+  let physicsPhase: 'idle' | 'drag' | 'return' = 'idle';
+  let physicsRaf = 0;
+  /** The OS vetoes motion the user asked to be spared. The toggle still works
+   *  and still travels in the URL; the drag just stays cosmetic. */
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
+  const physicsEnabled = () => physicsOn && !reduceMotion;
+
+  const indexById = new Map<string, number>(nodes.map((n: any, i: number) => [n.id, i]));
+  let simNodes: SimNode[] = [];
+  let simLinks: SimLink[] = [];
+  let simParams = physicsParams(nodes.length);
+
+  /** Indices into `nodes`, resolved the way the build-time layout resolves them
+   *  — including dropping the hub springs in community mode, where they would
+   *  fight the community pull. */
+  function buildSimLinks(): SimLink[] {
+    return links.flatMap((l: any) => {
+      const source = indexById.get(l.source);
+      const target = indexById.get(l.target);
+      if (source === undefined || target === undefined) return [];
+      if (mode === 'community' && l.type === 'core') return [];
+      return [{ source, target, weight: typeof l.weight === 'number' ? l.weight : 1 }];
+    });
+  }
+
+  /** Rebuild the simulation from the coordinates on screen right now, with the
+   *  build-time positions as each node's home. */
+  function startSim() {
+    simLinks = buildSimLinks();
+    simParams = physicsParams(nodes.length);
+    const home = pristine[mode];
+    simNodes = nodes.map((n: any, i: number) => ({
+      x: n.x,
+      y: n.y,
+      vx: 0,
+      vy: 0,
+      core: n.id.startsWith('core:'),
+      community: n.community ?? 0,
+      hidden: nodeHidden(n),
+      home: { x: home[i].x, y: home[i].y },
+    }));
+  }
+
+  /** The single writer for everything that carries a node position: node
+   *  transforms, both edge arrays (the visible lines and the hit areas, which
+   *  must stay on top of each other) and the collision-resolved labels. One
+   *  function, so a frame can never leave an edge on stale coordinates. */
+  function applyPositions(p: Point[]) {
+    nodes.forEach((n: any, i: number) => {
+      n.x = p[i].x;
+      n.y = p[i].y;
+      nodeEls[i].setAttribute('transform', `translate(${n.x},${n.y})`);
+    });
+    edgeEls.forEach((e, i) => {
+      const l = links[i];
+      const si = indexById.get(l.source);
+      const ti = indexById.get(l.target);
+      if (si === undefined || ti === undefined) return;
+      const a = p[si];
+      const b = p[ti];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      // Stop each line at the target's edge, as the build-time pass does.
+      const r = (nodes[ti].size || 6) + 2;
+      const x2 = b.x - (dx / d) * r;
+      const y2 = b.y - (dy / d) * r;
+      for (const el of [e, edgeHitEls[i]]) {
+        if (!el) continue;
+        el.setAttribute('x1', String(a.x));
+        el.setAttribute('y1', String(a.y));
+        el.setAttribute('x2', String(x2));
+        el.setAttribute('y2', String(y2));
+      }
+    });
+    placeAnchorLabels();
+  }
+
+  /** The drag phase re-arms alpha every time the pointer moves and lets it decay
+   *  in between (`alphaTarget` in d3 terms). Holding alpha at 1 for the whole
+   *  gesture — the first version of this — keeps the pairwise repulsion
+   *  (`charge = 2200·√N`, ~23 000 at 109 nodes) at full strength on every frame,
+   *  and two nodes passing close fold that into a velocity of hundreds of px.
+   *  Measured: 764 px of travel in a single frame, the whole graph thrashing
+   *  between the margin clamps. Alpha decays from 1 to 0.01 over ~230 ticks
+   *  at build time for exactly this reason. */
+  const DRAG_ALPHA_ARM = 0.3;
+  const DRAG_ALPHA_DECAY = 0.05;
+  /** Hard ceiling on a node's travel per frame (~720 px/s at 60fps). A drag can
+   *  place two nodes on top of each other, and 1/d² repulsion has no bound of
+   *  its own. */
+  const DRAG_MAX_STEP = 12;
+  let dragAlpha = DRAG_ALPHA_ARM;
+  /** Fixed, so the return can never become a threshold snap (see above). */
+  const RETURN_MS = 400;
+  let returnFrom: Point[] = [];
+  let returnStart = 0;
+
+  function schedule() {
+    if (!physicsRaf) physicsRaf = requestAnimationFrame(frame);
+  }
+
+  function frame(ts: number) {
+    physicsRaf = 0;
+    if (physicsPhase === 'return') {
+      const t = Math.min(1, (ts - returnStart) / RETURN_MS);
+      // `t >= 1` returns `pristine` itself, exact, not a lerp that lands near.
+      applyPositions(easeTo(returnFrom, pristine[mode], t));
+      if (t >= 1) finishReturn();
+      else schedule();
+      return;
+    }
+    if (physicsPhase !== 'drag') return;
+    stepSim(simNodes, simLinks, {
+      alpha: dragAlpha,
+      params: simParams,
+      width: world.w,
+      height: world.h,
+      clusterByCommunity: mode === 'community',
+      maxStep: DRAG_MAX_STEP,
+    });
+    dragAlpha *= 1 - DRAG_ALPHA_DECAY;
+    applyPositions(simNodes);
+    schedule();
+  }
+
+  /** The graph is back on the build-time layout: drop the pin, stop the loop. */
+  function finishReturn() {
+    physicsPhase = 'idle';
+    returnFrom = [];
+    for (const n of simNodes) n.fixed = null;
+  }
+
+  function stopPhysics() {
+    if (physicsRaf) {
+      cancelAnimationFrame(physicsRaf);
+      physicsRaf = 0;
+    }
+    physicsPhase = 'idle';
+    returnFrom = [];
+    simNodes = [];
+    // Whatever the pointer was holding is void: every caller of this replaced
+    // the coordinates the gesture was driving (mode switch, reset, filter,
+    // fullscreen, physics off). A surviving `dragging` would re-arm the run on
+    // the next pointermove, against a layout it was never started for.
+    if (dragging) {
+      const di = nodes.indexOf(dragging);
+      if (di >= 0) nodeEls[di].style.cursor = 'pointer';
+    }
+    dragging = null;
+    dragStart = null;
+  }
+
+  /** Snap every node — and both position arrays — back to the build-time
+   *  layout. Used by `reset` and by switching physics off. */
+  function restorePristine() {
+    stopPhysics();
+    const home = pristine[mode];
+    const live = posFor(mode);
+    for (let i = 0; i < live.length; i++) live[i] = { ...home[i] };
+    applyPositions(home);
+  }
+
+  /** Anything still in flight when the node set or the view changes settles
+   *  first. An already-idle run is left exactly as it is, so with physics off a
+   *  cosmetic drag keeps the positions it was given. */
+  function settleIfRunning() {
+    if (physicsPhase !== 'idle') restorePristine();
+  }
+
+  function startReturn() {
+    if (!physicsEnabled() || !simNodes.length) return;
+    returnFrom = simNodes.map((n) => ({ x: n.x, y: n.y }));
+    returnStart = performance.now();
+    physicsPhase = 'return';
+    schedule();
+  }
+
+  /** The anchor family — the same set the SSR template draws as hollow rings and
+   *  the label pass keeps always-on. One predicate, two callers, so a ring and a
+   *  label can never disagree about which nodes are hubs. */
+  const isAnchorId = (id: string) =>
+    id.startsWith('core:') || id.startsWith('p:') || id.startsWith('topic:');
+
   /** Move every node onto the current mode's build-time positions and recolor
    *  (used by the color toggle and by URL restore — the SVG ships the group
    *  layout, so community mode has to relocate nodes). */
   function applyModeLayout() {
+    // A run in flight would keep overwriting the coordinates written below.
+    stopPhysics();
     const incoming = posFor(mode);
     nodes.forEach((n, i) => {
       n.x = incoming[i].x;
       n.y = incoming[i].y;
       nodeEls[i].setAttribute('transform', `translate(${n.x},${n.y})`);
       const circle = nodeEls[i].querySelector('circle');
-      if (circle) circle.setAttribute('fill', colorFor(n));
+      if (circle) {
+        const c = colorFor(n);
+        circle.setAttribute('fill', c);
+        // A hub's paint is CSS (`fill: none` at rest, `--kg-hub` on hover), and
+        // a class rule outranks the attribute, so the variable is what actually
+        // colours it — without this the ring would keep the section hue in
+        // community mode instead of taking the community's.
+        if (isAnchorId(n.id)) nodeEls[i].style.setProperty('--kg-hub', c);
+      }
     });
     // The SSR placements were resolved against the group layout; the community
     // layout puts the same nodes somewhere else, so the labels are re-placed
@@ -450,8 +676,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   /** Re-run the collision pass for the always-on labels on the current
    *  positions. Mirrors the build-time call in the template above. */
   function placeAnchorLabels() {
-    const isAnchor = (id: string) =>
-      id.startsWith('core:') || id.startsWith('p:') || id.startsWith('topic:');
+    const isAnchor = isAnchorId;
     const priorityOf = (id: string) =>
       id === 'core:me' ? 0 : id.startsWith('core:') ? 1 : id.startsWith('p:') ? 2 : 3;
     const map = placeLabels(
@@ -553,6 +778,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
    *  touching a hidden node or of a hidden edge type, and anything an active
    *  quick-view preset excludes. */
   function applyFilter() {
+    // The simulation would otherwise keep writing positions for a node set that
+    // just changed; a run in flight settles before the filter lands.
+    settleIfRunning();
     nodes.forEach((n, i) => {
       nodeEls[i].style.display = nodeHidden(n) ? 'none' : '';
     });
@@ -581,6 +809,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         // accepts the known preset kinds (anything else serializes as
         // absent), so narrowing here is safe.
         preset: preset as 'project' | 'post' | 'topic' | 'volta' | 'glossary' | null,
+        physics: physicsOn,
       },
       window.location.search,
     );
@@ -693,13 +922,31 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   let pinch: { startDist: number; vp0: typeof vp; mid0: { x: number; y: number } } | null = null;
   const pointers = new Map<number, { x: number; y: number }>();
 
+  /** The single exit from a drag. Called from `pointerup`, `pointercancel` AND
+   *  the pinch branch: a second finger used to null `dragging`, and `pointerup`
+   *  then early-returned on `!dragging`, so the pin was never lifted and the
+   *  node stayed welded to its last coordinate with the loop still running. */
+  function releaseDrag() {
+    if (!dragging) return;
+    const di = nodes.indexOf(dragging);
+    dragging = null;
+    dragStart = null;
+    if (di >= 0) {
+      nodeEls[di].style.cursor = 'pointer';
+      if (simNodes[di]) simNodes[di].fixed = null;
+    }
+    // Physics on: everything eases back to the build-time layout. Off: the node
+    // stays where it was dropped, which is the old cosmetic drag.
+    startReturn();
+  }
+
   function handlePointerDown(e: PointerEvent) {
     hideTooltip();
     svg.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (pointers.size === 2) {
-      dragging = null;
+      releaseDrag();
       panning = null;
       const [a, b] = [...pointers.values()];
       const startDist = Math.hypot(a.x - b.x, a.y - b.y);
@@ -744,11 +991,33 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       const dx = p.x - (dragStart?.x ?? p.x);
       const dy = p.y - (dragStart?.y ?? p.y);
       if (dx * dx + dy * dy > 9) moved = true;
-      // Cosmetic drag: move the node and remember the position (in the active
-      // mode's layout) so search centers on where the user actually put it.
+      const di = nodes.indexOf(dragging);
+      if (physicsEnabled()) {
+        // Physics moves the node, not this handler: pin it under the cursor and
+        // let the loop carry it and its neighbours. `posFor` is deliberately
+        // left untouched — it is the render state a mode switch restores, so a
+        // thrown position written there would outlive the trip home and
+        // resurrect the throw on the next mode change.
+        if (!simNodes.length) startSim();
+        if (di >= 0 && simNodes[di]) {
+          simNodes[di].fixed = { x: p.x, y: p.y };
+          simNodes[di].x = p.x;
+          simNodes[di].y = p.y;
+        }
+        if (physicsPhase !== 'drag') {
+          physicsPhase = 'drag';
+          schedule();
+        }
+        // Every pointer move re-arms the alpha, so the neighbours stay lively
+        // while the hand is moving and calm down the moment it stops.
+        dragAlpha = DRAG_ALPHA_ARM;
+        return;
+      }
+      // Cosmetic drag (physics off): move the node and remember the position
+      // (in the active mode's layout) so search centers on where the user
+      // actually put it.
       dragging.x = p.x;
       dragging.y = p.y;
-      const di = nodes.indexOf(dragging);
       if (di >= 0) posFor(mode)[di] = { x: p.x, y: p.y };
       const g = nodeEls[di];
       if (g) g.setAttribute('transform', `translate(${p.x},${p.y})`);
@@ -770,10 +1039,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     if (dragging) {
       const n = dragging;
       const wasClick = !moved;
-      const g = nodeEls[nodes.indexOf(n)];
-      if (g) g.style.cursor = 'pointer';
-      dragging = null;
-      dragStart = null;
+      releaseDrag();
       if (wasClick) {
         if (focusMode) {
           // Focus mode: click toggles a persistent 1-hop highlight instead of
@@ -1078,19 +1344,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         applyViewport();
       } else if (action === 'reset') {
         resetViewport();
-        // Restore the active mode's untouched build-time positions (drag is
-        // cosmetic); the other mode's layout is left alone but stays pristine.
-        const pristinePos = pristine[mode];
-        nodes.forEach((n, i) => {
-          n.x = pristinePos[i].x;
-          n.y = pristinePos[i].y;
-          nodeEls[i].setAttribute('transform', `translate(${n.x},${n.y})`);
-        });
-        const live = posFor(mode);
-        for (let i = 0; i < live.length; i++) live[i] = { ...pristinePos[i] };
-        // The placements were resolved for the positions the nodes had before
-        // the drag, so they are re-resolved for the restored ones.
-        placeAnchorLabels();
+        // Back to the active mode's untouched build-time positions; the other
+        // mode's layout is left alone but stays pristine.
+        restorePristine();
       } else if (action === 'fullscreen') {
         toggleFullscreen();
       } else if (action === 'toggle-color') {
@@ -1123,6 +1379,13 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
           focusedId = null;
           clearHighlight();
         }
+      } else if (action === 'toggle-physics') {
+        physicsOn = !physicsOn;
+        btn.setAttribute('aria-pressed', String(physicsOn));
+        // Switching off mid-drag or mid-return would strand nodes off the
+        // layout with no loop left to bring them back.
+        if (!physicsOn) restorePristine();
+        syncURL();
       } else if (action === 'toggle-edge-panel') {
         const wasHidden = edgePanel ? edgePanel.hidden : true;
         if (edgePanel) edgePanel.hidden = !wasHidden;
@@ -1132,6 +1395,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   });
 
   function setFullscreen(isFs: boolean) {
+    // The overlay re-fits the viewBox; anything in flight settles first so the
+    // new fit is computed against resting coordinates.
+    settleIfRunning();
     root.classList.toggle('kg-fullscreen', isFs);
     if (fsBtn) {
       fsBtn.setAttribute('aria-label', isFs ? fsBtn.dataset.labelFsExit! : fsBtn.dataset.labelFs!);
@@ -1198,7 +1464,10 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   hiddenCommunities = new Set(urlState.hiddenCommunities);
   hiddenEdgeTypes = new Set(urlState.hiddenEdges);
   preset = urlState.preset;
+  physicsOn = urlState.physics;
   syncPresetButtons();
+  const physBtn = root.querySelector<HTMLButtonElement>('[data-kg-action="toggle-physics"]');
+  if (physBtn) physBtn.setAttribute('aria-pressed', String(physicsOn));
   const restoredCommunity = mode === 'community';
   const colorBtn = root.querySelector<HTMLButtonElement>('[data-kg-action="toggle-color"]');
   if (colorBtn) {
@@ -1213,6 +1482,14 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   syncEdgePanel();
   applyFilter();
   resetViewport();
+
+  // A background tab throttles rAF to about 1 Hz, so an in-flight run would
+  // creep across the layout while nobody is looking (and a drag cannot be
+  // resumed afterwards). Whatever is running settles immediately instead.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) settleIfRunning();
+  });
+  window.addEventListener('pagehide', () => settleIfRunning());
 </script>
 
 <style>
@@ -1449,6 +1726,33 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   .kg-root :is(g.kg-dim) .kg-label,
   .kg-root :is(g.kg-dim) .kg-label-hover {
     opacity: 0;
+  }
+  /* The hub ring: every anchor-family node (the root, the four type hubs, the
+     projects, the topic indices) carries no fill at rest, so the big disks stop
+     competing with the leaves. `--kg-hub` is set inline on the <g> by the
+     template (and refreshed by applyModeLayout in community mode). The colour
+     therefore arrives on hover — and on focus, which is what a keyboard or a tap
+     actually produces. */
+  .kg-hub-dot {
+    fill: none;
+    stroke: var(--kg-hub);
+    stroke-width: 1.6;
+    transition: fill 120ms ease;
+    /* An unpainted fill is not hit-testable (SVG default is `visiblePainted`),
+       so a hollow hub's interior would be a dead zone: the pointer would fall
+       through to the transparent edge hit-lines that cross every hub and the
+       hover — the whole point of the empty ring — would never fire. */
+    pointer-events: all;
+  }
+  .kg-root :is(g[tabindex]:hover) .kg-hub-dot,
+  .kg-root :is(g[tabindex]:focus) .kg-hub-dot {
+    fill: var(--kg-hub);
+  }
+  /* A dimmed hub keeps its ring hollow even under the pointer: the dim is
+     deliberate (a search hit, or the far side of a highlight), and the group's
+     own opacity already fades the ring to the background. */
+  .kg-root :is(g.kg-dim:hover) .kg-hub-dot {
+    fill: none;
   }
   .kg-root :is(g[tabindex]) {
     outline: none;

@@ -8,8 +8,9 @@
 // deterministic rings, forces are deterministic, and the tick loop runs a fixed
 // alpha-decay schedule. The same input always produces the same layout, which
 // keeps the SSR SVG and the /graph.json endpoints in agreement across builds.
-import type { GraphData, GraphNode, LinkType } from "./graph";
+import type { GraphData, GraphNode } from "./graph";
 import { NODE_SIZE, ROOT_ID } from "./graph";
+import { physicsParams, stepSim, type SimLink, type SimNode } from "./graph-physics";
 
 export interface LayoutOptions {
   /** World width in viewBox units. */
@@ -23,17 +24,11 @@ export interface LayoutOptions {
   groupBy?: "group" | "community";
 }
 
-/** Cores (group hubs) are pulled toward the world center much harder than
- *  regular nodes so they sit at the hub of the graph. */
-const CORE_GRAVITY = 5;
 const isCore = (id: string) => id.startsWith("core:");
 
-interface SimNode extends GraphNode {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-}
+/** Graph nodes carry the identity the layout needs; positions and velocities
+ *  come from the shared kernel. */
+type LaidNode = GraphNode & SimNode;
 
 const round2 = (v: number) => Math.round(v * 100) / 100;
 
@@ -43,14 +38,21 @@ export function layoutGraph(graph: GraphData, opts: LayoutOptions = {}): GraphDa
   const world = { w: width, h: height };
   const isCommunity = opts.groupBy === "community";
   // Bucket key: taxonomy group by default, emergent community id otherwise.
-  const keyOf = (n: SimNode) => (isCommunity ? (n.community ?? 0) : n.group);
+  const keyOf = (n: LaidNode) => (isCommunity ? (n.community ?? 0) : n.group);
 
   // --- Initial positions: ring per bucket (group or community) around the
   // center, cores at the hub. The force loop below only has to refine a
   // near-converged layout instead of pulling a random scatter together (which
   // is what made the old client simulation run ~15s and visibly shake).
-  const nodes: SimNode[] = graph.nodes.map((n) => ({ ...n, x: 0, y: 0, vx: 0, vy: 0 }));
-  const buckets: Record<string, SimNode[]> = {};
+  const nodes: LaidNode[] = graph.nodes.map((n) => ({
+    ...n,
+    x: 0,
+    y: 0,
+    vx: 0,
+    vy: 0,
+    core: isCore(n.id),
+  }));
+  const buckets: Record<string, LaidNode[]> = {};
   for (const n of nodes) {
     const k = String(keyOf(n));
     (buckets[k] = buckets[k] || []).push(n);
@@ -72,112 +74,46 @@ export function layoutGraph(graph: GraphData, opts: LayoutOptions = {}): GraphDa
   });
   let coreI = 0;
   for (const n of nodes) {
-    if (!isCore(n.id)) continue;
+    if (!n.core) continue;
     const a = (coreI++ / 2) * 2 * Math.PI;
     n.x = cx + Math.cos(a) * 42;
     n.y = cy + Math.sin(a) * 42;
   }
 
-  // --- Resolve links to node references (drop dangling edges defensively).
-  const idx = new Map(nodes.map((n) => [n.id, n]));
-  const links = graph.links
-    .map((l) => ({
-      source: idx.get(l.source),
-      target: idx.get(l.target),
-      weight: typeof l.weight === "number" ? l.weight : 1,
-      type: l.type,
-    }))
-    .filter(
-      (l): l is { source: SimNode; target: SimNode; weight: number; type: LinkType } =>
-        // In community mode the group-hub springs (hub -> members) would fight
-        // the community pull, dragging members back toward their taxonomy hub.
-        Boolean(l.source && l.target) && !(isCommunity && l.type === "core"),
-    );
+  // --- Resolve links to node indices (drop dangling edges defensively).
+  const indexOf = new Map(nodes.map((n, i) => [n.id, i]));
+  const links: SimLink[] = graph.links.flatMap((l) => {
+    const source = indexOf.get(l.source);
+    const target = indexOf.get(l.target);
+    if (source === undefined || target === undefined) return [];
+    // In community mode the group-hub springs (hub -> members) would fight the
+    // community pull, dragging members back toward their taxonomy hub.
+    if (isCommunity && l.type === "core") return [];
+    return [{ source, target, weight: typeof l.weight === "number" ? l.weight : 1 }];
+  });
 
-  // --- Force simulation (same constants as the old client renderer).
-  const N = Math.max(1, nodes.length);
-  const charge = 2200 * Math.sqrt(N); // repulsion grows with N
-  const gravity = 0.004 + 0.001 * Math.sqrt(N); // pull-to-center grows mildly
-  // Community mode clusters members around their centroid; stronger than the
-  // center gravity so clusters stay coherent, weak enough for the pairwise
-  // repulsion to spread members inside a cluster.
-  const communityGravity = gravity * 4;
-  const damp = 0.86;
-  const margin = Math.min(80, 60 + N * 0.5);
-  // Alpha-based settling (d3-force style): every force scales with `alpha`,
-  // which decays exponentially each tick, so the layout converges and stops on
-  // its own instead of running a fixed frame count and shaking.
-  const alphaDecay = Math.max(0.015, 0.03 - 0.001 * Math.sqrt(N));
-  const alphaMin = 0.01;
-  const maxFrames = opts.maxFrames ?? Math.max(400, N * 10);
+  // --- Force simulation. The constants and the tick itself live in
+  // `graph-physics.ts` so the client simulation runs the same forces.
+  const params = physicsParams(nodes.length, opts.maxFrames);
   let alpha = 1;
 
-  for (let frame = 0; frame < maxFrames && alpha >= alphaMin; frame++) {
-    // Pairwise repulsion.
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const a = nodes[i];
-        const b = nodes[j];
-        const dx = a.x - b.x;
-        const dy = a.y - b.y;
-        const d2 = dx * dx + dy * dy || 1;
-        const d = Math.sqrt(d2);
-        const f = (charge / d2) * alpha;
-        a.vx += (dx / d) * f;
-        a.vy += (dy / d) * f;
-        b.vx -= (dx / d) * f;
-        b.vy -= (dy / d) * f;
-      }
-    }
-    // Link springs: stronger edges pull closer (ideal length shrinks with weight).
-    for (const l of links) {
-      const dx = l.target.x - l.source.x;
-      const dy = l.target.y - l.source.y;
-      const d = Math.sqrt(dx * dx + dy * dy) || 1;
-      const ideal = 60 + 80 * (1 - l.weight);
-      const f = (d - ideal) * 0.04 * (0.5 + 0.5 * l.weight) * alpha;
-      const fx = (dx / d) * f;
-      const fy = (dy / d) * f;
-      l.source.vx += fx;
-      l.source.vy += fy;
-      l.target.vx -= fx;
-      l.target.vy -= fy;
-    }
-    // Community mode: pull each node toward its community's centroid so the
-    // cluster reads as one blob (the group-hub springs are excluded above).
-    if (isCommunity) {
-      const centroids = new Map<number, { x: number; y: number; n: number }>();
-      for (const n of nodes) {
-        const c = n.community ?? 0;
-        const acc = centroids.get(c) || { x: 0, y: 0, n: 0 };
-        acc.x += n.x;
-        acc.y += n.y;
-        acc.n++;
-        centroids.set(c, acc);
-      }
-      for (const n of nodes) {
-        const acc = centroids.get(n.community ?? 0)!;
-        n.vx += (acc.x / acc.n - n.x) * communityGravity * alpha;
-        n.vy += (acc.y / acc.n - n.y) * communityGravity * alpha;
-      }
-    }
-    // Center gravity + integration.
-    for (const n of nodes) {
-      const g = isCore(n.id) ? gravity * CORE_GRAVITY : gravity;
-      n.vx += (world.w / 2 - n.x) * g * alpha;
-      n.vy += (world.h / 2 - n.y) * g * alpha;
-      n.vx *= damp;
-      n.vy *= damp;
-      n.x += n.vx;
-      n.y += n.vy;
-      n.x = Math.max(margin, Math.min(world.w - margin, n.x));
-      n.y = Math.max(margin, Math.min(world.h - margin, n.y));
-    }
-    alpha *= 1 - alphaDecay;
+  for (let frame = 0; frame < params.maxFrames && alpha >= params.alphaMin; frame++) {
+    stepSim(nodes, links, {
+      alpha,
+      params,
+      width,
+      height,
+      clusterByCommunity: isCommunity,
+    });
+    alpha *= 1 - params.alphaDecay;
   }
 
   return {
-    nodes: nodes.map(({ vx, vy, ...n }) => ({ ...n, x: round2(n.x), y: round2(n.y) })),
+    nodes: nodes.map(({ vx, vy, core, home, fixed, hidden, ...n }) => ({
+      ...n,
+      x: round2(n.x),
+      y: round2(n.y),
+    })),
     links: graph.links,
   };
 }

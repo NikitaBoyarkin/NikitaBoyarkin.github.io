@@ -7,6 +7,7 @@ const EMPTY = {
   hiddenCommunities: [],
   hiddenEdges: [],
   preset: null,
+  physics: false,
 };
 
 describe('decodeGraphState', () => {
@@ -22,6 +23,7 @@ describe('decodeGraphState', () => {
       hiddenCommunities: [2, 3],
       hiddenEdges: ['topic', 'shared'],
       preset: null,
+      physics: false,
     });
   });
 
@@ -53,7 +55,18 @@ describe('decodeGraphState', () => {
       hiddenCommunities: [2, 3],
       hiddenEdges: ['core', 'topic'],
       preset: null,
+      physics: false,
     });
+  });
+
+  it('reads the physics flag only from `physics=1`', () => {
+    expect(decodeGraphState('?physics=1').physics).toBe(true);
+    expect(decodeGraphState('?physics=1&mode=community').physics).toBe(true);
+    // Anything else means off — the default view must never be physics-on by
+    // accident, since that is what makes the resting graph move.
+    for (const q of ['', '?physics', '?physics=0', '?physics=true', '?physics=yes', '?physics=', '?physics=11']) {
+      expect(decodeGraphState(q).physics, q).toBe(false);
+    }
   });
 });
 
@@ -69,6 +82,7 @@ describe('encodeGraphState', () => {
       hiddenCommunities: [2, 3],
       hiddenEdges: ['topic', 'shared'],
       preset: null,
+      physics: false,
     });
     // URLSearchParams percent-encodes the comma separator inside a value;
     // decode still splits it back into the separate entries.
@@ -81,15 +95,27 @@ describe('encodeGraphState', () => {
     // so a stale `preset` in the old search keeps its slot in the output.
     expect(
       encodeGraphState(
-        { mode: 'community', hiddenGroups: [], hiddenCommunities: [], hiddenEdges: [], preset: 'volta' },
+        { mode: 'community', hiddenGroups: [], hiddenCommunities: [], hiddenEdges: [], preset: 'volta', physics: false },
         '?preset=project&utm=x',
       ),
     ).toBe('?preset=volta&utm=x&mode=community');
   });
 
+  it('serializes the physics flag only when it is on', () => {
+    expect(encodeGraphState({ ...EMPTY, physics: true })).toBe('?physics=1');
+    expect(encodeGraphState({ ...EMPTY, physics: false })).toBe('');
+    expect(encodeGraphState({ mode: 'community', hiddenGroups: [], hiddenCommunities: [], hiddenEdges: [], preset: null, physics: true }))
+      .toBe('?mode=community&physics=1');
+  });
+
+  it('round-trips the physics flag both ways', () => {
+    expect(decodeGraphState(encodeGraphState({ ...EMPTY, physics: true })).physics).toBe(true);
+    expect(decodeGraphState(encodeGraphState({ ...EMPTY, physics: false })).physics).toBe(false);
+  });
+
   it('merges into existing search and keeps unrelated params', () => {
     const q = encodeGraphState(
-      { mode: 'community', hiddenGroups: ['topic'], hiddenCommunities: [2], hiddenEdges: ['core'], preset: null },
+      { mode: 'community', hiddenGroups: ['topic'], hiddenCommunities: [2], hiddenEdges: ['core'], preset: null, physics: false },
       '?utm_source=x&mode=group',
     );
     expect(q).toBe('?utm_source=x&mode=community&hideGroups=topic&hideC=2&hideEdges=core');
@@ -97,8 +123,8 @@ describe('encodeGraphState', () => {
 
   it('drops stale params when state returns to defaults', () => {
     const q = encodeGraphState(
-      { mode: 'group', hiddenGroups: [], hiddenCommunities: [], hiddenEdges: [], preset: null },
-      '?mode=community&hideGroups=topic&hideC=2&hideEdges=core&preset=post&utm=x',
+      { mode: 'group', hiddenGroups: [], hiddenCommunities: [], hiddenEdges: [], preset: null, physics: false },
+      '?mode=community&hideGroups=topic&hideC=2&hideEdges=core&preset=post&physics=1&utm=x',
     );
     expect(q).toBe('?utm=x');
   });
@@ -110,6 +136,7 @@ describe('encodeGraphState', () => {
       hiddenCommunities: [3],
       hiddenEdges: ['shared'],
       preset: 'post' as const,
+      physics: true,
     };
     expect(decodeGraphState(encodeGraphState(state, '?utm=1'))).toEqual(state);
   });

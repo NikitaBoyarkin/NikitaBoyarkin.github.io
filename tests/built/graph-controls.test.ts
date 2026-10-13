@@ -71,6 +71,23 @@ describe('graph controls (built HTML)', () => {
       expect(doc()).toMatch(/data-kg-action="fullscreen"/);
     });
 
+    it(`${file}: the physics toggle is a labelled toggle, outside the zoom trio`, () => {
+      const btn = actionButtons(doc()).find((b) => b.includes('data-kg-action="toggle-physics"'));
+      expect(btn, 'physics button').toBeTruthy();
+      // A toggle in the same row as Color/Arrows/Focus: it carries its own word
+      // and its pressed state, and its accessible name is what tells the user
+      // that dragging is what starts the simulation and releasing ends it.
+      expect(btn!).toContain('kg-btn-toggle');
+      expect(btn!).toMatch(/aria-pressed="false"/);
+      expect(btn!).toMatch(/aria-label="[^"]+"/);
+      expect(btn!).not.toContain('<svg');
+      // Physics is on only when the toggle says so, and the zoom group beside
+      // it is asserted at exactly three actions elsewhere — this one must not
+      // have landed inside it.
+      const zoom = doc().match(/<div[^>]*class="kg-zoom"[^>]*>[\s\S]*?<\/div>/)?.[0] ?? '';
+      expect(zoom).not.toContain('toggle-physics');
+    });
+
     it(`${file}: every preset chip separates its label from its count`, () => {
       const chips = doc().match(/<button[^>]*class="kg-chip"[^>]*>[\s\S]*?<\/button>/g) ?? [];
       expect(chips.length).toBe(6);
