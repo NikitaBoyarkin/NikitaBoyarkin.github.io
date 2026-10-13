@@ -416,7 +416,13 @@ Do **not** push directly to `master` without confirming the workflow is enabled 
 
 **The two patterns must not overlap.** `assertMatrix` is a *union*: `getAllAssertionResults` re-tests every entry against every URL, so a `.*` catch-all silently layers its assertions on top of a specific entry's and overrides them. That is why the default pattern is a negative lookahead rather than `.*`.
 
-CLS on `/repo-audit/` sits around 0.5 and is `warn`-only. It is **pre-existing**, not a font regression: the KPI grid and the 1,500-row table are injected by JS after parse, so everything below them moves. The pre-theme build measured 0.604 and the current one 0.612 — inside the run-to-run spread. Adding `font-display: optional` buys only ~0.08 and loses the brand font, so the page keeps `swap` plus metric-matched fallbacks (`size-adjust`, measured — see the `FONTS` block in `.firecrawl/NikitaBoyarkin/_build_dashboard.py`).
+CLS on `/repo-audit/` was 0.51–0.61; it is now 0. The cause was **not** the fonts. The KPI grid, both charts, the cluster list and the 1,500-row table were all injected by JS, and under CPU throttling the browser paints the header before that layout finishes — so every section below moved (4× CPU + slow 4G measured 0.687, against 0.01 unthrottled). The fix reserves the space at build time:
+
+- the KPIs and the cluster rows are rendered by `_build_dashboard.py` (`kpi_cards` / `cluster_rows`) and the JS no longer builds them, so there is one source for each;
+- each chart host carries the `viewBox` `aspect-ratio` from Python, because the SVG is `width:100%;height:auto` and no `min-height` could ever reserve a fluid box;
+- `.tblwrap` is a fixed 620 px scroll region instead of `max-height`.
+
+Verified by measurement, not assertion: throttled CLS 0.687 → 0.0075, Lighthouse CLS 0.612 → 0. `font-display: swap` is kept, together with metric-matched fallbacks (`size-adjust`, measured — see the `FONTS` block in `_build_dashboard.py`); `font-display: optional` was tried and bought only ~0.08 at the cost of the brand face.
 
 ## Legacy Files
 

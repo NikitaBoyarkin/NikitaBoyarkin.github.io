@@ -111,7 +111,7 @@ thead th .ar{color:var(--accent);font-size:10px}
 thead th button{background:none;border:0;padding:0;font:inherit;color:inherit;
   cursor:pointer;white-space:nowrap;text-align:inherit}
 thead th.num button{display:block;width:100%;text-align:right}
-.tblwrap{max-height:620px;overflow:auto;border:1px solid var(--border);border-radius:12px}
+.tblwrap{height:620px;overflow:auto;border:1px solid var(--border);border-radius:12px}
 tbody td{padding:7px 10px;border-bottom:1px solid var(--hairline);vertical-align:top}
 tbody tr:hover{background:var(--panel)}
 td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -150,7 +150,7 @@ footer{color:var(--muted);font-size:11.5px;padding:8px 24px 40px;max-width:1400p
 <main>
   <section aria-labelledby="kpi-h">
     <h2 id="kpi-h">Key numbers</h2>
-    <div class="kpis" id="kpis"></div>
+    <div class="kpis" id="kpis"><div class="kpi "><div class="n">1,776</div><div class="l">repos indexed</div></div><div class="kpi accent"><div class="n">76</div><div class="l">own repos</div></div><div class="kpi "><div class="n">1,700</div><div class="l">starred / other</div></div><div class="kpi accent"><div class="n">26,911,802</div><div class="l">combined stars</div></div><div class="kpi "><div class="n">47</div><div class="l">authored audited</div></div><div class="kpi good"><div class="n">34/47</div><div class="l">CI coverage</div></div><div class="kpi good"><div class="n">41/47</div><div class="l">tests coverage</div></div><div class="kpi good"><div class="n">47/47</div><div class="l">license coverage</div></div><div class="kpi accent"><div class="n">7.7/10</div><div class="l">mean README score</div></div></div>
   </section>
 
   <section aria-labelledby="f-h">
@@ -194,9 +194,9 @@ footer{color:var(--muted);font-size:11.5px;padding:8px 24px 40px;max-width:1400p
     <h2 id="ch-h">Distribution</h2>
     <div class="charts">
       <div class="card"><h3>Language distribution (all repos)</h3>
-        <div id="chart-lang"></div></div>
+        <div id="chart-lang" style="aspect-ratio:560/368"></div></div>
       <div class="card"><h3>Stars histogram (all repos)</h3>
-        <div id="chart-stars"></div></div>
+        <div id="chart-stars" style="aspect-ratio:560/240"></div></div>
     </div>
   </section>
 
@@ -212,7 +212,7 @@ footer{color:var(--muted);font-size:11.5px;padding:8px 24px 40px;max-width:1400p
 
   <section aria-labelledby="cl-h">
     <h2 id="cl-h">Star clusters — what the 1,700 starred repos cover</h2>
-    <div class="card"><div class="clusters" id="clusters"></div></div>
+    <div class="card"><div class="clusters" id="clusters"><div class="cl"><div class="cid">C14</div><div class="bar"><span style="width:100%"></span><div class="lab">General dev, learning &amp; open-source mega-repos</div></div><div class="n">250</div></div><div class="cl"><div class="cid">C0</div><div class="bar"><span style="width:68%"></span><div class="lab">Python pet projects &amp; MLOps</div></div><div class="n">170</div></div><div class="cl"><div class="cid">C17</div><div class="bar"><span style="width:57%"></span><div class="lab">React / TypeScript frontend</div></div><div class="n">143</div></div><div class="cl"><div class="cid">C6</div><div class="bar"><span style="width:54%"></span><div class="lab">Claude Code / coding-agent skills</div></div><div class="n">134</div></div><div class="cl"><div class="cid">C2</div><div class="bar"><span style="width:52%"></span><div class="lab">LLM apps, agents &amp; prompts</div></div><div class="n">131</div></div><div class="cl"><div class="cid">C15</div><div class="bar"><span style="width:48%"></span><div class="lab">ML / DS notebooks, courses &amp; datasets</div></div><div class="n">121</div></div><div class="cl"><div class="cid">C8</div><div class="bar"><span style="width:48%"></span><div class="lab">SQL practice &amp; databases</div></div><div class="n">120</div></div><div class="cl"><div class="cid">C4</div><div class="bar"><span style="width:45%"></span><div class="lab">SQL practice &amp; databases (course)</div></div><div class="n">112</div></div><div class="cl"><div class="cid">C12</div><div class="bar"><span style="width:32%"></span><div class="lab">ML / DS notebooks, courses &amp; datasets (learning)</div></div><div class="n">81</div></div><div class="cl"><div class="cid">C10</div><div class="bar"><span style="width:30%"></span><div class="lab">Awesome lists &amp; curated indexes</div></div><div class="n">75</div></div><div class="cl"><div class="cid">C18</div><div class="bar"><span style="width:30%"></span><div class="lab">Obsidian &amp; note-taking plugins</div></div><div class="n">74</div></div><div class="cl"><div class="cid">C1</div><div class="bar"><span style="width:23%"></span><div class="lab">LLM apps, agents &amp; prompts (mcp)</div></div><div class="n">58</div></div><div class="cl"><div class="cid">C13</div><div class="bar"><span style="width:21%"></span><div class="lab">Rust / Go systems tooling</div></div><div class="n">53</div></div><div class="cl"><div class="cid">C9</div><div class="bar"><span style="width:18%"></span><div class="lab">Product analytics &amp; experimentation</div></div><div class="n">44</div></div><div class="cl"><div class="cid">C11</div><div class="bar"><span style="width:16%"></span><div class="lab">Static sites, blogs &amp; website themes</div></div><div class="n">40</div></div><div class="cl"><div class="cid">C16</div><div class="bar"><span style="width:16%"></span><div class="lab">Claude Code / coding-agent skills (marketing)</div></div><div class="n">39</div></div><div class="cl"><div class="cid">C7</div><div class="bar"><span style="width:11%"></span><div class="lab">Docker, containers &amp; dev setup</div></div><div class="n">27</div></div><div class="cl"><div class="cid">C5</div><div class="bar"><span style="width:8%"></span><div class="lab">Desktop &amp; native apps</div></div><div class="n">21</div></div><div class="cl"><div class="cid">C3</div><div class="bar"><span style="width:3%"></span><div class="lab">Product analytics &amp; experimentation (tableau)</div></div><div class="n">7</div></div></div></div>
   </section>
 </main>
 <footer>
@@ -230,27 +230,9 @@ footer{color:var(--muted);font-size:11.5px;padding:8px 24px 40px;max-width:1400p
   var fmt = function(n){ return n.toLocaleString("en-US"); };
 
   /* ---------- KPIs ---------- */
-  var kpi = document.getElementById("kpis");
-  if(kpi){
-    var m = D.meta;
-    var items = [
-      {n: fmt(m.total), l: "repos indexed", c: ""},
-      {n: fmt(m.own), l: "own repos", c: "accent"},
-      {n: fmt(m.starred), l: "starred / other", c: ""},
-      {n: fmt(m.combinedStars), l: "combined stars", c: "accent"},
-      {n: fmt(m.authored), l: "authored audited", c: ""},
-      {n: m.ci + "/" + m.authored, l: "CI coverage", c: "good"},
-      {n: m.tests + "/" + m.authored, l: "tests coverage", c: "good"},
-      {n: m.license + "/" + m.authored, l: "license coverage", c: "good"},
-      {n: m.readmeMean + "/10", l: "mean README score", c: "accent"}
-    ];
-    var html = "";
-    for(var i=0;i<items.length;i++){
-      html += '<div class="kpi '+items[i].c+'"><div class="n">'+items[i].n+
-              '</div><div class="l">'+items[i].l+'</div></div>';
-    }
-    kpi.innerHTML = html;
-  }
+  /* Built at build time (see kpi_cards in Python) so the grid has its final
+     height before the first paint — nothing below it can shift. */
+
 
   /* ---------- charts ---------- */
   function barChart(host, rows, opts){
@@ -334,25 +316,7 @@ footer{color:var(--muted);font-size:11.5px;padding:8px 24px 40px;max-width:1400p
            {aria:"Stars histogram", color:"#4ecdc4"});
 
   /* ---------- clusters ---------- */
-  var cl = document.getElementById("clusters");
-  if(cl && D.clusters && D.clusters.length){
-    var cmax = 0;
-    for(var c=0;c<D.clusters.length;c++){
-      if(D.clusters[c].size > cmax) cmax = D.clusters[c].size;
-    }
-    if(cmax <= 0) cmax = 1;
-    var sorted = D.clusters.slice().sort(function(a,b){ return b.size - a.size; });
-    var h = "";
-    for(var q=0;q<sorted.length;q++){
-      var it = sorted[q];
-      var pct = Math.max(3, Math.round(100 * it.size / cmax));
-      h += '<div class="cl"><div class="cid">'+esc(it.id)+'</div>'+
-           '<div class="bar"><span style="width:'+pct+'%"></span>'+
-           '<div class="lab">'+esc(it.label)+'</div></div>'+
-           '<div class="n">'+fmt(it.size)+'</div></div>';
-    }
-    cl.innerHTML = h;
-  }
+  /* Built at build time (see cluster_rows in Python) — same reason as the KPIs. */
 
   /* ---------- table + filters ---------- */
   var tbody = document.getElementById("tbody");
