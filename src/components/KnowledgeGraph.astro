@@ -1575,9 +1575,15 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     color: #1a1a1a; /* dark ink on the coral accent — 7.3:1, AA */
     font-weight: 600;
   }
+  /* One pill for both themes. The two accents need opposite ink (dark ink on
+     the dark-theme coral, white on the light-theme sienna), so instead of
+     tracking the theme the pill carries its own dark background and white ink,
+     which clears AA on both: 12:1 on coral, 14.6:1 on sienna. The previous
+     per-theme pair failed — 3.18:1 in dark, and 4.29:1 in light once the 22%
+     white overlay lightened the sienna. */
   .kg-chip[aria-pressed='true'] .kg-chip-count {
-    color: #1a1a1a;
-    background: rgb(0 0 0 / 0.14);
+    color: #ffffff;
+    background: rgb(0 0 0 / 0.45);
   }
   /* Light theme's --text-accent is dark sienna (#a8331a), where the dark ink
      above drops to 2.61:1. `:global()` keeps Astro from scoping the ancestor —
@@ -1585,10 +1591,6 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
      and never matches. White ink on sienna is 6.66:1. */
   :global([data-theme='light']) .kg-chip[aria-pressed='true'] {
     color: #ffffff;
-  }
-  :global([data-theme='light']) .kg-chip[aria-pressed='true'] .kg-chip-count {
-    color: #ffffff;
-    background: rgb(255 255 255 / 0.22);
   }
   .kg-chip:focus-visible {
     outline: 2px solid var(--text-accent);
