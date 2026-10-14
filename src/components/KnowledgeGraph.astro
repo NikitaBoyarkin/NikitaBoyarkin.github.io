@@ -186,67 +186,75 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
 ---
 
 <div id="kg-root" class:list={['kg-root', { 'kg-bare': bare }]} data-search-empty={isEn ? 'No matches' : 'Ничего не найдено'} data-search-reset={isEn ? 'Clear search' : 'Очистить поиск'}>
-  <div class="kg-topbar">
-    <div class="kg-search" role="search">
-      <input
-        id="kg-search-input"
-        class="kg-search-input"
-        type="search"
-        placeholder={t.searchPlaceholder}
-        aria-label={t.searchLabel}
-        autocomplete="off"
-        role="combobox"
-        aria-expanded="false"
-        aria-controls="kg-search-results"
-        aria-autocomplete="list"
-      />
-      <div id="kg-search-results" class="kg-search-results" role="listbox" hidden></div>
-    </div>
-    <div class="kg-legend" id="kg-legend" role="list" aria-label={isEn ? 'Graph color legend' : 'Легенда цветов графа'}></div>
-    <div class="kg-controls" role="group" aria-label={isEn ? 'Graph controls' : 'Управление графом'}>
-      <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-color" aria-pressed="false" aria-label={t.colorMode} title={t.colorByGroup} data-label-group={t.colorByGroup} data-label-community={t.colorByCommunity}>{t.colorByGroup}</button>
-      <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-arrows" aria-pressed="false" aria-label={t.arrowsLabel} title={t.arrowsLabel}>{t.arrows}</button>
-      <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-focus" aria-pressed="false" aria-label={t.focusLabel} title={t.focusLabel}>{t.focus}</button>
-      <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-physics" aria-pressed="false" aria-label={t.physicsLabel} title={t.physicsLabel}>{t.physics}</button>
-      <div class="kg-popover">
-        <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-edge-panel" aria-haspopup="true" aria-expanded="false" aria-label={`${t.edges}: ${t.edgesLabel}`} title={t.edgesLabel}>{t.edges}</button>
-        <div id="kg-edge-panel" class="kg-edge-panel" role="group" aria-label={t.edgesLabel} hidden>
-          {(['related', 'children', 'topic', 'shared', 'core'] as const).map((ty) => (
-            <label class="kg-edge-toggle">
-              <input type="checkbox" data-kg-type={ty} checked />
-              <span class="kg-edge-swatch" data-kg-swatch={ty}></span>
-              {t.edgeType[ty]}
-            </label>
-          ))}
+  <!-- The whole control bar is one bento block: the site's `.bento-cell`
+       recipe (a bordered, rounded surface) around the search, the legend and
+       the view controls, with the quick-filter chips under them. It is
+       content-sized and left-anchored, so the controls sit against the page's
+       own gutter instead of being pushed to the far right edge by the top
+       bar's old `space-between`. -->
+  <div class="kg-bar">
+    <div class="kg-topbar">
+      <div class="kg-search" role="search">
+        <input
+          id="kg-search-input"
+          class="kg-search-input"
+          type="search"
+          placeholder={t.searchPlaceholder}
+          aria-label={t.searchLabel}
+          autocomplete="off"
+          role="combobox"
+          aria-expanded="false"
+          aria-controls="kg-search-results"
+          aria-autocomplete="list"
+        />
+        <div id="kg-search-results" class="kg-search-results" role="listbox" hidden></div>
+      </div>
+      <div class="kg-legend" id="kg-legend" role="list" aria-label={isEn ? 'Graph color legend' : 'Легенда цветов графа'}></div>
+      <div class="kg-controls" role="group" aria-label={isEn ? 'Graph controls' : 'Управление графом'}>
+        <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-color" aria-pressed="false" aria-label={t.colorMode} title={t.colorByGroup} data-label-group={t.colorByGroup} data-label-community={t.colorByCommunity}>{t.colorByGroup}</button>
+        <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-arrows" aria-pressed="false" aria-label={t.arrowsLabel} title={t.arrowsLabel}>{t.arrows}</button>
+        <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-focus" aria-pressed="false" aria-label={t.focusLabel} title={t.focusLabel}>{t.focus}</button>
+        <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-physics" aria-pressed="false" aria-label={t.physicsLabel} title={t.physicsLabel}>{t.physics}</button>
+        <div class="kg-popover">
+          <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-edge-panel" aria-haspopup="true" aria-expanded="false" aria-label={`${t.edges}: ${t.edgesLabel}`} title={t.edgesLabel}>{t.edges}</button>
+          <div id="kg-edge-panel" class="kg-edge-panel" role="group" aria-label={t.edgesLabel} hidden>
+            {(['related', 'children', 'topic', 'shared', 'core'] as const).map((ty) => (
+              <label class="kg-edge-toggle">
+                <input type="checkbox" data-kg-type={ty} checked />
+                <span class="kg-edge-swatch" data-kg-swatch={ty}></span>
+                {t.edgeType[ty]}
+              </label>
+            ))}
+          </div>
         </div>
+        <!-- Inline SVG, not text glyphs (`+ − ⟲ ⛶`): those come from whatever font
+             wins the fallback chain, so weight and optical size drifted between
+             platforms and `⟲`/`⛶` risked a tofu box. The paths are 16×16 and
+             stroked with `currentColor`, so hover/focus still recolour them. -->
+        <div class="kg-zoom" role="group" aria-label={t.zoomGroup}>
+          <button type="button" class="kg-btn" data-kg-action="zoom-in" aria-label={t.zoomIn} title={t.zoomIn}>
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6" /><path d="M8 5.4v5.2M5.4 8h5.2" /></svg>
+          </button>
+          <button type="button" class="kg-btn" data-kg-action="zoom-out" aria-label={t.zoomOut} title={t.zoomOut}>
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6" /><path d="M5.4 8h5.2" /></svg>
+          </button>
+          <button type="button" class="kg-btn" data-kg-action="reset" aria-label={t.reset} title={t.reset}>
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M13.9 8a6 6 0 1 1-6-6c1.68 0 3.29.67 4.49 1.83L13.9 5.4" /><path d="M13.9 2.1v3.3h-3.3" /></svg>
+          </button>
+        </div>
+        <button type="button" class="kg-btn" data-kg-action="fullscreen" aria-label={t.fullscreen} title={t.fullscreen} data-label-fs={t.fullscreen} data-label-fs-exit={t.fullscreenExit}>
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.6 6V2.6H6M10 2.6h3.4V6M13.4 10v3.4H10M6 13.4H2.6V10" /></svg>
+        </button>
       </div>
-      <!-- Inline SVG, not text glyphs (`+ − ⟲ ⛶`): those come from whatever font
-           wins the fallback chain, so weight and optical size drifted between
-           platforms and `⟲`/`⛶` risked a tofu box. The paths are 16×16 and
-           stroked with `currentColor`, so hover/focus still recolour them. -->
-      <div class="kg-zoom" role="group" aria-label={t.zoomGroup}>
-        <button type="button" class="kg-btn" data-kg-action="zoom-in" aria-label={t.zoomIn} title={t.zoomIn}>
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6" /><path d="M8 5.4v5.2M5.4 8h5.2" /></svg>
-        </button>
-        <button type="button" class="kg-btn" data-kg-action="zoom-out" aria-label={t.zoomOut} title={t.zoomOut}>
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6" /><path d="M5.4 8h5.2" /></svg>
-        </button>
-        <button type="button" class="kg-btn" data-kg-action="reset" aria-label={t.reset} title={t.reset}>
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M13.9 8a6 6 0 1 1-6-6c1.68 0 3.29.67 4.49 1.83L13.9 5.4" /><path d="M13.9 2.1v3.3h-3.3" /></svg>
-        </button>
-      </div>
-      <button type="button" class="kg-btn" data-kg-action="fullscreen" aria-label={t.fullscreen} title={t.fullscreen} data-label-fs={t.fullscreen} data-label-fs-exit={t.fullscreenExit}>
-        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.6 6V2.6H6M10 2.6h3.4V6M13.4 10v3.4H10M6 13.4H2.6V10" /></svg>
-      </button>
     </div>
-  </div>
-  <div class="kg-presets" role="group" aria-label={t.presetLabel}>
-    <button type="button" class="kg-chip" data-kg-preset="" aria-pressed="true" data-label={t.presetAll}><span class="kg-chip-label">{t.presetAll}</span><span class="kg-chip-count"></span></button>
-    <button type="button" class="kg-chip" data-kg-preset="project" aria-pressed="false" data-label={t.presetProject}><span class="kg-chip-label">{t.presetProject}</span><span class="kg-chip-count"></span></button>
-    <button type="button" class="kg-chip" data-kg-preset="post" aria-pressed="false" data-label={t.presetPost}><span class="kg-chip-label">{t.presetPost}</span><span class="kg-chip-count"></span></button>
-    <button type="button" class="kg-chip" data-kg-preset="topic" aria-pressed="false" data-label={t.presetTopic}><span class="kg-chip-label">{t.presetTopic}</span><span class="kg-chip-count"></span></button>
-    <button type="button" class="kg-chip" data-kg-preset="volta" aria-pressed="false" data-label={t.presetVolta}><span class="kg-chip-label">{t.presetVolta}</span><span class="kg-chip-count"></span></button>
-    <button type="button" class="kg-chip" data-kg-preset="glossary" aria-pressed="false" data-label={t.presetGlossary}><span class="kg-chip-label">{t.presetGlossary}</span><span class="kg-chip-count"></span></button>
+    <div class="kg-presets" role="group" aria-label={t.presetLabel}>
+      <button type="button" class="kg-chip" data-kg-preset="" aria-pressed="true" data-label={t.presetAll}><span class="kg-chip-label">{t.presetAll}</span><span class="kg-chip-count"></span></button>
+      <button type="button" class="kg-chip" data-kg-preset="project" aria-pressed="false" data-label={t.presetProject}><span class="kg-chip-label">{t.presetProject}</span><span class="kg-chip-count"></span></button>
+      <button type="button" class="kg-chip" data-kg-preset="post" aria-pressed="false" data-label={t.presetPost}><span class="kg-chip-label">{t.presetPost}</span><span class="kg-chip-count"></span></button>
+      <button type="button" class="kg-chip" data-kg-preset="topic" aria-pressed="false" data-label={t.presetTopic}><span class="kg-chip-label">{t.presetTopic}</span><span class="kg-chip-count"></span></button>
+      <button type="button" class="kg-chip" data-kg-preset="volta" aria-pressed="false" data-label={t.presetVolta}><span class="kg-chip-label">{t.presetVolta}</span><span class="kg-chip-count"></span></button>
+      <button type="button" class="kg-chip" data-kg-preset="glossary" aria-pressed="false" data-label={t.presetGlossary}><span class="kg-chip-label">{t.presetGlossary}</span><span class="kg-chip-count"></span></button>
+    </div>
   </div>
   <!-- role="group" (not "img"): ARIA "img" has presentational children, which
        would flatten the 75 focusable node links inside the SVG out of the
@@ -1522,20 +1530,52 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     padding: var(--space-5);
     border-radius: 0;
   }
+  /* The control bar is one bento block — the `.bento-cell` recipe (bordered,
+     rounded surface) minus its hover lift: this is a control panel, not a card
+     to open, so it must not move under the pointer. Content-sized and
+     left-anchored, so the row starts at the block's own left edge (the board's
+     gutter, or the card's padding) instead of being pushed to the far right by
+     the top bar's old `space-between`. */
+  .kg-bar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    inline-size: fit-content;
+    max-inline-size: 100%;
+    margin-bottom: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+  }
+  /* The block is always one step off the surface under it. Its parent carries
+     `--background-secondary` in exactly two cases — the embedded card, and the
+     fullscreen overlay (which re-takes the card surface) — and on the bare
+     board the page itself is `--background-primary`, which is why the base
+     rule above takes the secondary fill. Same fill as the parent would leave
+     the block visible only by its hairline border. */
+  .kg-root:not(.kg-bare) .kg-bar,
+  .kg-root.kg-fullscreen .kg-bar {
+    background: var(--background-primary);
+  }
+  /* The overlay is a full-viewport column; a content-sized bar pinned to its
+     top-left would read as detached from the drawing it controls. */
+  .kg-root.kg-fullscreen .kg-bar {
+    inline-size: auto;
+    margin-bottom: 0;
+  }
   .kg-topbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: var(--space-3);
     flex-wrap: wrap;
-    margin-bottom: var(--space-3);
   }
   .kg-presets {
     display: flex;
     align-items: center;
     gap: 0.4rem;
     flex-wrap: wrap;
-    margin-bottom: var(--space-3);
   }
   .kg-chip {
     appearance: none;
@@ -1555,14 +1595,22 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
   }
   /* The count is a pill of its own rather than `Все (109)`: the parenthesised
-     form read as part of the label and made every chip a different width. */
+     form read as part of the label and made every chip a different width.
+
+     The ink is `--text-normal`, not the `--text-muted` the label beside it
+     carries. The pill paints its own 16% `--text-muted` fill, and muted ink on
+     that fill clears AA only by a hair — measured 4.49:1 on the dark board's
+     page surface and 3.94:1 on the dark card's secondary one, both under the
+     4.5 the LHCI `color-contrast` assertion demands (axe flags 3 and 7 nodes
+     respectively). The failure is in this pairing, not in the surface the chip
+     sits on, so it is fixed on the ink. */
   .kg-chip-count {
     margin-left: 0.4rem;
     padding: 0.05rem 0.35rem;
     border-radius: 999px;
     font-size: 0.7rem;
     font-variant-numeric: tabular-nums;
-    color: var(--text-muted);
+    color: var(--text-normal);
     background: color-mix(in srgb, var(--text-muted) 16%, transparent);
   }
   .kg-chip:hover {
@@ -1961,8 +2009,12 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     border-top: 3px solid;
     border-radius: 2px;
   }
+  /* Same pill recipe and the same ink as `.kg-chip-count` (see the note there):
+     this one sits inside a legend chip, whose own surface is
+     `--background-primary`, but it is the pill's own 16% fill that the muted
+     ink fails on. */
   .kg-legend-count {
-    color: var(--text-muted);
+    color: var(--text-normal);
     font-weight: 400;
     font-size: 0.7rem;
     font-variant-numeric: tabular-nums;
