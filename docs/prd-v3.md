@@ -361,10 +361,10 @@ src/pages/whois.astro, src/pages/en/whois.astro — контент
 
 ## 8. Верификация
 
-- [x] `npm run build` — проходит, 101 страница
-- [x] `npm run check` — astro check 0 ошибок
+- [x] `bun run build` — проходит, 101 страница
+- [x] `bun run check` — astro check 0 ошибок
 - [x] `make check` — все внутренние ссылки валидны + новая проверка дрейфа метрик
-- [ ] `npm test` — vitest зелёный (если добавлены тесты)
+- [ ] `bun test` — vitest зелёный (если добавлены тесты)
 - [ ] PostHog: UTM-поля в схеме, фаннел «Рекрутер» обновлён
 
 ## 9. Риски

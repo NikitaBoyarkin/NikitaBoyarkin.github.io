@@ -40,7 +40,7 @@ No new primitive required — the recipe exists and is already shared by two com
 - Product: Browsing projects; tool chips read as accent-tinted pills consistent with the about-page skill badges and blog-card tags
 - Interface: Homepage spotlight (RU/EN), projects page kanban (RU/EN), project detail (RU/EN), volta case study, all three themes, mobile + desktop
 - System: Confirm the recipe matches `.skill-badge` values; confirm no other `.project-tool` color declaration exists (grep `\.project-tool` → only 873, 2050, 2326; the latter two set font-size only)
-- Repository: `cd "/Users/nikitaboarkin/Desktop/00 ide/00 portfolio/Personal_Projects.github.io" && npm run build` → build succeeds
+- Repository: `cd "/Users/nikitaboarkin/Desktop/00 ide/00 portfolio/Personal_Projects.github.io" && bun run build` → build succeeds
 
 ## Stop conditions
 

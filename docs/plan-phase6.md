@@ -84,7 +84,7 @@
 3. **Потом страницы:** шаблон `.astro` с `Base`, JSON-LD `ProfilePage`, стили через существующие `.board-card`/`.reveal` в global.css.
 4. **Nav:** добавить 3 пункта в `Base.astro` (mobile/desktop сразу, так как nav одна).
 5. **llms.txt:** дополнить Core pages.
-6. **Верификация:** `npm run build` → `npm run check` → `make check`.
+6. **Верификация:** `bun run build` → `bun run check` → `make check`.
 
 **Принципы:**
 - Additive, не редизайн.
@@ -97,9 +97,9 @@
 
 ## 4. Верификация
 
-- [x] `npm run build` — проходит, 101 страница.
-- [x] `npm run check` — astro check 0 ошибок.
-- [x] `npm test` — 136/136 тестов.
+- [x] `bun run build` — проходит, 101 страница.
+- [x] `bun run check` — astro check 0 ошибок.
+- [x] `bun test` — 136/136 тестов.
 - [x] `make check` — все внутренние ссылки валидны.
 - [x] Новые страницы в `dist/`: `/whois/`, `/en/whois/`, `/work-with-me/`, `/en/work-with-me/`, `/value/`, `/en/value/`.
 - [x] Nav содержит ссылки на новые страницы (`Кто я` / `Ценность` / `Формат` и `Who I am` / `Value` / `Format`).

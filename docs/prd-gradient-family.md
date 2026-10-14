@@ -91,7 +91,7 @@ Per-theme overrides — composition only:
 ## 7. Acceptance
 
 - `bun test tests/lib` green, including the new file.
-- `npm run build` → 203 pages; `npm run check` → 0 errors; `make check` green.
+- `bun run build` → 203 pages; `bun run check` → 0 errors; `make check` green.
 - Visual pass at all three themes × desktop/mobile: hero, project card (rest + hover), primary button, section rule.
 - Accent area still within the `≤15%` budget by the method at `DESIGN.md:195`.
 - LHCI a11y ≥0.95 on `/` and `/en/`.
@@ -127,7 +127,7 @@ Open, deliberately not closed:
 | Claim | Class | Note |
 |---|---|---|
 | 379 `tests/lib` tests pass, 13 of them new | Verified | `bun test tests/lib` |
-| Build produces 203 pages | Verified | `npm run build` (the 135 in earlier PRDs is stale) |
+| Build produces 203 pages | Verified | `bun run build` (the 135 in earlier PRDs is stale) |
 | `astro check` 0 errors / `make check` green | Verified | includes `check_site.py` link + metrics drift |
 | Ramp holds AA in all three themes | Verified | composite at 0/25/50/75/100%; narrowest **4.93:1** (light hero under `--text-accent`) |
 | The gate bites | Verified | 5 mutation-control cases in-file assert red |

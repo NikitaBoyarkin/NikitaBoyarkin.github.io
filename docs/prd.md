@@ -123,7 +123,7 @@ src/lib/path.ts  → withBase() helper
 **Task Breakdown:**
 - [Платформа]: Done (исторически)
 - [CI]: Done (исторически)
-- [Тесты]: Done — `npm run build` + `npm run check` + `make check`
+- [Тесты]: Done — `bun run build` + `bun run check` + `make check`
 
 **Dependencies:** None
 
@@ -619,7 +619,7 @@ Critical Path: Phase 1 (сейчас) → анализ PostHog через 90д �
 ### Checkpoint 1: Конец Phase 1 (Capabilities grid)
 **Критерии:**
 - [x] 6 ячеек грида на главной RU+EN, каждая с ссылкой на проект
-- [x] `npm run build`, `npm run check` (astro check 0), `make check` — зелёные
+- [x] `bun run build`, `bun run check` (astro check 0), `make check` — зелёные
 - [x] Нет новой визуальной регрессии (битовая идентичность scoped-стилей, build-артефакты чистые)
 **Если провален:** откат грида, review контента ячеек, повторный прогон. ✅
 

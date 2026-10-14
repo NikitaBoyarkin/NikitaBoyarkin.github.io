@@ -452,7 +452,7 @@ Critical Path: Phase 6 (сейчас) → анализ PostHog через 90д �
 ### Checkpoint 3: Конец Phase 6
 **Критерии:**
 - [ ] 4 личностные поверхности live (tagline, whois, work-with-me, value), в sitemap
-- [ ] `npm run build`, `npm run check` (astro check 0), `make check` — зелёные
+- [ ] `bun run build`, `bun run check` (astro check 0), `make check` — зелёные
 - [ ] PostHog: `whois_viewed`/`work_with_me_viewed`/`value_viewed` в read-data-schema
 - [ ] Нет визуальной регрессии (существующие страницы не тронуты)
 **Если провален:** откат новых страниц, review контента, повторный прогон.

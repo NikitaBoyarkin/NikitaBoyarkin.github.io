@@ -40,7 +40,7 @@ No new primitive required — the token and the sibling-card pattern already exi
 - Product: Browsing projects on the homepage and projects page; card titles read as body-level headings, accent reserved for interactive elements
 - Interface: Homepage spotlight (RU/EN), projects page kanban (RU/EN), all three themes, mobile + desktop
 - System: Confirm no other `.project h3` color declaration exists (grep `\.project h3` → only 789, 2035, 2311; the latter two set font-size only)
-- Repository: `cd "/Users/nikitaboarkin/Desktop/00 ide/00 portfolio/Personal_Projects.github.io" && npm run build` → build succeeds
+- Repository: `cd "/Users/nikitaboarkin/Desktop/00 ide/00 portfolio/Personal_Projects.github.io" && bun run build` → build succeeds
 
 ## Stop conditions
 

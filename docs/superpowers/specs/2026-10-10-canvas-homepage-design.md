@@ -215,7 +215,7 @@ canvas branch is the owner's call.
 - `tests/built/canvas.test.ts` — `dist/index.html` and `dist/en/index.html` contain the
   `<h1>`, the three role links (`/hr/`, `/manager/`, `/colleague/` and EN equivalents),
   both CTAs, and no `role="img"` wrapper around text.
-- Verify order: `npm run build` → `npm run check` (astro check 0) → `make check`
+- Verify order: `bun run build` → `bun run check` (astro check 0) → `make check`
   (bun test + `check_site.py`) → axe/Lighthouse in **both** themes.
 - LHCI does not emulate `prefers-color-scheme`: the OS theme decides, so a
   light-theme-only contrast bug does not reproduce locally. Both themes are checked

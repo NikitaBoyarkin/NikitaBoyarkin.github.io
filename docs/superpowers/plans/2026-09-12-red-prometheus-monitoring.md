@@ -643,7 +643,7 @@ describe("beacon", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npm test -- tests/lib/beacon.test.ts`
+Run: `bun test tests/lib/beacon.test.ts`
 Expected: FAIL — cannot resolve `../../src/lib/beacon`
 
 - [ ] **Step 3: Write minimal implementation**
@@ -715,12 +715,12 @@ Then add `<BeaconMetrics />` into the base layout `<head>` (run `grep -rl "<html
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npm test -- tests/lib/beacon.test.ts`
+Run: `bun test tests/lib/beacon.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Verify site still builds**
 
-Run: `npm run build`
+Run: `bun run build`
 Expected: build succeeds; `dist/index.html` includes the beacon script when `PUBLIC_BEACON_ENDPOINT` is set.
 
 - [ ] **Step 6: Commit**
@@ -1024,7 +1024,7 @@ monitor-ps:
    `cloudflared tunnel create red-portfolio`
    `cloudflared tunnel route dns red-portfolio metrics.ваш-домен`
    Вписать `CLOUDFLARE_TUNNEL_TOKEN` (или `CLOUDFLARE_TUNNEL_ID` + credentials) в `.env`.
-3. В корне портфолио `.env` добавить `PUBLIC_BEACON_ENDPOINT=https://metrics.ваш-домен/beacon`; `npm run build`.
+3. В корне портфолио `.env` добавить `PUBLIC_BEACON_ENDPOINT=https://metrics.ваш-домен/beacon`; `bun run build`.
 
 ## Запуск
 `make monitor-up` → Prometheus :9090, Grafana :3000.
