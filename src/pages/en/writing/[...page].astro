@@ -44,7 +44,6 @@ const postsJson = allPosts.map((post) => {
     dateLabel: formatDate(post.data.date),
     readTimeLabel: readTime ? ` · ${readTime} min` : '',
     excerpt: post.data.excerpt,
-    image: post.data.image ? withBase(post.data.image) : null,
     tags: post.data.tags ?? [],
   };
 });
@@ -79,18 +78,16 @@ const nextUrl = page < totalPages ? `${siteUrl}${withBase(pageHref(page + 1))}` 
       pagePosts.length === 0 ? (
         <p style="color: var(--text-muted);">No English posts yet.</p>
       ) : (
-        pagePosts.map((post, i) => (
+        pagePosts.map((post) => (
           <BlogCard
             slug={post.id.replace(/\.md$/, '')}
             title={post.data.title}
             category={post.data.category}
             date={post.data.date}
-            image={post.data.image}
             updated={post.data.updated}
             excerpt={post.data.excerpt}
             readTime={estimateReadTime(post.body ?? '')}
             lang="en"
-            eager={i === 0}
             filterableTag
           />
         ))

@@ -62,7 +62,6 @@ const canonical = isGuides ? withBase('notes/guides/') : withBase('notes/');
             title={post.data.title}
             category={post.data.category}
             date={post.data.date}
-            image={post.data.image}
             updated={post.data.updated}
             excerpt={post.data.excerpt}
             readTime={estimateReadTime(post.body ?? '')}

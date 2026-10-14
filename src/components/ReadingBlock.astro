@@ -115,10 +115,16 @@ const I18N = {
   }
 
   /* A grid, not a wrapped flex row: tiles line up in columns, which is what
-     makes a shelf of ten readable at a glance. */
+     makes a shelf of ten readable at a glance.
+     `auto-fill`, not `auto-fit`: `auto-fit` collapses the tracks nothing sits
+     in, so a shelf that currently holds two sources stretched each tile to
+     ~570px — a 56px monogram and two short lines spread across half the page —
+     instead of keeping the ~270px column the tile is built for (measured on
+     /library/ at 1440px: 570px tiles). `auto-fill` keeps the empty columns and
+     the shelf reads the same at two sources as at ten. */
   .library-books {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: var(--space-5);
     margin: 0;
     padding: 0;

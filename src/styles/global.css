@@ -834,7 +834,13 @@ nav ul.links a[aria-current="page"] {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  /* One column by default. The two-column editorial split belongs to
+     `.hero-editorial` below, which only the colleague landing carries — `/hr/`
+     and `/manager/` render `.hero-body` alone, so the old unconditional
+     `1.2fr 0.8fr` here reserved an empty 40% track beside a hero that filled
+     60% of the content column (measured: hero 1 100px wide in a 1 180px frame
+     at 1440px, nothing in the trailing track). */
+  grid-template-columns: 1fr;
   gap: 3rem;
   align-items: center;
   /* Spans the content column so the hero's two columns share an edge with every
@@ -3350,12 +3356,59 @@ button:focus-visible {
   display: none;
 }
 
-/* The board's flat grid. Id + class so it beats the stacked-list rule the
-   topic pages rely on for `#project-list`. */
+/* The board's flat grid — `auto-fit` with a minimum card width, the convention
+   DESIGN.md:288 documents for project grids ("so cards reflow without media
+   queries"). It was hardcoded `1fr` until 2026-10-14: 22 cards stacked in one
+   column, so `/projects/` ran to 10 090px on a 1440px screen and showed 2.2
+   cards per viewport (measured).
+
+   540px is the minimum the board card needs with the cover dropped (the override
+   below): the STAR block — the reason those four rows are on the card at all —
+   gets 490–530px of body instead of the ~313px it had beside a half-width cover,
+   so its values stop being cut off after ~30 characters. Two columns appear once
+   the grid is ≥ 540×2 + 20px gap = 1100px. The board page adds no page padding,
+   so the grid is exactly min(--content-max 1180px, viewport) — measured 1100px at
+   a 1140px viewport, 1099px (one column) at 1139px. Below the threshold the card
+   keeps its cover, where it is 356–414px wide and its chart is legible.
+
+   `min(100%, 540px)` rather than a bare 540px: a minmax minimum is a *floor*,
+   so the plain value forced 540px columns on a 350px phone and overflowed the
+   page by 165px horizontally (measured at 390px). `min()` lets the track shrink
+   to the container when the container is smaller than the target. */
 #project-list.project-track-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 540px), 1fr));
   gap: var(--space-5);
+}
+
+/* Two columns: the board card drops its cover and the body takes the whole
+   column. The cover is 2:1, so at half width it either shrinks to a legible-less
+   87px thumbnail or, if it keeps its 260px floor, pushes the body onto a second
+   line and makes every card *taller* than the single-column original (measured:
+   468px vs 405px).
+
+   Dropping it is the owner's call (2026-10-14): the card's identity is the title
+   plus the `project-track-badge` eyebrow, and the cover's chart is legible on the
+   project page itself, which the card links to. What the width buys back is the
+   STAR block — the reason the four rows are on the board at all — going from 313px
+   to the full 512px of content box, so its values stop being cut to two lines of
+   ~30 characters.
+
+   `display: none`, not removal: which card width applies is a viewport fact and
+   this is a static build. The `<img>` is `loading="lazy"`, and a lazy image with
+   no layout box is never fetched, so desktop pays nothing for it. */
+@media (min-width: 1140px) {
+  #project-list.project-track-grid .project.compact img {
+    display: none;
+  }
+  /* Uniform CTA block. At half width the demo/GitHub links only *sometimes*
+     share a line with the primary button — it depends on how long the title
+     above wrapped — so two cards in the same row ended at different heights
+     (468px vs 430px measured). A full-basis link group forces its own line and
+     makes every card in the grid identical, which is the point of a board. */
+  #project-list.project-track-grid .project.compact .project-action-links {
+    flex-basis: 100%;
+  }
 }
 
 /* Below the two-column threshold the cover goes back on top (stacked card). */

@@ -54,7 +54,15 @@
 /* Blog cards — sticky-note style, matching the kanban project cards */
 .blog-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  /* `auto-fill`, not `auto-fit`. `auto-fit` collapses every track nothing sits
+     in, so the card width depends on how many posts happen to be on screen
+     instead of on the grid: the RU index (10 posts) renders 380px cards, while
+     the two-post filters on the same page — «Фреймворки», «Заметки» — stretched
+     theirs to 580px, and a one-post filter would hand a single card the whole
+     1140px column (all measured at 1440px). `/en/writing/` (2 posts) had the same
+     580px cards. `auto-fill` keeps the track, so a card is the same size whatever
+     the filter and however few posts a page has. */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--space-5);
 }
 
@@ -108,18 +116,6 @@
 
 .blog-card:hover::before {
   opacity: 1;
-}
-
-.blog-card-image {
-  /* Block, not the inline default: the image now sits inside <picture>, and an
-     inline box would add ~8px of line-box leading below it, growing the card. */
-  display: block;
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  background: var(--background-tertiary);
 }
 
 .blog-card-body {

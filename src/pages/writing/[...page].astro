@@ -52,7 +52,6 @@ const postsJson = allPosts.map((post) => {
     dateLabel: formatDate(post.data.date),
     readTimeLabel: readTime ? ` · ${readTime} мин` : '',
     excerpt: post.data.excerpt,
-    image: post.data.image ? withBase(post.data.image) : null,
     tags: post.data.tags ?? [],
   };
 });
@@ -92,17 +91,15 @@ const counterpartHref = page === 1 ? withBase('en/writing/') : undefined;
 
   <div class="blog-list reveal reveal-delay-2" id="blog-list">
     {
-      pagePosts.map((post, i) => (
+      pagePosts.map((post) => (
         <BlogCard
           slug={post.id.replace(/\.md$/, '')}
           title={post.data.title}
           category={post.data.category}
           date={post.data.date}
-          image={post.data.image}
           updated={post.data.updated}
           excerpt={post.data.excerpt}
           readTime={estimateReadTime(post.body ?? '')}
-          eager={i === 0}
           filterableTag
         />
       ))
