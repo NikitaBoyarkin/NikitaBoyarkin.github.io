@@ -238,24 +238,50 @@ const hiddenTags = tags.filter((t) => t.count < 2);
       }
     });
 
-    // Long-tail tags toggle: reveal/hide the single-use chips.
-    if (moreBtn) {
-      moreBtn.addEventListener('click', () => {
-        const hidden = document.querySelectorAll<HTMLElement>('.tag-chip.tag-hidden');
-        const show = moreBtn.getAttribute('aria-expanded') !== 'true';
-        hidden.forEach((c) => {
-          c.hidden = !show;
-        });
-        moreBtn.setAttribute('aria-expanded', String(show));
-        moreBtn.textContent = show
+    // Tag-chip visibility is ONE rule, because two would drift: the build-time
+    // split (a tag with count >= 2 is always on, the single-use tail sits behind
+    // `tag-hidden`) and, on phones, a cap.
+    //
+    // Why the cap: at 390px the 16 always-on chips wrap into ~8 lines / 270px and
+    // the first card lands at 672px — past the fold on a 667px-tall phone.
+    // Capping to five moves it back to ~500px. Desktop is untouched: there the cap
+    // is the whole row, so the set is exactly the build-time one.
+    //
+    // The base set ignores the expanded state, so the button's count always
+    // describes what is actually behind it.
+    const NARROW_QUERY = '(max-width: 599px)';
+    const PHONE_CAP = 5;
+    const allChips = Array.from(document.querySelectorAll<HTMLButtonElement>('.tag-chip'));
+
+    function applyTagCap(): void {
+      const cap = window.matchMedia(NARROW_QUERY).matches ? PHONE_CAP : Number.POSITIVE_INFINITY;
+      const open = moreBtn?.getAttribute('aria-expanded') === 'true';
+      let behind = 0;
+      allChips.forEach((chip, i) => {
+        const inBase = !chip.classList.contains('tag-hidden') && i < cap;
+        if (!inBase) behind++;
+        chip.hidden = !(open || inBase);
+      });
+      if (moreBtn) {
+        moreBtn.hidden = behind === 0;
+        moreBtn.textContent = open
           ? isEn
             ? 'Fewer tags'
             : 'Меньше тегов'
-          : isEn
-            ? `All tags (${hidden.length})`
-            : `Все теги (${hidden.length})`;
+          : `${isEn ? 'All tags' : 'Все теги'} (${behind})`;
+      }
+    }
+
+    if (moreBtn) {
+      moreBtn.addEventListener('click', () => {
+        moreBtn.setAttribute('aria-expanded', String(moreBtn.getAttribute('aria-expanded') !== 'true'));
+        applyTagCap();
       });
     }
+    applyTagCap();
+    // Crossing the 599px line must re-run the cap, or a rotated phone keeps the
+    // desktop set. Cheap: 47 elements, no layout read beyond `hidden`.
+    window.addEventListener('resize', applyTagCap);
 
     // 🎲 Random post (REQ-035). Hidden until JS runs — a no-JS visitor sees a
     // clean static list, not a dead button (progressive enhancement).

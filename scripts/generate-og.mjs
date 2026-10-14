@@ -18,14 +18,13 @@
 // families the site ships, vendored as static TTF in scripts/og-fonts/ and
 // resolved through FONTCONFIG_FILE + PANGOCAIRO_BACKEND=fc (see
 // scripts/lib/og-render.mjs for why the second var is required on macOS).
-// Requires `rsvg-convert` (librsvg) and `cwebp` on PATH.
+// Requires `rsvg-convert` (librsvg) on PATH.
 //
 // AA gate: like the other banners, this script throws if any text token falls
 // below its WCAG contrast threshold on the blue surface.
 
 import { readdirSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 import { ACCENT_ON_BLUE, BRAND_BLUE, CREAM, hexPoints, hexPointsFlat } from '../src/lib/brand.ts';
@@ -197,17 +196,15 @@ assertContrast(
   'post OG',
 );
 
-/** WebP sibling for the lazy <picture> previews — PNG stays for OG meta tags. */
-function toWebp(pngPath) {
-  const webpPath = pngPath.replace(/\.png$/, '.webp');
-  const res = spawnSync('cwebp', ['-quiet', '-q', '82', pngPath, '-o', webpPath], { encoding: 'utf8' });
-  if (res.status !== 0) return res.stderr || res.stdout || 'cwebp failed';
-  return null;
-}
-
 /**
  * Render one card per content file in `dir`. `pill` picks the label for the
  * category badge; `skip` lets a file opt out because it declares its own image.
+ *
+ * No `cwebp` sibling any more (2026-10-14). The `.webp` next to each `.png`
+ * existed for the `<picture>` preview on the blog cards; those previews are gone
+ * (see BlogCard.astro), which left 45 files / 2.1 MB in `public/` that no page
+ * referenced while `astro build` still copied every one into `dist/`. The `.png`
+ * is the `og:image` and stays.
  */
 function generate({ dir, pill, skip = () => false }) {
   let made = 0;
@@ -226,12 +223,8 @@ function generate({ dir, pill, skip = () => false }) {
     }
     const pngPath = join(OUT_DIR, `${slug}.png`);
     renderSvgToPng(buildSvg(fm.title, pill(fm)), pngPath, { tmpName: `og-${slug}` });
-    const webpErr = toWebp(pngPath);
-    if (webpErr) errors.push(`${slug}: ${webpErr}`);
-    else {
-      made++;
-      console.log(`  OK  ${slug}.png + .webp`);
-    }
+    made++;
+    console.log(`  OK  ${slug}.png`);
   }
   return { made, errors };
 }
