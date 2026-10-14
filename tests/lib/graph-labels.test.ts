@@ -8,6 +8,7 @@ import {
   labelsTooClose,
   placeLabels,
   LABEL_HALO,
+  type LabelObstacle,
   type LabelItem,
   type LabelPlacement,
 } from "../../src/lib/graph-labels";
@@ -206,6 +207,38 @@ describe("placeLabels", () => {
     // Sanity: the crowd really was too dense for everyone, otherwise the test
     // would pass on a world with room to spare.
     expect(crowd.filter((c) => !placed.get(c.id)!.placed).length).toBeGreaterThan(0);
+  });
+
+  it("prefers a slot that covers no node ring", () => {
+    // One anchor at the world centre (candidates: up, down, left, right) with a
+    // ring parked exactly where "up" would put the label. "down" covers no
+    // ring, so the label must take it instead of drawing across the ring.
+    const item: LabelItem = { id: "p:target", label: "Target", x: 450, y: 280, size: 9, priority: 2 };
+    const ringAt: LabelObstacle = { id: "p:other", x: 450, y: 240, r: 12 };
+
+    const plain = placeLabels([item], OPTS).get("p:target")!;
+    expect(plain.placed).toBe(true);
+    expect(plain.ty).toBeLessThan(0); // straight up, the association default
+
+    const dodged = placeLabels([item], { ...OPTS, obstacles: [ringAt] }).get("p:target")!;
+    expect(dodged.placed).toBe(true);
+    expect(dodged.ty).toBeGreaterThan(0); // flipped below the ring
+  });
+
+  it("keeps its direction (and its slot) when every direction covers a ring", () => {
+    // Four rings, one on each candidate. Covering one is then unavoidable, so
+    // dodging the rings must not cost the label its place — and a tie must not
+    // move it off the outward direction, or the label drifts from its node.
+    const item: LabelItem = { id: "p:target", label: "Target", x: 450, y: 280, size: 9, priority: 2 };
+    const around: LabelObstacle[] = [
+      { id: "o:n", x: 450, y: 240, r: 12 },
+      { id: "o:s", x: 450, y: 320, r: 12 },
+      { id: "o:w", x: 400, y: 280, r: 12 },
+      { id: "o:e", x: 500, y: 280, r: 12 },
+    ];
+    const placed = placeLabels([item], { ...OPTS, obstacles: around }).get("p:target")!;
+    expect(placed.placed).toBe(true);
+    expect(placed.ty).toBeLessThan(0); // still the first candidate, on a tie
   });
 
   it("reports a label with no clear slot as unplaced instead of overlapping one", () => {

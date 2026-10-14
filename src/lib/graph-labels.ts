@@ -45,6 +45,15 @@ export interface LabelBox {
   y1: number;
 }
 
+/** A node ring a label prefers not to cover. */
+export interface LabelObstacle {
+  /** Owner id, so an item is never asked to dodge its own node. */
+  id: string;
+  x: number;
+  y: number;
+  r: number;
+}
+
 export interface PlaceLabelOptions {
   width: number;
   height: number;
@@ -53,11 +62,11 @@ export interface PlaceLabelOptions {
   pad?: number;
   /** World centre the radial "outward" direction is measured from. */
   center?: { x: number; y: number };
-  /** Node rings in the world. A label tries to avoid covering any of them
-   *  (`id` names the owner so an item is not asked to dodge its own node) and
-   *  only falls back to covering one when no clear slot exists anywhere — see
-   *  the two passes in `placeLabels`. */
-  obstacles?: { id: string; x: number; y: number; r: number }[];
+  /** The node rings in the world. Among the slots clear of every placed label,
+   *  a label takes the one covering the fewest of these — chasing a cover costs
+   *  the label its outward direction, so it is never traded for a tie. See the
+   *  candidate loop in `placeLabels`. */
+  obstacles?: LabelObstacle[];
 }
 
 /** Per-glyph advance width in `em`, measured on the built page with
