@@ -1,7 +1,7 @@
 # NikitaBoyarkin.github.io
 
 Personal portfolio site of **Nikita Boyarkin** — Product / Data Analyst.
-Static Astro build, bilingual (RU / EN), 17 case studies, client JS only where it earns its place.
+Static Astro build, bilingual (RU / EN), 22 case studies, client JS only where it earns its place.
 
 [![Deploy](https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io/actions/workflows/deploy.yml)
 
@@ -9,7 +9,7 @@ Static Astro build, bilingual (RU / EN), 17 case studies, client JS only where i
 
 ![Homepage banner](public/images/og/portfolio-banner-v2.png)
 
-> 17 case studies, bilingual RU/EN Astro portfolio — the flagship Volta case found the onboarding bottleneck and closed it with +5.72 pp KYC conversion.
+> 22 case studies, bilingual RU/EN Astro portfolio — the flagship Volta case found the onboarding bottleneck and closed it with +5.72 pp KYC conversion.
 
 ## Navigation
 
@@ -36,7 +36,7 @@ Limitations → Documentation`).
 ## Actions
 
 Built on Astro 7 + TypeScript, with all non-trivial logic in `src/lib/` under
-unit tests. 17 case studies across the four `track`s, 23 linked Volta sub-parts,
+unit tests. 22 case studies across the four `track`s, 23 linked Volta sub-parts,
 and 24 notes. Headline numbers are authored in `src/lib/metrics.ts` and
 cross-checked by `check_metrics_drift`; `bun run audit:content` diffs every
 numeric token against `docs/content-baseline.json`. Project pages follow the
@@ -75,7 +75,7 @@ Russian is the default locale; every route below has an `/en/…` mirror unless 
 | Route | What it holds |
 |---|---|
 | `/` | Home — hero, headline cases, career snapshot, bento grid, featured writing |
-| `/projects/` | Catalogue — all 17 cases as a board, grouped by `track` |
+| `/projects/` | Catalogue — all 22 cases as a board, grouped by `track` |
 | `/projects/<slug>/` | Case study page (RU source + EN mirror) |
 | `/projects/volta/<part>/` | The 23 linked sub-parts of the Volta case |
 | `/about/` | About + jump nav to anchors `#who`, `#work`, `#now`, `#start`, `#value` |
@@ -90,7 +90,7 @@ Generated endpoints: `/rss.xml`, `/sitemap-index.xml`, `/robots.txt`, `/llms.txt
 
 ## Projects
 
-**17 case studies**, each with a page at `/projects/<slug>/`, a board column set by `track`, and a public repo and/or live demo where one exists. Three are the **headline cases** featured on the home page — `volta`, `sql`, `cohort` — chosen because each is backed by a reachable public artifact.
+**22 case studies**, each with a page at `/projects/<slug>/`, a board column set by `track`, and a public repo and/or live demo where one exists. Three are the **headline cases** featured on the home page — `volta`, `sql`, `cohort` — chosen because each is backed by a reachable public artifact.
 
 Links: **page** = the case study on the live site · **repo** = source on GitHub · **demo** = runnable artifact.
 
@@ -99,7 +99,7 @@ Links: **page** = the case study on the live site · **repo** = source on GitHub
 | Project | What it shows | Links |
 |---|---|---|
 | **Volta Neobank** | Found the onboarding bottleneck and closed it with an A/B test: **+5.72 pp** KYC conversion, **€656K/yr**. 23 linked sub-projects across funnel → A/B → retention → segmentation | [page](https://nikitaboyarkin.github.io/projects/volta/) · [repo](https://github.com/NikitaBoyarkin/volta-banking) · [demo](https://nikitaboyarkin.github.io/demos/volta/index.html) |
-| **A/B Testing Toolkit** | 15 methodology modules, each calibrated by simulation — A/A holds Type I error at α, power curves plot achievable effect sizes | [page](https://nikitaboyarkin.github.io/projects/ab/) · [repo](https://github.com/NikitaBoyarkin/ab_test) |
+| **A/B Testing Toolkit** | 18 methodology modules, each calibrated by simulation — A/A holds Type I error at α, power curves plot achievable effect sizes | [page](https://nikitaboyarkin.github.io/projects/ab/) · [repo](https://github.com/NikitaBoyarkin/ab_test) |
 | **Browser Mini-Games** | 10 playable mini-games in self-contained SVG — 7 teaching analytics (A/B to p<0.05, funnel drop-off, cohort catch, retention day), 3 arcade | [page](https://nikitaboyarkin.github.io/projects/games/) · [repo](https://github.com/NikitaBoyarkin/browser-mini-games) · [demo](https://nikitaboyarkin.github.io/games/) |
 | **Causal / Uplift** | CUPED cut the standard error by **26%**: same power on 5.6k users per arm instead of 10k. Uplift models recover heterogeneous treatment effects | [page](https://nikitaboyarkin.github.io/projects/causal/) · [repo](https://github.com/NikitaBoyarkin/causal-uplift) |
 
@@ -108,9 +108,9 @@ Links: **page** = the case study on the live site · **repo** = source on GitHub
 | Project | What it shows | Links |
 |---|---|---|
 | **SQL Analytics Case Study** | 26 SQL cases — 25 on a synthetic dataset (~183k events) plus 1 real-data on UCI Online Retail II: funnel, retention, LTV, attribution | [page](https://nikitaboyarkin.github.io/projects/sql/) · [repo](https://github.com/NikitaBoyarkin/sql-analytics-case-study) · [demo](https://nikitaboyarkin.github.io/sql-analytics-case-study/) |
-| **RFM Segmentation** | Split a bank's client base into 4 RFM segments and showed a small high-value share drives most of the revenue; marketing moved off mass campaigns | [page](https://nikitaboyarkin.github.io/projects/rfm/) · [repo](https://github.com/NikitaBoyarkin/rfm-analysis-of-bank-clients) · [demo](https://nikitaboyarkin.github.io/demos/rfm/index.html) |
+| **RFM Segmentation** | Split a bank's client base into 6 RFM segments and showed a small high-value share drives most of the revenue; marketing moved off mass campaigns | [page](https://nikitaboyarkin.github.io/projects/rfm/) · [repo](https://github.com/NikitaBoyarkin/rfm-analysis-of-bank-clients) · [demo](https://nikitaboyarkin.github.io/demos/rfm/index.html) |
 | **Cohort Analysis** | Triangular retention and LTV cohort matrix on synthetic data: ARPU and LTV per cohort corrected for observation age, with export | [page](https://nikitaboyarkin.github.io/projects/cohort/) · [repo](https://github.com/NikitaBoyarkin/tableau_cohort_analysis) · [demo](https://nikitaboyarkin.github.io/demos/cohort/index.html) |
-| **Churn Prediction** | Leakage-free model: recall@top-10% = **0.53**, lift **3.07×** at ROC-AUC 0.904 on a chronological split — no future-activity leakage | [page](https://nikitaboyarkin.github.io/projects/churn/) · [repo](https://github.com/NikitaBoyarkin/churn-prediction) |
+| **Churn Prediction** | Leakage-free model: recall@top-10% = **0.544**, lift **5.44×** at ROC-AUC 0.916 on a chronological split — no future-activity leakage | [page](https://nikitaboyarkin.github.io/projects/churn/) · [repo](https://github.com/NikitaBoyarkin/churn-prediction) |
 | **Python Analytics Playground** | Modular Python toolkit — load, clean, EDA, visualise — assembled into one pipeline with pytest coverage ≥ 80% | [page](https://nikitaboyarkin.github.io/projects/python/) · [repo](https://github.com/NikitaBoyarkin/python) |
 | **Sales Calls Analytics** | Streamlit dashboard over 16,891 synthetic AI-call records: 4-step funnel (greeting → offer → meeting → qualification) and loss analysis | [page](https://nikitaboyarkin.github.io/projects/sales-calls/) · [repo](https://github.com/NikitaBoyarkin/sales-calls-dashboard) |
 
@@ -118,7 +118,7 @@ Links: **page** = the case study on the live site · **repo** = source on GitHub
 
 | Project | What it shows | Links |
 |---|---|---|
-| **Supabase Product Analytics** | Full-stack analytics on Supabase: A/B gave **+5.1 pp** (p = 0.0034, chi-square); a Streamlit dashboard reads live data through Row-Level Security | [page](https://nikitaboyarkin.github.io/projects/supabase/) · [repo](https://github.com/NikitaBoyarkin/supabase-product-analytics) |
+| **Supabase Product Analytics** | Full-stack analytics on Supabase: A/B gave **+11.1 pp** (p ≈ 1.7e-10, chi-square); a Streamlit dashboard reads live data through Row-Level Security | [page](https://nikitaboyarkin.github.io/projects/supabase/) · [repo](https://github.com/NikitaBoyarkin/supabase-product-analytics) |
 | **TaskFlow × PostHog** | A SaaS product instrumented end-to-end with PostHog: typed event catalogue, generated traffic and 7 analyses — funnel, retention, paths | [page](https://nikitaboyarkin.github.io/projects/posthog/) · [repo](https://github.com/NikitaBoyarkin/posthog-saas-analytics) |
 | **Streamlit Dashboard** | Product dashboard on a synthetic SaaS dataset (8,000 users): AARRR funnel, cohort retention, revenue — MRR, ARPU, churn | [page](https://nikitaboyarkin.github.io/projects/streamlit/) · [repo](https://github.com/NikitaBoyarkin/streamlit-app) |
 

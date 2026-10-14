@@ -79,7 +79,7 @@ Outputs: `reports/metrics.json` + `reports/uplift.png` (QINI curves + segment up
 
 ## Result
 
-CUPED buys power for free: no new experiment design is needed, only a better estimator on data you already collected — provided a pre-period covariate exists. The point estimate is unchanged (0.270 → 0.276, within noise), the standard error shrinks by ~26%, and the CI narrows 1.35x — an experiment that needed 10k users per arm now needs ~5.5k. Variance reduction is ~45% actual vs 55% theoretical (the gap is the covariate being a pre-period proxy, not the outcome itself).
+CUPED buys power for free: no new experiment design is needed, only a better estimator on data you already collected — provided a pre-period covariate exists. The point estimate is unchanged (0.270 → 0.276, within noise), the standard error shrinks by ~26%, and the CI narrows 1.35x — an experiment that needed 10k users per arm now needs ~5.5k.
 
 Uplift answers a different question than A/B testing: not "does the treatment work on average" but "who does it work on". Both learners beat random on AUUC, Qini and uplift@20%. The model recovered the shape of the effect: "new" users respond ~8x more than "returning" users — the targeting signal a discount campaign would act on.
 
