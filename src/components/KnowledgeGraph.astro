@@ -102,6 +102,17 @@ const labelRadius = (size?: number) => (size || 6) * NODE_SIZE;
 // Collision-resolved positions for the always-on labels. A label that finds no
 // clear slot comes back `placed: false` and is drawn hover-only instead of on
 // top of its neighbour — which also thins the text cloud in the dense centre.
+//
+// Every node ring is an obstacle: a label prefers a slot that covers no other
+// node, and only accepts one when no such slot fits (see `placeLabels`). The
+// rings are not otherwise reserved, so this is what keeps a project's long
+// caption from being drawn across an unrelated topic dot.
+const ringObstacles = nodes.map((n) => ({
+  id: n.id,
+  x: n.x,
+  y: n.y,
+  r: labelRadius(n.size),
+}));
 const placements = placeLabels(
   nodes
     .filter((n) => isAnchor(n.id))
@@ -113,7 +124,7 @@ const placements = placeLabels(
       size: labelRadius(n.size),
       priority: labelPriority(n.id),
     })),
-  { width: WORLD.w, height: WORLD.h, fontSize: LABEL_FONT_SIZE, pad: 4 },
+  { width: WORLD.w, height: WORLD.h, fontSize: LABEL_FONT_SIZE, pad: 4, obstacles: ringObstacles },
 );
 
 /** The original offset rule — straight outward from the world centre, above the
@@ -697,7 +708,19 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
           size: (n.size || 6) * NODE_SIZE,
           priority: priorityOf(n.id),
         })),
-      { width: world.w, height: world.h, fontSize: LABEL_FONT_SIZE, pad: 4 },
+      {
+        width: world.w,
+        height: world.h,
+        fontSize: LABEL_FONT_SIZE,
+        pad: 4,
+        // Same obstacle set as the build-time pass above: the node rings.
+        obstacles: nodes.map((n) => ({
+          id: n.id,
+          x: n.x,
+          y: n.y,
+          r: (n.size || 6) * NODE_SIZE,
+        })),
+      },
     );
     nodes.forEach((n, i) => {
       if (!isAnchor(n.id)) return;
@@ -1535,10 +1558,23 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   .kg-root.kg-fullscreen {
     position: fixed;
     inset: 0;
-    z-index: var(--z-overlay);
+    /* `--z-fullscreen`, not `--z-overlay`: the sticky top bar sits at
+       `--z-dialog`, so the overlay has to clear the bar as well as the page. */
+    z-index: var(--z-fullscreen);
     display: flex;
     flex-direction: column;
-    padding: var(--space-5);
+    /* The gutter follows the page's own (`--page-pad`), not `--space-5` fixed:
+       the bare board outside the overlay already pays `--page-pad` and drops to
+       15px under 768px, so a fixed 20px here made the *fullscreen* drawing
+       narrower than the inline one (345px -> 333px at 375px). The block gutter
+       is `--space-4`: at `--space-5` the 40px of vertical padding left the
+       drawing 5px *shorter* than the board it replaced on a 700px-tall window
+       (513px vs 518px). */
+    padding: var(--space-4) var(--page-pad);
+    /* No hairline frame: the border would be drawn flush against the window
+       edge, and it is 2px the drawing cannot have (which is what made the
+       overlay 343px wide against the bare board's 345px at 375px). */
+    border: 0;
     border-radius: 0;
   }
   /* The control bar is one bento block — the `.bento-cell` recipe (bordered,

@@ -53,6 +53,11 @@ export interface PlaceLabelOptions {
   pad?: number;
   /** World centre the radial "outward" direction is measured from. */
   center?: { x: number; y: number };
+  /** Node rings in the world. A label tries to avoid covering any of them
+   *  (`id` names the owner so an item is not asked to dodge its own node) and
+   *  only falls back to covering one when no clear slot exists anywhere — see
+   *  the two passes in `placeLabels`. */
+  obstacles?: { id: string; x: number; y: number; r: number }[];
 }
 
 /** Per-glyph advance width in `em`, measured on the built page with
@@ -173,6 +178,26 @@ export const labelsTooClose = (a: LabelBox, b: LabelBox, gap: number = LABEL_HAL
 const inside = (b: LabelBox, w: number, h: number, pad: number): boolean =>
   b.x0 >= pad && b.x1 <= w - pad && b.y0 >= pad && b.y1 <= h - pad;
 
+/** Clearance a label box keeps from a node ring. The label's own halo reaches
+ *  `LABEL_HALO / 2` past the box, and the ring is stroked `1.6` wide, so
+ *  anything under this and the halo paints across the ring it was dodging. */
+const CIRCLE_CLEARANCE = LABEL_HALO / 2 + 1;
+
+/** Circle vs axis-aligned box: distance from the centre to the nearest point
+ *  on the box. A rectangle approximation of the ring would either over-reserve
+ *  on the diagonals (for the big hubs, ~40 units square) or clip the ring. */
+function circleHitsBox(
+  box: LabelBox,
+  cx: number,
+  cy: number,
+  r: number,
+  clearance: number = CIRCLE_CLEARANCE,
+): boolean {
+  const nx = Math.max(box.x0, Math.min(cx, box.x1));
+  const ny = Math.max(box.y0, Math.min(cy, box.y1));
+  return Math.hypot(cx - nx, cy - ny) < r + clearance;
+}
+
 /** Anchor + offsets for one candidate direction (unit vector) around a node. */
 function candidate(item: LabelItem, ux: number, uy: number): LabelPlacement {
   const r = item.size;
@@ -202,9 +227,12 @@ const toRad = (deg: number) => (deg * Math.PI) / 180;
 /**
  * Place every label. Items are processed in `priority` order (ties broken by
  * input order, so the result is stable), each taking the first candidate whose
- * box is clear of every already-placed box and inside the world. Items that
- * find nothing come back `placed: false` carrying their outermost-radial
- * geometry, which the caller renders hover-only.
+ * box is clear of every already-placed box, inside the world, and — on the
+ * first pass — clear of every node ring. A label that finds nothing while
+ * dodging the rings retries with that constraint dropped, so avoiding a node is
+ * a preference and never costs the picture a label; only when no slot is clear
+ * of the *other labels* either does it come back `placed: false`, which the
+ * caller renders hover-only.
  */
 export function placeLabels(
   items: LabelItem[],
@@ -215,6 +243,7 @@ export function placeLabels(
   const cx = opts.center?.x ?? opts.width / 2;
   const cy = opts.center?.y ?? opts.height / 2;
   const gap = LABEL_HALO;
+  const obstacles = opts.obstacles ?? [];
   const out = new Map<string, LabelPlacement>();
   const taken: LabelBox[] = [];
 
@@ -234,14 +263,26 @@ export function placeLabels(
     const fallback = candidate(item, ...dirs[0]);
     let chosen: LabelPlacement | null = null;
     let chosenBox: LabelBox | null = null;
+    // Among the slots that are inside the world and clear of every placed
+    // label, take the one covering the fewest node rings. The direction order is
+    // still the association order — outward first — because only a *strictly*
+    // fewer cover wins, so a label never drifts to a worse direction for a tie.
+    let bestHits = Infinity;
     for (const [ux, uy] of dirs) {
       const c = candidate(item, ux, uy);
       const box = labelBox(item, c.tx, c.ty, c.anchor, fontSize);
       if (!inside(box, opts.width, opts.height, pad)) continue;
       if (taken.some((t) => overlaps(box, t, gap))) continue;
-      chosen = { ...c, placed: true };
-      chosenBox = box;
-      break;
+      const hits = obstacles.reduce(
+        (n, o) => n + (o.id !== item.id && circleHitsBox(box, o.x, o.y, o.r) ? 1 : 0),
+        0,
+      );
+      if (hits < bestHits) {
+        bestHits = hits;
+        chosen = { ...c, placed: true };
+        chosenBox = box;
+        if (hits === 0) break; // nothing can beat a clean slot
+      }
     }
     if (chosen && chosenBox) taken.push(chosenBox);
     out.set(item.id, chosen ?? fallback);

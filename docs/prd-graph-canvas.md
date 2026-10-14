@@ -31,7 +31,7 @@ Four small, additive props and classes; no rewrite of the graph itself.
 |---|---|---|
 | `bare` prop on `KnowledgeGraph` | `kg-bare` class → drops background, border, radius, vertical padding; keeps the page's inline gutter | The card surface goes, but the search bar and controls must not start at the window edge |
 | `.kg-bare:not(.kg-fullscreen)` | selector guard | The fullscreen overlay takes its surface from `.kg-root`; a bare reset would make it transparent |
-| `.kg-root.kg-bare .kg-svg { inline-size: min(100%, calc(74svh * 900/560)) }` | capped box, `preserveAspectRatio="meet"` inside it | Uncapped, the 900:560 viewBox is ~896px tall at 1440px and pushes the controls off a laptop screen; `meet` letterboxes, so nothing stretches |
+| `.kg-root.kg-bare:not(.kg-fullscreen) .kg-svg { inline-size: min(100%, calc(74svh * 900/560)) }` | capped box, `preserveAspectRatio="meet"` inside it | Uncapped, the 900:560 viewBox is ~896px tall at 1440px and pushes the controls off a laptop screen; `meet` letterboxes, so nothing stretches. The guard is load-bearing: `kg-bare` stays on the root inside the overlay, so without it this cap also governs fullscreen (see the follow-up below) |
 | `bleed` prop on `Base` | `bleed` class on `<html>` → `html.bleed body, html.bleed main { max-width:none; margin-inline:0 }`, `html.bleed .nav-mobile { margin-inline:0 }` | The cap is not only `.container`'s: `body` has its own `max-width` and page gutter, and from the desktop breakpoint `main` carries `--content-max`. `.nav-mobile` cancels the gutter with negative margins, which would push the bar past both edges once the gutter is gone |
 | `.graph-board` | picks up the `.canvas-grid` dot rule (shared selector list, same `--wallpaper-line` token) | Same texture as the homepage board without duplicating the gradient |
 
@@ -40,6 +40,23 @@ fallback is the SSR SVG, unchanged.
 
 Defaults are `false` on both props, so the graph embedded on the role landings
 (`/colleague/`, `/en/colleague/`) keeps its card.
+
+## Follow-up — the `⛶` overlay (2026-10-14)
+
+The button was reported broken on `/graph/`: clicking it left the graph *smaller*
+than the inline board. The overlay was already `position: fixed; inset: 0`, so
+three separate things had to be true for it to fail — and all three were:
+
+| Defect | Mechanism | Fix |
+|---|---|---|
+| The overlay sized itself to its section, not the viewport | `<section class="graph-board reveal">` kept a residual `transform: translateY(0)` after the reveal. **An identity matrix is still a transform**, and a transformed element is the containing block for `position: fixed` descendants. Measured at 1280×800: overlay `1280×212` at y=87, drawing **41×25** | `.reveal.visible` settles on `transform: none` — the same value the reduced-motion and `@media (scripting: none)` branches already use, and what HEAD already had before an uncommitted edit regressed it |
+| The drawing was clamped to 951px inside a 1280px overlay | `.kg-root.kg-bare .kg-svg` kept matching in the overlay (`kg-bare` stays on the root there), so the *embedded* board's width cap governed fullscreen too | `:not(.kg-fullscreen)` on that rule |
+| The overlay's whole first row was unclickable | It took `--z-overlay` (1000), which is the drawer scrim and sits *below* the sticky top bar — the bar shares `--z-dialog` (1200) with the drawer it opens. The search box, the legend and the zoom/exit controls painted behind a 65px bar | new `--z-fullscreen: 1300` token, above the dialog layer |
+| The overlay drew *less* drawing than the board it replaced | `padding: var(--space-5)` and `.kg-root`'s 1px border. `--page-pad` drops to 15px under 768px, so the fixed 20px gutter plus the border made the fullscreen drawing 12px narrower than the inline one on a phone (345px → 333px); the 40px of block padding made it 5px shorter on a 700px-tall window (518px → 513px) | `padding: var(--space-4) var(--page-pad)`, `border: 0` |
+
+After the fix the overlay measures `0,0,W,H` at 1440/1024/375 and the drawing is
+at least as large as the inline board at every size (1231×766 vs 1070×666 at
+1440×900).
 
 ## Verification
 
@@ -53,3 +70,10 @@ control — `kg-root` present, `kg-bare` absent.
 Plus `bun run check`, `bun test tests/lib`, `python3 -I scripts/check_site.py`,
 and a browser pass at 1440 / 1024 / 375px across dark / light / cyber, RU and
 EN, with JS off and through the `⛶` fullscreen toggle (which stays opaque).
+
+The follow-up above is bound by the `graph fullscreen overlay (built CSS)` block
+in the same test file: `.reveal.visible` settling on `transform: none` (not
+`translateY(0)`), the overlay's `position:fixed`/`inset:0`/`z-index`, its
+`--z-fullscreen` token resolving *above* `--z-dialog`, the `:not(.kg-fullscreen)`
+guard on the bare cap, and the overlay's `--page-pad` gutter. Each assertion was
+checked to fail against the pre-fix build before landing.

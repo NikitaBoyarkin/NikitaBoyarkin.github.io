@@ -25,6 +25,15 @@ const CONTROL = 'colleague/index.html';
 
 const html = new Map<string, string>();
 
+/** Every built stylesheet, concatenated — the CSS half of the assertions below. */
+function builtCss(): string {
+  const dir = resolve(DIST, '_astro');
+  return readdirSync(dir)
+    .filter((f) => f.endsWith('.css'))
+    .map((f) => readFileSync(resolve(dir, f), 'utf8'))
+    .join('\n');
+}
+
 beforeAll(() => {
   if (!existsSync(resolve(DIST, 'index.html'))) {
     throw new Error('dist/ missing — run `bun run build` first');
@@ -121,11 +130,7 @@ describe('graph page board (built HTML)', () => {
   });
 
   it('the ring is hollow at rest and painted on hover or focus (built CSS)', () => {
-    const dir = resolve(DIST, '_astro');
-    const css = readdirSync(dir)
-      .filter((f) => f.endsWith('.css'))
-      .map((f) => readFileSync(resolve(dir, f), 'utf8'))
-      .join('\n');
+    const css = builtCss();
 
     const base = css.match(/\.kg-ring[^{]*\{[^}]*\}/)?.[0] ?? '';
     expect(base).toContain('fill:none');
@@ -147,11 +152,7 @@ describe('graph core colour token (built CSS)', () => {
     // Three values, three scopes, one order. Nothing else in the build binds
     // them: drop the light override and the cream page silently gets the
     // washed-out #6a5cff, keep the hex on dark and the hub disappears at 1.3:1.
-    const dir = resolve(DIST, '_astro');
-    const css = readdirSync(dir)
-      .filter((f) => f.endsWith('.css'))
-      .map((f) => readFileSync(resolve(dir, f), 'utf8'))
-      .join('\n');
+    const css = builtCss();
 
     const scopes = [...css.matchAll(/--kg-core-articles:\s*(#[0-9a-fA-F]{6})/g)].map((m) => {
       const before = css.slice(0, m.index);
@@ -163,5 +164,70 @@ describe('graph core colour token (built CSS)', () => {
       ['[data-theme=light]', '#1400c3'],
       ['[data-theme=cyberpunk]', '#6a5cff'],
     ]);
+  });
+});
+
+// The fullscreen toggle, against the REAL built CSS.
+//
+// Why this file has to hold it: the button's whole job is a `position: fixed`
+// overlay, and that layout has three ways to fail silently — each of which the
+// build cannot see. Every one of them shipped at once, and clicking the button
+// on `/graph/` grew the drawing from 592px tall to 25px.
+//
+//   1. `.kg-root.kg-fullscreen` was `position: fixed; inset: 0`, but its
+//      ancestor `<section class="graph-board reveal">` kept a residual
+//      `transform: translateY(0)`. AN IDENTITY MATRIX IS STILL A TRANSFORM, and
+//      a transformed element is the containing block for `position: fixed`
+//      descendants — so the overlay sized itself to the section (1280x212 at a
+//      1280x800 window), not the viewport.
+//   2. `.kg-root.kg-bare .kg-svg` caps the width of the *embedded* board. It
+//      kept applying inside the overlay and clamped the drawing to 951px where
+//      the aspect ratio allowed 986px.
+//   3. The z-scale puts `--z-overlay` (1000) *below* the always-sticky top bar,
+//      which shares `--z-dialog` (1200) with the drawer it opens. The overlay
+//      sat under the 65px bar, so its entire first row — the search box, the
+//      legend and the zoom/exit controls — was behind it and unclickable.
+//
+// A browser pass is what proves the layout; these assertions are the ratchet
+// that keeps the three conditions from coming back unnoticed. `/colleague/` is
+// the control: the same component, no `.kg-bare`, and no `.reveal` ancestor.
+
+describe('graph fullscreen overlay (built CSS)', () => {
+  it('settles the reveal animation on `none`, so a fixed child escapes it', () => {
+    const settled = builtCss().match(/\.reveal\.visible\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(settled).toContain('transform:none');
+    // `translateY(0)` is the trap: visually identical, still a containing block.
+    expect(settled).not.toContain('translateY');
+    expect(builtCss()).not.toMatch(/\.reveal\.visible[^{]*\{[^}]*translateY/);
+  });
+
+  it('lifts the overlay above the sticky top bar', () => {
+    const css = builtCss();
+    const overlay = css.match(/\.kg-root[^{]*\.kg-fullscreen\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(overlay).toContain('position:fixed');
+    expect(overlay).toContain('inset:0');
+    // Above `--z-dialog`, i.e. above the bar. `--z-overlay` is the drawer scrim
+    // and is deliberately under it.
+    expect(overlay).toContain('z-index:var(--z-fullscreen)');
+    const scale = css.match(/--z-fullscreen:\s*(\d+)/)?.[1];
+    const dialog = css.match(/--z-dialog:\s*(\d+)/)?.[1];
+    expect(Number(scale)).toBeGreaterThan(Number(dialog));
+  });
+
+  it('keeps the bare width cap out of the overlay', () => {
+    // The guard is the selector, not the cap: without `:not(.kg-fullscreen)`
+    // the rule still matches inside the overlay (`kg-bare` stays on the root)
+    // and steals drawing width.
+    expect(builtCss()).toContain('kg-bare:not(.kg-fullscreen) .kg-svg');
+    expect(builtCss()).not.toContain('kg-bare .kg-svg');
+  });
+
+  it('gives the overlay the page gutter, not a fixed one of its own', () => {
+    // `--page-pad` drops to 15px under 768px; a hardcoded `--space-5` (20px)
+    // made the fullscreen drawing narrower than the inline one on a phone
+    // (345px -> 333px at 375px), and `.kg-root`'s 1px border took two more.
+    const overlay = builtCss().match(/\.kg-root[^{]*\.kg-fullscreen\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(overlay).toMatch(/padding:[^;]*var\(--page-pad\)/);
+    expect(overlay).toContain('border:0');
   });
 });

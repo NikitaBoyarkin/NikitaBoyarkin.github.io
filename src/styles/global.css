@@ -235,6 +235,12 @@
   --z-top: 200;
   --z-overlay: 1000;
   --z-dialog: 1200;
+  /* Above the sticky top bar, which shares `--z-dialog` with the drawer it
+     opens. The graph's fullscreen overlay is the one surface that must clear
+     both: at `--z-overlay` it painted *under* the 65px bar, which swallowed the
+     overlay's whole first row — the search box, the legend and the zoom/exit
+     controls sat behind it, unclickable. */
+  --z-fullscreen: 1300;
 }
 
 [data-theme="light"] {
