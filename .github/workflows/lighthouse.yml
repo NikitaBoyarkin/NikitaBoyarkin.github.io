@@ -20,7 +20,9 @@ concurrency:
 jobs:
   lighthouse:
     # The `build` job uploads the pages artifact on push only, and a failed run
-    # has no site worth auditing.
+    # has no site worth auditing. A `skipped` audit is therefore a *symptom* of a
+    # failed deploy — and not a silent one: `ci-failure-notify.yml` watches the
+    # `Deploy…` run and opens an issue on a master failure (loop items B2/B3).
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
