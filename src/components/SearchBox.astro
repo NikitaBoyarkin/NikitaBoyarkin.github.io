@@ -439,6 +439,14 @@ const X_D = "M6 6l12 12M6 18L18 6";
       const typing = el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
       if (e.key === "/" && !typing) {
         e.preventDefault();
+        // This panel lives inside the off-canvas drawer, which Base.astro keeps
+        // `inert` and translated off-screen while closed. Focusing an input
+        // inside an inert subtree is a spec no-op, so without this the shortcut
+        // revealed nothing at all — no panel, no caret, no explanation. Open
+        // the drawer first; `/` then behaves like the toggle it mirrors.
+        if (!document.body.classList.contains("nav-open")) {
+          (document.getElementById("nav-toggle") as HTMLButtonElement | null)?.click();
+        }
         open();
       }
     });

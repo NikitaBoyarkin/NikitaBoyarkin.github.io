@@ -17,7 +17,7 @@ import {
   type GraphNode,
 } from '../lib/graph';
 import { buildGraphTooltips } from '../lib/graph-tooltip';
-import { placeLabels } from '../lib/graph-labels';
+import { LABEL_HALO, placeLabels } from '../lib/graph-labels';
 
 interface Props {
   lang?: 'ru' | 'en';
@@ -92,8 +92,8 @@ const LABEL_FONT_SIZE = 11;
 
 // The always-on labels: the root, the type hubs, projects and topics. Posts,
 // Volta parts and glossary terms stay hover/focus-only.
-const isAnchor = (id: string) =>
-  id.startsWith('core:') || id.startsWith('p:') || id.startsWith('topic:');
+const isCoreNode = (id: string) => id.startsWith('core:');
+const isAnchor = (id: string) => isCoreNode(id) || id.startsWith('p:') || id.startsWith('topic:');
 /** Lower wins a contested slot. */
 const labelPriority = (id: string) =>
   id === 'core:me' ? 0 : id.startsWith('core:') ? 1 : id.startsWith('p:') ? 2 : 3;
@@ -185,7 +185,7 @@ const clientData = {
 const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
 ---
 
-<div id="kg-root" class:list={['kg-root', { 'kg-bare': bare }]} data-search-empty={isEn ? 'No matches' : 'Ничего не найдено'} data-search-reset={isEn ? 'Clear search' : 'Очистить поиск'}>
+<div id="kg-root" class:list={['kg-root', { 'kg-bare': bare }]} style={`--kg-label-halo:${LABEL_HALO}px`} data-search-empty={isEn ? 'No matches' : 'Ничего не найдено'} data-search-reset={isEn ? 'Clear search' : 'Очистить поиск'}>
   <!-- The whole control bar is one bento block: the site's `.bento-cell`
        recipe (a bordered, rounded surface) around the search, the legend and
        the view controls, with the quick-filter chips under them. It is
@@ -295,7 +295,12 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         // they cannot collide with each other).
         const p = isAnchor(n.id) ? placements.get(n.id) : undefined;
         const geo = p ?? radialLabel(n);
-        const labelClass = p && p.placed ? 'kg-label' : 'kg-label kg-label-hover';
+        // Cores are the graph's anchors — the root and the type hubs. They are
+        // never demoted to hover-only: the placement pass hands them the first
+        // pick of every slot, and a core a reader cannot name is unreadable
+        // however clean the rest of the cloud is.
+        const alwaysOn = p ? p.placed || isCoreNode(n.id) : false;
+        const labelClass = alwaysOn ? 'kg-label' : 'kg-label kg-label-hover';
         // Every node ships as an empty ring: at rest the graph reads as pure
         // contour, and a node's colour arrives on hover/focus ("touch"). The
         // colour lives in a CSS variable because the client recolours nodes on the
@@ -647,8 +652,8 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   /** The always-on label set: the root, the four type hubs, projects and topics.
    *  Same predicate as the template's `isAnchor`, so the two label passes cannot
    *  disagree about which labels are permanent. */
-  const isAnchorId = (id: string) =>
-    id.startsWith('core:') || id.startsWith('p:') || id.startsWith('topic:');
+  const isCoreId = (id: string) => id.startsWith('core:');
+  const isAnchorId = (id: string) => isCoreId(id) || id.startsWith('p:') || id.startsWith('topic:');
 
   /** Move every node onto the current mode's build-time positions and recolor
    *  (used by the color toggle and by URL restore — the SVG ships the group
@@ -702,7 +707,8 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       text.setAttribute('x', String(p.tx));
       text.setAttribute('y', String(p.ty));
       text.setAttribute('text-anchor', p.anchor);
-      text.classList.toggle('kg-label-hover', !p.placed);
+      // Cores keep their label in every layout — see the SSR template.
+      text.classList.toggle('kg-label-hover', !p.placed && !isCoreId(n.id));
     });
   }
 
@@ -1516,8 +1522,13 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   /* The bare board runs the window's width; uncapped, the 900:560 viewBox is
      ~896px tall at 1440px and pushes the controls off a laptop screen. The box
      is capped, not the drawing: `preserveAspectRatio="meet"` letterboxes inside
-     it, so nothing is ever stretched. */
-  .kg-root.kg-bare .kg-svg {
+     it, so nothing is ever stretched.
+     `:not(.kg-fullscreen)`: the cap above is about the height the *embedded*
+     board would take out of the page. In the overlay the available box is the
+     viewport and this rule only stole ~35px of drawing width off it (951px at a
+     800px-tall window, where the aspect ratio allows 986px). Same guard shape as
+     the bare-surface rule above. */
+  .kg-root.kg-bare:not(.kg-fullscreen) .kg-svg {
     inline-size: min(100%, calc(74svh * (900 / 560)));
     margin-inline: auto;
   }
@@ -1620,25 +1631,21 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   .kg-chip[aria-pressed='true'] {
     background: var(--text-accent);
     border-color: var(--text-accent);
-    color: #1a1a1a; /* dark ink on the coral accent — 7.3:1, AA */
+    /* Ink on the accent-as-fill. Resolves to dark in dark/cyberpunk (7.30:1)
+       and to white in light (6.66:1) — the light theme's sienna drops the dark
+       ink to 2.61:1. One token instead of a `[data-theme='light']` override, so
+       this pill and the skip link / ::selection / accent badges cannot drift. */
+    color: var(--accent-ink);
     font-weight: 600;
   }
-  /* One pill for both themes. The two accents need opposite ink (dark ink on
-     the dark-theme coral, white on the light-theme sienna), so instead of
-     tracking the theme the pill carries its own dark background and white ink,
-     which clears AA on both: 12:1 on coral, 14.6:1 on sienna. The previous
-     per-theme pair failed — 3.18:1 in dark, and 4.29:1 in light once the 22%
-     white overlay lightened the sienna. */
+  /* One pill for both themes. The count pill sits on the chip's own accent fill
+     in both themes and the 45% black overlay darkens that fill the same way on
+     coral and on sienna, so white ink clears AA on both: 12:1 on coral,
+     14.6:1 on sienna. The previous per-theme pair failed — 3.18:1 in dark, and
+     4.29:1 in light once the 22% white overlay lightened the sienna. */
   .kg-chip[aria-pressed='true'] .kg-chip-count {
     color: #ffffff;
     background: rgb(0 0 0 / 0.45);
-  }
-  /* Light theme's --text-accent is dark sienna (#a8331a), where the dark ink
-     above drops to 2.61:1. `:global()` keeps Astro from scoping the ancestor —
-     without it the compiled selector demands `data-theme` on the button itself
-     and never matches. White ink on sienna is 6.66:1. */
-  :global([data-theme='light']) .kg-chip[aria-pressed='true'] {
-    color: #ffffff;
   }
   .kg-chip:focus-visible {
     outline: 2px solid var(--text-accent);
@@ -1745,10 +1752,12 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     font-weight: 600;
     font-family: var(--font-sans);
     /* Halo so labels stay readable over crossing edges and node circles.
-       Nearly opaque + thick so text separates cleanly in dense areas. */
+       Nearly opaque + thick so text separates cleanly in dense areas. The width
+       comes from `LABEL_HALO` (src/lib/graph-labels.ts): it is also the
+       placement gap, so the halo can never paint over a neighbouring label. */
     paint-order: stroke;
     stroke: var(--background-secondary);
-    stroke-width: 5px;
+    stroke-width: var(--kg-label-halo, 5px);
     stroke-opacity: 0.95;
     stroke-linejoin: round;
     pointer-events: none;

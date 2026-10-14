@@ -18,8 +18,16 @@ import {
 
 interface Props {
   ariaLabel: string;
+  /**
+   * Accessible names for the zoom group and its three buttons. Required, not
+   * defaulted: the canvas renders on both `/` and `/en/`, and a defaulted
+   * Russian label shipped `aria-label="Уменьшить"` on the English homepage.
+   * They live in one object so a caller cannot localize the group but forget
+   * the buttons.
+   */
+  controls: { group: string; zoomOut: string; fit: string; zoomIn: string };
 }
-const { ariaLabel } = Astro.props;
+const { ariaLabel, controls } = Astro.props;
 
 // Reference window: the value the server can honestly compute. The inline script
 // below corrects it to the real window on load and on resize.
@@ -47,10 +55,10 @@ const fitData = {
     </div>
   </div>
 
-  <div class="canvas-controls" role="group" aria-label={ariaLabel}>
-    <button type="button" data-canvas-zoom="out" aria-label="Уменьшить">−</button>
-    <button type="button" data-canvas-zoom="reset" aria-label="Показать всю доску">⤢</button>
-    <button type="button" data-canvas-zoom="in" aria-label="Увеличить">+</button>
+  <div class="canvas-controls" role="group" aria-label={controls.group}>
+    <button type="button" data-canvas-zoom="out" aria-label={controls.zoomOut}>−</button>
+    <button type="button" data-canvas-zoom="reset" aria-label={controls.fit}>⤢</button>
+    <button type="button" data-canvas-zoom="in" aria-label={controls.zoomIn}>+</button>
   </div>
 </section>
 

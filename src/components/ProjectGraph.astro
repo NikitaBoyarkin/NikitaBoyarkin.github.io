@@ -8,7 +8,7 @@
 // the anchor. Click a node to navigate to its page.
 import { withBase } from '../lib/path';
 import type { GraphNode, GraphLink } from '../lib/graph';
-import { buildGraphTooltips } from '../lib/graph-tooltip';
+import { buildGraphTooltips, tooltipCopy } from '../lib/graph-tooltip';
 
 interface Props {
   nodes: GraphNode[];
@@ -29,6 +29,28 @@ const height = Math.max(280, Math.min(460, 240 + nodes.length * 10));
 // Precompute tooltip lines (node / edge, aligned by index) so the client only
 // positions and renders them — same protocol as the main graph.
 const tooltips = buildGraphTooltips(nodes, links, lang);
+
+// Screen-reader text alternative. Every node in this graphic is built in the
+// client, so without a server-rendered mirror a JS-off or AT visitor gets an
+// empty box. Same contract as KnowledgeGraph: a per-node connection list in
+// visually-hidden text, while the SVG itself stays a focusable group of real
+// links rather than a single opaque image.
+const edgeTypeLabel = tooltipCopy(lang).edgeType;
+const nodeById = new Map(nodes.map((n) => [n.id, n]));
+const connsByNode = new Map<string, string[]>();
+for (const l of links) {
+  const a = nodeById.get(l.source);
+  const b = nodeById.get(l.target);
+  if (!a || !b) continue;
+  const ty = edgeTypeLabel[l.type] ?? l.type;
+  if (!connsByNode.has(a.id)) connsByNode.set(a.id, []);
+  if (!connsByNode.has(b.id)) connsByNode.set(b.id, []);
+  connsByNode.get(a.id)!.push(`${b.label} (${ty})`);
+  connsByNode.get(b.id)!.push(`${a.label} (${ty})`);
+}
+const srDesc = isEn
+  ? `Interactive subgraph: ${nodes.length} nodes and ${links.length} links around this page. Each node is keyboard-focusable; press Enter or Space to open its page. A full list of nodes and their links follows the graphic.`
+  : `Интерактивный подграф: ${nodes.length} узлов и ${links.length} связей вокруг этой страницы. Каждый узел доступен с клавиатуры; Enter или пробел открывают связанную страницу. Полный список узлов и их связей — после графика.`;
 
 // Pre-resolve URLs with the base path so the client can navigate directly.
 const data = {
@@ -51,7 +73,29 @@ const caption =
 ---
 
 <div id="pg-root" class="pg-root">
-  <svg id="pg-svg" class="pg-svg" style={`height:${height}px`} role="img" aria-label={ariaLabel}></svg>
+  {/* role="group", not "img": ARIA gives `img` presentational children, which
+      would flatten the focusable `role="link"` nodes this component builds into
+      it out of the accessibility tree. A group keeps them real; the
+      visually-hidden list below is the plain-text mirror. */}
+  <svg id="pg-svg" class="pg-svg" style={`height:${height}px`} role="group" aria-label={ariaLabel} aria-describedby="pg-sr-desc"></svg>
+  <div class="visually-hidden">
+    <p id="pg-sr-desc">{srDesc}</p>
+    <ul>
+      {
+        nodes.map((n) => {
+          const conns = connsByNode.get(n.id) ?? [];
+          return (
+            <li>
+              {/* The centre is this very page — a self-link is a wasted stop, so
+                  it stays plain text. */}
+              {n.id === centerId ? <span>{n.label}</span> : <a href={withBase(n.url)}>{n.label}</a>}
+              {conns.length > 0 ? `: ${conns.join(', ')}` : ''}
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
   <div id="pg-tooltip" class="pg-tooltip" role="tooltip" hidden></div>
   <p class="pg-caption">{caption}</p>
 </div>

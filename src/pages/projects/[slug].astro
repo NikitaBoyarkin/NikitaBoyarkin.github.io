@@ -92,6 +92,17 @@ const projectTabs = [
 ];
 const tabbed = projectTabs.length > 1;
 
+// The authored `faq:` block is what the FAQPage JSON-LD advertises. Google
+// requires marked-up content to be visible on the page, and a `faq:` block is
+// written for rich results *and* for the reader — so it renders below the case,
+// not only in the graph. The heading joins the TOC so the in-page nav stays
+// honest about the section it adds.
+const faqHeading = { id: 'project-faq', text: 'Частые вопросы', level: 2 };
+const tocHeadings = [
+  ...headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth })),
+  ...(project.data.faq.length > 0 ? [faqHeading] : []),
+];
+
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
 const pageUrl = `${siteUrl}${withBase(`projects/${slug}/`)}`;
 // Dates: only 4 of 17 projects carry an authored `date`, but 17/17 carry
@@ -231,10 +242,24 @@ const pageJsonLd = {
 
     <SectionTabs tabs={projectTabs} label="Разделы проекта" railId="inner-toc" single={!tabbed}>
       <SectionPanel id="case" active ownsRail tabbed={tabbed}>
-        <InlineTOC lang="ru" headings={headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth }))} />
+        <InlineTOC lang="ru" headings={tocHeadings} />
 
         <article id="project-content" class="prose">
           <Content />
+
+          {
+            project.data.faq.length > 0 && (
+              <section class="project-faq" aria-labelledby="project-faq">
+                <h2 id="project-faq">{faqHeading.text}</h2>
+                {project.data.faq.map((item) => (
+                  <details>
+                    <summary>{item.question}</summary>
+                    <p>{item.answer}</p>
+                  </details>
+                ))}
+              </section>
+            )
+          }
         </article>
       </SectionPanel>
 

@@ -104,6 +104,13 @@
   --button-bg: #fe4e02;                      /* orange fill (ACCENT_ON_BLUE) + dark ink */
   --button-bg-hover: #ff6a1f;                /* stepped orange */
   --button-ink: #1a1a1a;                     /* dark ink on orange (5.22:1, AA) */
+  /* Ink for `--text-accent` used as a FILL — skip link, ::selection, accent
+     badges, monograms. Separate from `--button-ink` on purpose: the button fill
+     is the brand orange in every theme, but the accent fill differs per theme,
+     so one token cannot serve both. `#1a1a1a` on the dark theme's coral is
+     7.30:1; the light theme's sienna needs white (6.66:1) — the dark ink is
+     2.61:1 there, under both the text and the large-text floor. */
+  --accent-ink: #1a1a1a;
   --border-active: #ff8569;
 
   --shadow-color: rgba(0, 0, 0, 0.4);
@@ -261,6 +268,10 @@
   --button-bg: #fe4e02;                      /* orange fill (ACCENT_ON_BLUE) + dark ink */
   --button-bg-hover: #ff6a1f;                /* stepped orange */
   --button-ink: #1a1a1a;                     /* dark ink on orange (5.22:1, AA) */
+  /* Ink on the accent-as-fill: the light theme's accent is sienna (#a8331a),
+     so the dark ink the other two themes use drops to 2.61:1 — white is
+     6.66:1. See the token's note in :root. */
+  --accent-ink: #ffffff;
   --border-active: #a8331a;
   --text-accent-dataviz: #0d7377;
 
@@ -366,7 +377,7 @@ p {
   left: var(--space-4);
   z-index: var(--z-top);
   background: var(--text-accent);
-  color: #1a1a1a; /* dark ink on coral accent surface; button ink is now white */
+  color: var(--accent-ink);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--space-2);
   text-decoration: none;
@@ -387,9 +398,17 @@ p {
     opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
     transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
+/* `none`, not `translateY(0)`: an identity matrix is still a transform, and any
+   transform makes the element a containing block for `position: fixed`
+   descendants. `.graph-board` carries `.reveal`, so a `translateY(0)` left the
+   graph's fullscreen overlay (`position: fixed; inset: 0`) trapped inside the
+   212px-tall section instead of the viewport — the drawing collapsed to 25px.
+   A transition to `none` interpolates against the identity transform, so the
+   reveal still animates; and this is the value the reduced-motion and
+   `@media (scripting: none)` branches below already settle on. */
 .reveal.visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 /* No-JS: scripting disabled means no IntersectionObserver, so `.visible` is
    never added and the content would stay at opacity 0. Reveal it outright —
@@ -2086,9 +2105,12 @@ footer {
   margin-top: var(--space-8);
 }
 
-/* The footer carries a single line — the copyright — and no anchors at all: the
-   site's outbound links are chips in the sticky top bar, next to the brand they
-   belong to. */
+/* The footer carries two things: one route to contact (`/contact/`, RU or EN)
+   and the copyright. It is the only in-`<main>` way to reach contact on a page
+   other than /contact — every persona landing, project and post used to end with
+   no next step at all, because the sole link lived in the off-canvas drawer. The
+   direct booking link deliberately stays off it: `tests/lib/persona.test.ts`
+   freezes the owner's call that `booking_click` fires only from /contact. */
 footer p {
   margin-top: var(--space-4);
   opacity: 0.9;
@@ -2607,7 +2629,7 @@ body::after {
 /* Selection color */
 ::selection {
   background: var(--text-accent);
-  color: #1a1a1a; /* dark ink on accent surface; button ink is now white */
+  color: var(--accent-ink);
 }
 
 /* Focus styles for accessibility */
@@ -2654,6 +2676,8 @@ button:focus-visible {
   --button-bg: #ff2bd6;                      /* magenta fill, dark ink (5.44:1, AA) */
   --button-bg-hover: #ff5ce0;
   --button-ink: #1a1a1a;                     /* dark ink on magenta button (5.44:1, AA) */
+  /* Same coral accent as the dark theme, so the same dark ink (7.30:1). */
+  --accent-ink: #1a1a1a;
   --border-active: #ff8569;
   --text-accent-dataviz: #4ecdc4;
 
@@ -3214,7 +3238,7 @@ button:focus-visible {
   border: 1px solid color-mix(in srgb, var(--text-accent) 22%, transparent);
 }
 .strip-badge-project {
-  color: #1a1a1a; /* dark ink on accent surface; button ink is now white */
+  color: var(--accent-ink);
   background: var(--text-accent);
   border-color: var(--text-accent);
 }

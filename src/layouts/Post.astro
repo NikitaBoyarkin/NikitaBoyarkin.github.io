@@ -30,6 +30,10 @@ const dateModified = updated?.toISOString() ?? date.toISOString();
 const minLabel = lang === 'en' ? 'min read' : 'мин чтения';
 const backLabel = lang === 'en' ? '← All writing' : '← К статьям';
 const relatedLabel = lang === 'en' ? 'See also' : 'Смотрите также';
+// The prev/next rail is its own landmark: reusing `relatedLabel` here would give
+// two different `<nav>`/`<section>`s the same accessible name. Hardcoded Russian
+// shipped this label onto /en/posts/* until 2026-10-14.
+const prevNextLabel = lang === 'en' ? 'More posts' : 'Другие записи';
 const prevLabel = lang === 'en' ? '← Previous' : '← Предыдущая';
 const nextLabel = lang === 'en' ? 'Next →' : 'Следующая →';
 
@@ -120,7 +124,7 @@ const articleJsonLdGraph = { '@context': 'https://schema.org', '@graph': [articl
     )}
 
     {(prev || next) && (
-      <nav class="prev-next" aria-label="Другие записи">
+      <nav class="prev-next" aria-label={prevNextLabel}>
         {prev && (
           <a class="pn-link pn-prev" href={prev.href}>
             <span class="pn-dir">{prevLabel}</span>

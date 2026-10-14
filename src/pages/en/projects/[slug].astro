@@ -99,6 +99,15 @@ const projectTabs = [
 ];
 const tabbed = projectTabs.length > 1;
 
+// Mirrors the RU template: the authored `faq:` block is what the FAQPage
+// JSON-LD advertises, so it renders below the case rather than living only in
+// the graph, and its heading joins the TOC.
+const faqHeading = { id: 'project-faq', text: 'Frequently asked', level: 2 };
+const tocHeadings = [
+  ...headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth })),
+  ...(project.data.faq.length > 0 ? [faqHeading] : []),
+];
+
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
 const pageUrl = `${siteUrl}${withBase(`en/projects/${slug}/`)}`;
 // Dates: most projects carry `updated` but not an authored `date`. Gating both
@@ -237,10 +246,24 @@ const pageJsonLd = {
 
     <SectionTabs tabs={projectTabs} label="Sections" railId="inner-toc" single={!tabbed}>
       <SectionPanel id="case" active ownsRail tabbed={tabbed}>
-        <InlineTOC lang="en" headings={headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth }))} />
+        <InlineTOC lang="en" headings={tocHeadings} />
 
         <article id="project-content" class="prose">
           <Content />
+
+          {
+            project.data.faq.length > 0 && (
+              <section class="project-faq" aria-labelledby="project-faq">
+                <h2 id="project-faq">{faqHeading.text}</h2>
+                {project.data.faq.map((item) => (
+                  <details>
+                    <summary>{item.question}</summary>
+                    <p>{item.answer}</p>
+                  </details>
+                ))}
+              </section>
+            )
+          }
         </article>
       </SectionPanel>
 

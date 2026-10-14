@@ -1,17 +1,17 @@
 ---
 title: RAG Evaluation Harness — retrieval and generation metrics
-description: "A RAG pipeline with a real offline evaluation harness: recall@5 and MRR = 1.00 over 20 labeled questions, faithfulness 1.00, correctness 0.37. TF-IDF retrieval, runs with zero API keys."
+description: "A RAG pipeline with a real offline evaluation harness: recall@5 and MRR = 1.00 over 20 labeled questions, correctness 0.37. TF-IDF retrieval, runs with zero API keys; faithfulness ≡1.00 is an extractive invariant, not a measurement."
 star:
   situation: "A RAG demo is easy to show and hard to measure: you cannot tell whether the retrieval or the generation is failing, or whether the result reproduces at all"
   task: "Build a pipeline with an offline eval harness that separates retrieval from generation metrics and runs without API keys"
   action: "A TF-IDF index over the concept corpus, cosine top-k, a deterministic extractive answerer; Claude plugs in behind a --llm flag and the harness stays the same"
-  result: "recall@5 and MRR = 1.00 over 20 questions; faithfulness 1.00, correctness 0.37 for the offline baseline; retrieval and generation scored separately"
+  result: "recall@5 and MRR = 1.00 over 20 questions; correctness 0.37 for the offline baseline (faithfulness ≡1.00 is an extractive invariant); retrieval and generation scored separately"
 track: analytics
 hero: images/rag.svg
 ogImage: /images/og/rag.png
 impact:
   - "recall@5 and MRR = 1.00, precision@5 = 0.20 over 20 labeled questions"
-  - "faithfulness 1.00 for the offline baseline: answers are fully grounded in the retrieved context"
+  - "faithfulness ≡1.00 for the offline baseline — an extractive invariant (the answer is taken from the context), not a measurement; real generation scoring needs --llm"
   - "correctness 0.37 by Jaccard overlap with the gold answer; --llm lifts generation while retrieval stays fixed"
   - "Runs end-to-end with zero keys: TF-IDF + extractive fallback, reproducible"
   - "5 pytest tests over the index, search, grounding and eval summary"
@@ -52,7 +52,7 @@ The corpus is 12 short analytics concept docs (A/B testing, CUPED, uplift, reten
 | recall@5 | 1.00 |
 | MRR | 1.00 |
 | precision@5 | 0.20 |
-| faithfulness | 1.00 |
+| faithfulness (invariant, extractive) | 1.00 |
 | correctness | 0.37 |
 
 ### Run
@@ -69,7 +69,7 @@ Per-question breakdown: `reports/retrieval_per_question.csv`, `reports/generatio
 
 ## Result
 
-Retrieval is perfect on this corpus: recall@5 and MRR = 1.00, the gold doc ranks 1 for all 20 questions — TF-IDF is enough at this scale and topic separation. The offline extractive baseline is fully grounded (faithfulness 1.00) and reaches 0.37 correctness by token overlap.
+Retrieval is perfect on this corpus: recall@5 and MRR = 1.00, the gold doc ranks 1 for all 20 questions — TF-IDF is enough at this scale and topic separation. The offline extractive baseline is grounded by construction — faithfulness ≡1.00 because the answer is taken from the context — and reaches 0.37 correctness by token overlap.
 
 The value is not the numbers themselves but that the harness separates the layers. With `--llm` and an API key, generation scores rise while retrieval metrics stay put, so you can see which layer to improve. It is the same principle as an A/B test: measure first, change second.
 

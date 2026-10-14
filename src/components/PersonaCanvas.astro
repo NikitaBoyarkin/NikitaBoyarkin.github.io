@@ -32,6 +32,14 @@ const t = isEn
       claim:
         'I turn data into decisions: which fix to ship, whom to win back, where the hypothesis did not hold.',
       canvasLabel: 'Home canvas',
+      // The zoom group names what the controls do, not the region they sit in —
+      // the section above already carries `canvasLabel` as its region name.
+      controls: {
+        group: 'Board zoom',
+        zoomOut: 'Zoom out',
+        fit: 'Fit the whole board',
+        zoomIn: 'Zoom in',
+      },
     }
   : {
       name: 'Никита Бояркин',
@@ -40,6 +48,12 @@ const t = isEn
       claim:
         'Считаю не отчёты, а решения: какой фикс включать, кого вернуть, где гипотеза не подтвердилась.',
       canvasLabel: 'Холст главной',
+      controls: {
+        group: 'Масштаб холста',
+        zoomOut: 'Уменьшить',
+        fit: 'Показать всю доску',
+        zoomIn: 'Увеличить',
+      },
     };
 
 const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string; cta: string }> = [
@@ -86,7 +100,7 @@ const boxStyle = (id: string): string => {
 };
 ---
 
-<CanvasStage ariaLabel={t.canvasLabel}>
+<CanvasStage ariaLabel={t.canvasLabel} controls={t.controls}>
   <header class="canvas-node canvas-node--identity" data-node="identity" style={boxStyle('identity')}>
     <p class="hero-person">{t.name}</p>
     <h1 class="hero-name">{t.h1}</h1>
