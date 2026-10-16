@@ -1,0 +1,134 @@
+---
+// The project's own board, embedded on its case page.
+//
+// `demo:` has been in the content schema since the first board, but until now it
+// only ever reached the *card* (`ProjectCard`) and the two role landings: a
+// reader who clicked through to the case never saw the board the case is about.
+// This is the case page's half of that field, and it is why the page is a
+// dashboard rather than a described dashboard.
+//
+// Two deliberate choices:
+//
+// 1. It is a `<SectionPanel>` sibling of the case study, not a block wedged into
+//    the prose column. The case body's first heading is an h1 (the project
+//    title lives in the markdown, not the template), so an h2 placed above it
+//    would put the page's own heading order out of sequence — and the heading
+//    that owns the fixed `#inner-toc` rail is the case panel's. As a panel it
+//    also gets the full content width instead of the prose measure.
+//
+// 2. Only an in-repo board is framed. An external `demo:` (a bare URL) renders
+//    as the link alone: a third-party page would not follow the site's three
+//    themes, and a page that sends `X-Frame-Options: DENY` would render as an
+//    empty box with no explanation. The schema allows both; this respects it.
+//
+// The frame is not a substitute for the numbers — `ChartsSection` still renders
+// the static, build-time chart set for slugs that have one. The board is the
+// interactive view; the charts are the greppable, crawlable one.
+interface Props {
+  href: string;
+  external?: boolean;
+  lang?: 'ru' | 'en';
+}
+
+const { href, external = false, lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+const t = isEn
+  ? {
+      label: 'Live board',
+      hint: 'Interactive: every figure is computed from the project’s own data, so you can move the controls instead of taking the sentence on trust.',
+      open: 'Open full screen',
+      frame: 'Interactive dashboard',
+    }
+  : {
+      label: 'Живая панель',
+      hint: 'Интерактивно: каждое число посчитано по данным проекта — контролы можно двигать, а не верить формулировке.',
+      open: 'Открыть во весь экран',
+      frame: 'Интерактивный дашборд',
+    };
+---
+
+{/* `aria-label`, not a heading: see (1) above — a heading here would be the
+    page's first h2 while the h1 sits later in the case panel. */}
+<section class="project-demo" aria-label={t.label}>
+  <div class="project-demo-bar">
+    <span class="project-demo-label">{t.label}</span>
+    <a class="project-demo-open" href={href} target="_blank" rel="noopener noreferrer">
+      {t.open} →
+    </a>
+  </div>
+
+  <p class="project-demo-hint">{t.hint}</p>
+
+  {
+    !external && (
+      <iframe
+        class="project-demo-frame"
+        src={href}
+        title={`${t.frame} — ${href}`}
+        height="680"
+        loading="lazy"
+      />
+    )
+  }
+</section>
+
+<style>
+  .project-demo {
+    margin: 0 0 var(--space-8);
+  }
+
+  /* A bar rather than a bare <a>: the label carries the meaning and the link is
+     the action, so the accent stays on the affordance (60-30-10). */
+  .project-demo-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .project-demo-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-normal);
+  }
+
+  .project-demo-open {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-accent);
+    text-decoration: none;
+  }
+
+  .project-demo-open:hover {
+    color: var(--text-accent-hover);
+    text-decoration: underline;
+  }
+
+  .project-demo-open:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .project-demo-hint {
+    margin: var(--space-1) 0 var(--space-3);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    max-width: 68ch;
+  }
+
+  /* The board is a same-origin document that brings its own palette, type and
+     wallpaper, so the frame only needs the surface treatment: a hairline, the
+     card radius, and a background from the theme so a board that has not
+     painted yet is not a white flash in dark mode. */
+  .project-demo-frame {
+    display: block;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--background-secondary);
+  }
+</style>

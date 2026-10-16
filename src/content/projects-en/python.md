@@ -23,6 +23,7 @@ tools:
 github: https://github.com/NikitaBoyarkin/python
 updated: 2026-09-03
 date: 2026-09-03
+demo: demos/python/index.html
 related:
   - /posts/eda-python-template/
   - /posts/reproducible-data-pipelines/

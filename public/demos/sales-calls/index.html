@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Воронка звонков ИИ-обзвона по шагам бота — sales-calls-dashboard</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. */
+  .stack{display:flex;flex-direction:column;gap:var(--space-4)}
+  .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+    gap:var(--space-2);margin-bottom:var(--space-3)}
+  .ctlrow{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center;
+    margin-bottom:var(--space-3)}
+  .seg{display:flex;flex-wrap:wrap;gap:4px}
+  /* Affordances live on the coral action accent, never on --dv-*. */
+  .ctrl{font:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:3px 10px;
+    border-radius:var(--radius-full);background:var(--background-secondary);
+    color:var(--text-muted);border:1px solid var(--border-color)}
+  .ctrl:hover{color:var(--text-accent-hover);border-color:var(--border-active)}
+  .ctrl.is-on{color:var(--text-normal);border-color:var(--border-active);
+    background:var(--background-tertiary)}
+  .ctrl:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));
+    gap:var(--space-3) var(--space-4)}
+  .kpi{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .readout{display:flex;flex-wrap:wrap;gap:var(--space-4)}
+
+  /* Funnel: label + track per stage, numbers on the second grid row. */
+  .fhead{display:grid;grid-template-columns:150px 1fr;gap:var(--space-2)}
+  .fstage{display:grid;grid-template-columns:150px 1fr;gap:2px var(--space-2);
+    align-items:center;margin-bottom:var(--space-2)}
+  .flab{font-size:12px;font-weight:600;color:var(--text-normal);overflow-wrap:anywhere}
+  .ftrack{position:relative;height:24px;background:var(--background-primary);
+    border-radius:var(--radius-sm)}
+  .fbar{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm)}
+  .fnum{grid-column:2;font-size:10px;font-weight:600;color:var(--dv-label);
+    font-variant-numeric:tabular-nums}
+
+  /* Step 1 loss breakdown: swatch + label + share-of-dials track. */
+  .brow{display:grid;grid-template-columns:14px 1fr;gap:2px var(--space-2);
+    margin-bottom:var(--space-2)}
+  .bsw{grid-column:1;grid-row:1 / span 2;align-self:start;margin-top:3px}
+  .blab{grid-column:2;grid-row:1;font-size:12px;font-weight:600;
+    color:var(--text-normal);overflow-wrap:anywhere}
+  .btrack{grid-column:2;grid-row:2;position:relative;height:18px;
+    background:var(--background-primary);border-radius:var(--radius-sm)}
+  .bbar{position:absolute;left:0;top:0;bottom:0;min-width:3px;
+    border-radius:var(--radius-sm)}
+  .bnum{grid-column:2;grid-row:3;font-size:10px;font-weight:600;color:var(--dv-label);
+    font-variant-numeric:tabular-nums}
+
+  /* Average duration: one column per reached step, height ∝ seconds. */
+  .dgrid{display:flex;gap:var(--space-1);height:156px;padding-top:14px;
+    background:var(--background-primary);border-radius:var(--radius-sm)}
+  .dcol{flex:1;min-width:0;position:relative}
+  .dbar{position:absolute;left:8%;right:8%;bottom:0;border-radius:3px 3px 0 0}
+  .dval{position:absolute;left:-6px;right:-6px;text-align:center;font-size:10px;
+    font-weight:700;color:var(--text-normal);font-variant-numeric:tabular-nums}
+  .dcap{display:flex;gap:var(--space-1);margin-top:5px}
+  .dcap span{flex:1;min-width:0;text-align:center;font-size:11px;font-weight:700;
+    color:var(--dv-label)}
+
+  .note{margin-top:var(--space-3);font-weight:400}
+  .note--tight{margin-top:var(--space-2)}
+
+  @media (max-width:560px){
+    .fhead,.fstage{grid-template-columns:104px 1fr}
+    .flab{font-size:11px}
+    .dgrid{height:126px}
+  }
+
+  /* demo.css's shared `.dv-s1` is a `fill` utility — the SVG series class. The
+     funnel, breakdown and duration bars here are HTML boxes, so the series
+     token is re-applied to `background` in one declaration instead of an
+     inline colour per bar. */
+  .dv-s1{background:var(--text-accent-dataviz)}
+
+  /* The five step-1 outcomes, applied by class rather than inline style so
+     they re-resolve on a theme change with no JavaScript at all. Order runs
+     from the largest loss bucket to the smallest, matching the legend. */
+  .cat-1{background:var(--dv-cat-1)}   .cat-2{background:var(--dv-cat-2)}
+  .cat-3{background:var(--dv-cat-3)}   .cat-4{background:var(--dv-cat-4)}
+  .cat-5{background:var(--dv-cat-5)}
+</style>
+</head>
+<body>
+  <h1 class="demo-title">Воронка звонков ИИ-обзвона: где бот теряет контакт</h1>
+  <p class="demo-lede">Четыре шага шаблонного скрипта бота на 11 486 наборах — числа взяты из валидированного payload'а «src/data/charts/sales-calls.json», того же, что рендерится на странице кейса. Кнопки под графиком переключают точку отсчёта и пересчитывают, сколько звонков с выбранного шага доходит до каждого следующего. Расхождение цифр внутри самого кейса показано в конце страницы.</p>
+
+  <div class="stack">
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Воронка ИИ-обзвона, 11 486 наборов</h2>
+        <span class="demo-flag" id="f-flag"></span>
+      </div>
+      <div class="kpis" id="kpis"></div>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Шаги воронки и переход между ними</h2>
+        <span class="demo-axis-label">ширина полосы — доля от всех наборов</span>
+      </div>
+      <div class="ctlrow">
+        <div class="seg" role="group" aria-label="Точка отсчёта">
+          <button type="button" class="ctrl is-on" data-stage="0" aria-pressed="true">Набрано</button>
+          <button type="button" class="ctrl" data-stage="1" aria-pressed="false">Шаг 1</button>
+          <button type="button" class="ctrl" data-stage="2" aria-pressed="false">Шаг 2</button>
+          <button type="button" class="ctrl" data-stage="3" aria-pressed="false">Шаг 3</button>
+          <button type="button" class="ctrl" data-stage="4" aria-pressed="false">Шаг 4</button>
+        </div>
+      </div>
+      <div class="fhead">
+        <span class="demo-axis-label">Шаг</span>
+        <span class="demo-axis-label">Дошедшие звонки, % от 11 486 и потеря от предыдущего шага</span>
+      </div>
+      <div id="funnel"></div>
+      <div class="readout note note--tight" id="f-read"></div>
+      <p class="demo-axis-label note">На входе теряется 3 085 звонков (26,86 % всех наборов) — они не доходят даже до приветствия. Дальше воронка течёт ровнее: после оффера до встречи доходит 36,73 %, а между «Шаг 1» и «Шаг 2» теряется 8 028 звонков — это 69,89 % всех наборов.</p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Шаг 1: куда уходят все 11 486 звонков</h2>
+        <span class="demo-axis-label">ширина полосы — доля от всех наборов</span>
+      </div>
+      <div id="break"></div>
+      <div class="demo-legend note" id="break-legend"></div>
+      <p class="demo-axis-label note note--tight">Разметка исхода шага 1 — эвристика по тексту реплик, поэтому категории пересекаются по смыслу: «сброс на приветствии» и «нет диалога» различает только маркер в транскрипте. Сумма по всем пяти исходам — 11 486, то есть каждый звонок попал ровно в одну категорию.</p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Средняя длительность звонка по достигнутому шагу</h2>
+        <span class="demo-axis-label">секунды</span>
+      </div>
+      <div class="dgrid" id="dur"></div>
+      <div class="dcap" id="dur-cap"></div>
+      <div class="demo-legend note">
+        <span>шаг 0 — без приветствия</span>
+        <span>1 — приветствие и согласие</span>
+        <span>2 — оффер</span>
+        <span>3 — встреча</span>
+        <span>4 — квалификация</span>
+      </div>
+      <p class="demo-axis-label note note--tight">Длительность — производная от шага, а не независимая метрика: разговор до квалификации (141,4 сек) идёт в 42,8 раза дольше мгновенного сброса (3,3 сек). Звонки без приветствия — 3 085 из 11 486.</p>
+    </section>
+
+  </div>
+
+  <p class="demo-axis-label note">Все числа этой доски — поля payload'а «src/data/charts/sales-calls.json»; ничего не досчитано и не сглажено. Датасет синтетический (data/calls_demo.csv, детерминирован по SEED). Расхождение в самом кейсе: проза карточки в поле description и в блоке impact называет 16 891 звонок, тогда как payload даёт 11 486 наборов — 16 891 не получается ни из одной строки воронки (суммы исходов шага 1 и шага 0 совпадают на 11 486). Одна из двух цифр лишняя; доска держится payload'а, решение за автором кейса.</p>
+
+<script>
+// ── Воронка. Источник: src/data/charts/sales-calls.json, chart
+// "call-conversion-funnel" (репозиторий sales-calls-dashboard, data/calls_demo.csv).
+// Шаг разговора размечен детерминированно по маркерам шаблонного скрипта.
+/* `gen` — родительный падеж самого шага: он подставляется, когда шаг является
+   целью отсчёта («до оффера»), поэтому стоит на своём шаге, а не на
+   предыдущем. У «Набрано» его нет: до набора дойти нельзя. */
+const STAGES = [
+  {short:"Набрано", full:"Набрано",                       gen:"",                       v:11486},
+  {short:"Шаг 1",   full:"Шаг 1 · Приветствие + согласие", gen:"приветствия и согласия", v:8401},
+  {short:"Шаг 2",   full:"Шаг 2 · Оффер",                  gen:"оффера",                 v:373},
+  {short:"Шаг 3",   full:"Шаг 3 · Встреча",                gen:"встречи",                v:137},
+  {short:"Шаг 4",   full:"Шаг 4 · Квалификация",           gen:"квалификации",           v:32}
+];
+const DIALS = STAGES[0].v;
+
+// ── Исходы шага 1. Источник: тот же payload, chart "step1-drop-breakdown".
+// Сумма пяти значений = 11 486 = STAGES[0].v.
+const BREAK = [
+  {n:1, lab:"Сброс на приветствии (клиент не ответил)",        v:5493},
+  {n:2, lab:"Нет диалога (мгновенный сброс/автоответчик)",     v:3085},
+  {n:3, lab:"Молчание (user: ...)",                            v:1558},
+  {n:4, lab:"Ответил, но сорвался на шаге 1",                  v:977},
+  {n:5, lab:"Дошёл до оффера и дальше",                        v:373}
+];
+
+// ── Средняя длительность по достигнутому шагу. Источник: тот же payload,
+// chart "avg-duration-by-step" — значения для шагов 0,1,2,3,4.
+const DUR = [3.3, 20.1, 71.8, 129.9, 141.4];
+
+const int = v => Math.round(v).toLocaleString("ru-RU");
+const pct = v => v.toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2})
+  .replace(/^-/, "\u2212") + " %";
+const sec = v => v.toLocaleString("ru-RU",{minimumFractionDigits:1,maximumFractionDigits:1})
+  .replace(".", ",");
+/* Русское согласование числительного: 8 401 звонок, 373 звонка, 137 звонков. */
+function plural3(n, forms){
+  const a = Math.abs(n) % 100, b = a % 10;
+  if (a > 10 && a < 20) return forms[2];
+  if (b > 1 && b < 5) return forms[1];
+  if (b === 1) return forms[0];
+  return forms[2];
+}
+const calls = n => plural3(n, ["звонок", "звонка", "звонков"]);
+
+/* Крупнейшая потеря — по абсолютному числу звонков, не по доле шага. Это и есть
+   метрика, с которой начинается кейс: «на каком шаге бот теряет больше всего». */
+function worstStep(){
+  let w = 1, wl = -1;
+  for (let i = 1; i < STAGES.length; i++){
+    const loss = STAGES[i-1].v - STAGES[i].v;
+    if (loss > wl){ wl = loss; w = i; }
+  }
+  return {i:w, loss:wl};
+}
+const WORST = worstStep();
+
+function renderKpis(){
+  const host = document.getElementById("kpis");
+  host.textContent = "";
+  const rows = [
+    [int(DIALS), "наборов в воронке (payload)"],
+    [int(STAGES[4].v), "квалификаций — " + pct(STAGES[4].v / DIALS * 100) + " от наборов"],
+    ["\u2212" + int(WORST.loss), "макс. потеря: " + STAGES[WORST.i-1].short + " \u2192 " +
+      STAGES[WORST.i].short + " — " + pct(WORST.loss / DIALS * 100) + " всех наборов"],
+    [int(DIALS - STAGES[1].v), "теряется до приветствия — " +
+      pct((DIALS - STAGES[1].v) / DIALS * 100)]
+  ];
+  rows.forEach(r=>{
+    const k = document.createElement("span");
+    k.className = "kpi";
+    const v = document.createElement("span");
+    v.className = "demo-kpi-value";
+    v.textContent = r[0];
+    const l = document.createElement("span");
+    l.className = "demo-kpi-label";
+    l.textContent = r[1];
+    k.appendChild(v); k.appendChild(l);
+    host.appendChild(k);
+  });
+}
+
+let stage = 0;
+
+function renderFunnel(){
+  const host = document.getElementById("funnel");
+  host.textContent = "";
+  STAGES.forEach((s,i)=>{
+    const row = document.createElement("div");
+    row.className = "fstage";
+    const lab = document.createElement("div");
+    lab.className = "flab";
+    lab.textContent = s.full;
+    const track = document.createElement("div");
+    track.className = "ftrack";
+    const bar = document.createElement("div");
+    bar.className = "fbar dv-s1";
+    bar.style.width = (s.v / DIALS * 100) + "%";
+    track.appendChild(bar);
+    const num = document.createElement("div");
+    num.className = "fnum";
+    if (i === 0){
+      num.textContent = int(s.v) + " наборов · вход в воронку";
+    } else if (i === 1){
+      const loss = STAGES[0].v - s.v;
+      num.textContent = int(s.v) + " " + calls(s.v) + " · " + pct(s.v / DIALS * 100) +
+        " от наборов, потеря " + int(loss);
+    } else {
+      const loss = STAGES[i-1].v - s.v;
+      num.textContent = int(s.v) + " " + calls(s.v) + " · " + pct(s.v / DIALS * 100) +
+        " от наборов · " + pct(s.v / STAGES[i-1].v * 100) + " от предыдущего шага, потеря " +
+        int(loss) + (i === WORST.i ? " — максимум" : "");
+    }
+    row.appendChild(lab); row.appendChild(track); row.appendChild(num);
+    host.appendChild(row);
+  });
+
+  const read = document.getElementById("f-read");
+  read.textContent = "";
+  const head = document.createElement("span");
+  head.className = "kpi";
+  const hv = document.createElement("span");
+  hv.className = "demo-kpi-value";
+  hv.textContent = int(STAGES[stage].v);
+  const hl = document.createElement("span");
+  hl.className = "demo-kpi-label";
+  hl.textContent = stage === 0 ? "отсчёт от «Набрано» — все наборы"
+    : "отсчёт от «" + STAGES[stage].full + "»";
+  head.appendChild(hv); head.appendChild(hl);
+  read.appendChild(head);
+
+  const later = STAGES.slice(stage + 1);
+  later.forEach(function(t){
+    const k = document.createElement("span");
+    k.className = "kpi";
+    const v = document.createElement("span");
+    v.className = "demo-kpi-value";
+    v.textContent = pct(t.v / STAGES[stage].v * 100);
+    const l = document.createElement("span");
+    l.className = "demo-kpi-label";
+    l.textContent = "до " + t.gen + " — " + int(t.v) + " " + calls(t.v);
+    k.appendChild(v); k.appendChild(l);
+    read.appendChild(k);
+  });
+  if (later.length === 0){
+    const k = document.createElement("span");
+    k.className = "kpi";
+    const v = document.createElement("span");
+    v.className = "demo-kpi-value";
+    v.textContent = "финал";
+    const l = document.createElement("span");
+    l.className = "demo-kpi-label";
+    l.textContent = "дальше шагов нет — квалификация последняя стадия";
+    k.appendChild(v); k.appendChild(l);
+    read.appendChild(k);
+  }
+}
+
+function renderBreak(){
+  const host = document.getElementById("break");
+  host.textContent = "";
+  const lg = document.getElementById("break-legend");
+  lg.textContent = "";
+  BREAK.forEach(b=>{
+    const row = document.createElement("div");
+    row.className = "brow";
+    const sw = document.createElement("i");
+    sw.className = "demo-swatch bsw cat-" + b.n;
+    const lab = document.createElement("div");
+    lab.className = "blab";
+    lab.textContent = b.lab;
+    const track = document.createElement("div");
+    track.className = "btrack";
+    const bar = document.createElement("div");
+    bar.className = "bbar cat-" + b.n;
+    bar.style.width = (b.v / DIALS * 100) + "%";
+    track.appendChild(bar);
+    const num = document.createElement("div");
+    num.className = "bnum";
+    num.textContent = int(b.v) + " " + calls(b.v) + " · " + pct(b.v / DIALS * 100) +
+      " от всех наборов";
+    row.appendChild(sw); row.appendChild(lab); row.appendChild(track); row.appendChild(num);
+    host.appendChild(row);
+
+    const sp = document.createElement("span");
+    const i = document.createElement("i");
+    i.className = "demo-swatch cat-" + b.n;
+    sp.appendChild(i);
+    sp.appendChild(document.createTextNode(b.lab + " — " + int(b.v)));
+    lg.appendChild(sp);
+  });
+}
+
+function renderDur(){
+  const host = document.getElementById("dur");
+  const cap = document.getElementById("dur-cap");
+  host.textContent = ""; cap.textContent = "";
+  const max = Math.max.apply(null, DUR);
+  DUR.forEach((v,i)=>{
+    const col = document.createElement("div");
+    col.className = "dcol";
+    const bar = document.createElement("div");
+    bar.className = "dbar dv-s1";
+    bar.style.height = (v / max * 100) + "%";
+    const val = document.createElement("div");
+    val.className = "dval";
+    val.style.top = (100 - v / max * 100) + "%";
+    val.style.transform = "translateY(-14px)";
+    val.textContent = sec(v);
+    col.appendChild(bar); col.appendChild(val);
+    host.appendChild(col);
+
+    const c = document.createElement("span");
+    c.textContent = String(i);
+    cap.appendChild(c);
+  });
+}
+
+document.querySelectorAll("[data-stage]").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    stage = Number(b.dataset.stage);
+    document.querySelectorAll("[data-stage]").forEach(x=>{
+      const on = x === b;
+      x.classList.toggle("is-on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    renderFunnel();
+  });
+});
+
+document.getElementById("f-flag").textContent =
+  "макс. потеря: " + STAGES[WORST.i-1].short + " \u2192 " + STAGES[WORST.i].short +
+  " (\u2212" + int(WORST.loss) + ")";
+
+renderKpis();
+renderFunnel();
+renderBreak();
+renderDur();
+</script>
+</body>
+</html>

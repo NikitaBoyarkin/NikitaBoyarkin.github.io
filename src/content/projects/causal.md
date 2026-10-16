@@ -25,6 +25,7 @@ tools:
 github: https://github.com/NikitaBoyarkin/causal-uplift
 updated: 2026-09-18
 date: 2026-09-18
+demo: demos/causal/index.html
 related:
   - /projects/ab/
   - /posts/churn-uplift-discount/

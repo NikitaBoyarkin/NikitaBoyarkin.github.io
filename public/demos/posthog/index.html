@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PostHog: воронка, удержание, A/B-тест — TaskFlow</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. */
+  .stack{display:flex;flex-direction:column;gap:var(--space-4)}
+  .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+    gap:var(--space-2);margin-bottom:var(--space-3)}
+  .ctlrow{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3);
+    align-items:center;margin-bottom:var(--space-3)}
+  .seg{display:flex;flex-wrap:wrap;gap:4px}
+  /* Affordances live on the coral action accent, never on --dv-*. */
+  .ctrl{font:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:3px 10px;
+    border-radius:var(--radius-full);background:var(--background-secondary);
+    color:var(--text-muted);border:1px solid var(--border-color)}
+  .ctrl:hover{color:var(--text-accent-hover);border-color:var(--border-active)}
+  .ctrl.is-on{color:var(--text-normal);border-color:var(--border-active);
+    background:var(--background-tertiary)}
+  .ctrl:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+  .readout{display:flex;flex-wrap:wrap;gap:var(--space-4);margin-bottom:var(--space-3)}
+  .kpi{display:flex;flex-direction:column;gap:2px;min-width:104px}
+
+  /* demo.css's shared `.dv-s1` is a `fill` utility — the SVG series class. The
+     funnel and arm bars here are HTML boxes, so the series token is re-applied
+     to `background` in one declaration instead of an inline colour per bar. */
+  .dv-s1{background:var(--text-accent-dataviz)}
+
+  /* Funnel: label + track per stage, numbers on the second grid row. */
+  .fstage{display:grid;grid-template-columns:126px 1fr;gap:2px var(--space-2);
+    align-items:center;margin-bottom:var(--space-2)}
+  .flab{font-size:12px;font-weight:600;color:var(--text-normal);overflow-wrap:anywhere}
+  .ftrack{position:relative;height:24px;background:var(--background-primary);
+    border-radius:var(--radius-sm)}
+  .fbar{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm)}
+  .fbar.is-worst{outline:1px dashed var(--dv-threshold);outline-offset:2px}
+  .fnum{grid-column:2;font-size:10px;font-weight:600;color:var(--dv-label)}
+  .fhead{display:grid;grid-template-columns:126px 1fr;gap:var(--space-2)}
+
+  /* Retention triangle: 14 cohort rows × D0..D6. */
+  .mx{display:grid;grid-template-columns:96px repeat(7,1fr);gap:4px;max-width:680px}
+  .mxh{display:flex;align-items:center;justify-content:center;font-size:11px;
+    font-weight:600;color:var(--dv-label);padding:4px 0}
+  .mxr{display:flex;flex-direction:column;justify-content:center;font-size:11px;
+    font-weight:600;color:var(--dv-label);padding-left:2px;line-height:1.15}
+  .mxr span{font-size:9px;font-weight:400}
+  .mxc{position:relative;display:flex;align-items:center;justify-content:center;
+    min-height:30px;border-radius:var(--radius-sm);font-size:11px;font-weight:700;
+    color:var(--dv-cell-ink);cursor:default;
+    transition:transform .12s ease, box-shadow .12s ease}
+  .mxc:hover{transform:translateY(-2px);box-shadow:0 6px 16px var(--shadow-color);
+    z-index:var(--z-float)}
+  .mxc.empty{background:var(--background-primary);color:var(--dv-label);
+    font-weight:400}
+  .scale{display:flex;height:12px;width:150px;border-radius:3px;overflow:hidden}
+
+  /* A/B: arm rows, then the effect + interval on one pp axis. */
+  .ab{display:grid;gap:var(--space-2);margin-bottom:var(--space-3)}
+  .abrow{display:grid;grid-template-columns:132px 1fr 132px;gap:var(--space-2);
+    align-items:center}
+  .abname{font-size:12px;font-weight:600;color:var(--text-normal);overflow-wrap:anywhere}
+  .abtrack{position:relative;height:22px;background:var(--background-primary);
+    border-radius:var(--radius-sm)}
+  .abbar{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm)}
+  .abval{font-size:11px;font-weight:600;color:var(--dv-label);text-align:right}
+  .abaxis{width:100%;height:108px;display:block;margin-top:var(--space-2)}
+  /* Decision boundary, not an affordance: dashed so it reads as a reference
+     line, and stroke-only so no fill can flood an open path. The legend's
+     swatch needs the same colour as a fill, so it is a separate class — a
+     stroke-only utility leaves an HTML swatch invisible. */
+  .zero{stroke:var(--dv-threshold);stroke-dasharray:4 4}
+  .zero-key{background:var(--dv-threshold)}
+
+  /* Footnote lines under a plot: .demo-axis-label carries the type and colour,
+     only the spacing differs from an axis caption. */
+  .note{margin-top:var(--space-3);font-weight:400}
+  .note--tight{margin-top:var(--space-2)}
+
+  @media (max-width:520px){
+    .fstage,.fhead{grid-template-columns:104px 1fr}
+    .flab{font-size:11px}
+    .mx{grid-template-columns:74px repeat(7,1fr)}
+    .mxc{min-height:26px;font-size:9px}
+    .mxr{font-size:9px}
+    .abrow{grid-template-columns:92px 1fr 104px}
+  }
+
+  /* 360px: the matrix has to keep eight columns legible, so the label column
+     and the cell type shrink further rather than the matrix scrolling. */
+  @media (max-width:420px){
+    .mx{grid-template-columns:62px repeat(7,1fr);gap:2px}
+    .mxc{min-height:26px;font-size:8px}
+    .mxr{font-size:8px}
+    .abrow{grid-template-columns:80px 1fr 92px}
+  }
+
+  /* The seven sequential steps, applied by class rather than inline style so
+     they re-resolve on a theme change with no JavaScript at all. */
+  .seq-1{background:var(--dv-seq-1)}   .seq-2{background:var(--dv-seq-2)}
+  .seq-3{background:var(--dv-seq-3)}   .seq-4{background:var(--dv-seq-4)}
+  .seq-5{background:var(--dv-seq-5)}   .seq-6{background:var(--dv-seq-6)}
+  .seq-7{background:var(--dv-seq-7)}
+</style>
+</head>
+<body>
+  <h1 class="demo-title">PostHog-пайплайн: воронка, удержание и A/B-тест</h1>
+  <p class="demo-lede">Снапшот taskflow — 2 000 пользователей, 14 764 события за 30 дней трафика. Последовательная воронка активации с переключателем способа регистрации, треугольник удержания 14 дневных когорт (D0–D6) и A/B-тест онбординга вместе с его защитным гейтом — проверкой баланса сплита (SRM).</p>
+
+  <div class="stack">
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Воронка активации: каждый шаг считается только после предыдущего</h2>
+        <span class="demo-flag" id="f-flag"></span>
+      </div>
+      <div class="ctlrow">
+        <div class="seg" role="group" aria-label="Способ регистрации">
+          <button type="button" class="ctrl is-on" data-seg="all" aria-pressed="true">Все</button>
+          <button type="button" class="ctrl" data-seg="email" aria-pressed="false">email</button>
+          <button type="button" class="ctrl" data-seg="google" aria-pressed="false">Google</button>
+          <button type="button" class="ctrl" data-seg="github" aria-pressed="false">GitHub</button>
+        </div>
+      </div>
+      <div class="readout" id="f-kpi"></div>
+      <div class="fhead">
+        <span class="demo-axis-label">Шаг</span>
+        <span class="demo-axis-label">Дошедшие пользователи, % от входа в воронку</span>
+      </div>
+      <div id="funnel"></div>
+      <p class="demo-axis-label note" id="f-note"></p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Удержание: 14 дневных когорт × окно D0–D6</h2>
+        <span class="demo-axis-label">когорта — день регистрации; удержан = выполнил core_action_performed в день N</span>
+      </div>
+      <div class="mx" id="mx"></div>
+      <div class="demo-legend note">
+        <span>оттенок — относительная величина внутри матрицы:</span>
+        <span>0 %<i class="scale" id="mx-scale"></i>41,8 %</span>
+      </div>
+      <p class="demo-axis-label note note--tight">Процент напечатан в каждой ячейке, поэтому оттенок — дублирующий канал. Ячейка за незакрытым окном наблюдения (когорта + день &gt; 2026-09-15) пустая, а не 0 %: в снапшоте такие значения записаны как 0,0, и смешивать их с настоящим нулём нельзя. Ноль внутри окна — это наблюдение: «в этот день не вернулся никто».</p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">A/B-тест онбординга: control vs new_onboarding</h2>
+        <span class="demo-flag demo-flag--ok" id="ab-srm"></span>
+      </div>
+      <div class="ab" id="ab-arms"></div>
+      <svg class="abaxis" id="ab-axis" role="img" aria-label="Разница завершения онбординга new_onboarding минус control: 14,9 п.п., 95 % ДИ от 8,4 до 21,2 п.п., ноль вне интервала"></svg>
+      <div class="demo-legend note--tight">
+        <span><i class="demo-swatch dv-s1"></i>разница и её 95 % ДИ</span>
+        <span><i class="demo-swatch zero-key"></i>ноль — «эффекта нет»</span>
+      </div>
+      <p class="demo-axis-label note" id="ab-note"></p>
+    </section>
+
+  </div>
+  <div class="demo-tooltip" id="tip"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────
+// Источник: posthog-saas-analytics/data/raw/events.jsonl (коммит-снапшот,
+// 14 764 события / 2 000 пользователей), пересчитано пайплайном проекта
+// (analysis/funnel_analysis.py, retention_analysis.py, ab_test_analysis.py).
+// Все числа воспроизводят src/data/charts/posthog.json до последней цифры,
+// поэтому борд и страница кейса не могут разойтись.
+// ─────────────────────────────────────────────────────────────────────────
+
+// Последовательная воронка: пользователь попадает в шаг N, только если его
+// первый шаг N произошёл не раньше первого шага N−1.
+const STEPS = ["signup_started","signup_completed","onboarding_completed",
+               "core_action_performed","upgrade_completed"];
+// Разрез по способу регистрации (свойство method, первое непустое на юзера).
+const SEG = {
+  all:    [2000, 1709, 1082, 656, 107],
+  email:  [ 650,  573,  368, 225,  38],
+  google: [ 685,  572,  364, 219,  38],
+  github: [ 665,  564,  350, 212,  31]
+};
+
+// Удержание: когорта = день signup_completed, удержан = core_action_performed
+// на дне N. LAST — последняя дата снапшота; всё, что позже неё, не наблюдалось.
+const RT = {
+  last: "2026-09-15",
+  rows: [
+    {c:"2026-09-01", n:55, v:[32.7,  9.1, 14.5, 10.9,  9.1, 14.5, 12.7]},
+    {c:"2026-09-02", n:62, v:[40.3, 12.9, 12.9, 14.5,  9.7, 16.1, 17.7]},
+    {c:"2026-09-03", n:66, v:[37.9, 18.2, 16.7, 13.6, 10.6, 13.6, 12.1]},
+    {c:"2026-09-04", n:54, v:[37.0, 14.8, 14.8, 20.4, 20.4,  9.3, 13.0]},
+    {c:"2026-09-05", n:56, v:[33.9, 16.1,  7.1,  7.1,  8.9,  8.9,  8.9]},
+    {c:"2026-09-06", n:53, v:[41.5, 18.9, 20.8, 13.2, 18.9, 17.0, 22.6]},
+    {c:"2026-09-07", n:47, v:[34.0, 14.9,  8.5,  8.5, 17.0, 23.4, 10.6]},
+    {c:"2026-09-08", n:45, v:[40.0, 22.2, 22.2, 20.0, 15.6,  8.9,  0.0]},
+    {c:"2026-09-09", n:58, v:[41.4, 12.1, 15.5, 15.5, 20.7,  0.0,  0.0]},
+    {c:"2026-09-10", n:67, v:[41.8, 19.4, 20.9, 13.4,  0.0,  0.0,  0.0]},
+    {c:"2026-09-11", n:53, v:[41.5, 24.5, 17.0,  0.0,  0.0,  0.0,  0.0]},
+    {c:"2026-09-12", n:54, v:[38.9, 22.2,  0.0,  0.0,  0.0,  0.0,  0.0]},
+    {c:"2026-09-13", n:57, v:[33.3,  1.8,  0.0,  0.0,  0.0,  0.0,  0.0]},
+    {c:"2026-09-14", n:51, v:[41.2,  3.9,  0.0,  0.0,  0.0,  0.0,  0.0]}
+  ]
+};
+// Рампа нормирована на максимум матрицы (41,8 %), а не на 100 %: иначе весь
+// градиент лёг бы в шаги 1–2. Число в ячейке всегда абсолютное.
+const RT_MAX = 41.8;
+const DAYS = ["D0","D1","D2","D3","D4","D5","D6"];
+
+// A/B: метрика — завершение онбординга среди начавших.
+const AB = {
+  control:        {started:857, completed:479},
+  new_onboarding: {started:852, completed:603},
+  ci: [8.4, 21.2],       // Wilson 95 % ДИ разницы (new − control), п.п.
+  chi2: 40.10,
+  p: "2,4·10\u207B\u00B9\u2070",
+  srmP: 0.9037
+};
+
+const nf = (v,d) => v.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d})
+  .replace(/^-/, "\u2212");
+const int = v => nf(v,0);
+const pc  = (v,d) => nf(v, d == null ? 1 : d) + " %";
+
+/* Отображение значения на шаг последовательной шкалы. */
+function seqClass(v){
+  const t = v / RT_MAX;
+  return "seq-" + (Math.max(0, Math.min(6, Math.round(t * 6))) + 1);
+}
+
+let seg = "all";
+
+function renderFunnel(){
+  const n = SEG[seg], first = n[0];
+  const conv = n.map((v,i) => i === 0 ? 100 : v / n[i-1] * 100);
+  let wi = 1, wl = 1;
+  for (let i = 2; i < n.length; i++){
+    if (conv[i] < conv[wi]) wi = i;
+    if (n[i-1] - n[i] > n[wl-1] - n[wl]) wl = i;
+  }
+
+  const host = document.getElementById("funnel");
+  host.textContent = "";
+  STEPS.forEach((s,i) => {
+    const stage = document.createElement("div");
+    stage.className = "fstage";
+    const lab = document.createElement("div");
+    lab.className = "flab";
+    lab.textContent = s;
+    const track = document.createElement("div");
+    track.className = "ftrack";
+    const bar = document.createElement("div");
+    bar.className = "fbar dv-s1" + (i === wi ? " is-worst" : "");
+    bar.style.width = (n[i] / first * 100) + "%";
+    bar.dataset.tip = s + " · " + int(n[i]) + " чел. · " + pc(n[i] / first * 100) +
+      " от входа в воронку" + (i === 0 ? "" : " · шаг " + pc(conv[i]));
+    track.appendChild(bar);
+    const num = document.createElement("div");
+    num.className = "fnum";
+    const loss = i === 0 ? null : n[i-1] - n[i];
+    num.textContent = int(n[i]) + " чел. · " + pc(n[i] / first * 100) + " от старта" +
+      (loss === null ? " · вход в воронку"
+        : " · шаг " + pc(conv[i]) + ", потеря " + int(loss) + " чел." +
+          (i === wi ? " — минимум конверсии" : "") +
+          (i === wl ? " — максимум потерь" : ""));
+    stage.appendChild(lab); stage.appendChild(track); stage.appendChild(num);
+    host.appendChild(stage);
+  });
+
+  document.getElementById("f-kpi").innerHTML =
+    '<span class="kpi"><span class="demo-kpi-value">' + int(n[0]) + '</span>' +
+    '<span class="demo-kpi-label">пользователей на входе</span></span>' +
+    '<span class="kpi"><span class="demo-kpi-value">' + pc(n[4] / first * 100) + '</span>' +
+    '<span class="demo-kpi-label">сквозная конверсия, ' + int(n[4]) + ' апгрейдов</span></span>' +
+    '<span class="kpi"><span class="demo-kpi-value">' + pc(conv[wi]) + '</span>' +
+    '<span class="demo-kpi-label">самый слабый шаг: ' + STEPS[wi] + '</span></span>';
+
+  document.getElementById("f-flag").textContent =
+    "самый слабый шаг по конверсии: " + STEPS[wi-1] + " → " + STEPS[wi] + " (" + pc(conv[wi]) + ")";
+  document.getElementById("f-note").textContent =
+    "Способ регистрации — " + (seg === "all" ? "все пользователи снапшота" :
+      "только " + (seg === "email" ? "email" : seg === "google" ? "Google" : "GitHub") +
+      " (" + int(n[0]) + " из " + int(SEG.all[0]) + " регистраций)") +
+    ". Самый слабый шаг по конверсии — " + STEPS[wi] + ": " + pc(conv[wi]) +
+    " от " + STEPS[wi-1] + ", потеря " + int(n[wi-1] - n[wi]) + " чел. По абсолютному числу " +
+    "больше всего теряется на " + STEPS[wl-1] + " → " + STEPS[wl] + " (" +
+    int(n[wl-1] - n[wl]) + " чел.) — это разные шаги, и мерить отвал можно по любому из двух. " +
+    "Порядок шагов задан таймстемпами, поэтому это отвал, а не независимые счётчики.";
+}
+
+function renderMx(){
+  const host = document.getElementById("mx");
+  host.textContent = "";
+  const corner = document.createElement("div");
+  corner.className = "mxh";
+  host.appendChild(corner);
+  DAYS.forEach(d => {
+    const h = document.createElement("div");
+    h.className = "mxh";
+    h.textContent = d;
+    host.appendChild(h);
+  });
+  const last = new Date(RT.last + "T00:00:00Z").getTime();
+  const DAYMS = 86400000;
+  RT.rows.forEach(row => {
+    const rh = document.createElement("div");
+    rh.className = "mxr";
+    rh.textContent = row.c.slice(5).replace("-", ".");
+    const rn = document.createElement("span");
+    rn.textContent = "n " + int(row.n);
+    rh.appendChild(rn);
+    host.appendChild(rh);
+    const c0 = new Date(row.c + "T00:00:00Z").getTime();
+    row.v.forEach((v,k) => {
+      const cell = document.createElement("div");
+      if (c0 + k * DAYMS > last){
+        cell.className = "mxc empty";
+        cell.textContent = "—";
+        cell.dataset.note = "Когорта " + row.c + " не дожила до окна " + DAYS[k] +
+          ": окно закрывается позже 2026-09-15 — наблюдения ещё нет.";
+      } else {
+        cell.className = "mxc " + seqClass(v);
+        cell.textContent = nf(v,1) + "%";
+        cell.dataset.note = "Когорта " + row.c + " (" + int(row.n) + " чел.), окно " + DAYS[k] +
+          ": вернулось " + nf(v,1) + " % когорты. Оттенок — шаг рампы относительно матрицы, число абсолютное.";
+      }
+      host.appendChild(cell);
+    });
+  });
+  const scale = document.getElementById("mx-scale");
+  for (let i = 0; i <= 20; i++){
+    const s = document.createElement("div");
+    s.style.flex = "1";
+    s.className = seqClass(RT_MAX * i / 20);
+    scale.appendChild(s);
+  }
+}
+
+function renderAb(){
+  const c = AB.control, nn = AB.new_onboarding;
+  const rc = c.completed / c.started * 100, rn = nn.completed / nn.started * 100;
+  const diff = rn - rc, rel = rn / rc * 100 - 100;
+  const max = 75;
+
+  const host = document.getElementById("ab-arms");
+  host.textContent = "";
+  [["control", c, rc], ["new_onboarding", nn, rn]].forEach(([name, a, r]) => {
+    const row = document.createElement("div");
+    row.className = "abrow";
+    const nm = document.createElement("div");
+    nm.className = "abname";
+    nm.textContent = name;
+    const track = document.createElement("div");
+    track.className = "abtrack";
+    const bar = document.createElement("div");
+    bar.className = "abbar dv-s1";
+    bar.style.width = (r / max * 100) + "%";
+    bar.dataset.tip = name + " · " + int(a.completed) + " из " + int(a.started) +
+      " завершили онбординг (" + pc(r) + ")";
+    track.appendChild(bar);
+    const val = document.createElement("div");
+    val.className = "abval";
+    val.textContent = pc(r) + " · " + int(a.completed) + "/" + int(a.started);
+    row.appendChild(nm); row.appendChild(track); row.appendChild(val);
+    host.appendChild(row);
+  });
+
+  document.getElementById("ab-srm").textContent =
+    "SRM пройден: p = " + nf(AB.srmP,4) + " при сплите " + int(c.started) + "/" + int(nn.started);
+
+  document.getElementById("ab-note").textContent =
+    "Разница по завершению онбординга: " + nf(diff,1) + " п.п. (относительный рост +" +
+    nf(rel,1) + " %), хи-квадрат " + nf(AB.chi2,2) + ", p = " + AB.p + ". " +
+    "Защитный гейт сработал до чтения эффекта: проверка баланса сплита (SRM) даёт p = " +
+    nf(AB.srmP,4) + " — назначение 857/852 согласуется с 50/50, поэтому эффект не артефакт неровной выборки. " +
+    "Эффект задан генератором снапшота (это демонстрация метода, а не наблюдение продакшена).";
+
+  // Ось эффекта: общий pp-масштаб, ноль нарисован, поэтому интервал, накрывающий
+  // ноль, выглядел бы накрывающим ноль.
+  const svg = document.getElementById("ab-axis");
+  const W = Math.max(300, svg.clientWidth || 640), H = 108;
+  const padL = 8, padR = 8, dmin = -2, dmax = 24;
+  const plotW = W - padL - padR;
+  const x = v => padL + (v - dmin) / (dmax - dmin) * plotW;
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  svg.textContent = "";
+  const el = (t, a) => { const n = document.createElementNS("http://www.w3.org/2000/svg", t);
+    for (const k in a) n.setAttribute(k, a[k]); return n; };
+
+  const yBase = 56;
+  svg.appendChild(el("line", {x1: padL, x2: W - padR, y1: yBase, y2: yBase, class: "dv-axis"}));
+  [0, 5, 10, 15, 20].forEach(t => {
+    svg.appendChild(el("line", {x1: x(t), x2: x(t), y1: yBase, y2: yBase + 5, class: "dv-axis"}));
+    const lab = el("text", {x: x(t), y: yBase + 17, class: "dv-label", "text-anchor": "middle",
+      "font-size": 10});
+    lab.textContent = nf(t,0);
+    svg.appendChild(lab);
+  });
+
+  // Ноль: пунктирная вертикаль через весь блок, подписан сверху.
+  svg.appendChild(el("line", {x1: x(0), x2: x(0), y1: 14, y2: yBase + 26, class: "zero"}));
+  const zl = el("text", {x: x(0), y: 10, class: "dv-label", "text-anchor": "middle",
+    "font-size": 10});
+  zl.textContent = "0";
+  svg.appendChild(zl);
+
+  const yEff = 40;
+  svg.appendChild(el("line", {x1: x(AB.ci[0]), x2: x(AB.ci[1]), y1: yEff, y2: yEff,
+    class: "dv-s1-line", "stroke-width": 3, "stroke-linecap": "round"}));
+  [AB.ci[0], AB.ci[1]].forEach(v => {
+    svg.appendChild(el("line", {x1: x(v), x2: x(v), y1: yEff - 7, y2: yEff + 7,
+      class: "dv-s1-line", "stroke-width": 3, "stroke-linecap": "round"}));
+    const t = el("text", {x: x(v), y: yEff + 24, class: "dv-label", "text-anchor": "middle",
+      "font-size": 10});
+    t.textContent = nf(v,1);
+    svg.appendChild(t);
+  });
+  svg.appendChild(el("circle", {cx: x(diff), cy: yEff, r: 5, class: "dv-s1"}));
+  const dl = el("text", {x: x(diff), y: yEff - 14, class: "dv-ink", "text-anchor": "middle",
+    "font-size": 11, "font-weight": 700});
+  dl.textContent = "+" + nf(diff,1) + " п.п.";
+  svg.appendChild(dl);
+  const cap = el("text", {x: W - padR, y: yBase + 31, class: "dv-label", "text-anchor": "end",
+    "font-size": 10});
+  cap.textContent = "разница new_onboarding \u2212 control, п.п.";
+  svg.appendChild(cap);
+}
+
+document.querySelectorAll("[data-seg]").forEach(b => {
+  b.addEventListener("click", () => {
+    seg = b.dataset.seg;
+    document.querySelectorAll("[data-seg]").forEach(x => {
+      const on = x === b;
+      x.classList.toggle("is-on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    renderFunnel();
+  });
+});
+
+renderFunnel();
+renderMx();
+renderAb();
+
+const tip = document.getElementById("tip");
+document.addEventListener("mouseover", e => {
+  const t = e.target.closest("[data-tip],[data-note]");
+  if (!t) return;
+  tip.innerHTML = t.dataset.tip
+    ? "<b>" + t.dataset.tip + "</b>"
+    : "<b>" + t.textContent + "</b><span class=\"sub\">" + t.dataset.note + "</span>";
+  tip.classList.add("is-visible");
+});
+document.addEventListener("mousemove", e => {
+  if (!tip.classList.contains("is-visible")) return;
+  tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 274) + "px";
+  tip.style.top = (e.clientY + 14) + "px";
+});
+document.addEventListener("mouseout", e => {
+  if (!e.target.closest("[data-tip],[data-note]")) return;
+  tip.classList.remove("is-visible");
+});
+window.addEventListener("resize", renderAb);
+</script>
+</body>
+</html>

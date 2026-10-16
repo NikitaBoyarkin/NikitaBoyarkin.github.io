@@ -25,6 +25,7 @@ github: https://github.com/NikitaBoyarkin/linkedin-nikita-boyarkin
 date: 2026-10-11
 updated: 2026-10-11
 private: true
+demo: demos/linkedin/index.html
 related:
   - /projects/posthog/
   - /projects/streamlit/

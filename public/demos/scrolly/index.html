@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scrollytelling: 10 глав истории и их фигуры — scrolly-english-speaking</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type, radii, shadows and the wallpaper come from
+     /demos/demo.css — that is also what makes this page follow the site's
+     three themes. */
+  .stack{display:flex;flex-direction:column;gap:var(--space-4)}
+  .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+    gap:var(--space-2);margin-bottom:var(--space-3)}
+  .pad{padding:var(--space-3) var(--space-4)}
+  .note{margin-top:var(--space-3);font-weight:400}
+  .note--tight{margin-top:var(--space-2)}
+
+  /* ── The sequence rail: a scroll-progress diagram. The track is the whole
+     story, the fill is how far the sequence has advanced, the stops are the
+     chapters. Fill length is the chapter INDEX — position in the sequence,
+     not a claim about scroll height. ── */
+  .rail{margin-top:var(--space-2)}
+  .rail-track{position:relative;height:4px;border-radius:var(--radius-full);
+    background:var(--dv-axis)}
+  .rail-fill{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-full);
+    background:var(--text-accent-dataviz);transition:width .18s ease}
+  .stops{display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));
+    gap:var(--space-2);margin-top:var(--space-3)}
+  /* A stop is an affordance: coral accent + --border-active only, never --dv-*. */
+  .stop{display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit;
+    cursor:pointer;padding:var(--space-2) 2px;background:transparent;
+    border:1px solid transparent;border-radius:var(--radius-md);color:var(--text-muted)}
+  .stop:hover{border-color:var(--border-active);color:var(--text-normal)}
+  .stop:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+  .stop[aria-selected="true"]{color:var(--text-normal);border-color:var(--border-active);
+    background:var(--background-tertiary)}
+  .stop .num{font-family:var(--font-mono);font-size:10px}
+  .stop .nm{font-size:10px;font-weight:600;text-align:center;line-height:1.2}
+  .chainmap{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3);margin-top:var(--space-4)}
+  .chainmap span{font-size:11px;color:var(--dv-label)}
+  .chainmap b{font-weight:600;color:var(--text-normal)}
+
+  /* ── Trigger cell: the code path each stop fires. ── */
+  .trig{margin-top:var(--space-3);border:1px solid var(--border-color);
+    border-radius:var(--radius-md);background:var(--background-primary);
+    padding:var(--space-2) var(--space-3);font-family:var(--font-mono);font-size:11px;
+    line-height:1.6;color:var(--text-muted);overflow-wrap:anywhere}
+  .trig b{color:var(--text-normal);font-weight:600}
+
+  /* ── Generic figure primitives (used by all ten chapter figures). ── */
+  .fig{display:flex;flex-direction:column;gap:var(--space-2)}
+  .row{display:grid;grid-template-columns:minmax(88px,132px) 1fr;gap:var(--space-2);
+    align-items:center;font-size:12px}
+  .flab{font-weight:600;overflow-wrap:anywhere}
+  .track{position:relative;height:20px;border-radius:var(--radius-sm);
+    background:var(--background-primary)}
+  .bar{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm);
+    min-width:2px}
+  .mark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--dv-threshold)}
+  .val{font-size:10px;font-weight:600;color:var(--dv-label)}
+  .val--in{position:absolute;right:var(--space-2);top:50%;transform:translateY(-50%)}
+  .sub{grid-column:2;font-size:10px;color:var(--dv-label);margin-top:-4px}
+  .flow{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:stretch}
+  .fnode{flex:1 1 120px;min-width:120px;border:1px solid var(--border-color);
+    border-radius:var(--radius-md);background:var(--background-tertiary);
+    padding:var(--space-2) var(--space-3)}
+  .fnode .t{font-size:12px;font-weight:650}
+  .fnode .m{font-size:11px;color:var(--dv-label)}
+  .fmid{margin-top:var(--space-3);text-align:center;font-size:12px;color:var(--text-muted)}
+  .fmid b{font-family:var(--font-mono);font-size:15px;color:var(--text-accent-dataviz)}
+
+  /* level strips (input resources) */
+  .grp{margin-bottom:var(--space-3)}
+  .grp:last-child{margin-bottom:0}
+  .grp .gh{display:flex;justify-content:space-between;gap:var(--space-2);
+    font-size:11px;font-weight:600;margin-bottom:var(--space-2)}
+  .gh em{font-style:normal;font-weight:400;color:var(--dv-label)}
+  .strip{position:relative;height:16px;border-radius:var(--radius-sm);
+    background:var(--background-primary);margin-bottom:var(--space-2)}
+  .dot{position:absolute;top:3px;width:10px;height:10px;border-radius:50%;
+    transform:translateX(-50%)}
+  .chips{display:flex;flex-wrap:wrap;gap:4px var(--space-2);font-size:10px;
+    color:var(--dv-label)}
+  .chip{display:inline-flex;align-items:center;gap:4px}
+  .k{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .k.off{background:var(--border-color)}
+  /* The target/threshold marker and its legend swatch read the same token. */
+  .thr{background:var(--dv-threshold)}
+
+  /* matrix (outcomes) and tables */
+  .sc{border:1px solid var(--border-color);border-radius:var(--radius-md);
+    background:var(--background-primary);padding:var(--space-2) var(--space-3);
+    margin-bottom:var(--space-2)}
+  .sc:last-child{margin-bottom:0}
+  .sc .st{font-size:12px;font-weight:650}
+  .sc .ba{font-size:11px;color:var(--dv-label)}
+  .sc .ph{font-family:var(--font-mono);font-size:11px;color:var(--text-accent-dataviz);
+    overflow-wrap:anywhere}
+  .sk{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-1)}
+  .sk span{display:inline-flex;align-items:center;gap:4px;font-size:10px;
+    color:var(--dv-label)}
+  .sk .on{color:var(--text-normal);font-weight:600}
+  .inv{list-style:none;display:grid;gap:var(--space-2);font-size:12px}
+  .inv li{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:baseline}
+  .inv b{font-family:var(--font-mono);color:var(--text-accent-dataviz);font-size:13px}
+  .wk{display:grid;gap:2px;margin-bottom:var(--space-3);font-size:12px}
+  .wk:last-child{margin-bottom:0}
+  .wk .wk-h{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--space-2)}
+  .wk em{font-style:normal;font-size:11px;color:var(--dv-label)}
+  .ck{display:grid;gap:var(--space-2);list-style:none;font-size:12px}
+  .ck li{display:flex;gap:var(--space-2);align-items:baseline}
+  .ck .bx{flex:0 0 auto;width:14px;height:14px;border-radius:3px;
+    border:1px solid var(--border-color);background:var(--background-primary)}
+  .qmap{display:grid;gap:var(--space-2);font-size:12px}
+  .qmap div{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+  .qmap b{min-width:86px;font-weight:600}
+  .qmap em{font-style:normal;font-family:var(--font-mono);font-size:11px;
+    color:var(--text-accent-dataviz);overflow-wrap:anywhere}
+  .bands{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-bottom:var(--space-3)}
+  .band{border:1px solid var(--border-color);border-radius:var(--radius-md);
+    background:var(--background-primary);padding:var(--space-2) var(--space-3);font-size:11px}
+  .band b{display:block;font-family:var(--font-mono);font-size:12px}
+  .navrow{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center;
+    margin-top:var(--space-3)}
+  .navrow button{font:inherit;font-size:12px;font-weight:600;cursor:pointer;
+    padding:3px 10px;border-radius:var(--radius-full);
+    background:var(--background-secondary);color:var(--text-muted);
+    border:1px solid var(--border-color)}
+  .navrow button:hover{color:var(--text-accent-hover);border-color:var(--border-active)}
+  .navrow button:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+  .navrow .pos{font-family:var(--font-mono);font-size:12px;color:var(--dv-label)}
+
+  /* demo.css's shared `.dv-s1` is a `fill` utility for SVG. The HTML bars and
+     dots here re-apply the same series token to `background` in one
+     declaration, instead of an inline colour per mark. */
+  .dv-s1{background:var(--text-accent-dataviz)}
+  /* The seven sequential steps and the categorical set, applied by class so
+     they re-resolve on a theme change with no JavaScript at all. */
+  .seq-1{background:var(--dv-seq-1)}  .seq-2{background:var(--dv-seq-2)}
+  .seq-3{background:var(--dv-seq-3)}  .seq-4{background:var(--dv-seq-4)}
+  .seq-5{background:var(--dv-seq-5)}  .seq-6{background:var(--dv-seq-6)}
+  .seq-7{background:var(--dv-seq-7)}
+  .cat-1{background:var(--dv-cat-1)}  .cat-2{background:var(--dv-cat-2)}
+  .cat-3{background:var(--dv-cat-3)}  .cat-4{background:var(--dv-cat-4)}
+  .cat-5{background:var(--dv-cat-5)}  .cat-6{background:var(--dv-cat-6)}
+  .cat-7{background:var(--dv-cat-7)}  .cat-8{background:var(--dv-cat-8)}
+  .cat-9{background:var(--dv-cat-9)}  .cat-10{background:var(--dv-cat-10)}
+  .cat-11{background:var(--dv-cat-11)}
+
+  @media (max-width:520px){
+    .row{grid-template-columns:minmax(72px,104px) 1fr}
+    .stops{grid-template-columns:repeat(auto-fit,minmax(52px,1fr))}
+  }
+</style>
+</head>
+<body>
+  <h1 class="demo-title">Scrollytelling: 10 глав истории и фигуры, которые они раскрывают</h1>
+  <p class="demo-lede">Это <b>структурная карта</b>, а не числовой отчёт: собственных данных у проекта нет —
+  его «данные» и есть конфигурация секций (<code>src/scrolly/data/english-speaking.ts</code>) и props
+  визуализаций, которые получают D3-рендереры. Показаны все 10 глав по порядку, триггер, который
+  активирует каждую фигуру, и сами фигуры с точными числами из конфига. Переключайте главу —
+  фигура и подпись меняются, как при прокрутке статьи.</p>
+
+  <div class="stack">
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Последовательность истории и прогресс чтения</h2>
+        <span class="demo-axis-label">10 глав · 10 рендереров · 10 nav-dots</span>
+      </div>
+      <div class="rail">
+        <div class="rail-track"><div class="rail-fill" id="railfill"></div></div>
+        <div class="stops" id="stops" role="tablist" aria-label="Главы истории"></div>
+      </div>
+      <div class="chainmap">
+        <span><b>10</b> секций <code>.scroll-section</code></span>
+        <span><b>1:1</b> секция ↔ viz-key (схема <code>VIZ_KEYS</code>)</span>
+        <span><b>1882</b> слова нарратива</span>
+        <span><b>17</b> подзаголовков H3</span>
+        <span><b>8</b> блоков источников</span>
+      </div>
+      <p class="demo-axis-label note">Заливка рельса — доля пройденных глав (N из 10), не доля высоты
+      страницы: у проекта нет записанных высот секций, поэтому шкала честно индексная.
+      Полоса прогресса самой статьи (<code>.progress-bar</code>) считается от <code>scrollY</code> и здесь не воспроизводится.</p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label" id="fig-title"></h2>
+        <span class="demo-axis-label" id="fig-kind"></span>
+      </div>
+      <div class="demo-panel pad" id="fig" role="tabpanel" aria-live="polite"></div>
+      <p class="demo-axis-label note" id="fig-caption"></p>
+      <div class="trig" id="fig-trig"></div>
+      <div class="navrow">
+        <button type="button" id="prev">← предыдущая</button>
+        <span class="pos" id="pos"></span>
+        <button type="button" id="next">следующая →</button>
+      </div>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Что вообще измеряет эта статья</h2>
+        <span class="demo-axis-label">величина · диапазон</span>
+      </div>
+      <ul class="inv" id="inv"></ul>
+      <div class="demo-legend note">
+        <span><i class="demo-swatch seq-5"></i>порядковый шаг (глава)</span>
+        <span><i class="demo-swatch cat-2"></i>категория (тип ресурса, навык, тир инструмента)</span>
+        <span><i class="demo-swatch dv-s1"></i>одна серия (бары, дорожки)</span>
+        <span><i class="demo-swatch thr"></i>маркер цели / порога</span>
+      </div>
+      <p class="demo-axis-label note">Числа напечатаны рядом с каждым знаком, поэтому цвет — дублирующий
+      канал. Расхождение в источнике: нарратив главы «AI-speaking» перечисляет <b>5</b> рабочих
+      сценариев, а фигура <code>outcomes</code> содержит <b>6</b> — карта показывает 6, как в конфиге.</p>
+    </section>
+
+  </div>
+
+<script>
+/* ── Данные ─────────────────────────────────────────────────────────────────
+   Источник: src/scrolly/data/english-speaking.ts (доверенный модуль конфига) —
+   порядок секций, navLabel, viz.key, captionHtml и props. Порядок и подписи
+   глав сверены с src/posts/scrolly/english-speaking.mdx (`<ScrollySection id>`
+   + `.section-label`): 10 секций, 1:1. Триггер — scrolly-runtime.ts:113
+   (IntersectionObserver, threshold 0.45) → switchViz(id) → ленивый import
+   рендерера. Числа не пересчитаны и не интерполированы: это ровно значения props. */
+var CH = [
+ {id:'intro',nav:'Суть',tag:'Суть подхода',viz:'workflow',h2:'Минимальный рабочий набор',
+  title:'Ежедневный цикл улучшения речи',kind:'цепочка · минуты',
+  caption:'Три блока формируют замкнутый контур: speaking → vocabulary → input → confidence.',
+  p:{center:'30–45 мин/день',steps:[['Speaking','15–20 мин'],['Vocabulary','10 мин'],['Input','10–15 мин'],['Confidence','← результат']]}},
+
+ {id:'ai-tools',nav:'AI-speaking',tag:'Шаг 1',viz:'tools',h2:'AI-инструменты для speaking practice',
+  title:'AI-инструменты: цена и бизнес-оценка',kind:'бары + оценка',
+  caption:'Сравнение по цене и бизнес-специфике. ChatGPT Voice — лучшая точка входа.',
+  p:{tools:[['ChatGPT Voice',0,5,'free',1],['Talkio AI',10,4,'low',0],['TalkMe',13,5,'mid',0],
+   ['ELSA Speak',13.33,7,'mid',0],['Loora',16,9,'mid',0],['Speak',22,9,'high',0],
+   ['Babbel',11.2,6,'mid',0]],
+   legend:[['Бесплатно / дешево','cat-2'],['Средний ценник','cat-6'],['Premium / Enterprise','cat-10']]}},
+
+ {id:'vocab',nav:'Словарь',tag:'Шаг 2',viz:'bars',h2:'Словарный блок: SRS и sentence cards',
+  title:'SRS-нагрузка и retention',kind:'бары значение / максимум',
+  caption:'Дневная норма working professional. Целевой retention FSRS: 90–92%.',
+  p:{items:[['Новых карточек',12.5,20,'шт/день'],['Review cap',150,200,'карт/день'],
+   ['Retention',91,100,'%'],['Время',25,45,'мин/день']]}},
+
+ {id:'input',nav:'Input',tag:'Шаг 3',viz:'resources',h2:'Аутентичный input',
+  title:'Ресурсы по типу и уровню',kind:'уровневые полосы · 4 типа',
+  caption:'Принцип comprehensible input: 70–90% понимания. Transcripts обязательны.',
+  p:{resources:[['BBC 6 Minute English','Podcast',1.5],['Business English Pod','Podcast',2],
+   ['All Ears English','Podcast',2],['Down to Business English','Podcast',2],
+   ['Data & AI with Mukundan','Podcast',1.5],['HBR IdeaCast','Podcast',2.5],
+   ['StatQuest','YouTube',2],['Mo Chen','YouTube',1.5],['Data with Decision','YouTube',1.5],
+   ['Data Analysis Journal','Newsletter',2],['Analytics: Explained','Newsletter',2],
+   ["Lenny's Newsletter",'Newsletter',2.5],['Ploomber SQL Course','Docs / Course',1.5]]}},
+
+ {id:'confidence',nav:'Уверенность',tag:'Шаг 4',viz:'metrics',h2:'Уверенность и психология speaking',
+  title:'Метрики прогресса уверенности',kind:'старт → цель · 6 метрик',
+  caption:'Не акцент, а понятность и готовность начать разговор. Старт — 0, цель — пунктир. Filler words и anxiety: меньше — лучше.',
+  p:{metrics:[['Speaking-initiation',0,5,'раз/день','max'],['Repair-tool usage',0,3,'раз/митинг','max'],
+   ['Daily practice',0,45,'мин','max'],['Filler words',10,4,'на 100 слов','min'],
+   ['Post-call anxiety',4,2,'1–5','min'],['Perceived intelligibility',50,90,'%','max']]}},
+
+ {id:'outcomes',nav:'Результаты',tag:'Результаты',viz:'outcomes',h2:'Что ты сможешь после 4 недель',
+  title:'Что меняется после 4 недель: 6 сценариев',kind:'матрица сценарий × навык',
+  caption:'Шесть рабочих сценариев: «до → после» и ключевая фраза. Точки — какие навыки тренирует сценарий.',
+  p:{skills:['Произношение','Беглость','Словарь','Грамматика'],
+   scenarios:[['Stand-up update','сбивчивый импровиз','60-сек структура','Yesterday I … Today I’m on …',[0,1,0,1]],
+    ['Объяснить метрики VP','увязаю в терминах','язык инсайтов','What this means in practice is…',[0,0,1,1]],
+    ['Согласовать дедлайн','соглашаюсь на всё','polite pushback','I understand the priority — here’s the trade-off.',[0,0,1,1]],
+    ['Tough questions','замираю','работают repair-фразы','Could you clarify what you mean by…?',[0,1,0,1]],
+    ['Питч цифр и результатов','топлю в деталях','3 числа + вывод','The headline number is X — driven by Y.',[0,1,1,0]],
+    ['Small talk до митинга','молчу до старта','лёгкий разговор','How was your weekend? We’re about to kick off…',[1,0,1,0]]]}},
+
+ {id:'cefr',nav:'Прогресс',tag:'Прогресс',viz:'cefr',h2:'Сколько времени до уверенного B1',
+  title:'Путь по уровням CEFR, недель',kind:'лестница · недели',
+  caption:'Честные сроки при ~5 ч/нед практики. B1 — реалистичная цель для рабочего speaking; C1 «за 32 недели» — маркетинг.',
+  p:{dailyMinutes:35,levels:[['A2',0,'Вы здесь','простые фразы, small talk'],['B1',30,'Цель плана','stand-up, метрики, Q&A'],
+   ['B2',75,'Следующий шаг','дедлайны, питчи, дискуссии'],['C1',150,'Горизонт','переговоры, выступления']]}},
+
+ {id:'quiz',nav:'Диагностика',tag:'Диагностика',viz:'quiz',h2:'Где ты сейчас?',
+  title:'Диагностика: 4 вопроса → уровень → сценарий',kind:'полосы уровней + карта осей',
+  caption:'4 вопроса — по оси навыка. Ответь честно, получи уровень и рабочий сценарий, с которого начать.',
+  p:{axes:['Беглость','Словарь','Грамматика','Произношение'],max:12,
+   levels:[['0–3','Начало пути · A1–A2'],['4–6','Разогрев · A2'],['7–9','Уверенный старт · B1'],['10–12','Шлифовка · B1+']],
+   rec:[['Беглость','Stand-up update','Yesterday I … Today I’m on …'],
+    ['Словарь','Объяснить метрики VP','What this means in practice is…'],
+    ['Грамматика','Согласовать дедлайн','I understand the priority — here’s the trade-off.'],
+    ['Произношение','Small talk до митинга','How was your weekend? We’re about to kick off…']]}},
+
+ {id:'plan',nav:'Интеграция',tag:'Интеграция',viz:'calendar',h2:'План на 4 недели',
+  title:'4-недельный старт: сессии и карточки против цели',kind:'группа баров · цель',
+  caption:'Неделя 1 — setup и ритм. Недели 2–4 — удержание и рост. Полная ширина бара = недельная цель.',
+  p:{speak:[7,'Speaking-сессии (цель 7/нед)'],cards:[60,'Новые карточки (цель 60/нед)'],
+   weeks:[[1,'Setup + ритм',5,35,10,3],[2,'Удержание',5,40,12,3],
+    [3,'Автоматизация',6,45,15,3],[4,'Оценка и масштаб',6,50,15,3]]}},
+
+ {id:'start',nav:'Действие',tag:'Действие',viz:'checklist',h2:'С чего начать сегодня',
+  title:'С чего начать сегодня: 7 шагов',kind:'чек-лист',
+  caption:'7 шагов. Отметь выполненное — и завтра повтори.',
+  p:{items:['Установить ChatGPT / открыть веб-версию','Создать Anki deck «Work English — DS/Analytics»',
+   'Добавить 10 sentence cards из рабочих писем/Slack','Выбрать 1 podcast (BBC 6 Minute English)',
+   'Провести 1 AI-speaking-сессию по сценарию stand-up','Записать 60-секундный self-summary и прослушать',
+   'Настроить ежедневный reminder на 30–45 мин']}}
+];
+
+var INVENTORY = [
+ ['7','AI-инструментов','цена 0 – 22 $/мес, бизнес-оценка 4 – 9 из 10'],
+ ['13','input-ресурсов','4 типа, уровень 1,5 – 2,5 из 3'],
+ ['4','нормы SRS','новые карточки 12,5/день · retention 91 %'],
+ ['6','метрик уверенности','старт 0 → цель 5 раз/день и др.'],
+ ['6','рабочих сценариев','матрица сценарий × 4 навыка'],
+ ['4','уровня CEFR','0 → 30 → 75 → 150 недель'],
+ ['4','вопроса диагностики','score 0 – 12, 4 полосы уровня'],
+ ['4','недели плана','speaking 5 – 6/нед против цели 7'],
+ ['7','шагов старта','чек-лист первого дня']
+];
+
+var nf = function(v,d){ d = d || 0;
+  return v.toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d})
+    .replace(/^-/, '\u2212'); };
+var num = function(v){ return nf(v, Number.isInteger(v) ? 0 : 2); };
+var pct = function(a,b){ return nf(a / b * 100, 1) + ' %'; };
+
+/* ── Vanilla DOM helpers ─────────────────────────────────────────────────── */
+function el(tag, cls, text){
+  var n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined && text !== null) n.textContent = text;
+  return n;
+}
+function append(host){ for (var i = 1; i < arguments.length; i++) host.appendChild(arguments[i]); return host; }
+
+/* A labelled bar: name | track(bar + optional target marker) | value text.
+   The bar is a percentage width set in JS; its colour is a class, never inline. */
+function barRow(name, value, max, valueText, cls, targetAt){
+  var row = el('div','row');
+  append(row, el('span','flab',name));
+  var track = el('div','track');
+  var bar = el('div','bar ' + cls);
+  bar.style.width = Math.max(1, Math.min(100, value / max * 100)) + '%';
+  track.appendChild(bar);
+  if (targetAt != null){
+    var m = el('div','mark');
+    m.style.left = Math.max(0, Math.min(100, targetAt / max * 100)) + '%';
+    track.appendChild(m);
+  }
+  append(row, track);
+  append(row, el('div','sub',valueText));
+  return row;
+}
+
+/* ── Ten figure renderers, one per viz key. Every number comes from props. ── */
+var FIGS = {
+  workflow:function(p){
+    var f = el('div','fig');
+    var flow = el('div','flow');
+    p.steps.forEach(function(s){
+      var n = el('div','fnode');
+      append(n, el('div','t',s[0]));
+      append(n, el('div','m',s[1]));
+      flow.appendChild(n);
+    });
+    f.appendChild(flow);
+    var mid = el('div','fmid');
+    mid.innerHTML = 'центр контура: <b>' + p.center + '</b> · минуты на блок подписаны в контуре';
+    f.appendChild(mid);
+    return f;
+  },
+
+  tools:function(p){
+    var f = el('div','fig');
+    var maxPrice = Math.max.apply(null, p.tools.map(function(t){ return t[1]; }));
+    var TIER = {free:'cat-2', low:'cat-2', mid:'cat-6', high:'cat-10'};
+    /* Sorted by price ascending for readability — the config order is not
+       sorted (Babbel, 11,20 $, is last). Sorting reorders, never invents. */
+    var list = p.tools.slice().sort(function(a,b){ return a[1] - b[1]; });
+    list.forEach(function(t){
+      f.appendChild(barRow(t[0] + (t[4] ? ' ★' : ''), t[1], maxPrice,
+        (t[1] === 0 ? 'бесплатно' : num(t[1]) + ' $/мес') + ' · бизнес-оценка ' + t[2] + '/10',
+        TIER[t[3]] || 'cat-1'));
+    });
+    var lg = el('div','demo-legend');
+    p.legend.forEach(function(l){
+      var s = el('span');
+      append(s, el('i','demo-swatch ' + l[1]), document.createTextNode(l[0]));
+      lg.appendChild(s);
+    });
+    append(f, lg, el('div','sub','отсортировано по цене возрастанию · ★ — рекомендованный вход в конфиге'));
+    return f;
+  },
+
+  bars:function(p){
+    var f = el('div','fig');
+    p.items.forEach(function(it){
+      f.appendChild(barRow(it[0], it[1], it[2],
+        num(it[1]) + ' ' + it[3] + ' · из ' + num(it[2]) + ' (' + pct(it[1], it[2]) + ')', 'dv-s1'));
+    });
+    return f;
+  },
+
+  resources:function(p){
+    var f = el('div','fig');
+    var TYPE = {'Podcast':'cat-2','YouTube':'cat-9','Newsletter':'cat-4','Docs / Course':'cat-10'};
+    var order = ['Podcast','YouTube','Newsletter','Docs / Course'];
+    var min = 1, max = 3;
+    order.forEach(function(type){
+      var items = p.resources.filter(function(r){ return r[1] === type; });
+      if (!items.length) return;
+      var g = el('div','grp');
+      var gh = el('div','gh');
+      append(gh, el('span', null, type), el('em', null, items.length + ' шт · уровень ' +
+        num(Math.min.apply(null, items.map(function(i){ return i[2]; }))) + '–' +
+        num(Math.max.apply(null, items.map(function(i){ return i[2]; }))) + ' из 3'));
+      g.appendChild(gh);
+      var strip = el('div','strip');
+      items.forEach(function(it){
+        var d = el('div','dot ' + TYPE[type]);
+        d.style.left = ((it[2] - min) / (max - min) * 100) + '%';
+        strip.appendChild(d);
+      });
+      g.appendChild(strip);
+      var chips = el('div','chips');
+      items.forEach(function(it){
+        var c = el('span','chip');
+        append(c, el('i','k ' + TYPE[type]), document.createTextNode(it[0] + ' · ' + num(it[2])));
+        chips.appendChild(c);
+      });
+      g.appendChild(chips);
+      f.appendChild(g);
+    });
+    var mid = el('div','fmid');
+    mid.innerHTML = 'полоса уровня: <b>1,0</b> … <b>3,0</b> · точки при равном уровне ' +
+      'совпадают, поэтому имена и значения продублированы под полосой';
+    f.appendChild(mid);
+    return f;
+  },
+
+  metrics:function(p){
+    var f = el('div','fig');
+    p.metrics.forEach(function(m){
+      var max = Math.max(m[1], m[2]) * 1.15;
+      f.appendChild(barRow(m[0], m[1], max,
+        'старт ' + num(m[1]) + ' → цель ' + num(m[2]) + ' ' + m[3] +
+        (m[4] === 'min' ? ' (меньше — лучше)' : ''), 'dv-s1', m[2]));
+    });
+    append(f, el('div','sub', 'полупрозрачный маркер на дорожке = целевое значение'));
+    return f;
+  },
+
+  outcomes:function(p){
+    var f = el('div','fig');
+    p.scenarios.forEach(function(s){
+      var box = el('div','sc');
+      append(box, el('div','st',s[0]), el('div','ba',s[1] + ' → ' + s[2]), el('div','ph',s[3]));
+      var sk = el('div','sk');
+      p.skills.forEach(function(name,i){
+        var on = s[4][i] === 1;
+        var c = el('span', on ? 'on' : null);
+        append(c, el('i','k' + (on ? ' cat-' + (i + 1) : ' off')), document.createTextNode(name));
+        sk.appendChild(c);
+      });
+      box.appendChild(sk);
+      f.appendChild(box);
+    });
+    append(f, el('div','sub', 'подсвечен навык, который сценарий тренирует; точки 1–4 — Произношение, Беглость, Словарь, Грамматика'));
+    return f;
+  },
+
+  cefr:function(p){
+    var f = el('div','fig');
+    var maxWeeks = Math.max.apply(null, p.levels.map(function(l){ return l[1]; }));
+    p.levels.forEach(function(l){
+      var row = el('div','row');
+      append(row, el('span','flab',l[0] + ' · ' + l[2]));
+      var track = el('div','track');
+      var bar = el('div','bar seq-' + (p.levels.indexOf(l) + 3));
+      bar.style.width = Math.max(1, l[1] / maxWeeks * 100) + '%';
+      track.appendChild(bar);
+      append(row, track, el('div','sub', (l[1] === 0 ? '0 недель — старт' :
+        num(l[1]) + ' недель до уровня') + ' · ' + l[3]));
+      f.appendChild(row);
+    });
+    var mid = el('div','fmid');
+    mid.innerHTML = 'при <b>' + p.dailyMinutes + ' мин/день</b> (~5 ч/нед) · C1 — 150 недель, а не «32 недели» из рекламы';
+    f.appendChild(mid);
+    return f;
+  },
+
+  quiz:function(p){
+    var f = el('div','fig');
+    var bands = el('div','bands');
+    p.levels.forEach(function(l){
+      var b = el('div','band');
+      append(b, el('b', null, l[0]), document.createTextNode(l[1]));
+      bands.appendChild(b);
+    });
+    append(f, bands, el('div','sub', '4 вопроса × 4 варианта, score 0–3 каждый → сумма 0…12'));
+    var map = el('div','qmap');
+    p.rec.forEach(function(r){
+      var d = el('div');
+      append(d, el('b', null, r[0]), el('em', null, r[1]));
+      map.appendChild(d);
+    });
+    append(f, map, el('div','sub', 'слабая ось → сценарий, с которого начать; 12 — максимум диагностики'));
+    return f;
+  },
+
+  calendar:function(p){
+    var f = el('div','fig');
+    p.weeks.forEach(function(w){
+      var box = el('div','wk');
+      var h = el('div','wk-h');
+      append(h, el('b', null, 'Неделя ' + w[0] + ' · ' + w[1]),
+        el('em', null, 'input ' + w[4] + ' мин/день · ' + w[5] + ' вехи'));
+      box.appendChild(h);
+      box.appendChild(barRow('Speaking', w[2], p.speak[0], w[2] + ' / ' + p.speak[0] +
+        ' сессий (' + pct(w[2], p.speak[0]) + ' цели)', 'dv-s1', p.speak[0]));
+      box.appendChild(barRow('Карточки', w[3], p.cards[0], w[3] + ' / ' + p.cards[0] +
+        ' карт (' + pct(w[3], p.cards[0]) + ' цели)', 'seq-3', p.cards[0]));
+      f.appendChild(box);
+    });
+    append(f, el('div','sub',
+      'цель недели = полная ширина бара: speaking ' + p.speak[0] + ', карточки ' + p.cards[0]));
+    return f;
+  },
+
+  checklist:function(p){
+    var f = el('div','fig');
+    var ul = el('ul','ck');
+    p.items.forEach(function(t,i){
+      var li = el('li');
+      append(li, el('i','bx'), document.createTextNode((i + 1) + '. ' + t));
+      ul.appendChild(li);
+    });
+    f.appendChild(ul);
+    append(f, el('div','sub', p.items.length + ' шагов · отметки хранятся в localStorage (ключ chart-start)'));
+    return f;
+  }
+};
+
+/* ── Wiring ────────────────────────────────────────────────────────────────
+   Four mechanisms drive the viz switch in scrolly-runtime.ts; the rail here
+   reproduces the primary one (chapter selection ↔ the observer's switchViz). */
+var stops = document.getElementById('stops');
+var fig = document.getElementById('fig');
+var figTitle = document.getElementById('fig-title');
+var figKind = document.getElementById('fig-kind');
+var figCaption = document.getElementById('fig-caption');
+var figTrig = document.getElementById('fig-trig');
+var railfill = document.getElementById('railfill');
+var pos = document.getElementById('pos');
+var current = 0;
+
+CH.forEach(function(c, i){
+  var b = el('button','stop');
+  b.type = 'button';
+  b.setAttribute('role','tab');
+  b.dataset.i = i;
+  b.id = 'stop-' + c.id;
+  b.setAttribute('aria-controls','fig');
+  append(b, el('span','num', String(i + 1)), el('span','nm', c.nav));
+  b.addEventListener('click', function(){ select(i); });
+  stops.appendChild(b);
+});
+
+function select(i){
+  current = (i + CH.length) % CH.length;
+  var c = CH[current];
+  Array.prototype.forEach.call(stops.children, function(b, k){
+    b.setAttribute('aria-selected', k === current ? 'true' : 'false');
+    b.tabIndex = k === current ? 0 : -1;
+  });
+  railfill.style.width = ((current + 1) / CH.length * 100) + '%';
+
+  figTitle.textContent = c.title;
+  figKind.textContent = '§' + (current + 1) + '/' + CH.length + ' · ' + c.tag +
+    ' · viz: ' + c.viz + ' (' + c.kind + ')';
+  fig.textContent = '';
+  fig.appendChild(FIGS[c.viz](c.p));
+  figCaption.textContent = c.caption;
+
+  figTrig.innerHTML = '<b>#section-' + c.id + '</b> → IntersectionObserver при пороге ' +
+    '<b>0,45</b> (rootMargin −10% 0 −25%) → <b>switchViz(' + "'" + c.id + "'" + ')</b> → ' +
+    "import('./viz/" + c.viz + "') при первом показе" +
+    ' · mount: ' + (c.viz === 'quiz' ? 'div' : 'svg') +
+    ' · рендерер грузится лениво, один раз за сессию';
+  pos.textContent = (current + 1) + ' из ' + CH.length;
+}
+
+document.getElementById('prev').addEventListener('click', function(){ select(current - 1); });
+document.getElementById('next').addEventListener('click', function(){ select(current + 1); });
+stops.addEventListener('keydown', function(e){
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown'){ e.preventDefault(); select(current + 1); stops.children[current].focus(); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp'){ e.preventDefault(); select(current - 1); stops.children[current].focus(); }
+});
+
+var inv = document.getElementById('inv');
+INVENTORY.forEach(function(r){
+  var li = el('li');
+  append(li, el('b', null, r[0]), el('span', null, r[1]), el('em', null, r[2]));
+  inv.appendChild(li);
+});
+
+select(0);
+</script>
+</body>
+</html>

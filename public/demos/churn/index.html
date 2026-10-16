@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Churn-скоринг: порог контакта</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only: colour, type, radii, shadows and the wallpaper come from
+     /demos/demo.css, which is what makes this page follow the site's three
+     themes. Two local classes map marks onto tokens — .mean (demo.css has no
+     utility for the base-rate marker) and .is-out (un-contacted deciles: opacity,
+     not a colour). The tabs borrow .demo-back's look: demo.css ships no button
+     component, and a --dv-* token may not style an affordance. */
+  .tabs{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:0 0 var(--space-4)}
+  .tab{padding:var(--space-1) var(--space-3);font:inherit;font-size:12px;font-weight:600;
+    line-height:1.5;color:var(--text-muted);background:var(--background-secondary);
+    border:1px solid var(--border-color);border-radius:var(--radius-full);cursor:pointer}
+  .tab:hover{color:var(--text-accent-hover)}
+  .tab[aria-pressed="true"]{color:var(--text-accent);border-color:var(--border-active)}
+  .tab:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+  .chart{width:100%;height:214px;display:block}
+  .controls{margin-top:var(--space-4);display:flex;flex-wrap:wrap;align-items:center;
+    gap:var(--space-2) var(--space-4)}
+  .slider{display:flex;align-items:center;gap:var(--space-2);flex:1;min-width:200px}
+  input[type=range]{flex:1;accent-color:var(--text-accent)}
+  .cut,.slider label{font-size:12px;font-weight:600;color:var(--text-muted)}
+  .kpis{margin-top:var(--space-4);display:grid;gap:var(--space-3);
+    grid-template-columns:repeat(auto-fit,minmax(104px,1fr))}
+  .kpi{display:flex;flex-direction:column;gap:2px}
+  .flag{display:block;margin-top:var(--space-4);padding:var(--space-2) var(--space-3);
+    border-radius:var(--radius-md);font-size:12px;max-width:760px}
+  .mean{stroke:var(--dv-threshold);stroke-dasharray:4 4}
+</style>
+</head>
+<body>
+  <h1 class="demo-title">Churn-скоринг: порог контакта</h1>
+  <p class="demo-lede">Снимок 2024-03-15: 5 581 пользователей, база оттока 17,4%, скор LightGBM (ROC-AUC 0,916). Двигайте порог — видно, сколько людей уходит в кампанию и какую долю реальных отточников они ловят. Столбцы — доля оттока в дециле риска D1…D10 (D1 — риск выше), % от 100.</p>
+
+  <div class="tabs" role="group" aria-label="Срез">
+    <button type="button" class="tab" id="tbRisk" aria-pressed="true">Риск по децилям</button>
+    <button type="button" class="tab" id="tbAct" aria-pressed="false">Отток по дням активности</button>
+  </div>
+
+  <section id="viewRisk" aria-label="Децили риска">
+    <svg class="chart" id="riskChart"></svg>
+    <div class="controls">
+      <div class="slider">
+        <label for="cut">Порог: топ-N децилей</label>
+        <input type="range" id="cut" min="1" max="10" step="1" value="1">
+        <b id="cutVal">1</b>
+      </div>
+      <span class="cut" id="cutTxt"></span>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><span class="demo-kpi-value" id="kContacted">—</span><span class="demo-kpi-label">в кампании</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="kCaught">—</span><span class="demo-kpi-label">поймано отточников</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="kRecall">—</span><span class="demo-kpi-label">доля пойманных</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="kPrec">—</span><span class="demo-kpi-label">точность (precision)</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="kLift">—</span><span class="demo-kpi-label">lift к базе</span></div>
+    </div>
+    <div class="demo-flag flag">База 17,4% — смесь двух режимов: 69,7% когорты почти не может отточить (censored), поэтому верхний дециль собирает at-risk-пользователей и даёт 94,6%. Числа в дециле — факт данных, не прогноз.</div>
+  </section>
+
+  <section id="viewAct" aria-label="Отток по активности" hidden>
+    <svg class="chart" id="actChart"></svg>
+    <div class="kpis">
+      <div class="kpi"><span class="demo-kpi-value" id="aTop">—</span><span class="demo-kpi-label">бакет 1–4 дня</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="aBot">—</span><span class="demo-kpi-label">бакет 20–30 дней</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="aGap">—</span><span class="demo-kpi-label">разрыв крайних бакетов</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="aBase">—</span><span class="demo-kpi-label">база по когорте</span></div>
+    </div>
+    <div class="demo-flag flag">Срез прямой, без модели: чем больше активных дней за 30 дней до снимка, тем ниже отток. В бакете 20–30 дней 0 отточников из 76 — это не «нулевой отток», а отсутствие наблюдений на таком n.</div>
+  </section>
+
+  <div class="demo-tooltip" id="tip"></div>
+
+<script>
+// churn-prediction, снимок 2024-03-15. Пересчитано из data/users.csv +
+// data/activity.csv пайплайном src/features.py (признаки строго до снимка,
+// метка — 30 дней после) и воспроизводит reports/metrics.json: recall@top-10%
+// 0,5438, precision 0,9462, lift 5,44, база 0,174, n 5 581, отточников 971.
+// n — размер дециля, c — отточники в нём, lo/hi — диапазон скора.
+const DEC = [
+  {n:558,c:528,lo:0.724,hi:0.945},{n:558,c:219,lo:0.207,hi:0.723},
+  {n:558,c:81,lo:0.092,hi:0.207},{n:558,c:43,lo:0.060,hi:0.091},
+  {n:558,c:27,lo:0.046,hi:0.060},{n:558,c:26,lo:0.038,hi:0.046},
+  {n:558,c:19,lo:0.031,hi:0.038},{n:558,c:12,lo:0.026,hi:0.031},
+  {n:558,c:8,lo:0.022,hi:0.026},{n:559,c:8,lo:0.017,hi:0.022}
+];
+// Уникальные активные дни за 30 дней до снимка: отточники / размер бакета.
+const ACT = [{b:"1–4",n:750,c:488},{b:"5–9",n:2645,c:370},{b:"10–14",n:1704,c:99},
+  {b:"15–19",n:406,c:14},{b:"20–30",n:76,c:0}];
+const CHURNERS = 971, BASE = 0.174;
+
+const pct = (x, d) => (x * 100).toFixed(d == null ? 1 : d).replace(".", ",") + "%";
+const pp = (x, d) => (x * 100).toFixed(d == null ? 1 : d).replace(".", ",");   // п.п., без «%»
+const num = (x, d) => x.toFixed(d == null ? 3 : d).replace(".", ",");
+const cnt = x => x.toLocaleString("ru-RU");
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a) => { const n = document.createElementNS(NS, t);
+  for (const k in a) n.setAttribute(k, a[k]); return n; };
+
+// Столбцы. Ширина контейнера подставляется и в viewBox, поэтому единица SVG =
+// 1 CSS px: подписи не масштабируются с графиком и читаются на 360px.
+function draw(host, bars, o) {
+  const W = Math.max(276, host.clientWidth || 320), H = 214;
+  const padT = 26, padB = 34, padL = 6, padR = 6;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const slot = plotW / bars.length, bw = Math.min(46, slot * 0.62), baseY = padT + plotH;
+  host.setAttribute("viewBox", "0 0 " + W + " " + H);
+  host.setAttribute("role", "img");
+  host.setAttribute("aria-label", o.label);
+  host.textContent = "";
+  host.appendChild(el("line", {x1: padL, x2: W - padR, y1: baseY, y2: baseY, class: "dv-axis"}));
+  if (o.base) {
+    const y = padT + plotH * (1 - o.base);
+    host.appendChild(el("line", {x1: padL, x2: W - padR, y1: y, y2: y, class: "mean"}));
+    const t = el("text", {x: W - padR, y: y - 4, class: "dv-label", "text-anchor": "end",
+      "font-size": 10});
+    t.textContent = "база 17,4%";
+    host.appendChild(t);
+  }
+  bars.forEach((b, i) => {
+    const h = Math.max(3, plotH * b.v), x = padL + slot * i + (slot - bw) / 2, y = baseY - h;
+    const r = el("rect", {x: x, y: y, width: bw, height: h, rx: 3, class: "dv-s1" + (b.out ? " is-out" : "")});
+    r.dataset.tip = b.tip;   // в data, а не в <title>: иначе браузерная подсказка поверх .demo-tooltip
+    host.appendChild(r);
+    const v = el("text", {x: x + bw / 2, y: y - 5, class: "dv-ink", "text-anchor": "middle",
+      "font-size": 10, "font-weight": 600});
+    v.textContent = b.top;
+    host.appendChild(v);
+    [[b.label, 15], [b.sub, 27]].forEach(([txt, dy]) => {
+      if (!txt) return;
+      const t = el("text", {x: padL + slot * i + slot / 2, y: baseY + dy, class: "dv-label",
+        "text-anchor": "middle", "font-size": 10});
+      t.textContent = txt;
+      host.appendChild(t);
+    });
+  });
+}
+
+// ── Вид 1: децили риска + порог контакта ────────────────────────────────
+const cut = document.getElementById("cut"), tip = document.getElementById("tip");
+const riskHost = document.getElementById("riskChart");
+
+function renderRisk() {
+  const k = +cut.value;
+  let contacted = 0, caught = 0;
+  for (let i = 0; i < k; i++) { contacted += DEC[i].n; caught += DEC[i].c; }
+  const prec = caught / contacted;
+  draw(riskHost, DEC.map((d, i) => ({v: d.c / d.n, out: i >= k, label: "D" + (i + 1),
+    top: Math.round(d.c / d.n * 100) + "%", sub: cnt(d.n),
+    tip: "D" + (i + 1) + " · скор " + num(d.lo, 2) + "–" + num(d.hi, 2) + " · отточников " +
+      d.c + " из " + d.n + " (" + pct(d.c / d.n) + ")" })),
+    {base: BASE, label: "Доля оттока по децилям риска: от " + pct(DEC[0].c / DEC[0].n) +
+      " в D1 до " + pct(DEC[9].c / DEC[9].n) + " в D10"});
+  document.getElementById("cutVal").textContent = k;
+  document.getElementById("cutTxt").textContent = "контактируем D1" + (k > 1 ? "–D" + k : "");
+  document.getElementById("kContacted").textContent = cnt(contacted);
+  document.getElementById("kCaught").textContent = cnt(caught) + "/" + cnt(CHURNERS);
+  document.getElementById("kRecall").textContent = pct(caught / CHURNERS);
+  document.getElementById("kPrec").textContent = pct(prec);
+  document.getElementById("kLift").textContent = num(prec / BASE, 2) + "×";
+}
+
+// ── Вид 2: отток по числу активных дней ─────────────────────────────────
+function renderAct() {
+  draw(document.getElementById("actChart"), ACT.map(a => ({v: a.c / a.n, label: a.b + " дн.",
+    top: Math.round(a.c / a.n * 100) + "%", sub: "n " + cnt(a.n),
+    tip: a.b + " активных дней · отточников " + a.c + " из " + a.n + " (" + pct(a.c / a.n) + ")" })),
+    {label: "Доля оттока по активным дням за 30 дней: " +
+      ACT.map(a => a.b + " — " + pct(a.c / a.n)).join(", ")});
+  const top = ACT[0], bot = ACT[4];
+  document.getElementById("aTop").textContent = pct(top.c / top.n);
+  document.getElementById("aBot").textContent = pct(bot.c / bot.n);
+  document.getElementById("aGap").textContent = pp(top.c / top.n - bot.c / bot.n) + " п.п.";
+  document.getElementById("aBase").textContent = pct(BASE);
+}
+
+// ── Переключатель вида ─────────────────────────────────────────────────
+const views = {risk: document.getElementById("viewRisk"), act: document.getElementById("viewAct")};
+const tabs = {risk: document.getElementById("tbRisk"), act: document.getElementById("tbAct")};
+function show(which) {
+  for (const k in views) views[k].hidden = k !== which;
+  for (const k in tabs) tabs[k].setAttribute("aria-pressed", String(k === which));
+  render(which);
+}
+const render = which => (which === "risk" ? renderRisk : renderAct)();
+tabs.risk.addEventListener("click", () => show("risk"));
+tabs.act.addEventListener("click", () => show("act"));
+cut.addEventListener("input", renderRisk);
+window.addEventListener("resize", () => render(views.risk.hidden ? "act" : "risk"));
+
+// Тултип: подробность к каждому столбцу (значения подписаны и в самой диаграмме).
+function onMove(e) {
+  const t = e.target.closest("rect");
+  if (!t) return;
+  tip.innerHTML = "<b>" + t.dataset.tip + "</b>";
+  tip.classList.add("is-visible");
+  tip.style.left = Math.min(window.innerWidth - 250, e.clientX + 14) + "px";
+  tip.style.top = (e.clientY + 14) + "px";
+}
+for (const id of ["viewRisk", "viewAct"]) {
+  const v = document.getElementById(id);
+  v.addEventListener("mousemove", onMove);
+  v.addEventListener("mouseout", e => { if (e.target.closest("rect")) tip.classList.remove("is-visible"); });
+}
+
+renderRisk();
+</script>
+</body>
+</html>

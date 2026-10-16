@@ -25,6 +25,7 @@ tools:
 github: https://github.com/NikitaBoyarkin/serp-rank-lab
 date: 2026-10-11
 updated: 2026-10-11
+demo: demos/serp-rank/index.html
 related:
   - /projects/volta/
   - /projects/ab/

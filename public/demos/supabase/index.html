@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Витрины, метрики и воронка — supabase-product-analytics</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. */
+  .stack{display:flex;flex-direction:column;gap:var(--space-4)}
+  .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+    gap:var(--space-2);margin-bottom:var(--space-3)}
+  .hd--sep{margin-top:var(--space-5)}
+  .note{margin-top:var(--space-3);font-weight:400}
+  .ctlrow{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3);
+    align-items:center;margin-bottom:var(--space-3)}
+  .seg{display:flex;flex-wrap:wrap;gap:4px}
+  /* Affordances live on the coral action accent, never on --dv-*. */
+  .ctrl{font:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:3px 10px;
+    border-radius:var(--radius-full);background:var(--background-secondary);
+    color:var(--text-muted);border:1px solid var(--border-color)}
+  .ctrl:hover{color:var(--text-accent-hover);border-color:var(--border-active)}
+  .ctrl.is-on{color:var(--text-normal);border-color:var(--border-active);
+    background:var(--background-tertiary)}
+  .ctrl:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+
+  /* ── Слои данных. Узел — поверхность (обводка --border-color), ребро — графический
+     объект без текстовой альтернативы (общий класс .dv-axis). ── */
+  .dia{display:block;width:100%;max-width:400px;height:auto;margin:0 auto}
+  .node rect{fill:var(--background-tertiary);stroke:var(--border-color);stroke-width:1.5}
+  .node text,.chip text{font-size:11px}
+  .node .sub{font-size:9px}
+  .chip rect{fill:var(--background-primary);stroke:var(--border-color);stroke-width:1}
+  .chip text{font-size:9px}
+  .edge{fill:none;stroke-width:1.5}
+  .edge-label{font-size:9px}
+
+  /* ── Карта метрик: строка = «метрика → значение → объект SQL». ── */
+  .met{display:flex;flex-direction:column;gap:var(--space-2)}
+  .metrow{display:grid;grid-template-columns:1fr auto;gap:2px var(--space-3);
+    align-items:baseline;padding-bottom:var(--space-2);
+    border-bottom:1px solid var(--border-color)}
+  .metrow:last-child{border-bottom:0;padding-bottom:0}
+  .metm{font-size:12px;font-weight:600;color:var(--text-normal)}
+  .metv{font-family:var(--font-mono);font-size:13px;font-weight:700;
+    color:var(--text-accent-dataviz);text-align:right;white-space:nowrap}
+  .meta{grid-column:1 / -1;font-size:10px;font-weight:400;color:var(--dv-label);
+    overflow-wrap:anywhere}
+
+  /* ── Воронка: 5 шагов на одной дорожке + разрез по группам. ── */
+  .fstage{display:grid;grid-template-columns:78px 1fr;gap:2px var(--space-2);
+    align-items:center;margin-bottom:var(--space-2)}
+  .flab{font-size:12px;font-weight:600;color:var(--text-normal);overflow-wrap:anywhere}
+  .flab span{display:block;font-size:10px;font-weight:400;color:var(--dv-label)}
+  .ftrack{position:relative;height:22px;background:var(--background-primary);
+    border-radius:var(--radius-sm)}
+  .fbar{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm)}
+  .fnum{grid-column:2;font-size:10px;font-weight:600;color:var(--dv-label)}
+  .fhead{display:grid;grid-template-columns:78px 1fr;gap:var(--space-2);
+    margin-bottom:var(--space-2)}
+
+  .grow{display:grid;grid-template-columns:74px 1fr 76px;gap:var(--space-2);
+    align-items:center;margin-bottom:var(--space-2)}
+  .gname{font-size:12px;font-weight:600;color:var(--text-normal);
+    overflow-wrap:anywhere;line-height:1.2}
+  .gtrack{position:relative;height:16px;background:var(--background-primary);
+    border-radius:var(--radius-sm)}
+  .gbar2{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm)}
+  .gval{font-size:11px;font-weight:600;color:var(--dv-label);text-align:right}
+  /* demo.css's .dv-s1 is a `fill` utility (SVG). These bars are HTML boxes, so
+     the one data series is re-applied to `background` in one declaration here
+     instead of an inline colour per bar. The whole funnel is one series, and
+     every bar carries its step name and numbers, so colour is redundant.
+     Free-standing bars take the theme-dependent dataviz accent, not the pale
+     --dv-seq-* ramp: the ramp is built for cells that carry --dv-cell-ink
+     inside them, and on a cream page background no step of it reaches the 3:1
+     a graphical object needs (WCAG 1.4.11). */
+  .series-bar{background:var(--text-accent-dataviz)}
+  /* The two A/B variants are a categorical pair inside one chart; the row label
+     names each one, so colour is again redundant — and --dv-neutral carries the
+     comparison baseline in all three themes. */
+  .ab-t{background:var(--text-accent-dataviz)}
+  .ab-c{background:var(--dv-neutral)}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));
+    gap:var(--space-3)}
+  .kpi{display:flex;flex-direction:column;gap:2px;min-width:96px}
+  .abrow{display:grid;grid-template-columns:88px 1fr 78px;gap:var(--space-2);
+    align-items:center;margin-bottom:var(--space-2)}
+  .abval{font-size:11px;font-weight:600;color:var(--dv-label);text-align:right}
+
+  @media (max-width:520px){
+    .fstage,.fhead{grid-template-columns:70px 1fr}
+    .flab{font-size:11px}
+    .grow{grid-template-columns:66px 1fr 68px}
+    .gname{font-size:11px}
+    .abrow{grid-template-columns:78px 1fr 70px}
+  }
+</style>
+</head>
+<body>
+  <h1 class="demo-title">Витрины, метрики и воронка — Supabase</h1>
+  <p class="demo-lede">Платформа продуктовой аналитики на Supabase Postgres: восемь вьюх в схеме
+  <code>analytics</code> плюс <code>experiments.v_results</code> считают funnel, retention, MRR, DAU и
+  конверсию <b>в базе</b>, дашборд только решейпит. Ниже — слои данных, карта метрик с их значениями и
+  объектом SQL, воронка активации по разрезам (переключатель) и завершённый A/B-эксперимент.</p>
+
+  <div class="stack">
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Слои данных: таблицы → витрины → дашборд</h2>
+        <span class="demo-axis-label">одна БД, три слоя</span>
+      </div>
+      <svg class="dia" viewBox="0 0 340 380" role="img"
+        aria-label="Сырые таблицы analytics и experiments (sql/001_schema.sql) читаются вьюхами sql/002_views.sql и sql/003_experiments.sql; вьюхи отдаются дашборду data.py → pages/*.py">
+        <g class="node">
+          <rect x="8" y="6" width="324" height="62" rx="8"></rect>
+          <text x="20" y="25" class="dv-ink">Сырые таблицы · sql/001_schema.sql</text>
+          <text x="20" y="42" class="sub dv-label">analytics.users · api_keys · events</text>
+          <text x="20" y="56" class="sub dv-label">analytics.subscriptions · org_members + experiments.*</text>
+        </g>
+        <g>
+          <line x1="170" y1="68" x2="170" y2="92" class="edge dv-axis"></line>
+          <polyline points="164,86 170,95 176,86" class="edge dv-axis" fill="none"></polyline>
+          <text x="180" y="84" class="edge-label dv-label">select</text>
+        </g>
+        <g class="node">
+          <rect x="8" y="100" width="324" height="140" rx="8"></rect>
+          <text x="20" y="119" class="dv-ink">Витрины · sql/002_views.sql, sql/003_experiments.sql</text>
+        </g>
+        <g class="chip">
+          <rect x="14" y="128" width="100" height="26" rx="6"></rect>
+          <text x="64" y="145" text-anchor="middle" class="dv-ink">v_events</text>
+          <rect x="120" y="128" width="100" height="26" rx="6"></rect>
+          <text x="170" y="145" text-anchor="middle" class="dv-ink">v_subscriptions</text>
+          <rect x="226" y="128" width="100" height="26" rx="6"></rect>
+          <text x="276" y="145" text-anchor="middle" class="dv-ink">v_funnel</text>
+          <rect x="14" y="160" width="100" height="26" rx="6"></rect>
+          <text x="64" y="177" text-anchor="middle" class="dv-ink">v_retention_raw</text>
+          <rect x="120" y="160" width="100" height="26" rx="6"></rect>
+          <text x="170" y="177" text-anchor="middle" class="dv-ink">v_cohort_sizes</text>
+          <rect x="226" y="160" width="100" height="26" rx="6"></rect>
+          <text x="276" y="177" text-anchor="middle" class="dv-ink">v_mrr</text>
+          <rect x="14" y="192" width="100" height="26" rx="6"></rect>
+          <text x="64" y="209" text-anchor="middle" class="dv-ink">v_conversion_channel</text>
+          <rect x="120" y="192" width="100" height="26" rx="6"></rect>
+          <text x="170" y="209" text-anchor="middle" class="dv-ink">v_dau</text>
+          <rect x="226" y="192" width="100" height="26" rx="6"></rect>
+          <text x="276" y="209" text-anchor="middle" class="dv-ink">v_results</text>
+        </g>
+        <g>
+          <line x1="170" y1="242" x2="170" y2="266" class="edge dv-axis"></line>
+          <polyline points="164,260 170,269 176,260" class="edge dv-axis" fill="none"></polyline>
+          <text x="180" y="258" class="edge-label dv-label">supabase-py · RLS-скоуп</text>
+        </g>
+        <g class="node">
+          <rect x="8" y="274" width="324" height="96" rx="8"></rect>
+          <text x="20" y="293" class="dv-ink">Дашборд · data.py → pages/*.py</text>
+          <text x="20" y="311" class="sub dv-label">overview · funnel · retention · revenue</text>
+          <text x="20" y="326" class="sub dv-label">segments · experiments · events</text>
+          <text x="20" y="349" class="sub dv-label">st.metric / st.dataframe / CSV-экспорт</text>
+        </g>
+      </svg>
+      <p class="demo-axis-label note">Витрины возвращают уже агрегированное: дашборд не считает метрики,
+      он их решейпит (<code>data.py</code>) и рисует (<code>pages/*.py</code>). Девятая вьюха,
+      <code>experiments.v_results</code>, живёт в миграции эксперимента; все вьюхи объявлены
+      <code>security_invoker = on</code>, то есть наследуют RLS базовых таблиц. Анонимный доступ даёт
+      <b>0 строк</b> — политики построены на <code>analytics.my_orgs()</code> (<code>sql/004_rls.sql</code>).</p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Карта метрик: значение и объект, который его производит</h2>
+        <span class="demo-axis-label">seed = 42, окно 01.2024 — 06.2025</span>
+      </div>
+      <div class="met" id="met"></div>
+      <p class="demo-axis-label note" id="metnote"></p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Воронка активации, 8 000 пользователей</h2>
+        <span class="demo-flag" id="f-flag"></span>
+      </div>
+      <div class="fhead">
+        <span class="demo-axis-label">Шаг</span>
+        <span class="demo-axis-label">Дошедшие пользователи, % от app_open</span>
+      </div>
+      <div id="funnel"></div>
+
+      <div class="hd hd--sep">
+        <h2 class="demo-axis-label" id="dimtitle">Тот же путь по разрезам</h2>
+        <span class="demo-axis-label">конверсия в подписку, % от app_open · число подписок</span>
+      </div>
+      <div class="ctlrow">
+        <div class="seg" role="group" aria-label="Разрез воронки">
+          <button type="button" class="ctrl is-on" data-dim="segment" aria-pressed="true">Сегмент</button>
+          <button type="button" class="ctrl" data-dim="channel" aria-pressed="false">Канал</button>
+          <button type="button" class="ctrl" data-dim="country" aria-pressed="false">Страна</button>
+          <button type="button" class="ctrl" data-dim="device" aria-pressed="false">Устройство</button>
+        </div>
+      </div>
+      <div id="dimrows"></div>
+      <p class="demo-axis-label note" id="dimnote"></p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">A/B: pricing page redesign v2 · concluded</h2>
+        <span class="demo-axis-label">experiments.v_results</span>
+      </div>
+      <div class="kpis" id="abkpi"></div>
+      <div>
+        <div class="abrow">
+          <span class="gname">control</span>
+          <span class="gtrack"><i class="gbar2 ab-c" id="abbar-c"></i></span>
+          <span class="abval" id="abval-c"></span>
+        </div>
+        <div class="abrow">
+          <span class="gname">treatment</span>
+          <span class="gtrack"><i class="gbar2 ab-t" id="abbar-t"></i></span>
+          <span class="abval" id="abval-t"></span>
+        </div>
+      </div>
+      <p class="demo-axis-label note" id="abnote"></p>
+    </section>
+
+  </div>
+
+<script>
+// ── Данные ───────────────────────────────────────────────────────────────────
+// Проект пишет аналитику в Postgres, а не в pandas, поэтому «сырых» CSV в репо
+// нет: единственный вход — детерминированный генератор seed-скрипта
+// (scripts/seed_events.py, RNG_SEED = 42), который заливает ту же самую
+// синтетику в таблицы. Числа ниже пересчитаны этим генератором и сходятся с
+// опубликованными: 8 000 / 82 301 / 1 086 (PRD REQ-007) и A/B 29,6 % vs 40,7 %,
+// p ≈ 1,7e-10 (README, PRD Checkpoint 2).
+
+const FUNNEL = [
+  {step:"app_open",    n:8000, pct:100.00, stepPct:null},
+  {step:"signup",      n:8000, pct:100.00, stepPct:100.00},
+  {step:"activate",    n:5478, pct: 68.47, stepPct: 68.47},
+  {step:"start_trial", n:3025, pct: 37.81, stepPct: 55.22},
+  {step:"subscribe",   n:1086, pct: 13.58, stepPct: 35.90}
+];
+
+// funnel_by_dimension() (data.py, REQ-009): distinct users на каждом шаге внутри
+// группы. Группы отсортированы по сквозной конверсии.
+const DIM_ROWS = {
+  segment: [
+    {g:"smb",        n:5617, a:3849, t:2124, s:779, ovr:13.87},
+    {g:"mid",        n:1840, a:1267, t: 718, s:249, ovr:13.53},
+    {g:"enterprise", n: 543, a: 362, t: 183, s: 58, ovr:10.68}
+  ],
+  channel: [
+    {g:"social",      n:1247, a: 850, t: 478, s:185, ovr:14.84},
+    {g:"paid_search", n:1988, a:1368, t: 747, s:291, ovr:14.64},
+    {g:"organic",     n:3223, a:2213, t:1244, s:427, ovr:13.25},
+    {g:"email",       n: 605, a: 408, t: 220, s: 73, ovr:12.07},
+    {g:"referral",    n: 937, a: 639, t: 336, s:110, ovr:11.74}
+  ],
+  country: [
+    {g:"FR",    n: 416, a: 299, t: 170, s: 64, ovr:15.38},
+    {g:"Other", n: 737, a: 506, t: 286, s:111, ovr:15.06},
+    {g:"DE",    n: 827, a: 562, t: 309, s:119, ovr:14.39},
+    {g:"US",    n:2806, a:1907, t:1060, s:394, ovr:14.04},
+    {g:"IN",    n: 463, a: 318, t: 170, s: 64, ovr:13.82},
+    {g:"BR",    n: 566, a: 403, t: 233, s: 77, ovr:13.60},
+    {g:"GB",    n: 664, a: 457, t: 258, s: 79, ovr:11.90},
+    {g:"RU",    n:1521, a:1026, t: 539, s:178, ovr:11.70}
+  ],
+  device: [
+    {g:"mobile",  n:4758, a:3258, t:1789, s:658, ovr:13.83},
+    {g:"desktop", n:3242, a:2220, t:1236, s:428, ovr:13.20}
+  ]
+};
+const DIM_NAME = {segment:"Сегмент", channel:"Канал", country:"Страна", device:"Устройство"};
+
+// analytics.v_funnel / v_retention_raw + v_cohort_sizes / v_mrr / v_dau /
+// v_conversion_channel — sql/002_views.sql; experiments.v_results —
+// sql/003_experiments.sql.
+const METRICS = [
+  {m:"События в хранилище", v:"82 301", a:"analytics.events — sql/001_schema.sql"},
+  {m:"Пользователи · подписки", v:"8 000 · 1 086", a:"analytics.users, analytics.subscriptions — sql/001_schema.sql"},
+  {m:"Воронка активации, app_open → subscribe", v:"13,58 %", a:"1 086 из 8 000 · analytics.v_funnel — sql/002_views.sql"},
+  {m:"Удержание M1 (среднее по 17 когортам)", v:"79,14 %", a:"analytics.v_retention_raw ÷ v_cohort_sizes — sql/002_views.sql"},
+  {m:"MRR на июнь 2025", v:"94 312 $", a:"838 активных подписок · analytics.v_mrr — sql/002_views.sql"},
+  {m:"DAU, максимум за период", v:"148", a:"23.10.2024 · analytics.v_dau — sql/002_views.sql"},
+  {m:"Конверсия в подписку по каналу", v:"14,84 % · 11,74 %", a:"social — максимум, referral — минимум · analytics.v_conversion_channel — sql/002_views.sql"},
+  {m:"A/B pricing page v2, control vs treatment", v:"29,56 % · 40,71 %", a:"experiments.v_results — sql/003_experiments.sql"},
+  {m:"Анонимный доступ (RLS)", v:"0 строк", a:"analytics.my_orgs() + политики — sql/004_rls.sql"}
+];
+
+const AB = {c:{n:1512, c:447, pct:29.56, se:1.17}, t:{n:1513, c:616, pct:40.71, se:1.26}};
+AB.liftRel = (AB.t.pct - AB.c.pct) / AB.c.pct * 100;
+AB.liftAbs = AB.t.pct - AB.c.pct;
+
+const nf = (v,d) => v.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d});
+const int = v => nf(v,0);
+const pct = (v,d) => nf(v,d===undefined?2:d) + " %";
+
+function el(tag, cls, text){
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+
+// ── Карта метрик ────────────────────────────────────────────────────────────
+function renderMet(){
+  const host = document.getElementById("met");
+  METRICS.forEach(function(r){
+    const row = el("div","metrow");
+    row.appendChild(el("span","metm",r.m));
+    row.appendChild(el("span","metv",r.v));
+    row.appendChild(el("span","meta",r.a));
+    host.appendChild(row);
+  });
+  document.getElementById("metnote").textContent =
+    "Опубликованы в репозитории: 8 000 юзеров / 82 301 событие / 1 086 подписок (PRD REQ-007) и " +
+    "A/B 29,6 % vs 40,7 %, p ≈ 1,7e−10 (README, PRD Checkpoint 2). Остальные значения пересчитаны " +
+    "тем же детерминированным генератором (seed = 42) — они воспроизводят те же контрольные числа. " +
+    "Удержание M1 считается только по когортам, у которых окно закрылось внутри данных " +
+    "(17 из 18): неполное окно — это «нет наблюдения», а не 0 %.";
+}
+
+// ── Воронка целиком ─────────────────────────────────────────────────────────
+function renderFunnel(){
+  const host = document.getElementById("funnel");
+  FUNNEL.forEach(function(s,i){
+    const stage = el("div","fstage");
+    const lab = el("div","flab", s.step);
+    lab.appendChild(el("span","", "шаг " + (i+1) + " из 5"));
+    const track = el("div","ftrack");
+    const bar = el("i","fbar series-bar");
+    bar.style.width = s.pct + "%";
+    track.appendChild(bar);
+    const num = el("div","fnum",
+      int(s.n) + " пользователей · " + pct(s.pct) + " от старта" +
+      (s.stepPct === null ? " · вход в воронку" : " · " + pct(s.stepPct) + " от предыдущего шага"));
+    stage.appendChild(lab); stage.appendChild(track); stage.appendChild(num);
+    host.appendChild(stage);
+  });
+  const lost = FUNNEL[2].n - FUNNEL[3].n;
+  document.getElementById("f-flag").textContent =
+    "крупнейшая потеря: " + FUNNEL[2].step + " → " + FUNNEL[3].step + " (−" + int(lost) + ")";
+}
+
+// ── Воронка по разрезу ──────────────────────────────────────────────────────
+function renderDim(dim){
+  const rows = DIM_ROWS[dim];
+  const host = document.getElementById("dimrows");
+  host.textContent = "";
+  const max = rows.reduce(function(a,b){ return Math.max(a, b.ovr); }, 0);
+  rows.forEach(function(r){
+    const row = el("div","grow");
+    const nm = el("div","gname", r.g);
+    nm.title = r.g;
+    const track = el("div","gtrack");
+    const bar = el("i","gbar2 series-bar");
+    bar.style.width = (r.ovr / max * 100) + "%";
+    track.appendChild(bar);
+    track.title = r.g + ": " + int(r.n) + " на входе → " + int(r.a) + " activate (" +
+      pct(r.a / r.n * 100) + ") → " + int(r.t) + " start_trial (" + pct(r.t / r.n * 100) +
+      ") → " + int(r.s) + " subscribe (" + pct(r.ovr) + ")";
+    const val = el("div","gval", pct(r.ovr) + " · " + int(r.s));
+    row.appendChild(nm); row.appendChild(track); row.appendChild(val);
+    host.appendChild(row);
+  });
+  document.getElementById("dimtitle").textContent = "Тот же путь — " + DIM_NAME[dim].toLowerCase();
+  const hi = rows[0], lo = rows[rows.length-1];
+  const spread = hi.ovr - lo.ovr;
+  const big = rows.reduce(function(a,b){ return b.n > a.n ? b : a; });
+  const small = rows.reduce(function(a,b){ return b.n < a.n ? b : a; });
+  document.getElementById("dimnote").textContent =
+    "Разброс: " + hi.g + " " + pct(hi.ovr) + " против " + lo.g + " " + pct(lo.ovr) + " — " +
+    nf(spread,2) + " п.п. Группы отсортированы по сквозной конверсии, базы разные: " +
+    big.g + " " + int(big.n) + " против " + small.g + " " + int(small.n) + " — у мелкой группы " +
+    "конверсия шумнее. app_open и signup равны в каждой группе структурно: генератор пишет оба " +
+    "события в день регистрации, поэтому первый шаг не теряет никого.";
+}
+
+// ── A/B ─────────────────────────────────────────────────────────────────────
+function renderAB(){
+  const host = document.getElementById("abkpi");
+  const rows = [
+    [pct(AB.t.pct), "конверсия treatment"],
+    [pct(AB.c.pct), "конверсия control"],
+    ["+" + nf(AB.liftRel,1) + " %", "относительный лифт"],
+    ["+" + nf(AB.liftAbs,2), "абсолютный лифт, п.п."],
+    ["40,77", "χ², 1 степень свободы"],
+    ["1,72e−10", "p-value"]
+  ];
+  rows.forEach(function(r){
+    const k = el("span","kpi");
+    k.appendChild(el("span","demo-kpi-value", r[0]));
+    k.appendChild(el("span","demo-kpi-label", r[1]));
+    host.appendChild(k);
+  });
+  const max = Math.max(AB.c.pct, AB.t.pct);
+  [["c","ab-c"],["t","ab-t"]].forEach(function(p){
+    const v = AB[p[0]];
+    document.getElementById("abbar-" + p[0]).style.width = (v.pct / max * 100) + "%";
+    document.getElementById("abval-" + p[0]).textContent = pct(v.pct) + " · " +
+      int(v.c) + " из " + int(v.n);
+  });
+  document.getElementById("abnote").textContent =
+    "Конверсия считается во вьюхе: converted ÷ assigned, округление до 4 знаков " +
+    "(sql/003_experiments.sql). χ² — на таблице 2×2 в pages/experiments.py:55. Разбиение 1 512 / 1 513 — " +
+    "назначение идёт ровно пополам, поэтому SRM нет. Оговорка честности: генератор задаёт 30 % и 36 % " +
+    "(scripts/seed_events.py:256), наблюдение при этом seed — 29,56 % и 40,71 %, то есть относительный " +
+    "лифт +37,7 % против заложенных +20 %. Стандартная ошибка treatment при n = 1 513 — " +
+    nf(AB.t.se,2) + " п.п.; у прогона одно зерно (seed 7), а не серия повторов, поэтому отрезок " +
+    "последовательности, доставшийся treatment, дал больше конверсий, чем заложено в генераторе. " +
+    "Это свойство конкретного seed, а не второй эффект.";
+}
+
+document.querySelectorAll("[data-dim]").forEach(function(b){
+  b.addEventListener("click", function(){
+    document.querySelectorAll("[data-dim]").forEach(function(x){
+      const on = x === b;
+      x.classList.toggle("is-on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    renderDim(b.dataset.dim);
+  });
+});
+
+renderMet();
+renderFunnel();
+renderDim("segment");
+renderAB();
+</script>
+</body>
+</html>

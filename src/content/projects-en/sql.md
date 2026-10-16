@@ -25,7 +25,7 @@ tools:
 github: https://github.com/NikitaBoyarkin/sql-analytics-case-study
 date: 2026-08-11
 updated: 2026-09-19
-demo: https://nikitaboyarkin.github.io/sql-analytics-case-study/
+demo: demos/sql/index.html
 faq:
   - question: "What data do the cases run on?"
     answer: "25 cases on a synthetic dataset (~183k events, seed=42 plus an additive seed=43) and 1 real-data case on UCI Online Retail II."

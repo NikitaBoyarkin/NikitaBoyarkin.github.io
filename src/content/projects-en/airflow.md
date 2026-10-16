@@ -25,6 +25,7 @@ tools:
 github: https://github.com/NikitaBoyarkin/airflow
 date: 2026-09-27
 updated: 2026-09-27
+demo: demos/airflow/index.html
 related:
   - /projects/volta/
   - /projects/sql/

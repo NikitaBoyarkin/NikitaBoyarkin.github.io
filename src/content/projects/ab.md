@@ -23,6 +23,7 @@ tools:
 github: https://github.com/NikitaBoyarkin/ab_test
 date: 2026-08-22
 updated: 2026-09-17
+demo: demos/ab/index.html
 related:
   - /projects/volta/
 faq:

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A/B-тест: SRM, эффект и мощность</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. No palette, no reset, no font stack, no heading sizes here. */
+  section{margin-bottom:var(--space-4)}
+  .qrow{
+    display:grid; grid-template-columns:minmax(70px,92px) 1fr auto;
+    gap:var(--space-2) var(--space-3); align-items:center; margin-bottom:var(--space-2);
+  }
+  .qrow b{font-variant-numeric:tabular-nums; font-weight:600; white-space:nowrap}
+  /* Track = the rail a bar sits in. --background-tertiary reads as a recess
+     against the card's --background-secondary in all three themes. */
+  .track{
+    position:relative; height:20px; border-radius:var(--radius-sm);
+    background:var(--background-tertiary); overflow:hidden;
+  }
+  .bar{height:100%; border-radius:var(--radius-sm); transition:width .15s ease}
+  .plan{position:absolute; top:0; bottom:0; width:1px; background:var(--dv-axis)}
+  .ticks{position:relative; height:18px; margin-top:var(--space-1)}
+  .tick{position:absolute; top:0; transform:translateX(-50%); white-space:nowrap}
+  .tick--start{transform:translateX(0)}
+  .tick--end{transform:translateX(-100%)}
+  /* Interval rail: one shared scale, a zero line, the interval, the point.
+     margin-top leaves room for the "0 pp" label that sits above the rail. */
+  .ci{position:relative; height:26px; margin-top:var(--space-6);
+      border-radius:var(--radius-sm); background:var(--background-tertiary)}
+  .ci-bar{position:absolute; top:5px; bottom:5px; border-radius:var(--radius-full);
+          transition:left .15s ease, width .15s ease}
+  .ci-pt{position:absolute; top:3px; bottom:3px; width:2px; background:var(--dv-cell-ink)}
+  .zero{position:absolute; top:-5px; bottom:-5px; width:1px; background:var(--dv-axis)}
+  .zlab{position:absolute; top:-21px; transform:translateX(-50%); white-space:nowrap}
+  .meter{position:relative; height:14px; margin-top:var(--space-5);
+         border-radius:var(--radius-sm); background:var(--background-tertiary)}
+  .meter-fill{height:100%; border-radius:var(--radius-sm); transition:width .15s ease}
+  .meter-goal{position:absolute; top:-4px; bottom:-4px; width:1px; background:var(--dv-axis)}
+  .ctl{display:flex; flex-wrap:wrap; gap:var(--space-3) var(--space-5);
+       align-items:center; margin-top:var(--space-3)}
+  .slider{display:flex; align-items:center; gap:var(--space-3); flex:1; min-width:190px}
+  /* The action accent, not a --dv-* token: a slider is an affordance. */
+  input[type=range]{flex:1; accent-color:var(--text-accent)}
+  .kv{display:flex; flex-wrap:wrap; gap:var(--space-3) var(--space-6)}
+  .kv > div{min-width:92px}
+  .num{font-variant-numeric:tabular-nums}
+  /* Сноски берут вид у общего .demo-lede; локально остаётся только отступ. */
+  .note{margin:var(--space-3) 0 0}
+  /* Bars are coloured by class, never by inline style, so a theme change
+     re-resolves them with no JavaScript. Data is the site's single dataviz
+     accent; control is the recessive mark. Colour stays redundant: every mark
+     carries its number. */
+  .m-data{background:var(--text-accent-dataviz)}
+  .m-muted{background:var(--text-muted)}
+  .sw-data{background:var(--text-accent-dataviz)}
+  .sw-muted{background:var(--text-muted)}
+</style>
+</head>
+<body>
+  <h1 class="demo-title">A/B-тест: SRM, эффект и мощность</h1>
+  <p class="demo-lede">
+    600 пользователей за 3 дня, сплит задуман 50/50 — строки
+    ab_test/data/experiment_sample.csv. Двигайте α и гипотетический эффект:
+    интервал и мощность пересчитываются от реальных SE и оценок.
+  </p>
+
+  <div class="demo-legend">
+    <span><i class="demo-swatch sw-muted"></i>Контроль A</span>
+    <span><i class="demo-swatch sw-data"></i>Вариант B</span>
+  </div>
+
+  <section class="demo-card">
+    <h2 class="demo-title">Проверка сплита (SRM)</h2>
+    <div class="qrow">
+      <span class="demo-kpi-label">Контроль A</span>
+      <div class="track">
+        <div class="bar m-muted" id="srmA"></div>
+        <div class="plan" style="left:50%" title="План: 50% на руку"></div>
+      </div>
+      <b class="demo-kpi-label" id="srmAv"></b>
+    </div>
+    <div class="qrow">
+      <span class="demo-kpi-label">Вариант B</span>
+      <div class="track">
+        <div class="bar m-data" id="srmB"></div>
+        <div class="plan" style="left:50%"></div>
+      </div>
+      <b class="demo-kpi-label" id="srmBv"></b>
+    </div>
+    <p class="demo-lede note">
+      <span class="demo-flag demo-flag--ok" id="srmFlag"></span>
+      Доля — % от всей выборки, вертикаль — план 50,0%.
+    </p>
+  </section>
+
+  <section class="demo-card">
+    <h2 class="demo-title">Конверсия по рукавам</h2>
+    <div class="qrow">
+      <span class="demo-kpi-label">Контроль A</span>
+      <div class="track"><div class="bar m-muted" id="cvA"></div></div>
+      <b class="demo-kpi-label" id="cvAv"></b>
+    </div>
+    <div class="qrow">
+      <span class="demo-kpi-label">Вариант B</span>
+      <div class="track"><div class="bar m-data" id="cvB"></div></div>
+      <b class="demo-kpi-label" id="cvBv"></b>
+    </div>
+    <div class="ticks">
+      <span class="tick demo-axis-label tick--start" style="left:0">0%</span>
+      <span class="tick demo-axis-label" style="left:50%">10%</span>
+      <span class="tick demo-axis-label tick--end" style="left:100%">20%</span>
+    </div>
+    <div class="kv" style="margin-top:var(--space-4)">
+      <div>
+        <div class="demo-kpi-label">Абсолютный прирост</div>
+        <div class="demo-kpi-value num" id="cvAbs"></div>
+      </div>
+      <div>
+        <div class="demo-kpi-label">Относительный</div>
+        <div class="demo-kpi-value num" id="cvRel"></div>
+      </div>
+    </div>
+    <p class="demo-lede note" id="cvRaw"></p>
+  </section>
+
+  <section class="demo-card">
+    <h2 class="demo-title">Доверительный интервал разницы конверсий</h2>
+    <div class="ci">
+      <span class="zlab demo-axis-label" id="ciZeroLab"></span>
+      <div class="ci-bar m-data" id="ciBar"></div>
+      <div class="ci-pt" id="ciPt"></div>
+      <div class="zero" id="ciZero"></div>
+    </div>
+    <div class="ticks">
+      <span class="tick demo-axis-label tick--start" id="ciT0"></span>
+      <span class="tick demo-axis-label" id="ciT1"></span>
+      <span class="tick demo-axis-label" id="ciT2"></span>
+      <span class="tick demo-axis-label tick--end" id="ciT3"></span>
+    </div>
+    <p class="demo-lede note">
+      <span class="demo-flag" id="ciFlag"></span>
+    </p>
+    <div class="kv">
+      <div><div class="demo-kpi-label">Конверсия</div><div class="num" id="ciConv"></div></div>
+      <div><div class="demo-kpi-label">CTR (ratio)</div><div class="num" id="ciCtr"></div></div>
+    </div>
+  </section>
+
+  <section class="demo-card">
+    <h2 class="demo-title">Мощность и MDE</h2>
+    <div class="kv">
+      <div><div class="demo-kpi-label">n на руку</div><div class="num" id="pwN"></div></div>
+      <div>
+        <div class="demo-kpi-label" id="pwPlab">Достигнутая мощность</div>
+        <div class="demo-kpi-value num" id="pwP"></div>
+      </div>
+      <div>
+        <div class="demo-kpi-label">MDE при 80% мощности</div>
+        <div class="num" id="pwM"></div>
+      </div>
+    </div>
+    <div class="meter">
+      <span class="zlab demo-axis-label" style="left:80%">цель 80%</span>
+      <div class="meter-fill m-data" id="pwFill"></div>
+      <div class="meter-goal" style="left:80%"></div>
+    </div>
+    <div class="ticks">
+      <span class="tick demo-axis-label tick--start" style="left:0">0%</span>
+      <span class="tick demo-axis-label tick--end" style="left:100%">100%</span>
+    </div>
+    <div class="ctl">
+      <div class="slider">
+        <label for="al">α — уровень значимости</label>
+        <input type="range" id="al" min="0.01" max="0.2" step="0.01" value="0.05">
+        <b class="num" id="alv"></b>
+      </div>
+      <div class="slider">
+        <label for="ef">Истинный эффект, pp</label>
+        <input type="range" id="ef" min="0" max="12" step="0.25" value="2.75">
+        <b class="num" id="efv"></b>
+      </div>
+    </div>
+  </section>
+
+<script>
+// Посчитано в Python по ab_test/data/experiment_sample.csv. Сырьё: n, конверсии,
+// показы/клики. Производные: SE разницы — аппроксимация Уолда для конверсии и
+// delta-method для ratio-метрики CTR. Мощность и MDE браузер считает от этих SE,
+// а не из сырых строк.
+const D = {
+  srm: {nA:292, nB:308, chi2:0.4267, p:0.5136, flagAt:0.001},
+  conv: {nA:292, nB:308, kA:46, kB:57, rA:15.753, rB:18.506, abs:2.753, rel:17.476, se:3.0727},
+  ctr:  {kA:582, kB:658, xA:11621, xB:12227, rA:5.0082, rB:5.3815, abs:0.3734, rel:7.455, se:0.29605}
+};
+
+const $ = id => document.getElementById(id);
+const n1 = v => v.toFixed(1).replace(".", ",");
+const n2 = v => v.toFixed(2).replace(".", ",");
+const sg = v => (v > 0 ? "+" : "\u2212") + Math.abs(v).toFixed(2).replace(".", ",");
+
+// Нормальный CDF (Zelen & Severo 26.2.17) и обратный к нему бисекцией по тому же
+// CDF — одна функция на мощность и на границы интервала, чтобы они не разъехались.
+function phi(x){
+  const t = 1 / (1 + 0.2316419 * Math.abs(x));
+  const d = 0.3989423 * Math.exp(-x * x / 2);
+  const p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 +
+            t * (-1.821255978 + t * 1.330274429))));
+  return x >= 0 ? 1 - p : p;
+}
+function zcrit(a){
+  let lo = 0, hi = 6;
+  for (let i = 0; i < 80; i++){ const m = (lo + hi) / 2; if (phi(m) < 1 - a / 2) lo = m; else hi = m; }
+  return (lo + hi) / 2;
+}
+
+// ── SRM и доли по рукавам: детерминировано, рисуется один раз ───────────────
+const s = D.srm, shareA = s.nA / (s.nA + s.nB) * 100, shareB = 100 - shareA;
+$("srmA").style.width = shareA + "%";
+$("srmB").style.width = shareB + "%";
+$("srmAv").textContent = s.nA + " · " + n1(shareA) + "%";
+$("srmBv").textContent = s.nB + " · " + n1(shareB) + "%";
+const ok = s.p > s.flagAt;
+$("srmFlag").className = "demo-flag" + (ok ? " demo-flag--ok" : "");
+$("srmFlag").textContent = (ok ? "SRM не обнаружен" : "SRM обнаружен") +
+  " — \u03c7\u00b2 = " + n2(s.chi2) + ", p = " + n2(s.p) + " (порог 0,001)";
+
+const cvScale = 20; // ось графика конверсии: 0…20%
+$("cvA").style.width = D.conv.rA / cvScale * 100 + "%";
+$("cvB").style.width = D.conv.rB / cvScale * 100 + "%";
+$("cvAv").textContent = n2(D.conv.rA) + "%";
+$("cvBv").textContent = n2(D.conv.rB) + "%";
+$("cvAbs").textContent = sg(D.conv.abs) + " pp";
+$("cvRel").textContent = sg(D.conv.rel) + "%";
+$("cvRaw").textContent = "Сырьё: A \u2014 " + D.conv.kA + " конверсий из " + D.conv.nA +
+  ", B \u2014 " + D.conv.kB + " из " + D.conv.nB + ". CTR: A " + D.ctr.kA + "/" + D.ctr.xA +
+  ", B " + D.ctr.kB + "/" + D.ctr.xB + ".";
+
+// ── Шкала интервала: −6…+12 pp, общая для полосы, точки и меток ─────────────
+const LO = -6, HI = 12, span = HI - LO;
+const pos = v => (v - LO) / span * 100;
+$("ciZero").style.left = pos(0) + "%";
+$("ciZeroLab").style.left = pos(0) + "%";
+$("ciZeroLab").textContent = "0 pp";
+[-5, 0, 5, 10].forEach((t, i) => {
+  const el = $("ciT" + i);
+  el.style.left = pos(t) + "%";
+  el.textContent = (t > 0 ? "+" : "") + t + " pp";
+});
+$("pwN").textContent = D.conv.nA + " / " + D.conv.nB;
+
+// ── Интерактив: α и гипотетический эффект пересчитывают интервал и мощность ─
+const al = $("al"), ef = $("ef");
+function update(){
+  const a = +al.value, z = zcrit(a);
+  const power = phi(+ef.value / D.conv.se - z);
+
+  const cvLo = D.conv.abs - z * D.conv.se, cvHi = D.conv.abs + z * D.conv.se;
+  const ctLo = D.ctr.abs - z * D.ctr.se, ctHi = D.ctr.abs + z * D.ctr.se;
+  $("ciBar").style.left = pos(cvLo) + "%";
+  $("ciBar").style.width = (pos(cvHi) - pos(cvLo)) + "%";
+  $("ciPt").style.left = pos(D.conv.abs) + "%";
+  $("ciConv").textContent = sg(D.conv.abs) + " pp, ДИ [" + sg(cvLo) + "; " + sg(cvHi) + "]";
+  $("ciCtr").textContent = sg(D.ctr.abs) + " pp, ДИ [" + sg(ctLo) + "; " + sg(ctHi) + "]";
+
+  const crosses = cvLo <= 0 && cvHi >= 0;
+  $("ciFlag").className = "demo-flag" + (crosses ? "" : " demo-flag--ok");
+  $("ciFlag").textContent = crosses
+    ? "ДИ пересекает 0 pp при \u03b1 = " + n2(a) + " \u2014 разницу нельзя отличить от нуля"
+    : "ДИ не пересекает 0 pp при \u03b1 = " + n2(a) + " \u2014 эффект отличим от нуля";
+
+  const mde = (z + 0.84162) * D.conv.se;
+  // При ползунке на наблюдаемом эффекте это достигнутая мощность; сдвинули —
+  // это мощность при допущенном эффекте. Подпись обязана это различать.
+  $("pwPlab").textContent = (+ef.value === 2.75 ? "Достигнутая" : "При эффекте " + n1(+ef.value) + " pp") +
+    " мощность";
+  $("pwP").textContent = n1(power * 100) + "%";
+  $("pwM").textContent = sg(mde) + " pp (+" + n1(mde / D.conv.rA * 100) + "%)";
+  $("pwFill").style.width = Math.min(100, power * 100) + "%";
+  $("alv").textContent = n2(a);
+  $("efv").textContent = n1(+ef.value) + " pp";
+}
+al.addEventListener("input", update);
+ef.addEventListener("input", update);
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Посты, форматы и что из этого следует — LinkedIn</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. */
+  .stack{display:flex;flex-direction:column;gap:var(--space-4)}
+  .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+    gap:var(--space-2);margin-bottom:var(--space-3)}
+  .hd--sep{margin-top:var(--space-5)}
+  .note{margin-top:var(--space-3);font-weight:400}
+  .note--tight{margin-top:var(--space-2)}
+  .ctlrow{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3);
+    align-items:center;margin-bottom:var(--space-3)}
+  .seg{display:flex;flex-wrap:wrap;gap:4px}
+  /* Affordances live on the coral action accent, never on --dv-*. */
+  .ctrl{font:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:3px 10px;
+    border-radius:var(--radius-full);background:var(--background-secondary);
+    color:var(--text-muted);border:1px solid var(--border-color)}
+  .ctrl:hover{color:var(--text-accent-hover);border-color:var(--border-active)}
+  .ctrl.is-on{color:var(--text-normal);border-color:var(--border-active);
+    background:var(--background-tertiary)}
+  .ctrl:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));
+    gap:var(--space-3)}
+  .kpi{display:flex;flex-direction:column;gap:2px;min-width:96px}
+  .kpi--wide{grid-column:1 / -1}
+  /* Имя лучшего поста — не KPI-число: крупное моно уместно для цифры и
+     превращало бы название в заголовок второго уровня. */
+  .bestpost{font-size:13px;font-weight:600;color:var(--text-normal);
+    overflow-wrap:anywhere}
+
+  /* Столбик = один пост. Геометрию считает скрипт в процентах, поэтому текст
+     подписей не масштабируется вместе с графиком и остаётся читаемым на 360 px
+     (в SVG при viewBox 340 он ужимался бы до ~8 px). Ось — графический объект
+     (.dv-axis), значение — текст (--text-normal). */
+  .cwrap{display:grid;grid-template-columns:30px 1fr;gap:var(--space-2);
+    margin-top:var(--space-3)}
+  .cy{position:relative;height:150px}
+  .cy span{position:absolute;right:0;font-size:10px;color:var(--dv-label);
+    transform:translateY(-50%);white-space:nowrap}
+  .cplot{position:relative;height:150px;border-bottom:1px solid var(--dv-axis)}
+  .pitem{position:absolute;top:0;bottom:0;width:7px;margin-left:-3.5px}
+  .pstem{position:absolute;bottom:0;left:3px;width:1px;background:var(--dv-neutral)}
+  .pdot{position:absolute;left:1px;width:5px;height:5px;border-radius:50%;
+    margin-bottom:-2px}
+  .pv{position:absolute;font-size:9px;font-weight:700;color:var(--text-normal);
+    transform:translateX(-50%);white-space:nowrap}
+  .cx{position:relative;height:32px;margin-top:2px;line-height:1.25;
+    margin-left:calc(30px + var(--space-2));font-size:10px;color:var(--dv-label)}
+  .cx span{position:absolute;top:0;transform:translateX(-50%);text-align:center;
+    white-space:nowrap}
+
+  /* Серия: полоса интервала + засечка точечной оценки. Состав серии назван
+     в строке, поэтому цвет — дублирующий канал, а не носитель смысла. */
+  .sitem{margin-bottom:var(--space-3)}
+  .shd{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);font-size:12px}
+  .shd b{font-weight:600;color:var(--text-normal)}
+  .shd em{font-style:normal;font-size:10px;color:var(--dv-label)}
+  .sval{margin-left:auto;font-size:11px;font-weight:600;color:var(--dv-label)}
+  .strack{position:relative;height:14px;margin-top:4px;background:var(--background-primary);
+    border-radius:var(--radius-sm)}
+  .srange{position:absolute;top:0;bottom:0;border-radius:var(--radius-sm)}
+  /* demo.css: --dv-current is the theme's --text-normal copy — the "you are
+     here" marker, so it carries text weight instead of a hue. */
+  .sdot{position:absolute;top:-2px;width:2px;height:18px;background:var(--dv-current)}
+  .saxis{position:relative;height:12px;margin-top:2px;font-size:9px;color:var(--dv-label)}
+  .saxis span{position:absolute;transform:translateX(-50%)}
+
+  /* Вид поста и день недели — по одной серии: различие не установлено, и два
+     разных цвета в этом сравнении продавали бы разницу, которой нет. */
+  .krow{display:grid;grid-template-columns:76px 1fr auto;gap:var(--space-2);
+    align-items:center;margin-bottom:var(--space-2)}
+  .gname{font-size:12px;font-weight:600;color:var(--text-normal);overflow-wrap:anywhere}
+  .ktrack{position:relative;height:14px;background:var(--background-primary);
+    border-radius:var(--radius-sm)}
+  .kbar{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm)}
+  .kval{font-size:11px;font-weight:600;color:var(--dv-label);text-align:right}
+  .wday{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3);
+    font-size:11px;color:var(--dv-label)}
+  .wday b{color:var(--text-normal)}
+  .series-bar{background:var(--text-accent-dataviz)}
+
+  /* Список постов: на широком экране — две колонки по 25 строк
+     (grid-auto-flow: column читается сверху вниз, как рейтинг). */
+  .plist{display:grid;gap:0 var(--space-4);grid-auto-flow:column;
+    grid-template-rows:repeat(25,auto)}
+  .prow{padding:5px 0;border-bottom:1px solid var(--border-color)}
+  .p1{display:flex;gap:var(--space-2);align-items:baseline}
+  .prank{flex:0 0 20px;font-size:10px;font-weight:700;color:var(--dv-label);
+    text-align:right}
+  .pname{font-size:12px;font-weight:600;color:var(--text-normal);overflow-wrap:anywhere}
+  .p2{display:flex;flex-wrap:wrap;gap:1px var(--space-3);font-size:10px;
+    color:var(--dv-label);padding-left:28px}
+  .p2 b{color:var(--text-normal);font-weight:600}
+  @media (max-width:819px){
+    .plist{grid-auto-flow:row;grid-template-rows:none}
+  }
+  @media (max-width:520px){
+    .krow{grid-template-columns:64px 1fr auto}
+    .sval{margin-left:0}
+  }
+
+  /* Цвет приходит в DOM классом, а не инлайн-стилем: на смене темы он
+     переразрешается без JavaScript — ни один узел этой страницы не рисуется в
+     canvas и не требует слушателя demo:themechange. Инлайном задаётся только
+     геометрия (left / height / bottom). */
+  .cat-1{background:var(--dv-cat-1)}  .cat-2{background:var(--dv-cat-2)}
+  .cat-3{background:var(--dv-cat-3)}  .cat-4{background:var(--dv-cat-4)}
+  .cat-5{background:var(--dv-cat-5)}  .cat-6{background:var(--dv-cat-6)}
+  .cat-11{background:var(--dv-cat-11)}
+</style>
+</head>
+<body>
+  <h1 class="demo-title">Посты, форматы и что из этого следует — LinkedIn</h1>
+  <p class="demo-lede">Год контента из выгрузки LinkedIn: <b>50 101</b> показов, ER периода
+  <b>1,71 %</b>, <b>+2 175</b> подписчиков. Постов в наборе 49 — это только те, что попали в оба
+  топ-блока выгрузки (по вовлечённости и по показам); посты вне топа в выгрузке не видны. Ниже:
+  каждый пост с его метриками, разрез по сериям с доверительными интервалами и вывод проекта —
+  с числом, которое его поддерживает. Переключатель метрики пересчитывает и график, и рейтинг.</p>
+
+  <div class="stack">
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Окно 12.10.2025 — 11.10.2026 целиком</h2>
+        <span class="demo-axis-label">один workbook, 6 листов</span>
+      </div>
+      <div class="kpis" id="period"></div>
+      <p class="demo-axis-label note">Три различия из <code>CONTEXT.md</code> держатся здесь жёстко,
+      потому что их смешение давало неверные числа: <b>эффективность</b> поста (вовлечённость на
+      1 000 показов) — не <b>ER</b> периода (1,71 %); <b>охват</b> (9 440 уникальных участников) — не
+      показы (50 101); <b>новые подписчики</b> (2 175) — не мера удачи поста. Новых больше итога
+      (2 094) — это ≈ 81 отписка, <i>выведено</i>, а не измерено.</p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label" id="chart-title">Посты по датам</h2>
+        <span class="demo-axis-label" id="chart-unit"></span>
+      </div>
+      <div class="ctlrow">
+        <div class="seg" role="group" aria-label="Метрика">
+          <button type="button" class="ctrl is-on" data-metric="imp" aria-pressed="true">Показы</button>
+          <button type="button" class="ctrl" data-metric="eng" aria-pressed="false">Вовлечённости</button>
+          <button type="button" class="ctrl" data-metric="eff" aria-pressed="false">Эффективность, на 1 000</button>
+        </div>
+      </div>
+      <div class="kpis" id="mkpi"></div>
+      <div class="cwrap">
+        <div class="cy" id="cy" aria-hidden="true"></div>
+        <div class="cplot" role="img" id="cplot"
+          aria-label="Посты в порядке даты: положение — дата, высота — выбранная метрика, цвет — серия поста"></div>
+      </div>
+      <div class="cx" id="cx" aria-hidden="true"></div>
+      <div class="demo-legend note--tight note" id="legend"></div>
+      <p class="demo-axis-label note" id="chart-note"></p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Серия (формат): эффективность поста, 95 % bootstrap-интервал</h2>
+        <span class="demo-flag demo-flag--ok">различие установлено</span>
+      </div>
+      <div id="series"></div>
+      <div class="saxis" id="saxis"></div>
+      <p class="demo-axis-label note">Ранжируются только серии с n ≥ 3 (<code>min_posts</code>): NBxPlay
+      (n = 2) и Trisigma (n = 1) в рейтинг не попадают. Интервалы — percentile bootstrap по постам, а
+      не по показам: показы детерминированы, как только пост выбран, варьируется только то, какие посты
+      оказались написанными.</p>
+      <div class="hd hd--sep">
+        <h2 class="demo-axis-label">Что данные говорят делать</h2>
+        <span class="demo-flag demo-flag--ok">интервалы не пересекаются</span>
+      </div>
+      <p class="demo-axis-label"><b>Держать Swipe и «Материал к собесу».</b> 22,9 и 20,3 против 12,9 у
+      «A/B и статистики» — единственная пара с неперекрывающимися 95 % интервалами. Остальной порядок
+      внутри шума: «Диванная аналитика» 16,6 [11,6; 23,6] перекрывается со всеми, а Swipe и «Материал» —
+      между собой. Переставлять его по одному прогону нельзя; цель — копить n ≥ 10 на серию.</p>
+      <div class="hd hd--sep">
+        <h2 class="demo-axis-label">Что данные НЕ говорят</h2>
+        <span class="demo-flag">различие не установлено</span>
+      </div>
+      <div id="kinds"></div>
+      <p class="demo-axis-label note--tight note">Оригинал против репоста: 16,9 против 19,4,
+      permutation p = <b>0,602</b> — репост не «лучше» и не «хуже» оригинала, выбирать формат по этому
+      признаку нельзя. Ритм недели:</p>
+      <div class="wday" id="wday"></div>
+      <p class="demo-axis-label note--tight note">Эффективность поста по дням недели и число постов в
+      бакете. p = <b>0,060</b> — порог 0,05 не пройден, это гипотеза,
+      а не вывод (в бакете 6–9 постов разрыв Пн 23,1 против Вс 12,6 ещё может быть случайностью).
+      Показы и новые подписчики по месяцам: r = 0,35, 95 % CI [−0,15; 0,72] — интервал содержит ноль,
+      поэтому подписчики не мера удачи поста: рост подписчиков — отдельная задача.</p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label" id="list-title">Все 49 постов</h2>
+        <span class="demo-axis-label" id="list-unit"></span>
+      </div>
+      <div class="plist" id="plist"></div>
+      <p class="demo-axis-label note" id="list-note"></p>
+    </section>
+
+  </div>
+  <div class="demo-tooltip" id="tip"></div>
+
+<script>
+// Источник: data/AggregateAnalytics_Nikita Boyarkin_2025-10-12_2026-10-11.xlsx,
+// нормализованный в reports/eda/scripts/_sheets/posts_paired.csv (49 постов,
+// у которых есть обе метрики, — только они годны для пост-уровневого анализа).
+// Имя поста — его slug из выгрузки (текст поста workbook не содержит); у слага
+// без текста вместо имени стоит серия и дата, а метка серии (tmelofinibo) снята:
+// CONTEXT.md перечисляет её как slug серии, а не как текст поста.
+// SERIES_KEY и KIND_KEY — словари выгрузки; ROWS хранит индекс, а не строку,
+// чтобы серия не повторялась 49 раз. Эффективность не хранится: она считается
+// из вовлечённостей и показов (× 1000) — тем же способом, что в core-модуле.
+const NAMES = ["Прочее · 29.04","сборник бизнес аналитик","product analytics тренд отчёт апрель 2026","product management в эпоху ai deep research","good morning слово дня acid acid","как аналитик может навредить","многие до сих пор ждут от аналитика готовый","конфликты повсюду и аналитик их подсвечивает","A/B и статистика · 24.05","95 доверительный интервал","3 мифа о p value","1 график","3 типа остановки ab теста","10 запаса по выборке спасают","4 техники sequential testing","Прочее · 07.06","𝟵 шагов как стать богатым продавая зонтики","swipe","swipe","swipe хороший продукт это всегда компромисс","swipe","swipe","swipe","swipe","три месяца готовился к собесам на аналитика","приготовил для тебя материал для подготовки","приготовил для тебя материал для подготовки","приготовил для тебя материал для подготовки","NBxPlay · 20.08","статистика 𝗡𝗕𝘅𝗣𝗹𝗮𝘆 𝟮𝟭𝟬𝟴𝟮𝟲","я разобрал 𝟭𝟰 эпизодов диванной аналитики","я разобрал 𝟭𝟰 эпизодов диванной аналитики","ценообразование для оптимизации расходов","как оценивать менеджеров аналитики благодарность","как оптимизировать модерацию и достичь бизнес целей","swipe","как уменьшить ошибку прогноза и ускорить","я поносил это браслет всего пару дней но","возможно когда нибудь я скажу что то вроде","как повысить эффективность рассылок с помощью","как бороться с сетевыми эффектами в экспериментах","как работает фреймворк матчинга благодарность","chap диванная аналитика ep 10 фреймворк","а вы полагаетесь на случайность благодарность","chap диванная аналитика ep 12 как","chap диванная аналитика ep 13 как","план на октябрь 2026 контент linkedin","chap диванная аналитика ep 14 лучший","chap trisigma ep 1 дисбаланс в ab тестах"];
+const ROWS = [["2026-04-29",3,1,1342,27],["2026-05-02",3,0,1280,18],["2026-05-06",3,0,847,16],["2026-05-08",3,0,561,12],["2026-05-13",3,1,445,7],["2026-05-14",4,0,518,9],["2026-05-18",3,1,475,9],["2026-05-19",3,1,588,7],["2026-05-24",4,0,539,5],["2026-05-29",4,0,1428,12],["2026-05-30",4,0,2167,30],["2026-05-31",4,0,815,6],["2026-06-03",4,0,532,6],["2026-06-05",4,0,786,14],["2026-06-06",4,0,516,12],["2026-06-07",3,1,905,18],["2026-06-11",3,1,442,10],["2026-06-15",0,0,828,23],["2026-06-16",0,0,615,9],["2026-06-17",0,0,461,5],["2026-06-19",0,0,697,15],["2026-06-22",0,0,623,14],["2026-06-24",0,0,1082,24],["2026-06-29",0,0,1152,34],["2026-08-14",3,1,1997,50],["2026-08-17",1,0,1476,29],["2026-08-18",1,0,1290,26],["2026-08-19",1,0,1121,24],["2026-08-20",5,0,897,21],["2026-08-21",5,0,984,25],["2026-09-03",3,1,443,13],["2026-09-04",3,0,2455,19],["2026-09-07",3,0,739,15],["2026-09-08",3,0,634,21],["2026-09-11",3,0,1517,16],["2026-09-12",0,0,688,17],["2026-09-13",3,0,1728,20],["2026-09-13",3,1,1467,12],["2026-09-15",3,0,931,21],["2026-09-16",3,0,748,11],["2026-09-17",3,0,741,15],["2026-09-19",3,0,695,12],["2026-09-23",2,0,845,23],["2026-09-27",3,0,2197,16],["2026-09-29",2,0,1256,19],["2026-10-03",2,0,1681,16],["2026-10-04",3,1,807,20],["2026-10-08",2,0,1148,24],["2026-10-10",6,0,552,18]];
+
+const SERIES_KEY = ["Swipe","Материал к собесу","Диванная аналитика","Прочее",
+                    "A/B и статистика","NBxPlay","Trisigma"];
+const KIND_KEY = ["оригинал","репост"];
+
+const POSTS = ROWS.map(function(r, i){
+  return {d:r[0], s:SERIES_KEY[r[1]], k:KIND_KEY[r[2]], imp:r[3], eng:r[4],
+          n:NAMES[i], eff:Math.round(r[4] / r[3] * 1000 * 10) / 10};
+});
+
+// reports/linkedin-analytics-2026-10-11.md, раздел «Серии» (pooled efficiency).
+const SERIES = [
+  {s:"Swipe",               n:8,  eff:22.9, lo:18.8, hi:26.2},
+  {s:"Материал к собесу",   n:3,  eff:20.3, lo:19.6, hi:21.4},
+  {s:"Диванная аналитика",  n:4,  eff:16.6, lo:11.6, hi:23.6},
+  {s:"Прочее",              n:23, eff:16.1, lo:13.0, hi:19.7},
+  {s:"A/B и статистика",    n:8,  eff:12.9, lo:9.9,  hi:16.3}
+];
+const BELOW = [{s:"NBxPlay", n:2}, {s:"Trisigma", n:1}];
+// Тот же отчёт, раздел «Оригиналы и репосты».
+const KINDS = [
+  {k:"оригинал", n:39, eff:16.9, lo:14.5, hi:19.4},
+  {k:"репост",   n:10, eff:19.4, lo:14.5, hi:23.4}
+];
+// EDA, раздел «По дню недели»: эффективность поста и число постов в бакете.
+const WEEKDAY = [["Пн",23.1,6],["Вт",19.6,6],["Ср",18.0,9],["Чт",22.3,6],
+                 ["Пт",17.2,8],["Сб",19.3,7],["Вс",12.6,7]];
+// DISCOVERY / ENGAGEMENT / FOLLOWERS листы workbook.
+const PERIOD = [
+  ["50 101", "показов"], ["9 440", "охвачено участников"], ["1,71 %", "ER периода"],
+  ["859", "вовлечённостей"], ["2 175", "новых подписчиков"], ["2 094", "подписчиков на конец"]
+];
+
+const CAT = {"Swipe":1,"Материал к собесу":2,"Диванная аналитика":3,
+             "A/B и статистика":4,"NBxPlay":5,"Trisigma":6,"Прочее":11};
+const METRICS = [
+  {k:"imp", label:"Показы", unit:"показы, столбик = один пост"},
+  {k:"eng", label:"Вовлечённости", unit:"вовлечённости, столбик = один пост"},
+  {k:"eff", label:"Эффективность", unit:"вовлечённость на 1 000 показов"}
+];
+const MONTH_RU = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+
+const nf = (v,d) => v.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d});
+const int = v => nf(v,0);
+const eff1 = v => nf(v,1);
+const ddmmyyyy = iso => iso.slice(8,10) + "." + iso.slice(5,7) + "." + iso.slice(0,4);
+
+function el(tag, cls, text){
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+function kpi(value, label){
+  const k = el("span","kpi");
+  k.appendChild(el("span","demo-kpi-value", value));
+  k.appendChild(el("span","demo-kpi-label", label));
+  return k;
+}
+function median(values){
+  const s = values.slice().sort(function(a,b){ return a-b; });
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m-1] + s[m]) / 2;
+}
+
+let metric = "imp";
+const dayOf = iso => Date.UTC(+iso.slice(0,4), +iso.slice(5,7)-1, +iso.slice(8,10)) / 864e5;
+
+// ── Окно целиком ────────────────────────────────────────────────────────────
+(function renderPeriod(){
+  const host = document.getElementById("period");
+  PERIOD.forEach(function(r){ host.appendChild(kpi(r[0], r[1])); });
+})();
+
+// ── График: 49 постов, x — дата ────────────────────────────────────────────
+function renderChart(){
+  const m = METRICS.filter(function(x){ return x.k === metric; })[0];
+  const plot = document.getElementById("cplot");
+  const cy = document.getElementById("cy");
+  const cx = document.getElementById("cx");
+  plot.textContent = ""; cy.textContent = ""; cx.textContent = "";
+
+  const t0 = dayOf(POSTS[0].d), t1 = dayOf(POSTS[POSTS.length-1].d);
+  const left = d => (dayOf(d) - t0) / (t1 - t0) * 100;
+  const max = POSTS.reduce(function(a,p){ return Math.max(a, p[metric]); }, 0) * 1.12;
+  const h = v => v / max * 100;
+  const fmt = v => metric === "eff" ? eff1(v) : int(Math.round(v));
+
+  // Ось — графический объект без текстовой альтернативы, но подписи читаются
+  // как текст: три тика над базовой линией .cplot.
+  [0, max/2, max].forEach(function(v){
+    const s = el("span", null, fmt(v));
+    s.style.bottom = h(v) + "%";
+    cy.appendChild(s);
+  });
+
+  const tops = POSTS.slice().sort(function(a,b){ return b[metric] - a[metric]; }).slice(0,3);
+  POSTS.forEach(function(p, i){
+    const item = el("div","pitem");
+    item.style.left = Math.max(0.4, Math.min(99.6, left(p.d))) + "%";
+    item.dataset.i = String(i);
+    const stem = el("i","pstem");
+    stem.style.height = h(p[metric]) + "%";
+    item.appendChild(stem);
+    const dot = el("i","pdot cat-" + CAT[p.s]);
+    dot.style.bottom = h(p[metric]) + "%";
+    item.appendChild(dot);
+    // Подписываем только три лучших поста: подпись у каждого превратила бы
+    // график в текст, а остальные значения и так есть в списке и в тултипе.
+    if (tops.indexOf(p) >= 0){
+      const lab = el("div","pv", fmt(p[metric]));
+      lab.style.bottom = "calc(" + h(p[metric]) + "% + 6px)";
+      item.appendChild(lab);
+    }
+    plot.appendChild(item);
+  });
+
+  // Месяцы: подпись — на середине постов месяца, во второй строке — сколько их.
+  // Июль в наборе пуст, поэтому его подписи нет: это не «ноль постов».
+  const byMonth = {};
+  POSTS.forEach(function(p){ const key = p.d.slice(0,7); (byMonth[key] = byMonth[key] || []).push(p); });
+  Object.keys(byMonth).sort().forEach(function(key){
+    const list = byMonth[key];
+    const mid = (left(list[0].d) + left(list[list.length-1].d)) / 2;
+    const s = el("span", null, MONTH_RU[+key.slice(5,7)-1]);
+    s.appendChild(document.createElement("br"));
+    s.appendChild(document.createTextNode(String(list.length)));
+    s.style.left = Math.max(1.5, Math.min(98.5, mid)) + "%";
+    cx.appendChild(s);
+  });
+
+  document.getElementById("chart-title").textContent = "Посты по датам · " + m.label.toLowerCase();
+  document.getElementById("chart-unit").textContent = m.unit;
+
+  // KPI по выбранной метрике — пересчитываются вместе с графиком.
+  const host = document.getElementById("mkpi");
+  host.textContent = "";
+  const best = tops[0];
+  const values = POSTS.map(function(p){ return p[metric]; });
+  host.appendChild(kpi(fmt(median(values)), "медиана поста"));
+  host.appendChild(kpi(fmt(best[metric]), "максимум"));
+  const wide = el("span","kpi kpi--wide");
+  wide.appendChild(el("span","demo-kpi-label", "лучший пост по метрике «" + m.label.toLowerCase() + "»"));
+  wide.appendChild(el("span","bestpost",
+    "«" + best.n + "» · " + ddmmyyyy(best.d) + " · " + best.s + " · " + best.k));
+  host.appendChild(wide);
+
+  document.getElementById("chart-note").textContent =
+    "Точка — один пост из набора 49, высота — выбранная метрика, цвет — серия поста (легенда ниже). " +
+    "Июль в наборе пуст: ни один июльский пост не попал в оба топ-блока — это не значит, что постов " +
+    "не было, они просто ниже границы выгрузки. Сумма показов набора — " +
+    int(POSTS.reduce(function(a,p){ return a+p.imp; },0)) + " из 50 101 за период: остальное — " +
+    "показы профиля и посты, не попавшие в топ.";
+}
+
+function renderLegend(){
+  const host = document.getElementById("legend");
+  host.textContent = "";
+  const all = SERIES.concat(BELOW);
+  all.forEach(function(s){
+    const span = el("span");
+    span.appendChild(el("i","demo-swatch cat-" + CAT[s.s]));
+    span.appendChild(el("span", null, s.s + (s.n < 3 ? " (n = " + s.n + ")" : "")));
+    host.appendChild(span);
+  });
+}
+
+// ── Серии ───────────────────────────────────────────────────────────────────
+(function renderSeries(){
+  const host = document.getElementById("series");
+  const MIN = 9, MAX = 27;
+  SERIES.forEach(function(s){
+    const item = el("div","sitem");
+    const hd = el("div","shd");
+    hd.appendChild(el("i","demo-swatch cat-" + CAT[s.s]));
+    hd.appendChild(el("b", null, s.s));
+    hd.appendChild(el("em", null, "n = " + s.n));
+    hd.appendChild(el("span","sval","eff " + eff1(s.eff) + " · [" + nf(s.lo,1) + "; " + nf(s.hi,1) + "]"));
+    item.appendChild(hd);
+    const track = el("div","strack");
+    const range = el("i","srange cat-" + CAT[s.s]);
+    range.style.left = ((s.lo - MIN) / (MAX - MIN) * 100) + "%";
+    range.style.width = ((s.hi - s.lo) / (MAX - MIN) * 100) + "%";
+    track.appendChild(range);
+    const dot = el("i","sdot");
+    dot.style.left = ((s.eff - MIN) / (MAX - MIN) * 100) + "%";
+    track.appendChild(dot);
+    item.appendChild(track);
+    host.appendChild(item);
+  });
+  const axis = document.getElementById("saxis");
+  [10,15,20,25].forEach(function(v){
+    const s = el("span", null, nf(v,0));
+    s.style.left = ((v - MIN) / (MAX - MIN) * 100) + "%";
+    axis.appendChild(s);
+  });
+})();
+
+// ── Вид поста (одна серия: различие не установлено) ────────────────────────
+(function renderKinds(){
+  const host = document.getElementById("kinds");
+  const max = KINDS[0].eff > KINDS[1].eff ? KINDS[0].eff : KINDS[1].eff;
+  KINDS.forEach(function(k){
+    const row = el("div","krow");
+    row.appendChild(el("div","gname", k.k));
+    const track = el("div","ktrack");
+    const bar = el("i","kbar series-bar");
+    bar.style.width = (k.eff / max * 100) + "%";
+    track.appendChild(bar);
+    row.appendChild(track);
+    row.appendChild(el("div","kval",
+      "eff " + eff1(k.eff) + " · [" + nf(k.lo,1) + "; " + nf(k.hi,1) + "] · n = " + k.n));
+    host.appendChild(row);
+  });
+  const wd = document.getElementById("wday");
+  WEEKDAY.forEach(function(d){
+    const s = el("span");
+    s.appendChild(el("b", null, d[0]));
+    s.appendChild(el("span", null, " " + nf(d[1],1) + " (" + d[2] + ")"));
+    wd.appendChild(s);
+  });
+})();
+
+// ── Список постов, отсортированный по выбранной метрике ────────────────────
+function renderList(){
+  const m = METRICS.filter(function(x){ return x.k === metric; })[0];
+  const sorted = POSTS.slice().sort(function(a,b){
+    if (b[metric] !== a[metric]) return b[metric] - a[metric];
+    return a.d < b.d ? -1 : 1;
+  });
+  const host = document.getElementById("plist");
+  host.textContent = "";
+  sorted.forEach(function(p, i){
+    const row = el("div","prow");
+    const l1 = el("div","p1");
+    l1.appendChild(el("span","prank", String(i+1)));
+    l1.appendChild(el("span","pname", p.n));
+    row.appendChild(l1);
+    const l2 = el("div","p2");
+    l2.appendChild(el("span", null, ddmmyyyy(p.d)));
+    l2.appendChild(el("span", null, p.s + " · " + p.k));
+    [["imp", int(p.imp), " показов"], ["eng", int(p.eng), " вовл."], ["eff", eff1(p.eff), " эфф."]]
+      .forEach(function(v){
+        const s = el("span");
+        s.appendChild(el(v[0] === metric ? "b" : "span", null, v[1]));
+        s.appendChild(el("span", null, v[2]));
+        l2.appendChild(s);
+      });
+    row.appendChild(l2);
+    host.appendChild(row);
+  });
+  document.getElementById("list-title").textContent = "Все 49 постов · по метрике «" + m.label.toLowerCase() + "»";
+  document.getElementById("list-unit").textContent = "жирным — значение выбранной метрики";
+  document.getElementById("list-note").textContent =
+    "Список отсортирован по выбранной метрике, поэтому переключатель выше меняет и график, и порядок " +
+    "здесь. «Эфф.» — эффективность поста (вовлечённость на 1 000 показов), не ER периода: ER 1,71 % " +
+    "описывает окно целиком. Декомпозиции вовлечённостей на реакции, комментарии и репосты в выгрузке " +
+    "нет — LinkedIn отдаёт один скаляр, поэтому метрики «комментарии» здесь не может быть.";
+}
+
+document.querySelectorAll("[data-metric]").forEach(function(b){
+  b.addEventListener("click", function(){
+    metric = b.dataset.metric;
+    document.querySelectorAll("[data-metric]").forEach(function(x){
+      const on = x === b;
+      x.classList.toggle("is-on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    renderChart();
+    renderList();
+  });
+});
+
+renderChart();
+renderLegend();
+renderList();
+
+const tip = document.getElementById("tip");
+const chart = document.getElementById("cplot");
+chart.addEventListener("mouseover", function(e){
+  const r = e.target.closest ? e.target.closest("[data-i]") : null;
+  if (!r) return;
+  const p = POSTS[+r.dataset.i];
+  tip.innerHTML = "<b>" + p.n + "</b><br>" + ddmmyyyy(p.d) + " · " + p.s + " · " + p.k +
+    "<br>" + int(p.imp) + " показов · " + int(p.eng) + " вовл. · эфф. " + eff1(p.eff) +
+    '<span class="sub">' + METRICS.filter(function(x){ return x.k === metric; })[0].label.toLowerCase() +
+    " — выбранная метрика</span>";
+  tip.classList.add("is-visible");
+});
+chart.addEventListener("mousemove", function(e){
+  if (!tip.classList.contains("is-visible")) return;
+  tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 274) + "px";
+  tip.style.top = (e.clientY + 14) + "px";
+});
+chart.addEventListener("mouseleave", function(){ tip.classList.remove("is-visible"); });
+</script>
+</body>
+</html>

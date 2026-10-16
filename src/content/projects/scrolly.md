@@ -23,6 +23,7 @@ tools:
 github: https://github.com/NikitaBoyarkin/scrolly-english-speaking
 date: 2026-08-19
 updated: 2026-08-25
+demo: demos/scrolly/index.html
 related:
   - /projects/site/
   - /projects/garden/

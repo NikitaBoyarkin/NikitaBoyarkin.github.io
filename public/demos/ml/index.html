@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Сравнение моделей оттока и кластеры клиентов</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. */
+  .grid{display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);
+        gap:var(--space-4); align-items:start}
+  .stack{display:grid; gap:var(--space-4)}
+  .demo-card h2{margin-bottom:var(--space-3)}
+  /* Picker: site UI tokens, never --dv-*. The coral action accent owns the
+     selected state; dataviz colour is reserved for the matrix cells. */
+  .pick{display:flex; flex-wrap:wrap; gap:var(--space-2); margin-bottom:var(--space-4)}
+  .pick button{font:inherit; font-size:12px; padding:4px var(--space-3); cursor:pointer;
+    color:var(--text-normal); background:var(--background-secondary);
+    border:1px solid var(--border-color); border-radius:var(--radius-full)}
+  .pick button:hover{border-color:var(--border-active)}
+  .pick button[aria-pressed=true]{color:var(--text-accent); border-color:var(--border-active); font-weight:600}
+  .pick button:focus-visible{outline:2px solid var(--text-accent); outline-offset:2px}
+  table{width:100%; border-collapse:collapse; font-size:12px; font-variant-numeric:tabular-nums}
+  th,td{text-align:right; padding:5px 4px; border-bottom:1px solid var(--border-color)}
+  /* Числа не переносятся по середине; первая колонка — названия, она переносится. */
+  th:not(:first-child),td:not(:first-child){white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--dv-label); font-weight:600}
+  tr.on,tr.on td{background:var(--background-tertiary)}
+  .demo-flag{margin-left:6px}
+  .cm{display:grid; grid-template-columns:minmax(64px,auto) 1fr 1fr;
+      gap:var(--space-2); margin-bottom:var(--space-4)}
+  .cmh{display:flex; align-items:center; justify-content:center; font-size:11px;
+       font-weight:600; color:var(--dv-label); text-align:center}
+  .cmh.row{justify-content:flex-start}
+  .cell{display:flex; flex-direction:column; align-items:center; justify-content:center;
+        min-height:88px; border-radius:var(--radius-md); padding:var(--space-2);
+        font-size:21px; font-weight:700; font-variant-numeric:tabular-nums;
+        /* The one ink that sits inside a ramp step; theme-invariant, because the
+           whole ramp lives in the light half of the luminance range. */
+        color:var(--dv-cell-ink)}
+  .cell span{font-size:10px; font-weight:600; letter-spacing:.02em}
+  .kpis{display:grid; grid-template-columns:repeat(5,1fr); gap:var(--space-3) var(--space-3)}
+  .demo-kpi-value{font-size:1.05rem; display:block}
+  .caps{font-size:11px; color:var(--dv-label); font-weight:600; margin-bottom:var(--space-2)}
+  .note{margin:var(--space-3) 0 0; font-size:12px; color:var(--text-muted)}
+  /* Ramp step per cell, applied by class so a theme change re-resolves with no
+     JavaScript. The value labels stay printed inside every cell. */
+  .seq-1{background:var(--dv-seq-1)} .seq-2{background:var(--dv-seq-2)}
+  .seq-3{background:var(--dv-seq-3)} .seq-4{background:var(--dv-seq-4)}
+  .seq-5{background:var(--dv-seq-5)} .seq-6{background:var(--dv-seq-6)}
+  .seq-7{background:var(--dv-seq-7)}
+  .cat-1{background:var(--dv-cat-1)} .cat-2{background:var(--dv-cat-2)}
+  .cat-3{background:var(--dv-cat-3)} .cat-4{background:var(--dv-cat-4)}
+  .cat-5{background:var(--dv-cat-5)}
+  @media (max-width:760px){ .grid{grid-template-columns:1fr}
+    /* Матрица ошибок — герой платы, поэтому на узком экране она выходит первой,
+       хотя в разметке идёт после таблиц: порядок здесь чисто визуальный. */
+    .grid>.stack{order:2} .grid>section{order:1} }
+  @media (max-width:520px){ th,td{padding:4px 2px} table{font-size:11px}
+    .kpis{grid-template-columns:repeat(3,1fr)} .cell{min-height:64px; font-size:17px} }
+</style>
+</head>
+<body>
+  <h1 class="demo-title">Сравнение моделей оттока и кластеры клиентов</h1>
+  <p class="demo-lede">800 синтетических клиентов, стратифицированный сплит 80/20, <b>random_state=42</b>. Признаки: Age, TenureMonths, MonthlyCharges и три категориальных; TotalCharges исключён — в EDA он оказался точной производной MonthlyCharges × (TenureMonths+1) по всем 800 строкам. Выберите модель: матрица ошибок и метрики ниже пересчитаются.</p>
+
+  <div class="grid">
+    <div class="stack">
+      <section class="demo-card">
+        <h2 class="demo-axis-label">Модели на тесте (n = 160, отток 12,5%)</h2>
+        <table>
+          <thead><tr>
+            <th scope="col">Модель</th><th scope="col">Acc</th><th scope="col">Prec</th>
+            <th scope="col">Rec</th><th scope="col">F1</th><th scope="col">AUC</th>
+          </tr></thead>
+          <tbody id="tbl"></tbody>
+        </table>
+        <p class="note">Победитель помечен по ROC-AUC: на 5-фолдовом CV логистическая регрессия тоже первая — 0,862 ± 0,039. Метрики проекта не были закоммичены, поэтому пересчитаны здесь scikit-learn на фиксированном сиде; это не опубликованные числа.</p>
+      </section>
+
+      <section class="demo-card">
+        <h2 class="demo-axis-label">Кластеры: Mall_Customers (200 клиентов)</h2>
+        <table>
+          <thead><tr><th scope="col">Кластер</th><th scope="col">n</th>
+            <th scope="col">Доход, k$</th><th scope="col">Spending</th></tr></thead>
+          <tbody id="cl"></tbody>
+        </table>
+        <p class="note">k-means с k = 5 по паре «годовой доход / spending score»: силуэт 0,555 против 0,494 при k = 4 и 0,540 при k = 6. Ось дохода делит клиентов на низкий, средний и высокий сегмент.</p>
+      </section>
+    </div>
+
+    <section class="demo-card">
+      <h2 class="demo-axis-label">Матрица ошибок — <span id="cmName">—</span></h2>
+      <div class="pick" id="pick" role="group" aria-label="Выбор модели"></div>
+      <p class="caps">Столбцы — прогноз, строки — факт. В ячейке — число тестовых наблюдений.</p>
+      <div class="cm">
+        <div class="cmh"></div>
+        <div class="cmh">прогноз: нет</div>
+        <div class="cmh">прогноз: отток</div>
+        <div class="cmh row">факт: нет</div>
+        <div class="cell" id="m0"><b>—</b><span>TN</span></div>
+        <div class="cell" id="m1"><b>—</b><span>FP</span></div>
+        <div class="cmh row">факт: отток</div>
+        <div class="cell" id="m2"><b>—</b><span>FN</span></div>
+        <div class="cell" id="m3"><b>—</b><span>TP</span></div>
+      </div>
+      <div class="kpis">
+        <div><b class="demo-kpi-value" id="vAcc">—</b><span class="demo-kpi-label">accuracy</span></div>
+        <div><b class="demo-kpi-value" id="vPr">—</b><span class="demo-kpi-label">precision</span></div>
+        <div><b class="demo-kpi-value" id="vRe">—</b><span class="demo-kpi-label">recall</span></div>
+        <div><b class="demo-kpi-value" id="vF1">—</b><span class="demo-kpi-label">F1</span></div>
+        <div><b class="demo-kpi-value" id="vAu">—</b><span class="demo-kpi-label">ROC-AUC</span></div>
+      </div>
+    </section>
+  </div>
+
+<script>
+// Customer_Churn.csv, 800 строк. Метрик моделей в репозитории нет (README прямо
+// говорит, что проект — про пайплайн, а не про качество модели), поэтому они
+// пересчитаны scikit-learn 1.9 на фиксированном сиде: стратифицированный сплит
+// 80/20 (random_state=42), ColumnTransformer (StandardScaler + OneHotEncoder),
+// TotalCharges выброшен по выводу EDA. CM = [TN, FP, FN, TP] на тесте.
+const MODELS = [
+  {n:"Логистическая", acc:.8750, pr:.5000, re:.2000, f1:.2857, auc:.8046, cm:[136,4,16,4], win:true},
+  {n:"Случайный лес", acc:.8688, pr:.4615, re:.3000, f1:.3636, auc:.7650, cm:[133,7,14,6]},
+  {n:"Градиентный бустинг", acc:.8750, pr:.5000, re:.2500, f1:.3333, auc:.7927, cm:[135,5,15,5]},
+  {n:"k-NN (k = 5)", acc:.8688, pr:.4615, re:.3000, f1:.3636, auc:.7443, cm:[133,7,14,6]},
+  {n:"Дерево решений", acc:.8438, pr:.2727, re:.1500, f1:.1935, auc:.6804, cm:[132,8,17,3]},
+  {n:"SVM (RBF)", acc:.8750, pr:0, re:0, f1:0, auc:.7375, cm:[140,0,20,0]}
+];
+// Mall_Customers.csv, k-means (random_state=42) по «доход / spending score»,
+// k = 5 — лучший силуэт. Строки отсортированы по среднему доходу.
+const CLUSTERS = [
+  {n:1, size:22, inc:25.7, sp:79.4},
+  {n:2, size:23, inc:26.3, sp:20.9},
+  {n:3, size:81, inc:55.3, sp:49.5},
+  {n:4, size:39, inc:86.5, sp:82.1},
+  {n:5, size:35, inc:88.2, sp:17.1}
+];
+
+const f = (v, d) => v.toFixed(d).replace(".", ",");
+const pct = v => f(v * 100, 1) + "%";
+// Счёт → шаг последовательной шкалы. Семь шагов демо-палитры вместо
+// интерполяции rgb() на месте: шкала задана токенами, поэтому её контраст
+// проверен в каждой теме, а светлый конец гарантирует читаемый ink.
+const seq = (v, max) => "seq-" + (Math.min(6, Math.round((v / max) * 6)) + 1);
+
+const tbl = document.getElementById("tbl");
+tbl.innerHTML = MODELS.map((m, i) =>
+  '<tr data-i="' + i + '"><td>' + m.n + (m.win ? '<span class="demo-flag demo-flag--ok">лучший AUC</span>' : "") +
+  "</td><td>" + f(m.acc, 3) + "</td><td>" + f(m.pr, 3) + "</td><td>" + f(m.re, 3) +
+  "</td><td>" + f(m.f1, 4) + "</td><td>" + f(m.auc, 3) + "</td></tr>").join("");
+
+const pick = document.getElementById("pick");
+pick.innerHTML = MODELS.map((m, i) =>
+  '<button type="button" data-i="' + i + '" aria-pressed="false">' + m.n + "</button>").join("");
+
+document.getElementById("cl").innerHTML = CLUSTERS.map(c =>
+  '<tr><td><i class="demo-swatch cat-' + c.n + '"></i> Кластер ' + c.n + "</td><td>" + c.size +
+  "</td><td>" + f(c.inc, 1) + "</td><td>" + f(c.sp, 1) + "</td></tr>").join("");
+
+const el = {
+  cm: [0, 1, 2, 3].map(i => document.getElementById("m" + i)),
+  name: document.getElementById("cmName"), rows: tbl.rows,
+  btns: pick.getElementsByTagName("button"),
+  k: ["vAcc", "vPr", "vRe", "vF1", "vAu"].map(id => document.getElementById(id))
+};
+
+function select(i) {
+  const m = MODELS[i];
+  const max = Math.max.apply(null, m.cm);
+  m.cm.forEach((v, k) => {
+    el.cm[k].className = "cell " + seq(v, max);
+    el.cm[k].firstChild.textContent = v;
+  });
+  const vals = [pct(m.acc), f(m.pr, 3), f(m.re, 3), f(m.f1, 4), f(m.auc, 3)];
+  vals.forEach((v, k) => { el.k[k].textContent = v; });
+  el.name.textContent = m.n;
+  Array.prototype.forEach.call(el.rows, (tr, k) => { tr.className = k === i ? "on" : ""; });
+  Array.prototype.forEach.call(el.btns, (b, k) => { b.setAttribute("aria-pressed", String(k === i)); });
+}
+
+pick.addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (b) select(+b.dataset.i);
+});
+select(0);
+</script>
+</body>
+</html>

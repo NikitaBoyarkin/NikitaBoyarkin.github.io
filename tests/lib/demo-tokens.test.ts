@@ -498,7 +498,38 @@ describe('demo dataviz contrast invariant', () => {
 // time.
 
 describe('demos carry no hardcoded colours', () => {
-  const PAGES = ['cohort', 'rfm', 'telegram', 'bayesian', 'volta'];
+  // The list is explicit, not a `readdirSync`: a board that arrives on disk
+  // without a line here is simply not gated, and a silent hole is the exact
+  // failure this block exists to prevent. Preserve that property — when a board
+  // is added under `public/demos/`, add its slug here in the same change.
+  //
+  // `volta-board` is deliberately absent: it is a generated dbt-charts export
+  // (708 KB, one long line) whose SVG is built by an external compiler, not
+  // hand-authored against `demo.css`. `volta` is the hand-authored board.
+  const PAGES = [
+    'cohort',
+    'rfm',
+    'telegram',
+    'bayesian',
+    'volta',
+    'ab',
+    'causal',
+    'churn',
+    'rag',
+    'sql',
+    'python',
+    'serp-rank',
+    'ml',
+    'airflow',
+    'posthog',
+    'streamlit',
+    'supabase',
+    'linkedin',
+    'sales-calls',
+    'garden',
+    'scrolly',
+    'site',
+  ];
 
   const HEX = /#[0-9a-fA-F]{3,8}\b/g;
   /** A <meta name="theme-color"> is a colour that must be a literal. */

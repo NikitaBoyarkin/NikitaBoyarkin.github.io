@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Инженерное здоровье сайта: страницы, вес, Lighthouse, тесты</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type, radii, shadows and the wallpaper come from
+     /demos/demo.css — that is also what makes this page follow the site's
+     three themes. */
+  .stack{display:flex;flex-direction:column;gap:var(--space-4)}
+  .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+    gap:var(--space-2);margin-bottom:var(--space-3)}
+  .note{margin-top:var(--space-3);font-weight:400}
+  .note--tight{margin-top:var(--space-2)}
+  .gap-top{margin-top:var(--space-5)}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));
+    gap:var(--space-3);margin-bottom:var(--space-4)}
+  .kpi{display:flex;flex-direction:column;gap:2px}
+
+  /* Bars: name | track | value text. Width and marker position are set in JS;
+     colour is always a class, never an inline style. */
+  .row{display:grid;grid-template-columns:minmax(104px,190px) 1fr;gap:2px var(--space-2);
+    align-items:center;font-size:12px;margin-bottom:var(--space-2)}
+  .row:last-child{margin-bottom:0}
+  .flab{font-weight:600;overflow-wrap:anywhere}
+  .track{position:relative;height:20px;border-radius:var(--radius-sm);
+    background:var(--background-primary)}
+  .bar{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm);min-width:2px}
+  .mark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--dv-threshold)}
+  .val{grid-column:2;font-size:10px;color:var(--dv-label);margin-top:-3px}
+
+  /* Category switch: an affordance, so it lives on the coral action accent and
+     --border-active, never on a --dv-* token. */
+  .seg{display:flex;flex-wrap:wrap;gap:4px}
+  .ctrl{font:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:3px 10px;
+    border-radius:var(--radius-full);background:var(--background-secondary);
+    color:var(--text-muted);border:1px solid var(--border-color)}
+  .ctrl:hover{color:var(--text-accent-hover);border-color:var(--border-active)}
+  .ctrl.is-on{color:var(--text-normal);border-color:var(--border-active);
+    background:var(--background-tertiary)}
+  .ctrl:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+  .ctlrow{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4);
+    align-items:center;margin-bottom:var(--space-4)}
+  .readout{display:flex;flex-wrap:wrap;gap:var(--space-4);margin-bottom:var(--space-3)}
+  .readout .kpi{min-width:88px}
+
+  .trend{display:block;width:100%;height:auto;margin-top:var(--space-3)}
+  /* SVG text sizes (coordinates live in the markup, font sizes here). */
+  .tick{font-size:9px}
+  /* The 90-point Lighthouse "good" band, dashed to distinguish it from the
+     axis. stroke-only: the polyline above it carries fill="none". */
+  .thr-line{stroke:var(--dv-threshold)}
+
+  .inv{list-style:none;display:grid;gap:var(--space-2);font-size:12px}
+  .inv li{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:baseline}
+  .inv b{font-family:var(--font-mono);color:var(--text-accent-dataviz);font-size:13px}
+  .inv em{font-style:normal;color:var(--dv-label)}
+  .cols{display:grid;gap:var(--space-4)}
+  @media (min-width:760px){.cols{grid-template-columns:1fr 1fr}}
+
+  @media (max-width:520px){
+    .row{grid-template-columns:minmax(80px,112px) 1fr}
+    .ctrl{font-size:11px;padding:3px 8px}
+  }
+
+  /* demo.css's shared `.dv-s1` is a `fill` utility for SVG. The HTML bars and
+     legend swatches here re-apply the same series token to `background` in one
+     declaration, instead of an inline colour per mark. */
+  .dv-s1{background:var(--text-accent-dataviz)}
+  /* Same value the threshold marker and its SVG twin read. */
+  .thr{background:var(--dv-threshold)}
+  /* The sequential steps and the categorical set, applied by class so they
+     re-resolve on a theme change with no JavaScript at all. */
+  .seq-1{background:var(--dv-seq-1)} .seq-2{background:var(--dv-seq-2)}
+  .seq-3{background:var(--dv-seq-3)} .seq-4{background:var(--dv-seq-4)}
+  .seq-5{background:var(--dv-seq-5)} .seq-6{background:var(--dv-seq-6)}
+  .seq-7{background:var(--dv-seq-7)}
+  .cat-1{background:var(--dv-cat-1)} .cat-2{background:var(--dv-cat-2)}
+  .cat-3{background:var(--dv-cat-3)} .cat-4{background:var(--dv-cat-4)}
+  .cat-5{background:var(--dv-cat-5)} .cat-6{background:var(--dv-cat-6)}
+  .cat-9{background:var(--dv-cat-9)} .cat-11{background:var(--dv-cat-11)}
+</style>
+</head>
+<body>
+  <h1 class="demo-title">Инженерное здоровье сайта: страницы, вес, Lighthouse, тесты</h1>
+  <p class="demo-lede">Всё посчитано локально по этому репозиторию: <b>241</b> собранная HTML-страница
+  в <code>dist/</code> (794 файла), <b>152</b> исторических отчёта Lighthouse в <code>lhci-reports/</code>
+  от 2026-09-19 до 2026-10-13, <b>52</b> файла тестов и инвентарь <code>src/content/</code>. Переключайте
+  категорию Lighthouse — числа на обеих диаграммах и KPI считаются заново.</p>
+
+  <div class="stack">
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Масштаб и вес сборки · <code>dist/</code></h2>
+        <span class="demo-axis-label">собрано статикой, 794 файла</span>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="demo-axis-label">Вес по типу файла, МБ (сырой размер на диске)</div>
+      <div id="assets"></div>
+      <p class="demo-axis-label note note--tight" id="assets-rest"></p>
+      <div class="demo-axis-label gap-top">Крупнейшие страницы: сырой HTML и он же в gzip</div>
+      <div id="biggest"></div>
+      <p class="demo-axis-label note note--tight">Медиана HTML — 58,6 КБ сырых и 14,4 КБ в gzip:
+      разрыв в 4,1 раза создают инлайн-SVG и повторяющаяся разметка, которая в gzip почти бесплатна.
+      Верхний ряд — <code>demos/volta-board/</code>: 692,3 КБ сырых, 478,6 КБ в gzip — это
+      сгенерированный экспорт dbt-charts, а не рукописная страница.</p>
+      <p class="demo-axis-label note note--tight" id="secs"></p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Lighthouse по страницам и во времени</h2>
+        <span class="demo-axis-label" id="lh-meta"></span>
+      </div>
+      <div class="ctlrow">
+        <div class="seg" role="group" aria-label="Категория Lighthouse" id="cats"></div>
+        <span class="demo-axis-label" id="lh-cat-note"></span>
+      </div>
+      <div class="readout" id="lh-kpi"></div>
+
+      <div class="demo-axis-label">Последний отчёт по каждому из <span id="url-n"></span> URL — балл выбранной категории</div>
+      <div id="perurl"></div>
+
+      <div class="demo-axis-label gap-top">Тренд главной страницы: <span id="trend-n"></span> прогонов, 4 дня</div>
+      <svg class="trend" id="trend" viewBox="0 0 640 176" role="img"
+        aria-label="Балл выбранной категории Lighthouse по прогонам главной страницы"></svg>
+      <div class="demo-legend note">
+        <span><i class="demo-swatch dv-s1"></i>балл выбранной категории, по прогонам</span>
+        <span><i class="demo-swatch thr"></i>граница 90 — порог «good» в Lighthouse</span>
+      </div>
+      <p class="demo-axis-label note">Ограничения данных: все 152 отчёта сняты против локального
+      dev-сервера <code>http://localhost:4321/</code>, а не против домена — на цифры влияет
+      окружение, и переносить их на прод нельзя. 10 отчётов сделаны Lighthouse 12.1.0, 142 —
+      12.6.1, поэтому «тренд» через границу версий строг только внутри одного дня. «Дни» на графике —
+      не расписание, а 4 календарные даты, в которые прогоны вообще запускались.</p>
+      <p class="demo-axis-label note" id="lh-note"></p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Чем это проверено, и что вообще лежит в репозитории</h2>
+        <span class="demo-axis-label">тесты и контент</span>
+      </div>
+      <div class="cols">
+        <div>
+          <div class="demo-axis-label">Поверхность проверки · <code>tests/</code></div>
+          <ul class="inv" id="tests"></ul>
+          <p class="demo-axis-label note note--tight">52 файла дают 535 мест <code>test()</code>/<code>it()</code>
+          (число больше 52, потому что часть файлов параметризована через <code>each</code>) и 135
+          блоков <code>describe</code>. Зафиксированный прогон гейта
+          (<code>docs/prd-project-dashboards.md</code>): <code>bun run test</code> — 442 pass, 0 fail;
+          <code>bun run test:built</code> — 236 pass, 0 fail. Это запись в документации, а не
+          пересчитанный сейчас прогон.</p>
+        </div>
+        <div>
+          <div class="demo-axis-label">Инвентарь контента · <code>src/content/</code></div>
+          <ul class="inv" id="content"></ul>
+          <p class="demo-axis-label note note--tight">Русские и английские коллекции идут парами
+          (<code>posts</code>/<code>posts-en</code> и так далее), кроме <code>library</code> и
+          <code>about</code>. 24 поста и 22 проекта — это то, из чего собраны 241 страница.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <div class="demo-tooltip" id="tip"></div>
+
+<script>
+(function(){
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+
+  /* ── Данные ───────────────────────────────────────────────────────────────
+     ASSETS / BIGGEST / SECTIONS / COLLECTIONS — из `dist/` (os.walk + getsize;
+     gzip — zlib.compress(level 6) по каждому HTML-файлу).
+     PAGES / TREND — из `lhci-reports/*.report.json`: категории из
+     `categories[<key>].score` (score*100, 0…100). PAGES — ПОСЛЕДНИЙ отчёт по
+     каждому URL; TREND — все 18 прогонов главной в порядке fetchTime.
+     TESTS / CONTENT — пересчёт файлов тестов и md/mdx в src/content/. */
+
+  var ASSETS = [
+    ["HTML",241,17.801],["SVG",379,13.091],["PNG",51,10.003],["JS",31,1.483],
+    ["woff2",27,0.545],["TTF",20,0.514],["PDF",2,0.331],["CSS",7,0.307],
+    ["woff",20,0.303],["JSON",4,0.214],["JPG",1,0.158],["txt",3,0.105],
+    ["XML",4,0.093],["WebP",1,0.037],["прочее",3,0.027]
+  ];
+  var BIGGEST = [
+    ["demos/volta-board/",692.3,478.6],["colleague/",590.8,72.9],["repo-audit/",549.9,126.7],
+    ["en/colleague/",535.6,68.7],["graph/",437.6,53.2],["en/graph/",394.7,51.0],
+    ["projects/volta/",216.8,37.6],["en/projects/volta/",196.3,34.1],
+    ["projects/streamlit/",145.3,23.3],["projects/volta/anomalies/",145.2,25.0]
+  ];
+  var SECTIONS = [
+    ["/en/*",91],["/projects/",46],["/glossary/",28],["/posts/",24],["/demos/",15],
+    ["/topics/",10],["/library/",3],["/writing/",3],["/repo-audit/",2],["/notes/",2]
+  ];
+  var PAGES = [
+    ["/",96,100,100,100,"2026-10-04",18],
+    ["/404.html",99,100,100,100,"2026-10-04",6],
+    ["/about/",97,100,100,100,"2026-10-04",7],
+    ["/contact/",99,100,100,100,"2026-10-04",7],
+    ["/en/",91,100,100,100,"2026-10-04",18],
+    ["/en/contact/",97,100,100,100,"2026-10-04",7],
+    ["/en/projects/",97,100,100,100,"2026-10-05",9],
+    ["/en/writing/",95,100,100,100,"2026-10-04",7],
+    ["/graph/",97,100,100,100,"2026-10-04",7],
+    ["/posts/cohort-retention-guide/",98,100,100,100,"2026-10-04",7],
+    ["/projects/",98,100,100,100,"2026-10-05",9],
+    ["/projects/volta/",97,100,100,100,"2026-10-04",12],
+    ["/repo-audit/",51,100,100,63,"2026-10-13",7],
+    ["/topics/",98,100,100,100,"2026-10-04",12],
+    ["/value/",99,100,100,100,"2026-10-04",7],
+    ["/writing/",95,100,100,100,"2026-10-04",12]
+  ];
+  var TREND = [
+    ["2026-09-19",55,98,100,100],["2026-09-19",66,98,100,100],["2026-09-20",64,98,100,100],
+    ["2026-09-20",96,100,100,100],["2026-09-20",97,100,100,100],["2026-09-27",96,100,100,100],
+    ["2026-09-27",96,100,100,100],["2026-09-27",96,100,100,100],["2026-09-27",96,100,100,100],
+    ["2026-09-27",96,100,100,100],["2026-09-27",96,100,100,100],["2026-10-04",55,100,100,92],
+    ["2026-10-04",57,100,100,92],["2026-10-04",57,100,100,92],["2026-10-04",87,100,100,100],
+    ["2026-10-04",86,100,100,100],["2026-10-04",86,100,100,100],["2026-10-04",96,100,100,100]
+  ];
+  var CATS = [
+    {key:"Performance", i:1}, {key:"Accessibility", i:2},
+    {key:"Best practices", i:3}, {key:"SEO", i:4}
+  ];
+  var TESTS = [
+    ["files: tests/",52,"38 в tests/lib + 14 в tests/built"],
+    ["call-sites test()/it()",535,"по 52 файлам, includes it.each"],
+    ["блоков describe",135,""],
+    ["отчётов Lighthouse",152,"16 уникальных URL, 44 запуска"]
+  ];
+  var CONTENT = [
+    ["posts",24,398],["projects",22,171],["glossary",27,57],["volta-parts",23,112],
+    ["projects-en",22,118],["glossary-en",27,37],["posts-en",2,13],
+    ["library",2,1],["library-en",2,1],["about",2,15]
+  ];
+
+  var txt = function(v,d){ d = d || 0;
+    return v.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d})
+      .replace(/^-/, "\u2212"); };
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = text;
+    return n;
+  }
+  function svgEl(tag, attrs, text){
+    var n = document.createElementNS(NS, tag), k;
+    for (k in attrs){ if (attrs[k] !== null && attrs[k] !== undefined) n.setAttribute(k, attrs[k]); }
+    if (text !== null && text !== undefined) n.textContent = text;
+    return n;
+  }
+  function barRow(host, name, value, max, valueText, cls, targetAt){
+    var row = el("div","row");
+    row.appendChild(el("span","flab",name));
+    var track = el("div","track");
+    var bar = el("div","bar " + cls);
+    bar.style.width = Math.max(1, Math.min(100, value / max * 100)) + "%";
+    track.appendChild(bar);
+    if (targetAt != null){
+      var m = el("div","mark");
+      m.style.left = Math.max(0, Math.min(100, targetAt / max * 100)) + "%";
+      track.appendChild(m);
+    }
+    row.appendChild(track);
+    row.appendChild(el("div","val",valueText));
+    host.appendChild(row);
+    return row;
+  }
+  function kpi(host, value, label){
+    var d = el("div","kpi");
+    d.appendChild(el("div","demo-kpi-value",value));
+    d.appendChild(el("div","demo-kpi-label",label));
+    host.appendChild(d);
+  }
+
+  /* ── Сборка: KPI, вес по типу, крупнейшие страницы, разделы ────────────── */
+  var kpis = document.getElementById("kpis");
+  kpi(kpis, "241", "HTML-страниц в dist/");
+  kpi(kpis, "794", "файлов всего · 45,0 МБ");
+  kpi(kpis, "17,8 МБ", "HTML сырых · 72,1 КБ в среднем");
+  kpi(kpis, "4,21 МБ", "HTML в gzip · 14,4 КБ медиана");
+  kpi(kpis, "15", "демо-бордов /demos/*/");
+  kpi(kpis, "19,5 МБ", "весь dist/ в gzip");
+
+  var assets = document.getElementById("assets");
+  var top = ASSETS.slice(0, 8), rest = ASSETS.slice(8);
+  var maxAsset = top[0][2];
+  top.forEach(function(a){
+    barRow(assets, a[0] + " · " + txt(a[1]), a[2], maxAsset,
+      txt(a[2],3) + " МБ · " + txt(a[1]) + " файл(ов)", a[0] === "HTML" ? "dv-s1" : "seq-3");
+  });
+  document.getElementById("assets-rest").textContent =
+    "вне диаграммы (каждый ≤ 0,31 МБ): " +
+    rest.map(function(a){ return a[0] + " " + txt(a[2],3) + " МБ"; }).join(" · ") + ".";
+
+  var biggest = document.getElementById("biggest");
+  var maxBig = BIGGEST[0][1];
+  BIGGEST.forEach(function(b){
+    barRow(biggest, b[0], b[1], maxBig,
+      txt(b[1],1) + " КБ сырых · " + txt(b[2],1) + " КБ gzip (" + txt(b[2]/b[1]*100,0) + " %)",
+      "dv-s1");
+  });
+
+  /* Разделы — строкой чисел, а не диаграммой: 10 секций и 17 одиночных
+     маршрутов читаются как список лучше, чем как 27 полос. */
+  var secs = SECTIONS.map(function(s){ return s[0] + " " + txt(s[1]); }).join(" · ");
+  document.getElementById("secs").textContent = "Страницы по разделам: " + secs +
+    " · плюс 17 одиночных маршрутов (/about/, /contact/, /cv/, /graph/, /start/ и др.) — 17 страниц.";
+
+  /* ── Lighthouse ────────────────────────────────────────────────────────── */
+  var cats = document.getElementById("cats");
+  var perurl = document.getElementById("perurl");
+  var trend = document.getElementById("trend");
+  var lhKpi = document.getElementById("lh-kpi");
+  var lhCatNote = document.getElementById("lh-cat-note");
+  var lhNote = document.getElementById("lh-note");
+  var cur = 0;
+
+  document.getElementById("lh-meta").textContent =
+    txt(TREND.length) + " прогонов · 09-19 → 10-13 · LH 12.1.0 (10 отчётов) и 12.6.1 (142)";
+  document.getElementById("url-n").textContent = PAGES.length;
+  document.getElementById("trend-n").textContent = TREND.length;
+
+  CATS.forEach(function(c, k){
+    var b = el("button","ctrl" + (k === 0 ? " is-on" : ""), c.key);
+    b.type = "button";
+    b.setAttribute("aria-pressed", k === 0 ? "true" : "false");
+    b.addEventListener("click", function(){
+      cur = k;
+      Array.prototype.forEach.call(cats.children, function(x, j){
+        x.classList.toggle("is-on", j === k);
+        x.setAttribute("aria-pressed", j === k ? "true" : "false");
+      });
+      renderLH();
+    });
+    cats.appendChild(b);
+  });
+
+  function median(a){
+    var s = a.slice().sort(function(x,y){ return x - y; });
+    var m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : (s[m-1] + s[m]) / 2;
+  }
+
+  function renderPerUrl(){
+    perurl.textContent = "";
+    PAGES.slice().sort(function(a,b){ return b[CATS[cur].i] - a[CATS[cur].i] || (a[0] < b[0] ? -1 : 1); })
+      .forEach(function(p){
+        var v = p[CATS[cur].i];
+        var row = barRow(perurl, p[0], v, 100,
+          txt(v) + " · " + p[5] + " · прогонов: " + txt(p[6]),
+          v >= 90 ? "dv-s1" : (v >= 50 ? "cat-6" : "cat-9"));
+        row.setAttribute("title", p[0] + " — " + CATS[cur].key + ": " + v);
+        row.dataset.note = p[0] + " · " + CATS[cur].key + " = " + v +
+          " · последний отчёт " + p[5] + ", всего отчётов по URL: " + p[6];
+      });
+  }
+
+  function renderTrend(){
+    while (trend.firstChild) trend.removeChild(trend.firstChild);
+    var W = 640, H = 176, L = 34, R = 10, T = 14, B = 34;
+    var iw = W - L - R, ih = H - T - B;
+    var y = function(v){ return T + ih - v / 100 * ih; };
+    var x = function(k){ return L + (TREND.length === 1 ? iw / 2 : k / (TREND.length - 1) * iw); };
+
+    [0,25,50,75,100].forEach(function(g){
+      trend.appendChild(svgEl("line", {x1:L, y1:y(g), x2:W - R, y2:y(g), class:"edge dv-axis",
+        "stroke-width":0.6}));
+      trend.appendChild(svgEl("text", {x:L - 5, y:y(g) + 3, "text-anchor":"end",
+        class:"tick dv-label"}, String(g)));
+    });
+    // The 90 threshold is Lighthouse's own "good" band, not this site's choice.
+    trend.appendChild(svgEl("line", {x1:L, y1:y(90), x2:W - R, y2:y(90),
+      class:"thr-line", "stroke-width":1, "stroke-dasharray":"5 4"}));
+    trend.appendChild(svgEl("text", {x:W - R, y:y(90) - 4, "text-anchor":"end",
+      class:"tick dv-label"}, "90 · good"));
+
+    var pts = TREND.map(function(r, k){ return x(k) + "," + y(r[CATS[cur].i]); }).join(" ");
+    trend.appendChild(svgEl("polyline", {points:pts, fill:"none", class:"dv-s1-line",
+      "stroke-width":2, "stroke-linejoin":"round"}));
+    TREND.forEach(function(r, k){
+      trend.appendChild(svgEl("circle", {cx:x(k), cy:y(r[CATS[cur].i]), r:2.8,
+        class:"dv-s1", "data-i":k}));
+      trend.appendChild(svgEl("text", {x:x(k), y:y(r[CATS[cur].i]) - 7, "text-anchor":"middle",
+        class:"tick dv-ink"}, String(r[CATS[cur].i])));
+    });
+
+    // One label per day (the first run of that day) + how many runs it holds.
+    var days = {};
+    TREND.forEach(function(r){ days[r[0]] = (days[r[0]] || 0) + 1; });
+    var seen = {};
+    TREND.forEach(function(r, k){
+      if (seen[r[0]]) return;
+      seen[r[0]] = 1;
+      trend.appendChild(svgEl("line", {x1:x(k), y1:y(0), x2:x(k), y2:y(0) + 4, class:"edge dv-axis"}));
+      trend.appendChild(svgEl("text", {x:x(k), y:H - 18, "text-anchor":"middle",
+        class:"tick dv-label"}, r[0].slice(5)));
+      trend.appendChild(svgEl("text", {x:x(k), y:H - 7, "text-anchor":"middle",
+        class:"tick dv-label"}, "запусков: " + txt(days[r[0]])));
+    });
+    trend.appendChild(svgEl("line", {x1:L, y1:y(0), x2:W - R, y2:y(0), class:"edge dv-axis"}));
+  }
+
+  function renderLH(){
+    var i = CATS[cur].i;
+    var vals = PAGES.map(function(p){ return p[i]; });
+    var trendVals = TREND.map(function(r){ return r[i]; });
+    lhKpi.textContent = "";
+    kpi(lhKpi, txt(Math.min.apply(null, vals)), "минимум по 16 URL");
+    kpi(lhKpi, txt(median(vals)), "медиана по 16 URL");
+    kpi(lhKpi, txt(Math.max.apply(null, vals)), "максимум по 16 URL");
+    kpi(lhKpi, txt(Math.min.apply(null, trendVals)) + " → " + txt(Math.max.apply(null, trendVals)),
+      "диапазон на главной (" + TREND.length + " прогонов)");
+    lhCatNote.textContent = "выбрано: " + CATS[cur].key +
+      " · медиана " + txt(median(trendVals)) + " по прогонам главной";
+
+    var below = PAGES.filter(function(p){ return p[i] < 90; });
+    var bp = lhNote;
+    if (cur === 0){
+      bp.textContent = "Просадка на главной 2026-10-04: 55, 57, 57, затем 87, 86, 86 и 96 — " +
+        "регрессию поймали и починили в тот же день. Минимум в последних отчётах вне /repo-audit/ " +
+        "— 91 (/en/); /repo-audit/ держится на 51 (диапазон 28–51 за 7 прогонов 2026-10-13) и " +
+        "тянет минимум вниз.";
+    } else if (cur === 1){
+      bp.textContent = "Accessibility — самая крепкая категория: 100 у всех 16 URL в последнем " +
+        "отчёте и в 135 из 152 отчётов. Минимум за всю историю — 95 (2026-09-27, /value/, " +
+        "/contact/, /en/contact/); 96 там же у /about/, /en/writing/, " +
+        "/posts/cohort-retention-guide/, а 98 у / и /en/ в отчётах 2026-09-19/20. С 2026-10-04 " +
+        "ниже 100 не опускалось ни разу.";
+    } else if (cur === 2){
+      bp.textContent = "Best practices = 100 везде, кроме двух отчётов 2026-09-27 по /contact/ и " +
+        "/en/contact/, где 79; в последнем отчёте снова 100. Это единственное значение ниже 100 " +
+        "за все 152 отчёта.";
+    } else {
+      bp.textContent = "SEO = 100 у 14 из 16 URL. Два исключения: /repo-audit/ — 63 (7 прогонов " +
+        "2026-10-13) и главная 2026-10-04 — 92 на трёх прогонах до починки. /repo-audit/ — самая " +
+        "новая страница набора и худшая по трём категориям из четырёх.";
+    }
+    if (below.length) {
+      bp.textContent += " Ниже 90 в выбранной категории: " +
+        below.map(function(p){ return p[0] + " (" + p[i] + ")"; }).join(", ") + ".";
+    }
+    renderPerUrl();
+    renderTrend();
+  }
+
+  /* ── Тесты и контент ───────────────────────────────────────────────────── */
+  var th = document.getElementById("tests");
+  TESTS.forEach(function(r){
+    var li = el("li");
+    li.appendChild(el("b", null, txt(r[1])));
+    li.appendChild(el("span", null, r[0]));
+    if (r[2]) li.appendChild(el("em", null, r[2]));
+    th.appendChild(li);
+  });
+  var ch = document.getElementById("content");
+  CONTENT.forEach(function(r){
+    var li = el("li");
+    li.appendChild(el("b", null, txt(r[1])));
+    li.appendChild(el("span", null, r[0] + "/"));
+    li.appendChild(el("em", null, txt(r[2]) + " КБ суммарно"));
+    ch.appendChild(li);
+  });
+
+  /* Tooltip на рядах последних отчётов и на точках тренда. */
+  var tip = document.getElementById("tip");
+  document.addEventListener("mousemove", function(e){
+    var t = e.target.closest ? e.target.closest("[data-note], [data-i]") : null;
+    if (!t){ tip.classList.remove("is-visible"); return; }
+    var s;
+    if (t.dataset.note) s = t.dataset.note;
+    else {
+      var r = TREND[+t.dataset.i];
+      s = "главная · " + r[0] + " · " + CATS[cur].key + " = " + r[CATS[cur].i] +
+        " · прогон " + (+t.dataset.i + 1) + " из " + TREND.length;
+    }
+    tip.innerHTML = "<b>" + s.split(" · ").slice(0,2).join(" · ") + "</b>" +
+      '<span class="sub">' + s.split(" · ").slice(2).join(" · ") + "</span>";
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - 274) + "px";
+    tip.style.top = (e.clientY + 14) + "px";
+    tip.classList.add("is-visible");
+  });
+  document.addEventListener("mouseleave", function(){ tip.classList.remove("is-visible"); });
+
+  renderLH();
+})();
+</script>
+</body>
+</html>

@@ -4,6 +4,7 @@ import Base from '../../../layouts/Base.astro';
 import InnerTOC from '../../../components/InnerTOC.astro';
 import InlineTOC from '../../../components/InlineTOC.astro';
 import StarBlock from '../../../components/StarBlock.astro';
+import ProjectDemo from '../../../components/ProjectDemo.astro';
 import ProjectGraph from '../../../components/ProjectGraph.astro';
 import ChartsSection from '../../../components/charts/ChartsSection.astro';
 import SectionTabs from '../../../components/SectionTabs.astro';
@@ -92,8 +93,19 @@ const hasCharts = Boolean(
     (chartIds ? chartIds.some((id) => chartPayload.charts.some((c) => c.id === id)) : true),
 );
 const hasConnections = related.length > 0 || sub.nodes.length > 1;
+
+// `demo:` is either an in-repo board path or an absolute third-party URL. Only
+// the former earns a panel: an external page would not follow the site's three
+// themes, and one sending X-Frame-Options: DENY renders as an empty box. The
+// link works for both, so the meta row shows it either way.
+const demoRaw = project.data.demo;
+const demoExternal = Boolean(demoRaw && /^https?:/.test(demoRaw));
+const demoHref = demoRaw ? (demoExternal ? demoRaw : withBase(demoRaw)) : null;
+const hasDemo = Boolean(demoHref);
+
 const projectTabs = [
   { id: 'case', label: 'Case study' },
+  ...(hasDemo ? [{ id: 'demo', label: 'Dashboard' }] : []),
   ...(hasCharts ? [{ id: 'charts', label: 'Analytics' }] : []),
   ...(hasConnections ? [{ id: 'connections', label: 'Connections' }] : []),
 ];
@@ -222,6 +234,22 @@ const pageJsonLd = {
       }
 
       {
+        demoHref && (
+          <div class="project-meta-group">
+            <span class="project-meta-label">Demo</span>
+            <a
+              class="project-meta-link"
+              href={demoHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open the dashboard →
+            </a>
+          </div>
+        )
+      }
+
+      {
         project.data.github && (
           <div class="project-meta-group">
             <span class="project-meta-label">Source</span>
@@ -266,6 +294,14 @@ const pageJsonLd = {
           }
         </article>
       </SectionPanel>
+
+      {
+        hasDemo && (
+          <SectionPanel id="demo" tabbed={tabbed}>
+            <ProjectDemo href={demoHref!} external={demoExternal} lang="en" />
+          </SectionPanel>
+        )
+      }
 
       {
         hasCharts && (

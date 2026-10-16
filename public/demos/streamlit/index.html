@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Streamlit-приложение: KPI-борд продуктовой аналитики</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. */
+  .stack{display:flex;flex-direction:column;gap:var(--space-4)}
+  .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+    gap:var(--space-2);margin-bottom:var(--space-3)}
+  .ctlrow{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3);
+    align-items:center;margin-bottom:var(--space-3)}
+  .seg{display:flex;flex-wrap:wrap;gap:4px}
+  /* Affordances live on the coral action accent, never on --dv-*. */
+  .ctrl{font:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:3px 10px;
+    border-radius:var(--radius-full);background:var(--background-secondary);
+    color:var(--text-muted);border:1px solid var(--border-color)}
+  .ctrl:hover{color:var(--text-accent-hover);border-color:var(--border-active)}
+  .ctrl.is-on{color:var(--text-normal);border-color:var(--border-active);
+    background:var(--background-tertiary)}
+  .ctrl:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+
+  .kpis{display:grid;gap:var(--space-3);
+    grid-template-columns:repeat(auto-fit,minmax(132px,1fr))}
+  .kpi{display:flex;flex-direction:column;gap:2px}
+
+  /* demo.css's shared `.dv-s1` is a `fill` utility — the SVG series class. The
+     funnel bars here are HTML boxes, so the series token is re-applied to
+     `background` in one declaration instead of an inline colour per bar. */
+  .dv-s1{background:var(--text-accent-dataviz)}
+
+  .chart{width:100%;height:238px;display:block}
+  .gridline{stroke:var(--dv-axis);stroke-dasharray:2 4}
+
+  /* Multipage structure: sidebar nav next to the page body it selects. */
+  .flow{display:grid;grid-template-columns:196px 1fr;gap:var(--space-3);
+    align-items:stretch}
+  .side{display:flex;flex-direction:column;gap:3px;padding:var(--space-3);
+    background:var(--background-primary);border-radius:var(--radius-md)}
+  .shead{font-size:11px;font-weight:700;color:var(--text-normal);
+    padding-bottom:var(--space-2)}
+  .sitem{font-size:11px;font-weight:600;color:var(--text-muted);
+    padding:3px var(--space-2);border-radius:var(--radius-sm)}
+  /* The one item the diagram marks as selected. It stands for a nav
+     affordance, so it borrows the action accent rather than a --dv-* token. */
+  .sitem.is-cur{color:var(--text-accent);background:var(--background-tertiary)}
+  .scap{font-size:10px;font-weight:400;color:var(--dv-label);padding-top:var(--space-2)}
+  .body{display:flex;flex-direction:column;gap:var(--space-2);
+    padding:var(--space-3);border-radius:var(--radius-md)}
+  .bhead{font-size:12px;font-weight:700;color:var(--text-normal)}
+  .bullets{display:flex;flex-direction:column;gap:3px}
+  .bullets span{font-size:11px;color:var(--text-muted)}
+
+  /* Funnel: label + track per step, numbers on the second grid row. */
+  .stage{display:grid;grid-template-columns:112px 1fr;gap:2px var(--space-2);
+    align-items:center;margin-bottom:var(--space-2)}
+  .lab{font-size:12px;font-weight:600;color:var(--text-normal);overflow-wrap:anywhere}
+  .track{position:relative;height:22px;background:var(--background-primary);
+    border-radius:var(--radius-sm)}
+  .bar{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm)}
+  .num{grid-column:2;font-size:10px;font-weight:600;color:var(--dv-label)}
+
+  /* Two short columns for the "live vs static" note. */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)}
+  .col{display:flex;flex-direction:column;gap:var(--space-2)}
+  .col ul{margin:0;padding-left:15px}
+  .col li{font-size:11px;color:var(--text-muted);margin-bottom:3px}
+
+  .note{margin-top:var(--space-3);font-weight:400}
+  .note--tight{margin-top:var(--space-2)}
+
+  @media (max-width:560px){
+    .flow{grid-template-columns:1fr}
+    .cols{grid-template-columns:1fr}
+    .stage{grid-template-columns:92px 1fr}
+    .lab{font-size:11px}
+    .kpis{grid-template-columns:repeat(auto-fit,minmax(112px,1fr))}
+  }
+</style>
+</head>
+<body>
+  <h1 class="demo-title">Streamlit-приложение: KPI-борд продуктовой аналитики</h1>
+  <p class="demo-lede">Статический снимок живого multipage-приложения <b>streamlit-app</b>: детерминированный синтетический датасет (seed 42, 8 000 пользователей, январь 2024 — июнь 2025). Панель KPI, которые приложение считает само; рост MRR с переключателем метрики; структура навигации по пяти страницам.</p>
+
+  <div class="stack">
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Что это за приложение: пять страниц под общей боковой панелью</h2>
+        <span class="demo-axis-label">app.py → st.navigation</span>
+      </div>
+      <div class="flow">
+        <div class="side">
+          <span class="shead">Product Analytics</span>
+          <span class="sitem is-cur">🏠 Overview</span>
+          <span class="sitem">🪣 Funnel</span>
+          <span class="sitem">🔁 Retention</span>
+          <span class="sitem">💰 Revenue</span>
+          <span class="sitem">🎯 Segments</span>
+          <span class="scap">8 000 пользователей · 2024-01 — 2025-06</span>
+        </div>
+        <div class="body demo-panel">
+          <span class="bhead">pages/overview.py — страница, открытая по умолчанию</span>
+          <div class="bullets">
+            <span>5 KPI: пользователи, платящие, MRR, активные за 30 дней, stickiness</span>
+            <span>DAU-тренд (площадной график Plotly)</span>
+            <span>новые регистрации по месяцам · конверсия в оплату по каналам</span>
+            <span>страницы Funnel / Retention / Revenue / Segments читают тот же набор данных</span>
+          </div>
+          <span class="scap">Датасет генерируется один раз и кэшируется через <code>@st.cache_data</code>, поэтому все пять страниц внутри сессии видят одни и те же числа.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">KPI-панель приложения, страница Overview при значениях по умолчанию</h2>
+        <span class="demo-axis-label">все каналы · весь период</span>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <p class="demo-axis-label note">Это ровно те пять показателей, которые считает <code>pages/overview.py</code>: <code>len(users)</code>, <code>subs.user_id.nunique()</code>, сумма MRR активных подписок, <code>active_users(events, end−30д, end)</code> и их отношение. Нижние два (активные за 30 дней и stickiness) зависят от правой границы диапазона дат; при полном диапазоне это конец периода — 2025-06-30. Total users, Paid users и MRR от фильтра дат не зависят: приложение режет по датам только поток событий, а не таблицу подписок.</p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Рост MRR по месяцам — главный аналитический вид страницы Revenue</h2>
+        <span class="demo-axis-label" id="mrr-unit"></span>
+      </div>
+      <div class="ctlrow">
+        <div class="seg" role="group" aria-label="Метрика MRR">
+          <button type="button" class="ctrl is-on" data-m="total" aria-pressed="true">Итого MRR</button>
+          <button type="button" class="ctrl" data-m="pro" aria-pressed="false">pro</button>
+          <button type="button" class="ctrl" data-m="business" aria-pressed="false">business</button>
+          <button type="button" class="ctrl" data-m="enterprise" aria-pressed="false">enterprise</button>
+        </div>
+      </div>
+      <div class="kpis" id="mrr-kpi"></div>
+      <svg class="chart" id="mrr-chart" role="img" aria-label="Рост MRR по месяцам, январь 2024 — июнь 2025"></svg>
+      <div class="demo-legend note--tight">
+        <span><i class="demo-swatch dv-s1"></i>выбранная метрика</span>
+        <span>ось Y пересчитывается под выбранную серию</span>
+      </div>
+      <p class="demo-axis-label note" id="mrr-note"></p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Воронка AARRR — вид страницы Funnel</h2>
+        <span class="demo-flag" id="fn-flag"></span>
+      </div>
+      <div id="funnel"></div>
+      <p class="demo-axis-label note">Уникальные пользователи на каждом шаге (<code>funnel_counts</code>), а не последовательная воронка. Шаги app_open и signup совпадают по построению датасета — оба пишутся на дату регистрации, поэтому 100 % на втором шаге это определение, а не конверсия. Настоящий отвал начинается с activate.</p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Что интерактивно в реальном приложении, а что — на этом борде</h2>
+        <span class="demo-axis-label">снимок, а не копия рантайма</span>
+      </div>
+      <div class="cols">
+        <div class="col">
+          <span class="demo-axis-label">В живом Streamlit-приложении</span>
+          <ul>
+            <li>боковая панель: мультивыбор канала и диапазон дат; каждое изменение перезапускает страницу и пересчитывает все графики и KPI</li>
+            <li>пять страниц через <code>st.navigation</code> — переключение меняет весь экран</li>
+            <li>графики Plotly: зум, ховер-подсказки, скрытие серий по клику на легенде</li>
+            <li><code>@st.cache_data</code> держит датасет между перезапусками в одной сессии</li>
+          </ul>
+        </div>
+        <div class="col">
+          <span class="demo-axis-label">На этой странице</span>
+          <ul>
+            <li>снимок: числа соответствуют значениям приложения по умолчанию, а не текущему состоянию сессии</li>
+            <li>переключатель метрики MRR действительно пересчитывает график и его KPI — но только они</li>
+            <li>фильтров канала и диапазона дат здесь нет; структура навигации нарисована, а не работает</li>
+            <li>ховеры Plotly заменены подписями на осях и точкой со значением на конце линии</li>
+          </ul>
+        </div>
+      </div>
+      <p class="demo-axis-label note">Источник чисел — тот же датасет, что и в <code>data.py</code>: метрики получены перезапуском собственных функций репозитория. Репозиторий приватный, поэтому борд не ссылается на него и не воспроизводит ничего, кроме агрегатов.</p>
+    </section>
+
+  </div>
+  <div class="demo-tooltip" id="tip"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────
+// Источник: streamlit-app/data.py и pages/*.py. Метрики пересчитаны
+// перезапуском тех же функций (generate / funnel_counts / mrr_series /
+// conversion_by_channel / active_users) на датасете seed = 42 и совпадают
+// с src/data/charts/streamlit.json.
+// ─────────────────────────────────────────────────────────────────────────
+
+// KPI страницы Overview при значениях по умолчанию (все каналы, весь период).
+const KPI = [
+  {v: 8000,   l: "Total users"},
+  {v: 1086,   l: "Paid users · 13,6 % конверсии из 8 000"},
+  {v: 94312,  l: "MRR (active)", money: true},
+  {v: 1949,   l: "Active (30d) — конец периода 2025-06-30"},
+  {v: 24,     l: "Stickiness (DAU30 / total)", pct: true}
+];
+
+// mrr_series(): MRR активных подписок на конец месяца, всего и по планам.
+const MONTHS = ["2024-01","2024-02","2024-03","2024-04","2024-05","2024-06",
+                "2024-07","2024-08","2024-09","2024-10","2024-11","2024-12",
+                "2025-01","2025-02","2025-03","2025-04","2025-05","2025-06"];
+const MRR = {
+  total:      [4564,10512,17452,25646,32453,36003,46290,49454,58050,62800,65660,69173,70577,75337,81433,84280,89003,94312],
+  pro:        [1372, 3332, 5488, 7497, 9114,11466,13769,15337,17346,19306,20972,22491,24500,26068,28371,30625,31360,33075],
+  business:   [1194, 3184, 5970, 8159, 9353, 9552,11542,12139,13731,15522,16716,17711,19104,20298,21094,22686,24676,25273],
+  enterprise: [1998, 3996, 5994, 9990,13986,14985,20979,21978,26973,27972,27972,28971,26973,28971,31968,30969,32967,35964]
+};
+const METRIC_LABEL = {total:"Итого MRR", pro:"План pro ($49)", business:"План business ($199)",
+                      enterprise:"План enterprise ($999)"};
+
+// funnel_counts(): уникальные пользователи на шаге.
+const FUNNEL = [["app_open",8000],["signup",8000],["activate",5478],
+                ["start_trial",3025],["subscribe",1086]];
+
+const RU_MON = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+const nf = (v,d) => v.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d})
+  .replace(/^-/, "\u2212");
+const int = v => nf(v,0);
+const endless = v => v.toLocaleString("ru-RU",{maximumFractionDigits:0}) + " $";
+const pc = (v,d) => nf(v, d == null ? 1 : d) + " %";
+const monLab = m => RU_MON[parseInt(m.slice(5),10) - 1] + " " + m.slice(2,4);
+const el = (t,a) => { const n = document.createElementNS("http://www.w3.org/2000/svg", t);
+  for (const k in a) n.setAttribute(k, a[k]); return n; };
+
+let metric = "total";
+
+function renderKpis(){
+  const host = document.getElementById("kpis");
+  host.textContent = "";
+  KPI.forEach(k => {
+    const wrap = document.createElement("div");
+    wrap.className = "kpi";
+    const val = document.createElement("span");
+    val.className = "demo-kpi-value";
+    val.textContent = k.money ? endless(k.v) : k.pct ? nf(k.v,0) + " %" : int(k.v);
+    const lab = document.createElement("span");
+    lab.className = "demo-kpi-label";
+    lab.textContent = k.l;
+    wrap.appendChild(val); wrap.appendChild(lab);
+    host.appendChild(wrap);
+  });
+}
+
+function renderMrr(){
+  const series = MRR[metric], last = series[series.length-1], first = series[0];
+  const max = Math.max.apply(null, series) * 1.08;
+
+  document.getElementById("mrr-unit").textContent = METRIC_LABEL[metric] + " · $ на конец месяца";
+  const share = last / MRR.total[MRR.total.length-1] * 100;
+  const topPlan = ["pro","business","enterprise"]
+    .map(k => [k, MRR[k][17] / MRR.total[17] * 100])
+    .sort((a,b) => b[1] - a[1])[0];
+  document.getElementById("mrr-kpi").innerHTML =
+    '<span class="kpi"><span class="demo-kpi-value">' + endless(last) + '</span>' +
+    '<span class="demo-kpi-label">' + monLab(MONTHS[MONTHS.length-1]) +
+    (metric === "total" ? " — MRR на конец периода" : " — вклад плана " + metric) + '</span></span>' +
+    '<span class="kpi"><span class="demo-kpi-value">' + nf(last / first, 1) + '\u00D7</span>' +
+    '<span class="demo-kpi-label">рост к ' + monLab(MONTHS[0]) + ' (' + endless(first) + ')</span></span>' +
+    '<span class="kpi"><span class="demo-kpi-value">' + pc(metric === "total" ? topPlan[1] : share, 1) + '</span>' +
+    '<span class="demo-kpi-label">' +
+    (metric === "total" ? "крупнейший план в итоге: " + topPlan[0]
+                        : "доля плана " + metric + " в итоговом MRR") +
+    '</span></span>';
+
+  if (metric === "total"){
+    const shares = ["pro","business","enterprise"].map(k =>
+      k + " " + pc(MRR[k][17] / MRR.total[17] * 100, 1)).join(", ");
+    document.getElementById("mrr-note").textContent =
+      "Итог на конец периода " + endless(MRR.total[17]) + "; вклад планов: " + shares +
+      ". Рост в " + nf(MRR.total[17] / MRR.total[0], 1) + " раза за 18 месяцев. " +
+      "Каждый месяц — сумма MRR подписок, активных на конец этого месяца, с учётом отмен.";
+  } else {
+    document.getElementById("mrr-note").textContent =
+      "Вклад плана " + metric + " на конец периода — " + endless(last) + ", это " +
+      pc(share, 1) + " итогового MRR. " + "Выбор метрики пересчитывает и ось Y: " +
+      "максимум серии здесь " + endless(Math.max.apply(null, series)) + ", поэтому форма кривой " +
+      "сравнима внутри одного плана, но не с кривой другого плана.";
+  }
+
+  const svg = document.getElementById("mrr-chart");
+  const W = Math.max(300, svg.clientWidth || 640), H = 238;
+  const padT = 16, padB = 34, padL = 52, padR = 12;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const x = i => padL + (MONTHS.length === 1 ? plotW/2 : i / (MONTHS.length - 1) * plotW);
+  const y = v => padT + plotH * (1 - v / max);
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  svg.textContent = "";
+
+  const ticks = [0, .25, .5, .75, 1].map(t => Math.round(max * t));
+  ticks.forEach(tv => {
+    const yy = y(tv);
+    svg.appendChild(el("line", {x1: padL, x2: W - padR, y1: yy, y2: yy, class: "gridline"}));
+    const lab = el("text", {x: padL - 6, y: yy + 3, class: "dv-label",
+      "text-anchor": "end", "font-size": 10});
+    lab.textContent = int(tv);
+    svg.appendChild(lab);
+  });
+  svg.appendChild(el("line", {x1: padL, x2: W - padR, y1: y(0), y2: y(0), class: "dv-axis"}));
+
+  const step = W > 520 ? 3 : 5;
+  MONTHS.forEach((m,i) => {
+    if (i % step !== 0 && i !== MONTHS.length - 1) return;
+    const t = el("text", {x: x(i), y: H - 14, class: "dv-label",
+      "text-anchor": "middle", "font-size": 10});
+    t.textContent = monLab(m);
+    svg.appendChild(t);
+  });
+
+  const area = "M " + x(0) + " " + y(0) + " " +
+    series.map((v,i) => "L " + x(i) + " " + y(v)).join(" ") +
+    " L " + x(series.length-1) + " " + y(0) + " Z";
+  svg.appendChild(el("path", {d: area, class: "dv-s1", "fill-opacity": 0.16}));
+  svg.appendChild(el("polyline", {
+    points: series.map((v,i) => x(i) + "," + y(v)).join(" "),
+    class: "dv-s1-line", fill: "none", "stroke-width": 2.5,
+    "stroke-linejoin": "round", "stroke-linecap": "round"}));
+
+  series.forEach((v,i) => {
+    const c = el("circle", {cx: x(i), cy: y(v), r: i === series.length - 1 ? 4 : 2.2,
+      class: "dv-s1"});
+    c.dataset.tip = monLab(MONTHS[i]) + " · " + METRIC_LABEL[metric] + " " + endless(v);
+    svg.appendChild(c);
+  });
+  const lastLab = el("text", {x: x(series.length-1), y: y(last) - 10, class: "dv-ink",
+    "text-anchor": "end", "font-size": 10, "font-weight": 700});
+  lastLab.textContent = endless(last);
+  svg.appendChild(lastLab);
+  const ylab = el("text", {x: padL - 6, y: padT - 4, class: "dv-label",
+    "text-anchor": "end", "font-size": 10});
+  ylab.textContent = "MRR, $";
+  svg.appendChild(ylab);
+}
+
+function renderFunnel(){
+  const host = document.getElementById("funnel");
+  host.textContent = "";
+  const first = FUNNEL[0][1];
+  let wi = 1;
+  for (let i = 2; i < FUNNEL.length; i++)
+    if (FUNNEL[i][1] / FUNNEL[i-1][1] < FUNNEL[wi][1] / FUNNEL[wi-1][1]) wi = i;
+  FUNNEL.forEach(([name,n], i) => {
+    const stage = document.createElement("div");
+    stage.className = "stage";
+    const lab = document.createElement("div");
+    lab.className = "lab";
+    lab.textContent = name;
+    const track = document.createElement("div");
+    track.className = "track";
+    const bar = document.createElement("div");
+    bar.className = "bar dv-s1";
+    bar.style.width = (n / first * 100) + "%";
+    track.appendChild(bar);
+    const num = document.createElement("div");
+    num.className = "num";
+    const step = i === 0 ? null : n / FUNNEL[i-1][1] * 100;
+    num.textContent = int(n) + " чел. · " + pc(n / first * 100) + " от app_open" +
+      (step === null ? " · вход в воронку"
+        : " · шаг " + pc(step) + ", потеря " + int(FUNNEL[i-1][1] - n) + " чел." +
+          (i === wi ? " — максимум" : ""));
+    stage.appendChild(lab); stage.appendChild(track); stage.appendChild(num);
+    host.appendChild(stage);
+  });
+  document.getElementById("fn-flag").textContent =
+    "макс. отвал: " + FUNNEL[wi-1][0] + " → " + FUNNEL[wi][0] + " (−" +
+    int(FUNNEL[wi-1][1] - FUNNEL[wi][1]) + " чел.)";
+}
+
+document.querySelectorAll("[data-m]").forEach(b => {
+  b.addEventListener("click", () => {
+    metric = b.dataset.m;
+    document.querySelectorAll("[data-m]").forEach(x => {
+      const on = x === b;
+      x.classList.toggle("is-on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    renderMrr();
+  });
+});
+
+renderKpis();
+renderMrr();
+renderFunnel();
+
+const tip = document.getElementById("tip");
+document.addEventListener("mouseover", e => {
+  const t = e.target.closest("[data-tip]");
+  if (!t) return;
+  tip.innerHTML = "<b>" + t.dataset.tip + "</b>";
+  tip.classList.add("is-visible");
+});
+document.addEventListener("mousemove", e => {
+  if (!tip.classList.contains("is-visible")) return;
+  tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 274) + "px";
+  tip.style.top = (e.clientY + 14) + "px";
+});
+document.addEventListener("mouseout", e => {
+  if (!e.target.closest("[data-tip]")) return;
+  tip.classList.remove("is-visible");
+});
+window.addEventListener("resize", renderMrr);
+</script>
+</body>
+</html>

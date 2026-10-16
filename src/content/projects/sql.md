@@ -25,7 +25,7 @@ tools:
 github: https://github.com/NikitaBoyarkin/sql-analytics-case-study
 date: 2026-08-11
 updated: 2026-09-19
-demo: https://nikitaboyarkin.github.io/sql-analytics-case-study/
+demo: demos/sql/index.html
 faq:
   - question: "Какие данные лежат в основе кейсов?"
     answer: "25 кейсов на синтетике (~183k событий, seed=42 плюс аддитивный seed=43) и 1 real-data кейс на UCI Online Retail II."

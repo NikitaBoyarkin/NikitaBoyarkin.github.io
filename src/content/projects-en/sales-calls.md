@@ -22,6 +22,7 @@ tools:
 github: https://github.com/NikitaBoyarkin/sales-calls-dashboard
 date: 2026-06-16
 updated: 2026-06-16
+demo: demos/sales-calls/index.html
 related:
   - /projects/streamlit/
 ---

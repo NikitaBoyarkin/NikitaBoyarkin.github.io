@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Позиционное смещение: наивный и несмещённый CTR</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. */
+  .grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);
+        gap:var(--space-4); align-items:start}
+  .stack{display:grid; gap:var(--space-4)}
+  svg{display:block; width:100%; height:auto}
+  .slider{display:flex; align-items:center; gap:var(--space-2); margin-top:var(--space-3)}
+  .slider input{flex:1; accent-color:var(--text-accent)}
+  .kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-3) var(--space-4);
+        margin-top:var(--space-4)}
+  .kpis>div{min-width:0}
+  .demo-kpi-value{font-size:1.1rem; display:block}
+  .demo-legend{margin-bottom:var(--space-3)}
+  /* Line swatches, not .demo-swatch: the legend describes strokes. */
+  .demo-legend i{width:16px; height:3px; border-radius:2px; display:inline-block}
+  .sw-naive{background:var(--text-muted)}
+  .sw-em{background:var(--dv-current)}
+  .sw-eta{background:var(--text-accent-dataviz)}
+  /* Committed reference levels. Neither is a data series, so neither borrows the
+     dataviz teal: the naive level is recessive, the EM level reads at text
+     weight (a class, not a stroke attribute, so both follow the theme). */
+  .em-line{stroke:var(--dv-current)}
+  .ref-line{stroke:var(--dv-threshold)}
+  table{width:100%; border-collapse:collapse; font-size:12px;
+        font-variant-numeric:tabular-nums}
+  th,td{text-align:right; padding:5px 6px; border-bottom:1px solid var(--border-color)}
+  /* Числа не переносятся по середине: «1 196,6» в узкой колонке иначе рвётся
+     на две строки. Первая колонка — названия, она переносится. */
+  th:not(:first-child),td:not(:first-child){white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--dv-label); font-weight:600}
+  tr.on,tr.on td{background:var(--background-tertiary)}
+  .demo-card h2{margin-bottom:var(--space-3)}
+  .note{margin:var(--space-3) 0 0; font-size:12px; color:var(--text-muted)}
+  @media (max-width:760px){ .grid{grid-template-columns:1fr} }
+  @media (max-width:520px){ th,td{padding:4px 3px} table{font-size:11px}
+    .kpis{grid-template-columns:repeat(2,1fr)} }
+</style>
+</head>
+<body>
+  <h1 class="demo-title">Несмещённый CTR и расхождение с выручкой</h1>
+  <p class="demo-lede">Наивный CTR падает с позицией, потому что низ выдачи почти не осматривают: IPW делит клики на вероятность осмотра <b>(1/k)^η</b> и спрямляет спад. Слева — наивная и восстановленная кривые, справа — свип η: ползунок гоняет параметрическую поправку против уровня, который даёт EM-оценка (0,629). Дальше тот же офлайн-скор разводит NDCG и деньги.</p>
+
+  <div class="demo-legend">
+    <span><i class="sw-naive"></i>наивный CTR — смещён позицией</span>
+    <span><i class="sw-em"></i>IPW по EM-кривой — восстановленный</span>
+    <span><i class="sw-eta"></i>свип IPW по (1/k)^η</span>
+  </div>
+
+  <div class="grid">
+    <section class="demo-card">
+      <h2 class="demo-axis-label">Клик-рейт по позиции выдачи</h2>
+      <svg id="chart" viewBox="0 0 660 300" role="img"
+           aria-label="Клик-рейт по позициям 1-15: наивный и восстановленный методом IPW по EM-кривой осмотра"></svg>
+      <p class="note">Позиция 1: 0,685 против 0,685 — там осмотр по определению полный. Позиция 15: 0,029 против 0,598, то есть наивный CTR занижен в 20 раз именно из-за осмотра.</p>
+    </section>
+
+    <div class="stack">
+      <section class="demo-card">
+        <h2 class="demo-axis-label">Свип η: поправка против уровня EM</h2>
+        <svg id="sweep" viewBox="0 0 660 260" role="img"
+             aria-label="Восстановленный IPW CTR как функция η от 0,6 до 1,6, с опорными уровнями наивного CTR и EM-оценки"></svg>
+        <div class="slider">
+          <label for="eta">η</label>
+          <input type="range" id="eta" min="0" max="5" step="1" value="3">
+          <b id="etaVal">1,2</b>
+        </div>
+        <div class="kpis">
+          <div><b class="demo-kpi-value" id="kEta">—</b><span class="demo-kpi-label">IPW CTR при текущем η</span></div>
+          <div><b class="demo-kpi-value" id="kRatio">—</b><span class="demo-kpi-label">во сколько раз выше наивного</span></div>
+          <div><b class="demo-kpi-value" id="kGap">—</b><span class="demo-kpi-label">отклонение от уровня EM</span></div>
+          <div><b class="demo-kpi-value" id="kDn">0,069</b><span class="demo-kpi-label">ΔNDCG@10 relevance против revenue</span></div>
+          <div><b class="demo-kpi-value" id="kDr">—</b><span class="demo-kpi-label">Δ₽ за поиск при том же η</span></div>
+          <div><b class="demo-kpi-value" id="kDiv">держится</b><span class="demo-kpi-label">зазор на сетке η ∈ [0,6; 1,6]</span></div>
+        </div>
+      </section>
+
+      <section class="demo-card">
+        <h2 class="demo-axis-label">Оракулы: NDCG@10 против ₽ за поиск</h2>
+        <table>
+          <thead><tr><th scope="col">Ранжировщик</th><th scope="col">NDCG@10</th><th scope="col">₽/поиск</th></tr></thead>
+          <tbody>
+            <tr><td>relevance — по релевантности<span class="demo-flag">NDCG 1,000</span></td><td>1,000</td><td>868,9</td></tr>
+            <tr><td>revenue — по деньгам<span class="demo-flag demo-flag--ok">+37,7% ₽</span></td><td>0,932</td><td>1 196,6</td></tr>
+            <tr><td>price_asc</td><td>0,985</td><td>843,9</td></tr>
+            <tr><td>propensity_logistic</td><td>0,985</td><td>826,6</td></tr>
+            <tr><td>click_trained</td><td>0,982</td><td>693,0</td></tr>
+          </tbody>
+        </table>
+        <p class="note">Цена денежного порядка: NDCG@10 −6,8 п.п., выручка +37,7%. Офлайн-скор релевантности — плохой релизный гейт; узкое место — выручка за поиск.</p>
+      </section>
+    </div>
+  </div>
+
+<script>
+// Реальные числа проекта. Показы и клики — data/processed/funnel_by_position.parquet
+// (агрегат по позиции выдачи, 12 000 поисков). EM-кривая осмотра, сетка η и метрики
+// оракулов — reports/ranking_eval.json (propensity_estimated, sensitivity.eta,
+// policies, divergence).
+const IMP = [12000,12000,12000,12000,12000,10918,9807,8762,7674,6580,5461,4382,3282,2164,1106];
+const CLK = [8219,3534,2072,1504,1178,840,600,474,338,278,210,135,119,54,32];
+const EM  = [1.0,0.4397,0.2658,0.1981,0.1585,0.126,0.1009,0.0894,0.0729,0.0698,0.0632,0.0507,0.0598,0.0416,0.0484];
+const ETA = [0.6,0.8,1.0,1.2,1.4,1.6];
+// ΔNDCG@10 и Δ₽ за поиск на сетке η (relevance минус revenue), из ranking_eval.json.
+const SENS = [[0.0688,-309.7],[0.0688,-327.5],[0.0688,-330.1],[0.0688,-324.9],[0.0688,-315.8],[0.0688,-305.3]];
+
+const POS = IMP.map((_, i) => i + 1);
+const NIMP = IMP.reduce((a, b) => a + b, 0);
+const NCLK = CLK.reduce((a, b) => a + b, 0);
+const NAIVE = POS.map((_, i) => CLK[i] / IMP[i]);
+const EM_CURVE = POS.map((_, i) => CLK[i] / IMP[i] / EM[i]);
+const NAIVE_ALL = NCLK / NIMP;              // 0,163
+const EM_ALL = POS.reduce((s, p, i) => s + CLK[i] / EM[i], 0) / NIMP;   // 0,629
+
+// Наивный CTR позиции p = клики/показы. IPW домножает на 1/e(p), e(p) = (1/p)^η;
+// взвешенный по показам общий CTR — Σ(клики·p^η) / Σпоказы.
+const etaOverall = e => POS.reduce((s, p, i) => s + CLK[i] * Math.pow(p, e), 0) / NIMP;
+
+const fmt = (v, d) => v.toFixed(d).replace(".", ",");
+// b = 46: подписи тиков и заголовок оси идут двумя разными строками, иначе
+// «позиция →» садится на тик 15, а «η →» — на 1,6.
+const PAD = { l: 46, r: 14, t: 14, b: 46 };
+const W = 660;
+
+// Общий каркас: горизонтальная сетка со значениями, подписи x и заголовок оси.
+// xTicks приходит уже с готовой координатой — у каждого графика свой x.
+function frame(h, ymax, xTicks, xLabel) {
+  const yAt = v => PAD.t + (1 - v / ymax) * (h - PAD.t - PAD.b);
+  let g = "";
+  [0, ymax / 2, ymax].forEach(v => {
+    const y = yAt(v);
+    // Сетка — единственная привязка шкалы, то есть графический объект без
+    // текстового дубля (WCAG 1.4.11), поэтому --dv-axis, а не --border-color.
+    g += '<line class="dv-axis" x1="' + PAD.l + '" y1="' + y + '" x2="' + (W - PAD.r) +
+         '" y2="' + y + '" stroke-width="1"/>';
+    g += '<text class="dv-label" x="' + (PAD.l - 6) + '" y="' + (y + 3) + '" text-anchor="end">' +
+         fmt(v, 2) + "</text>";
+  });
+  xTicks.forEach(t => {
+    g += '<text class="dv-label" x="' + t.x + '" y="' + (h - 28) + '" text-anchor="middle">' + t.l + "</text>";
+  });
+  g += '<text class="dv-label" x="' + PAD.l + '" y="' + (h - 8) +
+       '" text-anchor="start">' + xLabel + "</text>";
+  return { yAt: yAt, svg: g };
+}
+function poly(vals, yAt, cls) {
+  return '<polyline class="' + cls + '" fill="none" points="' +
+    vals.map((v, i) => (PAD.l + i / (vals.length - 1) * (W - PAD.l - PAD.r)) + "," + yAt(v)).join(" ") +
+    '"/>';
+}
+
+// ── График 1: CTR по позиции, наивный против восстановленного ──
+(function positionChart() {
+  const h = 300;
+  const xAt = p => PAD.l + (p - 1) / 14 * (W - PAD.l - PAD.r);
+  const fr = frame(h, 0.7, [1, 5, 10, 15].map(p => ({ x: xAt(p), l: String(p) })), "позиция →");
+  let g = fr.svg;
+  g += poly(NAIVE, fr.yAt, "dv-muted-line");
+  g += poly(EM_CURVE, fr.yAt, "em-line");
+  document.getElementById("chart").innerHTML = g;
+})();
+
+// ── График 2: свип η — восстановленный CTR как функция η ──
+const SH = 260, YMAX_SWEEP = 1.4;
+const xEta = i => PAD.l + i / (ETA.length - 1) * (W - PAD.l - PAD.r);
+const sweepSvg = document.getElementById("sweep");
+const out = {
+  eta: document.getElementById("etaVal"), ctr: document.getElementById("kEta"),
+  ratio: document.getElementById("kRatio"), gap: document.getElementById("kGap"),
+  dn: document.getElementById("kDn"), dr: document.getElementById("kDr")
+};
+
+function drawSweep(i) {
+  const fr = frame(SH, YMAX_SWEEP, ETA.map((e, k) => ({ x: xEta(k), l: fmt(e, 1) })), "η →");
+  const ySweep = fr.yAt;
+  let g = fr.svg;
+
+  // Опорные уровни: наивный (смещённый) и EM-оценка (восстановленный). Разный
+  // штрих у каждого, чтобы они различались и без цвета — цвет здесь дублирующий канал.
+  [[NAIVE_ALL, "ref-line", "наивный 0,163", "2 4"], [EM_ALL, "em-line", "EM 0,629", "9 4"]].forEach(r => {
+    const y = ySweep(r[0]);
+    g += '<line class="' + r[1] + '" x1="' + PAD.l + '" y1="' + y + '" x2="' + (W - PAD.r) +
+         '" y2="' + y + '" stroke-width="2" stroke-dasharray="' + r[3] + '"/>';
+    // Подпись под своей линией: над линией она садится на верхнюю линию сетки,
+    // у самой линии — задевает пунктир.
+    g += '<text class="dv-label" x="' + (PAD.l + 6) + '" y="' + (y + 17) + '">' + r[2] + "</text>";
+  });
+
+  const vals = ETA.map(e => etaOverall(e));
+  g += poly(vals, ySweep, "dv-s1-line");
+  vals.forEach((v, k) => {
+    g += '<circle class="dv-s1" cx="' + xEta(k) + '" cy="' + ySweep(v) + '" r="3"/>';
+  });
+  // Текущая точка: вертикаль + маркер, чтобы ползунок читался на графике.
+  g += '<line class="em-line" x1="' + xEta(i) + '" y1="' + PAD.t + '" x2="' + xEta(i) +
+       '" y2="' + (SH - PAD.b) + '" stroke-width="1"/>';
+  g += '<circle class="dv-s1" cx="' + xEta(i) + '" cy="' + ySweep(vals[i]) + '" r="6"/>';
+  // Число у маркера: якорь уводит подпись от правого края, иначе последняя
+  // точка сетки обрезается.
+  const last = i === ETA.length - 1;
+  g += '<text class="dv-ink" x="' + (xEta(i) + (last ? -8 : 8)) + '" y="' + (ySweep(vals[i]) - 11) +
+       '" text-anchor="' + (last ? "end" : "start") + '">' + fmt(vals[i], 3) + "</text>";
+  sweepSvg.innerHTML = g;
+
+  out.eta.textContent = fmt(ETA[i], 1);
+  out.ctr.textContent = fmt(vals[i], 3);
+  out.ratio.textContent = fmt(vals[i] / NAIVE_ALL, 2) + "×";
+  out.gap.textContent = (vals[i] >= EM_ALL ? "+" : "−") + fmt(Math.abs(vals[i] - EM_ALL), 3);
+  out.dr.textContent = fmt(SENS[i][1], 1);
+}
+
+document.getElementById("eta").addEventListener("input", e => drawSweep(+e.target.value));
+drawSweep(3);
+</script>
+</body>
+</html>

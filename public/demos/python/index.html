@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Профиль датасета, пропуски, распределения, сегменты — python analytics</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. */
+  .stack{display:flex;flex-direction:column;gap:var(--space-4)}
+  .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+    gap:var(--space-2);margin-bottom:var(--space-3)}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(102px,1fr));
+    gap:var(--space-3) var(--space-4)}
+  .kpi{display:flex;flex-direction:column;gap:2px;min-width:0}
+
+  .ctlrow{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3);
+    align-items:center;margin-bottom:var(--space-3)}
+  .seg{display:flex;flex-wrap:wrap;gap:4px}
+  /* Affordances live on the coral action accent, never on --dv-*. */
+  .ctrl{font:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:3px 10px;
+    border-radius:var(--radius-full);background:var(--background-secondary);
+    color:var(--text-muted);border:1px solid var(--border-color)}
+  .ctrl:hover{color:var(--text-accent-hover);border-color:var(--border-active)}
+  .ctrl.is-on{color:var(--text-normal);border-color:var(--border-active);
+    background:var(--background-tertiary)}
+  .ctrl:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+
+  /* Missingness: label + track + bar + numbers. */
+  .mrow{display:grid;grid-template-columns:64px 1fr auto;gap:var(--space-2);
+    align-items:center;margin-bottom:6px}
+  .mlab{font-size:12px;font-weight:600;color:var(--text-normal)}
+  .mtrack{position:relative;height:16px;background:var(--background-primary);
+    border-radius:var(--radius-sm);box-shadow:inset 0 0 0 1px var(--border-color)}
+  .mbar{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm);
+    min-width:0}
+  .mnum{font-size:11px;font-weight:600;color:var(--dv-label);
+    font-variant-numeric:tabular-nums;white-space:nowrap}
+  .snum{white-space:normal;text-align:right}
+  /* demo.css's shared `.dv-s1` is a `fill` utility — the SVG series class. The
+     bars here are HTML boxes, so the series token is re-applied to
+     `background` in one declaration instead of an inline colour per bar. */
+  .dv-s1{background:var(--text-accent-dataviz)}
+
+  /* Histogram: 10 equal-width bins, height ∝ count. */
+  .hist{display:flex;gap:3px;align-items:flex-end;height:150px;
+    background:var(--background-primary);border-radius:var(--radius-sm);
+    padding:var(--space-2) var(--space-2) 0}
+  .hcol{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;
+    justify-content:flex-end;cursor:default}
+  .hbar{border-radius:2px 2px 0 0;min-height:2px}
+  .hax{display:flex;justify-content:space-between;margin-top:6px}
+  .readout{display:flex;flex-wrap:wrap;gap:var(--space-4)}
+
+  /* Segments: swatch + name + share-of-spend bar + numbers. */
+  .srow{display:grid;grid-template-columns:14px 104px 1fr auto;gap:var(--space-2);
+    align-items:center;margin-bottom:8px}
+  .strack{position:relative;height:16px;background:var(--background-primary);
+    border-radius:var(--radius-sm);box-shadow:inset 0 0 0 1px var(--border-color)}
+  .sbar{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm)}
+
+  @media (max-width:520px){
+    .mrow{grid-template-columns:52px 1fr;row-gap:2px}
+    .mnum{grid-column:2;justify-self:end}
+    .srow{grid-template-columns:14px 86px 1fr;row-gap:2px}
+    .snum{grid-column:2 / span 2;justify-self:end}
+    .hist{height:124px}
+  }
+
+  /* The four categorical steps, applied by class rather than inline style so
+     they re-resolve on a theme change with no JavaScript at all. Segment order
+     runs best (High spend) to worst (Low), matching the legend. */
+  .cat-1{background:var(--dv-cat-1)}   .cat-2{background:var(--dv-cat-2)}
+  .cat-3{background:var(--dv-cat-3)}   .cat-4{background:var(--dv-cat-4)}
+</style>
+</head>
+<body>
+  <h1 class="demo-title">EDA: профиль датасета, пропуски, распределения, сегменты</h1>
+  <p class="demo-lede">Проект python (data/synthetic.csv): 1000 синтетических клиентов и три признака. Временного разреза нет — данные cross-sectional, поэтому вместо «периода» в профиле стоят дубликаты и пропуски. Переключатель меняет колонку под гистограммой.</p>
+
+  <div class="stack">
+
+    <section class="demo-card">
+      <h2 class="demo-axis-label" style="margin-bottom:var(--space-3)">Профиль датасета</h2>
+      <div class="kpis">
+        <span class="kpi"><span class="demo-kpi-value">1 005</span><span class="demo-kpi-label">строк в файле</span></span>
+        <span class="kpi"><span class="demo-kpi-value">3</span><span class="demo-kpi-label">колонки: age, income, spend</span></span>
+        <span class="kpi"><span class="demo-kpi-value">1 000</span><span class="demo-kpi-label">уникальных строк</span></span>
+        <span class="kpi"><span class="demo-kpi-value">0,50 %</span><span class="demo-kpi-label">дубликаты: 5 строк</span></span>
+        <span class="kpi"><span class="demo-kpi-value">0,70 %</span><span class="demo-kpi-label">пропуски: 21 из 3 015 ячеек</span></span>
+      </div>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Пропуски по колонкам, % строк</h2>
+        <span class="demo-axis-label">шкала 0–100 %</span>
+      </div>
+      <div id="miss"></div>
+      <p class="demo-axis-label note">
+        <span class="demo-flag">7 значений вне диапазона</span>
+        <span> 6 строк с spend &lt; 0 (минимум −4 510,24) и 1 строка с income &lt; 0 (минимум −4 726,19) — денежные признаки не обрезаны при генерации: отдельная проблема качества, а не пропуск.</span>
+      </p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Распределение признака</h2>
+        <span class="demo-axis-label">10 интервалов равной ширины</span>
+      </div>
+      <div class="ctlrow">
+        <div class="seg" role="group" aria-label="Колонка">
+          <button type="button" class="ctrl is-on" data-col="age" aria-pressed="true">age, лет</button>
+          <button type="button" class="ctrl" data-col="income" aria-pressed="false">income, $</button>
+          <button type="button" class="ctrl" data-col="spend" aria-pressed="false">spend, $</button>
+        </div>
+      </div>
+      <div class="hist" id="hist"></div>
+      <div class="hax">
+        <span class="demo-axis-label" id="hax-min"></span>
+        <span class="demo-axis-label" id="hax-max"></span>
+      </div>
+      <div class="readout note" id="hstat"></div>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Value-сегменты (квартили spend)</h2>
+        <span class="demo-axis-label">длина полосы — доля трат, %</span>
+      </div>
+      <div id="segs"></div>
+      <div class="demo-legend" id="segs-legend"></div>
+      <p class="demo-axis-label note">
+        Топ-20 % клиентов дают 31,5 % трат, Gini 0,23 — концентрация есть, но правило 80/20 не выполняется, поэтому ярлык «Pareto» в отчёте проекта сильнее данных. Квартили на сырых 1 005 строках дают 251–252 клиента на сегмент; на дедуплицированных 1 000 (reports/segmentation_report.md) — ровно по 250.
+      </p>
+    </section>
+
+  </div>
+  <div class="demo-tooltip" id="tip"></div>
+
+<script>
+// ── Профиль. Источник: python/data/synthetic.csv (1 005 строк × 3 колонки).
+// Дубликаты и пропуски посчитаны на сыром файле; reports/report.md считает на
+// дедуплицированных 1 000 строках — отсюда расхождение в README (20 vs 21 пропуск).
+const MISS = [["age", 0, 0], ["income", 21, 2.09], ["spend", 0, 0]];
+
+// ── Гистограммы. Источник: тот же CSV; доход — n = 984 (без 21 пропуска).
+const HIST = {
+  age:    {n:1005, mean:"43,64", med:"44,00", min:"18",     max:"69",        unit:"лет",
+           edges:[18,23.1,28.2,33.3,38.4,43.5,48.6,53.7,58.8,63.9,69],
+           counts:[112,109,87,71,115,100,97,107,91,116]},
+  income: {n:984,  mean:"49 597,36", med:"50 032,50", min:"−4 726,19", max:"97 682,81", unit:"$",
+           edges:[-4726.2,5514.7,15755.6,25996.5,36237.4,46478.3,56719.2,66960.1,77201,87441.9,97682.8],
+           counts:[1,16,46,125,207,282,177,98,28,4]},
+  spend:  {n:1005, mean:"19 313,07", med:"19 753,34", min:"−4 510,24", max:"43 313,96", unit:"$",
+           edges:[-4510.2,272.2,5054.6,9837,14619.4,19401.9,24184.3,28966.7,33749.1,38531.5,43314],
+           counts:[6,36,81,154,210,244,167,71,24,12]}
+};
+
+// ── Сегменты. Источник: python/reports/segmentation_report.md, пересчитано на
+// сыром CSV (квартили по spend). Порядок — от лучшего сегмента к худшему,
+// поэтому cat-1 достаётся High.
+const SEGS = [
+  {n:1, name:"High",        cnt:251, mean:"29 364,83", share:37.97},
+  {n:2, name:"Medium-High", cnt:251, mean:"22 065,79", share:28.53},
+  {n:3, name:"Medium-Low",  cnt:251, mean:"16 895,45", share:21.85},
+  {n:4, name:"Low",         cnt:252, mean:"8 967,43",  share:11.64}
+];
+
+const nfRu = (v,d) => Number(v).toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d})
+  .replace(/^-/, "\u2212");
+const int  = v => Number(v).toLocaleString("ru-RU",{maximumFractionDigits:0})
+  .replace(/^-/, "\u2212");
+
+function renderMiss(){
+  const host = document.getElementById("miss");
+  host.textContent = "";
+  MISS.forEach(m=>{
+    const row = document.createElement("div");
+    row.className = "mrow";
+    const lab = document.createElement("div");
+    lab.className = "mlab";
+    lab.textContent = m[0];
+    const track = document.createElement("div");
+    track.className = "mtrack";
+    const bar = document.createElement("div");
+    bar.className = "mbar dv-s1";
+    bar.style.width = m[2] + "%";
+    track.appendChild(bar);
+    const num = document.createElement("div");
+    num.className = "mnum";
+    num.textContent = int(m[1]) + " из 1 005 · " + nfRu(m[2],2) + " %";
+    row.appendChild(lab); row.appendChild(track); row.appendChild(num);
+    host.appendChild(row);
+  });
+}
+
+function renderHist(key){
+  const d = HIST[key];
+  const max = Math.max.apply(null, d.counts);
+  const host = document.getElementById("hist");
+  host.textContent = "";
+  d.counts.forEach((c,i)=>{
+    const col = document.createElement("div");
+    col.className = "hcol";
+    const bar = document.createElement("div");
+    bar.className = "hbar dv-s1";
+    bar.style.height = Math.max(2, c / max * 100) + "%";
+    bar.dataset.count = int(c);
+    bar.dataset.note = "интервал " + nfRu(Math.round(d.edges[i]),0) + " … " +
+      nfRu(Math.round(d.edges[i+1]),0) + " " + d.unit;
+    col.appendChild(bar);
+    host.appendChild(col);
+  });
+  document.getElementById("hax-min").textContent = nfRu(Math.round(d.edges[0]),0) + " " + d.unit;
+  document.getElementById("hax-max").textContent = nfRu(Math.round(d.edges[10]),0) + " " + d.unit;
+  document.getElementById("hstat").innerHTML =
+    '<span class="kpi"><span class="demo-kpi-value">' + int(d.n) + '</span>' +
+    '<span class="demo-kpi-label">непустых значений</span></span>' +
+    '<span class="kpi"><span class="demo-kpi-value">' + d.mean + '</span>' +
+    '<span class="demo-kpi-label">среднее, ' + d.unit + '</span></span>' +
+    '<span class="kpi"><span class="demo-kpi-value">' + d.med + '</span>' +
+    '<span class="demo-kpi-label">медиана, ' + d.unit + '</span></span>' +
+    '<span class="kpi"><span class="demo-kpi-value">' + d.min + '</span>' +
+    '<span class="demo-kpi-label">минимум, ' + d.unit + '</span></span>' +
+    '<span class="kpi"><span class="demo-kpi-value">' + d.max + '</span>' +
+    '<span class="demo-kpi-label">максимум, ' + d.unit + '</span></span>';
+}
+
+function renderSegs(){
+  const host = document.getElementById("segs");
+  host.textContent = "";
+  SEGS.forEach(s=>{
+    const row = document.createElement("div");
+    row.className = "srow";
+    const sw = document.createElement("i");
+    sw.className = "demo-swatch cat-" + s.n;
+    const lab = document.createElement("div");
+    lab.className = "mlab";
+    lab.textContent = s.name;
+    const track = document.createElement("div");
+    track.className = "strack";
+    const bar = document.createElement("div");
+    bar.className = "sbar cat-" + s.n;
+    bar.style.width = s.share + "%";
+    track.appendChild(bar);
+    const num = document.createElement("div");
+    num.className = "mnum snum";
+    num.textContent = s.share.toFixed(1).replace(".", ",") + " % трат · " +
+      int(s.cnt) + " клиентов · средний " + s.mean + " $";
+    row.appendChild(sw); row.appendChild(lab); row.appendChild(track); row.appendChild(num);
+    host.appendChild(row);
+  });
+  const lg = document.getElementById("segs-legend");
+  lg.textContent = "";
+  SEGS.forEach(s=>{
+    const sp = document.createElement("span");
+    const i = document.createElement("i");
+    i.className = "demo-swatch cat-" + s.n;
+    sp.appendChild(i);
+    sp.appendChild(document.createTextNode(s.name + " — " + int(s.cnt) + " клиентов"));
+    lg.appendChild(sp);
+  });
+}
+
+document.querySelectorAll("[data-col]").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    document.querySelectorAll("[data-col]").forEach(x=>{
+      const on = x === b;
+      x.classList.toggle("is-on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    renderHist(b.dataset.col);
+  });
+});
+
+renderMiss();
+renderHist("age");
+renderSegs();
+
+const tip = document.getElementById("tip");
+document.addEventListener("mouseover", e=>{
+  const b = e.target.closest(".hbar");
+  if (!b || !b.dataset.note) return;
+  tip.innerHTML = "<b>" + b.dataset.count + "</b><span class=\"sub\">наблюдений<br>" +
+    b.dataset.note + "</span>";
+  tip.classList.add("is-visible");
+});
+document.addEventListener("mousemove", e=>{
+  if (!tip.classList.contains("is-visible")) return;
+  tip.style.left = Math.min(e.clientX + 14, innerWidth - 274) + "px";
+  tip.style.top = (e.clientY + 14) + "px";
+});
+document.addEventListener("mouseout", e=>{
+  if (!e.target.closest(".hbar")) return;
+  tip.classList.remove("is-visible");
+});
+</script>
+</body>
+</html>

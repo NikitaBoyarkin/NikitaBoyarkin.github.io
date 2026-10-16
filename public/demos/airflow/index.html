@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airflow: DAG, прогоны и DQ-гейт</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Every colour comes from the tokens in /demos/demo.css — the
+     same pattern the telegram and cohort boards use. */
+  .wrap{display:grid;gap:var(--space-4)}
+  .col{display:grid;gap:var(--space-4);align-content:start}
+  @media (min-width:780px){.wrap{grid-template-columns:minmax(280px,340px) 1fr;align-items:start}}
+  .pad{padding:var(--space-3) var(--space-4)}
+  .gap-top{margin-top:var(--space-4)}
+  .note{margin-top:var(--space-2);font-size:11px;color:var(--text-muted)}
+  .dag{display:block;width:100%;max-width:360px;height:auto;margin:var(--space-3) auto 0}
+  .trend{display:block;width:100%;max-width:380px;height:auto;margin-top:var(--space-3)}
+  .readout p{margin-top:var(--space-1)}
+
+  /* DAG. A node outline is a surface divider (--border-color); an edge is a
+     graphical object (--dv-axis, through the shared .dv-axis class). The
+     selected node is an interactive affordance, so it takes the action accent
+     (--border-active) — never a --dv-* token. The source node is dashed and its
+     text is recessive, so "not a task" survives with colour removed. */
+  .node{cursor:pointer}
+  .node rect{fill:var(--background-tertiary);stroke:var(--border-color);stroke-width:1.5}
+  .node.is-store rect{stroke-dasharray:5 4}
+  .node:hover rect,.node.is-active rect,.node:focus-visible rect{stroke:var(--border-active)}
+  .node.is-active rect{stroke-width:2.5}
+  .node:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+  .node text{font-size:11px}
+  .node .sub{font-size:9px}
+  .edge{fill:none;stroke-width:1.5}
+  .edge-label{font-size:9px}
+  .badge{font-size:9px}
+
+  /* Run strip. The status bar is the only non-text channel, and every cell
+     repeats its status in words — remove the colour and the strip still reads. */
+  .strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));
+    gap:var(--space-2);margin-top:var(--space-3)}
+  /* One lone cell must not stretch (auto-fit collapses the empty tracks). */
+  .strip-one{grid-template-columns:minmax(84px,150px)}
+  .run{border:1px solid var(--border-color);border-radius:var(--radius-md);
+    background:var(--background-tertiary);padding:var(--space-2)}
+  .run .bar{display:block;height:4px;border-radius:var(--radius-full);margin-bottom:var(--space-2)}
+  .run.is-off{opacity:.35}
+  .st-ok{background:var(--dv-good)}
+  .st-miss{background:var(--dv-neutral)}
+  .st-partial{background:var(--dv-warn)}
+  .st-fail{background:var(--dv-bad)}
+  .run .date{font-size:12px;font-weight:600}
+  .run .meta{font-size:10px;color:var(--text-muted)}
+
+  /* The filter is a control, so it lives on the action tokens, not the chart
+     ramp: --text-accent / --border-active only. */
+  .filters{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-3)}
+  .filters button{font:inherit;font-size:12px;font-weight:600;padding:var(--space-1) var(--space-3);
+    color:var(--text-normal);background:var(--background-tertiary);
+    border:1px solid var(--border-color);border-radius:var(--radius-full);cursor:pointer}
+  .filters button:hover{border-color:var(--border-active)}
+  .filters button[aria-pressed="true"]{color:var(--text-accent);border-color:var(--border-active)}
+  .filters button:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:var(--space-3)}
+  .checks{display:grid;gap:var(--space-2);margin-top:var(--space-3);list-style:none}
+  .checks li{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:baseline;font-size:12px}
+  .checks .demo-flag{flex:0 0 auto}
+  .checks .name{flex:1 1 auto;min-width:8ch}
+  .checks .val{font-size:11px;color:var(--text-muted)}
+  .week{display:grid;gap:var(--space-1);margin-top:var(--space-3);font-size:12px}
+  .week .row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--space-2)}
+  .week em{font-style:normal;font-size:11px;color:var(--text-muted)}
+
+  /* SVG text sizes (coordinates live in the markup, font sizes here). */
+  .bar-val{font-size:10px}
+  .x-date{font-size:10px}
+  .x-meta{font-size:9px}
+</style>
+</head>
+<body>
+  <h1 class="demo-title">Airflow: DAG, прогоны и DQ-гейт</h1>
+  <p class="demo-lede">Два DAG-а платформы отчётности на Apache Airflow 3, каждый по шаблону
+  <b>fetch → validate → write → record_metrics</b>. Показан представительный —
+  <b>daily_sales_report</b> (второй, weekly_sales_summary, идёт по тому же шаблону, 3 прогона внизу).
+  Кликните таск, чтобы увидеть его роль; переключатель наборов прогонов пересчитывает тренд и KPI.</p>
+
+  <div class="wrap">
+    <section class="demo-card">
+      <h2 class="demo-kpi-label">daily_sales_report · 4 таска · @daily</h2>
+      <svg class="dag" viewBox="0 0 320 420" role="group"
+        aria-label="Граф зависимостей daily_sales_report: Postgres.sales → fetch_sales → validate_data → write_to_sheets → record_metrics">
+        <g id="dag"></g>
+      </svg>
+      <div class="demo-panel pad readout gap-top" id="readout" aria-live="polite"></div>
+      <p class="note">Пунктирный блок — источник, а не таск DAG. Цепочка линейная: у каждого шага один
+      вход и один выход, поэтому «выше/ниже» в панели считает позицию в этом графе.</p>
+    </section>
+
+    <div class="col">
+      <section class="demo-card">
+        <h2 class="demo-kpi-label">Прогоны · диапазон выходов 31.08–05.09.2026</h2>
+        <div class="filters" id="filters" role="group" aria-label="Набор прогонов"></div>
+        <div class="strip" id="strip"></div>
+        <p class="note" id="runnote"></p>
+        <h2 class="demo-kpi-label gap-top">Записанный провал (E2E, 2026-09-05)</h2>
+        <div class="strip strip-one" id="failstrip"></div>
+        <p class="note">3 попытки = исходная + 2 retry по <code>DEFAULT_ARGS</code>
+        (<code>retries=2</code>, <code>retry_delay=5 мин</code>) — провал в <code>validate_data</code>.
+        Это отдельный ран, а не неудача дневного прогона за 05.09.</p>
+      </section>
+
+      <section class="demo-card">
+        <h2 class="demo-kpi-label">DQ-гейт · shared/dq.py:17</h2>
+        <ul class="checks" id="dqgate"></ul>
+        <p class="note">Проверки идут до записи: таск <code>validate_data</code> вызывает
+        <code>validate_or_raise</code> (<code>shared/dq.py:75</code>). Нарушение → <code>ValueError</code>,
+        нет строк за окно → <code>NoDataError</code>. Все 8 файлов в <code>data/out/</code> написаны
+        после прохождения гейта — иначе записи не было бы.</p>
+        <h2 class="demo-kpi-label gap-top">Проверки EDA поверх выходов (в гейт не входят)</h2>
+        <ul class="checks" id="dqeda"></ul>
+        <p class="note">Это проверки отчёта <code>reports/eda/findings.md</code> по уже записанным CSV,
+        а не шаги DAG. Они ловят то, что гейт по построению не видит: непрерывность периодов.</p>
+      </section>
+
+      <section class="demo-card">
+        <h2 class="demo-kpi-label">Выход пайплайна · data/out/sales_report_*.csv</h2>
+        <div class="kpis" id="kpis"></div>
+        <div class="demo-axis-label gap-top">выручка за сутки, млн ₽ · под датой — строк записано</div>
+        <svg class="trend" viewBox="0 0 320 150" role="img"
+          aria-label="Выручка по дням 31.08–05.09.2026 и число записанных строк"><g id="trend"></g></svg>
+        <p class="note" id="trendnote"></p>
+        <h2 class="demo-kpi-label gap-top">weekly_sales_summary · @weekly · 3 success</h2>
+        <div class="week" id="week"></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="demo-tooltip" id="tip"></div>
+
+<script>
+(function(){
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+
+  function svgEl(tag, attrs, text){
+    var n = document.createElementNS(NS, tag), k;
+    for (k in attrs){ if (attrs[k] !== null && attrs[k] !== undefined) n.setAttribute(k, attrs[k]); }
+    if (text !== null && text !== undefined) n.textContent = text;
+    return n;
+  }
+  function int(v){ return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0"); }
+  function mln(v){ return (v / 1e6).toFixed(2).replace(".", ","); }
+  function ddmm(iso){ var p = iso.split("-"); return p[2] + "." + p[1]; }
+
+  /* ── Данные ────────────────────────────────────────────────────────────────
+     Топология — из dags/daily_sales_report.py:153
+     (record_metrics(write_to_sheets(validate_data(fetch_sales())))).
+     Суммы и счётчики строк — из data/out/*.csv (посчитаны по строкам файлов).
+     Провал и backfill — из docs/prd.md, «E2E-результаты (2026-09-05)». */
+
+  var TASKS = [
+    {name:"Postgres.sales", sub:"источник · не таск", store:true, badge:"—", incoming:null,
+     role:"Таблица sales в Postgres 16 (демо: 127.0.0.1:5434, БД airflow_demo). DAG её только читает; подключение — Admin → Connections → postgres_default.",
+     code:"dags/daily_sales_report.py:45 · SALES_QUERY"},
+    {name:"fetch_sales", sub:"шаг 1 из 4", badge:"1/4", incoming:"SQL-агрегат",
+     role:"Агрегат по sale_date × product_id за полуинтервал [logical_date − 1 сутки, logical_date); первая строка — header DEFAULT_HEADER.",
+     code:"dags/daily_sales_report.py:108"},
+    {name:"validate_data", sub:"шаг 2 из 4 · DQ-гейт", badge:"2/4", incoming:"строки + header",
+     role:"validate_or_raise: непустой набор, совпадение заголовка, наличие строк данных, revenue ≥ 0, orders ≥ 0. Нарушение → ValueError, пустое окно → NoDataError.",
+     code:"dags/daily_sales_report.py:122 → shared/dq.py:75"},
+    {name:"write_to_sheets", sub:"шаг 3 из 4 · приёмник", badge:"3/4", incoming:"DQ ok",
+     role:"output=sheets → GSheetsHook.update_values; output=file (dev-режим) → CSV в data/out/ с идемпотентной перезаписью по имени файла.",
+     code:"dags/daily_sales_report.py:127 → shared/output.py:14"},
+    {name:"record_metrics", sub:"шаг 4 из 4 · observability", badge:"4/4", incoming:"rows / duration",
+     role:"Пишет success-строку в dag_metrics: dag_id, run_id, duration_s, rows_written, logical_date. Падение ловит DAG-level on_failure_callback: алерт + failed-метрика.",
+     code:"dags/daily_sales_report.py:138 → shared/metrics.py:96"}
+  ];
+
+  /* revenue/orders/rows — построчные суммы пяти дневных CSV; null = рана нет. */
+  var DAILY = [
+    {date:"2026-08-31", rev:25456881.27, orders:9965,  rows:20, status:"ok"},
+    {date:"2026-09-01", rev:25657407.40, orders:10037, rows:20, status:"ok"},
+    {date:"2026-09-02", rev:25299465.67, orders:9969,  rows:20, status:"ok"},
+    {date:"2026-09-03", rev:null,        orders:null,  rows:0,  status:"miss"},
+    {date:"2026-09-04", rev:25645760.45, orders:10076, rows:20, status:"ok"},
+    {date:"2026-09-05", rev:4120390.02,  orders:1612,  rows:20, status:"partial"}
+  ];
+
+  /* Суммы трёх weekly_sales_summary_*.csv (4 строки каждый). */
+  var WEEKLY = [
+    {week:"2026-08-23", rev:21101073.65,  orders:8316,  rows:4},
+    {week:"2026-08-29", rev:173673916.47, orders:68388, rows:4},
+    {week:"2026-08-30", rev:156693232.84, orders:61684, rows:4}
+  ];
+
+  var DQ_GATE = [
+    ["набор не пуст",               "8/8 файлов"],
+    ["заголовок = контракт DAG",    "daily — 4 колонки, weekly — 3"],
+    ["есть строки данных",          "20 строк дневной · 4 недельный"],
+    ["ключ строки не пуст",         "sale_date / category заполнены"],
+    ["revenue — число ≥ 0",         "min 153 847,46 · отрицательных 0"],
+    ["orders — целое ≥ 0",          "min 63 · отрицательных 0"]
+  ];
+  var DQ_EDA = [
+    ["непрерывность дат",           "нет рана за 03.09"],
+    ["полнота периода",             "05.09 = 16,1% полного дня"],
+    ["непрерывность окон",          "week_start 08-23 → 08-29 → 08-30"]
+  ];
+
+  /* ── Граф ─────────────────────────────────────────────────────────────── */
+  var NODE_H = 44, STEP = 90, TOP = 8;
+  var dag = document.getElementById("dag");
+  var readout = document.getElementById("readout");
+  var nodes = [];
+
+  function yOf(i){ return TOP + i * STEP; }
+
+  function showTask(i){
+    nodes.forEach(function(g, k){ g.classList.toggle("is-active", k === i); });
+    var t = TASKS[i];
+    readout.innerHTML =
+      '<div class="demo-kpi-label">' + t.name + " · позиция " + (i + 1) + " из " + TASKS.length +
+        " · выше " + i + " · ниже " + (TASKS.length - 1 - i) + "</div>" +
+      "<p>" + t.role + "</p>" +
+      '<div class="demo-kpi-label">' + (t.store ? "источник, не таск · " : "код: ") + t.code + "</div>";
+  }
+
+  TASKS.forEach(function(t, i){
+    var y = yOf(i);
+    var g = svgEl("g", {class:"node" + (t.store ? " is-store" : ""), "data-i":i,
+      tabindex:"0", role:"button", "aria-label":t.name + " — " + t.sub});
+    g.appendChild(svgEl("rect", {x:15, y:y, width:290, height:NODE_H, rx:8}));
+    g.appendChild(svgEl("text", {x:30, y:y + 19, class:(t.store ? "dv-label" : "dv-ink")}, t.name));
+    g.appendChild(svgEl("text", {x:30, y:y + 34, class:"sub dv-label"}, t.sub));
+    g.appendChild(svgEl("text", {x:292, y:y + 19, "text-anchor":"end",
+      class:"badge " + (t.store ? "dv-label" : "dv-ink")}, t.badge));
+    function pick(){ showTask(i); }
+    g.addEventListener("click", pick);
+    g.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); pick(); }
+    });
+    dag.appendChild(g);
+    nodes.push(g);
+
+    if (t.incoming){
+      var y0 = yOf(i - 1) + NODE_H + 4, y1 = y - 8;
+      dag.appendChild(svgEl("line", {x1:160, y1:y0, x2:160, y2:y1, class:"edge dv-axis"}));
+      dag.appendChild(svgEl("polyline", {points:"154," + (y - 12) + " 160," + (y - 3) + " 166," + (y - 12),
+        class:"edge dv-axis", fill:"none"}));
+      dag.appendChild(svgEl("text", {x:172, y:(y0 + y1) / 2 + 3, class:"edge-label dv-label"}, t.incoming));
+    }
+  });
+  showTask(1);
+
+  /* ── Прогоны, DQ, выход ───────────────────────────────────────────────── */
+  var MODES = {
+    all:  {label:"Все 6 дат",         hint:"включая неполный 05.09"},
+    full: {label:"Только полные дни", hint:"4 рана, 05.09 исключён"}
+  };
+  var mode = "all";
+
+  var strip = document.getElementById("strip");
+  var failstrip = document.getElementById("failstrip");
+  var kpis = document.getElementById("kpis");
+  var weekBox = document.getElementById("week");
+  var runnote = document.getElementById("runnote");
+  var trendnote = document.getElementById("trendnote");
+  var dqgate = document.getElementById("dqgate");
+  var dqeda = document.getElementById("dqeda");
+  var filters = document.getElementById("filters");
+  var trend = document.getElementById("trend");
+  var tip = document.getElementById("tip");
+
+  var ST_CLASS = {ok:"st-ok", miss:"st-miss", partial:"st-partial"};
+  var ST_WORD = {ok:"success", miss:"нет рана", partial:"success · неполный день"};
+  var ST_BAR = {ok:"статус: success", miss:"пропуск: рана нет", partial:"success, но день неполный"};
+
+  function buildFilters(){
+    Object.keys(MODES).forEach(function(key){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = MODES[key].label;
+      b.title = MODES[key].hint;
+      b.setAttribute("aria-pressed", key === mode ? "true" : "false");
+      b.addEventListener("click", function(){ mode = key; render(); });
+      filters.appendChild(b);
+    });
+  }
+
+  function buildChecks(host, rows, ok){
+    rows.forEach(function(r){
+      var li = document.createElement("li");
+      var flag = document.createElement("span");
+      flag.className = "demo-flag" + (ok ? " demo-flag--ok" : "");
+      flag.textContent = ok ? "PASS" : "FAIL";
+      var name = document.createElement("span");
+      name.className = "name";
+      name.textContent = r[0];
+      var val = document.createElement("span");
+      val.className = "val";
+      val.textContent = r[1];
+      li.appendChild(flag); li.appendChild(name); li.appendChild(val);
+      host.appendChild(li);
+    });
+  }
+
+  function buildStrip(){
+    while (strip.firstChild) strip.removeChild(strip.firstChild);
+    DAILY.forEach(function(d){
+      var off = mode === "full" && d.status === "partial";
+      var cell = document.createElement("div");
+      cell.className = "run" + (off ? " is-off" : "");
+      var bar = document.createElement("span");
+      bar.className = "bar " + ST_CLASS[d.status];
+      bar.title = ST_BAR[d.status];
+      var date = document.createElement("div");
+      date.className = "date";
+      date.textContent = ddmm(d.date);
+      var meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = d.status === "miss" ? "нет рана" : ST_WORD[d.status] + " · " + d.rows + " строк";
+      cell.appendChild(bar); cell.appendChild(date); cell.appendChild(meta);
+      if (d.rev !== null){
+        cell.dataset.rev = d.rev;
+        cell.dataset.orders = d.orders;
+        cell.dataset.iso = d.date;
+      }
+      strip.appendChild(cell);
+    });
+  }
+
+  function buildFail(){
+    var cell = document.createElement("div");
+    cell.className = "run";
+    var bar = document.createElement("span");
+    bar.className = "bar st-fail";
+    bar.title = "статус: failed";
+    var date = document.createElement("div");
+    date.className = "date";
+    date.textContent = "05.09 · E2E";
+    var meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = "failed · 3 попытки · 609,71 c";
+    cell.appendChild(bar); cell.appendChild(date); cell.appendChild(meta);
+    cell.title = "bad row p_bad (revenue < 0) → validate_data failed после 3 попыток";
+    failstrip.appendChild(cell);
+  }
+
+  function kpi(value, label){
+    return '<div><div class="demo-kpi-value">' + value + '</div><div class="demo-kpi-label">' +
+      label + "</div></div>";
+  }
+
+  function buildTrend(){
+    while (trend.firstChild) trend.removeChild(trend.firstChild);
+    var W = 320, LEFT = 8, RIGHT = 8, BASE = 118, MAXH = 92;
+    var slot = (W - LEFT - RIGHT) / DAILY.length, bw = 30;
+    var visible = DAILY.filter(function(d){
+      return d.rev !== null && (mode === "all" || d.status !== "partial");
+    });
+    var max = visible.reduce(function(a, b){ return Math.max(a, b.rev); }, 0);
+
+    DAILY.forEach(function(d, i){
+      var cx = LEFT + slot * i + slot / 2;
+      if (d.rev === null){
+        trend.appendChild(svgEl("line", {x1:cx - bw / 2, y1:BASE, x2:cx + bw / 2, y2:BASE,
+          class:"edge dv-axis", "stroke-dasharray":"4 4"}));
+      } else if (mode === "full" && d.status === "partial"){
+        trend.appendChild(svgEl("rect", {x:cx - bw / 2, y:BASE - MAXH, width:bw, height:MAXH,
+          rx:4, class:"edge dv-axis", "stroke-dasharray":"4 4"}));
+      } else {
+        var h = Math.max(3, MAXH * d.rev / max);
+        trend.appendChild(svgEl("rect", {x:cx - bw / 2, y:BASE - h, width:bw, height:h, rx:3,
+          class:"dv-s1", "data-i":i}));
+        trend.appendChild(svgEl("text", {x:cx, y:BASE - h - 5, "text-anchor":"middle",
+          class:"bar-val dv-ink"}, mln(d.rev)));
+      }
+      var excluded = mode === "full" && d.status === "partial";
+      trend.appendChild(svgEl("text", {x:cx, y:132, "text-anchor":"middle", class:"x-date dv-label"},
+        ddmm(d.date)));
+      trend.appendChild(svgEl("text", {x:cx, y:144, "text-anchor":"middle", class:"x-meta dv-label"},
+        d.rev === null ? "нет рана" : excluded ? "исключён" : d.rows + " стр."));
+    });
+
+    trend.appendChild(svgEl("line", {x1:LEFT, y1:BASE, x2:W - RIGHT, y2:BASE, class:"edge dv-axis"}));
+  }
+
+  function buildWeek(){
+    WEEKLY.forEach(function(w){
+      var row = document.createElement("div");
+      row.className = "row";
+      var left = document.createElement("b");
+      left.textContent = ddmm(w.week);
+      var right = document.createElement("em");
+      right.textContent = mln(w.rev) + " млн ₽ · " + int(w.orders) + " заказов · " + w.rows + " строки";
+      row.appendChild(left); row.appendChild(right);
+      weekBox.appendChild(row);
+    });
+  }
+
+  function render(){
+    var rows = DAILY.filter(function(d){
+      return d.rev !== null && (mode === "all" || d.status !== "partial");
+    });
+    var rev = rows.reduce(function(a, b){ return a + b.rev; }, 0);
+    var orders = rows.reduce(function(a, b){ return a + b.orders; }, 0);
+    var landed = rows.reduce(function(a, b){ return a + b.rows; }, 0);
+
+    kpis.innerHTML =
+      kpi(rows.length, "ранов success") +
+      kpi(mln(rev), "млн ₽ выручки") +
+      kpi(int(orders), "заказов") +
+      kpi(int(landed), "строк записано");
+
+    Array.prototype.forEach.call(filters.children, function(b, i){
+      b.setAttribute("aria-pressed", Object.keys(MODES)[i] === mode ? "true" : "false");
+    });
+
+    buildStrip();
+    buildTrend();
+
+    if (mode === "all"){
+      runnote.textContent =
+        "5 success из 6 дат диапазона, 100 строк записано. 03.09 — нет рана: catchup=False " +
+        "(dags/daily_sales_report.py:146), пропущенный день сам не догоняется. 3 из 5 CSV получены " +
+        "backfill'ом 01.09–03.09; повторный backfill — 0 новых ранов, а имя файла то же.";
+      trendnote.textContent =
+        "05.09 — неполный день: 4,12 млн ₽ против 25,51 млн ₽ среднего по четырём полным дням " +
+        "(−83,9%), 1 612 заказов против 10 012 в среднем. Средняя цена заказа та же, значит это " +
+        "незакрытые сутки, а не обвал продаж.";
+    } else {
+      runnote.textContent =
+        "Показаны 4 полных дня; неполный 05.09 исключён из KPI и из тренда. Backfill 01.09–03.09 " +
+        "дал 3 success и 3 разных CSV, повторный запуск — 0 новых ранов (идемпотентно, " +
+        "перезапись по имени файла в shared/output.py:14).";
+      trendnote.textContent =
+        "По четырём полным дням выручка плоская: 25,30…25,66 млн ₽, разброс 1,4%. Тренда, который " +
+        "стоило бы читать как рост или падение, в этих днях нет.";
+    }
+  }
+
+  /* Тултип — на столбик тренда и на ячейку прогона. */
+  function hover(host){
+    host.addEventListener("mousemove", function(e){
+      var t = e.target.closest ? e.target.closest("[data-i], .run[data-rev]") : null;
+      if (!t){ tip.classList.remove("is-visible"); return; }
+      var date, rev, orders, rows, sub;
+      if (t.dataset.i !== undefined){
+        var d = DAILY[+t.dataset.i];
+        date = d.date; rev = d.rev; orders = d.orders; rows = d.rows;
+        sub = d.status === "partial" ? "неполный день — сутки не закрыты" : "полный день";
+      } else {
+        date = t.dataset.iso; rev = +t.dataset.rev; orders = +t.dataset.orders; rows = 20;
+        sub = "выход data/out/sales_report_" + date + ".csv";
+      }
+      tip.innerHTML = "<b>" + date + "</b> · " + int(Math.round(rev)) + " ₽ · " +
+        int(orders) + " заказов · " + rows + " строк" + '<span class="sub">' + sub + "</span>";
+      tip.style.left = (e.clientX + 14) + "px";
+      tip.style.top = (e.clientY + 14) + "px";
+      tip.classList.add("is-visible");
+    });
+    host.addEventListener("mouseleave", function(){ tip.classList.remove("is-visible"); });
+  }
+
+  buildFilters();
+  buildChecks(dqgate, DQ_GATE, true);
+  buildChecks(dqeda, DQ_EDA, false);
+  buildFail();
+  buildWeek();
+  render();
+  hover(trend);
+  hover(strip);
+})();
+</script>
+</body>
+</html>

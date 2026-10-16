@@ -342,7 +342,7 @@ The theme toggle is implemented in `src/layouts/Base.astro`:
 
 ### Demos
 
-The five boards in `public/demos/{volta,cohort,rfm,telegram,bayesian}/` load `/demos/demo.css` + `/demos/demo-theme.js` and follow the same three themes. They sync by reading the `storage` event, not by any parent-side code — `Base.astro` is not involved and must stay that way. `demo.css` duplicates the palette because `public/` is never processed; `tests/lib/demo-tokens.test.ts` is what keeps the copy honest. Data colours live in the `--dv-*` bucket and never style an interactive affordance. Full rationale: `DESIGN.md` → Demos.
+The boards in `public/demos/<slug>/` load `/demos/demo.css` + `/demos/demo-theme.js` and follow the same three themes. They sync by reading the `storage` event, not by any parent-side code — `Base.astro` is not involved and must stay that way. `demo.css` duplicates the palette because `public/` is never processed; `tests/lib/demo-tokens.test.ts` is what keeps the copy honest. That test iterates an **explicit** `PAGES` list rather than reading the directory, so a board added under `public/demos/` is ungated until its slug is added there in the same change. Data colours live in the `--dv-*` bucket and never style an interactive affordance. A board is surfaced by its project's `demo:` frontmatter (RU + EN), which feeds the card button, the case page's meta row and its `Дашборд` panel. Full rationale: `DESIGN.md` → Demos.
 
 ## Analytics
 

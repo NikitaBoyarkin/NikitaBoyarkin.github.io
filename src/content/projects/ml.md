@@ -24,6 +24,7 @@ tools:
 github: https://github.com/NikitaBoyarkin/ml
 date: 2026-08-22
 updated: 2026-08-22
+demo: demos/ml/index.html
 related:
   - /projects/python/
   - /projects/ab/

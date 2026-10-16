@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uplift: кого таргетить и что именно оценивается</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css. Every SVG mark is coloured by the shared .dv-* class
+     (dv-s1 for the data series, dv-muted for its recessive counterpart) and
+     every HTML mark by a class below — no inline colour anywhere, so a theme
+     change re-resolves the whole board with zero JavaScript. */
+  section{margin-bottom:var(--space-4)}
+  .qrow{
+    display:grid; grid-template-columns:minmax(88px,116px) 1fr;
+    gap:var(--space-2) var(--space-3); align-items:center; margin-bottom:var(--space-2);
+  }
+  /* Метка со значением уходит на свою строку под полосой, а не в третью
+     колонку: при 320px третья колонка сжимает саму полосу до нечитаемой. */
+  .qval{display:flex; flex-wrap:wrap; gap:var(--space-2) var(--space-4); margin:0 0 var(--space-3)}
+  .track{position:relative; height:22px; border-radius:var(--radius-sm);
+         background:var(--background-tertiary); overflow:hidden}
+  /* Интервал: полоса + точка оценки. Занулять нечего — 0 лежит левее шкалы. */
+  .ci{position:absolute; top:6px; bottom:6px; border-radius:var(--radius-full)}
+  .pt{position:absolute; top:4px; bottom:4px; width:2px; background:var(--dv-cell-ink)}
+  .ticks{position:relative; height:16px}
+  .tick{position:absolute; top:0; transform:translateX(-50%); white-space:nowrap}
+  .tick--start{transform:translateX(0)}
+  .tick--end{transform:translateX(-100%)}
+  .m-data{background:var(--text-accent-dataviz)}
+  .sw-data{background:var(--text-accent-dataviz)}
+  .sw-muted{background:var(--text-muted)}
+  .est{display:grid; grid-template-columns:1fr auto; gap:2px var(--space-4);
+       margin-top:var(--space-3)}
+  .est b{font-variant-numeric:tabular-nums; text-align:right}
+  .ctl{display:flex; flex-wrap:wrap; gap:var(--space-3) var(--space-5); align-items:center}
+  .radios{display:flex; flex-wrap:wrap; gap:var(--space-2) var(--space-4)}
+  .radios label{display:inline-flex; align-items:center; gap:6px; cursor:pointer}
+  /* Действие — акцент действия, не dataviz-токен: это affordance. */
+  input[type=radio],input[type=range]{accent-color:var(--text-accent)}
+  .slider{display:flex; align-items:center; gap:var(--space-3); flex:1; min-width:190px}
+  input[type=range]{flex:1}
+  .kv{display:flex; flex-wrap:wrap; gap:var(--space-3) var(--space-6); margin-top:var(--space-4)}
+  .kv > div{min-width:96px}
+  .num{font-variant-numeric:tabular-nums}
+  .note{margin:var(--space-3) 0 0}
+  .plot{max-width:660px}
+  .plot svg{display:block; max-width:100%}
+  /* Номера децилей — HTML-строка, выровненная по полям графика: настоящий
+     текст остаётся 11px при любой ширине, чего viewBox не даёт. Отступы
+     совпадают с l=36 / r=10 внутри svgB(); вид даёт общий .demo-axis-label. */
+  .xticks{display:grid; grid-template-columns:repeat(10,1fr); text-align:center;
+          padding-left:36px; padding-right:10px}
+</style>
+</head>
+<body>
+  <h1 class="demo-title">Uplift: кого таргетить — и что именно оценивается</h1>
+  <p class="demo-lede">
+    20 000 пользователей, рандомизированный синтетический эксперимент; скореры обучены на 14 000,
+    кривые считаны на тестовых 6 000 (seed 42) из causal-uplift/data/experiment.csv.
+    Меняйте скорер и порог охвата — кривая, децили и выжимка пересчитываются.
+  </p>
+
+  <div class="demo-legend">
+    <span><i class="demo-swatch sw-data"></i>внутри порога охвата</span>
+    <span><i class="demo-swatch sw-muted"></i>вне порога · случайное ранжирование</span>
+  </div>
+
+  <section class="demo-card">
+    <h2 class="demo-title">Оценка эффекта и параметр, который она оценивает</h2>
+    <div class="qrow">
+      <span class="demo-kpi-label">ATE, наивная</span>
+      <div class="track">
+        <div class="ci m-data" id="ciN"></div>
+        <div class="pt" id="ptN"></div>
+      </div>
+    </div>
+    <div class="qval">
+      <b class="num" id="ateN"></b>
+      <span class="demo-kpi-label">θ = 0,761 · ρ = 0,667</span>
+    </div>
+    <div class="qrow">
+      <span class="demo-kpi-label">ATE, CUPED</span>
+      <div class="track">
+        <div class="ci m-data" id="ciC"></div>
+        <div class="pt" id="ptC"></div>
+      </div>
+    </div>
+    <div class="qval">
+      <b class="num" id="ateC"></b>
+      <span class="demo-kpi-label" id="varred"></span>
+    </div>
+    <div class="ticks">
+      <span class="tick demo-axis-label tick--start" style="left:0">0,22</span>
+      <span class="tick demo-axis-label" style="left:40%">0,26</span>
+      <span class="tick demo-axis-label tick--end" style="left:80%">0,30</span>
+    </div>
+    <div class="est" id="est"></div>
+    <p class="demo-lede note" id="estNote"></p>
+  </section>
+
+  <section class="demo-card">
+    <h2 class="demo-title">Управление</h2>
+    <div class="ctl">
+      <div class="radios" role="radiogroup" aria-label="Скорер">
+        <label><input type="radio" name="metric" value="s" checked>S-learner</label>
+        <label><input type="radio" name="metric" value="t">T-learner</label>
+        <label><input type="radio" name="metric" value="o">Оракул τ</label>
+      </div>
+    </div>
+    <div class="ctl" style="margin-top:var(--space-3)">
+      <div class="slider">
+        <label for="thr">Порог охвата</label>
+        <input type="range" id="thr" min="10" max="100" step="10" value="20">
+        <b class="num" id="thrv"></b>
+      </div>
+    </div>
+    <div class="kv">
+      <div><div class="demo-kpi-label">Кого возьмём</div><div class="num" id="rWho"></div></div>
+      <div>
+        <div class="demo-kpi-label">Uplift в охвате</div>
+        <div class="demo-kpi-value num" id="rUp"></div>
+      </div>
+      <div><div class="demo-kpi-label">Обработанные против контроля</div><div class="num" id="rRates"></div></div>
+      <div><div class="demo-kpi-label">На 1000 охваченных</div><div class="num" id="rPer"></div></div>
+      <div><div class="demo-kpi-label">Qini против случайного</div><div class="num" id="rQini"></div></div>
+    </div>
+    <p class="demo-lede note" id="rNote"></p>
+  </section>
+
+  <section class="demo-card">
+    <h2 class="demo-title">Кумулятивный uplift: топ-k против случайного отбора</h2>
+    <div class="plot" id="plotA"></div>
+  </section>
+  <section class="demo-card">
+    <h2 class="demo-title">Uplift по децилям прогноза</h2>
+    <div class="plot">
+      <div id="plotB"></div>
+      <div class="xticks" id="xticks"></div>
+    </div>
+    <p class="demo-axis-label" style="margin-top:var(--space-2)">дециль по прогнозу: 1 — самый высокий, 10 — самый низкий</p>
+  </section>
+
+<script>
+// Посчитано в Python на causal-uplift/data/experiment.csv через src/uplift.py и
+// src/eval.py проекта (тот же seed): qini/auuc воспроизводят reports/metrics.json
+// до знака. cum[i] = [uplift в топ-k, п.п., доля конверсий в обработке, в контроле,
+// n обработки, n контроля]; dec = uplift внутри дециля, п.п.
+const D = {
+  n:6000, nT:2970, nC:3030, base:1.15,
+  K:[10,20,30,40,50,60,70,80,90,100],
+  m:{
+    s:{name:"S-learner", qini:0.00291, z:1.72,
+       cum:[[6.37,56.4,50.0,314,286],[4.19,62.6,58.4,609,591],[4.43,63.5,59.1,896,904],
+            [4.74,67.8,63.1,1197,1203],[3.22,69.3,66.1,1482,1518],[2.37,69.8,67.5,1790,1810],
+            [1.58,70.5,68.9,2064,2136],[1.33,72.7,71.3,2364,2436],[1.21,73.8,72.6,2660,2740],
+            [1.15,74.5,73.4,2970,3030]],
+       dec:[6.02,3.58,4.80,5.15,-2.02,-1.93,-2.27,-1.00,1.31,-0.90]},    t:{name:"T-learner", qini:0.00142, z:0.81,
+       cum:[[4.35,58.1,53.8,308,292],[7.41,64.2,56.8,612,588],[4.95,66.3,61.4,927,873],
+            [2.89,68.6,65.7,1204,1196],[1.05,70.2,69.1,1488,1512],[0.22,70.8,70.6,1783,1817],
+            [0.80,72.4,71.6,2055,2145],[1.17,73.7,72.5,2348,2452],[1.34,74.6,73.3,2656,2744],
+            [1.15,74.5,73.4,2970,3030]],
+       dec:[4.64,10.26,-0.08,-1.44,-5.20,-3.14,4.61,3.47,3.02,-0.91]},
+    o:{name:"Оракул τ", qini:0.00378, z:2.25,
+       cum:[[1.91,56.3,54.4,284,316],[3.77,58.7,54.9,603,597],[5.85,61.4,55.6,902,898],
+            [5.49,67.6,62.2,1224,1176],[4.15,69.5,65.4,1528,1472],[3.38,71.6,68.3,1813,1787],
+            [2.47,72.4,70.0,2098,2102],[1.60,72.9,71.3,2354,2446],[0.99,73.4,72.4,2670,2730],
+            [1.15,74.5,73.4,2970,3030]],
+       dec:[8.12,1.22,9.06,0.61,-1.84,-1.38,0.53,0.60,0.60,-5.67],
+       warn:"Не модель, а верхняя граница: ранжирование по известному \u03c4."}
+  },
+  // ATE по y_cont: наивная и CUPED, с 95% ДИ (reports/metrics.json).
+  ate:{naive:[0.2704,0.2323,0.3084], cuped:[0.2756,0.2474,0.3039], vr:44.9},
+  // ATT и ATO посчитаны к тому же исходу: IPW и overlap-веса по propensity-скору
+  // логистической регрессии на (x_pre, segment), бутстрап 1000 прогонов.
+  est:{att:[0.27615,0.19434,0.35983], ato:[0.27546,0.23805,0.31293], ps:[0.489,0.502]},
+  nullSd:0.0016
+};
+
+const $ = id => document.getElementById(id);
+const n1 = v => v.toFixed(1).replace(".", ",");
+const n2 = v => v.toFixed(2).replace(".", ",");
+const n3 = v => v.toFixed(3).replace(".", ",");
+const n4 = v => v.toFixed(4).replace(".", ",");
+const sg = (v, f) => (v > 0 ? "+" : "\u2212") + Math.abs(v).toFixed(f || 2).replace(".", ",");
+
+// ── Оценка эффекта: два интервала на одной шкале 0,22…0,32 ─────────────────
+const ALO = 0.22, ASPAN = 0.10, apos = v => (v - ALO) / ASPAN * 100;
+[[0.2704, 0.2323, 0.3084, "ciN", "ptN", "ateN"], [0.2756, 0.2474, 0.3039, "ciC", "ptC", "ateC"]]
+  .forEach(([v, lo, hi, bar, pt, txt]) => {
+    $(bar).style.left = apos(lo) + "%";
+    $(bar).style.width = (apos(hi) - apos(lo)) + "%";
+    $(pt).style.left = apos(v) + "%";
+    $(txt).textContent = n3(v) + " · 95% ДИ [" + n3(lo) + "; " + n3(hi) + "]";
+  });
+$("varred").textContent = "CUPED снимает " + n1(D.ate.vr) + "% дисперсии: оценка та же, интервал уже";
+$("est").innerHTML = [
+  ["ATE (наивная, y_cont)", D.ate.naive],
+  ["ATE (CUPED)", D.ate.cuped],
+  ["ATT (IPW, на получивших)", D.est.att],
+  ["ATO (overlap-веса)", D.est.ato]
+].map(([nm, v]) => '<span class="demo-kpi-label">' + nm + "</span><b>" + n3(v[0]) +
+    " [" + n3(v[1]) + "; " + n3(v[2]) + "]</b>").join("");
+$("estNote").textContent =
+  "Параметр борта — ATE: средний эффект по всей популяции, исход y_cont, дизайн рандомизированный. " +
+  "Поэтому ATT и ATO совпадают с ним с точностью до шума: propensity-скор почти постоянен (" +
+  n3(D.est.ps[0]) + "\u2013" + n3(D.est.ps[1]) + "), отбор не зависит от исхода. Графики ниже " +
+  "оценивают ДРУГОЙ параметр — локальный ATE внутри отобранного топ-k (uplift@top-k), не ATT и не ATO. " +
+  "Шкала интервалов обрезана слева: 0 лежит вне неё, но оба интервала целиком в положительной области.";
+
+// ── Интерактив ─────────────────────────────────────────────────────────────
+let metric = "s", thr = 20;
+const wrapW = id => Math.min(660, Math.max(240, $(id).clientWidth));
+$("xticks").innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => '<span class="demo-axis-label">' + d + "</span>").join("");
+
+function svgA(){
+  const m = D.m[metric], W = wrapW("plotA"), H = 190;
+  const l = 46, r = 12, t = 18, b = 34, pw = W - l - r, ph = H - t - b;
+  const X = k => l + (k - 10) / 90 * pw;
+  const Y = v => t + (1 - v / 8) * ph;
+  const i = D.K.indexOf(thr), px = X(thr), py = Y(m.cum[i][0]);
+  const fs = W < 420 ? 9.5 : 10.5;
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H +
+    '" role="img" aria-label="Кумулятивный uplift против случайного ранжирования">';
+  s += '<line class="dv-axis" x1="' + l + '" y1="' + Y(0) + '" x2="' + (l + pw) + '" y2="' + Y(0) + '"/>';
+  s += '<line class="dv-axis" x1="' + l + '" y1="' + (t - 6) + '" x2="' + l + '" y2="' + Y(0) + '"/>';
+  [0, 2, 4, 6, 8].forEach(v => s += '<text class="dv-label" x="' + (l - 6) + '" y="' + (Y(v) + 3.5) +
+    '" text-anchor="end" font-size="' + fs + '">' + v + '</text>');
+  [10, 40, 70].forEach(k => s += '<text class="dv-label" x="' + X(k) + '" y="' + (Y(0) + 15) +
+    '" text-anchor="middle" font-size="' + fs + '">' + k + '%</text>');
+  // Крайняя метка выравнивается по правому краю: при text-anchor="middle" её
+  // половина ушла бы за границу svg, а svg обрезает содержимое.
+  s += '<text class="dv-label" x="' + (l + pw) + '" y="' + (Y(0) + 15) +
+    '" text-anchor="end" font-size="' + fs + '">100%</text>';
+  s += '<text class="dv-label" x="' + l + '" y="10" font-size="' + fs + '">накопленный uplift, п.п.</text>';
+  s += '<text class="dv-label" x="' + (l + pw) + '" y="' + (H - 4) + '" text-anchor="end" font-size="' + fs +
+    '">доля охвата, топ-k из 6 000</text>';  s += '<line class="dv-muted-line" x1="' + l + '" y1="' + Y(D.base) + '" x2="' + (l + pw) +
+    '" y2="' + Y(D.base) + '" stroke-width="2"/>';
+  s += '<text class="dv-label" x="' + (l + 4) + '" y="' + (Y(D.base) - 6) + '" font-size="' + fs +
+    '">случайно: +' + n2(D.base) + ' п.п.</text>';
+  s += '<polyline class="dv-s1-line" fill="none" stroke-width="2.5" points="' +
+    m.cum.map((row, j) => X(D.K[j]) + ',' + Y(row[0])).join(" ") + '"/>';
+  s += '<line class="dv-axis" x1="' + px + '" y1="' + Y(0) + '" x2="' + px + '" y2="' + py +
+    '" stroke-dasharray="3 3"/>';
+  s += '<circle class="dv-s1" cx="' + px + '" cy="' + py + '" r="4"/>';
+  const anch = thr <= 20 ? "start" : (thr >= 70 ? "end" : "middle");
+  const lx = thr <= 20 ? px + 7 : (thr >= 70 ? px - 7 : px);
+  s += '<text class="dv-ink" x="' + lx + '" y="' + (py - 8) + '" text-anchor="' + anch + '" font-size="' + fs +
+    '">' + sg(m.cum[i][0]) + ' п.п.</text>';
+  return s + '</svg>';
+}
+
+function svgB(){
+  const m = D.m[metric], W = wrapW("plotB"), H = 172;
+  const l = 36, r = 10, t = 16, b = 16, pw = W - l - r, ph = H - t - b;
+  const LO = -6, HI = 11;
+  const Y = v => t + (1 - (v - LO) / (HI - LO)) * ph;
+  const slot = pw / 10, bw = slot * 0.58, fs = W < 420 ? 8.5 : 9.5;
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H +
+    '" role="img" aria-label="Uplift внутри каждого дециля прогноза">';
+  s += '<line class="dv-axis" x1="' + l + '" y1="' + Y(0) + '" x2="' + (l + pw) + '" y2="' + Y(0) + '"/>';
+  [-5, 0, 5, 10].forEach(v => s += '<text class="dv-label" x="' + (l - 5) + '" y="' + (Y(v) + 3.5) +
+    '" text-anchor="end" font-size="' + fs + '">' + v + '</text>');
+  m.dec.forEach((v, j) => {
+    const cx = l + slot * (j + 0.5), y0 = Y(0), y1 = Y(v);
+    const top = Math.min(y0, y1), hh = Math.max(2, Math.abs(y1 - y0));
+    const inside = (j + 1) * 10 <= thr;
+    s += '<rect class="' + (inside ? 'dv-s1' : 'dv-muted') + '" x="' + (cx - bw / 2) + '" y="' + top +
+      '" width="' + bw + '" height="' + hh + '" rx="2"><title>дециль ' + (j + 1) + ': ' +
+      sg(v) + ' п.п. (n = ' + Math.round(D.n / 10) + ')</title></rect>';
+    s += '<text class="dv-ink" x="' + cx + '" y="' + (v >= 0 ? y1 - 4 : y1 + fs + 2) +
+      '" text-anchor="middle" font-size="' + fs + '">' + n1(v) + '</text>';
+  });
+  s += '<text class="dv-label" x="0" y="10" font-size="' + fs + '">uplift в дециле, п.п.</text>';
+  return s + '</svg>';
+}
+
+function render(){
+  const m = D.m[metric], i = D.K.indexOf(thr), row = m.cum[i];
+  $("plotA").innerHTML = svgA();
+  $("plotB").innerHTML = svgB();
+  $("thrv").textContent = "топ-" + thr + "%";
+  $("rWho").textContent = "топ-" + thr + "% · " + (row[3] + row[4]) + " чел.";
+  $("rUp").textContent = sg(row[0]) + " п.п.";
+  $("rRates").textContent = n1(row[1]) + "% против " + n1(row[2]) + "%";
+  $("rPer").textContent = sg(row[0] * 10, 1) + " конверсий";
+  $("rQini").textContent = "Qini " + n4(m.qini) + " · z = " + n2(m.z);
+  $("rNote").textContent = (m.warn ? m.warn + " " : "") + "Qini — площадь между кривой и случайной " +
+    "линией; z считается против 200 случайных скореров (их sd = " + n4(D.nullSd) + "), поэтому " +
+    "z около 1,7 — это «лучше случайного», а не «надёжное ранжирование». «На 1000 охваченных» = " +
+    "uplift в п.п. \u00d7 10.";
+}
+
+document.querySelectorAll('input[name=metric]').forEach(el => el.addEventListener("change", () => {
+  metric = document.querySelector('input[name=metric]:checked').value;
+  render();
+}));
+$("thr").addEventListener("input", e => { thr = +e.target.value; render(); });
+addEventListener("resize", () => requestAnimationFrame(render));
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG-оценка: поиск и генерация</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only: colour, type, radii, shadows and the wallpaper come from
+     /demos/demo.css, which is what makes this page follow the site's three
+     themes. Local classes that map marks onto tokens: .s2/.s3 and .sw1-.sw3 —
+     demo.css ships one series class (.dv-s1) and the categorical set exists for
+     the rest; .mean is the average marker, which has no utility either. */
+  .tabs{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:0 0 var(--space-4)}
+  .tab{padding:var(--space-1) var(--space-3);font:inherit;font-size:12px;font-weight:600;
+    line-height:1.5;color:var(--text-muted);background:var(--background-secondary);
+    border:1px solid var(--border-color);border-radius:var(--radius-full);cursor:pointer}
+  .tab:hover{color:var(--text-accent-hover)}
+  .tab[aria-pressed="true"]{color:var(--text-accent);border-color:var(--border-active)}
+  .tab:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+  .chart{width:100%;height:214px;display:block}
+  .demo-legend{margin-bottom:var(--space-3)}
+  .cap{margin-top:var(--space-2);font-size:11px;font-weight:600;color:var(--dv-label)}
+  .kpis{margin-top:var(--space-4);display:grid;gap:var(--space-3);
+    grid-template-columns:repeat(auto-fit,minmax(104px,1fr))}
+  .kpi{display:flex;flex-direction:column;gap:2px}
+  .flag{display:block;margin-top:var(--space-4);padding:var(--space-2) var(--space-3);
+    border-radius:var(--radius-md);font-size:12px;max-width:760px}
+  .tblwrap{overflow-x:auto;margin-top:var(--space-4)}
+  .tbl{width:100%;border-collapse:collapse;font-size:12px}
+  .tbl th{padding:0 var(--space-3) var(--space-1) 0;text-align:left;font-size:11px;
+    font-weight:600;color:var(--dv-label)}
+  .tbl td{padding:var(--space-1) var(--space-3) var(--space-1) 0;
+    border-top:1px solid var(--border-color);vertical-align:top}
+  .tbl .num{font-family:var(--font-mono);white-space:nowrap}
+  .tbl .ans{max-width:330px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  @media (max-width:520px){.tbl .ans{display:none}}
+  .s2{fill:var(--dv-cat-2)}          .s3{fill:var(--dv-cat-6)}
+  .sw1{background:var(--text-accent-dataviz)}
+  .sw2{background:var(--dv-cat-2)}   .sw3{background:var(--dv-cat-6)}
+  .mean{stroke:var(--dv-threshold);stroke-dasharray:4 4}
+</style>
+</head>
+<body>
+  <h1 class="demo-title">RAG-оценка: поиск и генерация</h1>
+  <p class="demo-lede">20 размеченных вопросов, корпус 12 документов, k ≤ 5 — больше отчёт не держит. Путь offline-extractive (без LLM). Переключатель — слой: что вытягивает поиск и что получается в ответах.</p>
+
+  <div class="tabs" role="group" aria-label="Слой">
+    <button type="button" class="tab" id="tbRet" aria-pressed="true">Поиск (retrieval)</button>
+    <button type="button" class="tab" id="tbGen" aria-pressed="false">Генерация (generation)</button>
+  </div>
+
+  <section id="viewRet" aria-label="Качество поиска">
+    <div class="demo-legend">
+      <span><i class="demo-swatch sw1"></i>recall@k</span>
+      <span><i class="demo-swatch sw2"></i>MRR@k</span>
+      <span><i class="demo-swatch sw3"></i>precision@k</span>
+    </div>
+    <svg class="chart" id="retChart"></svg>
+    <p class="cap">k — сколько документов берём в контекст · значение от 0 до 1</p>
+    <div class="kpis">
+      <div class="kpi"><span class="demo-kpi-value" id="rCorpus">—</span><span class="demo-kpi-label">документов в корпусе</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="rQ">—</span><span class="demo-kpi-label">размеченных вопросов</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="rRec">—</span><span class="demo-kpi-label">recall@5 (и любой k)</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="rPrec">—</span><span class="demo-kpi-label">precision@5</span></div>
+    </div>
+    <div class="demo-flag flag">recall@k и MRR равны 1,00 при любом k: золотой документ стоит на 1-м месте во всех 20 вопросах, значит на корпусе из 12 документов эти метрики упираются в потолок и ничего не различают. Различает precision@k — доля релевантного в окне: 1,00 → 0,33 → 0,20.</div>
+  </section>
+
+  <section id="viewGen" aria-label="Качество ответов" hidden>
+    <svg class="chart" id="genChart"></svg>
+    <p class="cap">correctness по вопросам, бакеты по 0,2 · штриховая линия — среднее 0,37</p>
+    <div class="kpis">
+      <div class="kpi"><span class="demo-kpi-value" id="gFaith">—</span><span class="demo-kpi-label">faithfulness (20 из 20)</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="gMean">—</span><span class="demo-kpi-label">correctness, среднее</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="gMed">—</span><span class="demo-kpi-label">медиана</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="gStd">—</span><span class="demo-kpi-label">стандартное отклонение</span></div>
+      <div class="kpi"><span class="demo-kpi-value" id="gRange">—</span><span class="demo-kpi-label">минимум — максимум</span></div>
+    </div>
+    <div class="tblwrap">
+      <table class="tbl">
+        <thead><tr><th>Вопрос</th><th>correctness</th><th>faithfulness</th><th class="ans">Ответ (фрагмент)</th></tr></thead>
+        <tbody id="tbl"></tbody>
+      </table>
+    </div>
+    <div class="demo-flag flag">faithfulness = 1,00 у всех 20 вопросов — это инвариант extractive-ответчика (ответ берётся из найденного документа), а не измеренное качество. Разброс несёт только correctness — пересечение токенов ответа с эталоном, поэтому дальше таблица худших случаев.</div>
+  </section>
+
+  <div class="demo-tooltip" id="tip"></div>
+
+<script>
+// rag-eval-harness/reports/{retrieval,generation}_per_question.csv (20 вопросов,
+// k=5 в отчёте). recall@k и MRR@k пересчитаны из списка retrieved по каждому
+// вопросу, precision@k — доля релевантного в окне. correctness — Jaccard по
+// токенам с эталоном. То же, что в reports/metrics.json: recall@5 1,00, MRR
+// 1,00, precision@5 0,20, correctness 0,37, faithfulness 1,00 при used_llm=false.
+const KS = [1, 3, 5];
+const RET = {
+  recall: [1, 1, 1],
+  mrr: [1, 1, 1],
+  prec: [1, 0.3333, 0.2]
+};
+// correctness по вопросам, бакеты по 0,2; сумма счётчиков = 20.
+const HIST = [["0–0,2", 7], ["0,2–0,4", 5], ["0,4–0,6", 3], ["0,6–0,8", 4], ["0,8–1,0", 1]];
+const GEN = {faith: 1, mean: 0.3689, med: 0.3442, std: 0.2459, min: 0, max: 0.8, n: 20, corpus: 12};
+// Худшие 8 по correctness (весь разброс — в generation_per_question.csv).
+const WORST = [
+  ["q10", 0.0, "Churn prediction models which users will stop being active."],
+  ["q09", 0.0312, "A/B testing compares two variants (control and treatment) on a metric to decide whether a change works."],
+  ["q08", 0.0769, "A/B testing compares two variants (control and treatment) on a metric to decide whether a change works."],
+  ["q16", 0.0857, "The gap between first-touch and lifetime revenue is itself a signal: large gaps mark channels with repeat-purchase potential worth investing in."],
+  ["q01", 0.1481, "CUPED (Controlled-Pre-Experiment-Data) reduces the variance of an A/B test estimate using a pre-period covariate."],
+  ["q13", 0.1714, "RFM segments customers by three measures: Recency (days since last purchase), Frequency (number of purchases), and Monetary (total spend)."],
+  ["q02", 0.1786, "CUPED (Controlled-Pre-Experiment-Data) reduces the variance of an A/B test estimate using a pre-period covariate."],
+  ["q03", 0.2903, "The ATE point estimate on Y_adj is unchanged in expectation but its variance shrinks by roughly (1 - rho^2), where rho is the correlation between the covariate and the outcome."]
+];
+
+const v2 = x => x.toFixed(2).replace(".", ",");
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a) => { const n = document.createElementNS(NS, t);
+  for (const k in a) n.setAttribute(k, a[k]); return n; };
+const txt = (x, y, cls, s, anchor) => { const t = el("text", {x: x, y: y, class: cls,
+  "text-anchor": anchor || "middle", "font-size": 10}); t.textContent = s; return t; };
+
+// Столбцы: одна группа на k, по столбику на метрику. Ширина контейнера идёт и
+// в viewBox, поэтому единица SVG = 1 CSS px и подписи не масштабируются.
+function drawGroups(host, groups, o) {
+  const W = Math.max(276, host.clientWidth || 320), H = 214;
+  const padT = 30, padB = 34, padL = 6, padR = 6;
+  const plotW = W - padL - padR, plotH = H - padT - padB, baseY = padT + plotH;
+  const slot = plotW / groups.length, n = groups[0].v.length;
+  const bw = Math.min(30, slot * 0.2), gap = Math.min(6, slot * 0.04);
+  const groupW = n * bw + (n - 1) * gap;
+  host.setAttribute("viewBox", "0 0 " + W + " " + H);
+  host.setAttribute("role", "img");
+  host.setAttribute("aria-label", o.label);
+  host.textContent = "";
+  host.appendChild(el("line", {x1: padL, x2: W - padR, y1: baseY, y2: baseY, class: "dv-axis"}));
+  groups.forEach((g, i) => {
+    const x0 = padL + slot * i + (slot - groupW) / 2;
+    g.v.forEach((v, j) => {
+      const h = Math.max(3, plotH * v), x = x0 + j * (bw + gap), y = baseY - h;
+      const r = el("rect", {x: x, y: y, width: bw, height: h, rx: 3, class: o.series[j].cls});
+      r.dataset.tip = g.label + " · " + o.series[j].name + " " + v2(v);
+      host.appendChild(r);
+      host.appendChild(txt(x + bw / 2, y - 5, "dv-ink", v2(v)));
+    });
+    host.appendChild(txt(padL + slot * i + slot / 2, baseY + 15, "dv-label", g.label));
+  });
+}
+
+// Гистограмма (одна серия) + штриховая линия среднего.
+function drawHist(host, bins, mean, o) {
+  const W = Math.max(276, host.clientWidth || 320), H = 214;
+  const padT = 26, padB = 34, padL = 6, padR = 6;
+  const plotW = W - padL - padR, plotH = H - padT - padB, baseY = padT + plotH;
+  const max = Math.max.apply(null, bins.map(b => b[1]));
+  const slot = plotW / bins.length, bw = Math.min(54, slot * 0.66);
+  host.setAttribute("viewBox", "0 0 " + W + " " + H);
+  host.setAttribute("role", "img");
+  host.setAttribute("aria-label", o.label);
+  host.textContent = "";
+  host.appendChild(el("line", {x1: padL, x2: W - padR, y1: baseY, y2: baseY, class: "dv-axis"}));
+  const mx = padL + (W - padL - padR) * mean;
+  host.appendChild(el("line", {x1: mx, x2: mx, y1: padT - 10, y2: baseY, class: "mean"}));
+  host.appendChild(txt(Math.min(mx, W - padR - 26), padT - 14, "dv-label", "среднее 0,37", "end"));
+  bins.forEach(([lab, cnt], i) => {
+    const h = Math.max(3, plotH * (cnt / max));
+    const x = padL + slot * i + (slot - bw) / 2, y = baseY - h;
+    const r = el("rect", {x: x, y: y, width: bw, height: h, rx: 3, class: "dv-s1"});
+    r.dataset.tip = "correctness " + lab + " · вопросов " + cnt + " из " + GEN.n;
+    host.appendChild(r);
+    host.appendChild(txt(x + bw / 2, y - 5, "dv-ink", String(cnt)));
+    host.appendChild(txt(padL + slot * i + slot / 2, baseY + 15, "dv-label", lab));
+    host.appendChild(txt(padL + slot * i + slot / 2, baseY + 27, "dv-label", "n " + cnt));
+  });
+}
+
+// ── Вид 1: качество поиска ─────────────────────────────────────────────
+function renderRet() {
+  drawGroups(document.getElementById("retChart"), KS.map((k, i) => ({label: "k=" + k,
+    v: [RET.recall[i], RET.mrr[i], RET.prec[i]]})),
+    {series: [{cls: "dv-s1", name: "recall@k"}, {cls: "s2", name: "MRR@k"}, {cls: "s3", name: "precision@k"}],
+     label: "Поиск по k: recall@k и MRR@k равны 1,00 при k = 1, 3, 5; precision@k 1,00, 0,33, 0,20"});
+  document.getElementById("rCorpus").textContent = GEN.corpus;
+  document.getElementById("rQ").textContent = GEN.n;
+  document.getElementById("rRec").textContent = v2(RET.recall[2]);
+  document.getElementById("rPrec").textContent = v2(RET.prec[2]);
+}
+
+// ── Вид 2: качество ответов ────────────────────────────────────────────
+function renderGen() {
+  drawHist(document.getElementById("genChart"), HIST, GEN.mean,
+    {label: "Распределение correctness по 20 вопросам: " +
+      HIST.map(b => b[0] + " — " + b[1]).join(", ") + " вопросов"});
+  document.getElementById("gFaith").textContent = v2(GEN.faith);
+  document.getElementById("gMean").textContent = v2(GEN.mean);
+  document.getElementById("gMed").textContent = v2(GEN.med);
+  document.getElementById("gStd").textContent = v2(GEN.std);
+  document.getElementById("gRange").textContent = v2(GEN.min) + "–" + v2(GEN.max);
+  const tb = document.getElementById("tbl");
+  tb.textContent = "";
+  WORST.forEach(([id, c, ans]) => {
+    const tr = document.createElement("tr");
+    [[id, ""], [v2(c), "num"], [v2(GEN.faith), "num"], [ans, "ans"]].forEach(([v, cls]) => {
+      const td = document.createElement("td");
+      if (cls) td.className = cls;
+      if (cls === "ans") td.title = ans;
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+
+// ── Переключатель слоя ─────────────────────────────────────────────────
+const views = {ret: document.getElementById("viewRet"), gen: document.getElementById("viewGen")};
+const tabs = {ret: document.getElementById("tbRet"), gen: document.getElementById("tbGen")};
+const render = which => (which === "ret" ? renderRet : renderGen)();
+function show(which) {
+  for (const k in views) views[k].hidden = k !== which;
+  for (const k in tabs) tabs[k].setAttribute("aria-pressed", String(k === which));
+  render(which);
+}
+tabs.ret.addEventListener("click", () => show("ret"));
+tabs.gen.addEventListener("click", () => show("gen"));
+window.addEventListener("resize", () => render(views.ret.hidden ? "gen" : "ret"));
+
+// Тултип: деталь к каждому столбику (значения подписаны и в самой диаграмме).
+function onMove(e) {
+  const t = e.target.closest("rect");
+  if (!t) return;
+  document.getElementById("tip").innerHTML = "<b>" + t.dataset.tip + "</b>";
+  document.getElementById("tip").classList.add("is-visible");
+  document.getElementById("tip").style.left = Math.min(window.innerWidth - 250, e.clientX + 14) + "px";
+  document.getElementById("tip").style.top = (e.clientY + 14) + "px";
+}
+for (const id of ["viewRet", "viewGen"]) {
+  const v = document.getElementById(id);
+  const tip = document.getElementById("tip");
+  v.addEventListener("mousemove", onMove);
+  v.addEventListener("mouseout", e => { if (e.target.closest("rect")) tip.classList.remove("is-visible"); });
+}
+
+renderRet();
+</script>
+</body>
+</html>

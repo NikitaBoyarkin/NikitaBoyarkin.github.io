@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Структура сада: заметки, словарь и связи — digital garden</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. */
+  .stack{display:flex;flex-direction:column;gap:var(--space-4)}
+  .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+    gap:var(--space-2);margin-bottom:var(--space-3)}
+  .ctlrow{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center;
+    margin-bottom:var(--space-3)}
+  .seg{display:flex;flex-wrap:wrap;gap:4px}
+  /* Affordances live on the coral action accent, never on --dv-*. */
+  .ctrl{font:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:3px 10px;
+    border-radius:var(--radius-full);background:var(--background-secondary);
+    color:var(--text-muted);border:1px solid var(--border-color)}
+  .ctrl:hover{color:var(--text-accent-hover);border-color:var(--border-active)}
+  .ctrl.is-on{color:var(--text-normal);border-color:var(--border-active);
+    background:var(--background-tertiary)}
+  .ctrl:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));
+    gap:var(--space-3) var(--space-4)}
+  .kpi{display:flex;flex-direction:column;gap:2px;min-width:0}
+
+  /* RU → EN coverage: one row per content layer, fill = translated share. */
+  .crows{margin-top:var(--space-4)}
+  .crow{display:grid;grid-template-columns:150px 1fr;gap:2px var(--space-2);
+    align-items:center;margin-bottom:var(--space-2)}
+  .clab{font-size:12px;font-weight:600;color:var(--text-normal);overflow-wrap:anywhere}
+  .ctrack{position:relative;height:18px;background:var(--background-primary);
+    border-radius:var(--radius-sm)}
+  .cbar{position:absolute;left:0;top:0;bottom:0;min-width:3px;
+    border-radius:var(--radius-sm)}
+  .cnum{grid-column:2;font-size:10px;font-weight:600;color:var(--dv-label);
+    font-variant-numeric:tabular-nums}
+
+  /* Categories: label + share-of-layer track, count printed under it. */
+  .grow{display:grid;grid-template-columns:14px 1fr;gap:2px var(--space-2);
+    margin-bottom:var(--space-2)}
+  .gsw{grid-column:1;grid-row:1 / span 2;align-self:start;margin-top:3px}
+  .glab{grid-column:2;grid-row:1;font-size:12px;font-weight:600;
+    color:var(--text-normal);overflow-wrap:anywhere}
+  .gtrack{grid-column:2;grid-row:2;position:relative;height:18px;
+    background:var(--background-primary);border-radius:var(--radius-sm)}
+  .gbar{position:absolute;left:0;top:0;bottom:0;min-width:3px;
+    border-radius:var(--radius-sm)}
+  .gnum{grid-column:2;grid-row:3;font-size:10px;font-weight:600;color:var(--dv-label);
+    font-variant-numeric:tabular-nums}
+
+  /* Degree histogram: column per degree bucket, height ∝ node count. */
+  .hgrid{display:flex;gap:var(--space-1);height:152px;padding-top:14px;
+    background:var(--background-primary);border-radius:var(--radius-sm)}
+  .hcol{flex:1;min-width:0;position:relative}
+  .hbar{position:absolute;left:8%;right:8%;bottom:0;border-radius:3px 3px 0 0}
+  .hval{position:absolute;left:-6px;right:-6px;text-align:center;font-size:10px;
+    font-weight:700;color:var(--text-normal);font-variant-numeric:tabular-nums}
+  .hcap{display:flex;gap:var(--space-1);margin-top:5px}
+  .hcap span{flex:1;min-width:0;text-align:center;font-size:10px;font-weight:600;
+    color:var(--dv-label)}
+
+  /* Hubs: name + kind, then a bar over the top degree. */
+  .hrow{margin-bottom:var(--space-2)}
+  .hmeta{display:flex;flex-wrap:wrap;justify-content:space-between;
+    gap:2px var(--space-2);font-size:12px;font-weight:600;color:var(--text-normal)}
+  .hmeta b{font-weight:600;color:var(--dv-label);font-size:10px}
+  .htrack{position:relative;height:14px;background:var(--background-primary);
+    border-radius:var(--radius-sm);margin-top:3px}
+  .hubar{position:absolute;left:0;top:0;bottom:0;min-width:3px;
+    border-radius:var(--radius-sm)}
+
+  .note{margin-top:var(--space-3);font-weight:400}
+  .note--tight{margin-top:var(--space-2)}
+
+  @media (max-width:560px){
+    .crow{grid-template-columns:110px 1fr}
+    .clab{font-size:11px}
+    .hgrid{height:124px}
+    .hval{transform:translateY(-13px)}
+  }
+
+  /* demo.css's shared `.dv-s1` is a `fill` utility — the SVG series class. The
+     bars here are HTML boxes, so the series token is re-applied to `background`
+     in one declaration instead of an inline colour per bar. */
+  .dv-s1{background:var(--text-accent-dataviz)}
+
+  /* The five glossary categories, applied by class rather than inline style so
+     they re-resolve on a theme change with no JavaScript at all. */
+  .cat-1{background:var(--dv-cat-1)}   .cat-2{background:var(--dv-cat-2)}
+  .cat-3{background:var(--dv-cat-3)}   .cat-4{background:var(--dv-cat-4)}
+  .cat-5{background:var(--dv-cat-5)}
+
+  /* The seven degree buckets: an ordinal ramp, steps 1 (degree 1) to 7 (15+). */
+  .seq-1{background:var(--dv-seq-1)}   .seq-2{background:var(--dv-seq-2)}
+  .seq-3{background:var(--dv-seq-3)}   .seq-4{background:var(--dv-seq-4)}
+  .seq-5{background:var(--dv-seq-5)}   .seq-6{background:var(--dv-seq-6)}
+  .seq-7{background:var(--dv-seq-7)}
+</style>
+</head>
+<body>
+  <h1 class="demo-title">Структура сада: заметки, словарь и связи</h1>
+  <p class="demo-lede">Всё на доске посчитано по контенту ЭТОГО сайта — «src/content/{posts,glossary,library}/*.md» и «dist/graph.json» (граф, который рендерит страница /graph): 24 заметки, 27 терминов словаря, 2 источника. Это структура данного сада, а не показатели внешнего репозитория digital_garden: тот лежит вне этого каталога и отсюда не читается, поэтому ни трафика, ни читателей, ни числа его заметок здесь нет.</p>
+
+  <div class="stack">
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Слои контента и переводы</h2>
+        <span class="demo-axis-label">RU-файлы и EN-версии рядом</span>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="crows" id="cov"></div>
+      <p class="demo-axis-label note">Переводы асимметричны: словарь переведён целиком (27 из 27 — «glossary-en» повторяет все категории один в один), а заметки почти нет — 2 из 24. Это структура односторонне двуязычного сада: справочный слой читается на двух языках, авторский — на одном.</p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label" id="cat-title">Заметки по категориям</h2>
+        <span class="demo-axis-label">ширина полосы — доля от слоя</span>
+      </div>
+      <div class="ctlrow">
+        <div class="seg" role="group" aria-label="Слой контента">
+          <button type="button" class="ctrl is-on" data-layer="posts" aria-pressed="true">Заметки</button>
+          <button type="button" class="ctrl" data-layer="glossary" aria-pressed="false">Словарь</button>
+          <button type="button" class="ctrl" data-layer="library" aria-pressed="false">Источники</button>
+        </div>
+      </div>
+      <div id="cats"></div>
+      <div class="demo-legend note" id="cats-legend"></div>
+      <div id="tags"></div>
+      <p class="demo-axis-label note" id="cats-note"></p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Форма графа: распределение по числу связей</h2>
+        <span class="demo-axis-label" id="deg-n"></span>
+      </div>
+      <div class="ctlrow">
+        <div class="seg" role="group" aria-label="Какие узлы считать">
+          <button type="button" class="ctrl is-on" data-scope="all" aria-pressed="true">Весь граф</button>
+          <button type="button" class="ctrl" data-scope="content" aria-pressed="false">Только заметки и словарь</button>
+        </div>
+      </div>
+      <div class="hgrid" id="hist"></div>
+      <div class="hcap" id="hist-cap"></div>
+      <div class="demo-legend note">
+        <span>высота столбца — сколько узлов имеют такую степень</span>
+        <span>подпись под столбцом — диапазон числа связей</span>
+      </div>
+      <p class="demo-axis-label note note--tight">Граф целиком: 109 узлов и 403 связи. Узлы — проекты 46, словарь 28, статьи 25, темы 9, корень 1; связи по типу — related 192, core 76, topic 70, shared 42, children 23. Переключатель «только заметки и словарь» оставляет 51 узел из 109.</p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Хабы: самые связанные заметки и термины</h2>
+        <span class="demo-axis-label">степень узла в графе, максимум 17</span>
+      </div>
+      <div id="hubs"></div>
+      <p class="demo-axis-label note note--tight">Связи берутся не из inline-ссылок: в телах заметок нет ни одного [[wikilink]] — 0 из 24. Рёбра строит «src/lib/graph.ts» из поля related во фронтматтере, из совпадений тегов с темами (topic), общих сигналов (shared), связок хаб → участники (core) и дочерних узлов (children). Поэтому «сеть» этого сада — сеть фронтматтера и тегов, а не разметки внутри текста. Заметок со степенью ниже 4 нет: каждая привязана минимум четырьмя связями, изолированных островов в этом срезе не осталось — 24 узла степени 1 это все дочерние части проекта Volta, а не заметки.</p>
+    </section>
+
+  </div>
+
+<script>
+// ── Слои контента. Источники: src/content/posts/*.md (24 файла),
+// src/content/glossary/*.md (27) + src/content/glossary-en/*.md (27),
+// src/content/library/*.md (2) + src/content/library-en/*.md (2).
+// Файловые счётчики: posts-en 2, glossary-en 27, library-en 2.
+const LAYERS = {
+  posts:{ name:"Заметки", ru:24, en:2,
+    cats:[["guide",13],["decision-log",7],["note",2],["framework",2]],
+    gloss:"Поле category во фронтматтере заметок: guide — руководство, decision-log — разбор решения, note — заметка, framework — рамка.",
+    tags:[["python",9],["retention",6],["ab-testing",4],["statistics",4],["career",4],
+          ["sql",4],["data-analyst",3],["article",3],["cohort-analysis",3],["pandas",3]] },
+  glossary:{ name:"Термины словаря", ru:27, en:27,
+    cats:[["product",8],["statistics",7],["experiment",6],["business",4],["data",2]],
+    gloss:"Поле category в словаре. EN-версия повторяет все категории один в один: 6 experiment, 4 business, 7 statistics, 8 product, 2 data.",
+    tags:[] },
+  library:{ name:"Источники", ru:2, en:2,
+    cats:[["book",2]],
+    gloss:"Поле kind: оба источника — книги. Статусы — reading и reference.",
+    tags:[] }
+};
+
+/* ── Граф. Источник: dist/graph.json (сборка сайта; тот же файл отдаёт
+   страница /graph). 109 узлов, 403 связи. Степень = число рёбер, сходящихся
+   в узле, посчитана по links. */
+const DEG_ALL = [3,23,25,28,18,10,3,15,14,9,6,3,10,6,8,13,11,6,5,3,11,4,14,8,6,43,
+  9,6,7,11,9,17,13,8,9,8,8,7,6,5,6,7,10,9,4,5,11,4,4,11,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,8,11,8,8,6,12,7,6,7,10,6,5,5,9,11,7,6,11,12,7,7,6,7,9,9,
+  6,8,6,10,17,17,9,3,4,3,1];
+const DEG_CONTENT = [17,13,12,12,11,11,11,11,11,11,10,10,9,9,9,9,9,9,9,8,8,8,8,8,
+  8,8,7,7,7,7,7,7,7,7,7,6,6,6,6,6,6,6,6,6,5,5,5,5,4,4,4];
+
+// Верхние хабы среди заметок и терминов (post:* и g:*), степень по графу.
+const HUBS = [
+  ["Когортный анализ удержания", 17, "заметка"],
+  ["Почему агрегат врёт: когортные треугольники удержания", 13, "заметка"],
+  ["Отток (churn)", 12, "термин"],
+  ["Retention", 12, "термин"],
+  ["Почему мы перешли на байесовское A/B-тестирование", 11, "заметка"],
+  ["Автоматизация недельных отчётов через Telegram-бота", 11, "заметка"],
+  ["Кейс Volta: воронка, A/B и retention на синтетике необанка", 11, "заметка"],
+  ["A/B-тест", 11, "термин"]
+];
+
+// Семь корзин по степени узла: 1, 2-3, 4-5, 6-7, 8-9, 10-14, 15+.
+const BUCKETS = [[1,1,"1"],[2,3,"2\u20133"],[4,5,"4\u20135"],[6,7,"6\u20137"],
+                 [8,9,"8\u20139"],[10,14,"10\u201314"],[15,999,"15+"]];
+
+const int = v => Math.round(v).toLocaleString("ru-RU");
+const pct = v => v.toLocaleString("ru-RU",{minimumFractionDigits:1,maximumFractionDigits:1})
+  .replace(".", ",") + " %";
+
+function renderKpis(){
+  const host = document.getElementById("kpis");
+  host.textContent = "";
+  const rows = [
+    [int(LAYERS.posts.ru), "заметки — src/content/posts"],
+    [int(LAYERS.glossary.ru), "термина словаря"],
+    [int(LAYERS.library.ru), "источника в библиотеке"],
+    [int(LAYERS.posts.en) + " / " + int(LAYERS.posts.ru), "заметок с EN-версией — " +
+      pct(LAYERS.posts.en / LAYERS.posts.ru * 100)]
+  ];
+  rows.forEach(r=>{
+    const k = document.createElement("span");
+    k.className = "kpi";
+    const v = document.createElement("span");
+    v.className = "demo-kpi-value";
+    v.textContent = r[0];
+    const l = document.createElement("span");
+    l.className = "demo-kpi-label";
+    l.textContent = r[1];
+    k.appendChild(v); k.appendChild(l);
+    host.appendChild(k);
+  });
+}
+
+function renderCov(){
+  const host = document.getElementById("cov");
+  host.textContent = "";
+  ["posts","glossary","library"].forEach(function(key){
+    const L = LAYERS[key];
+    const row = document.createElement("div");
+    row.className = "crow";
+    const lab = document.createElement("div");
+    lab.className = "clab";
+    lab.textContent = L.name;
+    const track = document.createElement("div");
+    track.className = "ctrack";
+    const bar = document.createElement("div");
+    bar.className = "cbar dv-s1";
+    bar.style.width = (L.en / L.ru * 100) + "%";
+    track.appendChild(bar);
+    const num = document.createElement("div");
+    num.className = "cnum";
+    num.textContent = int(L.ru) + " RU · " + int(L.en) + " EN — " +
+      pct(L.en / L.ru * 100) + " переведено";
+    row.appendChild(lab); row.appendChild(track); row.appendChild(num);
+    host.appendChild(row);
+  });
+}
+
+function renderCats(key){
+  const L = LAYERS[key];
+  document.getElementById("cat-title").textContent = L.name + " по категориям";
+  const host = document.getElementById("cats");
+  const lg = document.getElementById("cats-legend");
+  const tags = document.getElementById("tags");
+  host.textContent = ""; lg.textContent = ""; tags.textContent = "";
+  L.cats.forEach((c,i)=>{
+    const row = document.createElement("div");
+    row.className = "grow";
+    const sw = document.createElement("i");
+    sw.className = "demo-swatch gsw cat-" + (i + 1);
+    const lab = document.createElement("div");
+    lab.className = "glab";
+    lab.textContent = c[0];
+    const track = document.createElement("div");
+    track.className = "gtrack";
+    const bar = document.createElement("div");
+    bar.className = "gbar cat-" + (i + 1);
+    bar.style.width = (c[1] / L.ru * 100) + "%";
+    track.appendChild(bar);
+    const num = document.createElement("div");
+    num.className = "gnum";
+    num.textContent = int(c[1]) + " из " + int(L.ru) + " — " +
+      pct(c[1] / L.ru * 100) + " слоя";
+    row.appendChild(sw); row.appendChild(lab); row.appendChild(track); row.appendChild(num);
+    host.appendChild(row);
+
+    const sp = document.createElement("span");
+    const ii = document.createElement("i");
+    ii.className = "demo-swatch cat-" + (i + 1);
+    sp.appendChild(ii);
+    sp.appendChild(document.createTextNode(c[0] + " — " + int(c[1])));
+    lg.appendChild(sp);
+  });
+  document.getElementById("cats-note").textContent = L.gloss;
+  if (L.tags.length){
+    const wrap = document.createElement("div");
+    wrap.className = "demo-legend note";
+    const head = document.createElement("span");
+    head.textContent = "Самые частые теги заметок:";
+    wrap.appendChild(head);
+    L.tags.forEach(t=>{
+      const sp = document.createElement("span");
+      sp.textContent = t[0] + " · " + t[1] + " заметок";
+      wrap.appendChild(sp);
+    });
+    tags.appendChild(wrap);
+  }
+}
+
+function scopeData(scope){
+  return scope === "content" ? DEG_CONTENT : DEG_ALL;
+}
+
+function renderHist(scope){
+  const degs = scopeData(scope);
+  const counts = BUCKETS.map(function(b){
+    return degs.filter(function(d){ return d >= b[0] && d <= b[1]; }).length;
+  });
+  const max = Math.max.apply(null, counts);
+  document.getElementById("deg-n").textContent = "n = " + int(degs.length) +
+    (scope === "content" ? " (заметки + словарь)" : " узлов");
+  const host = document.getElementById("hist");
+  const cap = document.getElementById("hist-cap");
+  host.textContent = ""; cap.textContent = "";
+  counts.forEach((c,i)=>{
+    const col = document.createElement("div");
+    col.className = "hcol";
+    const bar = document.createElement("div");
+    bar.className = "hbar seq-" + (i + 1);
+    bar.style.height = (max ? c / max * 100 : 0) + "%";
+    const val = document.createElement("div");
+    val.className = "hval";
+    val.style.top = (max ? 100 - c / max * 100 : 100) + "%";
+    val.style.transform = "translateY(-14px)";
+    val.textContent = int(c);
+    col.appendChild(bar); col.appendChild(val);
+    host.appendChild(col);
+
+    const sp = document.createElement("span");
+    sp.textContent = BUCKETS[i][2];
+    cap.appendChild(sp);
+  });
+}
+
+function renderHubs(){
+  const host = document.getElementById("hubs");
+  host.textContent = "";
+  const max = Math.max.apply(null, HUBS.map(h=>h[1]));
+  HUBS.forEach(h=>{
+    const row = document.createElement("div");
+    row.className = "hrow";
+    const meta = document.createElement("div");
+    meta.className = "hmeta";
+    const name = document.createElement("span");
+    name.textContent = h[0];
+    const kind = document.createElement("b");
+    kind.textContent = h[2] + " · " + int(h[1]) + " связей";
+    meta.appendChild(name); meta.appendChild(kind);
+    const track = document.createElement("div");
+    track.className = "htrack";
+    const bar = document.createElement("div");
+    bar.className = "hubar dv-s1";
+    bar.style.width = (h[1] / max * 100) + "%";
+    track.appendChild(bar);
+    row.appendChild(meta); row.appendChild(track);
+    host.appendChild(row);
+  });
+}
+
+document.querySelectorAll("[data-layer]").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    document.querySelectorAll("[data-layer]").forEach(x=>{
+      const on = x === b;
+      x.classList.toggle("is-on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    renderCats(b.dataset.layer);
+  });
+});
+document.querySelectorAll("[data-scope]").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    document.querySelectorAll("[data-scope]").forEach(x=>{
+      const on = x === b;
+      x.classList.toggle("is-on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    renderHist(b.dataset.scope);
+  });
+});
+
+renderKpis();
+renderCov();
+renderCats("posts");
+renderHist("all");
+renderHubs();
+</script>
+</body>
+</html>

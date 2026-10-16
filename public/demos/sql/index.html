@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MRR, воронка и удержание — sql-analytics-case-study</title>
+<meta name="theme-color" content="#0f2a2b">
+<script src="/demos/demo-theme.js"></script>
+<link rel="stylesheet" href="/demos/demo.css">
+<style>
+  /* Layout only. Colour, type family, radii, shadows and the wallpaper come
+     from /demos/demo.css, which is also what makes this page follow the site's
+     three themes. */
+  .stack{display:flex;flex-direction:column;gap:var(--space-4)}
+  .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+    gap:var(--space-2);margin-bottom:var(--space-3)}
+  .ctlrow{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3);
+    align-items:center;margin-bottom:var(--space-3)}
+  .seg{display:flex;flex-wrap:wrap;gap:4px}
+  /* Affordances live on the coral action accent, never on --dv-*. */
+  .ctrl{font:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:3px 10px;
+    border-radius:var(--radius-full);background:var(--background-secondary);
+    color:var(--text-muted);border:1px solid var(--border-color)}
+  .ctrl:hover{color:var(--text-accent-hover);border-color:var(--border-active)}
+  .ctrl.is-on{color:var(--text-normal);border-color:var(--border-active);
+    background:var(--background-tertiary)}
+  .ctrl:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
+  .readout{display:flex;flex-wrap:wrap;gap:var(--space-4);margin-bottom:var(--space-3)}
+  .kpi{display:flex;flex-direction:column;gap:2px;min-width:96px}
+
+  /* Waterfall: one column per component, bars positioned by inline top/height. */
+  .wf{display:flex;gap:var(--space-1);height:216px;margin-top:12px}
+  .wfc{flex:1;min-width:0;display:flex;flex-direction:column}
+  .wfp{position:relative;flex:1;background:var(--background-primary);
+    border-radius:var(--radius-sm)}
+  .wfb{position:absolute;left:12%;right:12%;border-radius:3px}
+  .wfv{position:absolute;left:-4px;right:-4px;text-align:center;font-size:10px;
+    font-weight:700;color:var(--text-normal);transform:translateY(-112%)}
+  .wf-level{background:var(--dv-axis)}
+  .wf-up{background:var(--text-accent-dataviz)}
+  .wf-down{background:var(--dv-bad)}
+  .wf-zero{position:absolute;left:12%;right:12%;height:2px;background:var(--dv-axis)}
+  .wfc2{font-size:10px;font-weight:600;color:var(--dv-label);text-align:center;
+    padding-top:5px;line-height:1.25;min-height:26px}
+  /* demo.css's shared `.dv-s1` is a `fill` utility — the SVG series class. The
+     funnel bars here are HTML boxes, so the series token is re-applied to
+     `background` in one declaration instead of an inline colour per bar. */
+  .dv-s1{background:var(--text-accent-dataviz)}
+
+  /* Funnel: label + track per stage, number on the second grid row. */
+  .fstage{display:grid;grid-template-columns:88px 1fr;gap:2px var(--space-2);
+    align-items:center;margin-bottom:var(--space-2)}
+  .flab{font-size:12px;font-weight:600;color:var(--text-normal);overflow-wrap:anywhere}
+  .ftrack{position:relative;height:24px;background:var(--background-primary);
+    border-radius:var(--radius-sm)}
+  .fbar{position:absolute;left:0;top:0;bottom:0;border-radius:var(--radius-sm)}
+  .fnum{grid-column:2;font-size:10px;font-weight:600;color:var(--dv-label)}
+  .fhead{display:grid;grid-template-columns:88px 1fr;gap:var(--space-2)}
+
+  /* Retention matrix: cohort rows, D1 / D7 / D30 columns. */
+  .mx{display:grid;grid-template-columns:84px repeat(3,1fr);gap:4px;max-width:540px}
+  .mxh{display:flex;align-items:center;justify-content:center;font-size:11px;
+    font-weight:600;color:var(--dv-label);padding:4px 0}
+  .mxr{display:flex;flex-direction:column;justify-content:center;font-size:11px;
+    font-weight:600;color:var(--dv-label);padding-left:2px;line-height:1.15}
+  .mxr span{font-size:9px;font-weight:400}
+  .mxc{position:relative;display:flex;align-items:center;justify-content:center;
+    min-height:38px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;
+    color:var(--dv-cell-ink);cursor:default;
+    transition:transform .12s ease, box-shadow .12s ease}
+  .mxc:hover{transform:translateY(-2px);box-shadow:0 6px 16px var(--shadow-color);
+    z-index:var(--z-float)}
+  .mxc.empty{background:var(--background-primary);color:var(--dv-label);
+    font-weight:400}
+  .scale{display:flex;height:12px;width:140px;border-radius:3px;overflow:hidden}
+  /* Footnote line under a plot: .demo-axis-label carries the type and colour,
+     only the spacing differs from an axis caption. */
+  .note{margin-top:var(--space-3);font-weight:400}
+  .note--tight{margin-top:var(--space-2)}
+
+  @media (max-width:520px){
+    .wf{height:190px}
+    .wfv{font-size:9px}
+    .wfc2{font-size:9px}
+    .fstage,.fhead{grid-template-columns:78px 1fr}
+    .flab{font-size:11px}
+    .mx{grid-template-columns:68px repeat(3,1fr)}
+    .mxc{min-height:32px;font-size:11px}
+  }
+
+  /* The seven sequential steps, applied by class rather than inline style so
+     they re-resolve on a theme change with no JavaScript at all. */
+  .seq-1{background:var(--dv-seq-1)}   .seq-2{background:var(--dv-seq-2)}
+  .seq-3{background:var(--dv-seq-3)}   .seq-4{background:var(--dv-seq-4)}
+  .seq-5{background:var(--dv-seq-5)}   .seq-6{background:var(--dv-seq-6)}
+  .seq-7{background:var(--dv-seq-7)}
+</style>
+</head>
+<body>
+  <h1 class="demo-title">MRR, воронка покупки и удержание когорт</h1>
+  <p class="demo-lede">Три модели dbt из sql-analytics-case-study на данных 2024 года: движение MRR подписок (переключатель метрики и месяца), воронка из 80 000 сессий с отвалом на каждом шаге, матрица удержания шести месячных когорт.</p>
+
+  <div class="stack">
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Движение MRR активной базы, по месяцам</h2>
+        <span class="demo-axis-label" id="wf-unit"></span>
+      </div>
+      <div class="ctlrow">
+        <div class="seg" role="group" aria-label="Метрика">
+          <button type="button" class="ctrl is-on" data-metric="mrr" aria-pressed="true">MRR, $</button>
+          <button type="button" class="ctrl" data-metric="subs" aria-pressed="false">Подписки, шт</button>
+        </div>
+        <div class="seg" role="group" aria-label="Месяц">
+          <button type="button" class="ctrl" data-month="2024-02" aria-pressed="false">Фев</button>
+          <button type="button" class="ctrl" data-month="2024-03" aria-pressed="false">Мар</button>
+          <button type="button" class="ctrl" data-month="2024-04" aria-pressed="false">Апр</button>
+          <button type="button" class="ctrl" data-month="2024-05" aria-pressed="false">Май</button>
+          <button type="button" class="ctrl is-on" data-month="2024-06" aria-pressed="true">Июн</button>
+        </div>
+      </div>
+      <div class="readout" id="wf-kpi"></div>
+      <div class="wf" id="wf"></div>
+      <div class="demo-legend note">
+        <span><i class="demo-swatch wf-level"></i>уровень базы</span>
+        <span><i class="demo-swatch wf-up"></i>прирост (новые подписки)</span>
+        <span><i class="demo-swatch wf-down"></i>отток (отмены)</span>
+      </div>
+      <p class="demo-axis-label note" id="wf-note"></p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Воронка покупки, 80 000 сессий</h2>
+        <span class="demo-flag" id="f-flag"></span>
+      </div>
+      <div class="fhead">
+        <span class="demo-axis-label">Шаг</span>
+        <span class="demo-axis-label">Дошедшие сессии, % от старта</span>
+      </div>
+      <div id="funnel"></div>
+      <p class="demo-axis-label note note--tight">Ширина полосы — доля от app_open; под полосой сессии и отвал от предыдущего шага. Сквозная конверсия app_open → purchase — 1,16 % (928 из 80 000).</p>
+    </section>
+
+    <section class="demo-card">
+      <div class="hd">
+        <h2 class="demo-axis-label">Удержание: месячные когорты × окно D1 / D7 / D30</h2>
+        <span class="demo-axis-label">n = 3455 … 3221 на когорту</span>
+      </div>
+      <div class="mx" id="mx"></div>
+      <div class="demo-legend note">
+        <span>оттенок — относительная величина внутри таблицы:</span>
+        <span>мин 4,64 %<i class="scale" id="mx-scale"></i>20,69 %</span>
+      </div>
+      <p class="demo-axis-label note note--tight">Проценты напечатаны в ячейках, поэтому оттенок — дублирующий канал. D30 июньской когорты не наблюдался: окно закрывается в июне 2024, ячейка пустая, а не 0 %.</p>
+    </section>
+
+  </div>
+  <div class="demo-tooltip" id="tip"></div>
+
+<script>
+// ── MRR-моув. Источник: subscriptions.csv + subscription_cancellations.csv
+// (репозиторий sql-analytics-case-study), конвенция cases/21_subscription_churn.sql:
+// monthly = полная сумма, annual = ARR/12, база — активные на начало месяца с учётом отмен.
+// Каждый месяц сходится точно: open + new − churn = close (проверено по обоим метрикам).
+// Expansion и contraction структурно равны нулю: в датасете нет смены плана —
+// одна строка subscriptions на подписку с фиксированным amount.
+const WF = {
+  "2024-02":{open:169.86,n:18,  add:352.22,nn:38,churn:19.98, cn:2, close:502.10, cc:54},
+  "2024-03":{open:502.10,n:54,  add:447.14,nn:48,churn:102.42,cn:11,close:846.82, cc:91},
+  "2024-04":{open:846.82,n:91,  add:442.16,nn:48,churn:187.35,cn:20,close:1101.63,cc:119},
+  "2024-05":{open:1101.63,n:119,add:507.08,nn:54,churn:187.35,cn:20,close:1421.36,cc:153},
+  "2024-06":{open:1421.36,n:153,add:582.02,nn:62,churn:422.15,cn:45,close:1581.23,cc:170}
+};
+const MONTH_RU = {"2024-02":"Фев 2024","2024-03":"Мар 2024","2024-04":"Апр 2024",
+                  "2024-05":"Май 2024","2024-06":"Июн 2024"};
+
+// ── Воронка. Источник: fct_funnel.csv (dbt mart, = cases/01_funnel_conversion.sql).
+const FUNNEL = [
+  ["app_open",    80000, 100.00, null],
+  ["view_item",   65739,  82.17, 82.17],
+  ["add_to_cart", 29641,  37.05, 45.09],
+  ["checkout",     6584,   8.23, 22.21],
+  ["purchase",      928,   1.16, 14.09]
+];
+
+// ── Удержание. Источник: fct_retention.csv. D30 июньской когорты = null
+// (окно не завершено в пределах данных), а не 0 %.
+const RT = {
+  cohorts:["Янв 2024","Фев 2024","Мар 2024","Апр 2024","Май 2024","Июн 2024"],
+  users:[3455,3211,3406,3349,3358,3221],
+  values:[[20.69,14.96,5.15],[19.87,15.95,4.64],[18.67,15.53,5.02],
+          [19.53,15.68,5.29],[18.64,15.22,4.79],[19.47,10.96,null]]
+};
+const RT_MIN = 4.64, RT_MAX = 20.69;
+
+const nfRu = (v,d) => v.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d})
+  .replace(/^-/, "\u2212");
+const money = v => nfRu(v,2) + " $";
+const int   = v => nfRu(v,0);
+const pct   = v => nfRu(v,2) + " %";
+
+let month = "2024-06", metric = "mrr";
+
+/* Отображение абсолютного значения на шаг последовательной шкалы. Рампа
+   нормализована на наблюдаемый диапазон таблицы (4,64 … 20,69 %), а не на
+   0…100: иначе все ячейки попали бы в шаги 1–2 и градиент исчез бы. Число
+   в ячейке всегда абсолютное, оттенок — вспомогательный канал. */
+function seqClass(v){
+  const t = (v - RT_MIN) / (RT_MAX - RT_MIN);
+  return "seq-" + (Math.max(0, Math.min(6, Math.round(t * 6))) + 1);
+}
+
+function renderWf(){
+  const d = WF[month], isM = metric === "mrr";
+  const open = isM ? d.open : d.n, add = isM ? d.add : d.nn;
+  const churn = isM ? d.churn : d.cn, close = isM ? d.close : d.cc;
+  const f = isM ? money : int;
+  const max = Math.max(open + add, close) * 1.05;
+  const cols = [
+    {cls:"wf-level", from:0,        to:open,        cap:"Начало"},
+    {cls:"wf-up",    from:open,     to:open + add,  cap:"+ Новые"},
+    {cls:"wf-down",  from:close,    to:open + add,  cap:"− Отток"},
+    {cls:"wf-zero",  at:close,                      cap:"± Смена плана"},
+    {cls:"wf-level", from:0,        to:close,       cap:"Итог"}
+  ];
+  const host = document.getElementById("wf");
+  host.textContent = "";
+  cols.forEach((c,k)=>{
+    const col = document.createElement("div");
+    col.className = "wfc";
+    const plot = document.createElement("div");
+    plot.className = "wfp";
+    if (c.cls === "wf-zero"){
+      const zero = document.createElement("div");
+      zero.className = "wf-zero";
+      zero.style.top = (100 - c.at / max * 100) + "%";
+      plot.appendChild(zero);
+    } else {
+      const bar = document.createElement("div");
+      bar.className = "wfb " + c.cls;
+      bar.style.top = (100 - c.to / max * 100) + "%";
+      bar.style.height = ((c.to - c.from) / max * 100) + "%";
+      plot.appendChild(bar);
+    }
+    const val = document.createElement("div");
+    val.className = "wfv";
+    val.style.top = (100 - (c.cls === "wf-zero" ? c.at : c.to) / max * 100) + "%";
+    val.textContent = c.cls === "wf-zero" ? "0" : f(k === 0 ? open : k === 1 ? add : k === 2 ? churn : close);
+    plot.appendChild(val);
+    const cap = document.createElement("div");
+    cap.className = "wfc2";
+    cap.textContent = c.cap;
+    col.appendChild(plot); col.appendChild(cap);
+    host.appendChild(col);
+  });
+
+  const net = close - open;
+  document.getElementById("wf-unit").textContent = MONTH_RU[month] + " · " +
+    (isM ? "доллары, на начало месяца" : "активные подписки, на начало месяца");
+  document.getElementById("wf-kpi").innerHTML =
+    '<span class="kpi"><span class="demo-kpi-value">' + f(close) + '</span>' +
+    '<span class="demo-kpi-label">' + (isM ? "MRR на начало следующего месяца" : "подписок на начало следующего месяца") + '</span></span>' +
+    '<span class="kpi"><span class="demo-kpi-value">' + (net >= 0 ? "+" : "−") + f(Math.abs(net)) + '</span>' +
+    '<span class="demo-kpi-label">нетто за ' + MONTH_RU[month].slice(0,3).toLowerCase() +
+    ' (' + (net >= 0 ? "+" : "−") + pct(Math.abs(net) / open * 100) + ')</span></span>' +
+    '<span class="kpi"><span class="demo-kpi-value">' + f(churn) + '</span>' +
+    '<span class="demo-kpi-label">отток' + (isM ? "" : ", шт") + ' — ' +
+    pct(churn / open * 100) + ' от базы на начало</span></span>';
+  document.getElementById("wf-note").textContent =
+    "Отток растёт быстрее прироста: 19,98 $ в феврале против 422,15 $ в июне — " +
+    "в 21 раз за пять месяцев. Expansion и contraction равны нулю структурно: смена " +
+    "плана в датасете не смоделирована (одна строка subscriptions на подписку с " +
+    "фиксированным amount). Сверка: валовой MRR из fct_mrr.csv (модель case 14 отмены " +
+    "не вычитает) на июнь — 2 500,47 $, на 919,24 $ больше; разница — 98 отменённых " +
+    "подписок, которые модель продолжает начислять.";
+}
+
+function renderFunnel(){
+  const host = document.getElementById("funnel");
+  host.textContent = "";
+  // Крупнейшая потеря сессий — по абсолютному числу, а не по доле шага.
+  let worst = 0, worstLoss = -1;
+  FUNNEL.forEach((s,i)=>{
+    if (i === 0) return;
+    const loss = FUNNEL[i-1][1] - s[1];
+    if (loss > worstLoss){ worstLoss = loss; worst = i; }
+  });
+  FUNNEL.forEach((s,i)=>{
+    const stage = document.createElement("div");
+    stage.className = "fstage";
+    const lab = document.createElement("div");
+    lab.className = "flab";
+    lab.textContent = s[0];
+    const track = document.createElement("div");
+    track.className = "ftrack";
+    const bar = document.createElement("div");
+    bar.className = "fbar dv-s1";
+    bar.style.width = s[2] + "%";
+    track.appendChild(bar);
+    const num = document.createElement("div");
+    num.className = "fnum";
+    const lost = i === 0 ? null : FUNNEL[i-1][1] - s[1];
+    num.textContent = int(s[1]) + " сессий · " + pct(s[2]) + " от старта" +
+      (lost === null ? " · вход в воронку" : " · " + pct(s[3]) + " от предыдущего шага, потеря " +
+      int(lost) + (i === worst ? " сессий — максимум" : ""));
+    stage.appendChild(lab); stage.appendChild(track); stage.appendChild(num);
+    host.appendChild(stage);
+  });
+  document.getElementById("f-flag").textContent =
+    "макс. потеря: " + FUNNEL[worst-1][0] + " → " + FUNNEL[worst][0] +
+    " (−" + int(worstLoss) + " сессий)";
+}
+
+function renderMx(){
+  const host = document.getElementById("mx");
+  host.textContent = "";
+  const corner = document.createElement("div");
+  corner.className = "mxh";
+  host.appendChild(corner);
+  ["D1","D7","D30"].forEach(w=>{
+    const h = document.createElement("div");
+    h.className = "mxh";
+    h.textContent = w;
+    host.appendChild(h);
+  });
+  RT.cohorts.forEach((c,r)=>{
+    const rh = document.createElement("div");
+    rh.className = "mxr";
+    rh.textContent = c;
+    const rn = document.createElement("span");
+    rn.textContent = int(RT.users[r]) + " чел.";
+    rh.appendChild(rn);
+    host.appendChild(rh);
+    RT.values[r].forEach((v,k)=>{
+      const cell = document.createElement("div");
+      if (v === null){
+        cell.className = "mxc empty";
+        cell.textContent = "—";
+        cell.dataset.note = c + " не дожила до окна D30 — наблюдение не завершено";
+      } else {
+        cell.className = "mxc " + seqClass(v);
+        cell.textContent = nfRu(v,2) + "%";
+        cell.dataset.note = "Доля когорты " + c + " (" + int(RT.users[r]) + " чел.), вернувшаяся в окно " + ["D1","D7","D30"][k] +
+          ". Оттенок — шаг рампы относительно таблицы, число абсолютное.";
+      }
+      host.appendChild(cell);
+    });
+  });
+  const scale = document.getElementById("mx-scale");
+  for (let i = 0; i <= 20; i++){
+    const s = document.createElement("div");
+    s.style.flex = "1";
+    s.className = seqClass(RT_MIN + (RT_MAX - RT_MIN) * i / 20);
+    scale.appendChild(s);
+  }
+}
+
+document.querySelectorAll("[data-metric]").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    metric = b.dataset.metric;
+    document.querySelectorAll("[data-metric]").forEach(x=>{
+      const on = x === b;
+      x.classList.toggle("is-on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    renderWf();
+  });
+});
+document.querySelectorAll("[data-month]").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    month = b.dataset.month;
+    document.querySelectorAll("[data-month]").forEach(x=>{
+      const on = x === b;
+      x.classList.toggle("is-on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    renderWf();
+  });
+});
+
+renderWf();
+renderFunnel();
+renderMx();
+
+const tip = document.getElementById("tip");
+document.addEventListener("mouseover", e=>{
+  const c = e.target.closest(".mxc");
+  if (!c || !c.dataset.note) return;
+  tip.innerHTML = "<b>" + c.textContent + "</b><span class=\"sub\">" + c.dataset.note + "</span>";
+  tip.classList.add("is-visible");
+});
+document.addEventListener("mousemove", e=>{
+  if (!tip.classList.contains("is-visible")) return;
+  tip.style.left = Math.min(e.clientX + 14, innerWidth - 274) + "px";
+  tip.style.top = (e.clientY + 14) + "px";
+});
+document.addEventListener("mouseout", e=>{
+  if (!e.target.closest(".mxc")) return;
+  tip.classList.remove("is-visible");
+});
+</script>
+</body>
+</html>

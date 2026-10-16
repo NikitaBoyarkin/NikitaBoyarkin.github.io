@@ -23,6 +23,7 @@ github: https://github.com/NikitaBoyarkin/streamlit-app
 date: 2026-08-14
 updated: 2026-08-14
 private: true
+demo: demos/streamlit/index.html
 related:
   - /projects/supabase/
 ---

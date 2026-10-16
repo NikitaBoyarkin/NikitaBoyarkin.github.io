@@ -25,6 +25,7 @@ tools:
 github: https://github.com/NikitaBoyarkin/churn-prediction
 updated: 2026-10-12
 date: 2026-09-18
+demo: demos/churn/index.html
 related:
   - /posts/churn-uplift-discount/
 faq:
