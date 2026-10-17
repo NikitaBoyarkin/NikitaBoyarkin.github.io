@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Архитектура Scrolly English Speaking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Diagram Design</p>
+    <h1>Архитектура Scrolly English Speaking</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="scrolly-english-speaking-title scrolly-english-speaking-desc">
+        <title id="scrolly-english-speaking-title">Архитектура Scrolly English Speaking</title>
+        <desc id="scrolly-english-speaking-desc">Схема статического scrollytelling-гайда: MDX-нарратив и дата-модуль собираются Astro-слоем в статический билд, публикуются на GitHub Pages, а в браузере scrolly-runtime по скроллу читателя переключает D3-визуализации.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff8569"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4ecdc4"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#0f2a2b"/>
+
+        <!-- Zones (drawn before arrows and nodes) -->
+        <rect x="40" y="64" width="864" height="304" rx="8"
+              fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <rect x="412" y="68" width="120" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="472" y="76" fill="#8f8f99" font-size="7" font-family="'SF Mono', Monaco, monospace"
+              text-anchor="middle" letter-spacing="0.14em">BUILD · PUBLISH</text>
+
+        <rect x="40" y="440" width="1160" height="160" rx="8"
+              fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <rect x="552" y="444" width="136" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="620" y="452" fill="#8f8f99" font-size="7" font-family="'SF Mono', Monaco, monospace"
+              text-anchor="middle" letter-spacing="0.14em">RUNTIME · BROWSER</text>
+
+        <!-- Arrows (drawn before boxes, so lines sit behind nodes) -->
+        <line x1="164" y1="184" x2="164" y2="248" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 468,184 V 216 Q 468,224 460,224 H 204 Q 196,224 196,232 V 248"
+              fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="264" y1="284" x2="368" y2="284" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="568" y1="284" x2="672" y2="284" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <path d="M 468,320 V 384 Q 468,392 460,392 H 172 Q 164,392 164,400 V 480"
+              fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 772,320 V 416 Q 772,424 780,424 H 1068 Q 1076,424 1076,432 V 480"
+              fill="none" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <line x1="264" y1="516" x2="368" y2="516" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="568" y1="516" x2="672" y2="516" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="872" y1="516" x2="976" y2="516" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 1076,552 V 628 Q 1076,636 1068,636 H 476 Q 468,636 468,628 V 552"
+              fill="none" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+        <!-- Arrow labels (opaque mask, 8px clear of the stroke) -->
+        <rect x="108" y="208" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="132" y="216" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, monospace"
+              text-anchor="middle" letter-spacing="0.06em">MDX</text>
+
+        <rect x="476" y="196" width="56" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="504" y="204" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, monospace"
+              text-anchor="middle" letter-spacing="0.06em">CONFIG</text>
+
+        <rect x="292" y="264" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="316" y="272" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, monospace"
+              text-anchor="middle" letter-spacing="0.06em">BUILD</text>
+
+        <rect x="596" y="264" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="620" y="272" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, monospace"
+              text-anchor="middle" letter-spacing="0.06em">DEPLOY</text>
+
+        <rect x="476" y="348" width="56" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="504" y="356" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, monospace"
+              text-anchor="middle" letter-spacing="0.06em">BUNDLE</text>
+
+        <rect x="900" y="404" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="924" y="412" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, monospace"
+              text-anchor="middle" letter-spacing="0.06em">HTTPS</text>
+
+        <rect x="296" y="496" width="40" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="316" y="504" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, monospace"
+              text-anchor="middle" letter-spacing="0.06em">BOOT</text>
+
+        <rect x="588" y="496" width="64" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="620" y="504" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, monospace"
+              text-anchor="middle" letter-spacing="0.06em">SWITCH VIZ</text>
+
+        <rect x="900" y="496" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="924" y="504" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, monospace"
+              text-anchor="middle" letter-spacing="0.06em">RENDER</text>
+
+        <rect x="744" y="616" width="56" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="772" y="624" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, monospace"
+              text-anchor="middle" letter-spacing="0.06em">SCROLL</text>
+
+        <!-- Node: MDX-нарратив (SRC) -->
+        <rect x="64" y="112" width="200" height="72" rx="6" fill="#0f2a2b"/>
+        <rect x="64" y="112" width="200" height="72" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.24)" stroke-width="1"/>
+        <rect x="72" y="118" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="86" y="127" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, monospace" text-anchor="middle" letter-spacing="0.08em">SRC</text>
+        <text x="164" y="146" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">MDX-нарратив</text>
+        <text x="164" y="164" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, monospace" text-anchor="middle">posts/scrolly/*.mdx</text>
+
+        <!-- Node: Дата-модуль (SRC) -->
+        <rect x="368" y="112" width="200" height="72" rx="6" fill="#0f2a2b"/>
+        <rect x="368" y="112" width="200" height="72" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.24)" stroke-width="1"/>
+        <rect x="376" y="118" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="390" y="127" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, monospace" text-anchor="middle" letter-spacing="0.08em">SRC</text>
+        <text x="468" y="146" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Дата-модуль</text>
+        <text x="468" y="164" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, monospace" text-anchor="middle">scrolly/data/*.ts</text>
+
+        <!-- Node: Astro-слой (BUILD) -->
+        <rect x="64" y="248" width="200" height="72" rx="6" fill="#0f2a2b"/>
+        <rect x="64" y="248" width="200" height="72" rx="6" fill="rgba(228,228,231,0.06)" stroke="rgba(228,228,231,0.34)" stroke-width="1"/>
+        <rect x="72" y="254" width="38" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="91" y="263" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, monospace" text-anchor="middle" letter-spacing="0.08em">BUILD</text>
+        <text x="164" y="282" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Astro-слой</text>
+        <text x="164" y="300" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, monospace" text-anchor="middle">Layout · Section.astro</text>
+
+        <!-- Node: Astro build (BUILD, focal) -->
+        <rect x="368" y="248" width="200" height="72" rx="6" fill="#0f2a2b"/>
+        <rect x="368" y="248" width="200" height="72" rx="6" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <rect x="376" y="254" width="38" height="12" rx="2" fill="transparent" stroke="rgba(255,133,105,0.50)" stroke-width="0.8"/>
+        <text x="395" y="263" fill="#ff8569" font-size="7" font-family="'SF Mono', Monaco, monospace" text-anchor="middle" letter-spacing="0.08em">BUILD</text>
+        <text x="468" y="282" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Astro build</text>
+        <text x="468" y="300" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, monospace" text-anchor="middle">output: static · dist/</text>
+
+        <!-- Node: GitHub Pages (HOST) -->
+        <rect x="672" y="248" width="200" height="72" rx="6" fill="#0f2a2b"/>
+        <rect x="672" y="248" width="200" height="72" rx="6" fill="rgba(228,228,231,0.03)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="680" y="254" width="32" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="696" y="263" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, monospace" text-anchor="middle" letter-spacing="0.08em">HOST</text>
+        <text x="772" y="282" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">GitHub Pages</text>
+        <text x="772" y="300" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, monospace" text-anchor="middle">astro.yml · base subpath</text>
+
+        <!-- Node: scrolly-entry (RT) -->
+        <rect x="64" y="480" width="200" height="72" rx="6" fill="#0f2a2b"/>
+        <rect x="64" y="480" width="200" height="72" rx="6" fill="#234044" stroke="rgba(228,228,231,0.30)" stroke-width="1"/>
+        <rect x="72" y="486" width="24" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="84" y="495" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, monospace" text-anchor="middle" letter-spacing="0.08em">RT</text>
+        <text x="164" y="514" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">scrolly-entry</text>
+        <text x="164" y="532" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, monospace" text-anchor="middle">bootstrap · lazy import</text>
+
+        <!-- Node: scrolly-runtime (RT, focal) -->
+        <rect x="368" y="480" width="200" height="72" rx="6" fill="#0f2a2b"/>
+        <rect x="368" y="480" width="200" height="72" rx="6" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <rect x="376" y="486" width="24" height="12" rx="2" fill="transparent" stroke="rgba(255,133,105,0.50)" stroke-width="0.8"/>
+        <text x="388" y="495" fill="#ff8569" font-size="7" font-family="'SF Mono', Monaco, monospace" text-anchor="middle" letter-spacing="0.08em">RT</text>
+        <text x="468" y="514" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">scrolly-runtime</text>
+        <text x="468" y="532" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, monospace" text-anchor="middle">IntersectionObserver · scroll</text>
+
+        <!-- Node: viz/*.ts (RT) -->
+        <rect x="672" y="480" width="200" height="72" rx="6" fill="#0f2a2b"/>
+        <rect x="672" y="480" width="200" height="72" rx="6" fill="#234044" stroke="rgba(228,228,231,0.30)" stroke-width="1"/>
+        <rect x="680" y="486" width="24" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="692" y="495" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, monospace" text-anchor="middle" letter-spacing="0.08em">RT</text>
+        <text x="772" y="514" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">viz/*.ts · D3 v7</text>
+        <text x="772" y="532" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, monospace" text-anchor="middle">workflow · tools · metrics</text>
+
+        <!-- Node: Читатель (EXT) -->
+        <rect x="976" y="480" width="200" height="72" rx="6" fill="#0f2a2b"/>
+        <rect x="976" y="480" width="200" height="72" rx="6" fill="rgba(161,161,170,0.12)" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="984" y="486" width="28" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.50)" stroke-width="0.8"/>
+        <text x="998" y="495" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, monospace" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+        <text x="1076" y="514" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Читатель</text>
+        <text x="1076" y="532" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, monospace" text-anchor="middle">browser · scroll</text>
+
+        <!-- Legend strip (bottom 60px) -->
+        <line x1="40" y1="656" x2="1200" y2="656" stroke="rgba(228,228,231,0.14)" stroke-width="0.8"/>
+        <text x="40" y="672" fill="#a1a1aa" font-size="8" font-family="'SF Mono', Monaco, monospace" letter-spacing="0.18em">LEGEND</text>
+
+        <rect x="120" y="664" width="18" height="12" rx="2" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.24)" stroke-width="1"/>
+        <text x="146" y="672" fill="#a1a1aa" font-size="8.5" font-family="'Inter', sans-serif">источник</text>
+
+        <rect x="216" y="664" width="18" height="12" rx="2" fill="rgba(228,228,231,0.06)" stroke="rgba(228,228,231,0.34)" stroke-width="1"/>
+        <text x="242" y="672" fill="#a1a1aa" font-size="8.5" font-family="'Inter', sans-serif">сборка Astro</text>
+
+        <rect x="336" y="664" width="18" height="12" rx="2" fill="rgba(228,228,231,0.03)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <text x="362" y="672" fill="#a1a1aa" font-size="8.5" font-family="'Inter', sans-serif">хостинг</text>
+
+        <rect x="428" y="664" width="18" height="12" rx="2" fill="#234044" stroke="rgba(228,228,231,0.30)" stroke-width="1"/>
+        <text x="454" y="672" fill="#a1a1aa" font-size="8.5" font-family="'Inter', sans-serif">runtime D3</text>
+
+        <rect x="524" y="664" width="18" height="12" rx="2" fill="rgba(161,161,170,0.12)" stroke="#a1a1aa" stroke-width="1"/>
+        <text x="550" y="672" fill="#a1a1aa" font-size="8.5" font-family="'Inter', sans-serif">внешний актор</text>
+
+        <line x1="628" y1="670" x2="656" y2="670" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="664" y="672" fill="#a1a1aa" font-size="8.5" font-family="'Inter', sans-serif">поток сборки</text>
+
+        <line x1="744" y1="670" x2="772" y2="670" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <text x="780" y="672" fill="#a1a1aa" font-size="8.5" font-family="'Inter', sans-serif">HTTP · deploy</text>
+
+        <line x1="852" y1="670" x2="880" y2="670" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+        <text x="888" y="672" fill="#a1a1aa" font-size="8.5" font-family="'Inter', sans-serif">async · return</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

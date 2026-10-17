@@ -32,6 +32,8 @@ related:
 
 # ML Fundamentals — scikit-learn Pipeline
 
+**▶ [Data-flow diagram](/diagrams/ml.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 Every later ML task — regression, classification, clustering — rests on preprocessing. If the test set leaks into training, or missing values are handled by hand, any model further up the stack is invalidated and the result no longer reproduces on another machine.

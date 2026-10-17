@@ -31,6 +31,8 @@ related:
 
 # Scrolly English Speaking
 
+**▶ [Architecture diagram](/diagrams/scrolly-english-speaking.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 Workplace conversations in English (standups, syncs, interviews) are a weak spot for many Russian-speaking specialists at A2–B1: the grammar is there, but coherent speech and real-time reactions stall. A textbook doesn't help much: no context, no visuals, no link between phrases and situation.

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase product analytics · ingest behind RLS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+
+    .diagram-container { width: 100%; overflow-x: auto; }
+    svg { width: 100%; min-width: 1280px; display: block; }
+
+    .mono { font-family: var(--font-mono); }
+    .sans { font-family: var(--font-sans); }
+
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Supabase product analytics</p>
+    <h1>Supabase product analytics · ingest behind RLS</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="supabase-product-analytics-title supabase-product-analytics-desc">
+        <title id="supabase-product-analytics-title">Supabase product analytics · ingest behind RLS</title>
+        <desc id="supabase-product-analytics-desc">Architecture diagram: an event client and a seed script cross a key-gated ingest Edge Function and a single shared RLS boundary into Supabase Postgres, where the analytics and experiments schemas feed a per-variant A/B result that a Streamlit dashboard and a plain SQL client both read.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff8569"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4ecdc4"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#0f2a2b"/>
+
+        <!-- ZONE: trusted data tier (painted first) -->
+        <rect x="876" y="80" width="364" height="552" rx="8" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.14)" stroke-width="0.8" stroke-dasharray="5,4"/>
+        <rect x="900" y="86" width="182" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="991" y="95" fill="#8f8f99" font-size="8" font-weight="500" letter-spacing="0.14em" text-anchor="middle">POSTGRES · RLS ON EVERY TABLE</text>
+
+        <!-- ARROWS (painted before boxes) -->
+        <line x1="352" y1="160" x2="480" y2="160" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <line x1="620" y1="192" x2="620" y2="272" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <line x1="352" y1="304" x2="480" y2="304" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+        <path d="M 352,448 H 564 Q 572,448 572,440 V 336" fill="none" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <path d="M 352,592 H 660 Q 668,592 668,584 V 336" fill="none" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <path d="M 760,288 H 792 Q 800,288 800,280 V 168 Q 800,160 808,160 H 908" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="760" y1="304" x2="908" y2="304" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 760,320 H 832 Q 840,320 840,328 V 584 Q 840,592 848,592 H 908" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="1050" y1="336" x2="1050" y2="560" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- ARROW LABELS (opaque paper masks, 8px clear of every stroke) -->
+        <rect x="378" y="140" width="76" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="416" y="151" fill="#8f8f99" font-size="8" letter-spacing="0.06em" text-anchor="middle">POST · API-KEY</text>
+
+        <rect x="630" y="222" width="46" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="636" y="231" fill="#8f8f99" font-size="8" letter-spacing="0.06em">KEY HASH</text>
+
+        <rect x="382" y="284" width="68" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="416" y="295" fill="#8f8f99" font-size="8" letter-spacing="0.06em" text-anchor="middle">SERVICE ROLE</text>
+
+        <rect x="424" y="428" width="68" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="458" y="439" fill="#8f8f99" font-size="8" letter-spacing="0.06em" text-anchor="middle">SELECT · RLS</text>
+
+        <rect x="470" y="572" width="72" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="506" y="583" fill="#8f8f99" font-size="8" letter-spacing="0.06em" text-anchor="middle">ANON · 0 ROWS</text>
+
+        <rect x="810" y="204" width="64" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="816" y="213" fill="#8f8f99" font-size="8" letter-spacing="0.06em">INSERT EVENT</text>
+
+        <rect x="794" y="284" width="80" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="834" y="293" fill="#8f8f99" font-size="8" letter-spacing="0.06em" text-anchor="middle">ASSIGNMENTS</text>
+
+        <rect x="850" y="450" width="56" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="856" y="459" fill="#8f8f99" font-size="8" letter-spacing="0.06em">A/B RESULT</text>
+
+        <rect x="1060" y="440" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="1066" y="449" fill="#8f8f99" font-size="8" letter-spacing="0.06em">SQL VIEW</text>
+
+        <!-- NODE: Event client (input) -->
+        <rect x="64" y="128" width="288" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="64" y="128" width="288" height="64" rx="6" fill="rgba(161,161,170,0.10)" stroke="#8f8f99" stroke-width="1"/>
+        <rect x="72" y="134" width="28" height="12" rx="2" fill="transparent" stroke="rgba(143,143,153,0.40)" stroke-width="0.8"/>
+        <text class="mono" x="86" y="143" fill="#8f8f99" font-size="7" text-anchor="middle" letter-spacing="0.08em">IN</text>
+        <text class="sans" x="208" y="162" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">Event client</text>
+        <text class="mono" x="208" y="178" fill="#a1a1aa" font-size="9" text-anchor="middle">POST · x-api-key</text>
+
+        <!-- NODE: Edge Function (backend) -->
+        <rect x="480" y="128" width="280" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="480" y="128" width="280" height="64" rx="6" fill="#1a3435" stroke="#e4e4e7" stroke-width="1"/>
+        <rect x="488" y="134" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text class="mono" x="502" y="143" fill="#8f8f99" font-size="7" text-anchor="middle" letter-spacing="0.08em">FN</text>
+        <text class="sans" x="620" y="162" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">Edge Function · ingest</text>
+        <text class="mono" x="620" y="178" fill="#a1a1aa" font-size="9" text-anchor="middle">Deno · SHA-256 key hash</text>
+
+        <!-- NODE: Seed script (input) -->
+        <rect x="64" y="272" width="288" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="64" y="272" width="288" height="64" rx="6" fill="rgba(161,161,170,0.10)" stroke="#8f8f99" stroke-width="1"/>
+        <rect x="72" y="278" width="28" height="12" rx="2" fill="transparent" stroke="rgba(143,143,153,0.40)" stroke-width="0.8"/>
+        <text class="mono" x="86" y="287" fill="#8f8f99" font-size="7" text-anchor="middle" letter-spacing="0.08em">IN</text>
+        <text class="sans" x="208" y="306" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">Seed script</text>
+        <text class="mono" x="208" y="322" fill="#a1a1aa" font-size="9" text-anchor="middle">service role · 8k users</text>
+
+        <!-- NODE: RLS boundary (security) -->
+        <rect x="480" y="272" width="280" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="480" y="272" width="280" height="64" rx="6" fill="rgba(255,133,105,0.05)" stroke="rgba(255,133,105,0.50)" stroke-width="1" stroke-dasharray="4,4"/>
+        <rect x="488" y="278" width="34" height="12" rx="2" fill="transparent" stroke="rgba(255,133,105,0.50)" stroke-width="0.8"/>
+        <text class="mono" x="505" y="287" fill="#8f8f99" font-size="7" text-anchor="middle" letter-spacing="0.08em">GATE</text>
+        <text class="sans" x="620" y="306" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">RLS boundary</text>
+        <text class="mono" x="620" y="322" fill="#a1a1aa" font-size="9" text-anchor="middle">my_orgs() · security definer</text>
+
+        <!-- NODE: Streamlit dashboard (external) -->
+        <rect x="64" y="416" width="288" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="64" y="416" width="288" height="64" rx="6" fill="rgba(228,228,231,0.03)" stroke="rgba(228,228,231,0.30)" stroke-width="1"/>
+        <rect x="72" y="422" width="30" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.22)" stroke-width="0.8"/>
+        <text class="mono" x="87" y="431" fill="#8f8f99" font-size="7" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+        <text class="sans" x="208" y="450" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">Streamlit dashboard</text>
+        <text class="mono" x="208" y="466" fill="#a1a1aa" font-size="9" text-anchor="middle">supabase-py · anon key</text>
+
+        <!-- NODE: Web SQL client (external) -->
+        <rect x="64" y="560" width="288" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="64" y="560" width="288" height="64" rx="6" fill="rgba(228,228,231,0.03)" stroke="rgba(228,228,231,0.30)" stroke-width="1"/>
+        <rect x="72" y="566" width="30" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.22)" stroke-width="0.8"/>
+        <text class="mono" x="87" y="575" fill="#8f8f99" font-size="7" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+        <text class="sans" x="208" y="594" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">Web SQL · psql</text>
+        <text class="mono" x="208" y="610" fill="#a1a1aa" font-size="9" text-anchor="middle">PostgREST · anon key</text>
+
+        <!-- NODE: analytics schema (store) -->
+        <rect x="908" y="128" width="300" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="908" y="128" width="300" height="64" rx="6" fill="rgba(228,228,231,0.05)" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="916" y="134" width="28" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.50)" stroke-width="0.8"/>
+        <text class="mono" x="930" y="143" fill="#8f8f99" font-size="7" text-anchor="middle" letter-spacing="0.08em">DB</text>
+        <text class="sans" x="1058" y="162" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">analytics</text>
+        <text class="mono" x="1058" y="178" fill="#a1a1aa" font-size="9" text-anchor="middle">events · users · 8 SQL views</text>
+
+        <!-- NODE: experiments schema (store) -->
+        <rect x="908" y="272" width="300" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="908" y="272" width="300" height="64" rx="6" fill="rgba(228,228,231,0.05)" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="916" y="278" width="28" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.50)" stroke-width="0.8"/>
+        <text class="mono" x="930" y="287" fill="#8f8f99" font-size="7" text-anchor="middle" letter-spacing="0.08em">DB</text>
+        <text class="sans" x="1058" y="306" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">experiments</text>
+        <text class="mono" x="1058" y="322" fill="#a1a1aa" font-size="9" text-anchor="middle">assignments · metrics · variants</text>
+
+        <!-- NODE: v_results (focal) -->
+        <rect x="908" y="560" width="300" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="908" y="560" width="300" height="64" rx="6" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <rect x="916" y="566" width="30" height="12" rx="2" fill="transparent" stroke="rgba(255,133,105,0.50)" stroke-width="0.8"/>
+        <text class="mono" x="931" y="575" fill="#ff8569" font-size="7" text-anchor="middle" letter-spacing="0.08em">A/B</text>
+        <text class="sans" x="1058" y="594" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">v_results</text>
+        <text class="mono" x="1058" y="610" fill="#a1a1aa" font-size="9" text-anchor="middle">29.6% vs 40.7% · p 1.7e-10</text>
+
+        <!-- LEGEND STRIP -->
+        <line x1="40" y1="660" x2="1240" y2="660" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <text class="mono" x="40" y="676" fill="#a1a1aa" font-size="8" font-weight="500" letter-spacing="0.14em">LEGEND</text>
+
+        <rect x="120" y="690" width="14" height="10" rx="2" fill="rgba(161,161,170,0.10)" stroke="#8f8f99" stroke-width="1"/>
+        <text class="sans" x="140" y="698" fill="#a1a1aa" font-size="8">Input / caller</text>
+
+        <rect x="305" y="690" width="14" height="10" rx="2" fill="#1a3435" stroke="#e4e4e7" stroke-width="1"/>
+        <text class="sans" x="325" y="698" fill="#a1a1aa" font-size="8">Backend / function</text>
+
+        <rect x="490" y="690" width="14" height="10" rx="2" fill="rgba(255,133,105,0.05)" stroke="rgba(255,133,105,0.50)" stroke-width="1" stroke-dasharray="3,2"/>
+        <text class="sans" x="510" y="698" fill="#a1a1aa" font-size="8">Security / RLS</text>
+
+        <rect x="675" y="690" width="14" height="10" rx="2" fill="rgba(228,228,231,0.03)" stroke="rgba(228,228,231,0.30)" stroke-width="1"/>
+        <text class="sans" x="695" y="698" fill="#a1a1aa" font-size="8">External / client</text>
+
+        <rect x="860" y="690" width="14" height="10" rx="2" fill="rgba(228,228,231,0.05)" stroke="#a1a1aa" stroke-width="1"/>
+        <text class="sans" x="880" y="698" fill="#a1a1aa" font-size="8">Store / table</text>
+
+        <rect x="1045" y="690" width="14" height="10" rx="2" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <text class="sans" x="1065" y="698" fill="#a1a1aa" font-size="8">Focal / A/B result</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

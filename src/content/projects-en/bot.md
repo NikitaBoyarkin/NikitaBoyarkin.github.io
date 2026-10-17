@@ -30,6 +30,8 @@ related:
 
 # Reporting Automation Telegram Bot
 
+**▶ [Process diagram](/diagrams/telegram-bot.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 Every week an analyst manually gathered metrics from several sources, refreshed a dashboard, exported screenshots, and posted them to the team chat. The process took 1–2 hours, was often delayed, and depended on a single person. The task is to move report assembly into a bot that fetches data and sends it on a schedule, so the team gets metrics regularly and in one format.

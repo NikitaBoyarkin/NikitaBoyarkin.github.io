@@ -43,6 +43,8 @@ faq:
 
 # Churn Prediction — Leakage-Free Retention Model
 
+**▶ [Data-flow diagram](/diagrams/churn-prediction.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 The difficulty of a churn model for a subscription product is not the algorithm but the discipline: features must be computed as-of a snapshot date, the target must be a future inactivity window, and the split must be chronological.

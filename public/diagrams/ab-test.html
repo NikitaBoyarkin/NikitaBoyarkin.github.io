@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A/B testing toolkit · Architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Diagram Design</p>
+    <h1>A/B testing methodology toolkit</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ab-test-title ab-test-desc">
+        <title id="ab-test-title">A/B testing methodology toolkit</title>
+        <desc id="ab-test-desc">Architecture of a calibration-driven A/B testing library: a CLI and end-to-end pipeline call four method families — guardrails and sizing, ratio and variance estimators, sequential monitoring, and inference and design — each calibration of which is re-run as an assertion by a simulator-backed harness that emits the pipeline report, the figure gallery, and per-module scenario verdicts.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff8569"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4ecdc4"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#0f2a2b"/>
+
+        <!-- ZONES (drawn first: bg -> zones -> arrows -> nodes) -->
+        <rect x="76" y="168" width="1128" height="112" rx="8"
+              fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <rect x="600" y="172" width="80" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="640" y="181" fill="#8f8f99" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.14em">METHOD MODULES</text>
+
+        <rect x="76" y="336" width="1128" height="284" rx="8"
+              fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <rect x="88" y="340" width="124" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="150" y="349" fill="#8f8f99" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.14em">CALIBRATION &amp; EVIDENCE</text>
+
+        <!-- ARROWS (before boxes, so lines sit behind nodes) -->
+        <!-- The entry band calls each method family -->
+        <line x1="220" y1="112" x2="220" y2="200" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="500" y1="112" x2="500" y2="200" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="780" y1="112" x2="780" y2="200" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="1060" y1="112" x2="1060" y2="200" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- Each family's calibration is asserted by the harness -->
+        <line x1="220" y1="264" x2="220" y2="400" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="500" y1="264" x2="500" y2="400" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="780" y1="264" x2="780" y2="400" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="1060" y1="264" x2="1060" y2="400" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- The harness emits the evidence -->
+        <line x1="264" y1="464" x2="264" y2="536" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="640" y1="464" x2="640" y2="536" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="1016" y1="464" x2="1016" y2="536" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- ARROW LABELS (opaque masks, 8px off their own stroke) -->
+        <rect x="228" y="148" width="64" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="260" y="157" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.06em">SRM CHECK</text>
+
+        <rect x="508" y="148" width="72" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="544" y="157" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.06em">ESTIMATE</text>
+
+        <rect x="788" y="148" width="64" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="820" y="157" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.06em">MONITOR</text>
+
+        <rect x="1068" y="148" width="72" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="1104" y="157" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.06em">INTERVALS</text>
+
+        <rect x="228" y="320" width="56" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="256" y="329" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.06em">TYPE I</text>
+
+        <rect x="508" y="320" width="52" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="534" y="329" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.06em">POWER</text>
+
+        <rect x="788" y="320" width="64" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="820" y="329" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.06em">COVERAGE</text>
+
+        <rect x="1068" y="320" width="64" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="1100" y="329" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.06em">FWER/FDR</text>
+
+        <rect x="272" y="492" width="56" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="300" y="501" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.06em">REPORT</text>
+
+        <rect x="648" y="492" width="60" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="678" y="501" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.06em">FIGURES</text>
+
+        <rect x="1024" y="492" width="64" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="1056" y="501" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.06em">VERDICTS</text>
+
+        <!-- NODE: entry band -->
+        <rect x="40" y="56" width="1200" height="56" rx="8" fill="#0f2a2b"/>
+        <rect x="40" y="56" width="1200" height="56" rx="8" fill="#234044" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="48" y="62" width="36" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.40)" stroke-width="0.8"/>
+        <text x="66" y="71" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.08em">ENTRY</text>
+        <text x="640" y="88" fill="#e4e4e7" font-size="12" font-weight="600"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Entry points — CLI and full pipeline</text>
+        <text x="640" y="104" fill="#a1a1aa" font-size="9"
+              font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">scripts/cli.py · run_full_pipeline.py</text>
+
+        <!-- NODE: guardrails and sizing -->
+        <rect x="100" y="200" width="240" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="100" y="200" width="240" height="64" rx="6" fill="#1a3435" stroke="rgba(228,228,231,0.30)" stroke-width="1"/>
+        <rect x="108" y="206" width="30" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.40)" stroke-width="0.8"/>
+        <text x="123" y="215" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.08em">SRM</text>
+        <text x="220" y="236" fill="#e4e4e7" font-size="12" font-weight="600"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Guardrails &amp; sizing</text>
+        <text x="220" y="252" fill="#a1a1aa" font-size="9"
+              font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">srm_test · sample_size</text>
+
+        <!-- NODE: ratio and variance (FOCAL 1) -->
+        <rect x="380" y="200" width="240" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="380" y="200" width="240" height="64" rx="6" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <rect x="388" y="206" width="36" height="12" rx="2" fill="transparent" stroke="rgba(255,133,105,0.50)" stroke-width="0.8"/>
+        <text x="406" y="215" fill="#ff8569" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.08em">FOCAL</text>
+        <text x="500" y="236" fill="#e4e4e7" font-size="12" font-weight="600"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Ratio &amp; variance</text>
+        <text x="500" y="252" fill="#a1a1aa" font-size="9"
+              font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">cuped · ratio_cuped · delta_method</text>
+
+        <!-- NODE: sequential -->
+        <rect x="660" y="200" width="240" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="660" y="200" width="240" height="64" rx="6" fill="#1a3435" stroke="rgba(228,228,231,0.30)" stroke-width="1"/>
+        <rect x="668" y="206" width="30" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.40)" stroke-width="0.8"/>
+        <text x="683" y="215" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.08em">SEQ</text>
+        <text x="780" y="236" fill="#e4e4e7" font-size="12" font-weight="600"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Sequential tests</text>
+        <text x="780" y="252" fill="#a1a1aa" font-size="9"
+              font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">group_sequential · msprt</text>
+
+        <!-- NODE: inference and design -->
+        <rect x="940" y="200" width="240" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="940" y="200" width="240" height="64" rx="6" fill="#1a3435" stroke="rgba(228,228,231,0.30)" stroke-width="1"/>
+        <rect x="948" y="206" width="30" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.40)" stroke-width="0.8"/>
+        <text x="963" y="215" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.08em">INF</text>
+        <text x="1060" y="236" fill="#e4e4e7" font-size="12" font-weight="600"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Inference &amp; design</text>
+        <text x="1060" y="252" fill="#a1a1aa" font-size="9"
+              font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">bayesian_ab_test · bootstrap_ci</text>
+
+        <!-- NODE: calibration harness (FOCAL 2) -->
+        <rect x="40" y="400" width="1200" height="64" rx="8" fill="#0f2a2b"/>
+        <rect x="40" y="400" width="1200" height="64" rx="8" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <rect x="48" y="406" width="30" height="12" rx="2" fill="transparent" stroke="rgba(255,133,105,0.50)" stroke-width="0.8"/>
+        <text x="63" y="415" fill="#ff8569" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.08em">CAL</text>
+        <text x="640" y="436" fill="#e4e4e7" font-size="12" font-weight="600"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Calibration harness</text>
+        <text x="640" y="452" fill="#a1a1aa" font-size="9"
+              font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">test_simulator.py · tests/ — every calibration re-run as an assertion</text>
+
+        <!-- NODE: pipeline report -->
+        <rect x="96" y="536" width="336" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="96" y="536" width="336" height="64" rx="6" fill="rgba(228,228,231,0.03)" stroke="#8f8f99" stroke-width="1"/>
+        <rect x="104" y="542" width="30" height="12" rx="2" fill="transparent" stroke="rgba(143,143,153,0.50)" stroke-width="0.8"/>
+        <text x="119" y="551" fill="#8f8f99" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.08em">OUT</text>
+        <text x="264" y="572" fill="#e4e4e7" font-size="12" font-weight="600"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Pipeline report</text>
+        <text x="264" y="588" fill="#a1a1aa" font-size="9"
+              font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">outputs/report.md · pipeline_*.png</text>
+
+        <!-- NODE: figure gallery -->
+        <rect x="472" y="536" width="336" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="472" y="536" width="336" height="64" rx="6" fill="rgba(228,228,231,0.03)" stroke="#8f8f99" stroke-width="1"/>
+        <rect x="480" y="542" width="30" height="12" rx="2" fill="transparent" stroke="rgba(143,143,153,0.50)" stroke-width="0.8"/>
+        <text x="495" y="551" fill="#8f8f99" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.08em">FIG</text>
+        <text x="640" y="572" fill="#e4e4e7" font-size="12" font-weight="600"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Figure gallery</text>
+        <text x="640" y="588" fill="#a1a1aa" font-size="9"
+              font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">plots/ · make_figures.py</text>
+
+        <!-- NODE: scenario demos -->
+        <rect x="848" y="536" width="336" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="848" y="536" width="336" height="64" rx="6" fill="rgba(228,228,231,0.03)" stroke="#8f8f99" stroke-width="1"/>
+        <rect x="856" y="542" width="30" height="12" rx="2" fill="transparent" stroke="rgba(143,143,153,0.50)" stroke-width="0.8"/>
+        <text x="871" y="551" fill="#8f8f99" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              text-anchor="middle" letter-spacing="0.08em">EX</text>
+        <text x="1016" y="572" fill="#e4e4e7" font-size="12" font-weight="600"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Scenario demos</text>
+        <text x="1016" y="588" fill="#a1a1aa" font-size="9"
+              font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">examples/ · one VERDICT per module</text>
+
+        <!-- LEGEND (horizontal strip inside the reserved bottom 60px) -->
+        <line x1="40" y1="660" x2="1240" y2="660" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <text x="40" y="676" fill="#a1a1aa" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace"
+              letter-spacing="0.14em">LEGEND</text>
+
+        <rect x="40" y="684" width="14" height="10" rx="2" fill="#1a3435" stroke="rgba(228,228,231,0.30)" stroke-width="1"/>
+        <text x="62" y="692" fill="#a1a1aa" font-size="8.5"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">Module family</text>
+
+        <rect x="200" y="684" width="14" height="10" rx="2" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <text x="222" y="692" fill="#a1a1aa" font-size="8.5"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">Focal module</text>
+
+        <rect x="360" y="684" width="14" height="10" rx="2" fill="#234044" stroke="#a1a1aa" stroke-width="1"/>
+        <text x="382" y="692" fill="#a1a1aa" font-size="8.5"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">Layer (entry · calibration)</text>
+
+        <rect x="620" y="684" width="14" height="10" rx="2" fill="rgba(228,228,231,0.03)" stroke="#8f8f99" stroke-width="1"/>
+        <text x="642" y="692" fill="#a1a1aa" font-size="8.5"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">Emitted artefact</text>
+
+        <line x1="832" y1="688" x2="860" y2="688" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="868" y="692" fill="#a1a1aa" font-size="8.5"
+              font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">Call / assert flow</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

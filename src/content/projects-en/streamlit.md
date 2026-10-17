@@ -30,6 +30,8 @@ related:
 
 # Product Analytics Dashboard (Streamlit)
 
+**▶ [Architecture diagram](/diagrams/streamlit-app.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 An analytics portfolio should show the whole AARRR cycle on one consistent dataset, not one metric in isolation. This dashboard is a self-contained app: data is generated deterministically, the metrics reproduce across runs, and the same UI later became the presentation layer for the Supabase full-stack project.

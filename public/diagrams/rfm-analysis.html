@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RFM segmentation of 1,983 bank clients · Data flow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--soft);
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above - a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+
+    /* --- diagram surface ------------------------------------------------- */
+    .bg { fill: var(--paper); }
+    .dots { fill: url(#dots); }
+    .lane-tint { fill: rgba(228,228,231,0.018); }
+    .rule { stroke: var(--rule); stroke-width: 1; fill: none; }
+    .rule-soft { stroke: rgba(228,228,231,0.10); stroke-width: 1; fill: none; }
+
+    /* --- step header ----------------------------------------------------- */
+    .step-chip { fill: rgba(228,228,231,0.12); }
+    .step-num { font-family: var(--font-mono); font-size: 8px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .step-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.12em; fill: var(--muted); text-anchor: middle; }
+    .lane-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); text-anchor: middle; }
+
+    /* --- node treatments ------------------------------------------------- */
+    .node-mask { fill: var(--paper); }
+    .node { fill: rgba(228,228,231,0.04); stroke: rgba(228,228,231,0.20); stroke-width: 1; }
+    .node-src { fill: rgba(228,228,231,0.07); stroke: rgba(228,228,231,0.34); stroke-width: 1; }
+    .node-focal { fill: rgba(255,133,105,0.12); stroke: var(--accent); stroke-width: 1.2; }
+    .node-excl { fill: none; stroke: rgba(143,143,153,0.55); stroke-width: 1; stroke-dasharray: 4,3; }
+    .node-deliv { fill: var(--paper-2); stroke: rgba(228,228,231,0.28); stroke-width: 1; }
+    .panel { fill: rgba(228,228,231,0.02); stroke: rgba(228,228,231,0.16); stroke-width: 1; }
+    .role-chip { fill: rgba(228,228,231,0.12); }
+    .role-chip-focal { fill: rgba(255,133,105,0.22); }
+    .role-chip-excl { fill: rgba(143,143,153,0.18); }
+    .role-chip-deliv { fill: rgba(228,228,231,0.10); }
+    .role { font-family: var(--font-mono); font-size: 6px; font-weight: 600; letter-spacing: 0.08em; fill: var(--ink); text-anchor: middle; }
+    .role-focal { fill: var(--accent); }
+    .role-soft { fill: var(--soft); }
+    .node-name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .node-sub { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); text-anchor: middle; }
+    .chip-db { fill: #5e7a9b; }
+    .chip-tb { fill: #b8915a; }
+    .chip-fl { fill: #9c6b50; }
+    .chip-txt { font-family: var(--font-mono); font-size: 6px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
+
+    /* --- segment share panel --------------------------------------------- */
+    .panel-head { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); }
+    .panel-note { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--soft); }
+    .seg-name { font-family: var(--font-sans); font-size: 11px; font-weight: 600; fill: var(--ink); }
+    .seg-num { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--muted); text-anchor: end; }
+    .seg-ratio-up { font-family: var(--font-mono); font-size: 8px; font-weight: 500; fill: var(--ink); text-anchor: end; }
+    .seg-ratio-down { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--soft); text-anchor: end; }
+    .bar-c { fill: rgba(228,228,231,0.32); }
+    .bar-r { fill: rgba(228,228,231,0.72); }
+
+    /* --- connectors ------------------------------------------------------ */
+    .a-muted { stroke: var(--muted); stroke-width: 1; fill: none; }
+    .a-accent { stroke: var(--accent); stroke-width: 1.2; fill: none; }
+    .a-dropped { stroke: var(--soft); stroke-width: 1; fill: none; stroke-dasharray: 5,4; }
+    .arrow-label { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--soft); }
+    .arrow-label-accent { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--accent); }
+
+    /* --- legend ---------------------------------------------------------- */
+    .legend-cat { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); }
+    .legend-txt { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Data flow · RFM segmentation</p>
+    <h1>RFM segmentation of 1,983 bank clients</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="rfm-analysis-title rfm-analysis-desc">
+        <title id="rfm-analysis-title">RFM segmentation of 1,983 bank clients</title>
+        <desc id="rfm-analysis-desc">A synthetic 10,000-row transaction log is cleaned by dropping its flagged anomaly rows down to 9,492 transactions and 1,983 clients, scored into R/F/M quartiles and six combination-based segments, then tested for monetary concentration — Gini 0.324, with the top 20% of clients holding 38.2% of revenue — before export.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="11" cy="11" r="0.8" fill="rgba(228,228,231,0.07)"/></pattern>
+          <marker id="arr-muted" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#a1a1aa"/></marker>
+          <marker id="arr-accent" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ff8569"/></marker>
+          <marker id="arr-link" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4ecdc4"/></marker>
+        </defs>
+
+        <!-- Ground -->
+        <rect width="1280" height="720" class="bg"/>
+        <rect width="1280" height="720" class="dots"/>
+        <rect x="0" y="88" width="1280" height="168" class="lane-tint"/>
+
+        <!-- Lane structure -->
+        <line x1="40" y1="88" x2="1240" y2="88" class="rule"/>
+        <line x1="40" y1="256" x2="1240" y2="256" class="rule"/>
+        <line x1="40" y1="648" x2="1240" y2="648" class="rule"/>
+        <line x1="184" y1="88" x2="184" y2="648" class="rule"/>
+
+        <!-- Step header -->
+        <rect x="256" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="272" y="59" class="step-num">01</text><text x="272" y="80" class="step-label">INGEST</text>
+        <rect x="432" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="448" y="59" class="step-num">02</text><text x="448" y="80" class="step-label">CLEAN</text>
+        <rect x="608" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="624" y="59" class="step-num">03</text><text x="624" y="80" class="step-label">RFM</text>
+        <rect x="784" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="800" y="59" class="step-num">04</text><text x="800" y="80" class="step-label">SCORE</text>
+        <rect x="960" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="976" y="59" class="step-num">05</text><text x="976" y="80" class="step-label">SEGMENT</text>
+        <rect x="1136" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="1152" y="59" class="step-num">06</text><text x="1152" y="80" class="step-label">VERIFY</text>
+
+        <!-- Lane labels -->
+        <text x="112" y="168" class="lane-label">ANALYSIS</text><text x="112" y="180" class="lane-label">PIPELINE</text>
+        <text x="112" y="448" class="lane-label">ARTIFACTS</text><text x="112" y="460" class="lane-label">&amp; EVIDENCE</text>
+
+        <!-- Connectors: drawn before the boxes so the lines sit behind the nodes -->
+        <line x1="348" y1="172" x2="372" y2="172" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="524" y1="172" x2="548" y2="172" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="700" y1="172" x2="724" y2="172" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="876" y1="172" x2="900" y2="172" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="448" y1="212" x2="448" y2="428" class="a-dropped" marker-end="url(#arr-muted)"/>
+        <line x1="944" y1="212" x2="944" y2="428" class="a-muted" marker-end="url(#arr-muted)"/>
+        <path d="M1010 212 V238 Q1010 246 1018 246 H1144 Q1152 246 1152 254 V428" class="a-accent" marker-end="url(#arr-accent)"/>
+        <line x1="1152" y1="508" x2="1152" y2="548" class="a-muted" marker-end="url(#arr-muted)"/>
+
+        <!-- Arrow labels: opaque paper masks, 10px clear of the stroke -->
+        <rect x="458" y="296" width="68" height="12" rx="2" class="node-mask"/>
+        <text x="492" y="305" class="arrow-label" text-anchor="middle">508 DROPPED</text>
+        <rect x="1044" y="224" width="72" height="12" rx="2" class="node-mask"/>
+        <text x="1080" y="233" class="arrow-label-accent" text-anchor="middle">SEG + SPEND</text>
+
+        <!-- Segment share panel: six segments as ranked dual bars, none of them an equal box -->
+        <rect x="548" y="428" width="504" height="216" rx="8" class="panel"/>
+        <text x="560" y="448" class="panel-head">SHARE OF CLIENTS vs REVENUE</text>
+        <rect x="742" y="442" width="14" height="6" rx="1" class="bar-c"/><text x="762" y="448" class="panel-note">CLIENTS</text>
+        <rect x="842" y="442" width="14" height="6" rx="1" class="bar-r"/><text x="862" y="448" class="panel-note">REVENUE</text>
+        <text x="1040" y="448" class="panel-note" text-anchor="end">RATIO</text>
+        <line x1="560" y1="462" x2="1040" y2="462" class="rule-soft"/>
+        <line x1="712" y1="466" x2="712" y2="624" class="rule-soft"/>
+
+        <text x="560" y="480" class="seg-name">Champions</text>
+        <text x="700" y="480" class="seg-num">126</text>
+        <rect x="712" y="470" width="56" height="5" rx="1" class="bar-c"/>
+        <rect x="712" y="478" width="107" height="5" rx="1" class="bar-r"/>
+        <text x="1040" y="480" class="seg-ratio-up">1.91</text>
+
+        <text x="560" y="508" class="seg-name">Loyal</text>
+        <text x="700" y="508" class="seg-num">376</text>
+        <rect x="712" y="498" width="167" height="5" rx="1" class="bar-c"/>
+        <rect x="712" y="506" width="239" height="5" rx="1" class="bar-r"/>
+        <text x="1040" y="508" class="seg-ratio-up">1.43</text>
+
+        <text x="560" y="536" class="seg-name">At Risk</text>
+        <text x="700" y="536" class="seg-num">349</text>
+        <rect x="712" y="526" width="155" height="5" rx="1" class="bar-c"/>
+        <rect x="712" y="534" width="208" height="5" rx="1" class="bar-r"/>
+        <text x="1040" y="536" class="seg-ratio-up">1.34</text>
+
+        <text x="560" y="564" class="seg-name">Potential Loyalists</text>
+        <text x="700" y="564" class="seg-num">79</text>
+        <rect x="712" y="554" width="35" height="5" rx="1" class="bar-c"/>
+        <rect x="712" y="562" width="40" height="5" rx="1" class="bar-r"/>
+        <text x="1040" y="564" class="seg-ratio-up">1.16</text>
+
+        <text x="560" y="592" class="seg-name">Need Attention</text>
+        <text x="700" y="592" class="seg-num">410</text>
+        <rect x="712" y="582" width="182" height="5" rx="1" class="bar-c"/>
+        <rect x="712" y="590" width="113" height="5" rx="1" class="bar-r"/>
+        <text x="1040" y="592" class="seg-ratio-down">0.62</text>
+
+        <text x="560" y="620" class="seg-name">Hibernating</text>
+        <text x="700" y="620" class="seg-num">643</text>
+        <rect x="712" y="610" width="285" height="5" rx="1" class="bar-c"/>
+        <rect x="712" y="618" width="173" height="5" rx="1" class="bar-r"/>
+        <text x="1040" y="620" class="seg-ratio-down">0.61</text>
+
+        <text x="560" y="637" class="panel-note">Gini 0.324 — top 20% hold 38.2% of revenue</text>
+        <text x="1040" y="637" class="panel-note" text-anchor="end">1,983 clients · rfm_output.csv</text>
+
+        <!-- Nodes: mask, box, role chip, name, sublabel, data-type chips -->
+        <rect x="196" y="132" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="196" y="132" width="152" height="80" rx="6" class="node-src"/>
+        <rect x="204" y="140" width="26" height="12" rx="2" class="role-chip"/><text x="217" y="149" class="role">SRC</text>
+        <text x="272" y="170" class="node-name">Transaction Log</text>
+        <text x="272" y="186" class="node-sub">10,000 txns · seed 42</text>
+        <rect x="316" y="194" width="24" height="12" rx="2" class="chip-db"/><text x="328" y="202" class="chip-txt">DB</text>
+
+        <rect x="372" y="132" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="372" y="132" width="152" height="80" rx="6" class="node"/>
+        <rect x="380" y="140" width="26" height="12" rx="2" class="role-chip"/><text x="393" y="149" class="role">CLN</text>
+        <text x="448" y="170" class="node-name">Parse &amp; Drop</text>
+        <text x="448" y="186" class="node-sub">9,492 txns survive</text>
+        <rect x="380" y="194" width="24" height="12" rx="2" class="chip-db"/><text x="392" y="202" class="chip-txt">DB</text>
+        <rect x="492" y="194" width="24" height="12" rx="2" class="chip-db"/><text x="504" y="202" class="chip-txt">DB</text>
+
+        <rect x="548" y="132" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="548" y="132" width="152" height="80" rx="6" class="node"/>
+        <rect x="556" y="140" width="26" height="12" rx="2" class="role-chip"/><text x="569" y="149" class="role">RFM</text>
+        <text x="624" y="170" class="node-name">RFM Table</text>
+        <text x="624" y="186" class="node-sub">1,983 clients · r·f·m</text>
+        <rect x="556" y="194" width="24" height="12" rx="2" class="chip-db"/><text x="568" y="202" class="chip-txt">DB</text>
+        <rect x="668" y="194" width="24" height="12" rx="2" class="chip-tb"/><text x="680" y="202" class="chip-txt">TB</text>
+
+        <rect x="724" y="132" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="724" y="132" width="152" height="80" rx="6" class="node"/>
+        <rect x="732" y="140" width="26" height="12" rx="2" class="role-chip"/><text x="745" y="149" class="role">SCR</text>
+        <text x="800" y="170" class="node-name">Quartile Score</text>
+        <text x="800" y="186" class="node-sub">R/F/M 1–4 · sum 3–12</text>
+        <rect x="732" y="194" width="24" height="12" rx="2" class="chip-tb"/><text x="744" y="202" class="chip-txt">TB</text>
+        <rect x="844" y="194" width="24" height="12" rx="2" class="chip-tb"/><text x="856" y="202" class="chip-txt">TB</text>
+
+        <rect x="900" y="132" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="900" y="132" width="152" height="80" rx="6" class="node"/>
+        <rect x="908" y="140" width="26" height="12" rx="2" class="role-chip"/><text x="921" y="149" class="role">SEG</text>
+        <text x="976" y="170" class="node-name">Segment Map</text>
+        <text x="976" y="186" class="node-sub">combo rules → 6 labels</text>
+        <rect x="908" y="194" width="24" height="12" rx="2" class="chip-tb"/><text x="920" y="202" class="chip-txt">TB</text>
+        <rect x="1020" y="194" width="24" height="12" rx="2" class="chip-tb"/><text x="1032" y="202" class="chip-txt">TB</text>
+
+        <rect x="372" y="428" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="372" y="428" width="152" height="80" rx="6" class="node-excl"/>
+        <rect x="380" y="436" width="26" height="12" rx="2" class="role-chip-excl"/><text x="393" y="445" class="role role-soft">EXC</text>
+        <text x="448" y="466" class="node-name">Anomalies Excluded</text>
+        <text x="448" y="482" class="node-sub">508 rows · is_anomaly=1</text>
+        <rect x="380" y="490" width="24" height="12" rx="2" class="chip-db"/><text x="392" y="498" class="chip-txt">DB</text>
+
+        <rect x="1076" y="428" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="1076" y="428" width="152" height="80" rx="6" class="node-focal"/>
+        <rect x="1084" y="436" width="26" height="12" rx="2" class="role-chip-focal"/><text x="1097" y="445" class="role role-focal">VAL</text>
+        <text x="1152" y="466" class="node-name">Concentration Check</text>
+        <text x="1152" y="482" class="node-sub">Gini 0.324 · top20 38.2%</text>
+        <rect x="1084" y="490" width="24" height="12" rx="2" class="chip-tb"/><text x="1096" y="498" class="chip-txt">TB</text>
+        <rect x="1196" y="490" width="24" height="12" rx="2" class="chip-fl"/><text x="1208" y="498" class="chip-txt">FL</text>
+
+        <rect x="1076" y="548" width="152" height="96" rx="6" class="node-mask"/>
+        <rect x="1076" y="548" width="152" height="96" rx="6" class="node-deliv"/>
+        <rect x="1084" y="556" width="26" height="12" rx="2" class="role-chip-deliv"/><text x="1097" y="565" class="role">OUT</text>
+        <text x="1152" y="586" class="node-name">Deliverables</text>
+        <text x="1152" y="602" class="node-sub">CSV · Excel · charts</text>
+        <text x="1152" y="616" class="node-sub">Streamlit · dbt boards</text>
+        <rect x="1084" y="624" width="24" height="12" rx="2" class="chip-fl"/><text x="1096" y="632" class="chip-txt">FL</text>
+
+        <!-- Legend: horizontal strip inside the reserved bottom 60px -->
+        <line x1="40" y1="660" x2="1240" y2="660" class="rule"/>
+        <text x="40" y="676" class="legend-cat">NODE</text>
+        <rect x="100" y="664" width="16" height="12" rx="2" class="node-src"/>
+        <text x="124" y="676" class="legend-txt">SOURCE</text>
+        <rect x="230" y="664" width="16" height="12" rx="2" class="node"/>
+        <text x="254" y="676" class="legend-txt">STAGE</text>
+        <rect x="356" y="664" width="16" height="12" rx="2" class="node-focal"/>
+        <text x="380" y="676" class="legend-txt">FOCAL · GINI</text>
+        <rect x="516" y="664" width="16" height="12" rx="2" class="node-excl"/>
+        <text x="540" y="676" class="legend-txt">EXCLUDED · DROPPED</text>
+        <rect x="704" y="664" width="16" height="12" rx="2" class="node-deliv"/>
+        <text x="728" y="676" class="legend-txt">DELIVERABLE</text>
+        <rect x="859" y="664" width="16" height="12" rx="2" class="panel"/>
+        <text x="883" y="676" class="legend-txt">SHARE PANEL</text>
+
+        <text x="40" y="696" class="legend-cat">DATA</text>
+        <rect x="100" y="688" width="24" height="12" rx="2" class="chip-db"/><text x="112" y="692" class="chip-txt">DB</text>
+        <text x="132" y="696" class="legend-txt">DATASET</text>
+        <rect x="220" y="688" width="24" height="12" rx="2" class="chip-tb"/><text x="232" y="692" class="chip-txt">TB</text>
+        <text x="252" y="696" class="legend-txt">TABLE</text>
+        <rect x="340" y="688" width="24" height="12" rx="2" class="chip-fl"/><text x="352" y="692" class="chip-txt">FL</text>
+        <text x="372" y="696" class="legend-txt">EXPORT</text>
+        <text x="520" y="696" class="legend-txt">LEFT CHIP = INPUT · RIGHT CHIP = OUTPUT</text>
+
+        <text x="40" y="714" class="legend-cat">FLOW</text>
+        <line x1="100" y1="708" x2="124" y2="708" class="a-muted" marker-end="url(#arr-muted)"/>
+        <text x="132" y="714" class="legend-txt">DATA HANDOFF</text>
+        <line x1="270" y1="708" x2="294" y2="708" class="a-accent" marker-end="url(#arr-accent)"/>
+        <text x="302" y="714" class="legend-txt">FOCAL · SEG + SPEND</text>
+        <line x1="520" y1="708" x2="544" y2="708" class="a-dropped" marker-end="url(#arr-muted)"/>
+        <text x="552" y="714" class="legend-txt">ANOMALY DROP</text>
+      </svg>
+    </div>
+  </main>
+</body>
+</html>

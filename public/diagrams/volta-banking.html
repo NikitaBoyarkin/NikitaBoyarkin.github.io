@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volta Neobank — architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+
+    /* Ramp-bearing classes. Geometry stays in the attributes, so the viewBox
+       check reads real coordinates. */
+    .t-name   { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); }
+    .t-sub    { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); }
+    .t-note   { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--soft); }
+    .t-tag    { font-family: var(--font-mono); font-size: 7px; font-weight: 400; fill: var(--muted); letter-spacing: 0.08em; }
+    .t-tag-a  { font-family: var(--font-mono); font-size: 7px; font-weight: 500; fill: var(--accent); letter-spacing: 0.08em; }
+    .t-arrow  { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--soft); letter-spacing: 0.06em; }
+    .t-zone   { font-family: var(--font-mono); font-size: 8px; font-weight: 500; fill: var(--soft); letter-spacing: 0.14em; }
+    .t-legend { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); }
+
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Volta Neobank</p>
+    <h1>Volta Neobank — end-to-end analytics topology</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="volta-banking-title volta-banking-desc">
+        <title id="volta-banking-title">Volta Neobank — end-to-end analytics topology</title>
+        <desc id="volta-banking-desc">Architecture of the Volta neobank portfolio case: seeded generators write the committed CSV datasets; the onboarding funnel runs from 10,000 app installs through KYC Complete, the step with the lowest conversion, to 1,269 first transactions; four analysis scripts test that KYC fix in parallel; and the same datasets build a zero-install HTML analytics board.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff8569"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4ecdc4"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#0f2a2b"/>
+
+        <!-- ═══ zones (painted before arrows and nodes) ═══ -->
+        <rect x="60" y="60" width="1160" height="132" rx="8" fill="rgba(228,228,231,0.03)" stroke="rgba(228,228,231,0.14)" stroke-width="0.8"/>
+        <rect x="76" y="64" width="196" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-zone" x="174" y="73" text-anchor="middle">SIMULATED ONBOARDING FUNNEL</text>
+
+        <rect x="300" y="300" width="400" height="340" rx="8" fill="rgba(228,228,231,0.03)" stroke="rgba(228,228,231,0.14)" stroke-width="0.8"/>
+        <rect x="316" y="304" width="116" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-zone" x="374" y="313" text-anchor="middle">EVIDENCE LAYER</text>
+
+        <!-- ═══ arrows (painted before nodes) ═══ -->
+        <!-- funnel chain: app_install -> kyc_complete -> first_tx -->
+        <line x1="388" y1="136" x2="508" y2="136" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="768" y1="136" x2="888" y2="136" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- seeded generators -> committed datasets -->
+        <line x1="140" y1="296" x2="140" y2="328" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="148" y="308" width="60" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-arrow" x="178" y="317" text-anchor="middle">MAKE DATA</text>
+
+        <!-- committed datasets -> the four analysis scripts -->
+        <line x1="240" y1="360" x2="320" y2="360" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="240" y1="436" x2="320" y2="436" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="240" y1="512" x2="320" y2="512" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="240" y1="588" x2="320" y2="588" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- committed datasets -> board (the board is built from the CSVs, not from the scripts) -->
+        <path d="M 228,328 V 280 Q 228,272 236,272 H 1012 Q 1020,272 1020,280 V 400" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="596" y="252" width="68" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-arrow" x="630" y="261" text-anchor="middle">MAKE BOARD</text>
+
+        <!-- ═══ nodes ═══ -->
+        <!-- App Install -->
+        <rect x="148" y="104" width="240" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="148" y="104" width="240" height="64" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="156" y="112" width="44" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="178" y="121" text-anchor="middle">FUNNEL</text>
+        <text class="t-name" x="268" y="138" text-anchor="middle">App Install</text>
+        <text class="t-sub" x="268" y="154" text-anchor="middle">app_install · 10,000</text>
+
+        <!-- KYC Complete (accent 1 of 2) -->
+        <rect x="508" y="96" width="260" height="80" rx="6" fill="#0f2a2b"/>
+        <rect x="508" y="96" width="260" height="80" rx="6" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <rect x="516" y="104" width="44" height="12" rx="2" fill="none" stroke="rgba(255,133,105,0.5)" stroke-width="0.8"/>
+        <text class="t-tag-a" x="538" y="113" text-anchor="middle">FUNNEL</text>
+        <text class="t-name" x="638" y="138" text-anchor="middle">KYC Complete</text>
+        <text class="t-sub" x="638" y="154" text-anchor="middle">kyc_complete · 56.6% · -43.4%</text>
+
+        <!-- First Transaction -->
+        <rect x="888" y="104" width="240" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="888" y="104" width="240" height="64" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="896" y="112" width="44" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="918" y="121" text-anchor="middle">FUNNEL</text>
+        <text class="t-name" x="1008" y="138" text-anchor="middle">First Transaction</text>
+        <text class="t-sub" x="1008" y="154" text-anchor="middle">first_tx · 1,269</text>
+
+        <!-- Seeded generators -->
+        <rect x="40" y="240" width="160" height="56" rx="6" fill="#0f2a2b"/>
+        <rect x="40" y="240" width="160" height="56" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="48" y="248" width="32" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="64" y="257" text-anchor="middle">DATA</text>
+        <text class="t-name" x="120" y="270" text-anchor="middle">Seeded generators</text>
+        <text class="t-sub" x="120" y="286" text-anchor="middle">generate_*.py · SEED=42</text>
+
+        <!-- Committed datasets -->
+        <rect x="40" y="328" width="200" height="280" rx="6" fill="#0f2a2b"/>
+        <rect x="40" y="328" width="200" height="280" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="48" y="336" width="32" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="64" y="345" text-anchor="middle">DATA</text>
+        <text class="t-name" x="140" y="470" text-anchor="middle">Committed datasets</text>
+        <text class="t-sub" x="140" y="486" text-anchor="middle">data/*.csv</text>
+
+        <!-- A/B experiment -->
+        <rect x="320" y="336" width="340" height="52" rx="6" fill="#0f2a2b"/>
+        <rect x="320" y="336" width="340" height="52" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="328" y="344" width="44" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="350" y="353" text-anchor="middle">SCRIPT</text>
+        <text class="t-name" x="490" y="364" text-anchor="middle">A/B experiment</text>
+        <text class="t-sub" x="490" y="380" text-anchor="middle">volta_ab_testing.py · CUPED · Holm</text>
+
+        <!-- Causal test -->
+        <rect x="320" y="412" width="340" height="52" rx="6" fill="#0f2a2b"/>
+        <rect x="320" y="412" width="340" height="52" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="328" y="420" width="44" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="350" y="429" text-anchor="middle">SCRIPT</text>
+        <text class="t-name" x="490" y="440" text-anchor="middle">Causal test</text>
+        <text class="t-sub" x="490" y="456" text-anchor="middle">volta_causal_kyc.py · DiD · placebo</text>
+
+        <!-- Retention & LTV -->
+        <rect x="320" y="488" width="340" height="52" rx="6" fill="#0f2a2b"/>
+        <rect x="320" y="488" width="340" height="52" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="328" y="496" width="44" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="350" y="505" text-anchor="middle">SCRIPT</text>
+        <text class="t-name" x="490" y="516" text-anchor="middle">Retention &amp; LTV</text>
+        <text class="t-sub" x="490" y="532" text-anchor="middle">volta_retention_analysis.py</text>
+
+        <!-- Segmentation -->
+        <rect x="320" y="564" width="340" height="52" rx="6" fill="#0f2a2b"/>
+        <rect x="320" y="564" width="340" height="52" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="328" y="572" width="44" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="350" y="581" text-anchor="middle">SCRIPT</text>
+        <text class="t-name" x="490" y="592" text-anchor="middle">Segmentation</text>
+        <text class="t-sub" x="490" y="608" text-anchor="middle">volta_segmentation.py · KMeans K=4</text>
+
+        <!-- Analytics board (accent 2 of 2) -->
+        <rect x="760" y="400" width="480" height="140" rx="6" fill="#0f2a2b"/>
+        <rect x="760" y="400" width="480" height="140" rx="6" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <rect x="768" y="408" width="40" height="12" rx="2" fill="none" stroke="rgba(255,133,105,0.5)" stroke-width="0.8"/>
+        <text class="t-tag-a" x="788" y="417" text-anchor="middle">BOARD</text>
+        <text class="t-name" x="1000" y="472" text-anchor="middle">Analytics board</text>
+        <text class="t-sub" x="1000" y="488" text-anchor="middle">docs/board/volta_board.html · make board</text>
+        <text class="t-note" x="1000" y="504" text-anchor="middle">zero-install · single file · no CDN</text>
+
+        <!-- ═══ legend — horizontal bottom strip ═══ -->
+        <line x1="40" y1="652" x2="1240" y2="652" stroke="rgba(228,228,231,0.14)" stroke-width="0.8"/>
+        <text class="t-zone" x="40" y="676">LEGEND</text>
+        <rect x="140" y="664" width="16" height="12" rx="3" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text class="t-legend" x="164" y="676">DATA</text>
+        <rect x="300" y="664" width="16" height="12" rx="3" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text class="t-legend" x="324" y="676">FUNNEL</text>
+        <rect x="460" y="664" width="16" height="12" rx="3" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text class="t-legend" x="484" y="676">SCRIPT</text>
+        <rect x="620" y="664" width="16" height="12" rx="3" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text class="t-legend" x="644" y="676">BOARD</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

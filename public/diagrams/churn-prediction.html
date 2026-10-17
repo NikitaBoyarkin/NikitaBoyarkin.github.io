@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leakage-free churn pipeline · Data flow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--soft);
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above - a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+
+    /* --- diagram surface ------------------------------------------------- */
+    .bg { fill: var(--paper); }
+    .dots { fill: url(#dots); }
+    .lane-tint { fill: rgba(228,228,231,0.025); }
+    .rule { stroke: var(--rule); stroke-width: 1; fill: none; }
+
+    /* --- step header ----------------------------------------------------- */
+    .step-chip { fill: rgba(228,228,231,0.12); }
+    .step-num { font-family: var(--font-mono); font-size: 8px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .step-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.12em; fill: var(--muted); text-anchor: middle; }
+    .lane-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); text-anchor: middle; }
+
+    /* --- node treatments ------------------------------------------------- */
+    .node-mask { fill: var(--paper); }
+    .node { fill: rgba(228,228,231,0.04); stroke: rgba(228,228,231,0.20); stroke-width: 1; }
+    .node-focal { fill: rgba(255,133,105,0.12); stroke: var(--accent); stroke-width: 1.2; }
+    .node-opt { fill: rgba(228,228,231,0.02); stroke: rgba(228,228,231,0.20); stroke-width: 1; stroke-dasharray: 4,3; }
+    .role-chip { fill: rgba(228,228,231,0.12); }
+    .role-chip-focal { fill: rgba(255,133,105,0.22); }
+    .role-chip-opt { fill: rgba(228,228,231,0.06); }
+    .role { font-family: var(--font-mono); font-size: 7px; font-weight: 600; letter-spacing: 0.08em; fill: var(--ink); text-anchor: middle; }
+    .focal-txt { fill: var(--accent); }
+    .opt-txt { fill: var(--muted); }
+    .node-name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .node-sub { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); text-anchor: middle; }
+    .chip-db { fill: #5e7a9b; }
+    .chip-tb { fill: #b8915a; }
+    .chip-fl { fill: #9c6b50; }
+    .chip-txt { font-family: var(--font-mono); font-size: 6px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
+
+    /* --- connectors ------------------------------------------------------ */
+    .a-muted { stroke: var(--muted); stroke-width: 1; fill: none; }
+    .a-accent { stroke: var(--accent); stroke-width: 1.2; fill: none; }
+    .a-trigger { stroke: var(--muted); stroke-width: 1; fill: none; stroke-dasharray: 4,3; }
+    .a-forbidden { stroke: var(--soft); stroke-width: 1; fill: none; stroke-dasharray: 5,4; }
+    .arrow-label { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--soft); }
+    .arrow-label-accent { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--accent); }
+
+    /* --- legend ---------------------------------------------------------- */
+    .legend-cat { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); }
+    .legend-txt { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Data flow · Churn prediction</p>
+    <h1>Leakage-free churn pipeline</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="churn-prediction-title churn-prediction-desc">
+        <title id="churn-prediction-title">Leakage-free churn pipeline</title>
+        <desc id="churn-prediction-desc">A synthetic user-activity stream is split into chronological snapshots, a leakage guard blocks the late-joined post-snapshot tail from reaching the as-of feature build, and the trained LightGBM and logistic-regression models are judged by lift at the top decile and then re-stratified on the at-risk subgroup.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="11" cy="11" r="0.8" fill="rgba(228,228,231,0.07)"/></pattern>
+          <marker id="arr-muted" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#a1a1aa"/></marker>
+          <marker id="arr-accent" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ff8569"/></marker>
+          <marker id="arr-link" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4ecdc4"/></marker>
+        </defs>
+
+        <!-- Ground -->
+        <rect width="1280" height="720" class="bg"/>
+        <rect width="1280" height="720" class="dots"/>
+        <rect x="0" y="228" width="1280" height="140" class="lane-tint"/>
+
+        <!-- Lane structure -->
+        <line x1="40" y1="88" x2="1240" y2="88" class="rule"/>
+        <line x1="40" y1="228" x2="1240" y2="228" class="rule"/>
+        <line x1="40" y1="368" x2="1240" y2="368" class="rule"/>
+        <line x1="40" y1="508" x2="1240" y2="508" class="rule"/>
+        <line x1="40" y1="648" x2="1240" y2="648" class="rule"/>
+        <line x1="184" y1="88" x2="184" y2="648" class="rule"/>
+
+        <!-- Step header -->
+        <rect x="256" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="272" y="59" class="step-num">01</text><text x="272" y="80" class="step-label">INGEST</text>
+        <rect x="432" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="448" y="59" class="step-num">02</text><text x="448" y="80" class="step-label">WINDOW</text>
+        <rect x="608" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="624" y="59" class="step-num">03</text><text x="624" y="80" class="step-label">GUARD</text>
+        <rect x="784" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="800" y="59" class="step-num">04</text><text x="800" y="80" class="step-label">AS-OF</text>
+        <rect x="960" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="976" y="59" class="step-num">05</text><text x="976" y="80" class="step-label">MODEL</text>
+        <rect x="1136" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="1152" y="59" class="step-num">06</text><text x="1152" y="80" class="step-label">STRATIFY</text>
+
+        <!-- Lane labels -->
+        <text x="112" y="154" class="lane-label">SYNTHETIC</text><text x="112" y="166" class="lane-label">SOURCE</text>
+        <text x="112" y="294" class="lane-label">AS-OF</text><text x="112" y="306" class="lane-label">FEATURES</text>
+        <text x="112" y="434" class="lane-label">MODEL</text><text x="112" y="446" class="lane-label">TRAINING</text>
+        <text x="112" y="574" class="lane-label">EVALUATION</text><text x="112" y="586" class="lane-label">STRATIFY</text>
+
+        <!-- Connectors: drawn before the boxes so the lines sit behind the nodes -->
+        <line x1="272" y1="196" x2="272" y2="260" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="348" y1="158" x2="372" y2="158" class="a-muted" marker-end="url(#arr-muted)"/>
+        <path d="M524 158 H596 Q604 158 604 166 V260" class="a-forbidden" marker-end="url(#arr-muted)"/>
+        <line x1="348" y1="298" x2="548" y2="298" class="a-accent" marker-end="url(#arr-accent)"/>
+        <line x1="700" y1="298" x2="724" y2="298" class="a-trigger" marker-end="url(#arr-muted)"/>
+        <line x1="876" y1="298" x2="900" y2="298" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="976" y1="336" x2="976" y2="400" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="976" y1="476" x2="976" y2="540" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="1052" y1="578" x2="1076" y2="578" class="a-muted" marker-end="url(#arr-muted)"/>
+
+        <!-- Arrow labels (opaque masks, 8-10px clear of the stroke) -->
+        <rect x="412" y="276" width="76" height="12" rx="2" class="node-mask"/>
+        <text x="450" y="285" class="arrow-label-accent" text-anchor="middle">AS-OF WINDOWS</text>
+        <rect x="612" y="208" width="56" height="12" rx="2" class="node-mask"/>
+        <text x="640" y="217" class="arrow-label" text-anchor="middle">FORBIDDEN</text>
+
+        <!-- Nodes: mask, box, role chip, name, sublabel, data-type chips -->
+        <rect x="196" y="120" width="152" height="76" rx="6" class="node-mask"/>
+        <rect x="196" y="120" width="152" height="76" rx="6" class="node"/>
+        <rect x="204" y="128" width="24" height="12" rx="2" class="role-chip"/><text x="216" y="136" class="role">SRC</text>
+        <text x="272" y="158" class="node-name">Raw Events</text>
+        <text x="272" y="174" class="node-sub">users.csv · activity.csv</text>
+        <rect x="316" y="180" width="24" height="12" rx="2" class="chip-db"/><text x="328" y="186" class="chip-txt">DB</text>
+
+        <rect x="372" y="120" width="152" height="76" rx="6" class="node-mask"/>
+        <rect x="372" y="120" width="152" height="76" rx="6" class="node-opt"/>
+        <rect x="380" y="128" width="24" height="12" rx="2" class="role-chip-opt"/><text x="392" y="136" class="role opt-txt">SRC</text>
+        <text x="448" y="158" class="node-name">Post-Snapshot Tail</text>
+        <text x="448" y="174" class="node-sub">future · late-joined</text>
+        <rect x="492" y="180" width="24" height="12" rx="2" class="chip-db"/><text x="504" y="186" class="chip-txt">DB</text>
+
+        <rect x="196" y="260" width="152" height="76" rx="6" class="node-mask"/>
+        <rect x="196" y="260" width="152" height="76" rx="6" class="node"/>
+        <rect x="204" y="268" width="24" height="12" rx="2" class="role-chip"/><text x="216" y="276" class="role">FEA</text>
+        <text x="272" y="298" class="node-name">Snapshot Split</text>
+        <text x="272" y="314" class="node-sub">train · val · test</text>
+        <rect x="204" y="320" width="24" height="12" rx="2" class="chip-db"/><text x="216" y="326" class="chip-txt">DB</text>
+        <rect x="316" y="320" width="24" height="12" rx="2" class="chip-tb"/><text x="328" y="326" class="chip-txt">TB</text>
+
+        <rect x="548" y="260" width="152" height="76" rx="6" class="node-mask"/>
+        <rect x="548" y="260" width="152" height="76" rx="6" class="node-focal"/>
+        <rect x="556" y="268" width="24" height="12" rx="2" class="role-chip-focal"/><text x="568" y="276" class="role focal-txt">FEA</text>
+        <text x="624" y="298" class="node-name">Leakage Guard</text>
+        <text x="624" y="314" class="node-sub">never sees the future</text>
+        <rect x="556" y="320" width="24" height="12" rx="2" class="chip-db"/><text x="568" y="326" class="chip-txt">DB</text>
+
+        <rect x="724" y="260" width="152" height="76" rx="6" class="node-mask"/>
+        <rect x="724" y="260" width="152" height="76" rx="6" class="node"/>
+        <rect x="732" y="268" width="24" height="12" rx="2" class="role-chip"/><text x="744" y="276" class="role">FEA</text>
+        <text x="800" y="298" class="node-name">As-of Features</text>
+        <text x="800" y="314" class="node-sub">prior 7/14/30d windows</text>
+        <rect x="732" y="320" width="24" height="12" rx="2" class="chip-tb"/><text x="744" y="326" class="chip-txt">TB</text>
+        <rect x="844" y="320" width="24" height="12" rx="2" class="chip-tb"/><text x="856" y="326" class="chip-txt">TB</text>
+
+        <rect x="900" y="260" width="152" height="76" rx="6" class="node-mask"/>
+        <rect x="900" y="260" width="152" height="76" rx="6" class="node"/>
+        <rect x="908" y="268" width="24" height="12" rx="2" class="role-chip"/><text x="920" y="276" class="role">FEA</text>
+        <text x="976" y="298" class="node-name">Churn Label</text>
+        <text x="976" y="314" class="node-sub">silent [snap,+30d]</text>
+        <rect x="908" y="320" width="24" height="12" rx="2" class="chip-tb"/><text x="920" y="326" class="chip-txt">TB</text>
+        <rect x="1020" y="320" width="24" height="12" rx="2" class="chip-tb"/><text x="1032" y="326" class="chip-txt">TB</text>
+
+        <rect x="900" y="400" width="152" height="76" rx="6" class="node-mask"/>
+        <rect x="900" y="400" width="152" height="76" rx="6" class="node"/>
+        <rect x="908" y="408" width="24" height="12" rx="2" class="role-chip"/><text x="920" y="416" class="role">MOD</text>
+        <text x="976" y="438" class="node-name">Model Train</text>
+        <text x="976" y="454" class="node-sub">LightGBM · LogReg</text>
+        <rect x="908" y="460" width="24" height="12" rx="2" class="chip-tb"/><text x="920" y="466" class="chip-txt">TB</text>
+        <rect x="1020" y="460" width="24" height="12" rx="2" class="chip-fl"/><text x="1032" y="466" class="chip-txt">FL</text>
+
+        <rect x="900" y="540" width="152" height="76" rx="6" class="node-mask"/>
+        <rect x="900" y="540" width="152" height="76" rx="6" class="node"/>
+        <rect x="908" y="548" width="24" height="12" rx="2" class="role-chip"/><text x="920" y="556" class="role">EVA</text>
+        <text x="976" y="578" class="node-name">Lift@Top-Decile</text>
+        <text x="976" y="594" class="node-sub">recall 0.544 · 5.44×</text>
+        <rect x="908" y="600" width="24" height="12" rx="2" class="chip-fl"/><text x="920" y="606" class="chip-txt">FL</text>
+        <rect x="1020" y="600" width="24" height="12" rx="2" class="chip-fl"/><text x="1032" y="606" class="chip-txt">FL</text>
+
+        <rect x="1076" y="540" width="152" height="76" rx="6" class="node-mask"/>
+        <rect x="1076" y="540" width="152" height="76" rx="6" class="node"/>
+        <rect x="1084" y="548" width="24" height="12" rx="2" class="role-chip"/><text x="1096" y="556" class="role">EVA</text>
+        <text x="1152" y="578" class="node-name">At-Risk Subset</text>
+        <text x="1152" y="594" class="node-sub">1.75× · base 0.572</text>
+        <rect x="1084" y="600" width="24" height="12" rx="2" class="chip-fl"/><text x="1096" y="606" class="chip-txt">FL</text>
+        <rect x="1196" y="600" width="24" height="12" rx="2" class="chip-fl"/><text x="1208" y="606" class="chip-txt">FL</text>
+
+        <!-- Legend: horizontal strip inside the reserved bottom 60px -->
+        <line x1="40" y1="660" x2="1240" y2="660" class="rule"/>
+        <text x="40" y="676" class="legend-cat">NODE</text>
+        <rect x="100" y="664" width="16" height="12" rx="2" class="node"/>
+        <text x="124" y="676" class="legend-txt">PIPELINE STAGE</text>
+        <rect x="256" y="664" width="16" height="12" rx="2" class="node-focal"/>
+        <text x="280" y="676" class="legend-txt">FOCAL · GUARD</text>
+        <rect x="424" y="664" width="16" height="12" rx="2" class="node-opt"/>
+        <text x="448" y="676" class="legend-txt">OPTIONAL · LATE-JOINED</text>
+
+        <text x="40" y="696" class="legend-cat">DATA</text>
+        <rect x="100" y="688" width="24" height="12" rx="2" class="chip-db"/><text x="112" y="692" class="chip-txt">DB</text>
+        <text x="132" y="696" class="legend-txt">DATASET</text>
+        <rect x="240" y="688" width="24" height="12" rx="2" class="chip-tb"/><text x="252" y="692" class="chip-txt">TB</text>
+        <text x="272" y="696" class="legend-txt">TABLE</text>
+        <rect x="380" y="688" width="24" height="12" rx="2" class="chip-fl"/><text x="392" y="692" class="chip-txt">FL</text>
+        <text x="412" y="696" class="legend-txt">EXPORT</text>
+        <text x="560" y="696" class="legend-txt">LEFT CHIP = INPUT · RIGHT CHIP = OUTPUT</text>
+
+        <text x="40" y="714" class="legend-cat">FLOW</text>
+        <line x1="100" y1="708" x2="124" y2="708" class="a-muted" marker-end="url(#arr-muted)"/>
+        <text x="132" y="714" class="legend-txt">STANDARD HANDOFF</text>
+        <line x1="300" y1="708" x2="324" y2="708" class="a-accent" marker-end="url(#arr-accent)"/>
+        <text x="332" y="714" class="legend-txt">FOCAL HANDOFF</text>
+        <line x1="470" y1="708" x2="494" y2="708" class="a-trigger" marker-end="url(#arr-muted)"/>
+        <text x="502" y="714" class="legend-txt">GOVERNANCE TRIGGER</text>
+        <line x1="660" y1="708" x2="684" y2="708" class="a-forbidden" marker-end="url(#arr-muted)"/>
+        <text x="692" y="714" class="legend-txt">FORBIDDEN · DROPPED</text>
+      </svg>
+    </div>
+  </main>
+</body>
+</html>

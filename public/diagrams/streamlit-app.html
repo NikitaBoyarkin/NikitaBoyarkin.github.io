@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Streamlit product-analytics dashboard · Architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above - a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Diagram Design</p>
+    <h1>Product Analytics (Streamlit)</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="streamlit-app-title streamlit-app-desc">
+        <title id="streamlit-app-title">Product Analytics (Streamlit) architecture</title>
+        <desc id="streamlit-app-desc">Architecture of the Streamlit product-analytics demo: a deterministic data.py generator builds an 8,000-user synthetic SaaS dataset, get_data() caches it once per session, the five-page AARRR app (Overview, Funnel, Retention, Revenue, Segments) consumes it through pure-pandas metric helpers, and the results render as Plotly figures through st.plotly_chart, st.metric and st.dataframe.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/>
+          </marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#ff8569"/>
+          </marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#4ecdc4"/>
+          </marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#0f2a2b"/>
+
+        <!-- === Zones (painted first) ===================================== -->
+        <rect x="40" y="88" width="248" height="416" rx="8" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <rect x="116" y="92" width="96" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="164" y="101" fill="#8f8f99" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.14em">SYNTHETIC SOURCE</text>
+
+        <rect x="408" y="88" width="296" height="508" rx="8" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <rect x="488" y="92" width="136" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="556" y="101" fill="#8f8f99" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.14em">STREAMLIT APP · 5 PAGES</text>
+
+        <rect x="784" y="88" width="456" height="428" rx="8" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <rect x="974" y="92" width="76" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="1012" y="101" fill="#8f8f99" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.14em">RENDER LAYER</text>
+
+        <!-- === Arrows (painted before nodes) ============================= -->
+
+        <!-- data.py -> Dataset -->
+        <line x1="164" y1="184" x2="164" y2="232" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- Dataset -> get_data() (accent: the cached, shared dataset) -->
+        <line x1="164" y1="296" x2="164" y2="352" stroke="#ff8569" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+
+        <!-- get_data() -> the five pages -->
+        <path d="M 276,360 H 292 Q 300,360 300,352 V 236 Q 300,228 308,228 H 424" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 276,384 H 308 Q 316,384 316,376 V 316 Q 316,308 324,308 H 424" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 276,412 H 324 Q 332,412 332,404 V 396 Q 332,388 340,388 H 424" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 276,444 H 340 Q 348,444 348,452 V 460 Q 348,468 356,468 H 424" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 276,476 H 356 Q 364,476 364,484 V 540 Q 364,548 372,548 H 424" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- app.py -> Overview (pg.run) -->
+        <line x1="556" y1="176" x2="556" y2="200" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- the five pages -> Metric helpers -->
+        <line x1="688" y1="228" x2="800" y2="228" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 688,308 H 720 Q 728,308 728,300 V 252 Q 728,244 736,244 H 800" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 688,388 H 736 Q 744,388 744,380 V 268 Q 744,260 752,260 H 800" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 688,468 H 752 Q 760,468 760,460 V 284 Q 760,276 768,276 H 800" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 688,548 H 768 Q 776,548 776,540 V 300 Q 776,292 784,292 H 800" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- Metric helpers -> Plotly figures -> Render surface -->
+        <line x1="1012" y1="300" x2="1012" y2="328" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="1012" y1="400" x2="1012" y2="428" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- === Arrow labels (opaque masks, 8px clear of their stroke) ==== -->
+        <rect x="172" y="200" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="196" y="209" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.06em">GENERATE</text>
+
+        <rect x="172" y="316" width="44" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="194" y="325" fill="#ff8569" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.06em">CACHE</text>
+
+        <rect x="352" y="208" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="376" y="217" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.06em">FRAMES</text>
+
+        <rect x="564" y="182" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="588" y="191" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PG.RUN()</text>
+
+        <rect x="726" y="208" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="750" y="217" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.06em">METRICS</text>
+
+        <rect x="1020" y="306" width="44" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="1042" y="315" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SERIES</text>
+
+        <rect x="1020" y="410" width="72" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="1056" y="419" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PLOTLY_CHART</text>
+
+        <!-- === Nodes ===================================================== -->
+
+        <!-- Node: data.py (PY) -->
+        <rect x="52" y="120" width="224" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="52" y="120" width="224" height="64" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="60" y="126" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.30)" stroke-width="0.8"/>
+        <text x="74" y="135" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PY</text>
+        <text x="164" y="150" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">data.py</text>
+        <text x="164" y="166" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">generate() · seed 42 · 8,000 users</text>
+
+        <!-- Node: Synthetic dataset (DATA) -->
+        <rect x="52" y="232" width="224" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="52" y="232" width="224" height="64" rx="6" fill="rgba(228,228,231,0.06)" stroke="#8f8f99" stroke-width="1"/>
+        <rect x="60" y="238" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.30)" stroke-width="0.8"/>
+        <text x="74" y="247" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DATA</text>
+        <text x="164" y="262" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Synthetic dataset · 3 frames</text>
+        <text x="164" y="278" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">users · events · subscriptions</text>
+
+        <!-- Node: get_data() cache (DATA, accent focal) -->
+        <rect x="52" y="352" width="224" height="136" rx="6" fill="#0f2a2b"/>
+        <rect x="52" y="352" width="224" height="136" rx="6" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <rect x="60" y="358" width="28" height="12" rx="2" fill="transparent" stroke="rgba(255,133,105,0.50)" stroke-width="0.8"/>
+        <text x="74" y="367" fill="#ff8569" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DATA</text>
+        <text x="164" y="404" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">get_data() · @st.cache_data</text>
+        <text x="164" y="422" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">cached once per session</text>
+        <text x="164" y="440" fill="#8f8f99" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">shared by all 5 pages</text>
+
+        <!-- Node: app.py (APP) -->
+        <rect x="424" y="120" width="264" height="56" rx="6" fill="#0f2a2b"/>
+        <rect x="424" y="120" width="264" height="56" rx="6" fill="#234044" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="432" y="126" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.30)" stroke-width="0.8"/>
+        <text x="446" y="135" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+        <text x="556" y="146" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">app.py · st.navigation</text>
+        <text x="556" y="162" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">st.Page ×5 · sidebar nav</text>
+
+        <!-- Node: Overview (APP) -->
+        <rect x="424" y="200" width="264" height="56" rx="6" fill="#0f2a2b"/>
+        <rect x="424" y="200" width="264" height="56" rx="6" fill="#234044" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="432" y="206" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.30)" stroke-width="0.8"/>
+        <text x="446" y="215" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+        <text x="556" y="226" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Overview</text>
+        <text x="556" y="242" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">KPIs · DAU · channel conv.</text>
+
+        <!-- Node: Funnel (APP) -->
+        <rect x="424" y="280" width="264" height="56" rx="6" fill="#0f2a2b"/>
+        <rect x="424" y="280" width="264" height="56" rx="6" fill="#234044" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="432" y="286" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.30)" stroke-width="0.8"/>
+        <text x="446" y="295" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+        <text x="556" y="306" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Funnel</text>
+        <text x="556" y="322" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">app_open → subscribe</text>
+
+        <!-- Node: Retention (APP) -->
+        <rect x="424" y="360" width="264" height="56" rx="6" fill="#0f2a2b"/>
+        <rect x="424" y="360" width="264" height="56" rx="6" fill="#234044" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="432" y="366" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.30)" stroke-width="0.8"/>
+        <text x="446" y="375" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+        <text x="556" y="386" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Retention</text>
+        <text x="556" y="402" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">signup month × month N</text>
+
+        <!-- Node: Revenue (APP) -->
+        <rect x="424" y="440" width="264" height="56" rx="6" fill="#0f2a2b"/>
+        <rect x="424" y="440" width="264" height="56" rx="6" fill="#234044" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="432" y="446" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.30)" stroke-width="0.8"/>
+        <text x="446" y="455" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+        <text x="556" y="466" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Revenue</text>
+        <text x="556" y="482" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">MRR · plan mix · ARPU</text>
+
+        <!-- Node: Segments (APP) -->
+        <rect x="424" y="520" width="264" height="56" rx="6" fill="#0f2a2b"/>
+        <rect x="424" y="520" width="264" height="56" rx="6" fill="#234044" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="432" y="526" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.30)" stroke-width="0.8"/>
+        <text x="446" y="535" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+        <text x="556" y="546" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Segments</text>
+        <text x="556" y="562" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">segment · channel · device</text>
+
+        <!-- Node: Metric helpers (PY) -->
+        <rect x="800" y="200" width="424" height="100" rx="6" fill="#0f2a2b"/>
+        <rect x="800" y="200" width="424" height="100" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="808" y="206" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.30)" stroke-width="0.8"/>
+        <text x="822" y="215" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PY</text>
+        <text x="1012" y="248" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Metric helpers</text>
+        <text x="1012" y="264" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">data.py:127+ · pure pandas</text>
+
+        <!-- Node: Plotly figures (VIEW) -->
+        <rect x="800" y="328" width="424" height="72" rx="6" fill="#0f2a2b"/>
+        <rect x="800" y="328" width="424" height="72" rx="6" fill="#1a3435" stroke="#e4e4e7" stroke-width="1"/>
+        <rect x="808" y="334" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.30)" stroke-width="0.8"/>
+        <text x="822" y="343" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.08em">VIEW</text>
+        <text x="1012" y="362" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Plotly figures</text>
+        <text x="1012" y="378" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">px.area · go.Funnel · go.Heatmap</text>
+
+        <!-- Node: Render surface (VIEW) -->
+        <rect x="800" y="428" width="424" height="72" rx="6" fill="#0f2a2b"/>
+        <rect x="800" y="428" width="424" height="72" rx="6" fill="#1a3435" stroke="#e4e4e7" stroke-width="1"/>
+        <rect x="808" y="434" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.30)" stroke-width="0.8"/>
+        <text x="822" y="443" fill="#a1a1aa" font-size="7" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle" letter-spacing="0.08em">VIEW</text>
+        <text x="1012" y="462" fill="#e4e4e7" font-size="12" font-weight="600" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" text-anchor="middle">Render surface</text>
+        <text x="1012" y="478" fill="#a1a1aa" font-size="9" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" text-anchor="middle">st.plotly_chart · st.metric · st.dataframe</text>
+
+        <!-- === Legend strip (inside the reserved bottom 60px) ============= -->
+        <line x1="40" y1="660" x2="1240" y2="660" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <text x="40" y="676" fill="#8f8f99" font-size="8" font-family="'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+        <rect x="40" y="682" width="14" height="10" rx="2" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text x="60" y="690" fill="#a1a1aa" font-size="8" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">PY · Python module</text>
+
+        <rect x="230" y="682" width="14" height="10" rx="2" fill="rgba(228,228,231,0.06)" stroke="#8f8f99" stroke-width="1"/>
+        <text x="250" y="690" fill="#a1a1aa" font-size="8" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">DATA · dataset &amp; cache</text>
+
+        <rect x="430" y="682" width="14" height="10" rx="2" fill="#234044" stroke="#a1a1aa" stroke-width="1"/>
+        <text x="450" y="690" fill="#a1a1aa" font-size="8" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">APP · Streamlit page</text>
+
+        <rect x="610" y="682" width="14" height="10" rx="2" fill="#1a3435" stroke="#e4e4e7" stroke-width="1"/>
+        <text x="630" y="690" fill="#a1a1aa" font-size="8" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">VIEW · chart &amp; render</text>
+
+        <line x1="800" y1="687" x2="828" y2="687" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="836" y="690" fill="#a1a1aa" font-size="8" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">Default flow</text>
+
+        <line x1="940" y1="687" x2="968" y2="687" stroke="#ff8569" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <text x="976" y="690" fill="#a1a1aa" font-size="8" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">Accent · cache step</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

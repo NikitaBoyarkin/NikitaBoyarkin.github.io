@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline RAG evaluation harness — data flow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { width: 100%; max-width: 1280px; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--soft);
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above - a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+
+    /* --- diagram surface ------------------------------------------------- */
+    .bg { fill: var(--paper); }
+    .dots { fill: url(#dots); }
+    .lane-tint { fill: rgba(228,228,231,0.020); }
+    .rule { stroke: var(--rule); stroke-width: 1; fill: none; }
+
+    /* --- step header ----------------------------------------------------- */
+    .step-chip { fill: rgba(228,228,231,0.12); }
+    .step-num { font-family: var(--font-mono); font-size: 8px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .step-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.12em; fill: var(--muted); text-anchor: middle; }
+    .lane-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); text-anchor: middle; }
+
+    /* --- node treatments ------------------------------------------------- */
+    .node-mask { fill: var(--paper); }
+    .node { fill: rgba(228,228,231,0.04); stroke: rgba(228,228,231,0.20); stroke-width: 1; }
+    .node-focal { fill: rgba(255,133,105,0.12); stroke: var(--accent); stroke-width: 1.2; }
+    .node-inv { fill: rgba(228,228,231,0.02); stroke: rgba(228,228,231,0.20); stroke-width: 1; stroke-dasharray: 4,3; }
+    .role-chip { fill: rgba(228,228,231,0.12); }
+    .role-chip-focal { fill: rgba(255,133,105,0.22); }
+    .role-chip-inv { fill: rgba(228,228,231,0.06); }
+    .role { font-family: var(--font-mono); font-size: 6.5px; font-weight: 600; letter-spacing: 0.06em; fill: var(--ink); text-anchor: middle; }
+    .focal-txt { fill: var(--accent); }
+    .inv-txt { fill: var(--muted); }
+    .node-name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .node-sub { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); text-anchor: middle; }
+    .node-tool { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--soft); text-anchor: middle; }
+    .chip-db { fill: #5e7a9b; }
+    .chip-tb { fill: #b8915a; }
+    .chip-fl { fill: #9c6b50; }
+    .chip-txt { font-family: var(--font-mono); font-size: 6px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
+
+    /* --- connectors ------------------------------------------------------ */
+    .a-muted { stroke: var(--muted); stroke-width: 1; fill: none; }
+    .a-accent { stroke: var(--accent); stroke-width: 1.2; fill: none; }
+    .a-ref { stroke: var(--soft); stroke-width: 1; fill: none; stroke-dasharray: 5,4; }
+
+    /* --- arrow labels (opaque masks, 8–10px clear of the stroke) ---------- */
+    .label-mask { fill: var(--paper); }
+    .arrow-label { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--soft); text-anchor: middle; }
+    .arrow-label-focal { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--accent); text-anchor: middle; }
+
+    /* --- legend ---------------------------------------------------------- */
+    .legend-cat { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); }
+    .legend-txt { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--muted); }
+
+    .caption {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--soft);
+      margin-top: 20px;
+      max-width: 110ch;
+    }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Data flow · rag-eval-harness · offline, zero API keys</p>
+    <h1>Offline RAG evaluation harness, measured layer by layer</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="rag-eval-harness-title rag-eval-harness-desc">
+        <title id="rag-eval-harness-title">Offline RAG evaluation harness, measured layer by layer</title>
+        <desc id="rag-eval-harness-desc">Data flow of an offline, zero-API-key RAG evaluation harness: twelve analytics concept docs are chunked into a TF-IDF index, the twenty labelled questions drive cosine top-5 retrieval and a deterministic extractive answerer, and the retrieval metrics, answer correctness and construction-invariant faithfulness are scored against the same labelled set's gold doc ids and gold answers.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="11" cy="11" r="0.8" fill="rgba(228,228,231,0.07)"/>
+          </pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff8569"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4ecdc4"/></marker>
+        </defs>
+
+        <!-- Ground -->
+        <rect width="100%" height="100%" class="bg"/>
+        <rect width="100%" height="100%" class="dots"/>
+        <rect x="40" y="228" width="1200" height="140" class="lane-tint"/>
+        <rect x="40" y="508" width="1200" height="140" class="lane-tint"/>
+
+        <!-- Lane structure -->
+        <line x1="40" y1="88" x2="1240" y2="88" class="rule"/>
+        <line x1="40" y1="228" x2="1240" y2="228" class="rule"/>
+        <line x1="40" y1="368" x2="1240" y2="368" class="rule"/>
+        <line x1="40" y1="508" x2="1240" y2="508" class="rule"/>
+        <line x1="40" y1="648" x2="1240" y2="648" class="rule"/>
+        <line x1="184" y1="88" x2="184" y2="648" class="rule"/>
+
+        <!-- Step header strip -->
+        <rect x="300" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="316" y="60" class="step-num">01</text><text x="316" y="80" class="step-label">INDEX</text>
+        <rect x="564" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="580" y="60" class="step-num">02</text><text x="580" y="80" class="step-label">RETRIEVE</text>
+        <rect x="828" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="844" y="60" class="step-num">03</text><text x="844" y="80" class="step-label">ANSWER</text>
+        <rect x="1092" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="1108" y="60" class="step-num">04</text><text x="1108" y="80" class="step-label">SCORE</text>
+
+        <!-- Lane labels -->
+        <text x="112" y="154" class="lane-label">KNOWLEDGE</text><text x="112" y="166" class="lane-label">BASE</text>
+        <text x="112" y="294" class="lane-label">RETRIEVAL</text><text x="112" y="306" class="lane-label">TF-IDF</text>
+        <text x="112" y="434" class="lane-label">GENERATION</text><text x="112" y="446" class="lane-label">OFFLINE</text>
+        <text x="112" y="574" class="lane-label">EVALUATION</text><text x="112" y="586" class="lane-label">SCORING</text>
+
+        <!-- Connectors: drawn before the boxes so the lines sit behind the nodes -->
+        <line x1="316" y1="208" x2="316" y2="252" class="a-muted" marker-end="url(#arrow)"/>
+        <line x1="404" y1="300" x2="492" y2="300" class="a-muted" marker-end="url(#arrow)"/>
+        <line x1="580" y1="208" x2="580" y2="252" class="a-muted" marker-end="url(#arrow)"/>
+        <path d="M668 300 H836 Q844 300 844 308 V392" class="a-accent" marker-end="url(#arrow-accent)"/>
+        <line x1="540" y1="348" x2="540" y2="532" class="a-muted" marker-end="url(#arrow)"/>
+        <line x1="620" y1="208" x2="620" y2="532" class="a-ref" marker-end="url(#arrow)"/>
+        <line x1="844" y1="488" x2="844" y2="532" class="a-muted" marker-end="url(#arrow)"/>
+        <path d="M668 162 H1100 Q1108 162 1108 170 V532" class="a-ref" marker-end="url(#arrow)"/>
+        <path d="M932 440 H1068 Q1076 440 1076 448 V532" class="a-muted" marker-end="url(#arrow)"/>
+
+        <!-- Arrow labels -->
+        <rect x="712" y="280" width="76" height="12" rx="2" class="label-mask"/>
+        <text x="750" y="289" class="arrow-label-focal">TOP-K CONTEXT</text>
+        <rect x="628" y="232" width="72" height="12" rx="2" class="label-mask"/>
+        <text x="664" y="241" class="arrow-label">GOLD LABELS</text>
+
+        <!-- Lane 1 · knowledge base -->
+        <rect x="228" y="112" width="176" height="96" rx="6" class="node-mask"/>
+        <rect x="228" y="112" width="176" height="96" rx="6" class="node"/>
+        <rect x="236" y="120" width="24" height="12" rx="2" class="role-chip"/><text x="248" y="128" class="role">KB</text>
+        <text x="316" y="154" class="node-name">Corpus Docs</text>
+        <text x="316" y="172" class="node-sub">12 concept docs</text>
+        <text x="316" y="188" class="node-tool">data/docs/*.md</text>
+        <rect x="372" y="192" width="24" height="12" rx="2" class="chip-db"/><text x="384" y="199" class="chip-txt">DB</text>
+
+        <rect x="492" y="112" width="176" height="96" rx="6" class="node-mask"/>
+        <rect x="492" y="112" width="176" height="96" rx="6" class="node"/>
+        <rect x="500" y="120" width="24" height="12" rx="2" class="role-chip"/><text x="512" y="128" class="role">KB</text>
+        <text x="580" y="154" class="node-name">Labeled Questions</text>
+        <text x="580" y="172" class="node-sub">20 q · queries + gold</text>
+        <text x="580" y="188" class="node-tool">data/eval.jsonl</text>
+        <rect x="636" y="192" width="24" height="12" rx="2" class="chip-db"/><text x="648" y="199" class="chip-txt">DB</text>
+
+        <!-- Lane 2 · retrieval -->
+        <rect x="228" y="252" width="176" height="96" rx="6" class="node-mask"/>
+        <rect x="228" y="252" width="176" height="96" rx="6" class="node"/>
+        <rect x="236" y="260" width="24" height="12" rx="2" class="role-chip"/><text x="248" y="268" class="role">RET</text>
+        <text x="316" y="294" class="node-name">TF-IDF Index</text>
+        <text x="316" y="312" class="node-sub">chunked · 1–2-grams</text>
+        <text x="316" y="328" class="node-tool">build_index.py</text>
+        <rect x="236" y="332" width="24" height="12" rx="2" class="chip-db"/><text x="248" y="339" class="chip-txt">DB</text>
+        <rect x="372" y="332" width="24" height="12" rx="2" class="chip-tb"/><text x="384" y="339" class="chip-txt">TB</text>
+
+        <rect x="492" y="252" width="176" height="96" rx="6" class="node-mask"/>
+        <rect x="492" y="252" width="176" height="96" rx="6" class="node"/>
+        <rect x="500" y="260" width="24" height="12" rx="2" class="role-chip"/><text x="512" y="268" class="role">RET</text>
+        <text x="580" y="294" class="node-name">Cosine Top-k</text>
+        <text x="580" y="312" class="node-sub">k=5 · rank-1 is gold</text>
+        <text x="580" y="328" class="node-tool">retrieve.py</text>
+        <rect x="500" y="332" width="24" height="12" rx="2" class="chip-tb"/><text x="512" y="339" class="chip-txt">TB</text>
+        <rect x="636" y="332" width="24" height="12" rx="2" class="chip-tb"/><text x="648" y="339" class="chip-txt">TB</text>
+
+        <!-- Lane 3 · generation (focal) -->
+        <rect x="756" y="392" width="176" height="96" rx="6" class="node-mask"/>
+        <rect x="756" y="392" width="176" height="96" rx="6" class="node-focal"/>
+        <rect x="764" y="400" width="24" height="12" rx="2" class="role-chip-focal"/><text x="776" y="408" class="role focal-txt">GEN</text>
+        <text x="844" y="434" class="node-name">Extractive Answerer</text>
+        <text x="844" y="452" class="node-sub">verbatim sentence · offline</text>
+        <text x="844" y="468" class="node-tool">generate.py · zero API key</text>
+        <rect x="764" y="472" width="24" height="12" rx="2" class="chip-tb"/><text x="776" y="479" class="chip-txt">TB</text>
+        <rect x="900" y="472" width="24" height="12" rx="2" class="chip-fl"/><text x="912" y="479" class="chip-txt">FL</text>
+
+        <!-- Lane 4 · scoring -->
+        <rect x="492" y="532" width="176" height="96" rx="6" class="node-mask"/>
+        <rect x="492" y="532" width="176" height="96" rx="6" class="node"/>
+        <rect x="500" y="540" width="24" height="12" rx="2" class="role-chip"/><text x="512" y="548" class="role">SCO</text>
+        <text x="580" y="574" class="node-name">Retrieval Metrics</text>
+        <text x="580" y="592" class="node-sub">recall@5 1.00 · MRR 1.00</text>
+        <text x="580" y="608" class="node-tool">precision@5 0.20 · k=5</text>
+        <rect x="500" y="612" width="24" height="12" rx="2" class="chip-tb"/><text x="512" y="619" class="chip-txt">TB</text>
+        <rect x="636" y="612" width="24" height="12" rx="2" class="chip-fl"/><text x="648" y="619" class="chip-txt">FL</text>
+
+        <rect x="756" y="532" width="176" height="96" rx="6" class="node-mask"/>
+        <rect x="756" y="532" width="176" height="96" rx="6" class="node-inv"/>
+        <rect x="764" y="540" width="24" height="12" rx="2" class="role-chip-inv"/><text x="776" y="548" class="role inv-txt">SCO</text>
+        <text x="844" y="574" class="node-name">Faithfulness ≡ 1.00</text>
+        <text x="844" y="592" class="node-sub">invariant, not a metric</text>
+        <text x="844" y="608" class="node-tool">answer copied from context</text>
+
+        <rect x="1020" y="532" width="176" height="96" rx="6" class="node-mask"/>
+        <rect x="1020" y="532" width="176" height="96" rx="6" class="node"/>
+        <rect x="1028" y="540" width="24" height="12" rx="2" class="role-chip"/><text x="1040" y="548" class="role">SCO</text>
+        <text x="1108" y="574" class="node-name">Answer Correctness</text>
+        <text x="1108" y="592" class="node-sub">0.37 · Jaccard vs gold</text>
+        <text x="1108" y="608" class="node-tool">generation-side signal</text>
+        <rect x="1028" y="612" width="24" height="12" rx="2" class="chip-fl"/><text x="1040" y="619" class="chip-txt">FL</text>
+        <rect x="1164" y="612" width="24" height="12" rx="2" class="chip-fl"/><text x="1176" y="619" class="chip-txt">FL</text>
+
+        <!-- Legend: horizontal strip inside the reserved bottom 60px -->
+        <line x1="40" y1="660" x2="1240" y2="660" class="rule"/>
+        <text x="40" y="676" class="legend-cat">NODE</text>
+        <rect x="100" y="664" width="16" height="12" rx="2" class="node"/>
+        <text x="124" y="676" class="legend-txt">PIPELINE STAGE</text>
+        <rect x="240" y="664" width="16" height="12" rx="2" class="node-focal"/>
+        <text x="264" y="676" class="legend-txt">FOCAL · ZERO-KEY ANSWERER</text>
+        <rect x="452" y="664" width="16" height="12" rx="2" class="node-inv"/>
+        <text x="476" y="676" class="legend-txt">INVARIANT · NOT A METRIC</text>
+
+        <text x="40" y="696" class="legend-cat">DATA</text>
+        <rect x="100" y="688" width="24" height="12" rx="2" class="chip-db"/><text x="112" y="695" class="chip-txt">DB</text>
+        <text x="132" y="696" class="legend-txt">DATASET</text>
+        <rect x="232" y="688" width="24" height="12" rx="2" class="chip-tb"/><text x="244" y="695" class="chip-txt">TB</text>
+        <text x="264" y="696" class="legend-txt">CHUNKS · TABLE</text>
+        <rect x="400" y="688" width="24" height="12" rx="2" class="chip-fl"/><text x="412" y="695" class="chip-txt">FL</text>
+        <text x="432" y="696" class="legend-txt">ANSWER · METRIC</text>
+        <text x="600" y="696" class="legend-txt">LEFT CHIP = INPUT · RIGHT CHIP = OUTPUT</text>
+
+        <text x="40" y="714" class="legend-cat">FLOW</text>
+        <line x1="100" y1="708" x2="124" y2="708" class="a-muted" marker-end="url(#arrow)"/>
+        <text x="132" y="714" class="legend-txt">DATA HANDOFF</text>
+        <line x1="264" y1="708" x2="288" y2="708" class="a-accent" marker-end="url(#arrow-accent)"/>
+        <text x="296" y="714" class="legend-txt">FOCAL HANDOFF</text>
+        <line x1="428" y1="708" x2="452" y2="708" class="a-ref" marker-end="url(#arrow)"/>
+        <text x="460" y="714" class="legend-txt">GOLD REFERENCE (PASSIVE)</text>
+      </svg>
+    </div>
+
+    <p class="caption">Solid arrows are the data path: the 12-doc corpus builds the TF-IDF index, the 20 labelled questions drive cosine top-5 retrieval, and the offline extractive answerer returns a verbatim sentence from the retrieved context. Dashed arrows are the passive gold reference &mdash; the same <code>data/eval.jsonl</code> items supply both the query set and the gold doc ids / gold answers the scorers compare against. Nothing here reaches the network: the zero-key path <em>is</em> the pipeline, and the Claude branch of <code>generate.py</code> (<code>--llm</code> + key) is a swap point, not a node. Faithfulness sits on a dashed node because it is a construction invariant of the extractive answerer, not a measured score.</p>
+  </main>
+</body>
+</html>

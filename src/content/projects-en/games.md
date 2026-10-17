@@ -33,6 +33,8 @@ related:
 
 # Browser Mini-Games — Analytics Arcade
 
+**▶ [Architecture diagram](/diagrams/browser-mini-games.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 Analytics concepts — p-values, retention, funnels — are abstract: a recruiter or student can't 'feel' them from text, and passive dashboards don't provide an interactive experience. Mini-games turn concepts into mechanics: you play, and you understand why p < 0.05 matters, what a retention day is, and where the funnel bottleneck sits.

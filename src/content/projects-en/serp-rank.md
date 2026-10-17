@@ -45,6 +45,8 @@ faq:
 
 # SERP Rank Lab
 
+**▶ [Data-flow diagram](/diagrams/serp-rank-lab.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 A metasearch site sells no tickets. Its revenue is a partner commission or a cost-per-click, multiplied by **which position** the offer occupied on the results page. So the role rests on two questions: how to rank offers, and how much revenue a given ranking policy produces per search.

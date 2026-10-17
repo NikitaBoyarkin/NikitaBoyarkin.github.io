@@ -31,6 +31,8 @@ related:
 
 # Product Analytics + A/B on Supabase
 
+**▶ [Architecture diagram](/diagrams/supabase-product-analytics.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 Most analytics portfolios show metrics on a clean CSV. The hard part stays invisible: how analytics embeds into a real multi-tenant product — auth, per-org data isolation, an event ingest path, and an experiment whose result is computed in the database, not in a notebook.

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Когортный пайплайн → Tableau · Data flow · Dark</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+    }
+
+    .frame { width: 100%; max-width: 1280px; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { display: block; width: 100%; min-width: 1280px; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+
+    .step-num  { font-family: var(--font-mono); font-size: 8px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .step-name { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.12em; fill: var(--muted); text-anchor: middle; }
+    .lane-name { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.14em; fill: var(--muted); text-anchor: middle; }
+    .role      { font-family: var(--font-mono); font-size: 7px; font-weight: 600; letter-spacing: 0.08em; fill: rgba(228,228,231,0.80); text-anchor: middle; }
+    .role-accent { fill: var(--accent); }
+    .node-name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .node-sub  { font-family: var(--font-mono); font-size: 9px; fill: var(--muted); text-anchor: middle; }
+    .node-tool { font-family: var(--font-mono); font-size: 9px; fill: var(--soft); text-anchor: middle; }
+    .chip      { font-family: var(--font-mono); font-size: 5px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
+    .arrow-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.06em; fill: var(--soft); text-anchor: middle; }
+    .legend-head { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.14em; fill: var(--muted); }
+    .legend-text { font-family: var(--font-mono); font-size: 8px; fill: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Data flow · Diagram Design</p>
+    <h1>Детерминированный когортный пайплайн → Tableau</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="tableau-cohort-analysis-title tableau-cohort-analysis-desc">
+        <title id="tableau-cohort-analysis-title">Когортный пайплайн: генератор → Tableau</title>
+        <desc id="tableau-cohort-analysis-desc">Поток данных когортного анализа: детерминированный генератор с seed 42 пишет cohort_data.csv по 6-колоночному контракту, когортные метрики удержания, ARPU и LTV считаются по синтетическому или реальному источнику, tableau_export.py собирает плоскую таблицу cohort_export.csv вместе с Hyper-экстрактом, и дашборд из четырёх вью потребляет экстракт в Tableau.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="11" cy="11" r="0.8" fill="rgba(228,228,231,0.10)"/>
+          </pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/>
+          </marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#ff8569"/>
+          </marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#4ecdc4"/>
+          </marker>
+        </defs>
+
+        <!-- Background: paper, dotted ground, alternating lane tints -->
+        <rect width="100%" height="100%" fill="#0f2a2b"/>
+        <rect width="100%" height="100%" fill="url(#dots)"/>
+        <rect x="40" y="96" width="1200" height="136" fill="rgba(228,228,231,0.025)"/>
+        <rect x="40" y="368" width="1200" height="136" fill="rgba(228,228,231,0.025)"/>
+
+        <!-- Lane structure -->
+        <line x1="40" y1="96" x2="1240" y2="96" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="40" y1="232" x2="1240" y2="232" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="40" y1="368" x2="1240" y2="368" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="40" y1="504" x2="1240" y2="504" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="40" y1="640" x2="1240" y2="640" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="176" y1="96" x2="176" y2="640" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+
+        <!-- Step header -->
+        <g aria-label="Шаги пайплайна">
+          <rect x="260" y="48" width="40" height="16" rx="8" fill="rgba(228,228,231,0.12)"/>
+          <text x="280" y="59" class="step-num">01</text>
+          <text x="280" y="88" class="step-name">ГЕНЕРАЦИЯ</text>
+
+          <rect x="468" y="48" width="40" height="16" rx="8" fill="rgba(228,228,231,0.12)"/>
+          <text x="488" y="59" class="step-num">02</text>
+          <text x="488" y="88" class="step-name">КОНТРАКТ</text>
+
+          <rect x="676" y="48" width="40" height="16" rx="8" fill="rgba(228,228,231,0.12)"/>
+          <text x="696" y="59" class="step-num">03</text>
+          <text x="696" y="88" class="step-name">МЕТРИКИ</text>
+
+          <rect x="884" y="48" width="40" height="16" rx="8" fill="rgba(228,228,231,0.12)"/>
+          <text x="904" y="59" class="step-num">04</text>
+          <text x="904" y="88" class="step-name">ЭКСПОРТ</text>
+
+          <rect x="1092" y="48" width="40" height="16" rx="8" fill="rgba(228,228,231,0.12)"/>
+          <text x="1112" y="59" class="step-num">05</text>
+          <text x="1112" y="88" class="step-name">ПОТРЕБЛЕНИЕ</text>
+        </g>
+
+        <!-- Lane labels -->
+        <g aria-label="Роли">
+          <text x="108" y="156" class="lane-name">ИСТОЧНИК</text>
+          <text x="108" y="172" class="lane-name">ДАННЫХ</text>
+          <text x="108" y="292" class="lane-name">КОГОРТНАЯ</text>
+          <text x="108" y="308" class="lane-name">МОДЕЛЬ</text>
+          <text x="108" y="428" class="lane-name">ВЫГРУЗКА</text>
+          <text x="108" y="444" class="lane-name">В TABLEAU</text>
+          <text x="108" y="564" class="lane-name">BI</text>
+          <text x="108" y="580" class="lane-name">TABLEAU</text>
+        </g>
+
+        <!-- Connectors (drawn before boxes) -->
+        <path d="M364 164 H404" fill="none" stroke="#a1a1aa" marker-end="url(#arrow)"/>
+        <path d="M572 164 H688 Q696 164 696 172 V252" fill="none" stroke="#ff8569" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+        <path d="M572 300 H612" fill="none" stroke="#a1a1aa" marker-end="url(#arrow)"/>
+        <path d="M780 316 H852 Q860 316 860 324 V388" fill="none" stroke="#a1a1aa" marker-end="url(#arrow)"/>
+        <path d="M904 484 V524" fill="none" stroke="#a1a1aa" marker-end="url(#arrow)"/>
+        <path d="M988 436 H1028" fill="none" stroke="#a1a1aa" marker-end="url(#arrow)"/>
+        <path d="M988 572 H1028" fill="none" stroke="#a1a1aa" marker-end="url(#arrow)"/>
+
+        <!-- Focal handoff label: opaque mask, 8px clear of the stroke -->
+        <rect x="600" y="144" width="56" height="12" rx="2" fill="#0f2a2b"/>
+        <text x="628" y="153" class="arrow-label">6 COLUMNS</text>
+
+        <!-- Lane 0 · ИСТОЧНИК ДАННЫХ -->
+        <rect x="196" y="116" width="168" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="196" y="116" width="168" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)"/>
+        <rect x="204" y="124" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="218" y="133" class="role">DGP</text>
+        <text x="280" y="160" class="node-name">Генератор данных</text>
+        <text x="280" y="180" class="node-sub">generate_cohort_data.py</text>
+        <text x="280" y="196" class="node-tool">seed 42 · deterministic</text>
+        <rect x="336" y="200" width="16" height="8" rx="3" fill="#5e7a9b"/>
+        <text x="344" y="206" class="chip">DB</text>
+
+        <rect x="404" y="116" width="168" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="404" y="116" width="168" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)"/>
+        <rect x="412" y="124" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="426" y="133" class="role">DGP</text>
+        <text x="488" y="160" class="node-name">Синтетический лог</text>
+        <text x="488" y="180" class="node-sub">cohort_data.csv</text>
+        <text x="488" y="196" class="node-tool">6 cols · not in git</text>
+        <rect x="416" y="200" width="16" height="8" rx="3" fill="#5e7a9b"/>
+        <text x="424" y="206" class="chip">DB</text>
+        <rect x="544" y="200" width="16" height="8" rx="3" fill="#5e7a9b"/>
+        <text x="552" y="206" class="chip">DB</text>
+
+        <!-- Lane 1 · КОГОРТНАЯ МОДЕЛЬ -->
+        <rect x="404" y="252" width="168" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="404" y="252" width="168" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)"/>
+        <rect x="412" y="260" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="426" y="269" class="role">COH</text>
+        <text x="488" y="296" class="node-name">Реальный CSV</text>
+        <text x="488" y="316" class="node-sub">load_real_data()</text>
+        <text x="488" y="332" class="node-tool">fail-fast · whitelist</text>
+        <rect x="416" y="336" width="16" height="8" rx="3" fill="#5e7a9b"/>
+        <text x="424" y="342" class="chip">DB</text>
+        <rect x="544" y="336" width="16" height="8" rx="3" fill="#5e7a9b"/>
+        <text x="552" y="342" class="chip">DB</text>
+
+        <!-- Focal node · one of two accent elements in the diagram -->
+        <rect x="612" y="252" width="168" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="612" y="252" width="168" height="96" rx="6" fill="rgba(255,133,105,0.12)" stroke="#ff8569" stroke-width="1.2"/>
+        <rect x="620" y="260" width="28" height="12" rx="2" fill="transparent" stroke="rgba(255,133,105,0.40)" stroke-width="0.8"/>
+        <text x="634" y="269" class="role role-accent">COH</text>
+        <text x="696" y="296" class="node-name">Когортные метрики</text>
+        <text x="696" y="316" class="node-sub">cohort_analysis.py</text>
+        <text x="696" y="332" class="node-tool">ltv_at_k(df, k=3)</text>
+        <rect x="624" y="336" width="16" height="8" rx="3" fill="#5e7a9b"/>
+        <text x="632" y="342" class="chip">DB</text>
+        <rect x="752" y="336" width="16" height="8" rx="3" fill="#b8915a"/>
+        <text x="760" y="342" class="chip">TB</text>
+
+        <!-- Lane 2 · ВЫГРУЗКА В TABLEAU -->
+        <rect x="820" y="388" width="168" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="820" y="388" width="168" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)"/>
+        <rect x="828" y="396" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="842" y="405" class="role">EXP</text>
+        <text x="904" y="432" class="node-name">Плоская выгрузка</text>
+        <text x="904" y="452" class="node-sub">tableau_export.py</text>
+        <text x="904" y="468" class="node-tool">build_export_frame()</text>
+        <rect x="832" y="472" width="16" height="8" rx="3" fill="#b8915a"/>
+        <text x="840" y="478" class="chip">TB</text>
+        <rect x="960" y="472" width="16" height="8" rx="3" fill="#9c6b50"/>
+        <text x="968" y="478" class="chip">FL</text>
+
+        <rect x="1028" y="388" width="168" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="1028" y="388" width="168" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)"/>
+        <rect x="1036" y="396" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="1050" y="405" class="role">EXP</text>
+        <text x="1112" y="432" class="node-name">Плоская таблица</text>
+        <text x="1112" y="452" class="node-sub">cohort_export.csv</text>
+        <text x="1112" y="468" class="node-tool">cohort_label · period_date</text>
+        <rect x="1040" y="472" width="16" height="8" rx="3" fill="#9c6b50"/>
+        <text x="1048" y="478" class="chip">FL</text>
+
+        <!-- Lane 3 · BI / TABLEAU -->
+        <rect x="820" y="524" width="168" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="820" y="524" width="168" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)"/>
+        <rect x="828" y="532" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="842" y="541" class="role">BI</text>
+        <text x="904" y="568" class="node-name">Hyper-экстракт</text>
+        <text x="904" y="588" class="node-sub">cohort_extract.hyper</text>
+        <text x="904" y="604" class="node-tool">Hyper API · no telemetry</text>
+        <rect x="832" y="608" width="16" height="8" rx="3" fill="#9c6b50"/>
+        <text x="840" y="614" class="chip">FL</text>
+
+        <rect x="1028" y="524" width="168" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="1028" y="524" width="168" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)"/>
+        <rect x="1036" y="532" width="28" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text x="1050" y="541" class="role">BI</text>
+        <text x="1112" y="568" class="node-name">Дашборд Tableau</text>
+        <text x="1112" y="588" class="node-sub">heatmap · curves · sizes</text>
+        <text x="1112" y="604" class="node-tool">Tableau Public · 4 views</text>
+        <rect x="1040" y="608" width="16" height="8" rx="3" fill="#9c6b50"/>
+        <text x="1048" y="614" class="chip">FL</text>
+
+        <!-- Legend strip: reserved bottom 60px -->
+        <line x1="40" y1="660" x2="1240" y2="660" stroke="rgba(228,228,231,0.14)" stroke-width="0.8"/>
+        <text x="56" y="700" class="legend-head">LEGEND</text>
+
+        <rect x="140" y="688" width="16" height="16" rx="4" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)"/>
+        <text x="164" y="700" class="legend-text">узел пайплайна</text>
+
+        <rect x="284" y="688" width="16" height="16" rx="4" fill="rgba(255,133,105,0.12)" stroke="#ff8569" stroke-width="1.2"/>
+        <text x="308" y="700" class="legend-text">фокус: метрики</text>
+
+        <rect x="420" y="692" width="16" height="8" rx="3" fill="#5e7a9b"/>
+        <text x="444" y="700" class="legend-text">датасет</text>
+
+        <rect x="524" y="692" width="16" height="8" rx="3" fill="#b8915a"/>
+        <text x="548" y="700" class="legend-text">таблица</text>
+
+        <rect x="628" y="692" width="16" height="8" rx="3" fill="#9c6b50"/>
+        <text x="652" y="700" class="legend-text">выгрузка</text>
+
+        <line x1="740" y1="696" x2="764" y2="696" stroke="#a1a1aa" marker-end="url(#arrow)"/>
+        <text x="772" y="700" class="legend-text">поток данных</text>
+
+        <line x1="884" y1="696" x2="908" y2="696" stroke="#ff8569" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+        <text x="916" y="700" class="legend-text">фокусный поток</text>
+
+        <text x="1040" y="700" class="legend-text">чип слева = вход · чип справа = выход</text>
+      </svg>
+    </div>
+  </main>
+</body>
+</html>

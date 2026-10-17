@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser Mini-Games — architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1-2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+
+    /* Ramp-bearing classes. Geometry stays in the attributes, so the viewBox
+       check reads real coordinates. */
+    .t-name   { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); }
+    .t-sub    { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); }
+    .t-note   { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--soft); }
+    .t-tag    { font-family: var(--font-mono); font-size: 7px; font-weight: 400; fill: var(--muted); letter-spacing: 0.08em; }
+    .t-tag-a  { font-family: var(--font-mono); font-size: 7px; font-weight: 500; fill: var(--accent); letter-spacing: 0.08em; }
+    .t-arrow  { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--soft); letter-spacing: 0.06em; }
+    .t-eye    { font-family: var(--font-mono); font-size: 8px; font-weight: 500; fill: var(--soft); letter-spacing: 0.18em; }
+    .t-legend { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); }
+
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture &middot; Browser Mini-Games</p>
+    <h1>Browser Mini-Games &mdash; one arcade hub, ten build-free SVG games</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="browser-mini-games-title browser-mini-games-desc">
+        <title id="browser-mini-games-title">Browser Mini-Games &mdash; one arcade hub, ten build-free SVG games</title>
+        <desc id="browser-mini-games-desc">Architecture of the Browser Mini-Games portfolio piece: a visitor opens one Astro arcade hub, which links ten self-contained SVG games &mdash; three arcade classics and seven analytics games &mdash; each a single dependency-free file with no build step; the only thing shared is a convention of localStorage keys and PostHog events, and the build ships to GitHub Pages with a synced copy under the portfolio's /games/ path.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff8569"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4ecdc4"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#0f2a2b"/>
+
+        <!-- ===== connectors (painted before boxes so lines sit behind nodes) ===== -->
+
+        <!-- visitor -> arcade hub : the page request -->
+        <line x1="200" y1="132" x2="300" y2="132" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <rect x="226" y="112" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-arrow" x="250" y="121" text-anchor="middle">HTTP GET</text>
+
+        <!-- shared hub components -> arcade hub : composition -->
+        <line x1="420" y1="232" x2="420" y2="172" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="428" y="192" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-arrow" x="452" y="201" text-anchor="middle">COMPOSES</text>
+
+        <!-- arcade hub -> the games : one card per file -->
+        <line x1="640" y1="132" x2="760" y2="132" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="662" y="112" width="76" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-arrow" x="700" y="121" text-anchor="middle">10 GAME CARDS</text>
+
+        <!-- the counted games node -> its arcade classics -->
+        <line x1="830" y1="172" x2="830" y2="232" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="838" y="192" width="44" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-arrow" x="860" y="201" text-anchor="middle">3 OF 10</text>
+
+        <!-- the counted games node -> its analytics games -->
+        <line x1="1140" y1="172" x2="1140" y2="232" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="1148" y="192" width="44" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-arrow" x="1170" y="201" text-anchor="middle">7 OF 10</text>
+
+        <!-- playwright suite -> the games : passive read of every file -->
+        <path d="M 1000,404 H 988 Q 980,404 980,396 V 172" fill="none" stroke="#a1a1aa" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+        <rect x="988" y="320" width="72" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-arrow" x="1024" y="329" text-anchor="middle">LOADS ALL 10</text>
+
+        <!-- shared contract -> posthog : the events every file emits -->
+        <line x1="640" y1="404" x2="760" y2="404" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <rect x="676" y="384" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-arrow" x="700" y="393" text-anchor="middle">9 EVENTS</text>
+
+        <!-- arcade hub -> build & deploy : npm run build, then push -->
+        <path d="M 300,156 H 248 Q 240,156 240,164 V 532 Q 240,540 248,540 H 300" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="160" y="328" width="72" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-arrow" x="196" y="337" text-anchor="middle">BUILD + PUSH</text>
+
+        <!-- build & deploy -> portfolio copy : the drift-gated sync -->
+        <line x1="640" y1="540" x2="760" y2="540" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="664" y="520" width="72" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="t-arrow" x="700" y="529" text-anchor="middle">SYNC /games/</text>
+
+        <!-- ===== nodes ===== -->
+
+        <!-- Visitor -->
+        <rect x="40" y="96" width="160" height="76" rx="6" fill="#0f2a2b"/>
+        <rect x="40" y="96" width="160" height="76" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="48" y="104" width="34" height="13" rx="2" fill="transparent" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="65" y="114" text-anchor="middle">CLIENT</text>
+        <text class="t-name" x="120" y="130" text-anchor="middle">Visitor</text>
+        <text class="t-sub" x="120" y="146" text-anchor="middle">phone &middot; desktop</text>
+        <text class="t-note" x="120" y="160" text-anchor="middle">swipe &middot; drag &middot; tap</text>
+
+        <!-- Arcade hub (accent 1 of 2) -->
+        <rect x="300" y="96" width="340" height="76" rx="6" fill="#0f2a2b"/>
+        <rect x="300" y="96" width="340" height="76" rx="6" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <rect x="308" y="104" width="22" height="13" rx="2" fill="transparent" stroke="rgba(255,133,105,0.5)" stroke-width="0.8"/>
+        <text class="t-tag-a" x="319" y="114" text-anchor="middle">HUB</text>
+        <text class="t-name" x="470" y="130" text-anchor="middle">Arcade hub</text>
+        <text class="t-sub" x="470" y="146" text-anchor="middle">src/pages/index.astro &middot; Astro v7</text>
+        <text class="t-note" x="470" y="160" text-anchor="middle">static &middot; data-theme + localStorage</text>
+
+        <!-- Self-contained SVG games, counted (accent 2 of 2) -->
+        <rect x="760" y="96" width="480" height="76" rx="6" fill="#0f2a2b"/>
+        <rect x="760" y="96" width="480" height="76" rx="6" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <rect x="768" y="104" width="26" height="13" rx="2" fill="transparent" stroke="rgba(255,133,105,0.5)" stroke-width="0.8"/>
+        <text class="t-tag-a" x="781" y="114" text-anchor="middle">GAME</text>
+        <text class="t-name" x="1000" y="130" text-anchor="middle">Self-contained SVG games &times;10</text>
+        <text class="t-sub" x="1000" y="146" text-anchor="middle">public/*.svg &mdash; one file = the whole game</text>
+        <text class="t-note" x="1000" y="160" text-anchor="middle">HTML + CSS + JS inline &middot; zero deps &middot; no build step</text>
+
+        <!-- Shared hub components -->
+        <rect x="300" y="232" width="340" height="76" rx="6" fill="#0f2a2b"/>
+        <rect x="300" y="232" width="340" height="76" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="308" y="240" width="22" height="13" rx="2" fill="transparent" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="319" y="250" text-anchor="middle">HUB</text>
+        <text class="t-name" x="470" y="266" text-anchor="middle">Shared hub components</text>
+        <text class="t-sub" x="470" y="282" text-anchor="middle">GameCard &middot; DailyStrip &middot; ThemeToggle</text>
+        <text class="t-note" x="470" y="296" text-anchor="middle">ContactCTA &middot; Base layout &middot; PostHogInit</text>
+
+        <!-- Classic arcade games, representative set 3 of 10 -->
+        <rect x="760" y="232" width="200" height="76" rx="6" fill="#0f2a2b"/>
+        <rect x="760" y="232" width="200" height="76" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="768" y="240" width="26" height="13" rx="2" fill="transparent" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="781" y="250" text-anchor="middle">GAME</text>
+        <text class="t-name" x="860" y="266" text-anchor="middle">Classic arcade &times;3</text>
+        <text class="t-sub" x="860" y="282" text-anchor="middle">Snake &middot; Pong &middot; 2048</text>
+        <text class="t-note" x="860" y="296" text-anchor="middle">keys &middot; swipe &middot; drag</text>
+
+        <!-- Analytics games, representative set 7 of 10 -->
+        <rect x="1000" y="232" width="240" height="76" rx="6" fill="#0f2a2b"/>
+        <rect x="1000" y="232" width="240" height="76" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="1008" y="240" width="26" height="13" rx="2" fill="transparent" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="1021" y="250" text-anchor="middle">GAME</text>
+        <text class="t-name" x="1120" y="266" text-anchor="middle">Analytics games &times;7</text>
+        <text class="t-sub" x="1120" y="282" text-anchor="middle">A/B Test &middot; Funnel Drop &middot; Cohort Catch</text>
+        <text class="t-note" x="1120" y="296" text-anchor="middle">SQL &middot; Metric Match &middot; Retention &middot; Bottleneck</text>
+
+        <!-- Shared contract: the only thing the files share -->
+        <rect x="300" y="368" width="340" height="76" rx="6" fill="#0f2a2b"/>
+        <rect x="300" y="368" width="340" height="76" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="308" y="376" width="42" height="13" rx="2" fill="transparent" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="329" y="386" text-anchor="middle">CONTRACT</text>
+        <text class="t-name" x="470" y="402" text-anchor="middle">Shared contract</text>
+        <text class="t-sub" x="470" y="418" text-anchor="middle">arcade_best_&lt;game&gt; &middot; arcade_streak</text>
+        <text class="t-note" x="470" y="432" text-anchor="middle">never imported &mdash; same keys in all 11 files</text>
+
+        <!-- PostHog, external -->
+        <rect x="760" y="368" width="200" height="76" rx="6" fill="#0f2a2b"/>
+        <rect x="760" y="368" width="200" height="76" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="768" y="376" width="34" height="13" rx="2" fill="transparent" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="785" y="386" text-anchor="middle">EVENTS</text>
+        <text class="t-name" x="860" y="402" text-anchor="middle">PostHog events</text>
+        <text class="t-sub" x="860" y="418" text-anchor="middle">9 events &middot; no cookies</text>
+        <text class="t-note" x="860" y="432" text-anchor="middle">IS_LOCAL skips localhost</text>
+
+        <!-- Playwright suite -->
+        <rect x="1000" y="368" width="240" height="76" rx="6" fill="#0f2a2b"/>
+        <rect x="1000" y="368" width="240" height="76" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="1008" y="376" width="26" height="13" rx="2" fill="transparent" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="1021" y="386" text-anchor="middle">TEST</text>
+        <text class="t-name" x="1120" y="402" text-anchor="middle">Playwright suite</text>
+        <text class="t-sub" x="1120" y="418" text-anchor="middle">test_games_smoke.py &middot; per game</text>
+        <text class="t-note" x="1120" y="432" text-anchor="middle">test_games_contract.py &middot; CI-style</text>
+
+        <!-- Build &amp; deploy -->
+        <rect x="300" y="504" width="340" height="76" rx="6" fill="#0f2a2b"/>
+        <rect x="300" y="504" width="340" height="76" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="308" y="512" width="34" height="13" rx="2" fill="transparent" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="325" y="522" text-anchor="middle">DEPLOY</text>
+        <text class="t-name" x="470" y="538" text-anchor="middle">Build &amp; deploy</text>
+        <text class="t-sub" x="470" y="554" text-anchor="middle">npm run build &rarr; dist/</text>
+        <text class="t-note" x="470" y="568" text-anchor="middle">deploy.yml on push to main</text>
+
+        <!-- Portfolio copy -->
+        <rect x="760" y="504" width="480" height="76" rx="6" fill="#0f2a2b"/>
+        <rect x="760" y="504" width="480" height="76" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="768" y="512" width="34" height="13" rx="2" fill="transparent" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="t-tag" x="785" y="522" text-anchor="middle">DEPLOY</text>
+        <text class="t-name" x="1000" y="538" text-anchor="middle">Portfolio copy</text>
+        <text class="t-sub" x="1000" y="554" text-anchor="middle">/games/ on Personal_Projects.github.io</text>
+        <text class="t-note" x="1000" y="568" text-anchor="middle">sync_games.py --check &middot; drift gate</text>
+
+        <!-- ===== legend : horizontal strip in the reserved bottom 60px ===== -->
+        <line x1="40" y1="660" x2="1240" y2="660" stroke="rgba(228,228,231,0.14)" stroke-width="0.8"/>
+        <text class="t-eye" x="40" y="678">LEGEND</text>
+        <rect x="130" y="668" width="16" height="12" rx="3" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text class="t-legend" x="154" y="678">CLIENT</text>
+        <rect x="270" y="668" width="16" height="12" rx="3" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text class="t-legend" x="294" y="678">HUB</text>
+        <rect x="410" y="668" width="16" height="12" rx="3" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text class="t-legend" x="434" y="678">GAME</text>
+        <rect x="550" y="668" width="16" height="12" rx="3" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text class="t-legend" x="574" y="678">CONTRACT</text>
+        <rect x="690" y="668" width="16" height="12" rx="3" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text class="t-legend" x="714" y="678">EVENTS</text>
+        <rect x="830" y="668" width="16" height="12" rx="3" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text class="t-legend" x="854" y="678">TEST</text>
+        <rect x="970" y="668" width="16" height="12" rx="3" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text class="t-legend" x="994" y="678">DEPLOY</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

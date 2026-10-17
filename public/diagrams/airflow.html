@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airflow DAG-платформа — поток данных отчёта</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1-2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { width: 100%; max-width: 1280px; }
+
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .page-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    .caption {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--soft);
+      margin-top: 16px;
+      max-width: 96ch;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+
+    .node-name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .sub { font-family: var(--font-mono); font-size: 9px; fill: var(--muted); text-anchor: middle; }
+    .tool { font-family: var(--font-mono); font-size: 9px; fill: var(--soft); text-anchor: middle; }
+    .role-text { font-family: var(--font-mono); font-size: 6.5px; font-weight: 600; fill: var(--ink); text-anchor: middle; letter-spacing: 0.06em; }
+    .chip-text { font-family: var(--font-mono); font-size: 6px; font-weight: 700; fill: #ffffff; text-anchor: middle; letter-spacing: 0.04em; }
+    .lane-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; fill: var(--muted); text-anchor: middle; letter-spacing: 0.16em; }
+    .step-num { font-family: var(--font-mono); font-size: 9px; font-weight: 600; fill: var(--ink); text-anchor: middle; letter-spacing: 0.06em; }
+    .step-label { font-family: var(--font-mono); font-size: 8px; fill: var(--muted); text-anchor: middle; letter-spacing: 0.12em; }
+    .legend-cat { font-family: var(--font-mono); font-size: 8px; font-weight: 500; fill: var(--muted); letter-spacing: 0.14em; }
+    .legend-item { font-family: var(--font-mono); font-size: 8px; fill: var(--muted); letter-spacing: 0.06em; }
+    .arrow-label { font-family: var(--font-mono); font-size: 8px; fill: var(--soft); text-anchor: middle; letter-spacing: 0.06em; }
+
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above -- a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="page-eyebrow">Data flow · Diagram Design</p>
+    <h1>Airflow DAG-платформа: идемпотентный поток отчёта</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="airflow-title airflow-desc">
+        <title id="airflow-title">Airflow DAG-платформа — поток данных отчёта</title>
+        <desc id="airflow-desc">Схема потока данных: витрина Postgres sales проходит окно logical_date, SQL-агрегат fetch, DQ-гейт shared/dq.py и идемпотентную запись в Google Sheets или CSV, после чего запуск фиксируется в dag_metrics, а падение ловится on_failure_callback.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="11" cy="11" r="0.8" fill="rgba(228,228,231,0.10)"/>
+          </pattern>
+          <marker id="arr-muted" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#a1a1aa"/></marker>
+          <marker id="arr-accent" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ff8569"/></marker>
+          <marker id="arr-link" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4ecdc4"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#0f2a2b"/>
+        <rect width="100%" height="100%" fill="url(#dots)" opacity="0.6"/>
+
+        <!-- Lane tints (alternating) + dividers -->
+        <rect x="40" y="84" width="1200" height="144" fill="rgba(228,228,231,0.018)"/>
+        <rect x="40" y="372" width="1200" height="144" fill="rgba(228,228,231,0.018)"/>
+        <line x1="40" y1="84" x2="1240" y2="84" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="40" y1="228" x2="1240" y2="228" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="40" y1="372" x2="1240" y2="372" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="40" y1="516" x2="1240" y2="516" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="40" y1="660" x2="1240" y2="660" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="190" y1="84" x2="190" y2="660" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+
+        <!-- Connectors (drawn before boxes) -->
+        <line x1="380" y1="300" x2="400" y2="300" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <line x1="496" y1="204" x2="496" y2="244" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <line x1="584" y1="300" x2="604" y2="300" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <line x1="788" y1="300" x2="808" y2="300" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <line x1="904" y1="348" x2="904" y2="388" stroke="#ff8569" stroke-width="1.2" marker-end="url(#arr-accent)"/>
+        <line x1="992" y1="300" x2="1012" y2="300" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <line x1="1108" y1="348" x2="1108" y2="532" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <line x1="700" y1="348" x2="700" y2="532" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-muted)"/>
+
+        <!-- Focal arrow label (opaque mask, 8px clear of the stroke and of both boxes) -->
+        <rect x="912" y="352" width="72" height="14" rx="2" fill="#0f2a2b"/>
+        <text class="arrow-label" x="948" y="363">DQ-OK ROWS</text>
+
+        <!-- Step header strip -->
+        <rect x="276" y="48" width="32" height="16" rx="8" fill="rgba(228,228,231,0.12)"/>
+        <text class="step-num" x="292" y="61">01</text>
+        <text class="step-label" x="292" y="79">WINDOW</text>
+        <rect x="480" y="48" width="32" height="16" rx="8" fill="rgba(228,228,231,0.12)"/>
+        <text class="step-num" x="496" y="61">02</text>
+        <text class="step-label" x="496" y="79">EXTRACT</text>
+        <rect x="684" y="48" width="32" height="16" rx="8" fill="rgba(228,228,231,0.12)"/>
+        <text class="step-num" x="700" y="61">03</text>
+        <text class="step-label" x="700" y="79">DQ GATE</text>
+        <rect x="888" y="48" width="32" height="16" rx="8" fill="rgba(228,228,231,0.12)"/>
+        <text class="step-num" x="904" y="61">04</text>
+        <text class="step-label" x="904" y="79">PUBLISH</text>
+        <rect x="1092" y="48" width="32" height="16" rx="8" fill="rgba(228,228,231,0.12)"/>
+        <text class="step-num" x="1108" y="61">05</text>
+        <text class="step-label" x="1108" y="79">OBSERVE</text>
+
+        <!-- N1 · source: Postgres sales -->
+        <rect x="408" y="108" width="176" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="408" y="108" width="176" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="416" y="116" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="429" y="124.5">PG</text>
+        <text class="node-name" x="496" y="150">Postgres · sales</text>
+        <text class="sub" x="496" y="168">127.0.0.1:5434</text>
+        <text class="tool" x="496" y="184">витрина продаж</text>
+        <rect x="556" y="188" width="20" height="10" rx="2" fill="#5e7a9b"/>
+        <text class="chip-text" x="566" y="195.5">DB</text>
+
+        <!-- N2 · window -->
+        <rect x="204" y="252" width="176" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="204" y="252" width="176" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="212" y="260" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="225" y="268.5">DAG</text>
+        <text class="node-name" x="292" y="294">Окно запуска</text>
+        <text class="sub" x="292" y="312">windows.py</text>
+        <text class="tool" x="292" y="328">[logical_date - N, )</text>
+
+        <!-- N3 · fetch -->
+        <rect x="408" y="252" width="176" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="408" y="252" width="176" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="416" y="260" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="429" y="268.5">DAG</text>
+        <text class="node-name" x="496" y="294">fetch_sales</text>
+        <text class="sub" x="496" y="312">PostgresHook · SQL</text>
+        <text class="tool" x="496" y="328">агрегат за окно</text>
+        <rect x="416" y="332" width="20" height="10" rx="2" fill="#5e7a9b"/>
+        <text class="chip-text" x="426" y="339.5">DB</text>
+        <rect x="556" y="332" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="566" y="339.5">TB</text>
+
+        <!-- N4 · DQ gate -->
+        <rect x="612" y="252" width="176" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="612" y="252" width="176" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="620" y="260" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="633" y="268.5">DAG</text>
+        <text class="node-name" x="700" y="294">DQ-валидация</text>
+        <text class="sub" x="700" y="312">shared/dq.py</text>
+        <text class="tool" x="700" y="328">header · revenue ≥ 0</text>
+        <rect x="620" y="332" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="630" y="339.5">TB</text>
+        <rect x="760" y="332" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="770" y="339.5">TB</text>
+
+        <!-- N5 · write -->
+        <rect x="816" y="252" width="176" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="816" y="252" width="176" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="824" y="260" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="837" y="268.5">DAG</text>
+        <text class="node-name" x="904" y="294">Запись отчёта</text>
+        <text class="sub" x="904" y="312">output.py · sheets|file</text>
+        <text class="tool" x="904" y="328">идемпотентная перезапись</text>
+        <rect x="824" y="332" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="834" y="339.5">TB</text>
+        <rect x="964" y="332" width="20" height="10" rx="2" fill="#9c6b50"/>
+        <text class="chip-text" x="974" y="339.5">FL</text>
+
+        <!-- N6 · record_metrics -->
+        <rect x="1020" y="252" width="176" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="1020" y="252" width="176" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="1028" y="260" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="1041" y="268.5">DAG</text>
+        <text class="node-name" x="1108" y="294">record_metrics</text>
+        <text class="sub" x="1108" y="312">metrics.py · XCom</text>
+        <text class="tool" x="1108" y="328">run_id · duration_s</text>
+        <rect x="1028" y="332" width="20" height="10" rx="2" fill="#9c6b50"/>
+        <text class="chip-text" x="1038" y="339.5">FL</text>
+        <rect x="1168" y="332" width="20" height="10" rx="2" fill="#5e7a9b"/>
+        <text class="chip-text" x="1178" y="339.5">DB</text>
+
+        <!-- N7 · sink: Google Sheets / CSV -->
+        <rect x="816" y="396" width="176" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="816" y="396" width="176" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="824" y="404" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="837" y="412.5">OUT</text>
+        <text class="node-name" x="904" y="438">Google Sheets / CSV</text>
+        <text class="sub" x="904" y="456">GSheetsHook · data/out/</text>
+        <text class="tool" x="904" y="472">версионируемый отчёт</text>
+        <rect x="824" y="476" width="20" height="10" rx="2" fill="#9c6b50"/>
+        <text class="chip-text" x="834" y="483.5">FL</text>
+
+        <!-- N8 · alert -->
+        <rect x="612" y="540" width="176" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="612" y="540" width="176" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="620" y="548" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="633" y="556.5">OBS</text>
+        <text class="node-name" x="700" y="582">on_failure_callback</text>
+        <text class="sub" x="700" y="600">alerts.py</text>
+        <text class="tool" x="700" y="616">лог + failed-метрика</text>
+
+        <!-- N9 · dag_metrics -->
+        <rect x="1020" y="540" width="176" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="1020" y="540" width="176" height="96" rx="6" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="1028" y="548" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="1041" y="556.5">OBS</text>
+        <text class="node-name" x="1108" y="582">dag_metrics</text>
+        <text class="sub" x="1108" y="600">Postgres · таблица</text>
+        <text class="tool" x="1108" y="616">run_id · status · duration</text>
+        <rect x="1028" y="620" width="20" height="10" rx="2" fill="#5e7a9b"/>
+        <text class="chip-text" x="1038" y="627.5">DB</text>
+
+        <!-- Lane labels -->
+        <text class="lane-label" x="115" y="152">ИСТОЧНИК</text>
+        <text class="lane-label" x="115" y="168">POSTGRES</text>
+        <text class="lane-label" x="115" y="296">ОРКЕСТРАЦИЯ</text>
+        <text class="lane-label" x="115" y="312">AIRFLOW · DAG</text>
+        <text class="lane-label" x="115" y="440">ДОСТАВКА</text>
+        <text class="lane-label" x="115" y="456">SINKS</text>
+        <text class="lane-label" x="115" y="584">НАБЛЮДАЕМОСТЬ</text>
+        <text class="lane-label" x="115" y="600">OBSERVABILITY</text>
+
+        <!-- Legend strip -->
+        <text class="legend-cat" x="40" y="682">ROLE</text>
+        <rect x="140" y="672" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="153" y="681">PG</text>
+        <text class="legend-item" x="174" y="682">SOURCE</text>
+        <rect x="240" y="672" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="253" y="681">DAG</text>
+        <text class="legend-item" x="274" y="682">ORCHESTRATION</text>
+        <rect x="380" y="672" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="393" y="681">OUT</text>
+        <text class="legend-item" x="414" y="682">SINKS</text>
+        <rect x="500" y="672" width="26" height="12" rx="3" fill="rgba(228,228,231,0.12)"/>
+        <text class="role-text" x="513" y="681">OBS</text>
+        <text class="legend-item" x="534" y="682">METRICS</text>
+
+        <text class="legend-cat" x="40" y="705">PAYLOAD</text>
+        <rect x="140" y="696" width="20" height="10" rx="2" fill="#5e7a9b"/>
+        <text class="chip-text" x="150" y="703.5">DB</text>
+        <text class="legend-item" x="168" y="705">dataset</text>
+        <rect x="250" y="696" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="260" y="703.5">TB</text>
+        <text class="legend-item" x="278" y="705">analysis-ready</text>
+        <rect x="420" y="696" width="20" height="10" rx="2" fill="#9c6b50"/>
+        <text class="chip-text" x="430" y="703.5">FL</text>
+        <text class="legend-item" x="448" y="705">report</text>
+      </svg>
+    </div>
+
+    <p class="caption">Оранжевая стрелка — единственный фокус схемы: подписанный хендофф DQ-валидированных строк в приёмник (тот же проход идемпотентно перезаписывает отчёт). Пунктир — on_failure_callback (падение любой таски). Оба DAG-а (<code>daily_sales_report</code>, <code>weekly_sales_summary</code>) идут по одному шаблону fetch → validate → write → record_metrics; второй переиспользует те же shared-модули, поэтому на схеме показан один маршрут с ключевыми таск-функциями.</p>
+  </div>
+</body>
+</html>

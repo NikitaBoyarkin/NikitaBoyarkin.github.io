@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SERP Rank Lab — ranking data flow · Dark</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+    }
+
+    .frame { width: 100%; max-width: 1280px; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { display: block; width: 100%; min-width: 1280px; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+
+    /* --- ground and structure -------------------------------------------- */
+    .bg { fill: var(--paper); }
+    .dots { fill: url(#dots); }
+    .lane-tint { fill: rgba(228,228,231,0.025); }
+    .rule { stroke: var(--rule); stroke-width: 0.8; }
+    .boundary { stroke: var(--soft); stroke-width: 0.8; stroke-dasharray: 5,4; }
+
+    /* --- step header and lane names -------------------------------------- */
+    .step-chip { fill: rgba(228,228,231,0.12); }
+    .step-num { font-family: var(--font-mono); font-size: 8px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .step-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.12em; fill: var(--muted); text-anchor: middle; }
+    .lane-name { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.14em; fill: var(--muted); text-anchor: middle; }
+    .boundary-note { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--soft); text-anchor: end; }
+
+    /* --- nodes ------------------------------------------------------------ */
+    .mask { fill: var(--paper); }
+    .node-box { fill: rgba(228,228,231,0.04); stroke: rgba(228,228,231,0.20); stroke-width: 1; }
+    .node-box-focal { fill: rgba(255,133,105,0.12); stroke: var(--accent); stroke-width: 1.2; }
+    .tag { fill: transparent; stroke: rgba(228,228,231,0.40); stroke-width: 0.8; }
+    .tag-accent { fill: transparent; stroke: rgba(255,133,105,0.40); stroke-width: 0.8; }
+    .tag-txt { font-family: var(--font-mono); font-size: 7px; font-weight: 600; letter-spacing: 0.08em; fill: rgba(228,228,231,0.80); text-anchor: middle; }
+    .tag-txt-accent { fill: var(--accent); }
+    .node-name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .node-sub { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); text-anchor: middle; }
+    .node-tool { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--soft); text-anchor: middle; }
+
+    /* --- connectors ------------------------------------------------------- */
+    .a-muted { stroke: var(--muted); stroke-width: 1; fill: none; }
+    .a-accent { stroke: var(--accent); stroke-width: 1.2; fill: none; }
+    .arrow-label { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--accent); text-anchor: middle; }
+
+    /* --- legend ----------------------------------------------------------- */
+    .legend-head { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.14em; fill: var(--muted); }
+    .legend-txt { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--muted); }
+    .legend-chip { font-family: var(--font-mono); font-size: 6px; font-weight: 700; letter-spacing: 0.06em; fill: rgba(228,228,231,0.80); text-anchor: middle; }
+    .legend-chip-accent { fill: var(--accent); }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Data flow · SERP Rank Lab</p>
+    <h1>SERP Rank Lab — relevance ranking vs commission ranking</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="serp-rank-lab-title serp-rank-lab-desc">
+        <title id="serp-rank-lab-title">SERP ranking data flow: metric vs money</title>
+        <desc id="serp-rank-lab-desc">Data flow of a flight metasearch SERP lab: ingested measured feeds are fenced off from a modeled SERP layer that turns real route and price pairs into offers; two oracle ranking policies order those offers by relevance or by partner commission, position-biased simulated clicks are corrected with inverse-propensity weighting, and the readout shows the offline NDCG@10 and the money metric revenue per search pulling in opposite directions, 38 percent apart.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="11" cy="11" r="0.8" fill="rgba(228,228,231,0.08)"/>
+          </pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/>
+          </marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#ff8569"/>
+          </marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#4ecdc4"/>
+          </marker>
+        </defs>
+
+        <!-- Ground: paper, dotted texture, lane tints -->
+        <rect width="1280" height="720" class="bg"/>
+        <rect width="1280" height="720" class="dots"/>
+        <rect x="0" y="96" width="1280" height="136" class="lane-tint"/>
+        <rect x="0" y="368" width="1280" height="136" class="lane-tint"/>
+
+        <!-- Lane structure: header at 96, measured/modeled boundary at 232 -->
+        <line x1="40" y1="96" x2="1240" y2="96" class="rule"/>
+        <line x1="40" y1="232" x2="1240" y2="232" class="boundary"/>
+        <line x1="40" y1="368" x2="1240" y2="368" class="rule"/>
+        <line x1="40" y1="504" x2="1240" y2="504" class="rule"/>
+        <line x1="40" y1="640" x2="1240" y2="640" class="rule"/>
+        <line x1="152" y1="96" x2="152" y2="640" class="rule"/>
+
+        <!-- Step header -->
+        <g aria-label="Pipeline stages">
+          <rect x="244" y="48" width="40" height="16" rx="8" class="step-chip"/>
+          <text x="264" y="59" class="step-num">01</text>
+          <text x="264" y="88" class="step-label">INGEST</text>
+
+          <rect x="464" y="48" width="40" height="16" rx="8" class="step-chip"/>
+          <text x="484" y="59" class="step-num">02</text>
+          <text x="484" y="88" class="step-label">MODEL</text>
+
+          <rect x="684" y="48" width="40" height="16" rx="8" class="step-chip"/>
+          <text x="704" y="59" class="step-num">03</text>
+          <text x="704" y="88" class="step-label">RANK A</text>
+
+          <rect x="904" y="48" width="40" height="16" rx="8" class="step-chip"/>
+          <text x="924" y="59" class="step-num">04</text>
+          <text x="924" y="88" class="step-label">RANK B</text>
+
+          <rect x="1124" y="48" width="40" height="16" rx="8" class="step-chip"/>
+          <text x="1144" y="59" class="step-num">05</text>
+          <text x="1144" y="88" class="step-label">READOUT</text>
+        </g>
+
+        <!-- Lane names -->
+        <g aria-label="Planes">
+          <text x="96" y="160" class="lane-name">MEASURED</text>
+          <text x="96" y="172" class="lane-name">FEEDS</text>
+
+          <text x="96" y="296" class="lane-name">MODELED</text>
+          <text x="96" y="308" class="lane-name">SERP</text>
+
+          <text x="96" y="432" class="lane-name">RANKING</text>
+          <text x="96" y="444" class="lane-name">MONEY</text>
+
+          <text x="96" y="568" class="lane-name">CLICKS</text>
+          <text x="96" y="580" class="lane-name">ESTIMATE</text>
+        </g>
+
+        <!-- Boundary caption: the two planes are never fused -->
+        <text x="148" y="226" class="boundary-note">MODELED ≠ MEASURED</text>
+
+        <!-- Connectors first: lines sit behind the node fills -->
+        <g aria-label="Data flow">
+          <!-- 01 ingested feeds feed the session rebuild -->
+          <path class="a-muted" d="M360 164 H388" marker-end="url(#arrow)"/>
+          <!-- 02 sessions are the only join key into the modeled SERP -->
+          <path class="a-muted" d="M484 208 V256" marker-end="url(#arrow)"/>
+          <!-- 03 the modeled reference relevance is what the offline metric scores -->
+          <path class="a-muted" d="M580 268 H1048" marker-end="url(#arrow)"/>
+          <!-- 04 offers -> commission-ordered page (far arm, upper lane of the fork) -->
+          <path class="a-muted" d="M580 300 H916 Q924 300 924 308 V392" marker-end="url(#arrow)"/>
+          <!-- 05 offers -> relevance-ordered page (near arm, lower lane of the fork) -->
+          <path class="a-muted" d="M580 332 H696 Q704 332 704 340 V392" marker-end="url(#arrow)"/>
+          <!-- 06 the relevance-ordered page is simulated by the click model -->
+          <path class="a-muted" d="M704 480 V528" marker-end="url(#arrow)"/>
+          <!-- 07 the commission-ordered page is simulated by the same click model -->
+          <path class="a-muted" d="M924 480 V492 Q924 500 916 500 H792 Q784 500 784 508 V528" marker-end="url(#arrow)"/>
+          <!-- 08 the position-biased click log reaches the estimator -->
+          <path class="a-muted" d="M800 572 H828" marker-end="url(#arrow)"/>
+          <!-- 09 the unbiased readout becomes the money metric (focal hand-off) -->
+          <path class="a-accent" d="M900 528 V520 Q900 512 908 512 H1136 Q1144 512 1144 504 V480" marker-end="url(#arrow-accent)"/>
+
+          <!-- focal label: opaque mask, 8px clear of the stroke -->
+          <rect x="978" y="492" width="88" height="12" rx="2" class="mask"/>
+          <text x="1022" y="501" class="arrow-label">+38% REVENUE</text>
+        </g>
+
+        <!-- Lane 1 · MEASURED FEEDS -->
+        <rect x="168" y="120" width="192" height="88" rx="6" class="mask"/>
+        <rect x="168" y="120" width="192" height="88" rx="6" class="node-box"/>
+        <rect x="176" y="126" width="28" height="12" rx="2" class="tag"/>
+        <text x="190" y="135" class="tag-txt">RAW</text>
+        <text x="264" y="154" class="node-name">Ingested feeds</text>
+        <text x="264" y="174" class="node-sub">orders · bookings_legs</text>
+        <text x="264" y="192" class="node-tool">events · islands · no FK</text>
+
+        <rect x="388" y="120" width="192" height="88" rx="6" class="mask"/>
+        <rect x="388" y="120" width="192" height="88" rx="6" class="node-box"/>
+        <rect x="396" y="126" width="28" height="12" rx="2" class="tag"/>
+        <text x="410" y="135" class="tag-txt">SES</text>
+        <text x="484" y="154" class="node-name">Sessions</text>
+        <text x="484" y="174" class="node-sub">events · 30 min idle</text>
+        <text x="484" y="192" class="node-tool">join key: user_id</text>
+
+        <!-- Lane 2 · MODELED SERP -->
+        <rect x="388" y="256" width="192" height="88" rx="6" class="mask"/>
+        <rect x="388" y="256" width="192" height="88" rx="6" class="node-box"/>
+        <rect x="396" y="262" width="28" height="12" rx="2" class="tag"/>
+        <text x="410" y="271" class="tag-txt">SER</text>
+        <text x="484" y="290" class="node-name">SERP offers</text>
+        <text x="484" y="310" class="node-sub">query · route × price</text>
+        <text x="484" y="328" class="node-tool">serp_offers · modeled</text>
+
+        <rect x="1048" y="256" width="192" height="88" rx="6" class="mask"/>
+        <rect x="1048" y="256" width="192" height="88" rx="6" class="node-box"/>
+        <rect x="1056" y="262" width="28" height="12" rx="2" class="tag"/>
+        <text x="1070" y="271" class="tag-txt">NDC</text>
+        <text x="1144" y="290" class="node-name">NDCG@10 · MRR</text>
+        <text x="1144" y="310" class="node-sub">offline metric</text>
+        <text x="1144" y="328" class="node-tool">1.000 → 0.932</text>
+
+        <!-- Lane 3 · RANKING MONEY -->
+        <rect x="608" y="392" width="192" height="88" rx="6" class="mask"/>
+        <rect x="608" y="392" width="192" height="88" rx="6" class="node-box"/>
+        <rect x="616" y="398" width="28" height="12" rx="2" class="tag"/>
+        <text x="630" y="407" class="tag-txt">REL</text>
+        <text x="704" y="426" class="node-name">Relevance policy</text>
+        <text x="704" y="446" class="node-sub">rank by relevance</text>
+        <text x="704" y="464" class="node-tool">oracle · sees relevance</text>
+
+        <rect x="828" y="392" width="192" height="88" rx="6" class="mask"/>
+        <rect x="828" y="392" width="192" height="88" rx="6" class="node-box"/>
+        <rect x="836" y="398" width="28" height="12" rx="2" class="tag"/>
+        <text x="850" y="407" class="tag-txt">REV</text>
+        <text x="924" y="426" class="node-name">Revenue policy</text>
+        <text x="924" y="446" class="node-sub">rank by commission</text>
+        <text x="924" y="464" class="node-tool">oracle · sees commission</text>
+
+        <!-- Focal node: the money metric is the lab's north star -->
+        <rect x="1048" y="392" width="192" height="88" rx="6" class="mask"/>
+        <rect x="1048" y="392" width="192" height="88" rx="6" class="node-box-focal"/>
+        <rect x="1056" y="398" width="28" height="12" rx="2" class="tag-accent"/>
+        <text x="1070" y="407" class="tag-txt tag-txt-accent">MON</text>
+        <text x="1144" y="426" class="node-name">revenue / search</text>
+        <text x="1144" y="446" class="node-sub">partner commission</text>
+        <text x="1144" y="464" class="node-tool">868.9 → 1,196.6</text>
+
+        <!-- Lane 4 · CLICKS ESTIMATE -->
+        <rect x="608" y="528" width="192" height="88" rx="6" class="mask"/>
+        <rect x="608" y="528" width="192" height="88" rx="6" class="node-box"/>
+        <rect x="616" y="534" width="28" height="12" rx="2" class="tag"/>
+        <text x="630" y="543" class="tag-txt">PBM</text>
+        <text x="704" y="562" class="node-name">Click model · PBM</text>
+        <text x="704" y="582" class="node-sub">click = examine × relevant</text>
+        <text x="704" y="600" class="node-tool">examine_prob (1/k)^η</text>
+
+        <rect x="828" y="528" width="192" height="88" rx="6" class="mask"/>
+        <rect x="828" y="528" width="192" height="88" rx="6" class="node-box"/>
+        <rect x="836" y="534" width="28" height="12" rx="2" class="tag"/>
+        <text x="850" y="543" class="tag-txt">IPW</text>
+        <text x="924" y="562" class="node-name">IPW correction</text>
+        <text x="924" y="582" class="node-sub">1 / propensity(k)</text>
+        <text x="924" y="600" class="node-tool">naive 0.163 → 0.629</text>
+
+        <!-- Legend: horizontal strip inside the reserved bottom 60px -->
+        <line x1="40" y1="660" x2="1240" y2="660" class="rule"/>
+        <text x="40" y="700" class="legend-head">LEGEND</text>
+
+        <rect x="140" y="688" width="22" height="12" rx="2" class="tag"/>
+        <text x="151" y="697" class="legend-chip">RAW</text>
+        <text x="170" y="700" class="legend-txt">measured feeds</text>
+
+        <rect x="288" y="688" width="22" height="12" rx="2" class="tag"/>
+        <text x="299" y="697" class="legend-chip">SER</text>
+        <text x="318" y="700" class="legend-txt">modeled SERP</text>
+
+        <rect x="428" y="688" width="22" height="12" rx="2" class="tag"/>
+        <text x="439" y="697" class="legend-chip">REL</text>
+        <text x="458" y="700" class="legend-txt">ranking policy</text>
+
+        <rect x="578" y="688" width="22" height="12" rx="2" class="tag"/>
+        <text x="589" y="697" class="legend-chip">PBM</text>
+        <text x="608" y="700" class="legend-txt">click &amp; estimate</text>
+
+        <rect x="744" y="688" width="22" height="12" rx="2" class="tag-accent"/>
+        <text x="755" y="697" class="legend-chip legend-chip-accent">MON</text>
+        <text x="774" y="700" class="legend-txt">money metric · focal</text>
+
+        <line x1="920" y1="694" x2="944" y2="694" class="a-muted" marker-end="url(#arrow)"/>
+        <text x="952" y="700" class="legend-txt">data flow</text>
+
+        <line x1="1050" y1="694" x2="1074" y2="694" class="a-accent" marker-end="url(#arrow-accent)"/>
+        <text x="1082" y="700" class="legend-txt">headline result</text>
+      </svg>
+    </div>
+  </main>
+</body>
+</html>

@@ -33,6 +33,8 @@ related:
 
 # Causal / Uplift — CUPED and Individual Treatment Effects
 
+**▶ [Data-flow diagram](/diagrams/causal-uplift.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 A standard two-sample t-test answers only "does the treatment work on average" and ignores the pre-period. Experiments therefore ask for more traffic than they need, and retention offers go to everyone while only part of the audience responds.

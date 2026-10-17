@@ -69,6 +69,8 @@ children:
 
 # Volta Neobank — Product Analytics
 
+**▶ [Architecture diagram](/diagrams/volta-banking.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## The 30-second version
 
 - **Problem:** KYC was the onboarding bottleneck — the largest relative drop-off (56.6% step conversion).

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telegram-бот: A/B-тест из CSV · Process</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--soft);
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above - a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+
+    /* --- diagram surface ------------------------------------------------- */
+    .bg { fill: var(--paper); }
+    .dots { fill: url(#dots); }
+    .lane-tint { fill: rgba(228,228,231,0.025); }
+    .rule { stroke: var(--rule); stroke-width: 1; fill: none; }
+    .rule-strong { stroke: rgba(228,228,231,0.22); stroke-width: 1; fill: none; }
+
+    /* --- step header ----------------------------------------------------- */
+    .step-chip { fill: rgba(228,228,231,0.12); }
+    .step-num { font-family: var(--font-mono); font-size: 8px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .step-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.12em; fill: var(--muted); text-anchor: middle; }
+    .lane-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); text-anchor: middle; }
+
+    /* --- node treatments ------------------------------------------------- */
+    .node-mask { fill: var(--paper); }
+    .node { fill: rgba(228,228,231,0.04); stroke: rgba(228,228,231,0.20); stroke-width: 1; }
+    .node-focal { fill: rgba(255,133,105,0.12); stroke: var(--accent); stroke-width: 1.2; }
+    .role-chip { fill: rgba(228,228,231,0.12); }
+    .role-chip-focal { fill: rgba(255,133,105,0.22); }
+    .role { font-family: var(--font-mono); font-size: 7px; font-weight: 600; letter-spacing: 0.08em; fill: var(--ink); text-anchor: middle; }
+    .focal-txt { fill: var(--accent); }
+    .node-name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .node-sub { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); text-anchor: middle; }
+    .node-tool { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--soft); text-anchor: middle; }
+
+    /* --- payload chips (dark-mode values) -------------------------------- */
+    .chip-fl { fill: #b88670; }
+    .chip-db { fill: #82a0c0; }
+    .chip-tb { fill: #d3ad7a; }
+    .chip-txt { font-family: var(--font-mono); font-size: 6px; font-weight: 700; fill: var(--ink-strong); text-anchor: middle; }
+
+    /* --- connectors ------------------------------------------------------ */
+    .a-muted { stroke: var(--muted); stroke-width: 1; fill: none; }
+    .a-accent { stroke: var(--accent); stroke-width: 1.2; fill: none; }
+    .a-trigger { stroke: var(--muted); stroke-width: 1; fill: none; stroke-dasharray: 4,3; }
+    .arrow-label { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--soft); }
+
+    /* --- legend ---------------------------------------------------------- */
+    .legend-cat { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); }
+    .legend-txt { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--muted); }
+
+    .caption {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--soft);
+      margin-top: 16px;
+      max-width: 96ch;
+    }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Process · Telegram A/B bot</p>
+    <h1>Telegram-бот: A/B-тест из CSV</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="telegram-bot-title telegram-bot-desc">
+        <title id="telegram-bot-title">Telegram-бот: A/B-тест из CSV</title>
+        <desc id="telegram-bot-desc">Процесс A/B-бота в Telegram: пользователь присылает CSV после команды /abtest, хендлер aiogram проверяет лимиты загрузки и колонки group и metric, чистые модули analytics считают Welch t-тест или χ² с p-value, лифтом и 95% CI, гардрейлы SRM и power решают, можно ли доверять результату, и бот отвечает в чате текстом с графиком, записывая анализ в SQLite-историю.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="11" cy="11" r="0.8" fill="rgba(228,228,231,0.10)"/></pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff8569"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4ecdc4"/></marker>
+          <marker id="arrow-sm" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto"><polygon points="0 0, 6 2.5, 0 5" fill="#a1a1aa"/></marker>
+        </defs>
+
+        <!-- Ground -->
+        <rect width="1280" height="720" class="bg"/>
+        <rect width="1280" height="720" class="dots"/>
+
+        <!-- Lane structure: 4 actor lanes, 132px each (96 -> 624) -->
+        <rect x="40" y="96" width="1200" height="132" class="lane-tint"/>
+        <rect x="40" y="360" width="1200" height="132" class="lane-tint"/>
+        <line x1="40" y1="96" x2="1240" y2="96" class="rule"/>
+        <line x1="40" y1="228" x2="1240" y2="228" class="rule"/>
+        <line x1="40" y1="360" x2="1240" y2="360" class="rule"/>
+        <line x1="40" y1="492" x2="1240" y2="492" class="rule"/>
+        <line x1="40" y1="624" x2="1240" y2="624" class="rule"/>
+        <line x1="180" y1="96" x2="180" y2="624" class="rule-strong"/>
+
+        <!-- Step header: 6 columns -->
+        <rect x="254" y="44" width="16" height="16" rx="8" class="step-chip"/><text x="262" y="55" class="step-num">1</text><text x="262" y="76" class="step-label">SEND CSV</text>
+        <rect x="429" y="44" width="16" height="16" rx="8" class="step-chip"/><text x="437" y="55" class="step-num">2</text><text x="437" y="76" class="step-label">VALIDATE</text>
+        <rect x="604" y="44" width="16" height="16" rx="8" class="step-chip"/><text x="612" y="55" class="step-num">3</text><text x="612" y="76" class="step-label">AB TEST</text>
+        <rect x="779" y="44" width="16" height="16" rx="8" class="step-chip"/><text x="787" y="55" class="step-num">4</text><text x="787" y="76" class="step-label">GUARDRAIL</text>
+        <rect x="954" y="44" width="16" height="16" rx="8" class="step-chip"/><text x="962" y="55" class="step-num">5</text><text x="962" y="76" class="step-label">REPLY</text>
+        <rect x="1129" y="44" width="16" height="16" rx="8" class="step-chip"/><text x="1137" y="55" class="step-num">6</text><text x="1137" y="76" class="step-label">OUTPUT</text>
+
+        <!-- Connectors: drawn before the boxes so the lines sit behind the nodes.
+             Exit right, enter top/bottom, one 8px quarter-arc bend per route. -->
+        <path d="M336 162 H429 Q437 162 437 170 V250" class="a-muted" marker-end="url(#arrow)"/>
+        <path d="M511 294 H604 Q612 294 612 302 V382" class="a-muted" marker-end="url(#arrow)"/>
+        <line x1="686" y1="426" x2="713" y2="426" class="a-accent" marker-end="url(#arrow-accent)"/>
+        <path d="M861 426 H954 Q962 426 962 418 V338" class="a-muted" marker-end="url(#arrow)"/>
+        <path d="M1036 283 H1129 Q1137 283 1137 275 V206" class="a-muted" marker-end="url(#arrow)"/>
+        <path d="M1036 305 H1129 Q1137 305 1137 313 V514" class="a-trigger" marker-end="url(#arrow-sm)"/>
+
+        <!-- Arrow label: opaque mask, 8px clear of the stroke, in open canvas -->
+        <rect x="1145" y="407" width="34" height="12" rx="2" class="node-mask"/>
+        <text x="1147" y="416" class="arrow-label">WRITE</text>
+
+        <!-- NODE 1 · USR · SEND CSV -->
+        <rect x="188" y="118" width="148" height="88" rx="6" class="node-mask"/>
+        <rect x="188" y="118" width="148" height="88" rx="6" class="node"/>
+        <rect x="196" y="126" width="24" height="12" rx="2" class="role-chip"/><text x="208" y="134" class="role">USR</text>
+        <text x="262" y="154" class="node-name">Отправка CSV</text>
+        <text x="262" y="169" class="node-sub">csv upload → bot</text>
+        <text x="262" y="183" class="node-tool">telegram client</text>
+        <rect x="304" y="190" width="24" height="12" rx="2" class="chip-fl"/><text x="316" y="198" class="chip-txt">FL</text>
+
+        <!-- NODE 2 · BOT · VALIDATE -->
+        <rect x="363" y="250" width="148" height="88" rx="6" class="node-mask"/>
+        <rect x="363" y="250" width="148" height="88" rx="6" class="node"/>
+        <rect x="371" y="258" width="24" height="12" rx="2" class="role-chip"/><text x="383" y="266" class="role">BOT</text>
+        <text x="437" y="286" class="node-name">Валидация CSV</text>
+        <text x="437" y="301" class="node-sub">csv → validated df</text>
+        <text x="437" y="315" class="node-tool">aiogram 3 · pandas</text>
+        <rect x="371" y="322" width="24" height="12" rx="2" class="chip-fl"/><text x="383" y="330" class="chip-txt">FL</text>
+        <rect x="479" y="322" width="24" height="12" rx="2" class="chip-db"/><text x="491" y="330" class="chip-txt">DB</text>
+
+        <!-- NODE 3 · ANL · AB TEST -->
+        <rect x="538" y="382" width="148" height="88" rx="6" class="node-mask"/>
+        <rect x="538" y="382" width="148" height="88" rx="6" class="node"/>
+        <rect x="546" y="390" width="24" height="12" rx="2" class="role-chip"/><text x="558" y="398" class="role">ANL</text>
+        <text x="612" y="418" class="node-name">A/B-статистика</text>
+        <text x="612" y="433" class="node-sub">p-value · lift · ci</text>
+        <text x="612" y="447" class="node-tool">scipy · statsmodels</text>
+        <rect x="546" y="454" width="24" height="12" rx="2" class="chip-db"/><text x="558" y="462" class="chip-txt">DB</text>
+        <rect x="654" y="454" width="24" height="12" rx="2" class="chip-tb"/><text x="666" y="462" class="chip-txt">TB</text>
+
+        <!-- NODE 4 · ANL · GUARDRAIL (FOCAL) -->
+        <rect x="713" y="382" width="148" height="88" rx="6" class="node-mask"/>
+        <rect x="713" y="382" width="148" height="88" rx="6" class="node-focal"/>
+        <rect x="721" y="390" width="24" height="12" rx="2" class="role-chip-focal"/><text x="733" y="398" class="role focal-txt">ANL</text>
+        <text x="787" y="418" class="node-name">Гардрейлы</text>
+        <text x="787" y="433" class="node-sub">srm · power guardrails</text>
+        <text x="787" y="447" class="node-tool">chi2 · statsmodels</text>
+        <rect x="721" y="454" width="24" height="12" rx="2" class="chip-tb"/><text x="733" y="462" class="chip-txt">TB</text>
+        <rect x="829" y="454" width="24" height="12" rx="2" class="chip-tb"/><text x="841" y="462" class="chip-txt">TB</text>
+
+        <!-- NODE 5 · BOT · REPLY -->
+        <rect x="888" y="250" width="148" height="88" rx="6" class="node-mask"/>
+        <rect x="888" y="250" width="148" height="88" rx="6" class="node"/>
+        <rect x="896" y="258" width="24" height="12" rx="2" class="role-chip"/><text x="908" y="266" class="role">BOT</text>
+        <text x="962" y="286" class="node-name">Ответ и график</text>
+        <text x="962" y="301" class="node-sub">stats → chat reply</text>
+        <text x="962" y="315" class="node-tool">matplotlib</text>
+        <rect x="896" y="322" width="24" height="12" rx="2" class="chip-tb"/><text x="908" y="330" class="chip-txt">TB</text>
+        <rect x="1004" y="322" width="24" height="12" rx="2" class="chip-fl"/><text x="1016" y="330" class="chip-txt">FL</text>
+
+        <!-- NODE 6 · USR · OUTPUT -->
+        <rect x="1063" y="118" width="148" height="88" rx="6" class="node-mask"/>
+        <rect x="1063" y="118" width="148" height="88" rx="6" class="node"/>
+        <rect x="1071" y="126" width="24" height="12" rx="2" class="role-chip"/><text x="1083" y="134" class="role">USR</text>
+        <text x="1137" y="154" class="node-name">Ответ в чате</text>
+        <text x="1137" y="169" class="node-sub">under a minute</text>
+        <text x="1137" y="183" class="node-tool">telegram chat</text>
+        <rect x="1071" y="190" width="24" height="12" rx="2" class="chip-fl"/><text x="1083" y="198" class="chip-txt">FL</text>
+
+        <!-- NODE 7 · HIS · OUTPUT -->
+        <rect x="1063" y="514" width="148" height="88" rx="6" class="node-mask"/>
+        <rect x="1063" y="514" width="148" height="88" rx="6" class="node"/>
+        <rect x="1071" y="522" width="24" height="12" rx="2" class="role-chip"/><text x="1083" y="530" class="role">HIS</text>
+        <text x="1137" y="550" class="node-name">История</text>
+        <text x="1137" y="565" class="node-sub">last 10 · /export</text>
+        <text x="1137" y="579" class="node-tool">sqlite</text>
+        <rect x="1071" y="586" width="24" height="12" rx="2" class="chip-fl"/><text x="1083" y="594" class="chip-txt">FL</text>
+
+        <!-- Lane labels (actors) -->
+        <text x="110" y="156" class="lane-label">TELEGRAM</text><text x="110" y="168" class="lane-label">CLIENT</text>
+        <text x="110" y="288" class="lane-label">BOT</text><text x="110" y="300" class="lane-label">AIOGRAM 3</text>
+        <text x="110" y="420" class="lane-label">ANALYTICS</text><text x="110" y="432" class="lane-label">PURE MODULES</text>
+        <text x="110" y="552" class="lane-label">STATE</text><text x="110" y="564" class="lane-label">SQLITE</text>
+
+        <!-- Legend: horizontal strip inside the reserved bottom 60px -->
+        <line x1="40" y1="660" x2="1240" y2="660" class="rule"/>
+        <text x="40" y="676" class="legend-cat">NODE</text>
+        <rect x="100" y="664" width="24" height="12" rx="2" class="node"/>
+        <text x="134" y="676" class="legend-txt">PROCESS STEP</text>
+        <text x="300" y="676" class="legend-txt">ACCENT OUTLINE = FOCAL GUARDRAIL</text>
+
+        <text x="40" y="696" class="legend-cat">PAYLOAD</text>
+        <rect x="120" y="688" width="24" height="12" rx="2" class="chip-fl"/><text x="132" y="696" class="chip-txt">FL</text>
+        <text x="152" y="696" class="legend-txt">CSV UPLOAD</text>
+        <rect x="264" y="688" width="24" height="12" rx="2" class="chip-db"/><text x="276" y="696" class="chip-txt">DB</text>
+        <text x="296" y="696" class="legend-txt">VALIDATED DATA</text>
+        <rect x="428" y="688" width="24" height="12" rx="2" class="chip-tb"/><text x="440" y="696" class="chip-txt">TB</text>
+        <text x="460" y="696" class="legend-txt">STAT RESULT</text>
+        <text x="620" y="696" class="legend-txt">LEFT CHIP = INPUT · RIGHT CHIP = OUTPUT</text>
+
+        <text x="40" y="714" class="legend-cat">FLOW</text>
+        <line x1="120" y1="708" x2="144" y2="708" class="a-muted" marker-end="url(#arrow)"/>
+        <text x="154" y="714" class="legend-txt">STEP HANDOFF</text>
+        <line x1="290" y1="708" x2="314" y2="708" class="a-trigger" marker-end="url(#arrow-sm)"/>
+        <text x="324" y="714" class="legend-txt">PASSIVE WRITE</text>
+      </svg>
+    </div>
+
+    <p class="caption">Схема процесса: пользователь присылает CSV после команды <code>/abtest</code>, хендлер aiogram проверяет лимиты загрузки (10 МБ / 100k строк) и колонки <code>group</code>, <code>metric</code>, чистые модули <code>src/analytics/</code> считают Welch t-тест или χ² с p-value, лифтом и 95% CI, гардрейлы SRM и power решают, можно ли доверять результату, и бот отвечает в чате текстом с графиком. Оранжевый контур и оранжевая стрелка — единственный фокус схемы: хендофф статистики в гардрейл-гейт. Пунктир — пассивная запись последних 10 анализов в SQLite (оттуда же <code>/export</code> в standalone HTML). Токен бота читается только из переменной окружения <code>BOT_TOKEN</code>, опциональный <code>ADMIN_IDS</code> закрывает доступ аллоулистом; данные пользователей в схему не выносятся.</p>
+  </main>
+</body>
+</html>

@@ -41,6 +41,8 @@ faq:
 
 # A/B Testing Methodology Toolkit
 
+**▶ [Architecture diagram](/diagrams/ab-test.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 An A/B testing method is only as good as its Type I error under the null and its power under a real effect. In practice those promises are rarely checked: naive peeking, a wrong SE for ratio metrics, and multiple testing silently break decisions. The toolkit implements 18 methods from the primary literature and calibrates each one by simulation instead of trusting asymptotics.

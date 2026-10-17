@@ -31,6 +31,8 @@ related:
 
 # Python Analytics Playground
 
+**▶ [Data-flow diagram](/diagrams/python.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 In product analytics, most tasks start the same way: load an export, clean it, look at distributions and correlations, show charts. This project turns that routine into reusable modules — so every new analysis starts not from scratch, but from a tested foundation you can hand to teammates and extend without fear of breaking it.

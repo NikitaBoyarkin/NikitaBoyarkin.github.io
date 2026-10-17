@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DuckDB medallion · SQL analytics case study</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--soft);
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above - a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+
+    /* --- diagram surface ------------------------------------------------- */
+    .bg { fill: var(--paper); }
+    .dots { fill: url(#dots); }
+    .rule { stroke: var(--rule); stroke-width: 1; fill: none; }
+
+    /* --- tier cards (bronze / silver / gold) ----------------------------- */
+    .tier-mask { fill: var(--paper); }
+    .tier-bronze { fill: rgba(228,228,231,0.03); stroke: var(--muted); stroke-width: 1; }
+    .tier-silver { fill: rgba(228,228,231,0.04); stroke: rgba(228,228,231,0.30); stroke-width: 1; }
+    .tier-gold { fill: rgba(255,133,105,0.10); stroke: var(--accent); stroke-width: 1.2; }
+    .band-bronze { fill: rgba(143,143,153,0.16); }
+    .band-silver { fill: rgba(228,228,231,0.08); }
+    .band-gold { fill: rgba(255,133,105,0.20); }
+    .chip { fill: none; stroke: rgba(143,143,153,0.45); stroke-width: 0.8; }
+    .chip-silver { fill: none; stroke: rgba(228,228,231,0.40); stroke-width: 0.8; }
+    .chip-gold { fill: none; stroke: rgba(255,133,105,0.55); stroke-width: 0.8; }
+    .chip-txt { font-family: var(--font-mono); font-size: 7px; font-weight: 500; letter-spacing: 0.08em; fill: var(--muted); text-anchor: middle; }
+    .chip-txt-silver { font-family: var(--font-mono); font-size: 7px; font-weight: 500; letter-spacing: 0.08em; fill: var(--ink); text-anchor: middle; }
+    .chip-txt-gold { font-family: var(--font-mono); font-size: 7px; font-weight: 500; letter-spacing: 0.08em; fill: var(--accent); text-anchor: middle; }
+    .tier-name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); }
+    .tier-bucket { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); text-anchor: end; }
+    .focal-txt { fill: var(--accent); }
+    .field-label { font-family: var(--font-sans); font-size: 11px; font-weight: 600; fill: var(--ink); }
+    .field-value { font-family: var(--font-mono); font-size: 9px; font-weight: 400; color: var(--muted); }
+    .example-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.14em; fill: var(--soft); }
+    .example-value { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); }
+
+    /* --- metric readouts (bottom row) ------------------------------------ */
+    .readout { fill: var(--paper-3); stroke: rgba(228,228,231,0.20); stroke-width: 1; }
+    .readout-chip { fill: none; stroke: rgba(228,228,231,0.35); stroke-width: 0.8; }
+    .readout-chip-txt { font-family: var(--font-mono); font-size: 7px; font-weight: 500; letter-spacing: 0.08em; fill: var(--ink); text-anchor: middle; }
+    .readout-value { font-family: var(--font-sans); font-size: 18px; font-weight: 600; fill: var(--ink); }
+    .readout-sub { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); }
+
+    /* --- connectors ------------------------------------------------------ */
+    .a-promo { stroke: var(--muted); stroke-width: 1.4; fill: none; }
+    .a-promo-focal { stroke: var(--accent); stroke-width: 1.6; fill: none; }
+    .a-read { stroke: var(--muted); stroke-width: 1; fill: none; }
+    .label-mask { fill: var(--paper); }
+    .arrow-label { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--soft); }
+
+    /* --- legend ---------------------------------------------------------- */
+    .legend-head { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.14em; fill: var(--muted); }
+    .legend-txt { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--muted); }
+  </style>
+</head>
+<body>
+  <!--
+    Medallion · parametric inputs (derived geometry, 4px grid)
+    canvas   1280 × 720 · 40px outer margin · bottom 60px legend strip
+    tiers    bronze (x=40) · silver (x=448) · gold focal (x=856) · w=384 h=312 y=104 gap=24
+    promotions  bronze→silver (muted 1.4) · silver→gold (accent 1.6, focal)
+    readouts funnel (x=40) · retention (x=448) · repeat (x=856) · w=384 h=112 y=500
+    connects gold bottom edge → readouts: 904 / 984 / 1048 (32px+ apart)
+  -->
+  <main class="frame">
+    <p class="eyebrow">Medallion · SQL analytics case study</p>
+    <h1>DuckDB medallion: raw → staging → marts → readouts</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sql-analytics-title sql-analytics-desc">
+        <title id="sql-analytics-title">DuckDB medallion for the SQL analytics case study</title>
+        <desc id="sql-analytics-desc">A three-tier DuckDB medallion in which seeded raw tables and a real retail parquet land in a bronze zone, dbt staging views clean and test them into a silver zone, and dbt marts answer funnel, retention and MRR questions in the gold zone; three metric readouts then surface a 78% add-to-cart-to-checkout drop, D1-to-D30 retention falling from 19.5% to 4.2%, and a 3.5% repeat-buyer rate.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.9" fill="rgba(228,228,231,0.10)"/>
+          </pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff8569"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4ecdc4"/></marker>
+          <clipPath id="clip-bronze"><rect x="40" y="104" width="384" height="312" rx="8"/></clipPath>
+          <clipPath id="clip-silver"><rect x="448" y="104" width="384" height="312" rx="8"/></clipPath>
+          <clipPath id="clip-gold"><rect x="856" y="104" width="384" height="312" rx="8"/></clipPath>
+        </defs>
+
+        <!-- Ground -->
+        <rect width="100%" height="100%" class="bg"/>
+        <rect width="100%" height="100%" class="dots" opacity="0.6"/>
+
+        <!-- Connectors first: arcs promote bronze → silver → gold, straight runs read the gold layer into the readouts -->
+        <path d="M 232,104 C 232,16 624,16 624,104" class="a-promo" marker-end="url(#arrow)"/>
+        <path d="M 656,104 C 656,16 1048,16 1048,104" class="a-promo-focal" marker-end="url(#arrow-accent)"/>
+        <path d="M 904,416 L 904,440 Q 904,448 896,448 L 240,448 Q 232,448 232,456 L 232,500" class="a-read" marker-end="url(#arrow)"/>
+        <path d="M 984,416 L 984,476 Q 984,484 976,484 L 648,484 Q 640,484 640,492 L 640,500" class="a-read" marker-end="url(#arrow)"/>
+        <path d="M 1048,416 L 1048,500" class="a-read" marker-end="url(#arrow)"/>
+
+        <!-- Arrow labels: opaque masks, 8px clear of their own stroke -->
+        <rect x="396" y="72" width="64" height="12" rx="2" class="label-mask"/>
+        <text x="428" y="80" class="arrow-label" text-anchor="middle">STAGE + TEST</text>
+        <rect x="820" y="72" width="64" height="12" rx="2" class="label-mask"/>
+        <text x="852" y="80" class="arrow-label" text-anchor="middle">MATERIALIZE</text>
+
+        <rect x="388" y="428" width="64" height="12" rx="2" class="label-mask"/>
+        <text x="420" y="436" class="arrow-label" text-anchor="middle">FCT_FUNNEL</text>
+        <rect x="760" y="464" width="80" height="12" rx="2" class="label-mask"/>
+        <text x="800" y="472" class="arrow-label" text-anchor="middle">FCT_RETENTION</text>
+        <rect x="1056" y="444" width="64" height="12" rx="2" class="label-mask"/>
+        <text x="1060" y="452" class="arrow-label">SQL CASE 19</text>
+
+        <!-- Bronze tier: raw landing zone -->
+        <rect x="40" y="104" width="384" height="312" rx="8" class="tier-mask"/>
+        <rect x="40" y="104" width="384" height="312" rx="8" class="tier-bronze"/>
+        <rect x="40" y="104" width="384" height="52" class="band-bronze" clip-path="url(#clip-bronze)"/>
+        <rect x="60" y="124" width="56" height="12" rx="2" class="chip"/>
+        <text x="88" y="132" class="chip-txt">BRONZE</text>
+        <text x="124" y="132" class="tier-name">Raw landing</text>
+        <text x="404" y="132" class="tier-bucket">main · duckdb</text>
+        <text x="60" y="196" class="field-label">Source</text>
+        <foreignObject x="60" y="204" width="344" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="field-value" style="line-height:1.25">generate_data.py · seed 42</div></foreignObject>
+        <text x="60" y="244" class="field-label">Tables</text>
+        <foreignObject x="60" y="252" width="344" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="field-value" style="line-height:1.25">users · events · orders · subscriptions</div></foreignObject>
+        <text x="60" y="292" class="field-label">Checks</text>
+        <foreignObject x="60" y="300" width="344" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="field-value" style="line-height:1.25">byte-identical re-runs · CI green</div></foreignObject>
+        <line x1="60" y1="344" x2="404" y2="344" class="rule"/>
+        <text x="60" y="360" class="example-label">REAL-DATA CASE 26</text>
+        <text x="60" y="376" class="example-value">UCI Online Retail II parquet</text>
+        <text x="60" y="392" class="example-value">1,067,371 real invoice lines</text>
+
+        <!-- Silver tier: dbt staging views -->
+        <rect x="448" y="104" width="384" height="312" rx="8" class="tier-mask"/>
+        <rect x="448" y="104" width="384" height="312" rx="8" class="tier-silver"/>
+        <rect x="448" y="104" width="384" height="52" class="band-silver" clip-path="url(#clip-silver)"/>
+        <rect x="468" y="124" width="56" height="12" rx="2" class="chip-silver"/>
+        <text x="496" y="132" class="chip-txt-silver">SILVER</text>
+        <text x="532" y="132" class="tier-name">Staging views</text>
+        <text x="812" y="132" class="tier-bucket">staging · dbt</text>
+        <text x="468" y="196" class="field-label">Source</text>
+        <foreignObject x="468" y="204" width="344" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="field-value" style="line-height:1.25">dbt view over source()</div></foreignObject>
+        <text x="468" y="244" class="field-label">Tables</text>
+        <foreignObject x="468" y="252" width="344" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="field-value" style="line-height:1.25">stg_users · stg_events · stg_subscriptions</div></foreignObject>
+        <text x="468" y="292" class="field-label">Checks</text>
+        <foreignObject x="468" y="300" width="344" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="field-value" style="line-height:1.25">17 tests inside dbt build</div></foreignObject>
+        <line x1="468" y1="344" x2="812" y2="344" class="rule"/>
+        <text x="468" y="360" class="example-label">CLEANING LIVES HERE</text>
+        <text x="468" y="376" class="example-value">typed · de-duplicated · keyed</text>
+        <text x="468" y="392" class="example-value">relationships enforced</text>
+
+        <!-- Gold tier (focal): dbt marts -->
+        <rect x="856" y="104" width="384" height="312" rx="8" class="tier-mask"/>
+        <rect x="856" y="104" width="384" height="312" rx="8" class="tier-gold"/>
+        <rect x="856" y="104" width="384" height="52" class="band-gold" clip-path="url(#clip-gold)"/>
+        <rect x="876" y="124" width="56" height="12" rx="2" class="chip-gold"/>
+        <text x="904" y="132" class="chip-txt-gold">GOLD</text>
+        <text x="940" y="132" class="tier-name">Marts</text>
+        <text x="1220" y="132" class="tier-bucket focal-txt">marts · dbt</text>
+        <text x="876" y="196" class="field-label">Source</text>
+        <foreignObject x="876" y="204" width="344" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="field-value" style="line-height:1.25">dbt table materialization</div></foreignObject>
+        <text x="876" y="244" class="field-label">Tables</text>
+        <foreignObject x="876" y="252" width="344" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="field-value" style="line-height:1.25">fct_funnel · fct_retention · fct_mrr</div></foreignObject>
+        <text x="876" y="292" class="field-label">Checks</text>
+        <foreignObject x="876" y="300" width="344" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="field-value" style="line-height:1.25">golden answers · cases 01 · 02 · 14 · 19</div></foreignObject>
+        <line x1="876" y1="344" x2="1220" y2="344" class="rule"/>
+        <text x="876" y="360" class="example-label">WHAT THE MARTS ANSWER</text>
+        <text x="876" y="376" class="example-value focal-txt">where the funnel leaks</text>
+        <text x="876" y="392" class="example-value focal-txt">how cohorts decay</text>
+
+        <!-- Metric readouts: the three findings -->
+        <rect x="40" y="500" width="384" height="112" rx="8" class="tier-mask"/>
+        <rect x="40" y="500" width="384" height="112" rx="8" class="readout"/>
+        <rect x="60" y="512" width="64" height="12" rx="2" class="readout-chip"/>
+        <text x="92" y="520" class="readout-chip-txt">FUNNEL</text>
+        <text x="60" y="552" class="readout-value">78% drop</text>
+        <text x="60" y="576" class="readout-sub">case 01 · add-to-cart → checkout</text>
+        <text x="60" y="592" class="readout-sub">the single biggest leak</text>
+
+        <rect x="448" y="500" width="384" height="112" rx="8" class="tier-mask"/>
+        <rect x="448" y="500" width="384" height="112" rx="8" class="readout"/>
+        <rect x="468" y="512" width="64" height="12" rx="2" class="readout-chip"/>
+        <text x="500" y="520" class="readout-chip-txt">RETENTION</text>
+        <text x="468" y="552" class="readout-value">19.5% → 4.2%</text>
+        <text x="468" y="576" class="readout-sub">case 02 · D1 → D30 · 5.0% mature</text>
+        <text x="468" y="592" class="readout-sub">the leak is the onboarding window</text>
+
+        <rect x="856" y="500" width="384" height="112" rx="8" class="tier-mask"/>
+        <rect x="856" y="500" width="384" height="112" rx="8" class="readout"/>
+        <rect x="876" y="512" width="64" height="12" rx="2" class="readout-chip"/>
+        <text x="908" y="520" class="readout-chip-txt">REPEAT</text>
+        <text x="876" y="552" class="readout-value">3.5%</text>
+        <text x="876" y="576" class="readout-sub">case 19 · 896 buyers · 31 repeat</text>
+        <text x="876" y="592" class="readout-sub">a one-and-done purchase engine</text>
+
+        <!-- Legend: horizontal strip inside the reserved bottom 60px -->
+        <line x1="40" y1="660" x2="1240" y2="660" class="rule"/>
+        <text x="40" y="676" class="legend-head">LEGEND</text>
+        <rect x="140" y="668" width="16" height="12" rx="2" class="tier-bronze"/>
+        <text x="164" y="676" class="legend-txt">BRONZE · RAW LANDING</text>
+        <rect x="288" y="668" width="16" height="12" rx="2" class="tier-silver"/>
+        <text x="312" y="676" class="legend-txt">SILVER · STAGING VIEWS</text>
+        <rect x="448" y="668" width="16" height="12" rx="2" class="tier-gold"/>
+        <text x="472" y="676" class="legend-txt">GOLD · MART (FOCAL)</text>
+        <rect x="588" y="668" width="16" height="12" rx="2" class="readout"/>
+        <text x="612" y="676" class="legend-txt">METRIC READOUT</text>
+        <line x1="708" y1="674" x2="732" y2="674" class="a-read" marker-end="url(#arrow)"/>
+        <text x="740" y="676" class="legend-txt">MUTED = PROMOTION · READOUT</text>
+        <line x1="898" y1="674" x2="922" y2="674" class="a-promo-focal" marker-end="url(#arrow-accent)"/>
+        <text x="930" y="676" class="legend-txt">ACCENT = INTO FOCAL</text>
+      </svg>
+    </div>
+  </main>
+</body>
+</html>

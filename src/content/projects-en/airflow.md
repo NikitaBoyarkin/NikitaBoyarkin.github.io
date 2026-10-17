@@ -44,6 +44,8 @@ faq:
 
 # Airflow DAG Platform
 
+**▶ [Data-flow diagram](/diagrams/airflow.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 A hand-run sales report — a SQL client, then a copy of the aggregate into Google Sheets — produced delays, copy errors and no reproducibility. A missed or failed run went unnoticed, and a new report had to be built from scratch.

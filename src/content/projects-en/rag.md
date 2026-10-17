@@ -32,6 +32,8 @@ related:
 
 # RAG Evaluation Harness — retrieval and generation metrics
 
+**▶ [Data-flow diagram](/diagrams/rag-eval-harness.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 A RAG pipeline is easy to demo on one lucky question and almost impossible to measure: you cannot tell where quality is lost — in document retrieval or in answer generation — or whether the result reproduces at all without external services. Without an offline harness, any "it got better" stays an impression, not a number.

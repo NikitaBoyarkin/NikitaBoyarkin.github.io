@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio site — content to Pages · Architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+
+    .mono { font-family: var(--font-mono); }
+    .sans { font-family: var(--font-sans); }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Portfolio site</p>
+    <h1>Portfolio site — content to Pages</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="portfolio-site-title portfolio-site-desc">
+        <title id="portfolio-site-title">Portfolio site — content to Pages</title>
+        <desc id="portfolio-site-desc">Architecture diagram of the bilingual Astro portfolio: Markdown content collections, src/lib logic and components feed the Astro 7 static build, whose dist/ output is inspected by the make check gate and published by GitHub Actions to GitHub Pages, with PostHog and the Supabase contact backend hanging off the shipped site as the external measurement layer.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/>
+          </marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#ff8569"/>
+          </marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#4ecdc4"/>
+          </marker>
+        </defs>
+
+        <rect width="1280" height="720" fill="#0f2a2b"/>
+
+        <!-- Zones first: bg → zones → arrows → nodes -->
+        <rect x="64" y="96" width="1152" height="112" rx="8" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <rect x="72" y="100" width="64" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="104" y="109" fill="#8f8f99" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.14em">SOURCE</text>
+
+        <rect x="64" y="240" width="1152" height="112" rx="8" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <rect x="72" y="244" width="56" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="100" y="253" fill="#8f8f99" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.14em">BUILD</text>
+
+        <rect x="64" y="384" width="1152" height="112" rx="8" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.10)" stroke-width="0.8"/>
+        <rect x="72" y="388" width="76" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="110" y="397" fill="#8f8f99" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.14em">PUBLISH</text>
+
+        <!-- Arrows, drawn before the nodes -->
+        <line x1="256" y1="192" x2="256" y2="272" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="640" y1="192" x2="640" y2="272" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="1024" y1="192" x2="1024" y2="272" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="256" y1="336" x2="256" y2="416" stroke="#ff8569" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <line x1="416" y1="448" x2="480" y2="448" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="800" y1="448" x2="864" y2="448" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="256" y1="480" x2="256" y2="560" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+        <path d="M 352,480 V 520 Q 352,528 360,528 H 632 Q 640,528 640,536 V 560" fill="none" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <line x1="1024" y1="480" x2="1024" y2="560" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+
+        <!-- Arrow labels: opaque masks, 8px clear of every stroke -->
+        <rect x="264" y="220" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="288" y="229" fill="#8f8f99" font-size="8" text-anchor="middle" letter-spacing="0.06em">MD · ZOD</text>
+
+        <rect x="648" y="220" width="60" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="678" y="229" fill="#8f8f99" font-size="8" text-anchor="middle" letter-spacing="0.06em">TS MODULE</text>
+
+        <rect x="1032" y="220" width="52" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="1058" y="229" fill="#8f8f99" font-size="8" text-anchor="middle" letter-spacing="0.06em">ASTRO UI</text>
+
+        <rect x="264" y="364" width="60" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="294" y="373" fill="#ff8569" font-size="8" text-anchor="middle" letter-spacing="0.06em">EMITS DIST</text>
+
+        <rect x="424" y="428" width="48" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="448" y="437" fill="#8f8f99" font-size="8" text-anchor="middle" letter-spacing="0.06em">ARTIFACT</text>
+
+        <rect x="812" y="428" width="40" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="832" y="437" fill="#8f8f99" font-size="8" text-anchor="middle" letter-spacing="0.06em">DEPLOY</text>
+
+        <rect x="264" y="508" width="44" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="286" y="517" fill="#8f8f99" font-size="8" text-anchor="middle" letter-spacing="0.06em">INSPECT</text>
+
+        <rect x="436" y="508" width="72" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="472" y="517" fill="#4ecdc4" font-size="8" text-anchor="middle" letter-spacing="0.06em">CONTACT POST</text>
+
+        <rect x="1032" y="508" width="60" height="12" rx="2" fill="#0f2a2b"/>
+        <text class="mono" x="1062" y="517" fill="#4ecdc4" font-size="8" text-anchor="middle" letter-spacing="0.06em">POSTHOG-JS</text>
+
+        <!-- Tier 1 — SOURCE, in repo -->
+        <rect x="96" y="128" width="320" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="96" y="128" width="320" height="64" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="104" y="134" width="32" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text class="mono" x="120" y="143" fill="rgba(228,228,231,0.80)" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.08em">SRC</text>
+        <text class="sans" x="256" y="162" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">Content collections</text>
+        <text class="mono" x="256" y="178" fill="#a1a1aa" font-size="9" text-anchor="middle">projects · posts · volta-parts</text>
+
+        <rect x="480" y="128" width="320" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="480" y="128" width="320" height="64" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="488" y="134" width="32" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text class="mono" x="504" y="143" fill="rgba(228,228,231,0.80)" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.08em">SRC</text>
+        <text class="sans" x="640" y="162" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">src/lib domain logic</text>
+        <text class="mono" x="640" y="178" fill="#a1a1aa" font-size="9" text-anchor="middle">metrics · graph · charts · topics</text>
+
+        <rect x="864" y="128" width="320" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="864" y="128" width="320" height="64" rx="6" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="872" y="134" width="32" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text class="mono" x="888" y="143" fill="rgba(228,228,231,0.80)" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.08em">SRC</text>
+        <text class="sans" x="1024" y="162" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">Components &amp; styles</text>
+        <text class="mono" x="1024" y="178" fill="#a1a1aa" font-size="9" text-anchor="middle">40 components · 3 themes</text>
+
+        <!-- Tier 2 — BUILD (focal) -->
+        <rect x="96" y="272" width="1088" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="96" y="272" width="1088" height="64" rx="6" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <rect x="104" y="278" width="44" height="12" rx="2" fill="transparent" stroke="rgba(255,133,105,0.50)" stroke-width="0.8"/>
+        <text class="mono" x="126" y="287" fill="#ff8569" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.08em">BUILD</text>
+        <text class="sans" x="640" y="306" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">Astro 7 build</text>
+        <text class="mono" x="640" y="322" fill="#a1a1aa" font-size="9" text-anchor="middle">bun run build · output: static</text>
+        <text class="mono" x="1168" y="306" fill="#8f8f99" font-size="8" text-anchor="end">rss · sitemap · llms.txt · search-index.json</text>
+
+        <!-- Tier 3 — PUBLISH: artifact → workflow → host -->
+        <rect x="96" y="416" width="320" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="96" y="416" width="320" height="64" rx="6" fill="#234044" stroke="#3f3f46" stroke-width="1"/>
+        <rect x="104" y="422" width="30" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.40)" stroke-width="0.8"/>
+        <text class="mono" x="119" y="431" fill="rgba(228,228,231,0.80)" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.08em">OUT</text>
+        <text class="sans" x="256" y="450" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">dist/</text>
+        <text class="mono" x="256" y="466" fill="#a1a1aa" font-size="9" text-anchor="middle">routes + generated endpoints</text>
+
+        <rect x="480" y="416" width="320" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="480" y="416" width="320" height="64" rx="6" fill="#1a3435" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="488" y="422" width="24" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.60)" stroke-width="0.8"/>
+        <text class="mono" x="500" y="431" fill="#a1a1aa" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.08em">CI</text>
+        <text class="sans" x="640" y="450" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">deploy.yml</text>
+        <text class="mono" x="640" y="466" fill="#a1a1aa" font-size="9" text-anchor="middle">Actions · gates · Lighthouse CI</text>
+
+        <rect x="864" y="416" width="320" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="864" y="416" width="320" height="64" rx="6" fill="#234044" stroke="#e4e4e7" stroke-width="1"/>
+        <rect x="872" y="422" width="36" height="12" rx="2" fill="transparent" stroke="rgba(228,228,231,0.50)" stroke-width="0.8"/>
+        <text class="mono" x="890" y="431" fill="#e4e4e7" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.08em">HOST</text>
+        <text class="sans" x="1024" y="450" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">GitHub Pages</text>
+        <text class="mono" x="1024" y="466" fill="#a1a1aa" font-size="9" text-anchor="middle">site + /en/ mirror</text>
+
+        <!-- Tier 4 — verification gate, then the external layer -->
+        <text class="mono" x="480" y="548" fill="#8f8f99" font-size="8" font-weight="500" letter-spacing="0.14em">EXTERNAL · MEASUREMENT</text>
+
+        <rect x="96" y="560" width="320" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="96" y="560" width="320" height="64" rx="6" fill="#1a3435" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="104" y="566" width="24" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.60)" stroke-width="0.8"/>
+        <text class="mono" x="116" y="575" fill="#a1a1aa" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.08em">CI</text>
+        <text class="sans" x="256" y="594" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">make check</text>
+        <text class="mono" x="256" y="610" fill="#a1a1aa" font-size="9" text-anchor="middle">check_site.py inspects dist/</text>
+
+        <rect x="480" y="560" width="320" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="480" y="560" width="320" height="64" rx="6" fill="#1a3435" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="4,3"/>
+        <rect x="488" y="566" width="28" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.60)" stroke-width="0.8"/>
+        <text class="mono" x="502" y="575" fill="#a1a1aa" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+        <text class="sans" x="640" y="594" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">Contact backend</text>
+        <text class="mono" x="640" y="610" fill="#a1a1aa" font-size="9" text-anchor="middle">Supabase Edge Fn · form inert</text>
+
+        <rect x="864" y="560" width="320" height="64" rx="6" fill="#0f2a2b"/>
+        <rect x="864" y="560" width="320" height="64" rx="6" fill="#1a3435" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="4,3"/>
+        <rect x="872" y="566" width="28" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.60)" stroke-width="0.8"/>
+        <text class="mono" x="886" y="575" fill="#a1a1aa" font-size="7" font-weight="500" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+        <text class="sans" x="1024" y="594" fill="#e4e4e7" font-size="12" font-weight="600" text-anchor="middle">PostHog</text>
+        <text class="mono" x="1024" y="610" fill="#a1a1aa" font-size="9" text-anchor="middle">posthog-js · lazy · typed events</text>
+
+        <!-- Legend strip, inside the reserved bottom 60px -->
+        <line x1="40" y1="662" x2="1240" y2="662" stroke="rgba(228,228,231,0.14)" stroke-width="0.8"/>
+        <text class="mono" x="40" y="678" fill="#a1a1aa" font-size="8" font-weight="500" letter-spacing="0.14em">LEGEND</text>
+
+        <rect x="140" y="672" width="14" height="10" rx="2" fill="#1a3435" stroke="#3f3f46" stroke-width="1"/>
+        <text class="sans" x="162" y="681" fill="#a1a1aa" font-size="10">In-repo source</text>
+
+        <rect x="330" y="672" width="14" height="10" rx="2" fill="rgba(255,133,105,0.10)" stroke="#ff8569" stroke-width="1"/>
+        <text class="sans" x="352" y="681" fill="#a1a1aa" font-size="10">Build (focal)</text>
+
+        <rect x="520" y="672" width="14" height="10" rx="2" fill="#234044" stroke="#3f3f46" stroke-width="1"/>
+        <text class="sans" x="542" y="681" fill="#a1a1aa" font-size="10">Build output</text>
+
+        <rect x="700" y="672" width="14" height="10" rx="2" fill="#1a3435" stroke="#a1a1aa" stroke-width="1"/>
+        <text class="sans" x="722" y="681" fill="#a1a1aa" font-size="10">CI · gate</text>
+
+        <rect x="880" y="672" width="14" height="10" rx="2" fill="#234044" stroke="#e4e4e7" stroke-width="1"/>
+        <text class="sans" x="902" y="681" fill="#a1a1aa" font-size="10">Hosting</text>
+
+        <rect x="1060" y="672" width="14" height="10" rx="2" fill="#1a3435" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="4,3"/>
+        <text class="sans" x="1082" y="681" fill="#a1a1aa" font-size="10">External service</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

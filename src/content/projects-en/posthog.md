@@ -34,6 +34,8 @@ related:
 
 # TaskFlow — PostHog Product Analytics Pipeline
 
+**▶ [Data-flow diagram](/diagrams/posthog-saas-analytics.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 Most analytics portfolios start with a ready-made CSV. This project starts earlier — with instrumenting an application: define events without PII leaks, get them into the analytics tool, and turn raw events into decisions. The pipeline runs the whole cycle — generate traffic, capture events, analyze, dashboard, and deploy.

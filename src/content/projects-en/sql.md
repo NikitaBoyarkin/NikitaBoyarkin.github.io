@@ -39,6 +39,8 @@ faq:
 
 # SQL Analytics Case Study
 
+**▶ [Data-layer diagram](/diagrams/sql-analytics.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 A take-home format: prove SQL skill on product tasks when there is no production data, and textbook exercises do not demonstrate systems thinking. 25 end-to-end cases on a synthetic product dataset **plus one real-data case** on UCI Online Retail II.

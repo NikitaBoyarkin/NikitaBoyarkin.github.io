@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reproducible Python analytics pipeline · Data flow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1-2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--soft);
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above - a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+
+    /* --- diagram surface ------------------------------------------------- */
+    .bg { fill: var(--paper); }
+    .dots { fill: url(#dots); }
+    .lane-tint { fill: rgba(228,228,231,0.025); }
+    .rule { stroke: var(--rule); stroke-width: 1; fill: none; }
+
+    /* --- step header ----------------------------------------------------- */
+    .step-chip { fill: rgba(228,228,231,0.12); }
+    .step-num { font-family: var(--font-mono); font-size: 8px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .step-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.12em; fill: var(--muted); text-anchor: middle; }
+    .lane-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); text-anchor: middle; }
+
+    /* --- node treatments ------------------------------------------------- */
+    .node-mask { fill: var(--paper); }
+    .node { fill: rgba(228,228,231,0.04); stroke: rgba(228,228,231,0.20); stroke-width: 1; }
+    .node-focal { fill: rgba(255,133,105,0.12); stroke: var(--accent); stroke-width: 1.2; }
+    .node-verify { fill: rgba(228,228,231,0.02); stroke: rgba(228,228,231,0.20); stroke-width: 1; stroke-dasharray: 4,3; }
+    .role-chip { fill: rgba(228,228,231,0.12); }
+    .role-chip-focal { fill: rgba(255,133,105,0.22); }
+    .role { font-family: var(--font-mono); font-size: 7px; font-weight: 600; letter-spacing: 0.08em; fill: var(--ink); text-anchor: middle; }
+    .focal-txt { fill: var(--accent); }
+    .node-name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .node-sub { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); text-anchor: middle; }
+    .chip-db { fill: #5e7a9b; }
+    .chip-tb { fill: #b8915a; }
+    .chip-fl { fill: #9c6b50; }
+    .chip-txt { font-family: var(--font-mono); font-size: 6px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
+
+    /* --- connectors ------------------------------------------------------ */
+    .a-muted { stroke: var(--muted); stroke-width: 1; fill: none; }
+    .a-accent { stroke: var(--accent); stroke-width: 1.2; fill: none; }
+    .a-verify { stroke: var(--muted); stroke-width: 1; fill: none; stroke-dasharray: 4,3; }
+    .arrow-label-accent { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--accent); }
+
+    /* --- legend ---------------------------------------------------------- */
+    .legend-cat { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); }
+    .legend-txt { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Data flow · Python analytics playground</p>
+    <h1>Reproducible Python analytics pipeline</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="python-title python-desc">
+        <title id="python-title">Reproducible Python analytics pipeline</title>
+        <desc id="python-desc">A seed-42 synthetic dataset is loaded and cleaned, then EDA statistics, charts and markdown reports are produced, with a pytest suite and an 80 percent coverage gate verifying the analysis core as the pipeline's verification sink.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="11" cy="11" r="0.8" fill="rgba(228,228,231,0.07)"/></pattern>
+          <marker id="arr-muted" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#a1a1aa"/></marker>
+          <marker id="arr-accent" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ff8569"/></marker>
+          <marker id="arr-link" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4ecdc4"/></marker>
+        </defs>
+
+        <!-- Ground -->
+        <rect width="1280" height="720" class="bg"/>
+        <rect width="1280" height="720" class="dots"/>
+        <rect x="0" y="368" width="1280" height="140" class="lane-tint"/>
+
+        <!-- Lane structure -->
+        <line x1="40" y1="88" x2="1240" y2="88" class="rule"/>
+        <line x1="40" y1="228" x2="1240" y2="228" class="rule"/>
+        <line x1="40" y1="368" x2="1240" y2="368" class="rule"/>
+        <line x1="40" y1="508" x2="1240" y2="508" class="rule"/>
+        <line x1="40" y1="648" x2="1240" y2="648" class="rule"/>
+        <line x1="184" y1="88" x2="184" y2="648" class="rule"/>
+
+        <!-- Step header -->
+        <rect x="256" y="48" width="32" height="16" rx="8" class="step-chip"/><text x="272" y="59" class="step-num">01</text><text x="272" y="80" class="step-label">SOURCE</text>
+        <rect x="432" y="48" width="32" height="16" rx="8" class="step-chip"/><text x="448" y="59" class="step-num">02</text><text x="448" y="80" class="step-label">LOAD</text>
+        <rect x="608" y="48" width="32" height="16" rx="8" class="step-chip"/><text x="624" y="59" class="step-num">03</text><text x="624" y="80" class="step-label">CLEAN</text>
+        <rect x="784" y="48" width="32" height="16" rx="8" class="step-chip"/><text x="800" y="59" class="step-num">04</text><text x="800" y="80" class="step-label">EDA</text>
+        <rect x="960" y="48" width="32" height="16" rx="8" class="step-chip"/><text x="976" y="59" class="step-num">05</text><text x="976" y="80" class="step-label">VISUALIZE</text>
+        <rect x="1136" y="48" width="32" height="16" rx="8" class="step-chip"/><text x="1152" y="59" class="step-num">06</text><text x="1152" y="80" class="step-label">REPORT</text>
+
+        <!-- Lane labels -->
+        <text x="112" y="154" class="lane-label">SYNTHETIC</text><text x="112" y="166" class="lane-label">SOURCE</text>
+        <text x="112" y="294" class="lane-label">PREPARE</text><text x="112" y="306" class="lane-label">LOAD · CLEAN</text>
+        <text x="112" y="434" class="lane-label">ANALYZE</text><text x="112" y="446" class="lane-label">EDA · VIZ</text>
+        <text x="112" y="574" class="lane-label">VERIFY</text><text x="112" y="586" class="lane-label">TESTS · COV</text>
+
+        <!-- Connectors: drawn before the boxes so the lines sit behind the nodes -->
+        <path d="M348 156 H392 Q400 156 400 164 V260" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="524" y1="296" x2="548" y2="296" class="a-muted" marker-end="url(#arr-muted)"/>
+        <path d="M700 296 H760 Q768 296 768 304 V400" class="a-accent" marker-end="url(#arr-accent)"/>
+        <line x1="876" y1="436" x2="900" y2="436" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="1052" y1="436" x2="1076" y2="436" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="800" y1="472" x2="800" y2="540" class="a-verify" marker-end="url(#arr-muted)"/>
+        <line x1="876" y1="576" x2="900" y2="576" class="a-muted" marker-end="url(#arr-muted)"/>
+
+        <!-- Focal arrow label: opaque mask, 8px clear of the accent stroke -->
+        <rect x="776" y="344" width="64" height="12" rx="2" class="node-mask"/>
+        <text x="808" y="353" class="arrow-label-accent" text-anchor="middle">CLEAN TABLE</text>
+
+        <!-- Nodes: mask, box, role chip, name, sublabel, data-type chips -->
+        <rect x="196" y="120" width="152" height="72" rx="6" class="node-mask"/>
+        <rect x="196" y="120" width="152" height="72" rx="6" class="node"/>
+        <rect x="204" y="128" width="24" height="12" rx="2" class="role-chip"/><text x="216" y="136" class="role">SRC</text>
+        <text x="272" y="152" class="node-name">Synthetic Source</text>
+        <text x="272" y="166" class="node-sub">gen · seed=42 · n=1000</text>
+        <rect x="316" y="172" width="24" height="12" rx="2" class="chip-db"/><text x="328" y="180" class="chip-txt">DB</text>
+
+        <rect x="372" y="260" width="152" height="72" rx="6" class="node-mask"/>
+        <rect x="372" y="260" width="152" height="72" rx="6" class="node"/>
+        <rect x="380" y="268" width="24" height="12" rx="2" class="role-chip"/><text x="392" y="276" class="role">PRE</text>
+        <text x="448" y="292" class="node-name">Load CSV</text>
+        <text x="448" y="306" class="node-sub">load_csv · REQ-002</text>
+        <rect x="380" y="312" width="24" height="12" rx="2" class="chip-db"/><text x="392" y="320" class="chip-txt">DB</text>
+        <rect x="492" y="312" width="24" height="12" rx="2" class="chip-db"/><text x="504" y="320" class="chip-txt">DB</text>
+
+        <rect x="548" y="260" width="152" height="72" rx="6" class="node-mask"/>
+        <rect x="548" y="260" width="152" height="72" rx="6" class="node"/>
+        <rect x="556" y="268" width="24" height="12" rx="2" class="role-chip"/><text x="568" y="276" class="role">PRE</text>
+        <text x="624" y="292" class="node-name">Clean &amp; Dedup</text>
+        <text x="624" y="306" class="node-sub">fill · deduplicate</text>
+        <rect x="556" y="312" width="24" height="12" rx="2" class="chip-db"/><text x="568" y="320" class="chip-txt">DB</text>
+        <rect x="668" y="312" width="24" height="12" rx="2" class="chip-tb"/><text x="680" y="320" class="chip-txt">TB</text>
+
+        <rect x="724" y="400" width="152" height="72" rx="6" class="node-mask"/>
+        <rect x="724" y="400" width="152" height="72" rx="6" class="node-focal"/>
+        <rect x="732" y="408" width="24" height="12" rx="2" class="role-chip-focal"/><text x="744" y="416" class="role focal-txt">EDA</text>
+        <text x="800" y="432" class="node-name">EDA Stats</text>
+        <text x="800" y="446" class="node-sub">describe · corr · miss</text>
+        <rect x="732" y="452" width="24" height="12" rx="2" class="chip-tb"/><text x="744" y="460" class="chip-txt">TB</text>
+        <rect x="844" y="452" width="24" height="12" rx="2" class="chip-tb"/><text x="856" y="460" class="chip-txt">TB</text>
+
+        <rect x="900" y="400" width="152" height="72" rx="6" class="node-mask"/>
+        <rect x="900" y="400" width="152" height="72" rx="6" class="node"/>
+        <rect x="908" y="408" width="24" height="12" rx="2" class="role-chip"/><text x="920" y="416" class="role">VIZ</text>
+        <text x="976" y="432" class="node-name">Charts</text>
+        <text x="976" y="446" class="node-sub">hist · corr heatmap</text>
+        <rect x="908" y="452" width="24" height="12" rx="2" class="chip-tb"/><text x="920" y="460" class="chip-txt">TB</text>
+        <rect x="1020" y="452" width="24" height="12" rx="2" class="chip-fl"/><text x="1032" y="460" class="chip-txt">FL</text>
+
+        <rect x="1076" y="400" width="152" height="72" rx="6" class="node-mask"/>
+        <rect x="1076" y="400" width="152" height="72" rx="6" class="node"/>
+        <rect x="1084" y="408" width="24" height="12" rx="2" class="role-chip"/><text x="1096" y="416" class="role">OUT</text>
+        <text x="1152" y="432" class="node-name">Markdown Reports</text>
+        <text x="1152" y="446" class="node-sub">report · segmentation</text>
+        <rect x="1084" y="452" width="24" height="12" rx="2" class="chip-fl"/><text x="1096" y="460" class="chip-txt">FL</text>
+        <rect x="1196" y="452" width="24" height="12" rx="2" class="chip-fl"/><text x="1208" y="460" class="chip-txt">FL</text>
+
+        <rect x="724" y="540" width="152" height="72" rx="6" class="node-mask"/>
+        <rect x="724" y="540" width="152" height="72" rx="6" class="node-verify"/>
+        <rect x="732" y="548" width="24" height="12" rx="2" class="role-chip"/><text x="744" y="556" class="role">TST</text>
+        <text x="800" y="574" class="node-name">Test Suite</text>
+        <text x="800" y="590" class="node-sub">pytest · 34 tests</text>
+
+        <rect x="900" y="540" width="152" height="72" rx="6" class="node-mask"/>
+        <rect x="900" y="540" width="152" height="72" rx="6" class="node-verify"/>
+        <rect x="908" y="548" width="24" height="12" rx="2" class="role-chip"/><text x="920" y="556" class="role">COV</text>
+        <text x="976" y="574" class="node-name">Coverage Gate</text>
+        <text x="976" y="590" class="node-sub">coverage ≥ 80% · gate</text>
+
+        <!-- Legend: horizontal strip inside the reserved bottom 60px -->
+        <line x1="40" y1="660" x2="1240" y2="660" class="rule"/>
+        <text x="40" y="676" class="legend-cat">NODE</text>
+        <rect x="100" y="664" width="16" height="12" rx="2" class="node"/>
+        <text x="124" y="676" class="legend-txt">PIPELINE STAGE</text>
+        <rect x="236" y="664" width="16" height="12" rx="2" class="node-focal"/>
+        <text x="260" y="676" class="legend-txt">FOCAL NODE</text>
+        <rect x="360" y="664" width="16" height="12" rx="2" class="node-verify"/>
+        <text x="384" y="676" class="legend-txt">VERIFICATION</text>
+
+        <text x="40" y="696" class="legend-cat">DATA</text>
+        <rect x="100" y="688" width="24" height="12" rx="2" class="chip-db"/><text x="112" y="692" class="chip-txt">DB</text>
+        <text x="132" y="696" class="legend-txt">DATASET</text>
+        <rect x="220" y="688" width="24" height="12" rx="2" class="chip-tb"/><text x="232" y="692" class="chip-txt">TB</text>
+        <text x="252" y="696" class="legend-txt">TABLE</text>
+        <rect x="340" y="688" width="24" height="12" rx="2" class="chip-fl"/><text x="352" y="692" class="chip-txt">FL</text>
+        <text x="372" y="696" class="legend-txt">EXPORT</text>
+        <text x="470" y="696" class="legend-txt">LEFT CHIP = INPUT · RIGHT CHIP = OUTPUT</text>
+
+        <text x="40" y="714" class="legend-cat">FLOW</text>
+        <line x1="100" y1="708" x2="124" y2="708" class="a-muted" marker-end="url(#arr-muted)"/>
+        <text x="132" y="714" class="legend-txt">STANDARD HANDOFF</text>
+        <line x1="280" y1="708" x2="304" y2="708" class="a-accent" marker-end="url(#arr-accent)"/>
+        <text x="312" y="714" class="legend-txt">FOCAL HANDOFF</text>
+        <line x1="468" y1="708" x2="492" y2="708" class="a-verify" marker-end="url(#arr-muted)"/>
+        <text x="500" y="714" class="legend-txt">VERIFIED · GATED</text>
+      </svg>
+    </div>
+  </main>
+</body>
+</html>

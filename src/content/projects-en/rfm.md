@@ -28,6 +28,8 @@ related:
 
 # RFM Analysis of Bank Clients
 
+**▶ [Data-flow diagram](/diagrams/rfm-analysis.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 The bank accumulates client transaction data, but marketing campaigns ran "flat": the same offer for everyone. The task is to split the client base into homogeneous segments along three dimensions — **Recency** (when the last purchase happened), **Frequency** (operation count), and **Monetary** (total revenue) — and build a separate retention and growth strategy for each group.

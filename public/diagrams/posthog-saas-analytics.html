@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow: seeded event pipeline to report · Data flow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+    }
+
+    .frame { width: 100%; max-width: 1280px; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { display: block; width: 100%; min-width: 1280px; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+
+    /* --- structure ------------------------------------------------------- */
+    .rt { fill: rgba(228,228,231,0.025); }
+    .rule { stroke: rgba(228,228,231,0.12); stroke-width: 0.8; }
+    .step-chip  { fill: rgba(228,228,231,0.12); }
+    .step-num   { font-family: var(--font-mono); font-size: 8px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .step-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.12em; fill: var(--muted); text-anchor: middle; }
+    .lane-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); text-anchor: middle; }
+
+    /* --- nodes ----------------------------------------------------------- */
+    .node-mask  { fill: var(--paper); }
+    .node       { fill: rgba(228,228,231,0.04); stroke: rgba(228,228,231,0.20); stroke-width: 1; }
+    .node-focal { fill: rgba(255,133,105,0.12); stroke: var(--accent); stroke-width: 1.2; }
+    .role-chip       { fill: none; stroke: rgba(228,228,231,0.40); stroke-width: 0.8; }
+    .role-chip-focal { fill: none; stroke: rgba(255,133,105,0.40); stroke-width: 0.8; }
+    .role      { font-family: var(--font-mono); font-size: 7px; font-weight: 600; letter-spacing: 0.08em; fill: rgba(228,228,231,0.80); text-anchor: middle; }
+    .focal-txt { fill: var(--accent); }
+    .node-name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .node-sub  { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); text-anchor: middle; }
+    .node-tool { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--soft); text-anchor: middle; }
+    .chip-ls { fill: #6e6479; }
+    .chip-db { fill: #5e7a9b; }
+    .chip-tb { fill: #b8915a; }
+    .chip-fl { fill: #9c6b50; }
+    .chip-txt { font-family: var(--font-mono); font-size: 6px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
+
+    /* --- connectors ------------------------------------------------------ */
+    .a-muted  { fill: none; stroke: var(--muted); stroke-width: 1; }
+    .a-accent { fill: none; stroke: var(--accent); stroke-width: 1.2; }
+    .a-link   { fill: none; stroke: var(--link); stroke-width: 1; }
+    .a-dash   { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 5,4; }
+    .arrow-label        { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--soft); text-anchor: middle; }
+    .arrow-label-accent { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--accent); text-anchor: middle; }
+
+    /* --- legend ---------------------------------------------------------- */
+    .legend-head { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.14em; fill: var(--muted); }
+    .legend-text { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--muted); }
+    .legend-note { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--soft); }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Data flow · PostHog SaaS analytics</p>
+    <h1>TaskFlow: seeded event pipeline to report</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="posthog-saas-analytics-title posthog-saas-analytics-desc">
+        <title id="posthog-saas-analytics-title">TaskFlow: seeded event pipeline to report</title>
+        <desc id="posthog-saas-analytics-desc">A data-flow diagram of the TaskFlow demo SaaS: a seeded event simulator (2000 users, 30 days, seed 42) writes the committed data/raw/events.jsonl snapshot and can optionally send the same events to PostHog, the demo app captures browser and server events into PostHog, the analysis layer reads the committed snapshot or pulls the same events from PostHog's Query API, computes the activation funnel, day-N retention, the onboarding A/B test with a sample-ratio-mismatch check and revenue, and the shared chart builders render that one metric set into a Markdown report and a Streamlit dashboard: the A/B effect is set by the seeded generator, not observed in production.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="11" cy="11" r="0.8" fill="rgba(228,228,231,0.10)"/>
+          </pattern>
+          <marker id="arr-muted" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0 0 L6 3 L0 6 Z" fill="#a1a1aa"/>
+          </marker>
+          <marker id="arr-accent" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0 0 L6 3 L0 6 Z" fill="#ff8569"/>
+          </marker>
+          <marker id="arr-link" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0 0 L6 3 L0 6 Z" fill="#4ecdc4"/>
+          </marker>
+        </defs>
+
+        <!-- Ground: paper, dotted texture, alternating lane tints (lanes 0 and 2) -->
+        <rect width="1280" height="720" fill="#0f2a2b"/>
+        <rect width="1280" height="720" fill="url(#dots)"/>
+        <rect x="40" y="96" width="1200" height="136" class="rt"/>
+        <rect x="40" y="368" width="1200" height="136" class="rt"/>
+
+        <!-- Lane structure: 4 lanes of 136px between y=96 and y=640 -->
+        <line x1="40" y1="96"  x2="1240" y2="96"  class="rule"/>
+        <line x1="40" y1="232" x2="1240" y2="232" class="rule"/>
+        <line x1="40" y1="368" x2="1240" y2="368" class="rule"/>
+        <line x1="40" y1="504" x2="1240" y2="504" class="rule"/>
+        <line x1="40" y1="640" x2="1240" y2="640" class="rule"/>
+        <line x1="176" y1="96" x2="176" y2="640" class="rule"/>
+
+        <!-- Step header -->
+        <g aria-label="Pipeline steps">
+          <rect x="260" y="48" width="40" height="16" rx="8" class="step-chip"/>
+          <text x="280" y="59" class="step-num">01</text>
+          <text x="280" y="84" class="step-label">SIMULATE</text>
+
+          <rect x="468" y="48" width="40" height="16" rx="8" class="step-chip"/>
+          <text x="488" y="59" class="step-num">02</text>
+          <text x="488" y="84" class="step-label">CAPTURE</text>
+
+          <rect x="676" y="48" width="40" height="16" rx="8" class="step-chip"/>
+          <text x="696" y="59" class="step-num">03</text>
+          <text x="696" y="84" class="step-label">ANALYZE</text>
+
+          <rect x="884" y="48" width="40" height="16" rx="8" class="step-chip"/>
+          <text x="904" y="59" class="step-num">04</text>
+          <text x="904" y="84" class="step-label">FIGURES</text>
+
+          <rect x="1092" y="48" width="40" height="16" rx="8" class="step-chip"/>
+          <text x="1112" y="59" class="step-num">05</text>
+          <text x="1112" y="84" class="step-label">PUBLISH</text>
+        </g>
+
+        <!-- Lane labels -->
+        <g aria-label="Roles">
+          <text x="108" y="160" class="lane-label">EVENT</text>
+          <text x="108" y="172" class="lane-label">SOURCES</text>
+          <text x="108" y="296" class="lane-label">LIVE</text>
+          <text x="108" y="308" class="lane-label">PLATFORM</text>
+          <text x="108" y="432" class="lane-label">ANALYSIS</text>
+          <text x="108" y="444" class="lane-label">PIPELINE</text>
+          <text x="108" y="568" class="lane-label">RENDER</text>
+          <text x="108" y="580" class="lane-label">OUTPUT</text>
+        </g>
+
+        <!-- Connectors (drawn before the boxes so the lines sit behind the nodes) -->
+        <!-- A1 · seeded write into the committed snapshot: the focal, labelled handoff -->
+        <path d="M280 200 V432 Q280 440 288 440 H404" class="a-accent" marker-end="url(#arr-accent)"/>
+        <!-- A2 · app capture into the platform (same step, cross lane) -->
+        <line x1="488" y1="200" x2="488" y2="240" class="a-muted" marker-end="url(#arr-muted)"/>
+        <!-- A3 · live Query API pull back into the event source -->
+        <line x1="512" y1="336" x2="512" y2="376" class="a-link" marker-end="url(#arr-link)"/>
+        <!-- A4 · event source into the analysis layer (same lane) -->
+        <line x1="572" y1="424" x2="612" y2="424" class="a-muted" marker-end="url(#arr-muted)"/>
+        <!-- A5 · metrics into the shared figure builders -->
+        <path d="M780 424 H860 Q868 424 868 432 V512" class="a-muted" marker-end="url(#arr-muted)"/>
+        <!-- A6 · figure builders into the Markdown report -->
+        <line x1="988" y1="560" x2="1028" y2="560" class="a-muted" marker-end="url(#arr-muted)"/>
+        <!-- A7 · the same builders into the Streamlit dashboard -->
+        <path d="M944 512 V448 Q944 440 952 440 H1028" class="a-muted" marker-end="url(#arr-muted)"/>
+        <!-- A8 · optional send path from the simulator to the live platform -->
+        <path d="M364 152 H372 Q380 152 380 160 V272 Q380 280 388 280 H404" class="a-dash" marker-end="url(#arr-muted)"/>
+
+        <!-- Arrow label: opaque mask, 8px clear of the stroke -->
+        <rect x="306" y="420" width="80" height="12" rx="2" class="node-mask"/>
+        <text x="346" y="429" class="arrow-label-accent">SEEDED EVENTS</text>
+
+        <!-- Lane 0 · EVENT SOURCES -->
+        <rect x="196" y="104" width="168" height="96" rx="6" class="node-mask"/>
+        <rect x="196" y="104" width="168" height="96" rx="6" class="node"/>
+        <rect x="204" y="112" width="28" height="12" rx="2" class="role-chip"/>
+        <text x="218" y="121" class="role">SIM</text>
+        <text x="280" y="148" class="node-name">Seeded Simulator</text>
+        <text x="280" y="168" class="node-sub">scripts/simulate_events.py</text>
+        <text x="280" y="184" class="node-tool">seed 42 · sets the effect</text>
+        <rect x="344" y="188" width="16" height="8" rx="3" class="chip-ls"/>
+        <text x="352" y="194" class="chip-txt">LS</text>
+
+        <rect x="404" y="104" width="168" height="96" rx="6" class="node-mask"/>
+        <rect x="404" y="104" width="168" height="96" rx="6" class="node"/>
+        <rect x="412" y="112" width="28" height="12" rx="2" class="role-chip"/>
+        <text x="426" y="121" class="role">APP</text>
+        <text x="488" y="148" class="node-name">Demo SaaS App</text>
+        <text x="488" y="168" class="node-sub">app/main.py · posthog-js</text>
+        <text x="488" y="184" class="node-tool">browser + server capture</text>
+        <rect x="552" y="188" width="16" height="8" rx="3" class="chip-ls"/>
+        <text x="560" y="194" class="chip-txt">LS</text>
+
+        <!-- Lane 1 · LIVE PLATFORM -->
+        <rect x="404" y="240" width="168" height="96" rx="6" class="node-mask"/>
+        <rect x="404" y="240" width="168" height="96" rx="6" class="node"/>
+        <rect x="412" y="248" width="28" height="12" rx="2" class="role-chip"/>
+        <text x="426" y="257" class="role">PLAT</text>
+        <text x="488" y="284" class="node-name">PostHog Project</text>
+        <text x="488" y="304" class="node-sub">Query API · flags · errors</text>
+        <text x="488" y="320" class="node-tool">live ingest · --send</text>
+        <rect x="408" y="324" width="16" height="8" rx="3" class="chip-ls"/>
+        <text x="416" y="330" class="chip-txt">LS</text>
+        <rect x="552" y="324" width="16" height="8" rx="3" class="chip-ls"/>
+        <text x="560" y="330" class="chip-txt">LS</text>
+
+        <!-- Lane 2 · ANALYSIS PIPELINE · focal node (accent) -->
+        <rect x="404" y="376" width="168" height="96" rx="6" class="node-mask"/>
+        <rect x="404" y="376" width="168" height="96" rx="6" class="node-focal"/>
+        <rect x="412" y="384" width="28" height="12" rx="2" class="role-chip-focal"/>
+        <text x="426" y="393" class="role focal-txt">EVT</text>
+        <text x="488" y="420" class="node-name">Event Source</text>
+        <text x="488" y="440" class="node-sub">data/raw/events.jsonl</text>
+        <text x="488" y="456" class="node-tool">live API · else snapshot</text>
+        <rect x="408" y="460" width="16" height="8" rx="3" class="chip-ls"/>
+        <text x="416" y="466" class="chip-txt">LS</text>
+        <rect x="552" y="460" width="16" height="8" rx="3" class="chip-db"/>
+        <text x="560" y="466" class="chip-txt">DB</text>
+
+        <rect x="612" y="376" width="168" height="96" rx="6" class="node-mask"/>
+        <rect x="612" y="376" width="168" height="96" rx="6" class="node"/>
+        <rect x="620" y="384" width="28" height="12" rx="2" class="role-chip"/>
+        <text x="634" y="393" class="role">ANL</text>
+        <text x="696" y="420" class="node-name">Analysis Suite</text>
+        <text x="696" y="440" class="node-sub">funnel · retention · a/b</text>
+        <text x="696" y="456" class="node-tool">chi-sq · SRM · LTV · ttc</text>
+        <rect x="616" y="460" width="16" height="8" rx="3" class="chip-db"/>
+        <text x="624" y="466" class="chip-txt">DB</text>
+        <rect x="760" y="460" width="16" height="8" rx="3" class="chip-tb"/>
+        <text x="768" y="466" class="chip-txt">TB</text>
+
+        <rect x="1028" y="376" width="168" height="96" rx="6" class="node-mask"/>
+        <rect x="1028" y="376" width="168" height="96" rx="6" class="node"/>
+        <rect x="1036" y="384" width="28" height="12" rx="2" class="role-chip"/>
+        <text x="1050" y="393" class="role">DSH</text>
+        <text x="1112" y="420" class="node-name">Streamlit Dashboard</text>
+        <text x="1112" y="440" class="node-sub">dashboard/app.py</text>
+        <text x="1112" y="456" class="node-tool">cohort selector · 6 tabs</text>
+        <rect x="1032" y="460" width="16" height="8" rx="3" class="chip-fl"/>
+        <text x="1040" y="466" class="chip-txt">FL</text>
+
+        <!-- Lane 3 · RENDER OUTPUT -->
+        <rect x="820" y="512" width="168" height="96" rx="6" class="node-mask"/>
+        <rect x="820" y="512" width="168" height="96" rx="6" class="node"/>
+        <rect x="828" y="520" width="28" height="12" rx="2" class="role-chip"/>
+        <text x="842" y="529" class="role">CHT</text>
+        <text x="904" y="556" class="node-name">Chart Builders</text>
+        <text x="904" y="576" class="node-sub">analysis/charts.py</text>
+        <text x="904" y="592" class="node-tool">matplotlib · shared figures</text>
+        <rect x="824" y="596" width="16" height="8" rx="3" class="chip-tb"/>
+        <text x="832" y="602" class="chip-txt">TB</text>
+        <rect x="968" y="596" width="16" height="8" rx="3" class="chip-fl"/>
+        <text x="976" y="602" class="chip-txt">FL</text>
+
+        <rect x="1028" y="512" width="168" height="96" rx="6" class="node-mask"/>
+        <rect x="1028" y="512" width="168" height="96" rx="6" class="node"/>
+        <rect x="1036" y="520" width="28" height="12" rx="2" class="role-chip"/>
+        <text x="1050" y="529" class="role">RPT</text>
+        <text x="1112" y="556" class="node-name">Markdown Report</text>
+        <text x="1112" y="576" class="node-sub">posthog_analysis_report.md</text>
+        <text x="1112" y="592" class="node-tool">analysis/report.py</text>
+        <rect x="1032" y="596" width="16" height="8" rx="3" class="chip-fl"/>
+        <text x="1040" y="602" class="chip-txt">FL</text>
+
+        <!-- Legend strip: reserved bottom 60px (y 660 to 720) -->
+        <line x1="40" y1="660" x2="1240" y2="660" stroke="rgba(228,228,231,0.14)" stroke-width="0.8"/>
+        <text x="56" y="687" class="legend-head">LEGEND</text>
+
+        <rect x="140" y="676" width="16" height="16" rx="4" fill="rgba(228,228,231,0.04)" stroke="rgba(228,228,231,0.20)"/>
+        <text x="164" y="687" class="legend-text">pipeline node</text>
+
+        <rect x="268" y="676" width="16" height="16" rx="4" fill="rgba(255,133,105,0.12)" stroke="#ff8569" stroke-width="1.2"/>
+        <text x="292" y="687" class="legend-text">focal node</text>
+
+        <rect x="392" y="680" width="16" height="8" rx="3" fill="#6e6479"/>
+        <text x="400" y="687" class="chip-txt">LS</text>
+        <text x="416" y="687" class="legend-text">event</text>
+
+        <rect x="478" y="680" width="16" height="8" rx="3" fill="#5e7a9b"/>
+        <text x="486" y="687" class="chip-txt">DB</text>
+        <text x="502" y="687" class="legend-text">dataset</text>
+
+        <rect x="566" y="680" width="16" height="8" rx="3" fill="#b8915a"/>
+        <text x="574" y="687" class="chip-txt">TB</text>
+        <text x="590" y="687" class="legend-text">table</text>
+
+        <rect x="654" y="680" width="16" height="8" rx="3" fill="#9c6b50"/>
+        <text x="662" y="687" class="chip-txt">FL</text>
+        <text x="678" y="687" class="legend-text">file</text>
+
+        <text x="740" y="687" class="legend-text">left chip = input · right chip = output · empty cell = no role in that step</text>
+
+        <line x1="140" y1="700" x2="164" y2="700" class="a-muted" marker-end="url(#arr-muted)"/>
+        <text x="172" y="703" class="legend-text">data handoff</text>
+
+        <line x1="280" y1="700" x2="304" y2="700" class="a-accent" marker-end="url(#arr-accent)"/>
+        <text x="312" y="703" class="legend-text">seeded source</text>
+
+        <line x1="432" y1="700" x2="456" y2="700" class="a-link" marker-end="url(#arr-link)"/>
+        <text x="464" y="703" class="legend-text">API pull</text>
+
+        <line x1="560" y1="700" x2="584" y2="700" class="a-dash" marker-end="url(#arr-muted)"/>
+        <text x="592" y="703" class="legend-text">optional --send</text>
+
+        <text x="720" y="703" class="legend-note">the A/B effect is set by the seeded generator, not observed in production</text>
+      </svg>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn — аналитика контента: один workbook, четыре рендера</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { width: 100%; max-width: 1280px; }
+
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    .caption {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--soft);
+      margin-top: 16px;
+      max-width: 96ch;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+
+    .node-name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .sub { font-family: var(--font-mono); font-size: 9px; fill: var(--muted); text-anchor: middle; }
+    .tool { font-family: var(--font-mono); font-size: 9px; fill: var(--soft); text-anchor: middle; }
+    .tag { font-family: var(--font-mono); font-size: 7px; font-weight: 600; text-anchor: middle; letter-spacing: 0.08em; }
+    .chip-text { font-family: var(--font-mono); font-size: 6px; font-weight: 700; fill: #ffffff; text-anchor: middle; letter-spacing: 0.04em; }
+    .lane-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; fill: var(--muted); text-anchor: middle; letter-spacing: 0.16em; }
+    .arrow-label { font-family: var(--font-mono); font-size: 8px; fill: var(--soft); text-anchor: middle; letter-spacing: 0.06em; }
+    .legend-cat { font-family: var(--font-mono); font-size: 8px; font-weight: 500; fill: var(--muted); letter-spacing: 0.14em; }
+    .legend-item { font-family: var(--font-mono); font-size: 8px; fill: var(--muted); letter-spacing: 0.06em; }
+    .note { font-family: var(--font-mono); font-size: 9px; fill: var(--muted); letter-spacing: 0.02em; }
+    .note-soft { font-family: var(--font-mono); font-size: 9px; fill: var(--soft); letter-spacing: 0.02em; }
+    .headline { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); }
+    .band-eyebrow { font-family: var(--font-mono); font-size: 8px; font-weight: 500; fill: var(--ink); letter-spacing: 0.18em; }
+
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above -- a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Data flow · Diagram Design</p>
+    <h1>LinkedIn — аналитика контента: один workbook, четыре рендера, один честный вывод</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="linkedin-analytics-title linkedin-analytics-desc">
+        <title id="linkedin-analytics-title">LinkedIn — один workbook, четыре рендера, честный вывод</title>
+        <desc id="linkedin-analytics-desc">Поток данных аналитики контента: выгруженный руками workbook AggregateAnalytics попадает в общий модуль linkedin_analytics_core, оттуда в series_stats с 95 % percentile bootstrap по постам, затем расходится в четыре выхода — Markdown-отчёт, заметку в хранилище, HTML-дашборд и график для README, — и заканчивается выводом: три из четырёх разрезов остаются внутри шума, и это записано как результат.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="11" cy="11" r="0.8" fill="rgba(228,228,231,0.10)"/>
+          </pattern>
+          <marker id="arr-muted" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#a1a1aa"/></marker>
+          <marker id="arr-accent" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ff8569"/></marker>
+          <marker id="arr-link" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4ecdc4"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#0f2a2b"/>
+        <rect width="100%" height="100%" fill="url(#dots)" opacity="0.6"/>
+
+        <!-- Lane tints: odd-indexed lanes only -->
+        <rect x="40" y="44" width="1200" height="152" fill="rgba(228,228,231,0.018)"/>
+        <rect x="40" y="348" width="1200" height="152" fill="rgba(228,228,231,0.018)"/>
+
+        <!-- Lane dividers + label-column border -->
+        <line x1="40" y1="44" x2="1240" y2="44" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="40" y1="196" x2="1240" y2="196" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="40" y1="348" x2="1240" y2="348" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="40" y1="500" x2="1240" y2="500" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="40" y1="652" x2="1240" y2="652" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+        <line x1="148" y1="44" x2="148" y2="652" stroke="rgba(228,228,231,0.12)" stroke-width="0.8"/>
+
+        <!-- Context panel: properties of the private input (background layer, not a flow node) -->
+        <rect x="528" y="72" width="712" height="96" rx="6" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.16)" stroke-width="1" stroke-dasharray="4,3"/>
+        <text class="eyebrow" x="544" y="94">Контекст экспорта</text>
+        <text class="note" x="544" y="118">экспорт руками: LinkedIn → аналитика постов → Export</text>
+        <text class="note" x="544" y="138">два блока TOP POSTS независимы — в анализ идут только 49 парных постов</text>
+        <text class="note-soft" x="544" y="158">окно 12.10.2025 — 11.10.2026 · 50 101 показ · ER 1.71 % · +2 175 подписчиков</text>
+
+        <!-- Connectors, drawn before every node box -->
+        <line x1="240" y1="168" x2="240" y2="216" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <line x1="320" y1="272" x2="336" y2="272" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <path d="M504,296 H600 Q608,296 608,304 V368" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <path d="M504,280 H784 Q792,280 792,288 V368" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <path d="M504,264 H968 Q976,264 976,272 V368" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <path d="M504,248 H1152 Q1160,248 1160,256 V368" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <line x1="424" y1="320" x2="424" y2="520" stroke="#ff8569" stroke-width="1.2" marker-end="url(#arr-accent)"/>
+
+        <!-- Focal arrow label: opaque mask, 8px clear of the stroke, on open canvas -->
+        <rect x="432" y="413" width="76" height="14" rx="2" fill="#0f2a2b"/>
+        <text class="arrow-label" x="470" y="424">95% BOOTSTRAP</text>
+
+        <!-- N1 · workbook — input treatment (private export, never committed) -->
+        <rect x="160" y="72" width="160" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="160" y="72" width="160" height="96" rx="6" fill="rgba(161,161,170,0.10)" stroke="#8f8f99" stroke-width="1"/>
+        <rect x="168" y="80" width="30" height="12" rx="2" fill="none" stroke="rgba(143,143,153,0.55)" stroke-width="0.8"/>
+        <text class="tag" x="183" y="89" fill="#8f8f99">XLSX</text>
+        <text class="node-name" x="240" y="114">Workbook</text>
+        <text class="sub" x="240" y="132">AggregateAnalytics_*.xlsx</text>
+        <text class="tool" x="240" y="148">экспорт руками · не в git</text>
+        <rect x="292" y="152" width="20" height="10" rx="2" fill="#5e7a9b"/>
+        <text class="chip-text" x="302" y="159.5">DB</text>
+
+        <!-- N2 · the shared analytics core -->
+        <rect x="160" y="224" width="160" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="160" y="224" width="160" height="96" rx="6" fill="rgba(228,228,231,0.06)" stroke="rgba(228,228,231,0.34)" stroke-width="1"/>
+        <rect x="168" y="232" width="30" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.34)" stroke-width="0.8"/>
+        <text class="tag" x="183" y="241" fill="rgba(228,228,231,0.72)">CORE</text>
+        <text class="node-name" x="240" y="266">Ядро аналитики</text>
+        <text class="sub" x="240" y="284">linkedin_analytics_core</text>
+        <text class="tool" x="240" y="300">read → join → derive</text>
+        <rect x="168" y="304" width="20" height="10" rx="2" fill="#5e7a9b"/>
+        <text class="chip-text" x="178" y="311.5">DB</text>
+        <rect x="292" y="304" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="302" y="311.5">TB</text>
+
+        <!-- N3 · bootstrap + significance (fan source; sole node in this lane band to its right) -->
+        <rect x="344" y="224" width="160" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="344" y="224" width="160" height="96" rx="6" fill="rgba(228,228,231,0.06)" stroke="rgba(228,228,231,0.34)" stroke-width="1"/>
+        <rect x="352" y="232" width="30" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.34)" stroke-width="0.8"/>
+        <text class="tag" x="367" y="241" fill="rgba(228,228,231,0.72)">STAT</text>
+        <text class="node-name" x="424" y="266">series_stats</text>
+        <text class="sub" x="424" y="284">95 % bootstrap по постам</text>
+        <text class="tool" x="424" y="300">CI рядом с серией</text>
+        <rect x="352" y="304" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="362" y="311.5">TB</text>
+        <rect x="476" y="304" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="486" y="311.5">TB</text>
+
+        <!-- N4 · Markdown report -->
+        <rect x="528" y="376" width="160" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="528" y="376" width="160" height="96" rx="6" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="536" y="384" width="30" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="tag" x="551" y="393" fill="rgba(228,228,231,0.65)">MD</text>
+        <text class="node-name" x="608" y="418">Markdown-отчёт</text>
+        <text class="sub" x="608" y="436">reports/linkedin-analytics-</text>
+        <text class="tool" x="608" y="452">&lt;дата&gt;.md</text>
+        <rect x="536" y="456" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="546" y="463.5">TB</text>
+        <rect x="660" y="456" width="20" height="10" rx="2" fill="#9c6b50"/>
+        <text class="chip-text" x="670" y="463.5">FL</text>
+
+        <!-- N5 · vault note -->
+        <rect x="712" y="376" width="160" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="712" y="376" width="160" height="96" rx="6" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="720" y="384" width="30" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="tag" x="735" y="393" fill="rgba(228,228,231,0.65)">NOTE</text>
+        <text class="node-name" x="792" y="418">Заметка в vault</text>
+        <text class="sub" x="792" y="436">Obsidian/Z-core/LinkedIn -</text>
+        <text class="tool" x="792" y="452">аналитика контента.md</text>
+        <rect x="720" y="456" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="730" y="463.5">TB</text>
+        <rect x="844" y="456" width="20" height="10" rx="2" fill="#9c6b50"/>
+        <text class="chip-text" x="854" y="463.5">FL</text>
+
+        <!-- N6 · HTML dashboard -->
+        <rect x="896" y="376" width="160" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="896" y="376" width="160" height="96" rx="6" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="904" y="384" width="30" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="tag" x="919" y="393" fill="rgba(228,228,231,0.65)">HTML</text>
+        <text class="node-name" x="976" y="418">HTML-дашборд</text>
+        <text class="sub" x="976" y="436">reports/linkedin-analytics-</text>
+        <text class="tool" x="976" y="452">dashboard.html</text>
+        <rect x="904" y="456" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="914" y="463.5">TB</text>
+        <rect x="1028" y="456" width="20" height="10" rx="2" fill="#9c6b50"/>
+        <text class="chip-text" x="1038" y="463.5">FL</text>
+
+        <!-- N7 · README chart -->
+        <rect x="1080" y="376" width="160" height="96" rx="6" fill="#0f2a2b"/>
+        <rect x="1080" y="376" width="160" height="96" rx="6" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <rect x="1088" y="384" width="30" height="12" rx="2" fill="none" stroke="rgba(228,228,231,0.28)" stroke-width="0.8"/>
+        <text class="tag" x="1103" y="393" fill="rgba(228,228,231,0.65)">SVG</text>
+        <text class="node-name" x="1160" y="418">README-график</text>
+        <text class="sub" x="1160" y="436">docs/assets/</text>
+        <text class="tool" x="1160" y="452">linkedin-perf.svg</text>
+        <rect x="1088" y="456" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="1098" y="463.5">TB</text>
+        <rect x="1212" y="456" width="20" height="10" rx="2" fill="#9c6b50"/>
+        <text class="chip-text" x="1222" y="463.5">FL</text>
+
+        <!-- N8 · verdict band — the focal node -->
+        <rect x="160" y="528" width="1080" height="104" rx="6" fill="#0f2a2b"/>
+        <rect x="160" y="528" width="1080" height="104" rx="6" fill="rgba(255,133,105,0.12)" stroke="#ff8569" stroke-width="1"/>
+        <rect x="176" y="540" width="56" height="14" rx="2" fill="rgba(255,133,105,0.12)" stroke="rgba(255,133,105,0.60)" stroke-width="0.8"/>
+        <text class="tag" x="204" y="550" fill="#ff8569">ВЫВОД</text>
+        <text class="headline" x="176" y="578">3 из 4 разрезов — внутри шума</text>
+        <text class="note" x="176" y="598">репост p = 0.60 · день недели p = 0.060 · подписчики r = 0.35 [−0.15, 0.72]</text>
+        <text class="note-soft" x="176" y="614">порог не пройден → это результат, а не неудача</text>
+        <line x1="760" y1="548" x2="760" y2="622" stroke="rgba(228,228,231,0.16)" stroke-width="0.8"/>
+        <text class="band-eyebrow" x="784" y="578">Установлено</text>
+        <text class="note" x="784" y="598">Swipe 22.9 [18.8; 26.2] vs A/B 12.9 [9.9; 16.3]</text>
+        <text class="note-soft" x="784" y="614">интервалы не перекрываются</text>
+
+        <!-- Lane labels -->
+        <text class="lane-label" x="94" y="112">01 ВХОД</text>
+        <text class="lane-label" x="94" y="128">РУЧНОЙ ЭКСПОРТ</text>
+        <text class="lane-label" x="94" y="264">02 ЯДРО</text>
+        <text class="lane-label" x="94" y="280">ОБЩИЙ ПАРСЕР</text>
+        <text class="lane-label" x="94" y="416">03 ВЫХОДЫ</text>
+        <text class="lane-label" x="94" y="432">4 РЕНДЕРА</text>
+        <text class="lane-label" x="94" y="568">04 ВЫВОД</text>
+        <text class="lane-label" x="94" y="584">ЗНАЧИМОСТЬ</text>
+
+        <!-- Legend strip, inside the reserved bottom 60px -->
+        <line x1="40" y1="660" x2="1240" y2="660" stroke="rgba(228,228,231,0.14)" stroke-width="0.8"/>
+        <text class="legend-cat" x="40" y="684">УЗЛЫ</text>
+        <rect x="100" y="674" width="16" height="12" rx="2" fill="rgba(161,161,170,0.10)" stroke="#8f8f99" stroke-width="1"/>
+        <text class="legend-item" x="124" y="684">ИСТОЧНИК · РУЧНОЙ ЭКСПОРТ</text>
+        <rect x="304" y="674" width="16" height="12" rx="2" fill="rgba(228,228,231,0.06)" stroke="rgba(228,228,231,0.34)" stroke-width="1"/>
+        <text class="legend-item" x="328" y="684">ЯДРО · СТАТИСТИКА</text>
+        <rect x="468" y="674" width="16" height="12" rx="2" fill="rgba(228,228,231,0.02)" stroke="rgba(228,228,231,0.20)" stroke-width="1"/>
+        <text class="legend-item" x="492" y="684">ВЫХОД · 4 РЕНДЕРА</text>
+        <rect x="632" y="674" width="16" height="12" rx="2" fill="rgba(255,133,105,0.12)" stroke="#ff8569" stroke-width="1"/>
+        <text class="legend-item" x="656" y="684">ВЫВОД · ФОКУС</text>
+        <text class="legend-cat" x="40" y="707">ПОТОК</text>
+        <line x1="100" y1="703" x2="140" y2="703" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr-muted)"/>
+        <text class="legend-item" x="148" y="707">ХЕНДОФФ</text>
+        <text class="legend-cat" x="320" y="707">ДАННЫЕ</text>
+        <rect x="400" y="696" width="20" height="10" rx="2" fill="#5e7a9b"/>
+        <text class="chip-text" x="410" y="703.5">DB</text>
+        <text class="legend-item" x="426" y="707">сырой файл</text>
+        <rect x="560" y="696" width="20" height="10" rx="2" fill="#b8915a"/>
+        <text class="chip-text" x="570" y="703.5">TB</text>
+        <text class="legend-item" x="586" y="707">таблица</text>
+        <rect x="700" y="696" width="20" height="10" rx="2" fill="#9c6b50"/>
+        <text class="chip-text" x="710" y="703.5">FL</text>
+        <text class="legend-item" x="726" y="707">отчёт · экспорт</text>
+      </svg>
+    </div>
+
+    <p class="caption">Оранжевая стрелка — единственный фокус схемы: серии вместе с их 95 % bootstrap-интервалами попадают прямо в вывод, и он честный — три из четырёх разрезов (оригинал против репоста, ритм недели, связь показов с подписчиками) остаются внутри шума. Это записано как результат, а не спрятано. Пунктирная рамка — свойства приватного входа: workbook выгружается руками, в git не попадает; его внутренние два блока TOP POSTS независимы, поэтому в анализ идут только 49 постов с обеими метриками. Четыре выхода собираются из одного парсера, так что разойтись в цифрах они структурно не могут (ADR-0001).</p>
+  </div>
+</body>
+</html>

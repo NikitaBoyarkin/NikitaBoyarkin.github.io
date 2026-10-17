@@ -31,6 +31,8 @@ related:
 
 # This Portfolio Site
 
+**▶ [Architecture diagram](/diagrams/portfolio-site.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 A static portfolio where content (projects, posts) is edited in Markdown rather than component markup. Hosting is GitHub Pages as a user site (repository `NikitaBoyarkin.github.io`, served from the domain root), deploy is push-triggered with no manual build. Content and presentation must separate: a new project is a new `.md` file, with no component edits.

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CUPED variance cut and uplift targeting · Data flow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:         #0f2a2b;  /* page bg          */
+      --paper-2:       #1a3435;  /* container/cards  */
+      --paper-3:       #234044;  /* nested zone      */
+      --ink:           #e4e4e7;  /* primary text/stroke */
+      --ink-strong:    #1a1a1a;  /* ink ON an accent fill */
+      --muted:         #a1a1aa;  /* secondary text + default arrows */
+      --soft:          #8f8f99;  /* sublabels, boundary labels */
+      --rule:          rgba(228,228,231,0.14);
+      --rule-solid:    #3f3f46;
+      --accent:        #ff8569;  /* 1–2 focal elements ONLY */
+      --accent-tint:   rgba(255,133,105,0.10);
+      --accent-strong: #fe4e02;  /* brand orange fill (rare) */
+      --link:          #4ecdc4;  /* HTTP/API + external/HITL arrows ONLY */
+      --data:          #4ecdc4;  /* chart series only, never an arrow */
+      --font-title:    'Cormorant', Georgia, 'Times New Roman', serif;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono:     'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .frame { max-width: 1280px; width: 100%; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--soft);
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    svg { width: 100%; min-width: 1280px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet. Must come after the
+       svg rule above - a media query adds no specificity. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+
+    /* --- diagram surface ------------------------------------------------- */
+    .bg { fill: var(--paper); }
+    .dots { fill: url(#dots); }
+    .lane-tint { fill: rgba(228,228,231,0.025); }
+    .rule { stroke: var(--rule); stroke-width: 0.8; fill: none; }
+
+    /* --- step header ----------------------------------------------------- */
+    .step-chip { fill: rgba(228,228,231,0.12); }
+    .step-chip-focal { fill: rgba(228,228,231,0.22); }
+    .step-num { font-family: var(--font-mono); font-size: 8px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .step-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.12em; fill: var(--muted); text-anchor: middle; }
+    .step-label-focal { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.12em; fill: var(--ink); text-anchor: middle; }
+    .lane-label { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); text-anchor: middle; }
+
+    /* --- nodes ----------------------------------------------------------- */
+    .node-mask { fill: var(--paper); }
+    .node { fill: rgba(228,228,231,0.04); stroke: rgba(228,228,231,0.20); stroke-width: 1; }
+    .node-focal { fill: rgba(255,133,105,0.12); stroke: var(--accent); stroke-width: 1.2; }
+    .type-tag { fill: none; stroke: rgba(228,228,231,0.20); stroke-width: 0.8; }
+    .type-txt { font-family: var(--font-mono); font-size: 7px; font-weight: 500; letter-spacing: 0.08em; fill: var(--soft); text-anchor: middle; }
+    .node-name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+    .node-sub { font-family: var(--font-mono); font-size: 9px; font-weight: 400; fill: var(--muted); text-anchor: middle; }
+    .chip-db { fill: #5e7a9b; }
+    .chip-tb { fill: #b8915a; }
+    .chip-fl { fill: #9c6b50; }
+    .chip-txt { font-family: var(--font-mono); font-size: 6px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
+
+    /* --- connectors ------------------------------------------------------ */
+    .a-muted { stroke: var(--muted); stroke-width: 1; fill: none; }
+    .a-accent { stroke: var(--accent); stroke-width: 1.2; fill: none; }
+    .a-pre { stroke: var(--muted); stroke-width: 1; fill: none; stroke-dasharray: 5,4; }
+    .arrow-label { font-family: var(--font-mono); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; fill: var(--soft); text-anchor: middle; }
+
+    /* --- legend ---------------------------------------------------------- */
+    .legend-cat { font-family: var(--font-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.18em; fill: var(--muted); }
+    .legend-txt { font-family: var(--font-mono); font-size: 8px; font-weight: 400; fill: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Data flow · Causal / Uplift</p>
+    <h1>CUPED variance cut and uplift targeting</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="causal-uplift-title causal-uplift-desc">
+        <title id="causal-uplift-title">CUPED variance cut and uplift targeting</title>
+        <desc id="causal-uplift-desc">Data-flow diagram of the causal-uplift pipeline: a deterministic synthetic generator (data/generate_data.py, seed 42) produces a 20,000-user randomized experiment; its pre-period covariate feeds CUPED variance reduction while the post-treatment outcome feeds T-learner and S-learner uplift models; null references and bootstrap intervals score the segment recovery, and the report states the 26% standard-error cut (about 5,500 users per arm) and the roughly eight-fold new-versus-returning gap.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="11" cy="11" r="0.8" fill="rgba(228,228,231,0.07)"/></pattern>
+          <marker id="arr-muted" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#a1a1aa"/></marker>
+          <marker id="arr-accent" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ff8569"/></marker>
+          <marker id="arr-link" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4ecdc4"/></marker>
+        </defs>
+
+        <!-- Ground -->
+        <rect width="1280" height="720" class="bg"/>
+        <rect width="1280" height="720" class="dots"/>
+        <rect x="0" y="360" width="1280" height="136" class="lane-tint"/>
+
+        <!-- Lane structure -->
+        <line x1="40" y1="88" x2="1240" y2="88" class="rule"/>
+        <line x1="40" y1="224" x2="1240" y2="224" class="rule"/>
+        <line x1="40" y1="360" x2="1240" y2="360" class="rule"/>
+        <line x1="40" y1="496" x2="1240" y2="496" class="rule"/>
+        <line x1="40" y1="632" x2="1240" y2="632" class="rule"/>
+        <line x1="184" y1="88" x2="184" y2="632" class="rule"/>
+
+        <!-- Step header -->
+        <rect x="256" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="272" y="59" class="step-num">01</text><text x="272" y="80" class="step-label">GENERATE</text>
+        <rect x="432" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="448" y="59" class="step-num">02</text><text x="448" y="80" class="step-label">EXPERIMENT</text>
+        <rect x="608" y="48" width="32" height="16" rx="6" class="step-chip-focal"/><text x="624" y="59" class="step-num">03</text><text x="624" y="80" class="step-label-focal">CUPED</text>
+        <rect x="784" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="800" y="59" class="step-num">04</text><text x="800" y="80" class="step-label">UPLIFT</text>
+        <rect x="960" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="976" y="59" class="step-num">05</text><text x="976" y="80" class="step-label">SCORE</text>
+        <rect x="1136" y="48" width="32" height="16" rx="6" class="step-chip"/><text x="1152" y="59" class="step-num">06</text><text x="1152" y="80" class="step-label">REPORT</text>
+
+        <!-- Lane labels -->
+        <text x="112" y="152" class="lane-label">SOURCE</text><text x="112" y="164" class="lane-label">DATA</text>
+        <text x="112" y="288" class="lane-label">PRE-PERIOD</text><text x="112" y="300" class="lane-label">COVARIATE</text>
+        <text x="112" y="424" class="lane-label">ESTIMATORS</text><text x="112" y="436" class="lane-label">CUPED · UPLIFT</text>
+        <text x="112" y="560" class="lane-label">EVIDENCE</text><text x="112" y="572" class="lane-label">REFS · REPORT</text>
+
+        <!-- Connectors: drawn before the boxes so the lines sit behind the nodes -->
+        <line x1="348" y1="156" x2="372" y2="156" class="a-muted" marker-end="url(#arr-muted)"/>
+        <path d="M272 196 V228 Q272 236 280 236 H440 Q448 236 448 244 V252" class="a-muted" marker-end="url(#arr-muted)"/>
+        <path d="M524 292 H556 Q564 292 564 300 V388" class="a-pre" marker-end="url(#arr-muted)"/>
+        <path d="M524 156 H668 Q676 156 676 164 V388" class="a-accent" marker-end="url(#arr-accent)"/>
+        <path d="M524 136 H784 Q792 136 792 144 V388" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="624" y1="468" x2="624" y2="524" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="800" y1="468" x2="800" y2="524" class="a-muted" marker-end="url(#arr-muted)"/>
+        <path d="M876 428 H968 Q976 428 976 436 V524" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="876" y1="564" x2="900" y2="564" class="a-muted" marker-end="url(#arr-muted)"/>
+        <line x1="1052" y1="564" x2="1076" y2="564" class="a-muted" marker-end="url(#arr-muted)"/>
+        <path d="M624 604 V612 Q624 620 632 620 H1196 Q1204 620 1204 612 V604" class="a-muted" marker-end="url(#arr-muted)"/>
+
+        <!-- Arrow labels: opaque masks, 8px clear of the stroke, never over a node -->
+        <rect x="592" y="270" width="76" height="12" rx="2" class="node-mask"/>
+        <text x="630" y="279" class="arrow-label">POST-TREATMENT</text>
+        <rect x="500" y="338" width="56" height="12" rx="2" class="node-mask"/>
+        <text x="528" y="347" class="arrow-label">PRE-PERIOD</text>
+
+        <!-- Nodes: mask, box, type tag, name, sublabel, data-type chips (in left · out right) -->
+        <rect x="196" y="116" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="196" y="116" width="152" height="80" rx="6" class="node"/>
+        <rect x="204" y="124" width="40" height="12" rx="2" class="type-tag"/><text x="224" y="132" class="type-txt">SCRIPT</text>
+        <text x="272" y="156" class="node-name">Data Generator</text>
+        <text x="272" y="172" class="node-sub">data/generate_data.py</text>
+        <rect x="316" y="180" width="24" height="12" rx="2" class="chip-db"/><text x="328" y="186" class="chip-txt">DB</text>
+
+        <rect x="372" y="116" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="372" y="116" width="152" height="80" rx="6" class="node"/>
+        <rect x="380" y="124" width="40" height="12" rx="2" class="type-tag"/><text x="400" y="132" class="type-txt">DATA</text>
+        <text x="448" y="156" class="node-name">Experiment Data</text>
+        <text x="448" y="172" class="node-sub">seed 42 · 20,000 users</text>
+        <rect x="380" y="180" width="24" height="12" rx="2" class="chip-db"/><text x="392" y="186" class="chip-txt">DB</text>
+        <rect x="492" y="180" width="24" height="12" rx="2" class="chip-tb"/><text x="504" y="186" class="chip-txt">TB</text>
+
+        <rect x="372" y="252" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="372" y="252" width="152" height="80" rx="6" class="node"/>
+        <rect x="380" y="260" width="40" height="12" rx="2" class="type-tag"/><text x="400" y="268" class="type-txt">DATA</text>
+        <text x="448" y="292" class="node-name">Pre-period x_pre</text>
+        <text x="448" y="308" class="node-sub">covariate · ρ ≈ 0.67</text>
+        <rect x="492" y="316" width="24" height="12" rx="2" class="chip-tb"/><text x="504" y="322" class="chip-txt">TB</text>
+
+        <rect x="548" y="388" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="548" y="388" width="152" height="80" rx="6" class="node-focal"/>
+        <rect x="556" y="396" width="40" height="12" rx="2" class="type-tag"/><text x="576" y="404" class="type-txt">MODEL</text>
+        <text x="624" y="428" class="node-name">CUPED Adjust</text>
+        <text x="624" y="444" class="node-sub">y_adj = y − θ(x − x̄)</text>
+        <rect x="556" y="452" width="24" height="12" rx="2" class="chip-tb"/><text x="568" y="458" class="chip-txt">TB</text>
+        <rect x="668" y="452" width="24" height="12" rx="2" class="chip-tb"/><text x="680" y="458" class="chip-txt">TB</text>
+
+        <rect x="724" y="388" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="724" y="388" width="152" height="80" rx="6" class="node"/>
+        <rect x="732" y="396" width="40" height="12" rx="2" class="type-tag"/><text x="752" y="404" class="type-txt">MODEL</text>
+        <text x="800" y="428" class="node-name">Uplift Learners</text>
+        <text x="800" y="444" class="node-sub">T-learner · S-learner</text>
+        <rect x="732" y="452" width="24" height="12" rx="2" class="chip-tb"/><text x="744" y="458" class="chip-txt">TB</text>
+        <rect x="844" y="452" width="24" height="12" rx="2" class="chip-tb"/><text x="856" y="458" class="chip-txt">TB</text>
+
+        <rect x="548" y="524" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="548" y="524" width="152" height="80" rx="6" class="node"/>
+        <rect x="556" y="532" width="40" height="12" rx="2" class="type-tag"/><text x="576" y="540" class="type-txt">EVAL</text>
+        <text x="624" y="564" class="node-name">ATE + 95% CI</text>
+        <text x="624" y="580" class="node-sub">-26% SE · 5.5k/arm</text>
+        <rect x="556" y="588" width="24" height="12" rx="2" class="chip-tb"/><text x="568" y="594" class="chip-txt">TB</text>
+
+        <rect x="724" y="524" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="724" y="524" width="152" height="80" rx="6" class="node"/>
+        <rect x="732" y="532" width="40" height="12" rx="2" class="type-tag"/><text x="752" y="540" class="type-txt">EVAL</text>
+        <text x="800" y="564" class="node-name">Null &amp; Bootstrap</text>
+        <text x="800" y="580" class="node-sub">200 draws · 95% CI</text>
+        <rect x="732" y="588" width="24" height="12" rx="2" class="chip-tb"/><text x="744" y="594" class="chip-txt">TB</text>
+
+        <rect x="900" y="524" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="900" y="524" width="152" height="80" rx="6" class="node"/>
+        <rect x="908" y="532" width="40" height="12" rx="2" class="type-tag"/><text x="928" y="540" class="type-txt">EVAL</text>
+        <text x="976" y="564" class="node-name">Segment Recovery</text>
+        <text x="976" y="580" class="node-sub">new 0.111 · ret 0.013</text>
+        <rect x="908" y="588" width="24" height="12" rx="2" class="chip-tb"/><text x="920" y="594" class="chip-txt">TB</text>
+
+        <rect x="1076" y="524" width="152" height="80" rx="6" class="node-mask"/>
+        <rect x="1076" y="524" width="152" height="80" rx="6" class="node"/>
+        <rect x="1084" y="532" width="40" height="12" rx="2" class="type-tag"/><text x="1104" y="540" class="type-txt">OUT</text>
+        <text x="1152" y="564" class="node-name">Evaluation Report</text>
+        <text x="1152" y="580" class="node-sub">~8× new vs returning</text>
+        <rect x="1084" y="588" width="24" height="12" rx="2" class="chip-tb"/><text x="1096" y="594" class="chip-txt">TB</text>
+        <rect x="1196" y="588" width="24" height="12" rx="2" class="chip-fl"/><text x="1208" y="594" class="chip-txt">FL</text>
+
+        <!-- Legend: horizontal strip inside the reserved bottom 60px -->
+        <line x1="40" y1="660" x2="1240" y2="660" class="rule"/>
+        <text x="40" y="676" class="legend-cat">NODE</text>
+        <rect x="100" y="664" width="16" height="12" rx="2" class="node"/>
+        <text x="124" y="676" class="legend-txt">SCRIPT</text>
+        <rect x="248" y="664" width="16" height="12" rx="2" class="node"/>
+        <text x="272" y="676" class="legend-txt">DATA</text>
+        <rect x="396" y="664" width="16" height="12" rx="2" class="node"/>
+        <text x="420" y="676" class="legend-txt">MODEL</text>
+        <rect x="544" y="664" width="16" height="12" rx="2" class="node"/>
+        <text x="568" y="676" class="legend-txt">EVAL</text>
+        <rect x="692" y="664" width="16" height="12" rx="2" class="node"/>
+        <text x="716" y="676" class="legend-txt">OUT</text>
+
+        <text x="40" y="696" class="legend-cat">DATA</text>
+        <rect x="100" y="688" width="24" height="12" rx="2" class="chip-db"/><text x="112" y="692" class="chip-txt">DB</text>
+        <text x="132" y="696" class="legend-txt">DATASET</text>
+        <rect x="240" y="688" width="24" height="12" rx="2" class="chip-tb"/><text x="252" y="692" class="chip-txt">TB</text>
+        <text x="272" y="696" class="legend-txt">TABLE</text>
+        <rect x="380" y="688" width="24" height="12" rx="2" class="chip-fl"/><text x="392" y="692" class="chip-txt">FL</text>
+        <text x="412" y="696" class="legend-txt">REPORT</text>
+        <text x="560" y="696" class="legend-txt">LEFT CHIP = INPUT · RIGHT CHIP = OUTPUT</text>
+
+        <text x="40" y="714" class="legend-cat">FLOW</text>
+        <line x1="100" y1="708" x2="124" y2="708" class="a-muted" marker-end="url(#arr-muted)"/>
+        <text x="132" y="714" class="legend-txt">STANDARD HANDOFF</text>
+        <line x1="300" y1="708" x2="324" y2="708" class="a-pre" marker-end="url(#arr-muted)"/>
+        <text x="332" y="714" class="legend-txt">PRE-PERIOD COVARIATE</text>
+        <text x="600" y="714" class="legend-txt">DASHED = PRE-TREATMENT INPUT · ACCENT = FOCAL HANDOFF</text>
+      </svg>
+    </div>
+  </main>
+</body>
+</html>

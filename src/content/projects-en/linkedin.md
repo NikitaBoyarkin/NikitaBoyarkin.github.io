@@ -33,6 +33,8 @@ related:
 
 # LinkedIn Content Analytics
 
+**▶ [Data-flow diagram](/diagrams/linkedin-analytics.html)** — self-contained HTML, opens in a browser — no install, no build
+
 ## Situation
 
 One workbook, exported by hand from LinkedIn, is the only source of truth about how my content performs. The question is not «how many impressions did I get» but «which format to write next — and is the difference even established».
