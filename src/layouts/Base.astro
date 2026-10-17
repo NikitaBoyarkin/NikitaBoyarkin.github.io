@@ -22,7 +22,17 @@ interface Props {
   canonical?: string;
   relPrev?: string;
   relNext?: string;
-  activeNav?: 'writing' | 'contact' | 'home' | 'about' | 'projects' | 'glossary' | 'graph' | 'library';
+  activeNav?:
+    | 'writing'
+    | 'contact'
+    | 'home'
+    | 'about'
+    | 'projects'
+    | 'glossary'
+    | 'graph'
+    | 'library'
+    | 'explorer'
+    | 'topics';
   jsonLd?: Record<string, unknown>;
   lang?: 'ru' | 'en';
   counterpartHref?: string;
@@ -97,12 +107,27 @@ const glossaryHref = isEn ? withBase('en/glossary/') : withBase('glossary/');
 const graphHref = isEn ? withBase('en/graph/') : withBase('graph/');
 const libraryHref = isEn ? withBase('en/library/') : withBase('library/');
 const writingHref = isEn ? withBase('en/writing/') : withBase('writing/');
+const explorerHref = isEn ? withBase('en/explorer/') : withBase('explorer/');
+// Topics is RU-only — there is no /en/topics/ — so both locales point at the one
+// route, exactly as `repoAuditHref` below is shared across locales.
+const topicsHref = withBase('topics/');
 const repoAuditHref = withBase('repo-audit/');
 
 // Which role landing (if any) this page is, so NavRoles can mark it current
 // (`aria-current="page"`) the way the drawer's own links do. Derived from the
 // URL because the role routes pass `activeNav="home"`, not their own key.
 const activeRole = Astro.url.pathname.match(/^\/(?:en\/)?(hr|manager|colleague)\/?$/)?.[1];
+
+// Which inline/drawer entry the current URL belongs to. The topics and explorer
+// routes inherit `activeNav="home"` (there is no `home` item), so without this
+// their own entry would never mark itself current — the same reason `activeRole`
+// above derives from the pathname instead of trusting the passed prop.
+const urlActiveNav = /^\/(?:en\/)?explorer\/?$/.test(Astro.url.pathname)
+  ? 'explorer'
+  : /^\/topics(?:\/|$)/.test(Astro.url.pathname)
+    ? 'topics'
+    : null;
+const isNavCurrent = (key: string) => activeNav === key || urlActiveNav === key;
 
 // i18n: header / footer chrome labels.
 const t = {
@@ -114,6 +139,8 @@ const t = {
   navLibrary: isEn ? 'Library' : 'Библиотека',
   navWriting: isEn ? 'Writing' : 'Статьи',
   navRepoAudit: isEn ? 'Repo audit' : 'Аудит репозиториев',
+  navExplorer: isEn ? 'Explorer' : 'Обозреватель',
+  navTopics: isEn ? 'Topics' : 'Темы',
   navContact: isEn ? 'Contact' : 'Контакты',
   // The footer's own label. «Связаться» reads as an action and matches the
   // /contact/ heading, while the drawer button stays the noun «Контакты».
@@ -170,6 +197,18 @@ const navLinks = [
     icon: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
   },
   {
+    key: 'explorer',
+    href: explorerHref,
+    label: t.navExplorer,
+    icon: '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
+  },
+  {
+    key: 'topics',
+    href: topicsHref,
+    label: t.navTopics,
+    icon: '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>',
+  },
+  {
     key: 'repo-audit',
     href: repoAuditHref,
     label: t.navRepoAudit,
@@ -177,11 +216,18 @@ const navLinks = [
   },
 ] as const;
 
-// The four destinations rendered inline in the top bar from 1200px up. The rest
-// (Graph, Library, Repo audit) stay drawer-only: the bar has room for a handful,
-// and these are the four a reader actually navigates by. Order here is the
+// The destinations rendered inline in the top bar from the measured cutover
+// (see the threshold note in the <style> block). The rest (Graph, Library, Repo
+// audit) stay drawer-only: the bar has room for a handful. Order here is the
 // inline order, so it is deliberately not the drawer's order.
-const INLINE_NAV_KEYS = ['projects', 'about', 'writing', 'glossary'] as const;
+const INLINE_NAV_KEYS = [
+  'projects',
+  'about',
+  'writing',
+  'glossary',
+  'explorer',
+  'topics',
+] as const;
 const inlineNavLinks = INLINE_NAV_KEYS.map((key) => navLinks.find((l) => l.key === key)!);
 
 const counterpartUrl = counterpartHref ? `${siteUrl}${counterpartHref}` : null;
@@ -401,15 +447,15 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           left-hand cluster with the brand ("who" + "viewing as"); the outbound
           chips stay pushed right by their own auto margin. */}
       <NavRoles lang={lang} active={activeRole} />
-      {/* Inline site navigation, ≥1280px only. Below that the bar has no room
-          for links *and* the persona group *and* the chips, so the drawer stays
-          the sole route and this list is `display: none` (out of the a11y tree
-          and the tab order). It carries the same `aria-current` contract as the
-          drawer's rows. */}
+      {/* Inline site navigation, from the measured cutover (see the <style>
+          block). Below that the bar has no room for links *and* the persona group
+          *and* the chips, so the drawer stays the sole route and this list is
+          `display: none` (out of the a11y tree and the tab order). It carries the
+          same `aria-current` contract as the drawer's rows. */}
       <ul class="nav-inline">
         {inlineNavLinks.map((item) => (
           <li>
-            <a href={item.href} aria-current={activeNav === item.key ? 'page' : undefined}>
+            <a href={item.href} aria-current={isNavCurrent(item.key) ? 'page' : undefined}>
               {item.label}
             </a>
           </li>
@@ -493,8 +539,8 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
             <li>
               <a
                 href={item.href}
-                class={activeNav === item.key ? 'active' : ''}
-                aria-current={activeNav === item.key ? 'page' : undefined}
+                class={isNavCurrent(item.key) ? 'active' : ''}
+                aria-current={isNavCurrent(item.key) ? 'page' : undefined}
               >
                 <svg
                   class="link-icon"
@@ -742,21 +788,22 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       }
 
       /* Inline site navigation. Hidden by default: the drawer is the nav below
-         1280px, and `display: none` keeps these links out of the tab order and
-         the a11y tree where they cannot be seen.
+         the cutover, and `display: none` keeps these links out of the tab order
+         and the a11y tree where they cannot be seen.
 
-         The threshold is measured, not chosen. At 1280px the row needs 1246px —
-         brand 166 · personas 295 · links 282 · chips 319 (icon-only) · controls
-         64, plus 5 gaps and the 2×20px gutter. At 1200px the same content is
-         1199px against 1200px of bar, and the browser wraps: the brand pill
-         grew to 65px tall and the chips to 60px, so the bar became two rows.
-         `min-width` keeps the row at one line from 1280px up, which covers the
-         classic 1366×768 laptop. */
+         The threshold is measured, not chosen. Explorer and Topics made the row
+         six links wide; with the RU labels («Обозреватель» + «Темы», the wider
+         locale) the bar needs ~1390px. Measured on the built page: at 1380px the
+         labelled chips still wrap the bar from 71px to 98px, from 1390px it holds
+         one line; 1400px leaves a ~10px margin under the self-hosted subset
+         metrics. Below the cutover the drawer is the sole route and the chip
+         labels come back, because the icon-only chips below exist only to pay for
+         the links and therefore share this breakpoint. */
       .nav-inline {
         display: none;
       }
 
-      @media (min-width: 1280px) {
+      @media (min-width: 1400px) {
         .nav-inline {
           display: flex;
           align-items: center;
@@ -788,7 +835,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           outline-offset: 2px;
           border-radius: var(--radius-sm);
         }
-        /* Icon-only chips, ≥1280px: the identity glyphs are recognisable on
+        /* Icon-only chips, ≥1400px: the identity glyphs are recognisable on
            their own and the label stays visually hidden, so each anchor keeps
            its accessible name. The CV chip is exempt — it is the primary action
            in the row and its label is the point. This rule must keep the same

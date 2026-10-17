@@ -1,0 +1,724 @@
+---
+// Explorer surface — the island + its result list.
+//
+// One unified, filterable, addressable view over every content entity, plus a
+// relational panel. The shell is rendered at build time from
+// `buildExplorerIndex()` (heading + facet panel with real counts + the first
+// 50 records as real `<a>`s), so a visitor without JavaScript still gets a
+// usable, indexable hub rather than a dead end. The island then takes over:
+// it fetches `/explorer-index.json` ONCE and filters, sorts and relates in
+// memory — never per keystroke.
+//
+// The URL is the state: every change goes through `buildExplorerQuery` +
+// `history.replaceState`, and `popstate` re-reads it. Nobody navigates by a
+// reload, and no server answers a filter.
+//
+// Class usage is deliberately narrow: only the `xp-*` names from
+// `design-plans/explorer-surface.md` §3 plus the documented reuse list. The
+// `<style is:global>` block is layout only (and unscoped on purpose — the
+// island builds rows with `createElement`, which never carries Astro's style
+// scope attribute), with every colour a `global.css` token and nothing else.
+import {
+  DEFAULT_STATE,
+  EXPLORER_SORT_KEYS,
+  KIND_LABELS,
+  SORT_LABELS,
+  activeFilterCount,
+  buildFacets,
+  indexById,
+  selectRecords,
+  type ExplorerIndex,
+  type ExplorerRecord,
+  type ExplorerState,
+  type FacetKey,
+} from '../lib/explorer';
+import { withBase } from '../lib/path';
+import ExplorerFacets from './ExplorerFacets.astro';
+import ExplorerRelations from './ExplorerRelations.astro';
+
+interface Props {
+  index: ExplorerIndex;
+  lang?: 'ru' | 'en';
+  /** Page scope — `{ locales: ['ru'] }` on /explorer/, `['en']` on /en/explorer/. */
+  defaults?: Partial<ExplorerState>;
+}
+
+const { index, lang = 'ru', defaults = {} } = Astro.props;
+const isEn = lang === 'en';
+
+/** Rows the no-JS shell ships. Matches the contract's "first ~50". */
+const SSR_ROWS = 50;
+// The island's own render cap is 200 (below, in the bundled script): past it the
+// readout says "Показано первые 200 из N" instead of virtualising.
+
+const pageDefaults: ExplorerState = { ...DEFAULT_STATE, ...defaults };
+// The shell reflects the DEFAULT view only: a static page cannot know the query
+// string it was requested with, so `?lang=en` is applied by the island, not
+// here. `selectRecords` is still the one selector, so the shell's order is the
+// same order the island will produce for the default state.
+const matched = selectRecords(index.records, pageDefaults);
+const ssrRows = matched.slice(0, SSR_ROWS);
+// Locale-scoped id indexes. Record ids are NOT locale-namespaced (`p:churn`
+// names both the RU project and its EN twin), so ONE global `indexById` resolves
+// an EN record's relations to the RU twin's page — the EN explorer would link
+// out into Russian. Relations never cross locales (the builder drops them), so
+// each record is resolved against its own locale's table.
+const byLocale: Record<'ru' | 'en', Map<string, ExplorerRecord>> = {
+  ru: indexById(index.records.filter((rec) => rec.locale === 'ru')),
+  en: indexById(index.records.filter((rec) => rec.locale === 'en')),
+};
+// Facet labels follow the PAGE's locale. The endpoint ships one facet table
+// localized to `ru` (contract §2); rebuilding it here is the same pure function
+// on the same records, and it is what makes the EN page read in English.
+const facets = buildFacets(index.records, lang);
+
+const activeMap: Partial<Record<FacetKey, string[]>> = {
+  locale: pageDefaults.locales,
+  kind: pageDefaults.kinds,
+  group: pageDefaults.groups,
+  topic: pageDefaults.topics,
+  tag: pageDefaults.tags,
+  tool: pageDefaults.tools,
+  year: pageDefaults.years.map(String),
+};
+
+// `{token}` templates, so the island formats the same strings the shell does.
+const i18n = {
+  queryLabel: isEn ? 'Search across all content' : 'Поиск по всему контенту',
+  placeholder: isEn ? 'Retention, SQL, cohort…' : 'retention, SQL, когорта…',
+  sortLabel: isEn ? 'Sort' : 'Сортировка',
+  dirAsc: isEn ? 'Sort direction: ascending' : 'Направление сортировки: по возрастанию',
+  dirDesc: isEn ? 'Sort direction: descending' : 'Направление сортировки: по убыванию',
+  reset: isEn ? 'Reset ({n})' : 'Сбросить ({n})',
+  count: isEn ? 'showing {shown} of {total} · in {ms} ms' : 'показано {shown} из {total} · за {ms} мс',
+  capped: isEn ? 'Showing the first {cap} of {shown}' : 'Показано первые {cap} из {shown}',
+  empty: isEn
+    ? 'Nothing matched. Clear a filter or change the query.'
+    : 'Ничего не нашлось. Сбросьте часть фильтров или измените запрос.',
+  connections: isEn ? '{n} connections' : 'связей: {n}',
+  resultsLabel: isEn ? 'Explorer results' : 'Результаты обзора',
+};
+
+const fill = (template: string, values: Record<string, string | number>): string =>
+  template.replace(/\{(\w+)\}/g, (_match, key: string) => String(values[key] ?? ''));
+
+/** The metadata row under a result: bucket · topic · year · edges. */
+const metaLine = (rec: ExplorerRecord): string =>
+  [
+    rec.groupLabel,
+    rec.topic ?? '',
+    rec.year === null ? '' : String(rec.year),
+    fill(i18n.connections, { n: rec.relations.length }),
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+const indexUrl = withBase('explorer-index.json');
+const dirGlyph = pageDefaults.dir === 'asc' ? '↑' : '↓';
+---
+
+<div
+  class="xp"
+  id="xp-root"
+  data-xp-index-url={indexUrl}
+  data-xp-defaults={JSON.stringify(defaults)}
+  data-xp-i18n={JSON.stringify(i18n)}
+>
+  <ExplorerFacets facets={facets} lang={lang} active={activeMap} />
+
+  <section aria-labelledby="xp-results-heading">
+    <h2 class="visually-hidden" id="xp-results-heading">{i18n.resultsLabel}</h2>
+
+    <div class="xp-toolbar">
+      <input
+        id="xp-query"
+        class="search-input"
+        type="search"
+        aria-label={i18n.queryLabel}
+        placeholder={i18n.placeholder}
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <label class="visually-hidden" for="xp-sort">{i18n.sortLabel}</label>
+      <select id="xp-sort">
+        {
+          EXPLORER_SORT_KEYS.map((key) => (
+            <option value={key} selected={key === pageDefaults.sort}>
+              {SORT_LABELS[key][lang]}
+            </option>
+          ))
+        }
+      </select>
+      <button
+        type="button"
+        id="xp-dir"
+        class="button button-secondary"
+        aria-label={pageDefaults.dir === 'asc' ? i18n.dirAsc : i18n.dirDesc}
+      >
+        {dirGlyph}
+      </button>
+      <button type="button" class="button button-secondary" data-xp-reset>
+        {fill(i18n.reset, { n: activeFilterCount(pageDefaults) })}
+      </button>
+      <p class="xp-count" id="xp-count" aria-live="polite">
+        {fill(i18n.count, { shown: matched.length, total: index.records.length, ms: '0.0' })}
+      </p>
+    </div>
+
+    <p class="xp-count" id="xp-cap" hidden></p>
+
+    <p class="xp-empty" id="xp-empty" hidden={index.records.length > 0}>{i18n.empty}</p>
+
+    <ul class="xp-list" id="xp-list" aria-label={i18n.resultsLabel}>
+      {
+        ssrRows.map((rec, position) => (
+          <li
+            class:list={['xp-item', { 'is-active': position === 0 }]}
+            data-xp-id={rec.id}
+            data-xp-key={`${rec.locale}:${rec.id}`}
+          >
+            {/* A real anchor per visible record — the no-JS route through the
+                hub, and the row's own keyboard target. It is `strong` inside
+                the anchor because the row's title IS the emphasised text, and
+                because the chip is the only thing that needs a class. */}
+            <a href={rec.href}>
+              <span class="xp-item-kind">{KIND_LABELS[rec.kind][lang]}</span>
+              <strong>{rec.title}</strong>
+              <p>{rec.desc}</p>
+            </a>
+            <div class="xp-item-meta">{metaLine(rec)}</div>
+            <ExplorerRelations record={rec} byId={byLocale[rec.locale]} lang={lang} hidden={position > 0} />
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</div>
+
+<script>
+  // The island. Bundled script, no framework: it imports the same frozen
+  // codec/selector the shell used (`src/lib/explorer.ts`), so the URL the
+  // reader copies and the list they see are produced by one implementation.
+  import {
+    DEFAULT_STATE,
+    EXPLORER_LOCALES,
+    KIND_LABELS,
+    RELATION_LABELS,
+    SORT_DIRECTION,
+    activeFilterCount,
+    buildExplorerQuery,
+    indexById,
+    readExplorerState,
+    relationsOf,
+    selectRecords,
+    toggleValue,
+    type ExplorerKind,
+    type ExplorerLocale,
+    type ExplorerRecord,
+    type ExplorerSortKey,
+    type ExplorerState,
+    type FacetKey,
+  } from "../lib/explorer";
+
+  /** Rows rendered per interaction before the readout says "first N". */
+  const RESULT_CAP = 200;
+
+  function init(): void {
+    const rootEl = document.getElementById("xp-root");
+    if (!rootEl) return;
+    const root = rootEl;
+    const listEl = document.getElementById("xp-list");
+    const countEl = document.getElementById("xp-count");
+    const capEl = document.getElementById("xp-cap");
+    const emptyEl = document.getElementById("xp-empty");
+    const inputEl = document.getElementById("xp-query") as HTMLInputElement | null;
+    const selectEl = document.getElementById("xp-sort") as HTMLSelectElement | null;
+    const dirEl = document.getElementById("xp-dir") as HTMLButtonElement | null;
+    const resetEl = root.querySelector<HTMLButtonElement>("[data-xp-reset]");
+    // The toolbars/panel are optional (a bare `.xp` renders the list alone);
+    // the list and the query field are the island's minimum surface.
+    if (!listEl || !countEl || !inputEl) return;
+    // Re-bound after the guard: TypeScript drops the `getElementById` narrowing
+    // inside nested functions, so these three carry the non-null type for every
+    // closure below.
+    const list = listEl;
+    const count = countEl;
+    const input = inputEl;
+
+    const defaults: Partial<ExplorerState> = JSON.parse(root.dataset.xpDefaults || "{}");
+    const t: Record<string, string> = JSON.parse(root.dataset.xpI18n || "{}");
+    const indexUrl = root.dataset.xpIndexUrl || "";
+    const lang: "ru" | "en" = document.documentElement.lang === "en" ? "en" : "ru";
+    // Hover-driven relations are a pointer affordance; on touch they would
+    // appear on the first tap's incidental mouseover and fight the link.
+    const hoverCapable = window.matchMedia?.("(hover: hover)")?.matches ?? false;
+
+    let state: ExplorerState = readState(location.search);
+    let records: ExplorerRecord[] = [];
+    // Per-locale id indexes — see the note in the frontmatter: ids are shared
+    // between an entity's RU and EN twins, so one global index would resolve an
+    // EN record's relations to RU pages.
+    const byLocale: Record<"ru" | "en", Map<string, ExplorerRecord>> = {
+      ru: new Map(),
+      en: new Map(),
+    };
+    let ready = false;
+    /** The active record, keyed `"<locale>:<id>"`: an id alone is ambiguous
+     *  once both locales are in scope (`p:churn` is two different rows). */
+    let activeKey: string | null = null;
+    /** Rendered rows by key — the lookup `setActive` needs, rebuilt per render. */
+    const rendered = new Map<string, ExplorerRecord>();
+    let debounce: ReturnType<typeof setTimeout> | undefined;
+
+    const keyOf = (rec: ExplorerRecord): string => `${rec.locale}:${rec.id}`;
+
+    /**
+     * `readExplorerState` + one correction. `buildExplorerQuery` omits `dir`
+     * when it equals the key's natural direction (`SORT_DIRECTION[sort]`), but
+     * the reader cannot infer that direction from the key alone, so it falls
+     * back to `DEFAULT_STATE.dir` ("desc"). Written state `{sort: "title",
+     * dir: "asc"}` therefore came back as `{sort: "title", dir: "desc"}` and a
+     * shared link rendered the list in the opposite order. When the URL carries
+     * no `dir`, adopt the key's natural direction — which is exactly what the
+     * writer meant by omitting it.
+     */
+    function readState(search: string): ExplorerState {
+      const next = readExplorerState(search, defaults);
+      const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
+      return params.has("dir") ? next : { ...next, dir: SORT_DIRECTION[next.sort] };
+    }
+
+    const fill = (template: string, values: Record<string, string | number>): string =>
+      template.replace(/\{(\w+)\}/g, (_match, key: string) => String(values[key] ?? ""));
+
+    const el = (tag: string, className?: string): HTMLElement => {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      return node;
+    };
+
+    const cssEscape = (value: string): string =>
+      typeof CSS !== "undefined" && CSS.escape ? CSS.escape(value) : value.replace(/["\\]/g, "\\$&");
+
+    const metaLine = (rec: ExplorerRecord): string =>
+      [
+        rec.groupLabel,
+        rec.topic ?? "",
+        rec.year === null ? "" : String(rec.year),
+        fill(t.connections || "{n}", { n: rec.relations.length }),
+      ]
+        .filter(Boolean)
+        .join(" · ");
+
+    /** Relation groups for one record, as the same `.xp-rel*` markup the shell
+     *  ships (built with `createElement`, so titles need no escaping). */
+    function relationsNode(rec: ExplorerRecord): HTMLElement | null {
+      const groups = relationsOf(rec, byLocale[rec.locale]);
+      if (!groups.length) return null;
+      const box = el("div", "xp-rel");
+      box.dataset.xpRel = `${rec.locale}:${rec.id}`;
+      for (const group of groups) {
+        const groupEl = el("div", "xp-rel-group");
+        const type = el("span", "xp-rel-type");
+        type.textContent = RELATION_LABELS[group.type][lang];
+        const ul = el("ul");
+        for (const target of group.records) {
+          const li = el("li");
+          const anchor = document.createElement("a");
+          anchor.href = target.href;
+          anchor.textContent = target.title;
+          li.appendChild(anchor);
+          ul.appendChild(li);
+        }
+        groupEl.append(type, ul);
+        box.appendChild(groupEl);
+      }
+      return box;
+    }
+
+    function rowNode(rec: ExplorerRecord): HTMLElement {
+      const li = el("li", "xp-item");
+      li.dataset.xpKey = keyOf(rec);
+
+      const anchor = document.createElement("a");
+      anchor.href = rec.href;
+      const kind = el("span", "xp-item-kind");
+      kind.textContent = KIND_LABELS[rec.kind][lang];
+      const title = document.createElement("strong");
+      title.textContent = rec.title;
+      const desc = document.createElement("p");
+      desc.textContent = rec.desc;
+      anchor.append(kind, title, desc);
+      li.appendChild(anchor);
+
+      const meta = el("div", "xp-item-meta");
+      meta.textContent = metaLine(rec);
+      li.appendChild(meta);
+
+      if (keyOf(rec) === activeKey) {
+        li.classList.add("is-active");
+        const rel = relationsNode(rec);
+        if (rel) li.appendChild(rel);
+      }
+      return li;
+    }
+
+    function renderRows(rows: ExplorerRecord[]): void {
+      rendered.clear();
+      for (const rec of rows) rendered.set(keyOf(rec), rec);
+      const fragment = document.createDocumentFragment();
+      for (const rec of rows) fragment.appendChild(rowNode(rec));
+      list.replaceChildren(fragment);
+    }
+
+    function facetValueSelected(key: FacetKey, value: string): boolean {
+      switch (key) {
+        case "locale":
+          return state.locales.includes(value as ExplorerLocale);
+        case "kind":
+          return state.kinds.includes(value as ExplorerKind);
+        case "group":
+          return state.groups.includes(value);
+        case "topic":
+          return state.topics.includes(value);
+        case "tag":
+          return state.tags.includes(value);
+        case "tool":
+          return state.tools.includes(value);
+        case "year":
+          return state.years.includes(Number.parseInt(value, 10));
+      }
+    }
+
+    function toggleFacet(key: FacetKey, value: string): ExplorerState {
+      switch (key) {
+        case "locale": {
+          const next = toggleValue(state.locales, value as ExplorerLocale);
+          // Locale is this page's SCOPE, not a filter the reader can empty:
+          // `buildExplorerQuery` omits an empty list, which would restore the
+          // page default on reload, so turning the last locale off lands on the
+          // twin instead. The URL then always round-trips.
+          return {
+            ...state,
+            locales: next.length ? next : EXPLORER_LOCALES.filter((locale) => locale !== value),
+          };
+        }
+        case "kind":
+          return { ...state, kinds: toggleValue(state.kinds, value as ExplorerKind) };
+        case "group":
+          return { ...state, groups: toggleValue(state.groups, value) };
+        case "topic":
+          return { ...state, topics: toggleValue(state.topics, value) };
+        case "tag":
+          return { ...state, tags: toggleValue(state.tags, value) };
+        case "tool":
+          return { ...state, tools: toggleValue(state.tools, value) };
+        case "year": {
+          const year = Number.parseInt(value, 10);
+          return Number.isFinite(year) ? { ...state, years: toggleValue(state.years, year) } : state;
+        }
+      }
+    }
+
+    function syncFacets(): void {
+      for (const btn of facetButtons) {
+        const key = btn.dataset.xpFacet as FacetKey | undefined;
+        const value = btn.dataset.xpValue;
+        if (!key || value === undefined) continue;
+        const on = facetValueSelected(key, value);
+        btn.classList.toggle("is-active", on);
+        btn.setAttribute("aria-pressed", String(on));
+      }
+    }
+
+    function syncControls(): void {
+      if (input.value !== state.q) input.value = state.q;
+      if (selectEl && selectEl.value !== state.sort) selectEl.value = state.sort;
+      if (dirEl) {
+        const asc = state.dir === "asc";
+        dirEl.textContent = asc ? "↑" : "↓";
+        dirEl.setAttribute("aria-label", asc ? t.dirAsc || "" : t.dirDesc || "");
+      }
+      if (resetEl) resetEl.textContent = fill(t.reset || "Reset ({n})", { n: activeFilterCount(state) });
+    }
+
+    function syncCount(matched: number, elapsed: number): void {
+      count.textContent = fill(t.count || "{shown}/{total}", {
+        shown: matched,
+        total: records.length,
+        ms: elapsed.toFixed(1),
+      });
+      if (capEl) {
+        const over = matched > RESULT_CAP;
+        capEl.hidden = !over;
+        if (over) capEl.textContent = fill(t.capped || "", { cap: RESULT_CAP, shown: matched });
+      }
+    }
+
+    function apply(): void {
+      if (!ready) return;
+      // Timing is the explorer's own readout: the filter + sort pass only, not
+      // the DOM write (DOM work would make the number depend on list length
+      // twice over and say nothing about the query).
+      const started = performance.now();
+      const rows = selectRecords(records, state);
+      const elapsed = performance.now() - started;
+
+      renderRows(rows.slice(0, RESULT_CAP));
+      syncCount(rows.length, elapsed);
+      if (emptyEl) emptyEl.hidden = rows.length > 0;
+      syncFacets();
+      syncControls();
+    }
+
+    function writeUrl(): void {
+      history.replaceState(
+        null,
+        "",
+        `${location.pathname}${buildExplorerQuery(state)}${location.hash}`,
+      );
+    }
+
+    /** The relational panel follows the active record: hovering or focusing a
+     *  row moves the block into it, so only one row is ever expanded (and only
+     *  that row wears the `is-active` border axis D defines). */
+    function setActive(key: string | null): void {
+      if (key === activeKey) return;
+      activeKey = key;
+      if (!ready) return;
+      for (const block of list.querySelectorAll(".xp-rel")) block.remove();
+      for (const item of list.querySelectorAll(".xp-item")) item.classList.remove("is-active");
+      if (!key) return;
+      const row = list.querySelector<HTMLElement>(`[data-xp-key="${cssEscape(key)}"]`);
+      const rec = rendered.get(key);
+      if (!row || !rec) return;
+      row.classList.add("is-active");
+      const rel = relationsNode(rec);
+      if (rel) row.appendChild(rel);
+    }
+
+    const firstRowKey = (): string | null =>
+      list.querySelector<HTMLElement>(".xp-item")?.dataset.xpKey ?? null;
+
+    /** Fetch the index ONCE. A failed or empty payload leaves the build-time
+     *  shell exactly as it shipped — an error must never blank the page. */
+    async function loadIndex(): Promise<void> {
+      try {
+        const response = await fetch(indexUrl);
+        if (!response.ok) throw new Error(`explorer index ${response.status}`);
+        const data = (await response.json()) as { records?: ExplorerRecord[] };
+        records = Array.isArray(data.records) ? data.records : [];
+        if (records.length) {
+          byLocale.ru = indexById(records.filter((rec) => rec.locale === "ru"));
+          byLocale.en = indexById(records.filter((rec) => rec.locale === "en"));
+          ready = true;
+        }
+      } catch {
+        records = [];
+      }
+      // Either way the list is no longer "busy": with no data it stays the
+      // static shell, which a screen reader should not be told is loading.
+      list.removeAttribute("aria-busy");
+      apply();
+      setActive(activeKey ?? firstRowKey());
+    }
+
+    const readInput = (): void => {
+      state = { ...state, q: input.value };
+      writeUrl();
+      apply();
+    };
+
+    const facetButtons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-xp-facet]"));
+
+    for (const btn of facetButtons) {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.xpFacet as FacetKey | undefined;
+        const value = btn.dataset.xpValue;
+        if (!key || value === undefined) return;
+        state = toggleFacet(key, value);
+        writeUrl();
+        apply();
+      });
+    }
+
+    input.addEventListener("input", () => {
+      clearTimeout(debounce);
+      debounce = setTimeout(readInput, 150);
+    });
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        // Enter bypasses the debounce: the reader is done typing.
+        clearTimeout(debounce);
+        readInput();
+      } else if (event.key === "Escape" && input.value) {
+        clearTimeout(debounce);
+        input.value = "";
+        readInput();
+      }
+    });
+
+    if (selectEl) {
+      selectEl.addEventListener("change", () => {
+        const key = selectEl.value as ExplorerSortKey;
+        // Switching key adopts that key's natural direction (SORT_DIRECTION),
+        // so "По названию" never lands on Z→A by surprise.
+        state = { ...state, sort: key, dir: SORT_DIRECTION[key] };
+        writeUrl();
+        apply();
+      });
+    }
+
+    if (dirEl) {
+      dirEl.addEventListener("click", () => {
+        state = { ...state, dir: state.dir === "asc" ? "desc" : "asc" };
+        writeUrl();
+        apply();
+      });
+    }
+
+    if (resetEl) {
+      resetEl.addEventListener("click", () => {
+        state = { ...DEFAULT_STATE, ...defaults };
+        writeUrl();
+        apply();
+      });
+    }
+
+    list.addEventListener("focusin", (event) => {
+      const row = (event.target as HTMLElement | null)?.closest<HTMLElement>(".xp-item");
+      if (row?.dataset.xpKey) setActive(row.dataset.xpKey);
+    });
+    if (hoverCapable) {
+      list.addEventListener("mouseover", (event) => {
+        const row = (event.target as HTMLElement | null)?.closest<HTMLElement>(".xp-item");
+        if (row?.dataset.xpKey) setActive(row.dataset.xpKey);
+      });
+    }
+
+    // Rows are real links, so ArrowUp/ArrowDown is the only keyboard model the
+    // list needs on top of Tab: move focus row to row, Enter follows the link.
+    list.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+      const target = event.target as HTMLElement | null;
+      const anchors = Array.from(list.querySelectorAll<HTMLAnchorElement>(".xp-item > a"));
+      if (!target || target.tagName !== "A") return;
+      const index = anchors.indexOf(target as HTMLAnchorElement);
+      if (index < 0) return;
+      event.preventDefault();
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      anchors[(index + step + anchors.length) % anchors.length]?.focus();
+    });
+
+    window.addEventListener("popstate", () => {
+      state = readState(location.search);
+      syncFacets();
+      syncControls();
+      apply();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "/") return;
+      const el = document.activeElement as HTMLElement | null;
+      const typing =
+        !!el &&
+        (el.tagName === "INPUT" ||
+          el.tagName === "TEXTAREA" ||
+          el.tagName === "SELECT" ||
+          el.isContentEditable);
+      if (typing) return;
+      event.preventDefault();
+      // SearchBox (a shell-level island, axis E) binds the same global `/` and
+      // opens the off-canvas drawer from it, which would bury this page's own
+      // query field — the explorer's field IS this page's search. Close the
+      // drawer through the shell's own toggle rather than re-implementing its
+      // open/close state, then take the caret.
+      if (document.body.classList.contains("nav-open")) {
+        (document.getElementById("nav-toggle") as HTMLButtonElement | null)?.click();
+      }
+      input.focus();
+      input.select();
+    });
+
+    list.setAttribute("aria-busy", "true");
+    syncControls();
+    syncFacets();
+    void loadIndex();
+  }
+
+  init();
+</script>
+
+<style is:global>
+  /* Layout only, and globally emitted on purpose: the island's rows are built
+     with `createElement`, so a scoped rule would style the build-time shell and
+     miss every client row. The `xp-*` surface and ink already live in
+     `global.css` (axis D) and are deliberately NOT repainted here — everything
+     below is structure for elements that sheet cannot know about (the row's
+     anchor and description), or geometry for the two controls the contract does
+     not name. Every colour is a token from `global.css`. */
+
+  /* The query owns the free space in the toolbar; the sort controls size to
+     their own labels so the count readout keeps its trailing edge. */
+  .xp-toolbar .search-input {
+    flex: 1 1 18rem;
+    min-inline-size: 11rem;
+  }
+
+  #xp-sort {
+    background: var(--background-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-normal);
+    font: inherit;
+    font-size: 0.9rem;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  #xp-sort:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 1px;
+  }
+
+  #xp-dir {
+    inline-size: 2.75rem;
+    padding-inline: 0;
+  }
+
+  /* The row's card surface is `.xp-item` (axis D); the ONE anchor inside it is
+     the link, so the row can also hold the relational panel without nesting
+     anchors. The UA underline has to go here — `.xp-item` cannot reach it. */
+  .xp-item > a {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .xp-item > a:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+
+  /* Chip / title on one line, description under them. The margin is why the
+     build-time markup and the island's `createElement` rows carry no stray
+     whitespace text node between the two. */
+  .xp-item > a > .xp-item-kind {
+    margin-inline-end: var(--space-2);
+  }
+
+  .xp-item > a > p {
+    margin: var(--space-1) 0 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  /* Phones: seven facet groups can out-tall the first screen, and the results
+     below them would land past the fold. Scroll the stack in place instead.
+     From 1000px up the panel is D's sticky rail and this never applies. */
+  @media (max-width: 999px) {
+    .xp-panel {
+      max-block-size: 55vh;
+      overflow-y: auto;
+    }
+  }
+</style>

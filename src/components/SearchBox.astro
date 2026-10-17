@@ -14,6 +14,10 @@ const { lang = "ru" } = Astro.props;
 const isEn = lang === "en";
 
 const indexUrl = withBase("search-index.json");
+// The addressable Explorer surface the "show all" row hands off to (see
+// design-plans/explorer-surface.md §4). Stamped server-side like `indexUrl`, so
+// the client never resolves the locale itself.
+const explorerUrl = withBase(isEn ? "en/explorer/" : "explorer/");
 const topicLinks = TOPICS.map((t) => ({ l: t.label, h: withBase(`topics/${t.key}/`) }));
 
 const i18n = {
@@ -26,6 +30,7 @@ const i18n = {
   sources: isEn ? "Library" : "Библиотека",
   empty: isEn ? "Nothing found" : "Ничего не найдено",
   topicsLabel: isEn ? "Browse topics:" : "Смотрите темы:",
+  allResults: isEn ? "All results →" : "Все результаты →",
   toggleLabel: isEn ? "Open search" : "Открыть поиск",
   closeLabel: isEn ? "Close search" : "Закрыть поиск",
   facetsLabel: isEn ? "Filter by type" : "Фильтр по типу",
@@ -41,6 +46,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
 <div
   class="search"
   data-index-url={indexUrl}
+  data-explorer-url={explorerUrl}
   data-topics={JSON.stringify(topicLinks)}
   data-i18n={JSON.stringify(i18n)}
   data-icon-search={SEARCH_D}
@@ -110,6 +116,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
     const searchD = root.dataset.iconSearch!;
     const closeD = root.dataset.iconClose!;
     const indexUrl = root.dataset.indexUrl!;
+    const explorerUrl = root.dataset.explorerUrl!;
     const topics: { l: string; h: string }[] = JSON.parse(root.dataset.topics || "[]");
     type I18n = {
       placeholder: string;
@@ -121,6 +128,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
       sources: string;
       empty: string;
       topicsLabel: string;
+      allResults: string;
       toggleLabel: string;
       closeLabel: string;
       facetsLabel: string;
@@ -160,6 +168,9 @@ const X_D = "M6 6l12 12M6 18L18 6";
     let index: Entry[] | null = null;
     let activeIndex = -1;
     let facet = "all";
+    // Dropdown cap. When a query has more matches, the last row hands the whole
+    // set off to the Explorer surface instead of truncating silently.
+    const MAX_ROWS = 8;
     // One `search_used` / `search_no_results` per open panel (REQ-A08).
     let searchReported = false;
 
@@ -193,7 +204,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
       toggle.setAttribute("aria-label", t.toggleLabel);
       input.value = "";
       resultsEl.innerHTML = "";
-      document.querySelector(".search-empty-sibling")?.remove();
+      document.querySelector(".search-sibling")?.remove();
       input.setAttribute("aria-expanded", "false");
       input.removeAttribute("aria-activedescendant");
       activeIndex = -1;
@@ -259,16 +270,16 @@ const X_D = "M6 6l12 12M6 18L18 6";
       return s;
     }
 
-    function render(rows: Entry[], tokens: string[]) {
+    function render(rows: Entry[], tokens: string[], more: boolean, query: string) {
       resultsEl.innerHTML = "";
-      document.querySelector(".search-empty-sibling")?.remove();
+      document.querySelector(".search-sibling")?.remove();
       if (!rows.length) {
         // Empty state lives OUTSIDE the listbox: a listbox may only contain
         // option/group children, and the topic chips are real links (Tab-ready)
         // that would break the combobox key model inside role="listbox"
         // (WCAG 4.1.2). Render it as a sibling block after the list instead.
         const block = document.createElement("div");
-        block.className = "search-empty search-empty-sibling";
+        block.className = "search-empty search-sibling";
         const label = document.createElement("span");
         label.textContent = t.empty;
         block.appendChild(label);
@@ -327,6 +338,23 @@ const X_D = "M6 6l12 12M6 18L18 6";
         li.appendChild(a);
         resultsEl.appendChild(li);
       });
+
+      // Handoff row: the dropdown shows at most MAX_ROWS rows, so when the query
+      // has more matches, the whole set is one click away on the addressable
+      // Explorer surface (`/explorer/?q=…`, RU or EN). Rendered as a sibling
+      // after the listbox — role="listbox" may only contain option children
+      // (WCAG 4.1.2), the same reason the empty state lives outside it. It reuses
+      // the row recipe (`.search-result a`), so the dropdown's look is unchanged.
+      if (more && query) {
+        const block = document.createElement("div");
+        block.className = "search-result search-more search-sibling";
+        const a = document.createElement("a");
+        a.href = `${explorerUrl}?q=${encodeURIComponent(query)}`;
+        a.textContent = t.allResults;
+        block.appendChild(a);
+        resultsEl.insertAdjacentElement("afterend", block);
+      }
+
       activeIndex = -1;
       input.removeAttribute("aria-activedescendant");
     }
@@ -339,6 +367,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
       const rawQuery = input.value.trim();
       const tokens = q ? q.split(/\s+/).filter(Boolean) : [];
       let rows: Entry[];
+      let more = false;
       if (!q) {
         // No query + active facet → browse recent items of that type.
         if (facet === "all") {
@@ -350,19 +379,20 @@ const X_D = "M6 6l12 12M6 18L18 6";
         rows = idx
           .filter((e) => e.locale === lang && e.type === facet)
           .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
-          .slice(0, 8);
+          .slice(0, MAX_ROWS);
       } else {
         // No hard locale filter — score() boosts the current locale so
         // cross-locale results still surface when they match better.
-        rows = idx
+        const matched = idx
           .filter((e) => facet === "all" || e.type === facet)
           .map((e) => ({ e, s: score(e, tokens) }))
           .filter((x) => x.s >= 0)
           .sort((a, b) => b.s - a.s)
-          .slice(0, 8)
           .map((x) => x.e);
+        more = matched.length > MAX_ROWS;
+        rows = matched.slice(0, MAX_ROWS);
       }
-      render(rows, tokens);
+      render(rows, tokens, more, rawQuery);
 
       // Emit once per panel session, when the first real query runs (REQ-A08).
       if (rawQuery && !searchReported) {

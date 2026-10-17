@@ -27,21 +27,28 @@ const OUT = 'reports/palette-audit';
 const THRESH = 25;   // max Euclidean RGB distance to count as a palette color
 const STEP = 2;      // sample every Nth pixel per dimension (4x downsample at 2)
 
+// Palette per theme, grouped into the 60/30/10 roles the site actually ships
+// (DESIGN.md "Color Roles — 60-30-10"). The 10% bucket is the accent family:
+// the coral/sienna text accent plus the orange/magenta button fill, not the
+// retired coral (#ff6643 / #e0532f). The dataviz highlight is classified with
+// the accent so its pixels are not dumped into "other" — it is information, not
+// a second surface, and keeping it out of the 60% teal bucket is the honest
+// choice. Bound to the tokens by tests/lib/demo-tokens.test.ts + brand.test.ts.
 const palettes = {
   dark: {
     '60': ['0f2a2b', '1a3435', '234044'],
     '30': ['e4e4e7', 'a1a1aa', '3f3f46', '27272a'],
-    '10': ['ff8569', 'ffa68a', 'ff6643', 'e0532f'],
+    '10': ['ff8569', 'ffa68a', 'fe4e02', 'ff6a1f', '4ecdc4'],
   },
   light: {
-    '60': ['f4efca', 'ffffff', 'f4f4f5'],
+    '60': ['f4efca', 'ffffff', 'f8f2da', 'f4f4f5'],
     '30': ['18181b', '52525b', 'e4e4e7', 'd4d4d8'],
-    '10': ['a8331a', '8a2a16', 'ff6643', 'e0532f'],
+    '10': ['a8331a', '8a2a16', 'fe4e02', 'ff6a1f', '0d7377'],
   },
   cyberpunk: {
     '60': ['0a0a12', '11111d', '1a1a2e'],
     '30': ['e6f1ff', '8a8aa8', '2a2a4a', '16162e'],
-    '10': ['ff8569', 'ffbe99', 'ff2bd6', 'ff5ce0'],
+    '10': ['ff8569', 'ffbe99', 'ff2bd6', 'ff5ce0', '4ecdc4'],
   },
 };
 

@@ -3,7 +3,6 @@
 /* Page title */
 .page-title {
   font-family: var(--font-display);
-  font-size: 2rem;
   font-weight: 700;
   margin-bottom: var(--space-8);
   color: var(--text-normal);
@@ -241,7 +240,6 @@ button.blog-card-tag:hover {
 }
 
 .post-title {
-  font-size: 2rem;
   font-weight: 700;
   color: var(--text-normal);
   margin-bottom: var(--space-3);
@@ -319,7 +317,6 @@ button.blog-card-tag:hover {
    channels, then what-I'm-looking-for. */
 .contact-title {
   font-family: var(--font-display);
-  font-size: 2rem;
   font-weight: 500;
   color: var(--text-normal);
   margin-bottom: var(--space-2);

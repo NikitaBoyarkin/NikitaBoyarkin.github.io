@@ -48,7 +48,6 @@
    page chrome renders no other visible h1 — this is the page's only heading.
    It had no rule at all before (UA default 2em), so it is styled here. */
 .prose > h1:first-child {
-  font-size: clamp(1.85rem, 1.3rem + 2.2vw, 2.5rem);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;

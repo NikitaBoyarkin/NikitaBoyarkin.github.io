@@ -1,0 +1,56 @@
+---
+// /explorer/ — the app-like Explorer surface (RU).
+//
+// Twin of /en/explorer/ (`counterpartHref` both ways). The shell is assembled
+// at build time from the same builder the JSON endpoint serves, so a visitor
+// without JavaScript gets the heading, the facet panel with real counts and the
+// first 50 records as real anchors; the island in `ExplorerApp.astro` then
+// filters, sorts and relates them in memory against the URL.
+import Base from '../layouts/Base.astro';
+import ExplorerApp from '../components/ExplorerApp.astro';
+import { withBase } from '../lib/path';
+import type { ExplorerIndex, ExplorerState } from '../lib/explorer';
+import { buildExplorerIndex } from './explorer-index.json.ts';
+
+/** The shell must survive a data problem: an unbuildable index renders the
+ *  empty hub, never a 500 at `astro build`. */
+const EMPTY_INDEX: ExplorerIndex = {
+  generatedAt: '',
+  records: [],
+  facets: [],
+  meta: { recordCount: 0, relationCount: 0 },
+};
+
+async function loadIndex(): Promise<ExplorerIndex> {
+  try {
+    return await buildExplorerIndex();
+  } catch (error) {
+    console.error('[explorer] index build failed', error);
+    return EMPTY_INDEX;
+  }
+}
+
+const index = await loadIndex();
+// This page's scope, applied when the URL carries no `lang` key — and omitted
+// again by `buildExplorerQuery`, so the default view has no query string.
+const defaults: Partial<ExplorerState> = { locales: ['ru'] };
+---
+
+<Base
+  title="Обозреватель контента | Nikita Boyarkin"
+  description="Единый обозреватель портфолио: проекты, статьи, глоссарий, полка, Volta и темы в одном фильтруемом списке — с адресуемыми фильтрами и панелью связей."
+  canonical={withBase('explorer/')}
+  counterpartHref={withBase('en/explorer/')}
+  lang="ru"
+>
+  <section class="container reveal">
+    <h1 class="page-title">Обозреватель контента</h1>
+    <p class="page-intro">
+      Всё портфолио одним списком: проекты, статьи, глоссарий, полка, Volta и темы.
+      Фильтры складываются друг с другом, состояние живёт в ссылке — вид можно
+      скопировать и отправить. Связи выбранного материала раскрываются прямо в строке.
+    </p>
+
+    <ExplorerApp index={index} lang="ru" defaults={defaults} />
+  </section>
+</Base>

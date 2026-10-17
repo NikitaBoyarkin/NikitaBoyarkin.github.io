@@ -45,7 +45,7 @@ Preflight: `bash scripts/preflight.sh` → **OK — all 57 claims reproduce from
 | Что | Доказательство на диске |
 |---|---|
 | Футер несёт маршрут к контакту на каждой странице | `src/layouts/Base.astro:552` |
-| Инлайн-навигация в топбаре от 1280px (ниже — drawer) | `src/layouts/Base.astro:409,755,759` |
+| Инлайн-навигация в топбаре от 1400px (ниже — drawer) | `src/layouts/Base.astro:806` |
 | Токен `--accent-ink`: контраст акцентной плашки в светлой теме 2.61:1 → 6.66:1 | `src/styles/global.css:280` |
 | Видимый FAQ вместо разметки-фантома (`FAQPage` без FAQ) | `src/pages/projects/[slug].astro:100,253` |
 | Доска `/projects/`: 2 колонки, страница 10 090 → 5 807px | `src/styles/global.css:3380` |

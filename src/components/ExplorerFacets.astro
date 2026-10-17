@@ -1,0 +1,75 @@
+---
+// Facet panel — the explorer's left rail.
+//
+// Facet counts are GLOBAL (built once over the whole record set by
+// `buildFacets`), not narrowed by the current selection, so the panel never
+// changes shape while the reader is clicking: every target keeps its place and
+// its number. That is the steady-target rule the DSWoK Explorer app uses too.
+//
+// No-JS: the panel is honest without scripts — every value ships with its real
+// count. The buttons are inert until the island wires them, and the row list to
+// their right is the usable, crawlable route (islands enhance, they do not
+// gate).
+import type { ExplorerFacet, FacetKey } from '../lib/explorer';
+
+interface Props {
+  facets: ExplorerFacet[];
+  lang?: 'ru' | 'en';
+  /** Active values, mirrored from the page's canonical state (SSR paint). */
+  active?: Partial<Record<FacetKey, string[]>>;
+}
+
+const { facets, lang = 'ru', active = {} } = Astro.props;
+const isActive = (key: FacetKey, value: string): boolean => (active[key] ?? []).includes(value);
+const panelLabel = lang === 'en' ? 'Filters' : 'Фильтры';
+const emptyLabel = lang === 'en' ? 'No facets available yet.' : 'Фильтры пока недоступны.';
+---
+
+<aside class="xp-panel">
+  <h2 class="visually-hidden">{panelLabel}</h2>
+  {
+    facets.length === 0 && <p class="xp-facet-title">{emptyLabel}</p>
+  }
+  <div class="xp-facets">
+    {
+      facets.map((facet) => (
+        <div class="xp-facet">
+          <h3 class="xp-facet-title">{facet.label}</h3>
+          <ul>
+            {facet.values.map((value) => {
+              const on = isActive(facet.key, value.value);
+              return (
+                <li>
+                  <button
+                    type="button"
+                    class:list={['xp-facet-item', { 'is-active': on }]}
+                    data-xp-facet={facet.key}
+                    data-xp-value={value.value}
+                    aria-pressed={on ? 'true' : 'false'}
+                  >
+                    <span>{value.label}</span>
+                    <span class="xp-facet-count">{value.count}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+</aside>
+
+<style is:global>
+  /* The only layout axis D's `.xp-facet*` rules do not cover: the value list,
+     which must not render as a bulleted list. Everything else about a facet row
+     (flex geometry, the count pinned to the trailing edge, the active accent
+     border, hover) is already in `global.css` and is not repeated here. */
+  .xp-facet ul {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+</style>

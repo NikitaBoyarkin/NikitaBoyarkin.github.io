@@ -111,6 +111,18 @@ const hiddenTags = tags.filter((t) => t.count < 2);
   const CYRILLIC = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
   const LATIN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
+  // Cyrillic letters that are pixel-identical to a Latin one. Rendering both
+  // ranges raw makes the strip look like it repeats itself (А/A, В/B, К/K …)
+  // and a click on one variant silently misses the other script. The map folds
+  // the Latin glyph onto the Cyrillic representative (which is the one that
+  // appears first in the RU alphabet), so each pair renders once and the button
+  // reaches terms in either script. Applied only when both ranges are indexed —
+  // the EN strip has no Cyrillic to fold onto.
+  const HOMOGLYPH: Record<string, string> = {
+    A: 'А', B: 'В', E: 'Е', K: 'К', M: 'М', H: 'Н',
+    O: 'О', P: 'Р', C: 'С', T: 'Т', Y: 'У', X: 'Х',
+  };
+
   function init() {
     const filterTags = document.querySelectorAll<HTMLButtonElement>('.filter-tag[data-filter]');
     const tagChips = document.querySelectorAll<HTMLButtonElement>('.filter-tag[data-tag]');
@@ -133,20 +145,33 @@ const hiddenTags = tags.filter((t) => t.count < 2);
     }
 
     const alphabet = isEn ? LATIN : CYRILLIC + LATIN;
+    // No folding in the Latin-only strip.
+    const fold: Record<string, string> = isEn ? {} : HOMOGLYPH;
 
-    /** Bucket key for the A–Z strip; null when a title starts off-alphabet. */
+    /** Strip bucket for a title — the canonical homoglyph glyph, or null when
+        the first letter is off-alphabet. */
     function firstLetter(title: string): string | null {
       const ch = title.trim().charAt(0).toUpperCase();
-      return ch && alphabet.includes(ch) ? ch : null;
+      if (!ch || !alphabet.includes(ch)) return null;
+      return fold[ch] ?? ch;
     }
 
     // The strip is built from the terms actually present, so it never offers a
     // letter that would filter the page down to nothing. Rendered client-side:
     // without JS the reader still gets the full static grouped list.
     if (alphaEl) {
-      const letters = alphabet
-        .split('')
-        .filter((ch) => allTerms.some((t) => firstLetter(t.title) === ch));
+      // One button per homoglyph bucket, in alphabet order; the bucket keeps the
+      // first variant it sees (the Cyrillic glyph for a pair, a lone letter
+      // otherwise), so the strip reads as a single set without losing a script.
+      const seen = new Set<string>();
+      const letters: string[] = [];
+      for (const ch of alphabet) {
+        const key = fold[ch] ?? ch;
+        if (seen.has(key)) continue;
+        if (!allTerms.some((t) => firstLetter(t.title) === key)) continue;
+        seen.add(key);
+        letters.push(key);
+      }
       if (letters.length > 1) {
         alphaEl.innerHTML = letters
           .map(

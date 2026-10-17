@@ -18,6 +18,8 @@
         "http://localhost:4321/contact/",
         "http://localhost:4321/en/contact/",
         "http://localhost:4321/graph/",
+        "http://localhost:4321/explorer/",
+        "http://localhost:4321/en/explorer/",
         "http://localhost:4321/404.html",
         "http://localhost:4321/repo-audit/"
       ],

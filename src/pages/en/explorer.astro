@@ -1,0 +1,51 @@
+---
+// /en/explorer/ — the app-like Explorer surface (EN).
+//
+// Twin of /explorer/ (`counterpartHref` both ways). Same build-time shell, same
+// island, different page scope: `{ locales: ['en'] }`. Locale honesty is
+// deliberate — the EN explorer shows the EN collections, however few they are.
+import Base from '../../layouts/Base.astro';
+import ExplorerApp from '../../components/ExplorerApp.astro';
+import { withBase } from '../../lib/path';
+import type { ExplorerIndex, ExplorerState } from '../../lib/explorer';
+import { buildExplorerIndex } from '../explorer-index.json.ts';
+
+/** Same defensive loader as the RU page: no data renders an empty hub. */
+const EMPTY_INDEX: ExplorerIndex = {
+  generatedAt: '',
+  records: [],
+  facets: [],
+  meta: { recordCount: 0, relationCount: 0 },
+};
+
+async function loadIndex(): Promise<ExplorerIndex> {
+  try {
+    return await buildExplorerIndex();
+  } catch (error) {
+    console.error('[explorer] index build failed', error);
+    return EMPTY_INDEX;
+  }
+}
+
+const index = await loadIndex();
+const defaults: Partial<ExplorerState> = { locales: ['en'] };
+---
+
+<Base
+  title="Content explorer | Nikita Boyarkin"
+  description="One explorer for the whole portfolio: projects, articles, glossary, shelf, Volta and topics in a single filterable list — shareable filters and a connections panel."
+  canonical={withBase('en/explorer/')}
+  counterpartHref={withBase('explorer/')}
+  lang="en"
+>
+  <section class="container reveal">
+    <h1 class="page-title">Content explorer</h1>
+    <p class="page-intro">
+      The whole portfolio in one list: projects, articles, glossary, shelf, Volta and
+      topics. Filters stack, the state lives in the URL, so a view is a link you can
+      share. The connections of the active record open right inside its row.
+    </p>
+
+    <ExplorerApp index={index} lang="en" defaults={defaults} />
+  </section>
+</Base>

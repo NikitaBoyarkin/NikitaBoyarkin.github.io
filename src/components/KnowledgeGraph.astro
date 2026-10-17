@@ -72,6 +72,7 @@ const t = {
   presetTopic: isEn ? 'Topics' : 'Темы',
   presetVolta: isEn ? 'Volta' : 'Volta',
   presetGlossary: isEn ? 'Glossary' : 'Словарь',
+  indexSummary: isEn ? 'All graph nodes' : 'Все узлы графа',
 };
 
 // Both layouts ran at build time. The SVG ships the group layout (so every
@@ -180,6 +181,37 @@ function edgeEndpoints(l: GraphLink) {
   const r = (b.size || 6) + 2;
   return { x1: a.x, y1: a.y, x2: b.x - (dx / d) * r, y2: b.y - (dy / d) * r };
 }
+
+// Static node index — the page's real next step. Every anchor below is in the
+// server-rendered HTML: the SVG's navigation is JS-gated, so without this a
+// crawler, a screen reader or a no-JS reader reaches a dead end. Built from the
+// SSR graph (`nodes`), never fetched.
+const SECTION_ORDER = ['root', 'projects', 'articles', 'glossary', 'topic'];
+const SECTION_LABELS: Record<string, [ru: string, en: string]> = {
+  root: ['Ядро', 'Core'],
+  projects: ['Проекты', 'Projects'],
+  articles: ['Статьи', 'Articles'],
+  glossary: ['Словарь', 'Glossary'],
+  topic: ['Темы', 'Topics'],
+};
+const labelForSection = (section: string) => {
+  const labels = SECTION_LABELS[section];
+  return labels ? labels[isEn ? 1 : 0] : section;
+};
+const collatorLocale = isEn ? 'en' : 'ru';
+const byLabel = (a: GraphNode, b: GraphNode) =>
+  a.label.localeCompare(b.label, collatorLocale);
+// Sections in the fixed reading order (root → content → themes), then anything a
+// future node kind adds, so no node can silently drop out of the index.
+const sectionOrder = [
+  ...SECTION_ORDER.filter((s) => nodes.some((n) => n.section === s)),
+  ...[...new Set(nodes.map((n) => n.section))].filter((s) => !SECTION_ORDER.includes(s)),
+];
+const indexGroups = sectionOrder.map((section) => ({
+  section,
+  label: labelForSection(section),
+  nodes: nodes.filter((n) => n.section === section).sort(byLabel),
+}));
 
 // Client data: nodes get an absolute href (base-prefixed) for navigation; the
 // rest is the raw graph so search/legend/hover can read it from the DOM.
@@ -344,6 +376,34 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       })}
     </ul>
   </div>
+  <!-- Static index of the whole graph: real anchors, no JS. The SVG above is a
+       JS-gated terminal (click, focus mode and search all live in the script),
+       so this is the next step a crawler, a screen reader or a no-JS reader can
+       actually take. Collapsed by default, grouped by `section`, sorted by
+       label. Built from the SSR nodes — nothing is fetched.
+       Only on the standalone board (`bare`): on the persona landings the graph
+       is a card in a scan-the-page layout, where a 109-item index is noise. -->
+  {bare && (
+    <details class="kg-index">
+      <summary class="kg-index-summary">{t.indexSummary} — {nodes.length}</summary>
+      <div class="kg-index-body">
+        {indexGroups.map((g) => (
+          <div class="kg-index-group" role="group" aria-label={g.label}>
+            <p class="kg-index-heading">
+              {g.label} <span class="kg-index-count">{g.nodes.length}</span>
+            </p>
+            <ul class="kg-index-list">
+              {g.nodes.map((n) => (
+                <li>
+                  <a class="kg-index-link" href={withBase(n.url)}>{n.label}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </details>
+  )}
   <div id="kg-tooltip" class="kg-tooltip" role="tooltip" hidden></div>
 </div>
 
@@ -827,8 +887,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     });
   }
 
-  /** Keep the view shareable: mode + hidden sets live in the URL query string,
-   *  updated in place (no history spam) and merged with any existing params. */
+  /** Keep the view shareable: mode + hidden sets + focused node live in the URL
+   *  query string, updated in place (`replaceState` only — a focus change must
+   *  never push a history entry) and merged with any existing params. */
   function syncURL() {
     const q = encodeGraphState(
       {
@@ -841,6 +902,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         // absent), so narrowing here is safe.
         preset: preset as 'project' | 'post' | 'topic' | 'volta' | 'glossary' | null,
         physics: physicsOn,
+        focus: focusedId ?? undefined,
       },
       window.location.search,
     );
@@ -876,7 +938,11 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
    *  class left behind by an interrupted highlight keeps always-on labels
    *  invisible over an otherwise fully lit graph. */
   function applyNodeStates(explicitId?: string | null, query?: string) {
-    const hl = explicitId ?? (hoveredId || (focusMode ? focusedId : null));
+    // `focusedId` lights regardless of the Focus toggle: a node focused by the
+    // search picker or a `?focus=` deep link must stay lit even though the
+    // toggle (whose job is only "click toggles focus instead of navigating") is
+    // a separate control. Hover still wins while the pointer is on a node.
+    const hl = explicitId ?? (hoveredId || focusedId);
     const lit = hl ? adjacency.get(hl) || new Set<string>() : null;
     if (lit && hl) lit.add(hl);
     // `query` is passed by the search paths, which must keep working when the
@@ -900,8 +966,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     hoveredId = null;
     applyNodeStates();
     edgeEls.forEach((e) => (e.style.opacity = ''));
-    // A persistent 1-hop focus survives the transient hover fading.
-    if (focusMode && focusedId) {
+    // A persistent 1-hop focus survives the transient hover fading — whether it
+    // came from the Focus toggle, the search picker or a `?focus=` deep link.
+    if (focusedId) {
       highlight(focusedId);
     }
   }
@@ -917,6 +984,32 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
 
   function navigateTo(n: any) {
     if (n?.href) window.location.href = n.href;
+  }
+
+  /** Pin a node's tooltip at its on-screen position — the "open the node's
+   *  info" half of a focus, for a node the reader did not hover. */
+  function showNodeInfo(id: string) {
+    if (!tooltipEl) return;
+    const idx = nodes.findIndex((n) => n.id === id);
+    const ctm = svg.getScreenCTM();
+    if (idx < 0 || !ctm) return;
+    const p = new DOMPoint(nodes[idx].x, nodes[idx].y).matrixTransform(ctm);
+    showTooltip(data.nodeT[idx], p.x, p.y);
+  }
+
+  /** The single writer for "which node is focused": lights its 1-hop
+   *  neighbourhood, opens its info and keeps the URL in step. `null` clears.
+   *  A focus is `replaceState`-only (see `syncURL`) so it never spams history. */
+  function setFocus(id: string | null) {
+    focusedId = id;
+    if (id) {
+      highlight(id);
+      showNodeInfo(id);
+    } else {
+      clearHighlight();
+      hideTooltip();
+    }
+    syncURL();
   }
 
   // --- Tooltip: content lines come precomputed (data.nodeT / data.edgeT) so
@@ -1075,13 +1168,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         if (focusMode) {
           // Focus mode: click toggles a persistent 1-hop highlight instead of
           // navigating; clicking the focused node again (or Esc) clears it.
-          if (focusedId === n.id) {
-            focusedId = null;
-            clearHighlight();
-          } else {
-            focusedId = n.id;
-            highlight(n.id);
-          }
+          // Either way the URL `focus` param follows.
+          if (focusedId === n.id) setFocus(null);
+          else setFocus(n.id);
         } else {
           navigateTo(n);
         }
@@ -1092,10 +1181,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       panning = null;
       svg.style.cursor = '';
       // Clicking or dragging the empty canvas dismisses a focus.
-      if (focusMode && focusedId) {
-        focusedId = null;
-        clearHighlight();
-      }
+      if (focusedId) setFocus(null);
     }
   }
 
@@ -1139,13 +1225,8 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         if (focusMode) {
-          if (focusedId === nodes[i].id) {
-            focusedId = null;
-            clearHighlight();
-          } else {
-            focusedId = nodes[i].id;
-            highlight(nodes[i].id);
-          }
+          if (focusedId === nodes[i].id) setFocus(null);
+          else setFocus(nodes[i].id);
         } else {
           navigateTo(nodes[i]);
         }
@@ -1220,14 +1301,17 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     });
   }
 
-  function centerOnNode(id: string) {
+  /** Make a node visible and bring it to the centre of the viewport. Returns the
+   *  node, or null when the id is not in this graph. Shared by the search picker
+   *  and the `?focus=` deep link. */
+  function revealNode(id: string): any | null {
     const n = nodes.find((x) => x.id === id);
-    if (!n) return;
-    // Un-hide the node's group/community so a search hit is always visible.
+    if (!n) return null;
+    // Un-hide the node's group/community so the target is always visible.
     const hidden = hiddenSet();
     const key = keyOf(n);
-    // A preset excluding this node would keep it hidden even after the group
-    // is un-checked — drop the preset so the hit actually shows.
+    // A preset excluding this node would keep it hidden even after the group is
+    // un-checked — drop the preset so the target actually shows.
     const presetChanged = preset !== null && kindOf(n) !== preset;
     if (presetChanged) {
       preset = null;
@@ -1239,20 +1323,23 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         renderLegend();
       }
       applyFilter();
-      syncURL();
     }
-    // Recenter the viewport on the node's current position with a comfortable zoom.
+    // Recenter on the node's current position with a comfortable zoom. The
+    // caller's focus write (setFocus) syncs the URL, so this stays view-only.
     vp = centerOn(vp, { x: n.x, y: n.y }, Math.max(1.5, vp.k), world);
     applyViewport();
+    return n;
+  }
+
+  function centerOnNode(id: string) {
+    const n = revealNode(id);
+    if (!n) return;
     clearSearch();
-    // Flash highlight so the user sees which node was found.
-    hoveredId = n.id;
-    highlight(n.id);
+    // Picking a result focuses the node: a persistent 1-hop highlight, its
+    // info, and `focus=` in the URL so the pick survives a reload or a share.
+    setFocus(id);
     const g = nodeEls[nodes.indexOf(n)];
     if (g) g.focus();
-    window.setTimeout(() => {
-      if (hoveredId === n.id) clearHighlight();
-    }, 2500);
   }
 
   function clearSearch() {
@@ -1407,8 +1494,8 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         focusMode = !focusMode;
         btn.setAttribute('aria-pressed', String(focusMode));
         if (!focusMode) {
-          focusedId = null;
-          clearHighlight();
+          // Dropping focus mode also drops the focused node — and its URL param.
+          setFocus(null);
         }
       } else if (action === 'toggle-physics') {
         physicsOn = !physicsOn;
@@ -1475,10 +1562,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   // above handles its own Escape while fullscreen; this listener runs always.)
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    if (focusMode && focusedId) {
-      focusedId = null;
-      clearHighlight();
-    }
+    // A focused node — from the toggle, the search picker or a deep link —
+    // clears on Esc. `setFocus(null)` also drops the `focus` URL param.
+    if (focusedId) setFocus(null);
     if (edgePanel && !edgePanel.hidden) {
       edgePanel.hidden = true;
       root
@@ -1513,6 +1599,16 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   syncEdgePanel();
   applyFilter();
   resetViewport();
+
+  // Deep link: `?focus=<nodeId>` centres a node, opens its info and keeps its
+  // 1-hop neighbourhood highlighted. An unknown id (the graph changed since
+  // the link was made) is ignored. The focus stays orthogonal to the Focus
+  // toggle: clicking a node still navigates unless that toggle is on. DOM focus
+  // is deliberately not stolen on load.
+  if (urlState.focus) {
+    const n = revealNode(urlState.focus);
+    if (n) setFocus(urlState.focus);
+  }
 
   // A background tab throttles rAF to about 1 Hz, so an in-flight run would
   // creep across the layout while nobody is looking (and a drag cannot be
@@ -2083,5 +2179,87 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     color: var(--text-normal);
     max-width: 240px;
     white-space: nowrap;
+  }
+  /* Static node index — the page's next step for crawlers, screen readers and
+     no-JS readers. Deliberately secondary: a hairline rule, muted type and a
+     native <details> that stays collapsed until asked, so it never competes with
+     the graph for attention. */
+  .kg-index {
+    margin-top: var(--space-3);
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--space-2);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .kg-index-summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-normal);
+    border-radius: var(--radius-sm);
+  }
+  .kg-index-summary:hover {
+    color: var(--text-accent);
+  }
+  .kg-index-summary:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+  .kg-index-body {
+    margin-top: var(--space-2);
+    columns: 1;
+    column-gap: var(--space-4);
+  }
+  @media (min-width: 40rem) {
+    .kg-index-body {
+      columns: 2;
+    }
+  }
+  @media (min-width: 64rem) {
+    .kg-index-body {
+      columns: 4;
+    }
+  }
+  .kg-index-group {
+    break-inside: avoid;
+    margin: 0 0 var(--space-3);
+  }
+  .kg-index-heading {
+    margin: 0 0 0.3rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .kg-index-count {
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+  }
+  .kg-index-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .kg-index-link {
+    color: var(--text-normal);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+  }
+  .kg-index-link:hover {
+    color: var(--text-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .kg-index-link:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+  /* The overlay is a focused viewing mode; the page-level index stays out of it
+     so it cannot steal drawing height from the graph. */
+  .kg-root.kg-fullscreen .kg-index {
+    display: none;
   }
 </style>

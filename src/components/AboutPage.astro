@@ -96,7 +96,10 @@ const { Content } = await render(entry);
   .about-head h1 {
     margin: 0;
     font-family: var(--font-display);
-    font-size: clamp(2rem, 1.4rem + 2vw, 2.9rem);
+    /* The page level token, not a local clamp: a component that opts out of the
+       scale reintroduces the h2 > h1 inversion REQ-008 removed (see
+       tests/lib/typography-scale.test.ts). */
+    font-size: var(--type-page-title);
     letter-spacing: -0.02em;
     line-height: 1.05;
   }
@@ -304,9 +307,8 @@ const { Content } = await render(entry);
       width: 72px;
       height: 86px;
     }
-    .about-head h1 {
-      font-size: 1.7rem;
-    }
+    /* The h1 keeps the shared page-title level here: shrinking it locally is
+       exactly the opt-out that inverted the hierarchy (REQ-008). */
     .about-body :global(.bento-grid),
     .about-body :global(.stack-groups) {
       grid-template-columns: 1fr;

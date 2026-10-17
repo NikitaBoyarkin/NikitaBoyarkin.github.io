@@ -1,0 +1,93 @@
+---
+// Relation groups for ONE record — the explorer's relational panel, and the
+// first place the portfolio shows an entity's edges (graph links, term
+// backlinks, shared topics) next to the entity itself.
+//
+// Rendered in the no-JS shell for every row it ships (collapsed except the
+// first), so a visitor without scripts still gets real, crawlable links to the
+// neighbours of the top record. The island builds the same markup with
+// `createElement` for whichever row is active.
+//
+// Target resolution is `relationsOf(record, indexById(records))` — with one
+// correction the CALLER must make: record ids are not locale-namespaced
+// (`p:churn` names both the RU project and its EN twin), so one global id index
+// resolves an EN record's edges to RU pages. Build the index from ONE locale's
+// records; `ExplorerApp` passes a per-locale map. A target the lib cannot
+// resolve (a hub, or the other locale's twin) is dropped, never a dead anchor.
+import {
+  RELATION_LABELS,
+  indexById,
+  relationsOf,
+  type ExplorerRecord,
+} from '../lib/explorer';
+
+interface Props {
+  record: ExplorerRecord;
+  /** Full record table — what `relationsOf` resolves against. */
+  records?: readonly ExplorerRecord[];
+  /** Id index for THIS record's locale (the island keeps one per locale; the
+   *  build-time shell reuses one for all 50 rows). */
+  byId?: ReadonlyMap<string, ExplorerRecord>;
+  lang?: 'ru' | 'en';
+  /** Start collapsed — the island reveals the active row's block. */
+  hidden?: boolean;
+}
+
+const { record, records = [], byId, lang = 'ru', hidden = false } = Astro.props;
+const map = byId ?? indexById(records);
+const groups = relationsOf(record, map);
+const heading = lang === 'en' ? 'Connections' : 'Связи';
+---
+
+{
+  groups.length > 0 && (
+    <div class="xp-rel" data-xp-rel={`${record.locale}:${record.id}`} hidden={hidden}>
+      {/* One heading per block, visually hidden: a screen reader walking the
+          list hears "Связи: <title>" before the group labels instead of an
+          unlabelled run of links. The visible group label is `.xp-rel-type`. */}
+      <h3 class="visually-hidden">
+        {heading}: {record.title}
+      </h3>
+      {groups.map((group) => (
+        <div class="xp-rel-group">
+          <span class="xp-rel-type">{RELATION_LABELS[group.type][lang]}</span>
+          <ul>
+            {group.records.map((target) => (
+              <li>
+                <a href={target.href}>{target.title}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+<style is:global>
+  /* `is:global` rather than scoped on purpose: the island rebuilds this markup
+     with `createElement`, and Astro's `data-astro-cid-*` scope attribute never
+     lands on those nodes, so a scoped rule would style the SSR rows and miss
+     every client row.
+
+     Axis D already owns `.xp-rel` / `.xp-rel-group` / `.xp-rel-type`
+     (geometry, the hairline top border, the ink). Two things it cannot know:
+
+     1. `.xp-rel` is `display: flex`, and an author `display` beats the UA's
+        `[hidden] { display: none }`, so the collapsed blocks need this — the
+        same trap `.blog-list[hidden]` and `.kg-edge-panel[hidden]` document.
+     2. The linked records live in a `<ul>` inside the group; without this it
+        renders as a bulleted list with the UA's indent. */
+  .xp-rel[hidden] {
+    display: none;
+  }
+
+  .xp-rel-group ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+</style>

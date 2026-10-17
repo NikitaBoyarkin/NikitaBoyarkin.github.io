@@ -17,6 +17,12 @@ export interface GraphUrlState {
   /** Live force simulation while dragging. Off by default: the resting graph
    *  is the build-time layout, and a link that says otherwise must say so. */
   physics: boolean;
+  /** Deep-linked node id to focus, e.g. `?focus=p:volta`. Optional (and absent
+   *  rather than `null` when unset) so an object typed against the six required
+   *  fields stays assignable — the tests construct state literals without it.
+   *  The island resolves it against the graph and ignores an unknown id; this
+   *  module only carries the string. */
+  focus?: string;
 }
 
 const MODE_PARAM = 'mode';
@@ -25,6 +31,7 @@ const HIDE_COMMUNITIES_PARAM = 'hideC';
 const HIDE_EDGES_PARAM = 'hideEdges';
 const PRESET_PARAM = 'preset';
 const PHYSICS_PARAM = 'physics';
+const FOCUS_PARAM = 'focus';
 
 /** Serialize state into a query string (leading `?`, or `''` when every value
  *  is the default). Merges into `existing` search so unrelated params (e.g.
@@ -44,6 +51,10 @@ export function encodeGraphState(state: GraphUrlState, existing: string = ''): s
   // Only ever written when on, so the default view keeps a clean link.
   if (state.physics) p.set(PHYSICS_PARAM, '1');
   else p.delete(PHYSICS_PARAM);
+  // The focused node travels in the URL so a focused view is shareable and
+  // survives a reload; an unset focus leaves no param behind.
+  if (state.focus) p.set(FOCUS_PARAM, state.focus);
+  else p.delete(FOCUS_PARAM);
   const q = p.toString();
   return q ? `?${q}` : '';
 }
@@ -77,5 +88,17 @@ export function decodeGraphState(search: string): GraphUrlState {
     presetRaw === 'glossary'
       ? presetRaw
       : null;
-  return { mode, hiddenGroups, hiddenCommunities, hiddenEdges, preset, physics: p.get(PHYSICS_PARAM) === '1' };
+  const focus = (p.get(FOCUS_PARAM) ?? '').trim();
+  const state: GraphUrlState = {
+    mode,
+    hiddenGroups,
+    hiddenCommunities,
+    hiddenEdges,
+    preset,
+    physics: p.get(PHYSICS_PARAM) === '1',
+  };
+  // Absent (not `null`) when unset: a state literal without `focus` and a decode
+  // of a focus-less search must compare equal.
+  if (focus) state.focus = focus;
+  return state;
 }

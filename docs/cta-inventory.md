@@ -28,7 +28,12 @@
 | 20 | contact.astro (форма, RU+EN) | «Отправить» / «Send» | `contact_submit` (успех); `contact_form_error` с `reason` при отказе | `POST {CONTACT_ENDPOINT}` (Supabase Edge Function `contact`) |
 | 21 | contact.astro (под формой, RU+EN) | «Записаться на 30 минут» / «Book 30 minutes» | `booking_click` | `CAL_BOOKING_URL` (Cal.com) |
 | 22 | ~~Header nav (Base.astro, RU+EN)~~ — **удалён 2026-10-10** | — | `booking_click` — остаётся только строка 21 (`/contact`) | — |
-| 23 | Боковая навигация (drawer `nav ul.links`, Base.astro, RU+EN) | Проекты · Обо мне · Словарь · Граф · Библиотека · **Статьи** (2026-10-11) | — (без `data-analytics`, как у остальных ссылок drawer'а) | внутренние |
+| 23 | Боковая навигация (drawer `nav ul.links`, Base.astro, RU+EN) | Проекты · Обо мне · Словарь · Граф · Библиотека · **Статьи** · **Обозреватель** · **Темы** (2026-10-18) | — (без `data-analytics`, как у остальных ссылок drawer'а) | внутренние |
+
+> **«Обозреватель» и «Темы», 2026-10-18.** Единая поверхность `/explorer/` (`/en/explorer/`) и
+> RU-онли хаб `/topics/` добавлены в инлайн-навигацию и в drawer. Шесть инлайн-ссылок не
+> помещаются на 1280px, поэтому точка переключения инлайн → drawer сдвинута 1280px → 1400px
+> (`src/layouts/Base.astro:806`); ниже 1400px drawer остаётся полным и единственным входом.
 
 > **«Статьи»: чип → навигация, 2026-10-11.** Чип убран из ряда бренд-чипов (вместе с ним ушёл
 > `writing_footer`, см. `analytics-events.md` §4) и вернулся ссылкой в боковую навигацию — рядом

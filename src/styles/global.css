@@ -121,9 +121,14 @@
     "Cormorant", "Georgia", "Times New Roman", "Literata", "Noto Serif", "PT Serif", serif;
   --font-mono: "SF Mono", Monaco, "Cascadia Mono", "Roboto Mono", monospace;
 
-  /* Content column + editorial section-heading scale (strict editorial pass). */
+  /* Content column + heading scale (strict editorial pass). Two registered
+     levels: the page-title minimum (2.5rem) is strictly above the section
+     maximum (2.4rem), so a page <h1> can never compute smaller than the
+     section <h2> under it at any viewport (REQ-008). Bound by
+     tests/lib/typography-scale.test.ts. */
   --content-max: 1180px;
   --type-section-h2: clamp(1.9rem, 2.3vw, 2.4rem);
+  --type-page-title: clamp(2.5rem, 2.5rem + 0.6vw, 3rem);
 
   /* Dataviz accent — distinct from the coral action accent so charts/graphs
      read as information, not as interactive calls-to-action. */
@@ -342,6 +347,19 @@ h2,
 h3,
 h4 {
   text-wrap: balance;
+}
+
+/* Heading level registry (REQ-008). Every page <h1> resolves to the single
+   page-title level, declared once here so the rule count cannot creep back;
+   component-scoped styles must not restate a font-size for these selectors.
+   Section <h2> take `--type-section-h2` where they are declared. */
+.page-title,
+.post-title,
+.contact-title,
+.hero-name,
+.intro-content h1,
+.prose > h1:first-child {
+  font-size: var(--type-page-title);
 }
 
 /* Baseline link colour.
@@ -855,7 +873,6 @@ nav ul.links a[aria-current="page"] {
 }
 
 .intro-content h1 {
-  font-size: 2.25rem;
   font-weight: 700;
   margin-bottom: var(--space-1);
   color: var(--text-normal);
@@ -1142,7 +1159,6 @@ nav ul.links a[aria-current="page"] {
 
 .hero-name {
   font-family: var(--font-display);
-  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: -0.03em;
@@ -1220,9 +1236,6 @@ nav ul.links a[aria-current="page"] {
 }
 
 @media (max-width: 480px) {
-  .hero-name {
-    font-size: 2rem;
-  }
   .hero-role {
     font-size: 1rem;
   }
@@ -2330,10 +2343,6 @@ footer p {
     gap: 2rem;
   }
 
-  .intro-content h1 {
-    font-size: 2.2rem;
-  }
-
   .intro-content .skills {
     justify-content: center;
   }
@@ -2351,9 +2360,6 @@ footer p {
   #intro:has(.intro-container-slim) {
     padding-block: var(--space-4);
     margin-bottom: var(--space-4);
-  }
-  .intro-container-slim .intro-content h1 {
-    font-size: 2.2rem;
   }
   .intro-container-slim .intro-content .tagline {
     font-size: 1rem;
@@ -2430,10 +2436,6 @@ footer p {
 }
 
 @media (max-width: 480px) {
-  .intro-content h1 {
-    font-size: 1.8rem;
-  }
-
   .intro-content .subtitle {
     font-size: 1rem;
   }
@@ -3872,9 +3874,6 @@ button:focus-visible {
 .intro-container-slim .intro-content {
   text-align: center;
 }
-.intro-container-slim .intro-content h1 {
-  font-size: 3rem;
-}
 .intro-container-slim .cta-row {
   justify-content: center;
 }
@@ -3884,9 +3883,6 @@ button:focus-visible {
 }
 
 @media (max-width: 480px) {
-  .intro-container-slim .intro-content h1 {
-    font-size: 1.75rem;
-  }
   .intro-container-slim .intro-content .tagline {
     font-size: 0.95rem;
     margin-bottom: var(--space-1);
@@ -3978,7 +3974,6 @@ button:focus-visible {
 /* Compact projects-page header on small screens so the board peeks above the fold. */
 @media (max-width: 640px) {
   .projects-page .page-title {
-    font-size: 1.75rem;
     margin-bottom: var(--space-4);
   }
 
@@ -4330,5 +4325,224 @@ html[data-theme="light"] .persona-card {
   /* The copyright moves up to sit on the strip's single line. */
   html.canvas-fullbleed:not(.canvas-static) footer p {
     margin: 0;
+  }
+}
+
+/* ============================================================
+   Explorer surface (xp-*) — the filterable entity surface.
+   Contract: design-plans/explorer-surface.md §3 (owned by axis D).
+   Defined once here, var(--token) only, so all three themes re-tint and
+   .claude/hooks/contrast-gate.js resolves the text/surface pairs. Axis B
+   consumes the names verbatim and may add component-scoped layout only.
+   Do not redefine the re-used .container / .page-title / .button /
+   .search-input / .tag-chip / .search-topic-chip classes here.
+   ============================================================ */
+
+/* Page shell — one column, panel first. At >=1000px the panel takes its own
+   rail (see the query below). */
+.xp {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.xp-panel {
+  min-width: 0;
+}
+
+.xp-facets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.xp-facet {
+  min-width: 0;
+}
+
+/* Group heading — uppercase micro-label at the 0.72rem floor (muted:
+   metadata, not body). */
+.xp-facet-title {
+  margin: 0 0 var(--space-2);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Facet value row — a real button, count pinned to the trailing edge. */
+.xp-facet-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  inline-size: 100%;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: start;
+  color: var(--text-normal);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.xp-facet-item:hover {
+  color: var(--text-accent);
+  background: var(--background-tertiary);
+}
+
+/* Active = accent border + accent text. Never an accent fill (brand rule). */
+.xp-facet-item.is-active {
+  color: var(--text-accent);
+  border-color: var(--text-accent);
+  font-weight: 500;
+}
+
+.xp-facet-count,
+.xp-count {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Toolbar — query + sort + count row above the results. */
+.xp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.xp-count {
+  margin-inline-start: auto;
+}
+
+.xp-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One result row — the site's card language: gradient surface, hairline,
+   large corner. Hover lifts with translateY + the token shadow (never
+   scale/opacity alone). */
+.xp-item {
+  position: relative;
+  display: block;
+  padding: var(--space-4);
+  color: var(--text-normal);
+  text-decoration: none;
+  background: var(--gradient-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.xp-item:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--text-accent) 30%, transparent);
+  box-shadow: 0 12px 28px var(--shadow-color);
+}
+
+.xp-item.is-active {
+  border-color: var(--text-accent);
+}
+
+/* Kind chip — accent-tinted pill with accent text (the site's badge recipe). */
+.xp-item-kind {
+  display: inline-block;
+  padding: 0.12rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-accent);
+  background: color-mix(in srgb, var(--text-accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-accent) 22%, transparent);
+  border-radius: var(--radius-full);
+}
+
+.xp-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-2);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* Relations block inside a row. */
+.xp-rel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-color);
+}
+
+.xp-rel-group {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.xp-rel-type {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.xp-empty {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+/* ≥1000px: panel gets its own rail and sticks below the top bar. Below this
+   width the panel is static and collapses above the list (single-column grid,
+   panel first in the DOM), so a phone never pins a facet panel under the bar. */
+@media (min-width: 1000px) {
+  .xp {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+
+  .xp-panel {
+    position: sticky;
+    top: calc(var(--nav-mobile-h) + var(--space-4));
+    max-height: calc(100dvh - var(--nav-mobile-h) - var(--space-8));
+    overflow-y: auto;
+    /* The panel is its own scroll container, so the scrollbar needs a gutter
+       of its own to keep off the facet labels. */
+    padding-inline-end: var(--space-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xp-item,
+  .xp-item:hover {
+    transform: none;
+    transition: none;
   }
 }

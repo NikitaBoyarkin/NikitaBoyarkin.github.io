@@ -124,8 +124,16 @@ describe('graph page board (built HTML)', () => {
       const hues = new Set(gs.map((g) => g.match(/--kg-ring:([^;"]*)/)![1]));
       expect(hues.size, file).toBeGreaterThan(1);
 
-      // Nothing anywhere keeps a painted fill: the contour is the whole look.
-      expect(doc.match(/<circle [^>]*fill="/g) ?? [], file).toHaveLength(0);
+      // Nothing in the *graph board* keeps a painted fill: the contour is the
+      // whole look. Scoped to the #kg-root subtree on purpose — an unscoped
+      // document scan also matches page chrome (a nav icon glyph has a filled
+      // <circle>), which is not what this claim is about. The per-ring check
+      // above is the precise one; this one covers the rest of the board
+      // (legend, hit lines, tooltip).
+      const fromRoot = doc.slice(doc.indexOf('id="kg-root"'));
+      const board = fromRoot.slice(0, fromRoot.indexOf('id="kg-data"'));
+      expect(board.length, file).toBeGreaterThan(0);
+      expect(board.match(/<circle [^>]*fill="/g) ?? [], file).toHaveLength(0);
     }
   });
 

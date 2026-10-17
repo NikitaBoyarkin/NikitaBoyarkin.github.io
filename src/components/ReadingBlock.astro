@@ -108,6 +108,12 @@ const I18N = {
     margin-bottom: var(--space-3);
     color: var(--text-normal);
   }
+  /* The standalone /library/ page heading is the page <h1>, not a section
+     heading — it takes the page-title level so it stays above the section
+     <h2>s (REQ-008). */
+  .library h1 {
+    font-size: var(--type-page-title);
+  }
   .library-lead {
     color: var(--text-muted);
     max-width: 60ch;
