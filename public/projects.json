@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-12T22:20:10.669Z",
+  "generated_at": "2026-10-17T21:40:21.454Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -16,7 +16,7 @@
         "uv"
       ],
       "github": "https://github.com/NikitaBoyarkin/ab_test",
-      "demo": null,
+      "demo": "demos/ab/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/ab/"
     },
@@ -55,7 +55,7 @@
         "uv"
       ],
       "github": "https://github.com/NikitaBoyarkin/causal-uplift",
-      "demo": null,
+      "demo": "demos/causal/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/causal/"
     },
@@ -96,7 +96,7 @@
         "uv"
       ],
       "github": "https://github.com/NikitaBoyarkin/churn-prediction",
-      "demo": null,
+      "demo": "demos/churn/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/churn/"
     },
@@ -105,7 +105,7 @@
       "track": "analytics",
       "title": "Cohort Analysis Dashboard",
       "title_en": "Cohort Analysis Dashboard",
-      "description": "Треугольная когортная матрица удержания и LTV на синтетических данных: ARPU и LTV по когортам с поправкой на observation age, выгрузка в Tableau (CSV + Hyper).",
+      "description": "Треугольная когортная матрица удержания и LTV на синтетических данных: ARPU и LTV по когортам с оговоркой о возрасте наблюдения, выгрузка в Tableau (CSV + Hyper).",
       "description_en": "A triangular cohort retention and LTV matrix on synthetic data: per-cohort ARPU and LTV with an observation-age caveat, plus a Tableau-ready CSV and Hyper export.",
       "tools": [
         "Python",
@@ -134,7 +134,7 @@
         "pytest"
       ],
       "github": "https://github.com/NikitaBoyarkin/linkedin-nikita-boyarkin",
-      "demo": null,
+      "demo": "demos/linkedin/index.html",
       "private": true,
       "href": "https://nikitaboyarkin.github.io/projects/linkedin/"
     },
@@ -153,7 +153,7 @@
         "pytest"
       ],
       "github": "https://github.com/NikitaBoyarkin/ml",
-      "demo": null,
+      "demo": "demos/ml/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/ml/"
     },
@@ -172,7 +172,7 @@
         "uv"
       ],
       "github": "https://github.com/NikitaBoyarkin/python",
-      "demo": null,
+      "demo": "demos/python/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/python/"
     },
@@ -181,8 +181,8 @@
       "track": "analytics",
       "title": "RAG Evaluation Harness — retrieval and generation metrics",
       "title_en": "RAG Evaluation Harness — retrieval and generation metrics",
-      "description": "RAG-пайплайн с офлайн-харнессом оценки: recall@5 и MRR = 1.00 на 20 размеченных вопросах, faithfulness 1.00, correctness 0.37. TF-IDF-ретрив, работает без API-ключей.",
-      "description_en": "A RAG pipeline with a real offline evaluation harness: recall@5 and MRR = 1.00 over 20 labeled questions, faithfulness 1.00, correctness 0.37. TF-IDF retrieval, runs with zero API keys.",
+      "description": "RAG-пайплайн с офлайн-харнессом оценки: recall@5 и MRR = 1.00 на 20 размеченных вопросах, correctness 0.37. TF-IDF-ретрив без API-ключей; faithfulness ≡1.00 — инвариант экстрактива, не измерение.",
+      "description_en": "RAG pipeline with a real offline harness: recall@5 and MRR = 1.00 on 20 questions, correctness 0.37. TF-IDF retrieval, no API keys; faithfulness ≡1.00 — an extractive invariant, not a measurement.",
       "tools": [
         "Python",
         "scikit-learn",
@@ -192,7 +192,7 @@
         "uv"
       ],
       "github": "https://github.com/NikitaBoyarkin/rag-eval-harness",
-      "demo": null,
+      "demo": "demos/rag/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/rag/"
     },
@@ -226,7 +226,7 @@
         "pandas"
       ],
       "github": "https://github.com/NikitaBoyarkin/sales-calls-dashboard",
-      "demo": null,
+      "demo": "demos/sales-calls/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/sales-calls/"
     },
@@ -246,7 +246,7 @@
         "uv"
       ],
       "github": "https://github.com/NikitaBoyarkin/serp-rank-lab",
-      "demo": null,
+      "demo": "demos/serp-rank/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/serp-rank/"
     },
@@ -266,7 +266,7 @@
         "pytest"
       ],
       "github": "https://github.com/NikitaBoyarkin/sql-analytics-case-study",
-      "demo": "https://nikitaboyarkin.github.io/sql-analytics-case-study/",
+      "demo": "demos/sql/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/sql/"
     },
@@ -285,7 +285,7 @@
         "supabase-py"
       ],
       "github": "https://github.com/NikitaBoyarkin/supabase-product-analytics",
-      "demo": null,
+      "demo": "demos/supabase/index.html",
       "private": true,
       "href": "https://nikitaboyarkin.github.io/projects/supabase/"
     },
@@ -302,7 +302,7 @@
         "pandas / NumPy"
       ],
       "github": "https://github.com/NikitaBoyarkin/streamlit-app",
-      "demo": null,
+      "demo": "demos/streamlit/index.html",
       "private": true,
       "href": "https://nikitaboyarkin.github.io/projects/streamlit/"
     },
@@ -323,7 +323,7 @@
         "Docker"
       ],
       "github": "https://github.com/NikitaBoyarkin/posthog-saas-analytics",
-      "demo": null,
+      "demo": "demos/posthog/index.html",
       "private": true,
       "href": "https://nikitaboyarkin.github.io/projects/posthog/"
     },
@@ -343,7 +343,7 @@
         "uv"
       ],
       "github": "https://github.com/NikitaBoyarkin/airflow",
-      "demo": null,
+      "demo": "demos/airflow/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/airflow/"
     },
@@ -361,7 +361,7 @@
         "Obsidian"
       ],
       "github": "https://github.com/NikitaBoyarkin/digital_garden",
-      "demo": null,
+      "demo": "demos/garden/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/garden/"
     },
@@ -399,7 +399,7 @@
         "Tailwind v4"
       ],
       "github": "https://github.com/NikitaBoyarkin/scrolly-english-speaking",
-      "demo": null,
+      "demo": "demos/scrolly/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/scrolly/"
     },
@@ -417,7 +417,7 @@
         "CSS custom properties"
       ],
       "github": "https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io",
-      "demo": null,
+      "demo": "demos/site/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/site/"
     }
