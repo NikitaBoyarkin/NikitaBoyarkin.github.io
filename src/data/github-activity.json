@@ -1,13 +1,13 @@
 {
   "slug": "github",
-  "source": "GitHub API · updated 2026-10-16",
-  "updatedAt": "2026-10-16T09:19:42.659Z",
+  "source": "GitHub API · updated 2026-10-17",
+  "updatedAt": "2026-10-17T08:51:12.552Z",
   "stats": {
-    "contributions": 25331,
+    "contributions": 25335,
     "publicRepos": 49,
     "followers": 402,
-    "currentStreak": 79,
-    "longestStreak": 79,
+    "currentStreak": 80,
+    "longestStreak": 80,
     "activeSince": 2019
   },
   "charts": [
@@ -32,7 +32,6 @@
       },
       "data": {
         "categories": [
-          "17.09",
           "18.09",
           "19.09",
           "20.09",
@@ -61,13 +60,13 @@
           "13.10",
           "14.10",
           "15.10",
-          "16.10"
+          "16.10",
+          "17.10"
         ],
         "series": [
           {
             "name": "Contributions",
             "values": [
-              70,
               79,
               95,
               47,
@@ -96,7 +95,8 @@
               54,
               38,
               2,
-              12
+              15,
+              1
             ]
           }
         ]
@@ -104,8 +104,8 @@
       "labelEvery": 5,
       "conclusions": [
         {
-          "ru": "За последние 30 дней — 1273 вкладов, в среднем 42.4 в день.",
-          "en": "Over the last 30 days: 1273 contributions, averaging 42.4 per day."
+          "ru": "За последние 30 дней — 1207 вкладов, в среднем 40.2 в день.",
+          "en": "Over the last 30 days: 1207 contributions, averaging 40.2 per day."
         },
         {
           "ru": "Пик активности — 160 вкладов за один день.",
@@ -162,15 +162,15 @@
               171,
               2010,
               1201,
-              714
+              718
             ]
           }
         ]
       },
       "conclusions": [
         {
-          "ru": "За 12 месяцев — 24429 вкладов.",
-          "en": "Over 12 months: 24429 contributions."
+          "ru": "За 12 месяцев — 24433 вкладов.",
+          "en": "Over 12 months: 24433 contributions."
         },
         {
           "ru": "Сильнейший месяц — Apr с 3873 вкладами (15.9% годового объёма).",
@@ -309,7 +309,7 @@
               225,
               168,
               323,
-              266
+              270
             ]
           }
         ]
@@ -317,8 +317,8 @@
       "labelEvery": 6,
       "conclusions": [
         {
-          "ru": "Активных недель — 50 из 53, в среднем 477.9 вкладов в неделю.",
-          "en": "Active weeks: 50 of 53, averaging 477.9 contributions per week."
+          "ru": "Активных недель — 50 из 53, в среднем 478 вкладов в неделю.",
+          "en": "Active weeks: 50 of 53, averaging 478 contributions per week."
         },
         {
           "ru": "Самая продуктивная неделя — 1186 вкладов.",
@@ -356,7 +356,7 @@
           {
             "name": "Contributions",
             "values": [
-              25279,
+              25283,
               0,
               4,
               2
@@ -366,12 +366,12 @@
       },
       "conclusions": [
         {
-          "ru": "Всего 25285 вкладов за год.",
-          "en": "25285 contributions in total over the year."
+          "ru": "Всего 25289 вкладов за год.",
+          "en": "25289 contributions in total over the year."
         },
         {
-          "ru": "Основной тип — Commits (25279, 100% вкладов).",
-          "en": "The dominant type is Commits (25279, 100% of contributions)."
+          "ru": "Основной тип — Commits (25283, 100% вкладов).",
+          "en": "The dominant type is Commits (25283, 100% of contributions)."
         }
       ]
     },
@@ -410,13 +410,13 @@
           {
             "name": "%",
             "values": [
-              36,
-              18,
-              15.5,
-              15.1,
-              7.9,
-              3.1,
-              2.6,
+              34.3,
+              21.7,
+              14.8,
+              14.4,
+              7.7,
+              2.9,
+              2.5,
               0.6,
               1.2
             ]
@@ -425,8 +425,8 @@
       },
       "conclusions": [
         {
-          "ru": "Основной язык — Python с долей 36% от 7694594 байт кода.",
-          "en": "The primary language is Python at 36% of 7694594 bytes of code."
+          "ru": "Основной язык — Python с долей 34.3% от 8066395 байт кода.",
+          "en": "The primary language is Python at 34.3% of 8066395 bytes of code."
         },
         {
           "ru": "Всего в профиле 14 языков, из них 9 показаны на графике.",
