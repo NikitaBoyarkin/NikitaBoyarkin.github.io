@@ -89,7 +89,7 @@ const hiddenTags = tags.filter((t) => t.count < 2);
 <span class="visually-hidden" role="status" id="blog-filter-status"></span>
 
 <script>
-  import { track } from "../lib/analytics";
+  import { track, whenAnalyticsReady } from "../lib/analytics";
 
   type Post = {
     slug: string;
@@ -294,8 +294,15 @@ const hiddenTags = tags.filter((t) => t.count < 2);
       randomBtn.addEventListener('click', () => {
         if (!allPosts.length) return;
         const pick = allPosts[Math.floor(Math.random() * allPosts.length)];
+        const href = pick.href;
         track('random_post_click', { slug: pick.slug, path: window.location.pathname });
-        window.location.href = pick.href;
+        // The capture above races the lazy SDK load: navigating immediately
+        // would take the buffered event down with the page. Wait (bounded) for
+        // the attach, then navigate — and navigate anyway if analytics never
+        // loads, so the button is never dead.
+        whenAnalyticsReady(() => {
+          window.location.href = href;
+        });
       });
     }
 

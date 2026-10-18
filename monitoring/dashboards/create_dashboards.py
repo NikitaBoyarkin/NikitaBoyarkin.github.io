@@ -27,9 +27,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 API_KEY_ENV = "POSTHOG_API_KEY"
 DEFAULT_PROJECT_ID = "451732"
@@ -109,9 +111,20 @@ def events_query(event: str, limit: int = 100) -> dict:
     }
 
 
-def tile(name: str, description: str, query: dict) -> dict:
-    """One dashboard tile = one insight payload."""
-    return {"name": name, "description": description, "query": query}
+def tile(name: str, description: str, query: dict, dynamic: bool = False) -> dict:
+    """One dashboard tile = one insight payload.
+
+    `dynamic=True` marks a tile whose query is generated from the repo (a list
+    of event names, say). On --apply such a tile is re-synced when its stored
+    query drifts from the generated one; every other tile is skipped when it
+    already exists.
+    """
+    return {
+        "name": name,
+        "description": description,
+        "query": query,
+        "dynamic": dynamic,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -434,6 +447,83 @@ DASHBOARDS: list[dict] = [
 # «Games» dashboard and four tiles of «Контент и вовлечение» are kept but are
 # documented as dead in monitoring/dashboards/README.md — this script never
 # deletes what it did not create.
+
+
+def expected_events() -> list[str]:
+    """Event names the repo claims to emit — the left side of the dead-event check.
+
+    Read from the source of truth, not hand-maintained here:
+      * `AnalyticsEventMap` keys in `src/lib/analytics.ts` (typed events),
+      * the event tables of `docs/analytics-events.md` §1 and §2 (first-class +
+        frozen CTA names),
+      * the games bundle's hardcoded names (public/games/**).
+    Template names (`project_demo_<slug>`) and input attributes
+    (`lang_switch_*`, which the delegated handler maps to `lang_switched`) are
+    excluded: neither is an event that can be counted as such.
+    """
+    root = Path(__file__).resolve().parents[2]
+    names: set[str] = set()
+
+    analytics_ts = (root / "src/lib/analytics.ts").read_text(encoding="utf-8")
+    start = analytics_ts.index("export interface AnalyticsEventMap")
+    block = analytics_ts[start : analytics_ts.index("\n}", start)]
+    names.update(re.findall(r"^ {2}([a-z_][a-z0-9_]*):", block, re.M))
+
+    docs = (root / "docs/analytics-events.md").read_text(encoding="utf-8")
+    for section in ("## 1.", "## 2."):
+        s = docs.index(section)
+        rest = docs[s:]
+        stop = re.search(r"\n#{2,3} ", rest)
+        table = rest[: stop.start()] if stop else rest
+        for line in table.splitlines():
+            if not line.startswith("|"):
+                continue
+            first_cell = line.split("|")[1]
+            names.update(re.findall(r"`([a-z_][a-z0-9_]*)`", first_cell))
+
+    names.update(
+        {
+            "game_selected",
+            "game_started",
+            "game_over",
+            "game_win",
+            "daily_completed",
+            "best_broken",
+            "sig_reached",
+            "experiment_started",
+            "milestone",
+            "contact_click",
+        }
+    )
+    return sorted(n for n in names if not n.startswith("lang_switch_"))
+
+
+def dead_events_query() -> str:
+    """HogQL: every expected event with its 90-day volume, zeroes first."""
+    names = expected_events()
+    array = ", ".join(f"'{n}'" for n in names)
+    return f"""
+        WITH expected AS (SELECT arrayJoin([{array}]) AS event),
+             agg AS (
+                 SELECT event,
+                        count() AS events,
+                        uniq(distinct_id) AS users,
+                        max(timestamp) AS last_seen
+                 FROM events
+                 WHERE timestamp > now() - INTERVAL 90 DAY
+                 GROUP BY event
+             )
+        SELECT
+            expected.event AS event,
+            ifNull(agg.events, 0) AS events,
+            ifNull(agg.users, 0) AS users,
+            agg.last_seen AS last_seen
+        FROM expected
+        LEFT JOIN agg ON agg.event = expected.event
+        ORDER BY events ASC, event ASC
+        LIMIT 120
+        """
+
 
 # Every channel that counts as "the visitor contacted me".
 CONTACT_EVENTS = [
@@ -807,6 +897,27 @@ DASHBOARDS_V2: list[dict] = [
                 ),
             ),
             tile(
+                "CTA rail: экспозиция → клик",
+                "Две ступени: cta_exposure (surface=home_rail) → cv_download_pdf "
+                "(surface=home_rail). Пара соединяется по surface с 2026-10-18: rail-ссылка "
+                "несёт data-analytics-surface. До деплоя правая ступень = 0, и это "
+                "ожидаемо, а не сломанный тайл.",
+                funnel(
+                    [
+                        node(
+                            "cta_exposure",
+                            properties=[prop_filter("surface", "home_rail")],
+                            name="Экспозиция rail",
+                        ),
+                        node(
+                            "cv_download_pdf",
+                            properties=[prop_filter("surface", "home_rail")],
+                            name="Клик по CV из rail",
+                        ),
+                    ]
+                ),
+            ),
+            tile(
                 "CTA-экспозиция (десктоп ≥1860px)",
                 "cta_exposure — знаменатель для rate экспозиция→клик. Огонь только на главной "
                 "и только при ширине ≥1860px, surface = home_rail; клик (cv_download_pdf) "
@@ -844,6 +955,17 @@ DASHBOARDS_V2: list[dict] = [
                     LIMIT 80
                     """
                 ),
+            ),
+            tile(
+                "Ожидаемые, но мёртвые события (90д)",
+                "Сверка кода с данными. Список имён собран из AnalyticsEventMap, таблиц "
+                "docs/analytics-events.md §1–§2 и игрового бандла; тайл синхронизируется "
+                "при каждом `--apply`. events = 0 означает одно из трёх: событие объявлено "
+                "и не задеплоено (surface у поиска, surface у rail-CTA), фича инертна "
+                "(contact_submit при выключенной форме), или код мёртв (headline_*). "
+                "Сверху — самые мёртвые.",
+                hogql_table(dead_events_query()),
+                dynamic=True,
             ),
             tile(
                 "События в день (все типы)",
@@ -991,22 +1113,53 @@ def attach_tile(base: str, api_key: str, dashboard_id, insight_id) -> bool:
     return result is not None
 
 
-def existing_tile_names(base: str, api_key: str, dashboard_id) -> set[str]:
-    """Names of the insights already attached to a dashboard.
+def existing_tiles(base: str, api_key: str, dashboard_id) -> dict[str, dict] | None:
+    """Name → {"id", "query"} for the insights already on a dashboard.
 
     Needed for per-tile idempotency: re-running --apply must not duplicate
     insights on a dashboard that already exists (the v1 behaviour was to append
-    a second copy of every tile).
+    a second copy of every tile), and a `dynamic` tile must be re-synced when the
+    query generated from the repo drifts from the stored one.
+
+    Returns None when the read fails. That distinction matters: treating a failed
+    GET as "no tiles" makes the caller re-create every tile and duplicate the
+    dashboard, which is exactly what happened on 2026-10-18 when the API dropped
+    a connection mid-run.
     """
     dash = api_request("GET", f"{base}/dashboards/{dashboard_id}/", api_key)
-    if not dash:
-        return set()
-    names = set()
+    if dash is None:
+        return None
+    tiles: dict[str, dict] = {}
     for tile in dash.get("tiles") or []:
         insight = tile.get("insight") or {}
-        if insight.get("name"):
-            names.add(insight["name"])
-    return names
+        name = insight.get("name")
+        if name:
+            tiles[name] = {"id": insight.get("id"), "query": insight.get("query")}
+    return tiles
+
+
+def _hogql(node: dict | None) -> str | None:
+    """The SQL of a DataTableNode/HogQLQuery node, whitespace-normalised."""
+    if not isinstance(node, dict):
+        return None
+    if node.get("kind") == "DataTableNode":
+        node = node.get("source") or {}
+    if node.get("kind") != "HogQLQuery":
+        return None
+    return " ".join(str(node.get("query", "")).split())
+
+
+def dynamic_query_equal(stored: dict | None, wanted: dict) -> bool:
+    """True when a dynamic tile's stored query already matches the generated one.
+
+    HogQL tiles are compared on their SQL only: PostHog normalises the rest of
+    the node (adds `version`, defaults) on save, so a full JSON compare would
+    report drift on every run.
+    """
+    stored_sql, wanted_sql = _hogql(stored), _hogql(wanted)
+    if stored_sql is not None and wanted_sql is not None:
+        return stored_sql == wanted_sql
+    return json.dumps(stored, sort_keys=True) == json.dumps(wanted, sort_keys=True)
 
 
 def apply_mode(base: str, api_key: str, dashboards: list[dict]) -> None:
@@ -1019,6 +1172,7 @@ def apply_mode(base: str, api_key: str, dashboards: list[dict]) -> None:
         sys.exit(1)
 
     created_insights = 0
+    synced_tiles = 0
     skipped_tiles = 0
     failed: list[tuple[str, str]] = []
 
@@ -1026,7 +1180,15 @@ def apply_mode(base: str, api_key: str, dashboards: list[dict]) -> None:
         name = dash_spec["name"]
         if name in existing:
             dashboard_id = existing[name]
-            present = existing_tile_names(base, api_key, dashboard_id)
+            present = existing_tiles(base, api_key, dashboard_id)
+            if present is None:
+                print(
+                    f"[{name}] could not read its tiles; skipping the dashboard "
+                    "rather than risk duplicating them",
+                    file=sys.stderr,
+                )
+                failed.append((name, "<tiles read>"))
+                continue
             print(f"[{name}] exists id={dashboard_id}, tiles present={len(present)}")
         else:
             dashboard = api_request(
@@ -1043,15 +1205,36 @@ def apply_mode(base: str, api_key: str, dashboards: list[dict]) -> None:
                 failed.append((name, "<dashboard>"))
                 continue
             dashboard_id = dashboard.get("id")
-            present = set()
+            present = {}
             print(f"[{name}] created id={dashboard_id}")
 
         for tile_spec in dash_spec["tiles"]:
             tile_name = tile_spec["name"]
-            if tile_name in present:
+            existing_tile = present.get(tile_name)
+
+            if existing_tile:
+                if tile_spec.get("dynamic") and not dynamic_query_equal(
+                    existing_tile.get("query"), tile_spec["query"]
+                ):
+                    updated = api_request(
+                        "PATCH",
+                        f"{base}/insights/{existing_tile['id']}/",
+                        api_key,
+                        {
+                            "query": tile_spec["query"],
+                            "description": tile_spec["description"],
+                        },
+                    )
+                    if updated is None:
+                        failed.append((name, f"{tile_name} (sync)"))
+                    else:
+                        synced_tiles += 1
+                        print(f"  sync  '{tile_name}' (query drifted, re-synced)")
+                    continue
                 skipped_tiles += 1
                 print(f"  skip  '{tile_name}' (already on the dashboard)")
                 continue
+
             insight = api_request(
                 "POST",
                 f"{base}/insights/",
@@ -1081,6 +1264,7 @@ def apply_mode(base: str, api_key: str, dashboards: list[dict]) -> None:
 
     print(
         f"\ncreated insights: {created_insights}, "
+        f"re-synced: {synced_tiles}, "
         f"skipped (already present): {skipped_tiles}"
     )
     if failed:

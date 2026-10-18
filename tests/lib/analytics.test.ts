@@ -7,6 +7,7 @@ import {
   localeFromPath,
   registerSuperProperties,
   resetAnalyticsForTests,
+  whenAnalyticsReady,
 } from '../../src/lib/analytics';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -150,5 +151,47 @@ describe('registerSuperProperties (PRD §4.2)', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
     expect(() => registerSuperProperties()).not.toThrow();
+  });
+});
+
+describe('whenAnalyticsReady (capture that causes a navigation)', () => {
+  beforeEach(() => resetAnalyticsForTests());
+
+  it('runs immediately when the SDK is already attached', () => {
+    attachPosthog(makePh());
+    let calls = 0;
+    whenAnalyticsReady(() => {
+      calls += 1;
+    });
+    expect(calls).toBe(1);
+  });
+
+  it('waits for the attach instead of navigating into a lost buffer', () => {
+    let calls = 0;
+    whenAnalyticsReady(() => {
+      calls += 1;
+    }, 1000);
+    expect(calls, 'navigated before the SDK could capture').toBe(0);
+    attachPosthog(makePh());
+    expect(calls).toBe(1);
+  });
+
+  it('still runs after maxWaitMs when analytics never loads (ad-blocker)', async () => {
+    let calls = 0;
+    whenAnalyticsReady(() => {
+      calls += 1;
+    }, 10);
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    expect(calls, 'a blocked SDK must not make the button dead').toBe(1);
+  });
+
+  it('runs the action at most once when the attach arrives after the timeout', async () => {
+    let calls = 0;
+    whenAnalyticsReady(() => {
+      calls += 1;
+    }, 10);
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    attachPosthog(makePh());
+    expect(calls).toBe(1);
   });
 });

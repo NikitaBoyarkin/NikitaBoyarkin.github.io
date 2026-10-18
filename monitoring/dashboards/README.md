@@ -16,8 +16,8 @@ Two sets live in the script:
 | [01 · Трафик и источники](https://us.posthog.com/project/451732/dashboard/2226427) | 2226427 | pageviews/visitors weekly; top paths; referring domains; first-touch class; `$session_entry_utm_source`; devices; browsers |
 | [02 · Воронка: визит → проект → контакт](https://us.posthog.com/project/451732/dashboard/2226417) | 2226417 | visit→project→contact funnel; **home(/, /en/, legacy base)**→project→contact funnel; time-to-convert; home→/projects/; contact CTAs weekly; outbound domains |
 | [03 · Проекты и контент](https://us.posthog.com/project/451732/dashboard/2226420) | 2226420 | top projects; `project_viewed` by surface; top posts; `read_depth` by depth and by content type; `/about` sections; filters by surface; search by surface (see note); library tiles |
-| [04 · Персоны и CTA](https://us.posthog.com/project/451732/dashboard/2226421) | 2226421 | gate views vs unique visitors; persona choice; gate→choice funnel; choice by source; RU/EN pageviews; language switches; theme; CTA exposure |
-| [05 · Здоровье аналитики](https://us.posthog.com/project/451732/dashboard/2226422) | 2226422 | per-event volume + last-seen (HogQL); all-events daily; junk events from own pipelines; Web Vitals p75 by path; rageclicks by path; JS exceptions; games funnel |
+| [04 · Персоны и CTA](https://us.posthog.com/project/451732/dashboard/2226421) | 2226421 | gate views vs unique visitors; persona choice; gate→choice funnel; choice by source; RU/EN pageviews; language switches; theme; **CTA rail exposure→click**; CTA exposure |
+| [05 · Здоровье аналитики](https://us.posthog.com/project/451732/dashboard/2226422) | 2226422 | per-event volume + last-seen (HogQL); **expected-but-dead events (HogQL, re-synced from the repo)**; all-events daily; junk events from own pipelines; Web Vitals p75 by path; rageclicks by path; JS exceptions; games funnel |
 
 Design rules the v2 set follows:
 
@@ -29,6 +29,18 @@ Design rules the v2 set follows:
 ### Known-empty tile (by design)
 
 «Поиск: попадания и пустые» in dashboard 03 is **intentionally empty**: `search_used` / `search_no_results` have zero rows in 90 days, i.e. nobody opens the site search. The tile is the place that will show the first search ever made; it is not a broken query.
+
+### The dead-event detector (dashboard 05)
+
+«Ожидаемые, но мёртвые события (90д)» is the anti-rot tile. Its event list is **generated from the repo**, not typed by hand: `AnalyticsEventMap` keys in `src/lib/analytics.ts`, the §1–§2 tables of `docs/analytics-events.md`, and the games bundle's hardcoded names. The tile is marked `dynamic=True`, so `--apply` compares the stored SQL with the freshly generated one and `PATCH`es the insight when they differ — adding or renaming an event and re-running keeps the detector honest.
+
+On 2026-10-18 it reported **32 of 54 declared events with zero rows in 90 days**. The zeroes sort to the top, and they mean one of three things — the tile description says which:
+
+- not deployed yet (`surface` on the search events, `surface` on the rail CTA),
+- deliberately inert (`contact_submit` / `contact_form_error` — `CONTACT_FORM_ENABLED=false`),
+- dead code or a dead feature (`headline_*` before they were removed, games events before they shared the site's `distinct_id`).
+
+Read it before trusting any other tile: a zero here means the dashboard that depends on that event is empty for a reason.
 
 ## Dead weight in the v1 set (audited 2026-10-18)
 
@@ -84,6 +96,8 @@ Optional environment overrides: `POSTHOG_PROJECT_ID` (default `451732`), `POSTHO
 
 - **Dry run is the default.** Without `--apply` the script makes zero network calls and prints every JSON payload it would POST.
 - **Idempotent per tile, not just per dashboard.** On `--apply` it lists dashboards, then for a dashboard that already exists it reads the attached insights and skips any tile whose name is already there. Re-running after a partial failure (the API drops connections intermittently) fills only the gaps — it never appends a second copy of a tile.
+- **A failed tile read aborts that dashboard, it does not look "empty".** `existing_tiles` returns `None` (not `{}`) when the GET fails; the dashboard is skipped and reported. Treating a dropped connection as "no tiles" is what duplicated all nine tiles of dashboard 03 on 2026-10-18 before this was fixed; the duplicates were soft-deleted.
+- **`dynamic=True` tiles are re-synced, the rest are skipped.** Use it for tiles whose query is generated from the repo (see the dead-event detector below).
 - **Failures are contained and reported.** Any 4xx/5xx body goes to stderr, the run continues, and the exit code is non-zero when something failed — so a partial run is visible instead of silent. If the initial dashboard listing fails, the run aborts (rather than risk duplicates).
 - **Funnel OR-steps.** A step that is "any of these events" is a `GroupNode` with `operator: "OR"` — that is how the contact step covers CV / Telegram / LinkedIn / GitHub / cal.com, and how the home step covers `/`, `/en/` and the legacy base.
 - **HogQL tiles are `DataTableNode`.** A top-level `DataTableNode` wrapping `HogQLQuery` is accepted; wrapping it in `InsightVizNode` is not (400: no `DataTableNode` tag).
@@ -100,3 +114,5 @@ All of the following were confirmed against `us.posthog.com` — the v1 notes be
 6. **Breakdowns**: `breakdownFilter.breakdowns` (array of `{type, property}`) is what current insights store; two breakdowns are allowed; `trendsFilter.display` accepts `ActionsLineGraph | ActionsTable | ActionsPie | ActionsBar`.
 7. **Funnel steps**: a `GroupNode` with `operator: "OR"` works as a step; `funnelsFilter.funnelVizType: "time_to_convert"` works.
 8. `EventsQuery` (v1 builder, still used by the v1 set) filters via HogQL `where: ["event = 'search_used'"]` and uses `after` rather than `dateRange`.
+9. **Updating an insight**: `PATCH /insights/{id}/ {"query": …}` returns 200 and round-trips the query unchanged (verified 2026-10-18) — this is what the `dynamic` tile sync uses.
+10. **HogQL CTE + `arrayJoin` + `LEFT JOIN`** works: `WITH expected AS (SELECT arrayJoin([…]) AS event), agg AS (…) SELECT … FROM expected LEFT JOIN agg ON …`. That is how the dead-event detector compares a static list against live data in one query.

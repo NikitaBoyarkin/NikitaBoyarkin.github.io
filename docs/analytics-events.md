@@ -29,7 +29,7 @@ Canonical event taxonomy for the portfolio, per
 | `booking_click` | `{ path }` | the 30-minute booking CTA (`cal.com/lofinibo/30min`) is clicked | `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
 | `persona_gate_view` | `{ lang, has_stored_choice }` | the persona gate card is rendered | `HeroGate.astro` (homepage) |
 | `persona_selected` | `{ persona, lang, source }` | a persona is chosen (`source ∈ {gate, switch, header, menu}` — `header`/`menu` are `NavRoles`'s bar/drawer variants) | `NavRoles.astro`, `RoleSwitch.astro`, `HeroGate.astro` |
-| `cta_exposure` | `{ surface, lang }` | the primary CTA is exposed (denominator for the exposure→click rate); desktop ≥1860px only | `Base.astro:817` — `surface:'home_rail'`, and only on pages passing `showCtaRail` (the homepage). The numerator (`cv_download_pdf` / `booking_click`) carries only `{ path }`, so the pair is not joinable on a shared prop — read the rate off the event path, or add a surface prop to the rail CTA before trusting it |
+| `cta_exposure` | `{ surface, lang }` | the primary CTA is exposed (denominator for the exposure→click rate); desktop ≥1860px only | `Base.astro:817` — `surface:'home_rail'`, and only on pages passing `showCtaRail` (the homepage). The matching click is `cv_download_pdf` **with `surface:'home_rail'`** (the rail link carries `data-analytics-surface`, added 2026-10-18) — before that the pair was not joinable, and rows from before the change carry `{path}` only |
 | `library_tile` | `{ path }` | a library tile is clicked | `ReadingBlock.astro`, via `[data-analytics]` |
 | `source_external` | `{ path }` | the "source ↗" link of a library entry is clicked. Currently **inert**: no library entry carries `url:`, so the link never renders | `ReadingBlock.astro`, `library/[slug].astro` (RU + EN), via `[data-analytics]` |
 | `linkedin_contact` | `{ path }` | the LinkedIn CTA on the contact page is clicked (the contact page's LinkedIn channel, separate from `linkedin_footer`) | `contact.astro` / `en/contact.astro`, via `[data-analytics]` |
@@ -37,6 +37,13 @@ Canonical event taxonomy for the portfolio, per
 > `booking_click` carries `{ path }`, not `{ locale }`: the delegated handler owns
 > every `[data-analytics]` CTA and attaches the same props to all of them. The
 > locale is recoverable from the event's URL (`/en/contact/` vs `/contact/`).
+
+> **Placements.** Any `[data-analytics]` element may also carry
+> `data-analytics-surface="<placement>"`; the delegated handler then adds
+> `surface` to the event props. Today the only placement is the desktop CTA rail
+> (`surface:'home_rail'`, `Base.astro`), which is what makes `cta_exposure →
+> cv_download_pdf` computable — the exposure row and the click row now share
+> `surface`. Add the attribute to any new CTA whose exposure you intend to count.
 
 ### Super properties (registered once per load, PRD §4.2)
 
@@ -67,16 +74,15 @@ These keep their historical names (they are the slider for the "hard naming" cas
 | `ask_me_open` | `AskMe.astro` |
 | `linkedin_badge_load` | `LinkedInBadge.astro` |
 | `hero_avatar_3d` | `HeroAvatar.astro` (hero avatar interaction) |
-| `headline_all_projects`, `headline_demo_<slug>`, `headline_github_<slug>`, `more_project_<slug>` | `HeadlineCases.astro` |
 | `project_demo_<slug>`, `project_github_<slug>` | `ProjectCard.astro` |
 | `projects_reset` | `ProjectBoard.astro` |
 | `game_selected`, `game_started`, `game_over`, `game_win`, `daily_completed`, `best_broken`, `sig_reached`, `experiment_started`, `milestone`, `contact_click` | `public/games/**` |
 | `lang_switch_ru`, `lang_switch_en` | `LangSwitch.astro` (mapped to `lang_switched`) |
 
-> Known debt: `project_demo_<slug>`, `project_github_<slug>`, `headline_demo_<slug>`,
-> `headline_github_<slug>`, `more_project_<slug>` still embed the slug in the
-> event name (PRD §4.1 prefers a property). They are retained because they carry
-> history; canonicalizing them is a separate, opt-in step.
+> Known debt: `project_demo_<slug>` and `project_github_<slug>` still embed the
+> slug in the event name (PRD §4.1 prefers a property). They are retained because
+> they carry history; canonicalizing them is a separate, opt-in step. The old
+> `headline_*` / `more_project_*` family was **never wired** — see §4.
 
 > Games hub note: `public/games/index.html` maps card hrefs to the short
 > in-game `GAME` keys (`ab-test` → `abtest`, …), so `game_selected` joins with
@@ -93,6 +99,17 @@ on since 12.10.2026 (`capture_exceptions: true` in `Analytics.astro` plus
 > `[data-analytics]` event and `outbound_click` (plus `$autocapture`) — up to
 > three rows for one click. Dashboards and funnels must count a single layer,
 > never sum across them.
+
+### Known capture losses (and what is done about them)
+
+The SDK is lazy: it loads on the first `pointerdown` / `keydown` / `scroll` /
+`touchstart`, and on idle (fallback 1200 ms). That creates two windows:
+
+| Window | What can be lost | Status |
+|---|---|---|
+| A capture that *causes* a navigation (the "random post" button sets `window.location`) before the SDK attaches | the click event, because the pre-attach buffer dies with the page | **fixed 2026-10-18** — `whenAnalyticsReady()` waits (bounded, 150 ms) for the attach and navigates anyway if analytics never loads |
+| A plain `<a href>` click that is the very first interaction, when the chunk is slower than the gap between `pointerdown` and the browser's navigation | the same buffer loss; navigation belongs to the browser, so it cannot be delayed without hijacking links | **accepted** — mitigated only by the `pointerdown` trigger (usually 50–150 ms of head start). Do not build a metric on a single first-click event |
+| A visitor who bounces before idle init (no interaction at all) | `$pageview` and the load-time custom events | **mitigated** — idle fallback lowered from 3500 ms to 1200 ms on 2026-10-18 |
 
 ## 4. Retired / removed
 

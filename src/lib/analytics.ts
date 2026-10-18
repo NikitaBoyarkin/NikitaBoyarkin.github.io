@@ -105,11 +105,45 @@ let ph: PostHogClient | null = null;
 const pending: Array<[string, Record<string, unknown>]> = [];
 const PENDING_MAX = 100;
 
+/**
+ * One-shot callbacks waiting for `attachPosthog` (see `whenAnalyticsReady`).
+ * Kept separate from `pending` because they are actions, not events.
+ */
+const readyCallbacks: Array<() => void> = [];
+
 let warned = false;
 
 /** Hand the initialised PostHog instance to this module (called by Analytics.astro). */
 export function attachPosthog(instance: PostHogClient): void {
   ph = instance;
+  // Anything waiting on the SDK may proceed now (bounded waiters included).
+  for (const callback of readyCallbacks.splice(0)) callback();
+}
+
+/**
+ * Run `action` once the SDK is attached, or after `maxWaitMs` — whichever comes
+ * first. Runs at most once.
+ *
+ * Why this exists: a capture that *causes* a navigation (the "random post"
+ * button sets `window.location`) used to race the lazy SDK load. The event went
+ * into the pre-attach buffer, the browser navigated, and the buffer died with
+ * the page — the first action of a session could vanish. Waiting a bounded
+ * amount for the attach keeps the capture, and still navigates when analytics
+ * is unavailable (ad-blocker, failed chunk load) instead of hanging.
+ */
+export function whenAnalyticsReady(action: () => void, maxWaitMs = 150): void {
+  let done = false;
+  const run = () => {
+    if (done) return;
+    done = true;
+    action();
+  };
+  if (ph) {
+    run();
+    return;
+  }
+  readyCallbacks.push(run);
+  window.setTimeout(run, maxWaitMs);
 }
 
 /**
@@ -146,6 +180,7 @@ function isReady(): boolean {
 export function resetAnalyticsForTests(): void {
   ph = null;
   pending.splice(0);
+  readyCallbacks.splice(0);
   warned = false;
 }
 
