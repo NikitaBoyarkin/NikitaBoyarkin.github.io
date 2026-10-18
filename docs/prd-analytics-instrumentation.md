@@ -41,10 +41,10 @@ funnel conversion, none of the goals in §3 can be evaluated and no change can b
 ### 1.1 Current state — main site `[V]`
 
 PostHog is loaded as a bundled `posthog-js` module (not the CDN snippet) from
-`src/components/Analytics.astro`, mounted in `<head>` via `src/layouts/Base.astro:180`.
+`src/components/Analytics.astro`, mounted in `<head>` via `src/layouts/Base.astro:431`.
 The whole component is inert when `PUBLIC_POSTHOG_KEY` is unset (`Analytics.astro:20`).
 
-Init config, verbatim (`Analytics.astro:32-39`):
+Init config, verbatim (`Analytics.astro:93-101`):
 
 ```js
 posthog.init(import.meta.env.PUBLIC_POSTHOG_KEY, {
@@ -57,32 +57,45 @@ posthog.init(import.meta.env.PUBLIC_POSTHOG_KEY, {
 });
 ```
 
-Local development is guarded (`Analytics.astro:27-29`): requests from `localhost` / `127.0.0.1` /
-`::1` / `0.0.0.0` never init. `window.posthog` is assigned manually at `Analytics.astro:44` because a
-module import does not set the global; components other than `Analytics.astro` depend on it.
+Local development is guarded (`Analytics.astro:25-30`): requests from `localhost` / `127.0.0.1` /
+`::1` / `0.0.0.0` never init. The browser reports an IPv6 loopback hostname in brackets
+(`[::1]`), so the guard matches that form too. The SDK is handed to the canonical module via
+`attachPosthog(posthog)` at `Analytics.astro:105`; components other than `Analytics.astro` call
+`track()` from `src/lib/analytics.ts` rather than reaching for the global.
 
 Project token and host come from build-time env: `PUBLIC_POSTHOG_KEY`, `PUBLIC_POSTHOG_HOST`
-(`.env.example:5-9`); in CI they are repo secrets (`.github/workflows/deploy.yml:44-47`).
+(`.env.example:5-9`); in CI they are repo secrets (`.github/workflows/deploy.yml:144-146`). The build
+also injects them into the games drift check (`deploy.yml:94`).
 
 ### 1.2 Current state — games arcade `[V]`
 
 `public/games/` is served verbatim (not processed by Astro). Each of 10 SVG games plus the hub
 (`public/games/index.html`) embeds its own inline copy of the PostHog CDN loader, with the production
-token **hardcoded in 11 files**. The games init omits `defaults` and `session_recording`:
+token **hardcoded in 11 files** — deliberate, see REQ-A12. Until 2026-10-18 the games init omitted
+`defaults`, `session_recording` and `persistence` (so PostHog fell back to `localStorage+cookie` and
+set a first-party cookie); it now mirrors the site:
 
 ```js
 window.posthog.init(PH_KEY, {
   api_host: PH_HOST,
+  defaults: '2026-05-30',
+  persistence: 'memory',
   capture_pageview: true,
   capture_pageleave: true,
   autocapture: true,
+  capture_exceptions: true,
+  session_recording: { maskAllInputs: true },
 });
 ```
 
+Two differences from the site remain, both accepted: the games still load `array.js` from
+`us-assets.i.posthog.com` (the site bundles `posthog-js`), so games pages pay a third-party
+request; and `persistence: 'memory'` means game sessions are not stitched across page views.
+
 Note on severity `[V]`: PostHog masks session-replay inputs by default
 (<https://posthog.com/docs/session-replay/privacy> — "As any input element is highly likely to contain
-sensitive text, we mask these by default"). The games config is therefore a **parity and hygiene**
-problem, not a live privacy breach. It stays in scope at low priority.
+sensitive text, we mask these by default"). The games config was therefore a **parity and hygiene**
+problem, not a live privacy breach — the cookie it set is now gone anyway.
 
 ### 1.3 Current state — PostHog project `[V]`
 
@@ -163,9 +176,13 @@ is misspelled, and a new event can silently diverge from the ones around it.
 
 ### P3 — Silent no-op failure mode `[V]`
 
-`theme_change`, `ask_me_used` and `random_post_click` read `window.posthog`, which is only assigned
-inside the `if (!IS_LOCAL)` block at `Analytics.astro:44`. If the block is skipped (no key, localhost),
-every one of those calls silently does nothing. There is no alarm anywhere.
+`theme_change`, `ask_me_used` and `random_post_click` reach the SDK once the lazy `start()` at
+`Analytics.astro:93` has run, behind the `IS_LOCAL` guard at `Analytics.astro:29`. If that guard
+skips (no key, or local development), every one of those calls silently does nothing.
+
+Build-time variant: a missing `PUBLIC_POSTHOG_KEY` renders no analytics at all, also silently.
+`scripts/check_site.py` (`check_analytics`) now fails the build when the key is set in the
+environment but no analytics chunk reaches `dist/`.
 
 ### P4 — The hiring funnel has holes `[I]`, grounded in §1.5
 
@@ -385,13 +402,25 @@ PostHog (verified once, then reverted); the Error Tracking product shows the iss
 
 ### 5.12 REQ-A12 — Games config parity + single-source token
 
-`public/games/*` (11 files) use a placeholder `__PH_KEY__`; a postbuild script injects
-`PUBLIC_POSTHOG_KEY` into `dist/games/*`; games init adds `defaults` and
-`session_recording: { maskAllInputs: true }` to match the site.
+**Resolved 2026-10-18 — decision: keep the literal token.** `public/games/*` (11 files) keep the
+production token hardcoded. The original plan (`__PH_KEY__` placeholder + a postbuild injector into
+`dist/games/*`) was rejected because it would empty out the `deploy.yml:88-107` drift check — the only
+mechanism binding those hardcoded literals to the `PUBLIC_POSTHOG_KEY` secret. Removing the literals
+would leave a guard that loops over nothing and passes silently, so a rotated key could misroute
+traffic with a green build. Keeping the literal keeps the secret as single source of truth.
 
-**Acceptance:** `rg "phc_" public/games/` returns no matches; `dist/games/index.html` after
-`bun run build` contains the injected key and the aligned init options; local `bun run dev` games
-contain no key.
+What was done instead:
+
+- Init aligned with the site: `defaults: '2026-05-30'`, `capture_pageview`, `capture_pageleave`,
+  `autocapture`, `capture_exceptions: true`, `session_recording: { maskAllInputs: true }`.
+- `persistence: 'memory'` added to all 11 inits. No consent gate exists anywhere in the repo, and the
+  default `localStorage+cookie` mode sets `ph_<token>_posthog` for 365 days; memory persistence scopes
+  storage to the page view. Game state is unaffected — streaks and best scores use the games' own
+  `lsGet`/`lsSet` localStorage helpers, not PostHog persistence.
+
+**Acceptance:** the `deploy.yml:88-107` drift check passes (`rc=0` across 11 files);
+`rg "persistence: 'memory'" public/games/` matches 11 files; the games init options match the ones
+listed in §1.2.
 
 ### 5.13 REQ-A13 — Artifacts reconciled
 
@@ -469,8 +498,8 @@ precondition.
 
 | Task | Work | Acceptance |
 |---|---|---|
-| A5.1 | Replace hardcoded token with `__PH_KEY__` in all 11 files; align init. | `rg "phc_" public/games/` empty. |
-| A5.2 | Add `scripts/inject-games-analytics.mjs` and wire `postbuild` in `package.json`. | REQ-A12 passes after `bun run build`. |
+| A5.1 | **Rejected** 2026-10-18 — keeps the literals so the `deploy.yml` drift check stays meaningful. Instead: `persistence: 'memory'` + site-parity init across all 11 files. | `rg "persistence: 'memory'" public/games/` matches 11 files; drift check green. |
+| A5.2 | **Dropped** — no postbuild injector while the literal token stays. | n/a |
 
 ### Phase A6 — PostHog artifacts
 

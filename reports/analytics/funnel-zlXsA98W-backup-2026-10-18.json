@@ -1,0 +1,90 @@
+{
+  "id": 11015002,
+  "short_id": "zlXsA98W",
+  "name": "Funnel: рекрутер → контакт",
+  "query": {
+    "kind": "InsightVizNode",
+    "source": {
+      "kind": "FunnelsQuery",
+      "series": [
+        {
+          "kind": "EventsNode",
+          "name": "$pageview",
+          "event": "$pageview",
+          "properties": [
+            {
+              "key": "$pathname",
+              "type": "event",
+              "value": "/",
+              "operator": "exact"
+            }
+          ]
+        },
+        {
+          "kind": "EventsNode",
+          "name": "$pageview",
+          "event": "$pageview",
+          "properties": [
+            {
+              "key": "$pathname",
+              "type": "event",
+              "value": "/projects/",
+              "operator": "icontains"
+            }
+          ]
+        },
+        {
+          "kind": "GroupNode",
+          "name": "Контакт (CV / Telegram / LinkedIn / GitHub)",
+          "nodes": [
+            {
+              "kind": "EventsNode",
+              "name": "CV PDF",
+              "event": "cv_download_pdf"
+            },
+            {
+              "kind": "EventsNode",
+              "name": "CV PDF (footer)",
+              "event": "cv_pdf_footer"
+            },
+            {
+              "kind": "EventsNode",
+              "name": "CV (footer)",
+              "event": "cv_footer"
+            },
+            {
+              "kind": "EventsNode",
+              "name": "Hero CV",
+              "event": "hero_cv"
+            },
+            {
+              "kind": "EventsNode",
+              "name": "Telegram",
+              "event": "telegram_footer"
+            },
+            {
+              "kind": "EventsNode",
+              "name": "LinkedIn (footer)",
+              "event": "linkedin_footer"
+            },
+            {
+              "kind": "EventsNode",
+              "name": "GitHub (footer)",
+              "event": "github_footer"
+            }
+          ],
+          "operator": "OR"
+        }
+      ],
+      "version": 2.0,
+      "dateRange": {
+        "date_from": "-30d",
+        "explicitDate": false,
+        "excludeIncompletePeriods": false
+      },
+      "properties": [],
+      "filterTestAccounts": false
+    }
+  },
+  "filters": null
+}

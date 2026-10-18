@@ -7,8 +7,10 @@ Checks:
 - Profile image exists and is under a size threshold.
 - Images referenced in HTML exist in dist/.
 - Required assets are present in index.html.
+- Analytics is actually wired into the build when its key is configured.
 """
 
+import os
 import re
 import sys
 from html.parser import HTMLParser
@@ -237,6 +239,42 @@ def check_metrics_drift() -> int:
     return errors
 
 
+def check_analytics() -> int:
+    """Analytics must be present in the build when its key is configured.
+
+    `src/components/Analytics.astro` renders nothing when `PUBLIC_POSTHOG_KEY`
+    is unset, so a missing CI secret silently ships an untracked site — the
+    build stays green and nobody notices. CI does set the key, so the guard is
+    enforceable there; a local build without the key skips instead of failing.
+    """
+    key = os.environ.get("PUBLIC_POSTHOG_KEY", "").strip()
+    if not key:
+        print("  SKIP  analytics (PUBLIC_POSTHOG_KEY not set)")
+        return 0
+
+    index = DIST / "index.html"
+    match = re.search(
+        r'_astro/(Analytics[^"\']+\.js)', index.read_text(encoding="utf-8")
+    )
+    if not match:
+        print(
+            "  ERROR: analytics not referenced in index.html, but "
+            "PUBLIC_POSTHOG_KEY is set — the site would ship untracked"
+        )
+        return 1
+
+    chunk = DIST / "_astro" / match.group(1)
+    if not chunk.exists():
+        print(f"  ERROR: {match.group(1)} is referenced but missing from dist/")
+        return 1
+    if key not in chunk.read_text(encoding="utf-8"):
+        print(f"  ERROR: project key not inlined in {match.group(1)}")
+        return 1
+
+    print(f"  OK    analytics chunk wired ({match.group(1)})")
+    return 0
+
+
 def check_graph_assets() -> int:
     errors = 0
     graph_files = ["graph.json", "graph-en.json"]
@@ -260,6 +298,7 @@ def main() -> int:
     errors += check_internal_links()
     errors += check_profile_image()
     errors += check_index_assets()
+    errors += check_analytics()
     errors += check_graph_assets()
     errors += check_metrics_drift()
 

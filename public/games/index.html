@@ -42,9 +42,13 @@
         try {
           window.posthog.init(PH_KEY, {
             api_host: PH_HOST,
+            defaults: "2026-05-30",
+            persistence: "memory",
             capture_pageview: true,
             capture_pageleave: true,
             autocapture: true,
+            capture_exceptions: true,
+            session_recording: { maskAllInputs: true },
           });
         } catch (e) {}
       };

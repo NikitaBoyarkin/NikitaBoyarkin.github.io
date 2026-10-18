@@ -230,12 +230,24 @@ executed here — they are inputs to Phases A1–A3.
    `recruiter | analyst | learner` (`Base.astro:172`); PRD §4.2 specifies
    `recruiter | peer | curious | null`. Any super-property implementation must
    pick one; the code's values are what existing `localStorage` holds.
-3. **Two of four saved funnels are broken**: `j35OMv7Z` ends on a dead event;
-   `zlXsA98W` step 1 filters the old base path. REQ-A13 must not merely "add
-   breakdowns" — it must **rewrite both**.
+3. **Both saved funnels are live** (re-verified 2026-10-18): `j35OMv7Z` is
+   `$pageview → project_viewed → cv_download_pdf` (all three events fire), and
+   `zlXsA98W` step 1 filters `$pathname` `exact /` — the old base path is gone.
+   The only real defect left was `zlXsA98W` step 3, whose contact OR-group still
+   carried three retired events (`hero_cv`, `cv_footer`, `cv_pdf_footer` —
+   removed from the code on 2026-09-19, see `analytics-events.md`); they were
+   dropped on 2026-10-18, leaving `cv_download_pdf`, `telegram_footer`,
+   `linkedin_footer`, `github_footer`. REQ-A13's "add breakdowns" work is still
+   open; the funnels themselves no longer need rewriting.
 4. **`$initial_referring_domain` does not exist** (§3). The first-touch
    classifier is a client-side concern; no server-side backfill is possible.
 5. **PRD §12 points at a non-existent §13.** Section 5 above closes it.
+6. **Non-site events land in the portfolio project** (backlog, 2026-10-18). Live query over 30d:
+   `$ai_generation` 6501, `$ai_span` 5964, `$ai_trace` 183 — LLM-observability traces, last seen
+   2026-10-11 — plus `eng_analytics_test_census` (30, 2026-10-18) and `$scout_report_edited` (3).
+   None of it is portfolio traffic, so any "all events" view is misleading. Next step: find which
+   tooling posts to project `451732` and route it elsewhere, or filter these events out of the saved
+   insights. Not fixed here — it is a source-side problem, not a dashboard one.
 
 ---
 

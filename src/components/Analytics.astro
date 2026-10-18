@@ -26,7 +26,7 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
   <script>
     // Never instrument local development. Dev sessions (localhost / 127.0.0.1
     // / ::1 / 0.0.0.0) would pollute the PostHog project and skew funnels.
-    const IS_LOCAL = /^(localhost|127\.0\.0\.1|::1|0\.0\.0\.0)$/.test(
+    const IS_LOCAL = /^(localhost|127\.0\.0\.1|::1|\[::1\]|0\.0\.0\.0)$/.test(
       window.location.hostname,
     );
 
