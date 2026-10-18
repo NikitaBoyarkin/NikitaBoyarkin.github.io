@@ -1,8 +1,50 @@
 # PostHog Dashboard Provisioning
 
-Provisions four PostHog dashboards for the portfolio site (project `451732`, Cloud US, `https://us.posthog.com`) from a single stdlib-only Python script. Existing dashboards **1994322 «Рекрутер»** and **2024833 «Портфолио — аналитика»** are left untouched. Dashboard **1660826 «My App Dashboard»** (auto-starter) is slated for deletion — delete it manually in the PostHog UI; this script never deletes or modifies anything.
+Provisions PostHog dashboards for the portfolio site (project `451732`, Cloud US, `https://us.posthog.com`) from a single stdlib-only Python script.
 
-## Dashboards created
+Two sets live in the script:
+
+| Set | Flag | Created | What it is |
+|---|---|---|---|
+| v1 | `--only v1` | 2026-09-28 | «Контент и вовлечение», «RU vs EN», «Контакт-конверсия 30д», «Games». Kept for reference; **partly dead** (below). |
+| **v2** (default) | `--only v2` | 2026-10-18 | «01 · Трафик и источники», «02 · Воронка: визит → проект → контакт», «03 · Проекты и контент», «04 · Персоны и CTA», «05 · Здоровье аналитики». Every tile verified to return data. |
+
+## v2 dashboards (created 2026-10-18)
+
+| Dashboard | id | Tiles |
+|---|---|---|
+| [01 · Трафик и источники](https://us.posthog.com/project/451732/dashboard/2226427) | 2226427 | pageviews/visitors weekly; top paths; referring domains; first-touch class; `$session_entry_utm_source`; devices; browsers |
+| [02 · Воронка: визит → проект → контакт](https://us.posthog.com/project/451732/dashboard/2226417) | 2226417 | visit→project→contact funnel; **home(/, /en/, legacy base)**→project→contact funnel; time-to-convert; home→/projects/; contact CTAs weekly; outbound domains |
+| [03 · Проекты и контент](https://us.posthog.com/project/451732/dashboard/2226420) | 2226420 | top projects; `project_viewed` by surface; top posts; `read_depth` by depth and by content type; `/about` sections; filters by surface; search by surface (see note); library tiles |
+| [04 · Персоны и CTA](https://us.posthog.com/project/451732/dashboard/2226421) | 2226421 | gate views vs unique visitors; persona choice; gate→choice funnel; choice by source; RU/EN pageviews; language switches; theme; CTA exposure |
+| [05 · Здоровье аналитики](https://us.posthog.com/project/451732/dashboard/2226422) | 2226422 | per-event volume + last-seen (HogQL); all-events daily; junk events from own pipelines; Web Vitals p75 by path; rageclicks by path; JS exceptions; games funnel |
+
+Design rules the v2 set follows:
+
+- **Every tile is verified against live data before it ships.** `verify_tiles.py` runs each tile's query through `POST /api/projects/{id}/query/`; `verify_dashboards.py` re-runs the queries *as stored on the dashboards* after creation. Both are read-only.
+- **One layer per metric.** A click on an external CTA emits a frozen `[data-analytics]` event **and** `outbound_click` **and** `$autocapture` — counting two layers double-counts.
+- **`$session_entry_utm_source`, not `utm_source`.** The plain property is present on only a fraction of `$pageview` rows (801 vs 148 in 90 days); the session-entry property is the complete one.
+- **The homepage has three identities.** `/` (current), `/en/` (English), `/Personal_Projects.github.io/` (legacy base, still the top path in the data). Any home-scoped funnel must OR all three — the v1 funnel scope of `$pathname = "/"` silently dropped them.
+
+### Known-empty tile (by design)
+
+«Поиск: попадания и пустые» in dashboard 03 is **intentionally empty**: `search_used` / `search_no_results` have zero rows in 90 days, i.e. nobody opens the site search. The tile is the place that will show the first search ever made; it is not a broken query.
+
+## Dead weight in the v1 set (audited 2026-10-18)
+
+| Object | Status | Why |
+|---|---|---|
+| «Games» dashboard (2142405) | **all 4 tiles dead** | `game_selected` had 1 row in 90 days; the games bundle used `persistence: 'memory'`, so each game screen minted a fresh anonymous `distinct_id` and its events never joined the site session. Fixed in code 2026-10-18 (`localStorage+cookie` + a pre-init buffer); dashboard 05 tile «Игровой хаб» is the replacement to watch. |
+| «Контент и вовлечение» (2142402) | **4 of 6 tiles dead** | `search_used`, `search_no_results`, `ask_me_used`, `random_post_click` all have zero rows in 90 days. `post_read` and `read_depth` tiles are alive. |
+| «RU vs EN» (2142403) | alive, partly redundant | 2 of its 4 tiles restate «Портфолио — аналитика» (2024833) and the contact dashboard (2142404). |
+| «Контакт-конверсия 30д» (2142404) | alive, thin; 1 wrong key | `$pageview` by plain `utm_source` should be `$session_entry_utm_source`; the funnel scoped home to `/` only. Both corrected in dashboard 02. |
+| «Рекрутер» (1994322) | alive, thin | Its funnel (11015002) has the same `/`-only home scope; kept because the weekly ritual links to it. |
+
+Nothing here deletes or edits a v1 object — the script only creates, so the historical dashboards stay as they are.
+
+## The v1 set (2026-09-28, for reference)
+
+Existing dashboards **1994322 «Рекрутер»** and **2024833 «Портфолио — аналитика»** are left untouched. Dashboard **1660826 «My App Dashboard»** (auto-starter) is slated for deletion — delete it manually in the PostHog UI; this script never deletes or modifies anything.
 
 | Dashboard | Tiles |
 |---|---|
@@ -11,7 +53,7 @@ Provisions four PostHog dashboards for the portfolio site (project `451732`, Clo
 | «Контакт-конверсия 30д» | funnel $pageview "/" → project_viewed → cv_download_pdf; contact CTA trends; outbound_click by domain; $pageview by utm_source |
 | «Games» | game_started unique users by game; funnel game_selected → game_started → game_win; daily_completed trend; contact_click by channel |
 
-All tiles are last 30 days, daily interval. Insights use the `query` node format (`TrendsQuery` / `FunnelsQuery` / `EventsQuery`) — the legacy top-level `filters` field is blocked by the API and is not used.
+All v1 tiles are last 30 days, daily interval. Insights use the `query` node format (`TrendsQuery` / `FunnelsQuery` / `EventsQuery`) — the legacy top-level `filters` field is blocked by the API and is not used.
 
 ## API key
 
@@ -27,7 +69,13 @@ The script reads `POSTHOG_API_KEY` from the environment only; it never prints or
 
 ```bash
 python3 create_dashboards.py            # default: DRY RUN — prints payloads, zero network calls
-python3 create_dashboards.py --apply   # actually creates dashboards + insights + tiles
+python3 create_dashboards.py --only v2 --apply   # v2 set (default --only v2)
+python3 create_dashboards.py --only v1 --apply   # the 2026-09-28 set
+python3 create_dashboards.py --only all --apply  # both
+
+# Read-only verification of what exists in PostHog (no writes):
+python3 verify_tiles.py        # every v2 tile's query against live data
+python3 verify_dashboards.py   # the same, but reading the queries back off the dashboards
 ```
 
 Optional environment overrides: `POSTHOG_PROJECT_ID` (default `451732`), `POSTHOG_HOST` (default `https://us.posthog.com`).
@@ -35,17 +83,20 @@ Optional environment overrides: `POSTHOG_PROJECT_ID` (default `451732`), `POSTHO
 ## Behavior notes
 
 - **Dry run is the default.** Without `--apply` the script makes zero network calls and prints every JSON payload it would POST.
-- **Idempotent on `--apply`.** It first GETs the dashboard list; a dashboard whose name already exists is reported as `exists, skipped`. Re-running never duplicates dashboards.
-- **Failures are contained.** Any 4xx/5xx response body is printed to stderr and the run continues to the next object — one bad tile never aborts the whole provisioning. If the initial dashboard listing fails, the run aborts (rather than risk duplicates).
-- **Funnel OR-steps.** The contact funnel is encoded with a single event per step (`$pageview "/"` → `project_viewed` → `cv_download_pdf`), because base `FunnelsQuery` does not express OR across events within one step. If per-step OR is needed later, create custom events in PostHog or duplicate the funnel with alternative step events.
+- **Idempotent per tile, not just per dashboard.** On `--apply` it lists dashboards, then for a dashboard that already exists it reads the attached insights and skips any tile whose name is already there. Re-running after a partial failure (the API drops connections intermittently) fills only the gaps — it never appends a second copy of a tile.
+- **Failures are contained and reported.** Any 4xx/5xx body goes to stderr, the run continues, and the exit code is non-zero when something failed — so a partial run is visible instead of silent. If the initial dashboard listing fails, the run aborts (rather than risk duplicates).
+- **Funnel OR-steps.** A step that is "any of these events" is a `GroupNode` with `operator: "OR"` — that is how the contact step covers CV / Telegram / LinkedIn / GitHub / cal.com, and how the home step covers `/`, `/en/` and the legacy base.
+- **HogQL tiles are `DataTableNode`.** A top-level `DataTableNode` wrapping `HogQLQuery` is accepted; wrapping it in `InsightVizNode` is not (400: no `DataTableNode` tag).
 
-## Unverified API shapes (check on first `--apply`)
+## Verified API shapes (2026-10-18)
 
-These could not be verified offline; the first `--apply` run will surface them as printed 4xx bodies if wrong:
+All of the following were confirmed against `us.posthog.com` — the v1 notes below are kept because they record what the first run checked, and the corrections are what the v2 builders use:
 
-1. `dateRange` is encoded as `{"date_from": "-30d", "date_to": null, "explicitDate": true}`. If the API rejects it, try `{"days": 30}`.
-2. Tile attach uses `POST /api/projects/{id}/dashboards/{dashboard_id}/tiles/` with `{"insight": <id>}`; fallback (read dashboard → append tile → `PATCH`) may use a different tiles shape.
-3. `EventsQuery` filters events via HogQL `where: ["event = 'search_used'"]`.
-4. `EventsNode` math `"unique_users"` for unique-user trend series.
-5. `breakdown` + `breakdownFilter: {"breakdown_type": "event"}` for event-property breakdowns (`locale`, `slug`, `domain`, `utm_source`, `game`, `channel`).
-6. `$pathname` as the property key for the funnel's first step (`"/"`); boolean `answer_matched = true` matching; numeric `depth = 50/100` exact matching.
+1. `dateRange` is `{"date_from": "-90d", "date_to": null, "explicitDate": true}` (v1) and `{"date_from": "-90d", "explicitDate": false}` (v2, matching what the API stores back).
+2. **Tile attach**: `POST …/dashboards/{id}/tiles/` does **not** exist (404) and PATCHing the dashboard's `tiles` list returns 200 while changing nothing. The working route is `PATCH /insights/{insight_id}/ {"dashboards": [id]}`.
+3. **Deleting an insight**: `DELETE /insights/{id}/` returns **405**; soft delete is `PATCH /insights/{id}/ {"deleted": true}`.
+4. **HogQL**: a bare `HogQLQuery` or a top-level `DataTableNode` wrapping it both work; `InsightVizNode` with a `DataTableNode` source is rejected.
+5. **All-events series**: `{"kind": "EventsNode", "event": null}` counts every event including SDK ones.
+6. **Breakdowns**: `breakdownFilter.breakdowns` (array of `{type, property}`) is what current insights store; two breakdowns are allowed; `trendsFilter.display` accepts `ActionsLineGraph | ActionsTable | ActionsPie | ActionsBar`.
+7. **Funnel steps**: a `GroupNode` with `operator: "OR"` works as a step; `funnelsFilter.funnelVizType: "time_to_convert"` works.
+8. `EventsQuery` (v1 builder, still used by the v1 set) filters via HogQL `where: ["event = 'search_used'"]` and uses `after` rather than `dateRange`.

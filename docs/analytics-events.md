@@ -11,7 +11,7 @@ Canonical event taxonomy for the portfolio, per
 
 | Event | Properties | Fires when | Where |
 |---|---|---|---|
-| `project_viewed` | `{ slug, locale, surface? }` | a project page loads, or a project link is clicked | `Analytics.astro` (page, `surface:'page'`), `ProjectCard.astro` / `HeadlineCases.astro` / `ProjectList.astro` (`surface:'card'`/`'headline'`/`'list'`) |
+| `project_viewed` | `{ slug, locale, surface? }` | a project page loads, or a project link is clicked | `Analytics.astro` (page, `surface:'page'`), `ProjectCard.astro` (`surface:'card'`), `ProjectList.astro` (`surface:'list'`); an unscoped `[data-analytics-project]` click falls back to `surface:'unknown'`. `surface:'headline'` is retired — see §4 |
 | `post_read` | `{ slug, locale }` | a blog post page loads | `Analytics.astro` |
 | `lang_switched` | `{ from, to, path }` | the RU/EN switch is clicked | `Analytics.astro` (special-cases `data-analytics="lang_switch_*"`) |
 | `theme_change` | `{ theme }` | the theme toggle is clicked | `Base.astro` (bundled script) |
@@ -19,17 +19,20 @@ Canonical event taxonomy for the portfolio, per
 | `random_post_click` | `{ slug, path }` | the random-post button is clicked | `BlogFilter.astro` |
 | `section_viewed` | `{ section, path }` | an `/about` section enters the viewport at 50% (once per section), or is already above the mid-viewport when the lazy SDK init finishes (lazy-init credit). On `/about` the section now enters the viewport when its **tab becomes active** — including via a `#anchor` deep link — and sections inside inactive tabs are **not** emitted at page load | `Analytics.astro`, via `[data-analytics-section]` |
 | `outbound_click` | `{ domain, url, surface, path }` | a link leaving the site is clicked | `Analytics.astro` (delegated) |
-| `search_used` | `{ query, results_count, locale }` | a search with ≥1 result | `SearchBox.astro` (truncated to 100 chars, once per panel) |
-| `search_no_results` | `{ query, results_count: 0, locale }` | a search with 0 results | `SearchBox.astro` |
+| `search_used` | `{ query, results_count, locale, surface }` | a search with ≥1 result (`surface ∈ {header, glossary}`) | `SearchBox.astro` (truncated to 100 chars, once per panel) and `GlossaryFilter.astro` (both `surface:'glossary'`) |
+| `search_no_results` | `{ query, results_count: 0, locale, surface }` | a search with 0 results | `SearchBox.astro`, `GlossaryFilter.astro` |
 | `read_depth` | `{ content_type, slug, depth, locale }` | scroll crosses 25/50/75/100% (`content_type ∈ {post, case_study, note}`; depth 100 credits at ≤2px from the bottom — elastic scroll) | `Analytics.astro` |
 | `filter_applied` | `{ tag, results_count, surface }` | a filter chip is applied — `surface` is `'writing'` (`BlogFilter.astro`) or `'glossary'` (`GlossaryFilter.astro`) | `BlogFilter.astro`, `GlossaryFilter.astro` |
 | `projects_track_filter` | `{ track, results_count, locale }` | a project category tab is selected (`track` is the taxonomy key or `all`) | `ProjectBoard.astro` |
 | `contact_submit` | `{ locale }` | the contact form was submitted and the Edge Function accepted it | `ContactForm.astro` (only on `res.ok`). **Inert in production** until `PROJECT_REF` in `src/lib/contact.ts` is replaced (`CONTACT_FORM_ENABLED=false`, so the form is not rendered at all) |
 | `contact_form_error` | `{ locale, reason }` | a contact-form submission failed (`reason ∈ {validation, rate_limited, server, network}`) | `ContactForm.astro`. **Inert in production** — same reason as `contact_submit` |
 | `booking_click` | `{ path }` | the 30-minute booking CTA (`cal.com/lofinibo/30min`) is clicked | `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
-| `persona_gate_view` | `{ lang, has_stored_choice }` | the persona gate card is rendered | `PersonaCanvas.astro`, `HeroGate.astro` |
-| `persona_selected` | `{ persona, lang, source }` | a persona is chosen (`source` is `'gate'` or `'switch'`) | `NavRoles.astro`, `RoleSwitch.astro`, `PersonaCanvas.astro`, `HeroGate.astro` |
-| `cta_exposure` | `{ surface, lang }` | the primary CTA is exposed (denominator for the exposure→click rate); desktop ≥1860px only | `Base.astro` |
+| `persona_gate_view` | `{ lang, has_stored_choice }` | the persona gate card is rendered | `HeroGate.astro` (homepage) |
+| `persona_selected` | `{ persona, lang, source }` | a persona is chosen (`source ∈ {gate, switch, header, menu}` — `header`/`menu` are `NavRoles`'s bar/drawer variants) | `NavRoles.astro`, `RoleSwitch.astro`, `HeroGate.astro` |
+| `cta_exposure` | `{ surface, lang }` | the primary CTA is exposed (denominator for the exposure→click rate); desktop ≥1860px only | `Base.astro:817` — `surface:'home_rail'`, and only on pages passing `showCtaRail` (the homepage). The numerator (`cv_download_pdf` / `booking_click`) carries only `{ path }`, so the pair is not joinable on a shared prop — read the rate off the event path, or add a surface prop to the rail CTA before trusting it |
+| `library_tile` | `{ path }` | a library tile is clicked | `ReadingBlock.astro`, via `[data-analytics]` |
+| `source_external` | `{ path }` | the "source ↗" link of a library entry is clicked. Currently **inert**: no library entry carries `url:`, so the link never renders | `ReadingBlock.astro`, `library/[slug].astro` (RU + EN), via `[data-analytics]` |
+| `linkedin_contact` | `{ path }` | the LinkedIn CTA on the contact page is clicked (the contact page's LinkedIn channel, separate from `linkedin_footer`) | `contact.astro` / `en/contact.astro`, via `[data-analytics]` |
 
 > `booking_click` carries `{ path }`, not `{ locale }`: the delegated handler owns
 > every `[data-analytics]` CTA and attaches the same props to all of them. The
@@ -40,7 +43,7 @@ Canonical event taxonomy for the portfolio, per
 | Property | Values |
 |---|---|
 | `locale` | `ru` \| `en` |
-| `audience` | `recruiter` \| `analyst` \| `learner` \| `null` (read from `localStorage['audience']`; no selector UI currently writes it) |
+| `audience` | `hr` \| `manager` \| `colleague` \| `null` (read from `localStorage['audience']`; written by `HeroGate.astro`, `RoleSwitch.astro`, `NavRoles.astro`) |
 | `theme` | `dark` \| `light` \| `cyberpunk` |
 | `prefers_reduced_motion` | boolean |
 | `initial_referrer_class` | `linkedin` \| `github` \| `google` \| `direct` \| `other` |
@@ -52,13 +55,14 @@ These keep their historical names (they are the slider for the "hard naming" cas
 
 | Event | Where |
 |---|---|
-| `featured_project`, `featured_demo`, `featured_github` | `index.astro` / `en/index.astro` (hero CTAs) |
-| `bento_stack`, `bento_notes`, `bento_shelf`, `bento_writing` | `index.astro` / `en/index.astro` (`bento_shelf` / `bento_writing` from `RoleLanding.astro`) |
+| `featured_project`, `featured_demo`, `featured_github` | `RoleLanding.astro` — **colleague role pages only** (`/colleague/`, `/en/colleague/`). The homepage hero does not render them |
+| `bento_stack` | `StackCard.astro` (via `RoleLanding`) — all six role pages |
+| `bento_notes`, `bento_shelf`, `bento_writing` | `RoleLanding.astro` — colleague role pages (`bento_notes` RU only) |
 | `cv_download_pdf` | every "CV" button: `Base.astro` nav chips + nav rail, hero, `contact.astro` / `en/contact.astro` |
 | `telegram_contact`, `telegram_deeplink`, `telegram_footer` | `contact.astro`, `Base.astro` nav chips |
 | `github_footer`, `linkedin_footer` | `Base.astro` nav chips (moved out of the footer 2026-10-10; the `_footer` suffix is kept so the PostHog series does not split) |
-| `value_cta`, `value_github` | `ValueOffers.astro` on `/about#value` |
-| `work_with_me_cta`, `whois_cta` | `about.astro` / `en/about.astro` |
+| `value_cta`, `work_with_me_cta`, `whois_cta` | `about/{ru,en}.mdx` via `TelegramCta.astro` on `/about#value` |
+| `value_github` | `ValueOffers.astro` on `/about#value` |
 | `search_open` | `SearchBox.astro` |
 | `ask_me_open` | `AskMe.astro` |
 | `linkedin_badge_load` | `LinkedInBadge.astro` |
@@ -94,10 +98,12 @@ on since 12.10.2026 (`capture_exceptions: true` in `Analytics.astro` plus
 
 | Event | Status | Why |
 |---|---|---|
+| `headline_all_projects`, `headline_demo_<slug>`, `headline_github_<slug>`, `more_project_<slug>` | removed (never fired) | `HeadlineCases.astro` no longer exists in `src/` — the names were documented but had **no emitter**; they appear in PostHog only as historical rows |
+| `project_viewed { surface:'headline' }` | retired | same removal — no component sets that surface |
+| `bento_graph` | removed | emitted by the old homepage bento; `HomeBoard.astro` is imported by no page |
+| `value_viewed`, `whois_viewed`, `work-with-me_viewed` | removed | routes 308-redirect to `/about`; the events could never fire again (PRD §4.6). Historical rows stay in PostHog |
 | `project_view_<slug>` | retired | replaced by `project_viewed { slug, surface }` (PRD §4.5) |
-| `headline_case_<slug>` | retired | replaced by `project_viewed { slug, surface:'headline' }` |
 | `case_study_read` | retired | replaced by `read_depth { content_type:'case_study', depth:75 }` |
-| `whois_viewed`, `value_viewed`, `work-with-me_viewed` | removed | routes 308-redirect to `/about`; events could never fire again (PRD §4.6) |
 | `telegram_board`, `github_board`, `linkedin_board` | removed | `HomeBoard.astro` is imported by no page (PRD §4.6) |
 | `hero_cta_click`, `hero_cta_exposure` | doc-only removal | A/B flag deactivated 2026-09-15; code already gone (PRD §4.6) |
 | `hero_projects`, `hero_contact` | removed | never wired; `HeroCta.astro` deleted with the A/B test (2026-09-27). Live hero CTAs: `featured_project`, `featured_demo`, `featured_github` |

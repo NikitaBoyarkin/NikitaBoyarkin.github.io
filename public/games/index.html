@@ -43,21 +43,34 @@
           window.posthog.init(PH_KEY, {
             api_host: PH_HOST,
             defaults: "2026-05-30",
-            persistence: "memory",
+            // Same persistence as the main site, so a visitor who plays a game
+            // keeps the site's anonymous distinct_id and the game events join
+            // the same person/session instead of starting a fresh one.
+            persistence: "localStorage+cookie",
             capture_pageview: true,
             capture_pageleave: true,
             autocapture: true,
             capture_exceptions: true,
             session_recording: { maskAllInputs: true },
           });
+          // Replay hub events captured before array.js finished loading.
+          while (queue.length) {
+            var item = queue.shift();
+            try {
+              window.posthog.capture(item[0], item[1]);
+            } catch (e) {}
+          }
         } catch (e) {}
       };
       document.head.appendChild(s);
     }
+    // Events fired before the SDK is ready are buffered (bounded), not dropped.
+    var queue = [];
     function ph(name, props) {
       try {
         if (window.posthog && window.posthog.capture)
           window.posthog.capture(name, props || {});
+        else if (queue.length < 100) queue.push([name, props || {}]);
       } catch (e) {}
     }
 

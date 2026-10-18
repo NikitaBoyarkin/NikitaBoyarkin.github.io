@@ -32,21 +32,25 @@
 
 ## 3b. Bento и трафик (REQ-048, PRD v4.0)
 
-- **Bento-клики** (главная): `bento_stack`, `bento_graph`, `bento_notes`, `featured_project`. Цель (Goal 11): ≥15% сессий с ≥1 bento-кликом; `/graph/` в топ-3 переходов с главной. **Track-only** — редизайн вышел 13.09, baseline набирается с 15.09.
+- **Bento-клики** (главная): `bento_stack` (+ `bento_notes`, `bento_shelf`, `bento_writing` на colleague-страницах). Цель (Goal 11): ≥15% сессий с ≥1 bento-кликом; `/graph/` в топ-3 переходов с главной. **Track-only** — редизайн вышел 13.09, baseline набирается с 15.09.
 - **Трафик** (Goal 12): уник. визиты/90д. Baseline **54** (90д до 14.09). Цель ≥100 уник./90д — порог значимости («Traffic gate»). Смотреть по источникам (UTM) и реферрам.
 - **A/B `hero_cta_variant`:** флаг деактивирован 2026-09-15 (REQ-049). Выборка недобрана (11 exposure), код детерминирован с 13.09. Повторный A/B-запуск — только при ≥100 уник./мес.
 
 ## 4. Контактные события
 
-Какие каналы контакта сработали за неделю:
+Какие каналы контакта сработали за неделю (полный футер-набор: три чипа в `Base.astro` + каналы на `/contact/`):
 
 | Канал | События |
 |---|---|
-| Hero CTA (новый hero) | `hero_projects` (→ проекты, НЕ контакт) |
-| CV | `cv_download_pdf` (единая кнопка «CV» на всех страницах) |
-| Telegram | `telegram_contact`, `telegram_deeplink`, `telegram_header/footer/board` |
-| LinkedIn | `linkedin_hero`, `linkedin_footer`, `linkedin_board` |
-| GitHub | `github_hero`, `github_footer`, `github_board` |
+| CV | `cv_download_pdf` |
+| Telegram | `telegram_contact`, `telegram_deeplink`, `telegram_footer` |
+| LinkedIn | `linkedin_contact`, `linkedin_footer` |
+| GitHub | `github_footer` |
+| Запись звонка | `booking_click` |
+
+> `telegram_header`, `linkedin_hero`, `github_hero`, `hero_projects`, `bento_graph`,
+> `value_viewed`, `whois_viewed`, `work-with-me_viewed` удалены из кода —
+> см. `analytics-events.md` §4. В отчётах их не искать.
 
 С 2026-09-08 все делегированные клики несут `path` (REQ-038) — контакт атрибутируется к странице, где кликнули. Если контакт пришёл с неожиданной страницы — понять, почему.
 

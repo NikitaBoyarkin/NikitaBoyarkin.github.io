@@ -301,7 +301,11 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
       ).requestIdleCallback;
 
       if (idle) idle(() => void start().catch(failInit));
-      else window.setTimeout(() => void start().catch(failInit), 3500);
+      // Fallback for browsers without requestIdleCallback. Kept short on
+      // purpose: a visitor who bounces inside the first seconds must still get
+      // `$pageview` (and the buffered `persona_gate_view`), otherwise short
+      // sessions are invisible in the funnel.
+      else window.setTimeout(() => void start().catch(failInit), 1200);
     }
   </script>
 )}

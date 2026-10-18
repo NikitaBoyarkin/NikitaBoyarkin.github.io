@@ -60,7 +60,7 @@
           var phs = document.createElementNS('http://www.w3.org/2000/svg', 'script');
           phs.setAttribute('href', 'https://us-assets.i.posthog.com/static/array.js');
           phs.setAttribute('type', 'text/javascript');
-          phs.onload = function () { try { window.posthog.init(PH_KEY, { defaults: '2026-05-30', persistence: 'memory', api_host: 'https://us.i.posthog.com', capture_pageview: true, capture_pageleave: true, autocapture: true, capture_exceptions: true, session_recording: { maskAllInputs: true } }); } catch (e) {} };
+          phs.onload = function () { try { window.posthog.init(PH_KEY, { defaults: '2026-05-30', persistence: 'localStorage+cookie', api_host: 'https://us.i.posthog.com', capture_pageview: true, capture_pageleave: true, autocapture: true, capture_exceptions: true, session_recording: { maskAllInputs: true } }); } catch (e) {} };
           document.documentElement.appendChild(phs);
         } catch (e) {}
       }

@@ -50,7 +50,9 @@ def prop(key: str, value, operator: str = "exact", prop_type: str = "event") -> 
     return {"type": prop_type, "key": key, "value": value, "operator": operator}
 
 
-def events_node(event: str, math: str | None = None, properties: list | None = None) -> dict:
+def events_node(
+    event: str, math: str | None = None, properties: list | None = None
+) -> dict:
     """EventsNode used inside the `series` array of TrendsQuery/FunnelsQuery.
 
     `math` is omitted for funnel steps; for trends it is "total" or
@@ -113,6 +115,106 @@ def tile(name: str, description: str, query: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Query-node builders, v2 (verified against us.posthog.com 2026-10-18)
+# ---------------------------------------------------------------------------
+# Differences from the v1 builders above, all verified live:
+# - `breakdownFilter.breakdowns` (array of {type, property}) is what the API
+#   actually stores; the v1 singular `breakdown` key is tolerated but is not
+#   what current insights use. Two breakdowns are allowed.
+# - `trendsFilter.display` picks the visual: ActionsLineGraph | ActionsTable |
+#   ActionsPie | ActionsBar.
+# - An "all events" series is `{"event": None}` — it counts everything,
+#   including the SDK's own $events.
+# - A funnel step can be a `GroupNode` (OR-set of EventsNode) — that is how a
+#   multi-channel "contact" step is expressed.
+# - HogQL tables are `DataTableNode` wrapping a bare `HogQLQuery`.
+# - `InsightVizNode` only accepts Trends/Funnels/Retention/... nodes, NOT a
+#   DataTableNode, so HogQL tiles are sent as a top-level DataTableNode.
+
+
+def date_range_v2(days: int = 90) -> dict:
+    return {"date_from": f"-{days}d", "explicitDate": False}
+
+
+def node(
+    event: str | None,
+    math: str | None = None,
+    properties: list | None = None,
+    name: str | None = None,
+) -> dict:
+    """EventsNode for a trends series or a funnel step (event=None = all events)."""
+    n: dict = {"kind": "EventsNode", "event": event}
+    if math:
+        n["math"] = math
+    if properties:
+        n["properties"] = properties
+    if name:
+        n["name"] = name
+    return n
+
+
+def prop_filter(
+    key: str, value, operator: str = "exact", prop_type: str = "event"
+) -> dict:
+    return {"type": prop_type, "key": key, "value": value, "operator": operator}
+
+
+def group(nodes: list, name: str | None = None) -> dict:
+    """OR-set of nodes, usable as a single funnel step."""
+    g: dict = {"kind": "GroupNode", "operator": "OR", "nodes": nodes}
+    if name:
+        g["name"] = name
+    return g
+
+
+def trends(
+    series: list,
+    breakdowns: list[str] | None = None,
+    days: int = 90,
+    interval: str = "day",
+    display: str = "ActionsLineGraph",
+    limit: int = 25,
+) -> dict:
+    """TrendsQuery with an explicit display and one or more event breakdowns."""
+    query: dict = {
+        "kind": "TrendsQuery",
+        "series": series,
+        "interval": interval,
+        "dateRange": date_range_v2(days),
+        "trendsFilter": {"display": display, "showLegend": display != "ActionsTable"},
+        "filterTestAccounts": False,
+    }
+    if breakdowns:
+        query["breakdownFilter"] = {
+            "breakdowns": [{"type": "event", "property": p} for p in breakdowns],
+            "breakdown_type": "event",
+            "breakdown_limit": limit,
+        }
+    return query
+
+
+def funnel(steps: list, days: int = 90, viz: str | None = None) -> dict:
+    """FunnelsQuery (unique users by default; ordered, first-touch semantics)."""
+    query: dict = {
+        "kind": "FunnelsQuery",
+        "series": steps,
+        "dateRange": date_range_v2(days),
+        "filterTestAccounts": False,
+    }
+    if viz:
+        query["funnelsFilter"] = {"funnelVizType": viz}
+    return query
+
+
+def hogql_table(sql: str) -> dict:
+    """DataTableNode over a HogQL query — for tables TrendsQuery cannot express."""
+    return {
+        "kind": "DataTableNode",
+        "source": {"kind": "HogQLQuery", "query": sql.strip()},
+    }
+
+
+# ---------------------------------------------------------------------------
 # Dashboard definitions
 # ---------------------------------------------------------------------------
 
@@ -128,15 +230,21 @@ DASHBOARDS: list[dict] = [
             tile(
                 "post_read по slug",
                 "Сколько раз читали каждый пост за 30 дней (breakdown по slug).",
-                trends_query([events_node("post_read", math="total")], breakdown=["slug"]),
+                trends_query(
+                    [events_node("post_read", math="total")], breakdown=["slug"]
+                ),
             ),
             tile(
                 "read_depth: 50% и 100%",
                 "Число достижений глубины 50 и 100 (свойство depth, event-свойство, числа).",
                 trends_query(
                     [
-                        events_node("read_depth", math="total", properties=[prop("depth", 50)]),
-                        events_node("read_depth", math="total", properties=[prop("depth", 100)]),
+                        events_node(
+                            "read_depth", math="total", properties=[prop("depth", 50)]
+                        ),
+                        events_node(
+                            "read_depth", math="total", properties=[prop("depth", 100)]
+                        ),
                     ]
                 ),
             ),
@@ -188,7 +296,9 @@ DASHBOARDS: list[dict] = [
             tile(
                 "$pageview по locale",
                 "Просмотры страниц с разбивкой по locale, 30 дней.",
-                trends_query([events_node("$pageview", math="total")], breakdown=["locale"]),
+                trends_query(
+                    [events_node("$pageview", math="total")], breakdown=["locale"]
+                ),
             ),
             tile(
                 "lang_switched",
@@ -198,7 +308,9 @@ DASHBOARDS: list[dict] = [
             tile(
                 "project_viewed по locale",
                 "Просмотры кейсов по локали, 30 дней.",
-                trends_query([events_node("project_viewed", math="total")], breakdown=["locale"]),
+                trends_query(
+                    [events_node("project_viewed", math="total")], breakdown=["locale"]
+                ),
             ),
             tile(
                 "Контактные события по locale",
@@ -256,13 +368,17 @@ DASHBOARDS: list[dict] = [
             tile(
                 "outbound_click по доменам",
                 "Уходящие клики с разбивкой по домену (github, t.me, linkedin и т.п.).",
-                trends_query([events_node("outbound_click", math="total")], breakdown=["domain"]),
+                trends_query(
+                    [events_node("outbound_click", math="total")], breakdown=["domain"]
+                ),
             ),
             tile(
                 "$pageview по utm_source",
                 "Трафик по источникам: utm_source автозахватывается на $pageview "
                 "(без $-префикса), event-свойство.",
-                trends_query([events_node("$pageview", math="total")], breakdown=["utm_source"]),
+                trends_query(
+                    [events_node("$pageview", math="total")], breakdown=["utm_source"]
+                ),
             ),
         ],
     },
@@ -300,7 +416,506 @@ DASHBOARDS: list[dict] = [
             tile(
                 "contact_click по каналам",
                 "Клики в контакт из игр с разбивкой по свойству channel.",
-                trends_query([events_node("contact_click", math="total")], breakdown=["channel"]),
+                trends_query(
+                    [events_node("contact_click", math="total")], breakdown=["channel"]
+                ),
+            ),
+        ],
+    },
+]
+
+
+# ---------------------------------------------------------------------------
+# Dashboard definitions, v2 (created 2026-10-18)
+# ---------------------------------------------------------------------------
+# These five dashboards replace the dead weight of the v1 set: every tile here
+# runs against a query that returns data today (verified through
+# POST /api/projects/{id}/query/ before the dashboards were created). The v1
+# «Games» dashboard and four tiles of «Контент и вовлечение» are kept but are
+# documented as dead in monitoring/dashboards/README.md — this script never
+# deletes what it did not create.
+
+# Every channel that counts as "the visitor contacted me".
+CONTACT_EVENTS = [
+    "cv_download_pdf",
+    "booking_click",
+    "telegram_contact",
+    "telegram_deeplink",
+    "telegram_footer",
+    "linkedin_contact",
+    "linkedin_footer",
+    "github_footer",
+]
+
+# The homepage has been served from two base paths over the site's life
+# (legacy `/Personal_Projects.github.io/` and current `/`); a funnel scoped to
+# `/` alone misses the earlier traffic and every `/en/` visit.
+HOME_STEP = group(
+    [
+        node("$pageview", properties=[prop_filter("$pathname", "/")], name="Home /"),
+        node(
+            "$pageview", properties=[prop_filter("$pathname", "/en/")], name="Home /en/"
+        ),
+        node(
+            "$pageview",
+            properties=[prop_filter("$pathname", "/Personal_Projects.github.io/")],
+            name="Home (legacy base)",
+        ),
+    ],
+    name="Главная (все базы и локали)",
+)
+
+CONTACT_STEP = group(
+    [node(e, name=e) for e in CONTACT_EVENTS],
+    name="Контакт (CV / Telegram / LinkedIn / GitHub / звонок)",
+)
+
+DASHBOARDS_V2: list[dict] = [
+    # (1) Traffic & sources ---------------------------------------------------
+    {
+        "name": "01 · Трафик и источники",
+        "description": (
+            "Откуда приходят и что смотрят: недельная динамика, топ страниц, "
+            "классифицированный первый реферрер, UTM из session entry, "
+            "устройства. Все тайлы — 90 дней, если не сказано иное."
+        ),
+        "tiles": [
+            tile(
+                "Просмотры страниц (по неделям)",
+                "Все $pageview по неделям, 90 дней — верхнеуровневый тренд трафика.",
+                trends([node("$pageview", math="total")], interval="week"),
+            ),
+            tile(
+                "Уникальные посетители (по неделям)",
+                "Уникальные пользователи $pageview по неделям — реальный размер аудитории, в отличие от просмотров.",
+                trends([node("$pageview", math="dau")], interval="week"),
+            ),
+            tile(
+                "Топ страниц",
+                "Просмотры по $pathname: видно, какие кейсы и разделы действительно читают.",
+                trends(
+                    [node("$pageview", math="total")],
+                    breakdowns=["$pathname"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Внешние источники (домены)",
+                "Просмотры по $referring_domain. Внутренний домен = навигация внутри сайта; "
+                "github.com / linkedin.com / $direct — внешние источники.",
+                trends(
+                    [node("$pageview", math="total")],
+                    breakdowns=["$referring_domain"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Первый источник (класс)",
+                "Super property initial_referrer_class — классифицированный первый визит "
+                "(linkedin/github/google/direct/other). Считается один раз на посетителя.",
+                trends(
+                    [node("$pageview", math="total")],
+                    breakdowns=["initial_referrer_class"],
+                    display="ActionsPie",
+                ),
+            ),
+            tile(
+                "UTM-кампании",
+                "$session_entry_utm_source — UTM входа в сессию. Это правильный ключ: "
+                "plain `utm_source` есть лишь на части событий, а session-entry — на всех.",
+                trends(
+                    [node("$pageview", math="total")],
+                    breakdowns=["$session_entry_utm_source"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Устройства",
+                "Просмотры по $device_type.",
+                trends(
+                    [node("$pageview", math="total")],
+                    breakdowns=["$device_type"],
+                    display="ActionsPie",
+                ),
+            ),
+            tile(
+                "Браузеры",
+                "Просмотры по $browser. Desktop|Brave с сотнями просмотров — это трафик владельца "
+                "и ботов; смотреть на долю Chrome/Safari для реальной аудитории.",
+                trends(
+                    [node("$pageview", math="total")],
+                    breakdowns=["$browser"],
+                    display="ActionsTable",
+                ),
+            ),
+        ],
+    },
+    # (2) Funnel --------------------------------------------------------------
+    {
+        "name": "02 · Воронка: визит → проект → контакт",
+        "description": (
+            "Главная воронка портфолио за 90 дней. Шаг «контакт» — OR-набор всех "
+            "каналов (CV, Telegram, LinkedIn, GitHub, звонок). Вторая воронка "
+            "охватывает и `/`, и `/en/`, и легаси-базу `/Personal_Projects.github.io/`."
+        ),
+        "tiles": [
+            tile(
+                "Воронка: визит → project_viewed → контакт",
+                "Шаг 1 — любое $pageview (все посетители), шаг 2 — project_viewed "
+                "(любой surface), шаг 3 — OR-набор контактных событий.",
+                funnel(
+                    [
+                        node("$pageview", name="Визит"),
+                        node("project_viewed", name="Просмотр проекта"),
+                        CONTACT_STEP,
+                    ]
+                ),
+            ),
+            tile(
+                "Воронка: главная → проект → контакт",
+                "Шаг 1 — главная как OR-набор путей (/ , /en/, /Personal_Projects.github.io/), "
+                "шаги 2–3 как выше. Это исправленная версия старой воронки 11015002, "
+                "которая считала только $pathname = '/' и теряла /en/ и легаси-базу.",
+                funnel(
+                    [
+                        HOME_STEP,
+                        node("project_viewed", name="Просмотр проекта"),
+                        CONTACT_STEP,
+                    ]
+                ),
+            ),
+            tile(
+                "Время до контакта",
+                "Две ступени (визит → контакт), визуализация time-to-convert: медиана "
+                "времени в секундах от входа до контакта.",
+                funnel(
+                    [node("$pageview", name="Визит"), CONTACT_STEP],
+                    viz="time_to_convert",
+                ),
+            ),
+            tile(
+                "Конверсия главная → /projects/",
+                "Две ступени: главная → любой $pageview с $pathname, содержащим projects. "
+                "Показывает, доходит ли посетитель до списка кейсов.",
+                funnel(
+                    [
+                        HOME_STEP,
+                        node(
+                            "$pageview",
+                            properties=[
+                                prop_filter(
+                                    "$pathname", "projects", operator="icontains"
+                                )
+                            ],
+                            name="/projects/",
+                        ),
+                    ]
+                ),
+            ),
+            tile(
+                "Контактные CTA по неделям",
+                "По одной серии на канал контакта, недельный интервал — видно, какие каналы "
+                "вообще используются (CV / Telegram / LinkedIn / GitHub / cal.com).",
+                trends(
+                    [node(e, math="total") for e in CONTACT_EVENTS], interval="week"
+                ),
+            ),
+            tile(
+                "Уходящие клики по доменам",
+                "outbound_click по домену — куда уходят посетители (github, linkedin, t.me, cal.com).",
+                trends(
+                    [node("outbound_click", math="total")],
+                    breakdowns=["domain"],
+                    display="ActionsTable",
+                ),
+            ),
+        ],
+    },
+    # (3) Projects & content --------------------------------------------------
+    {
+        "name": "03 · Проекты и контент",
+        "description": (
+            "Что читают: топ кейсов и статей, тип поверхности клика, глубина "
+            "дочитывания, секции /about, фильтры, библиотека. 90 дней."
+        ),
+        "tiles": [
+            tile(
+                "Топ проектов",
+                "project_viewed по slug — какие кейсы открывают.",
+                trends(
+                    [node("project_viewed", math="total")],
+                    breakdowns=["slug"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "project_viewed по surface",
+                "Откуда открыт кейс: page (страница), card (карточка), list (список), "
+                "unknown (клик без data-analytics-surface). Большой unknown — повод доразметить.",
+                trends(
+                    [node("project_viewed", math="total")],
+                    breakdowns=["surface"],
+                    display="ActionsPie",
+                ),
+            ),
+            tile(
+                "Топ статей",
+                "post_read по slug — какие посты доходят хотя бы до открытия страницы.",
+                trends(
+                    [node("post_read", math="total")],
+                    breakdowns=["slug"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Глубина чтения (25/50/75/100)",
+                "read_depth по свойству depth. Сравнивать с README: глубина есть только там, "
+                "где сработал scroll-порог, поэтому 100 всегда меньше 25.",
+                trends(
+                    [node("read_depth", math="total")],
+                    breakdowns=["depth"],
+                    display="ActionsBar",
+                ),
+            ),
+            tile(
+                "Глубина чтения по типу контента",
+                "read_depth по content_type: case_study / post / note — видно, где контент дочитывают.",
+                trends(
+                    [node("read_depth", math="total")],
+                    breakdowns=["content_type"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Секции /about",
+                "section_viewed по секции — какие части страницы «о себе» реально просматривают.",
+                trends(
+                    [node("section_viewed", math="total")],
+                    breakdowns=["section"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Фильтры по поверхностям",
+                "filter_applied по surface: writing (теги блога) vs glossary (буквы глоссария).",
+                trends(
+                    [node("filter_applied", math="total")],
+                    breakdowns=["surface"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Поиск: попадания и пустые",
+                "Честно пусто на 2026-10-18: search_used / search_no_results = 0 строк за 90 дней — "
+                "панель поиска просто не открывают. Тайл нужен, чтобы это было видно до того, как "
+                "кто-то начнёт «улучшать поиск». Свойство surface (header — общесайтовый SearchBox, "
+                "glossary — фильтр глоссария) добавлено 2026-10-18: до него два разных поиска "
+                "сливались в одну серию.",
+                trends(
+                    [
+                        node("search_used", math="total"),
+                        node("search_no_results", math="total"),
+                    ],
+                    breakdowns=["surface"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Библиотека",
+                "library_tile — клики по плиткам библиотеки (событие уже было в коде, "
+                "но отсутствовало в типизированной карте и в docs).",
+                trends([node("library_tile", math="total")]),
+            ),
+        ],
+    },
+    # (4) Personas & CTA ------------------------------------------------------
+    {
+        "name": "04 · Персоны и CTA",
+        "description": (
+            "Гейт персон и главная CTA: показы, выбор, источник выбора, языковая "
+            "и тематическая разбивка. 90 дней."
+        ),
+        "tiles": [
+            tile(
+                "Гейт: показы и уникальные посетители",
+                "persona_gate_view — всего и уникальных (две серии). Разница показывает, "
+                "сколько раз карточка показывается одному человеку.",
+                trends(
+                    [
+                        node("persona_gate_view", math="total"),
+                        node("persona_gate_view", math="dau"),
+                    ],
+                    interval="week",
+                ),
+            ),
+            tile(
+                "Выбор персоны",
+                "persona_selected по persona (hr / manager / colleague).",
+                trends(
+                    [node("persona_selected", math="total")],
+                    breakdowns=["persona"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Воронка: gate → выбор персоны",
+                "Две ступени: persona_gate_view → persona_selected, уникальные пользователи.",
+                funnel(
+                    [
+                        node("persona_gate_view", name="Показ гейта"),
+                        node("persona_selected", name="Выбор персоны"),
+                    ]
+                ),
+            ),
+            tile(
+                "Источник выбора персоны",
+                "persona_selected по source: gate (карточка на главной), switch (переключатель ролей), "
+                "header / menu (навигация NavRoles). Значения header/menu добавлены в тип 2026-10-18 — "
+                "до этого карта событий обещала только gate|switch.",
+                trends(
+                    [node("persona_selected", math="total")],
+                    breakdowns=["source"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "RU vs EN: просмотры",
+                "$pageview по locale (super property). null — события до появления super-properties.",
+                trends(
+                    [node("$pageview", math="total")],
+                    breakdowns=["locale"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Переключения языка",
+                "lang_switched по целевому языку (to): сколько раз уходили в EN / возвращались в RU.",
+                trends(
+                    [node("lang_switched", math="total")],
+                    breakdowns=["to"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Тема оформления",
+                "theme_change по theme — какие темы переключают. Помни: свойство theme "
+                "на самом событии — уже НОВАЯ тема (обработчик переключает её до capture).",
+                trends(
+                    [node("theme_change", math="total")],
+                    breakdowns=["theme"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "CTA-экспозиция (десктоп ≥1860px)",
+                "cta_exposure — знаменатель для rate экспозиция→клик. Огонь только на главной "
+                "и только при ширине ≥1860px, surface = home_rail; клик (cv_download_pdf) "
+                "несёт лишь {path}, поэтому пара не соединяется по общему свойству.",
+                trends([node("cta_exposure", math="total")], interval="week"),
+            ),
+        ],
+    },
+    # (5) Analytics health ----------------------------------------------------
+    {
+        "name": "05 · Здоровье аналитики",
+        "description": (
+            "Мета-дашборд: объём по событиям (видно мёртвую инструментацию), "
+            "доля мусорных событий от своих же пайплайнов, Web Vitals, rageclick, "
+            "ошибки JS. Смотреть перед каждым недельным ревью: если событие здесь "
+            "равно нулю, тайл в других дашбордах читать нечем."
+        ),
+        "tiles": [
+            tile(
+                "Объём по событиям (90д)",
+                "event / число / уникальные пользователи / последнее событие. Одна таблица "
+                "отвечает на вопрос «какие события вообще существуют»: нули здесь = "
+                "мёртвая инструментация или неиспользуемая фича.",
+                hogql_table(
+                    """
+                    SELECT
+                        event,
+                        count() AS events,
+                        uniq(distinct_id) AS users,
+                        max(timestamp) AS last_seen
+                    FROM events
+                    WHERE timestamp > now() - INTERVAL 90 DAY
+                    GROUP BY event
+                    ORDER BY events DESC
+                    LIMIT 80
+                    """
+                ),
+            ),
+            tile(
+                "События в день (все типы)",
+                "Все события по дням, включая $autocapture и SDK-события. Даёт базовый "
+                "объём: резкий рост без роста точек входа = мусор, падение = сломанный capture.",
+                trends([node(None, math="total")], interval="day"),
+            ),
+            tile(
+                "Мусорные события (свои пайплайны)",
+                "События, которые пишет не сайт, а собственные тулы: $ai_generation ($ai_*), "
+                "$scout_report_edited ($scout_*), $recording_observed, eng_analytics_test_census. "
+                "Они искажают общий объём и не должны попадать в продуктовые воронки.",
+                trends(
+                    [
+                        node("$ai_generation", math="total"),
+                        node("$scout_report_edited", math="total"),
+                        node("$recording_observed", math="total"),
+                        node("eng_analytics_test_census", math="total"),
+                    ],
+                    interval="week",
+                ),
+            ),
+            tile(
+                "Web Vitals p75 по страницам (30д)",
+                "LCP/INP/CLS/FCP p75 по путям, 30 дней. LCP в секундах. Пути с <10 замерами "
+                "шумят — смотреть на топ.",
+                hogql_table(
+                    """
+                    SELECT
+                        properties.$pathname AS path,
+                        count() AS samples,
+                        round(quantile(0.75)(properties.$web_vitals_LCP_value / 1000.0), 2) AS lcp_p75_s,
+                        round(quantile(0.75)(properties.$web_vitals_INP_value / 1000.0), 2) AS inp_p75_s,
+                        round(quantile(0.75)(properties.$web_vitals_CLS_value), 3) AS cls_p75
+                    FROM events
+                    WHERE event = '$web_vitals'
+                      AND timestamp > now() - INTERVAL 30 DAY
+                    GROUP BY path
+                    HAVING samples >= 3
+                    ORDER BY samples DESC
+                    LIMIT 30
+                    """
+                ),
+            ),
+            tile(
+                "Rageclick по страницам",
+                "$rageclick по $pathname — места, где интерфейс не отвечает ожиданиям.",
+                trends(
+                    [node("$rageclick", math="total")],
+                    breakdowns=["$pathname"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Ошибки JS",
+                "$exception — захват включён с 12.10.2026 (capture_exceptions + opt-in проекта). "
+                "Ноль строк = либо ошибок нет, либо opt-in не сработал.",
+                trends([node("$exception", math="total")], interval="week"),
+            ),
+            tile(
+                "Игровой хаб",
+                "game_selected / game_started / game_over. С 2026-10-18 игры используют ту же "
+                "persistence, что и сайт (было 'memory' — каждый игровой экран получал новый "
+                "анонимный distinct_id и события не соединялись с сессией сайта).",
+                trends(
+                    [
+                        node("game_selected", math="total"),
+                        node("game_started", math="total"),
+                        node("game_over", math="total"),
+                    ],
+                    interval="week",
+                ),
             ),
         ],
     },
@@ -312,7 +927,9 @@ DASHBOARDS: list[dict] = [
 # ---------------------------------------------------------------------------
 
 
-def api_request(method: str, url: str, api_key: str, payload: dict | None = None) -> dict | None:
+def api_request(
+    method: str, url: str, api_key: str, payload: dict | None = None
+) -> dict | None:
     """Perform an API call. Returns parsed JSON or None on any error.
 
     Errors (including 4xx bodies) are printed to stderr; the caller continues
@@ -374,18 +991,43 @@ def attach_tile(base: str, api_key: str, dashboard_id, insight_id) -> bool:
     return result is not None
 
 
+def existing_tile_names(base: str, api_key: str, dashboard_id) -> set[str]:
+    """Names of the insights already attached to a dashboard.
+
+    Needed for per-tile idempotency: re-running --apply must not duplicate
+    insights on a dashboard that already exists (the v1 behaviour was to append
+    a second copy of every tile).
+    """
+    dash = api_request("GET", f"{base}/dashboards/{dashboard_id}/", api_key)
+    if not dash:
+        return set()
+    names = set()
+    for tile in dash.get("tiles") or []:
+        insight = tile.get("insight") or {}
+        if insight.get("name"):
+            names.add(insight["name"])
+    return names
+
+
 def apply_mode(base: str, api_key: str, dashboards: list[dict]) -> None:
-    """Create dashboards, insights, and tiles over the network."""
+    """Create dashboards, insights, and tiles over the network (idempotent)."""
     existing = list_dashboard_names(base, api_key)
     if existing is None:
-        print("Could not list dashboards; aborting to stay idempotent.", file=sys.stderr)
+        print(
+            "Could not list dashboards; aborting to stay idempotent.", file=sys.stderr
+        )
         sys.exit(1)
+
+    created_insights = 0
+    skipped_tiles = 0
+    failed: list[tuple[str, str]] = []
 
     for dash_spec in dashboards:
         name = dash_spec["name"]
         if name in existing:
             dashboard_id = existing[name]
-            print(f"[{name}] exists id={dashboard_id}, reusing (adding tiles)")
+            present = existing_tile_names(base, api_key, dashboard_id)
+            print(f"[{name}] exists id={dashboard_id}, tiles present={len(present)}")
         else:
             dashboard = api_request(
                 "POST",
@@ -394,27 +1036,39 @@ def apply_mode(base: str, api_key: str, dashboards: list[dict]) -> None:
                 {"name": name, "description": dash_spec["description"]},
             )
             if dashboard is None:
-                print(f"[{name}] dashboard creation failed, skipping its tiles", file=sys.stderr)
+                print(
+                    f"[{name}] dashboard creation failed, skipping its tiles",
+                    file=sys.stderr,
+                )
+                failed.append((name, "<dashboard>"))
                 continue
             dashboard_id = dashboard.get("id")
+            present = set()
             print(f"[{name}] created id={dashboard_id}")
 
         for tile_spec in dash_spec["tiles"]:
+            tile_name = tile_spec["name"]
+            if tile_name in present:
+                skipped_tiles += 1
+                print(f"  skip  '{tile_name}' (already on the dashboard)")
+                continue
             insight = api_request(
                 "POST",
                 f"{base}/insights/",
                 api_key,
                 {
-                    "name": tile_spec["name"],
+                    "name": tile_name,
                     "description": tile_spec["description"],
                     "query": tile_spec["query"],
                 },
             )
             if insight is None:
-                print(f"  insight '{tile_spec['name']}' creation failed", file=sys.stderr)
+                print(f"  insight '{tile_name}' creation failed", file=sys.stderr)
+                failed.append((name, tile_name))
                 continue
             insight_id = insight.get("id")
-            print(f"  insight '{tile_spec['name']}' created id={insight_id}")
+            created_insights += 1
+            print(f"  insight '{tile_name}' created id={insight_id}")
             if attach_tile(base, api_key, dashboard_id, insight_id):
                 print(f"  attached to dashboard {dashboard_id}")
             else:
@@ -423,8 +1077,16 @@ def apply_mode(base: str, api_key: str, dashboards: list[dict]) -> None:
                     "attach it manually in the PostHog UI",
                     file=sys.stderr,
                 )
+                failed.append((name, f"{tile_name} (attach)"))
 
-
+    print(
+        f"\ncreated insights: {created_insights}, "
+        f"skipped (already present): {skipped_tiles}"
+    )
+    if failed:
+        print(f"FAILURES ({len(failed)}): {failed}", file=sys.stderr)
+        sys.exit(1)
+    print("Re-run --apply is safe: every tile is created at most once.")
 def dry_run(dashboards: list[dict]) -> None:
     """Print every payload the script would POST. Zero network calls."""
     for dash_spec in dashboards:
@@ -439,7 +1101,9 @@ def dry_run(dashboards: list[dict]) -> None:
             )
         )
         for tile_spec in dash_spec["tiles"]:
-            print(f"\n-- POST /api/projects/{{project_id}}/insights/  ({tile_spec['name']})")
+            print(
+                f"\n-- POST /api/projects/{{project_id}}/insights/  ({tile_spec['name']})"
+            )
             print(
                 json.dumps(
                     {
@@ -464,7 +1128,24 @@ def main() -> None:
         action="store_true",
         help="Actually create objects (default is dry run: print payloads, no network).",
     )
+    parser.add_argument(
+        "--only",
+        choices=["v1", "v2", "all"],
+        default="v2",
+        help=(
+            "Which set to provision. v1 = the 2026-09-28 set (four dashboards, "
+            "kept for reference), v2 = the 2026-10-18 set (five data-backed "
+            "dashboards, the default), all = both."
+        ),
+    )
     args = parser.parse_args()
+
+    if args.only == "v1":
+        dashboards = DASHBOARDS
+    elif args.only == "v2":
+        dashboards = DASHBOARDS_V2
+    else:
+        dashboards = DASHBOARDS + DASHBOARDS_V2
 
     api_key = os.environ.get(API_KEY_ENV)
     # POSTHOG_HOST often carries the *ingestion* host (e.g. https://us.i.posthog.com,
@@ -478,16 +1159,18 @@ def main() -> None:
 
     if args.apply:
         if not api_key:
-            print(f"ERROR: {API_KEY_ENV} is not set; cannot run --apply.", file=sys.stderr)
+            print(
+                f"ERROR: {API_KEY_ENV} is not set; cannot run --apply.", file=sys.stderr
+            )
             sys.exit(1)
         print(f"Applying to {base} (project {project_id})")
-        apply_mode(base, api_key, DASHBOARDS)
+        apply_mode(base, api_key, dashboards)
     else:
         print(f"DRY RUN (no network calls) for project {project_id} at {host}")
         print(f"Pass --apply to create the dashboards (requires {API_KEY_ENV}).")
         if not api_key:
             print(f"Note: {API_KEY_ENV} is not set — fine for a dry run.")
-        dry_run(DASHBOARDS)
+        dry_run(dashboards)
 
 
 if __name__ == "__main__":

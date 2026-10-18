@@ -37,8 +37,21 @@ export interface AnalyticsEventMap {
   random_post_click: { slug: string; path: string };
   section_viewed: { section: string; path: string };
   outbound_click: { domain: string; url: string; surface: string; path: string };
-  search_used: { query: string; results_count: number; locale: Locale };
-  search_no_results: { query: string; results_count: number; locale: Locale };
+  // `surface` keeps the two search inputs apart: the site-wide SearchBox
+  // (`header`) and the glossary filter (`glossary`) both emit these names, and
+  // without the prop they collapse into one series in PostHog.
+  search_used: {
+    query: string;
+    results_count: number;
+    locale: Locale;
+    surface: 'header' | 'glossary';
+  };
+  search_no_results: {
+    query: string;
+    results_count: number;
+    locale: Locale;
+    surface: 'header' | 'glossary';
+  };
   read_depth: { content_type: ContentType; slug: string; depth: number; locale: Locale };
   filter_applied: { tag: string; results_count: number; surface: 'writing' | 'glossary' };
   projects_track_filter: { track: string; results_count: number; locale: Locale };
@@ -55,12 +68,25 @@ export interface AnalyticsEventMap {
   // Persona gate (`docs/prd-persona-landing.md` §11). `source` distinguishes the
   // gate card from the role switcher so the two paths stay separable in funnels.
   persona_gate_view: { lang: Locale; has_stored_choice: boolean };
-  persona_selected: { persona: Audience; lang: Locale; source: 'gate' | 'switch' };
+  // `source` is the surface the choice came from. `header`/`menu` are
+  // `NavRoles.astro`'s two variants (bar vs drawer) — they were shipped before
+  // this union existed, so declaring only `gate | switch` made the map lie
+  // about what reaches PostHog.
+  persona_selected: {
+    persona: Audience;
+    lang: Locale;
+    source: 'gate' | 'switch' | 'header' | 'menu';
+  };
   // Denominator for the primary-CTA rate (exposure→click). The numerator is the
   // delegated `booking_click` / `cv_download_pdf` from `[data-analytics]`, which
   // carries `{ path }` and no surface prop — so the pair is joined on
   // `surface` against the event's own path in PostHog, not on a shared prop.
   cta_exposure: { surface: string; lang: Locale };
+  // Library + contact surfaces that were already shipping through the delegated
+  // `[data-analytics]` handler but were never declared here (docs §2 drift).
+  library_tile: { path: string };
+  source_external: { path: string };
+  linkedin_contact: { path: string };
 }
 
 export type KnownEventName = keyof AnalyticsEventMap;
@@ -105,6 +131,22 @@ export function flushAnalyticsQueue(): void {
 /** True once PostHog's init has completed on the current page. */
 function isReady(): boolean {
   return ph !== null && (ph as unknown as { __loaded?: boolean }).__loaded === true;
+}
+
+/**
+ * Test-only: detach the SDK handle and drop the buffered events.
+ *
+ * The buffering contract is order-dependent (it only holds while nothing has
+ * called `attachPosthog` yet), and Bun shares one module registry across the
+ * files of a run — so a second test file that attaches an SDK would silently
+ * break the buffering assertions in `persona.test.ts`. Resetting state in a
+ * `beforeEach` removes that cross-file ordering dependency. Never called by
+ * application code.
+ */
+export function resetAnalyticsForTests(): void {
+  ph = null;
+  pending.splice(0);
+  warned = false;
 }
 
 function warnNotReady(): void {

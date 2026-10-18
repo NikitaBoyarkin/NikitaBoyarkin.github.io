@@ -267,7 +267,12 @@ const hiddenTags = tags.filter((t) => t.count < 2);
       searchTimer = window.setTimeout(() => {
         if (pendingQuery !== activeQuery.trim()) return;
         const locale = isEn ? ('en' as const) : ('ru' as const);
-        const props = { query, results_count: resultsCount, locale };
+        const props = {
+          query: query.slice(0, 100),
+          results_count: resultsCount,
+          locale,
+          surface: 'glossary' as const,
+        };
         if (resultsCount > 0) track('search_used', props);
         else track('search_no_results', props);
       }, 600);

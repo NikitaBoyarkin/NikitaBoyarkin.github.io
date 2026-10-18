@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { describe, it, expect, beforeEach, beforeAll, mock } from 'bun:test';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
@@ -6,6 +6,7 @@ import {
   flushAnalyticsQueue,
   readAudience,
   registerSuperProperties,
+  resetAnalyticsForTests,
   track,
   writeAudience,
 } from '../../src/lib/analytics';
@@ -38,6 +39,12 @@ const src = (rel: string) => readFileSync(join(ROOT, rel), 'utf8');
 // and `attachPosthog` is sticky for the rest of this file.
 // ---------------------------------------------------------------------------
 describe('buffering before PostHog attaches (the lazy-SDK window)', () => {
+  // Order-independent: reset the module state ONCE before the describe, so a
+  // sibling test file that attached an SDK earlier in the run cannot pre-empt
+  // the pre-attach window. (Not beforeEach — this describe deliberately relies
+  // on the event buffered by its first test being flushed by its second.)
+  beforeAll(() => resetAnalyticsForTests());
+
   it('does not throw and does not capture when no SDK is attached yet', () => {
     expect(() =>
       track('persona_gate_view', { lang: 'ru', has_stored_choice: false })
