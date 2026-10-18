@@ -11,6 +11,7 @@
 // their right is the usable, crawlable route (islands enhance, they do not
 // gate).
 import type { ExplorerFacet, FacetKey } from '../lib/explorer';
+import Icon from './Icon.astro';
 
 interface Props {
   facets: ExplorerFacet[];
@@ -47,7 +48,10 @@ const emptyLabel = lang === 'en' ? 'No facets available yet.' : 'Фильтры 
                     data-xp-value={value.value}
                     aria-pressed={on ? 'true' : 'false'}
                   >
-                    <span>{value.label}</span>
+                    <span>
+                      <Icon name="tag" size={14} class="pill-icon" />
+                      {value.label}
+                    </span>
                     <span class="xp-facet-count">{value.count}</span>
                   </button>
                 </li>

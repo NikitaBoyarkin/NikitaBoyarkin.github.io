@@ -4,11 +4,13 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import {
-  ACCENT_ON_BLUE,
-  ACCENT_ON_TEAL,
-  ACCENT_ON_TEAL_LIGHT,
+  BUTTON_FILL,
+  BUTTON_FILL_HOVER,
+  BUTTON_INK,
   CREAM,
   CREAM_CARD,
+  ACCENT_ON_TEAL,
+  ACCENT_ON_TEAL_LIGHT,
   type BrandHex,
 } from '../../src/lib/brand';
 import { HONEYCOMB } from '../../scripts/lib/og-render.mjs';
@@ -28,15 +30,20 @@ type Expected = Record<string, Record<string, BrandHex>>;
 
 const EXPECTED: Expected = {
   ':root': {
-    // The CTA fill is ACCENT_ON_BLUE, not BRAND_BLUE: the signal blue is the
-    // *marketing surface* colour, and a blue button on the teal canvas cleared
-    // only 1.31:1 against it. Same constant, correct role.
-    'button-bg': ACCENT_ON_BLUE,
+    // The CTA fill is the neutral BUTTON_FILL, not an accent hue: the button
+    // reads as *action* rather than as the 10% accent, and its cream ink
+    // clears AA at 15.97:1. The orange ACCENT_ON_BLUE now belongs to the OG
+    // banner regime alone (see DESIGN.md, "Double regime").
+    'button-bg': BUTTON_FILL,
+    'button-bg-hover': BUTTON_FILL_HOVER,
+    'button-ink': BUTTON_INK,
     'text-accent': ACCENT_ON_TEAL,
   },
   '[data-theme="light"]': {
     'background-primary': CREAM,
-    'button-bg': ACCENT_ON_BLUE,
+    'button-bg': BUTTON_FILL,
+    'button-bg-hover': BUTTON_FILL_HOVER,
+    'button-ink': BUTTON_INK,
     'text-accent': ACCENT_ON_TEAL_LIGHT,
     // The project/article card surface — its own token so the light theme can
     // repaint cards without moving the forms, nav rail and charts that share

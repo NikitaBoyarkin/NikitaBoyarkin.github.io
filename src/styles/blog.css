@@ -50,6 +50,17 @@
   text-decoration-color: var(--text-accent);
 }
 
+/* Leading glyph inside a filter pill / facet row / chip (`.filter-tag`,
+   `.tag-chip`, `.search-facet`, `.search-topic-chip`, `.xp-facet-item`).
+   Pure alignment: the glyph keeps `currentColor`, so it inherits whatever
+   colour state the control is in — no icon colour of its own. The space in
+   the markup supplies the gap to the label. */
+.pill-icon {
+  flex: none;
+  display: inline-block;
+  vertical-align: -0.15em;
+}
+
 /* Blog cards — sticky-note style, matching the kanban project cards */
 .blog-list {
   display: grid;

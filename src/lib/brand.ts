@@ -9,11 +9,13 @@
  *     directly so a banner can never be the only place a brand hex lives.
  *
  * The brand has two contextual accents on purpose (see DESIGN.md, "Double
- * regime"): a high-chroma orange that fills the call-to-action button and
- * accents the royal-blue marketing surface, and a coral for the site's teal
- * canvas. They are not interchangeable *by role*. The orange is a **fill**: it
- * carries dark ink at 5.23:1 and clears the 3:1 graphical floor against the
- * teal canvas (4.55:1). As accent *text* it would fail — on a card surface
+ * regime"): a high-chroma orange that accents the royal-blue marketing surface
+ * (and filled the CTA button until 2026-10-18), and a coral for the site's
+ * teal canvas. They are not interchangeable *by role*. The orange is a
+ * **marketing-surface accent**; the button fill is now the neutral
+ * `BUTTON_FILL` (`#171717`) with the cream `BUTTON_INK` on top (15.97:1). The
+ * orange cleared dark ink at 5.23:1 and the 3:1 graphical floor against the
+ * teal canvas (4.55:1), but as accent *text* it would fail — on a card surface
  * (`--background-secondary`, `#1a3435`) it lands at 3.97:1, under the 4.5:1
  * the contrast gate enforces for `--text-accent`. That slot stays coral.
  */
@@ -29,11 +31,31 @@ export type BrandHex = `#${string}`;
 export const BRAND_BLUE: BrandHex = '#1400c3';
 
 /**
- * High-chroma orange — the CTA fill (`--button-bg`, dark and light themes,
- * with `--button-ink` dark on top) and the accent on the blue marketing
- * surface. The one hex the two regimes share.
+ * High-chroma orange — the accent on the royal-blue marketing surface (OG
+ * banners, CV covers). It filled the CTA button until 2026-10-18; that role
+ * moved to the neutral `BUTTON_FILL`, so this hex now belongs to the banner
+ * regime alone.
  */
 export const ACCENT_ON_BLUE: BrandHex = '#fe4e02';
+
+/**
+ * The CTA fill (`--button-bg`, dark + light themes) — a near-black neutral,
+ * deliberately not a brand hue. The button is the one control that must read
+ * as *action* rather than as accent colour, so it left the 10% coral/orange
+ * bucket for the neutral family on 2026-10-18. Cyberpunk still overrides the
+ * fill with its magenta `#ff2bd6`.
+ */
+export const BUTTON_FILL: BrandHex = '#171717';
+
+/** Hover fill — the second stop of `--gradient-button`. A neutral step. */
+export const BUTTON_FILL_HOVER: BrandHex = '#2e2e2e';
+
+/**
+ * Ink on the button fill (`--button-ink`). The banner/card cream (`#f8f2da`,
+ * the same value as `CREAM_CARD`), which clears AA on the near-black fill at
+ * 15.97:1 and on the hover step at 12.10:1.
+ */
+export const BUTTON_INK: BrandHex = '#f8f2da';
 
 /** Coral — interactive accent for the teal site canvas (dark + cyberpunk). */
 export const ACCENT_ON_TEAL: BrandHex = '#ff8569';
@@ -71,6 +93,9 @@ export const BRAND = {
   accentOnBlue: ACCENT_ON_BLUE,
   accentOnTeal: ACCENT_ON_TEAL,
   accentOnTealLight: ACCENT_ON_TEAL_LIGHT,
+  buttonFill: BUTTON_FILL,
+  buttonFillHover: BUTTON_FILL_HOVER,
+  buttonInk: BUTTON_INK,
   cream: CREAM,
   creamCard: CREAM_CARD,
   surfaceBlueLift: SURFACE_BLUE_LIFT,

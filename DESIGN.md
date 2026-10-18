@@ -10,9 +10,9 @@ colors:
   text-muted: "#a1a1aa"
   text-accent: "#ff8569"
   text-accent-hover: "#ffa68a"
-  button-bg: "#fe4e02"
-  button-bg-hover: "#ff6a1f"
-  button-ink: "#1a1a1a"
+  button-bg: "#171717"
+  button-bg-hover: "#2e2e2e"
+  button-ink: "#f8f2da"
   interactive-normal: "#234044"
   interactive-hover: "#3f3f46"
   border-color: "#3f3f46"
@@ -119,9 +119,9 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 
 - The accent is semantic, not decorative: use it for links, active nav, focus rings, borders, and primary actions. Do not introduce a second accent.
 - Surfaces step primary → secondary → tertiary for page, card, and nested surfaces (code blocks, table headers, chips).
-- The button fill is the brand orange (`#fe4e02`) with `--button-ink` dark (`#1a1a1a`) — a light fill under dark ink, the same convention the cyberpunk theme already used. `--button-ink` is the ink that sits on the **button fill** only: dark (`#1a1a1a`) in dark/light themes and in cyberpunk (where the fill is magenta). It is constant across all three themes because the button fill is.
-- `--accent-ink` is the ink that sits on `--text-accent` used as a **fill** — skip link, `::selection`, accent badges, source monograms, the pressed knowledge-graph chip. It is **not** constant: `#1a1a1a` in dark and cyberpunk (7.30:1 on the coral `#ff8569`), `#ffffff` in light (6.66:1 on the sienna `#a8331a`). The dark ink on the light theme's sienna measures **2.61:1** — under both the 4.5:1 text floor and the 3:1 large-text floor — which is why these six surfaces are token-driven rather than hardcoded. `--button-ink` cannot serve here: the button fill (orange) and the accent fill (coral/sienna) are different colours in the light theme, so one token for both is impossible.
-- The fill was signal blue (`#1400c3`) until 2026-09. It sat at **1.31:1** against the teal canvas — a CTA that read as a hole punched in the page. No blue can clear 3:1 against that canvas *and* carry AA text on top, so the fill had to become light with dark ink.
+- The button fill is a near-black neutral (`#171717`) with the cream `--button-ink` (`#f8f2da`) on top — a dark fill under light ink (15.97:1), which is the inverse of the convention the cyberpunk theme still uses. `--button-ink` is the ink that sits on the **button fill** only: cream (`#f8f2da`) in dark/light themes, dark (`#1a1a1a`) in cyberpunk (where the fill is magenta). Unlike the old orange fill it is not constant across the three themes, because the fill is not either.
+- `--accent-ink` is the ink that sits on `--text-accent` used as a **fill** — skip link, `::selection`, accent badges, source monograms, the pressed knowledge-graph chip. It is **not** constant: `#1a1a1a` in dark and cyberpunk (7.30:1 on the coral `#ff8569`), `#ffffff` in light (6.66:1 on the sienna `#a8331a`). The dark ink on the light theme's sienna measures **2.61:1** — under both the 4.5:1 text floor and the 3:1 large-text floor — which is why these six surfaces are token-driven rather than hardcoded. `--button-ink` cannot serve here: the button fill (near-black neutral) and the accent fill (coral/sienna) are different colours, so one token for both is impossible.
+- The fill was signal blue (`#1400c3`) until 2026-09. It sat at **1.31:1** against the teal canvas — a CTA that read as a hole punched in the page. No blue can clear 3:1 against that canvas *and* carry AA text on top, so the fill had to become light with dark ink. On 2026-10-18 the fill moved again, from the orange `#fe4e02` to the neutral `#171717`; the orange survives only as the OG-banner accent (`ACCENT_ON_BLUE`). Note the trade-off this buys: a near-black fill on the dark teal canvas measures **1.18:1**, so on the dark theme the button is defined by its shape and its cream label rather than by fill contrast against the page.
 - `text-muted` is for **metadata only** — dates, tags, captions, breadcrumbs, footer, counts. `text-normal` is for **body prose** and headings. The boundary is not "how important it feels": a paragraph of prose is body text even when it sits inside a card, so `.bento-cell-text`, `.featured-card-description`, `.blog-card-excerpt`, `.wwm-block ul`, `#project-content p` and `.post-content p` are all `text-normal`. Measured, this is the difference between 5.91:1 and 11.94:1 in dark (5.90:1 → 17.27:1 in cyberpunk).
 
 ## Color Roles — 60-30-10
@@ -145,13 +145,13 @@ The palette is formalized against the **60-30-10** rule (`docs/prd-palette-60-30
 | | `--surface-secondary` | `#27272a` | `#d4d4d8` | `#16162e` |
 | **10% Accent** (interactive) | `--text-accent` | `#ff8569` | `#a8331a` | `#ff8569` |
 | | `--text-accent-hover` | `#ffa68a` | `#8a2a16` | `#ffbe99` |
-| | `--button-bg` | `#fe4e02` | `#fe4e02` | `#ff2bd6` |
-| | `--button-bg-hover` | `#ff6a1f` | `#ff6a1f` | `#ff5ce0` |
-| | `--button-ink` | `#1a1a1a` | `#1a1a1a` | `#1a1a1a` |
+| | `--button-bg` | `#171717` | `#171717` | `#ff2bd6` |
+| | `--button-bg-hover` | `#2e2e2e` | `#2e2e2e` | `#ff5ce0` |
+| | `--button-ink` | `#f8f2da` | `#f8f2da` | `#1a1a1a` |
 | | `--accent-ink` | `#1a1a1a` | `#ffffff` | `#1a1a1a` |
 | | `--border-active` | `#ff8569` | `#a8331a` | `#ff8569` |
 
-Application budget: dominant 55–65% of any screen, secondary 25–35%, accent ≤15%. The accent is reserved for links, active nav, focus rings, `border-active`, accent bars, and badge pills — never as the fill of a content block. The primary button fill is a **scoped exception in role, not in colour**: it takes the brand orange `#fe4e02` (magenta `#ff2bd6` in cyberpunk), but as a *fill* rather than accent text. On the teal canvas the orange clears the 3:1 graphical floor (4.55:1) and carries dark ink at 5.23:1; used as text on a card (`--background-secondary`, `#1a3435`) it would land at 3.97:1 — under the 4.5:1 the contrast gate enforces for `--text-accent`, which therefore stays coral.
+Application budget: dominant 55–65% of any screen, secondary 25–35%, accent ≤15%. The accent is reserved for links, active nav, focus rings, `border-active`, accent bars, and badge pills — never as the fill of a content block. The primary button fill is the one element that **leaves** the accent bucket: it takes the neutral `#171717` (magenta `#ff2bd6` in cyberpunk), a deliberate move to the achromatic family so the button reads as *action* rather than as the 10% accent. It carries the cream ink at 15.97:1. On the light cream page the near-black fill clears the 3:1 graphical floor easily (15.41:1); on the dark teal canvas it measures **1.18:1**, so there the button relies on its shape and label rather than on fill contrast (see the contrast table below). The orange `#fe4e02` that filled the button until 2026-10-18 now belongs to the OG-banner surface only.
 
 **Scoped exceptions** (raw hex outside the token system, by technical necessity — not palette drift):
 - `Base.astro` `theme-color` meta + `THEME_COLORS` JS map — meta content cannot be a CSS variable; values mirror the dominant 60% per theme.
@@ -168,14 +168,18 @@ and the marketing-surface depth tints:
 | `BRAND_BLUE` | `#1400c3` | the OG banner surface; the blue depth tints' family |
 | `ACCENT_ON_TEAL` | `#ff8569` | `--text-accent` (dark + cyberpunk) |
 | `ACCENT_ON_TEAL_LIGHT` | `#a8331a` | `--text-accent` (light) |
-| `ACCENT_ON_BLUE` | `#fe4e02` | `--button-bg` (dark + light) **and** the OG banner accent |
+| `ACCENT_ON_BLUE` | `#fe4e02` | the OG banner accent (the CTA fill until 2026-10-18) |
+| `BUTTON_FILL` | `#171717` | `--button-bg` (dark + light) |
+| `BUTTON_FILL_HOVER` | `#2e2e2e` | `--button-bg-hover` (dark + light) |
+| `BUTTON_INK` | `#f8f2da` | `--button-ink` (dark + light) |
 | `CREAM` | `#f4efca` | `--background-primary` (light) **and** the OG banner ink |
 
 The two accents are deliberate, not drift: the high-chroma orange reads on the
 royal-blue marketing surface, the coral on the teal site canvas. They are
-separated by **role**, not just by surface — the orange is a fill (dark ink on
-top, 5.23:1) and would fail as accent text on a card (3.97:1); the coral is the
-site's text accent and never appears on the blue banner.
+separated by **role**, not just by surface — the orange is the banner accent
+(and would fail as accent text on a card, 3.97:1); the coral is the site's text
+accent and never appears on the blue banner. The CTA fill sits outside this pair
+entirely: it is the neutral `BUTTON_FILL`, not an accent.
 
 `global.css` stays hand-written; agreement between it and `brand.ts` is enforced
 by `tests/lib/brand.test.ts`, which parses the `:root`, `[data-theme="light"]` and
@@ -189,8 +193,8 @@ import the same module, so there are no bare brand hexes outside it.
 Bar widths approximate the 60/30/10 proportion (illustrative, not pixel-measured — see Goal 1 for a measured audit):
 
 ```
-Dark       60% ▰▰▰▰▰▰▰▰▰▰  #0f2a2b teal       · 30% ▰▰▰▰▰  #e4e4e7 zinc    · 10% ▰▰  #ff8569 coral  (button fill: #fe4e02 orange)
-Light      60% ▰▰▰▰▰▰▰▰▰▰  #f4efca cream      · 30% ▰▰▰▰▰  #18181b zinc    · 10% ▰▰  #a8331a sienna  (button fill: #fe4e02 orange)
+Dark       60% ▰▰▰▰▰▰▰▰▰▰  #0f2a2b teal       · 30% ▰▰▰▰▰  #e4e4e7 zinc    · 10% ▰▰  #ff8569 coral  (button fill: #171717 neutral)
+Light      60% ▰▰▰▰▰▰▰▰▰▰  #f4efca cream      · 30% ▰▰▰▰▰  #18181b zinc    · 10% ▰▰  #a8331a sienna  (button fill: #171717 neutral)
 Cyberpunk  60% ▰▰▰▰▰▰▰▰▰▰  #0a0a12 indigo     · 30% ▰▰▰▰▰  #e6f1ff cool    · 10% ▰▰  #ff8569 coral  (button fill: #ff2bd6 magenta)
 ```
 
@@ -231,8 +235,8 @@ WCAG AA contrast is bound to a mechanism — `.claude/hooks/contrast-gate.js`, a
 | text-normal / bg-primary | 11.94:1 | 15.22:1 | 17.27:1 | hook |
 | text-muted / bg-primary | 5.91:1 | 6.64:1 | 5.90:1 | hook |
 | text-accent / bg-secondary (card) | 5.55:1 | 6.66:1 | 7.85:1 | hook |
-| `--button-ink` / button-bg | 5.23:1 | 5.23:1 | 5.44:1 | hook |
-| button-bg / bg-primary (3:1) | 4.55:1 | 2.86:1 | 6.17:1 | measured, not gated |
+| `--button-ink` / button-bg | 15.97:1 | 15.97:1 | 5.44:1 | hook |
+| button-bg / bg-primary (3:1) | 1.18:1 | 15.41:1 | 6.17:1 | measured, not gated |
 | border-active / bg-primary (3:1) | 6.36:1 | 5.72:1 | 8.27:1 | hook |
 
 Gradients are the one contrast surface that hook cannot see, and it says so itself (`contrast-gate.js:37` resolves solid hex and single-level `var()`, and skips gradient backgrounds). `tests/lib/gradient-tokens.test.ts` binds that gap: it parses every `--gradient-*` token per theme, rejects any stop that is not an existing token or `transparent`, and composites the ramp at 0/25/50/75/100% over the surface it replaces, asserting the text token sitting there holds AA. Narrowest margin is the light-theme hero under `--text-accent` at **4.93:1** — raising that tint past roughly 11% turns the gate red.
@@ -250,8 +254,8 @@ The default (dark) values live in the frontmatter. Light and cyberpunk re-map th
 | text-muted | `#52525b` | `#8a8aa8` |
 | text-accent | `#a8331a` | `#ff8569` |
 | text-accent-hover | `#8a2a16` | `#ffbe99` |
-| button-bg | `#fe4e02` | `#ff2bd6` |
-| button-bg-hover | `#ff6a1f` | `#ff5ce0` |
+| button-bg | `#171717` | `#ff2bd6` |
+| button-bg-hover | `#2e2e2e` | `#ff5ce0` |
 | interactive-normal | `#f4f4f5` | `#1a1a2e` |
 | interactive-hover | `#e4e4e7` | `#232342` |
 | border-color | `#e4e4e7` | `#2a2a4a` |
@@ -304,7 +308,7 @@ Five named tokens, one family, declared once in `:root` and consumed at five sur
 | Token | Value | Applied to | Text on it |
 |---|---|---|---|
 | `--gradient-hero` | `radial-gradient(60% 80% at 85% 8%, color-mix(… --text-accent 10%, transparent), transparent 70%)` | `#intro::before` (hero backdrop) | `--text-normal`, `--text-accent` |
-| `--gradient-surface` | `linear-gradient(180deg, var(--card-background), color-mix(… --card-background 88%, --background-primary))` | `.featured-card`, `.project`, `.blog-card` | `--text-normal` |
+| `--gradient-surface` | `linear-gradient(180deg, var(--card-background), color-mix(… --card-background 88%, --background-primary))` | `.featured-card`, `.project`, `.blog-card`, `.gate-card` | `--text-normal` |
 | `--gradient-button` | `linear-gradient(135deg, var(--button-bg), var(--button-bg-hover))` | `.button` | `--button-ink` |
 | `--gradient-rule` | `linear-gradient(90deg, var(--text-accent) 0%, transparent 70%)` | `#projects h2::after` | — (hairline) |
 | `--gradient-page` | `linear-gradient(180deg, color-mix(… --text-accent 6%, transparent), color-mix(… --text-accent-dataviz 7%, transparent) 55%, transparent)` | `body::after` (full-page wash) | `--text-normal`, `--text-accent` |

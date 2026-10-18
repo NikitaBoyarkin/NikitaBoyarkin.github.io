@@ -8,6 +8,7 @@
 // When no filter is active the static (paginated) list is shown as-is, keeping
 // zero-JS-by-default intact.
 import { categoryLabel } from '../lib/categories';
+import Icon from './Icon.astro';
 
 interface Props {
   lang?: 'ru' | 'en';
@@ -39,6 +40,7 @@ const hiddenTags = tags.filter((t) => t.count < 2);
         aria-pressed={cat.key === 'all' ? 'true' : 'false'}
         type="button"
       >
+        <Icon name="filter" size={14} class="pill-icon" />
         {cat.label}
       </button>
     ))
@@ -55,6 +57,7 @@ const hiddenTags = tags.filter((t) => t.count < 2);
       {
         visibleTags.map((t) => (
           <button class="filter-tag tag-chip" data-tag={t.tag} aria-pressed="false" type="button">
+            <Icon name="tag" size={14} class="pill-icon" />
             {t.tag} <span class="tag-count">{t.count}</span>
           </button>
         ))
@@ -75,6 +78,7 @@ const hiddenTags = tags.filter((t) => t.count < 2);
             type="button"
             hidden
           >
+            <Icon name="tag" size={14} class="pill-icon" />
             {t.tag} <span class="tag-count">{t.count}</span>
           </button>
         ))

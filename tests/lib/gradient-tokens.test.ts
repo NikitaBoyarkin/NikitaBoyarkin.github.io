@@ -22,10 +22,10 @@ import { dirname, join } from 'node:path';
 //      public/games/index.html's `--accent:#ff6643` drifted.
 //   3. Worst-case composite — the ramp is sampled and composited over the
 //      surface it replaces, and the text token that sits on that surface has
-//      to hold AA at every sample. The button case is the real one: light
-//      `--button-bg` on `--background-primary` is already 2.86:1 (DESIGN.md,
-//      "measured, not gated"), so anything that darkens under the ink shows up
-//      here and nowhere else.
+//      to hold AA at every sample. The button case is the real one: the fill
+//      is a near-black neutral the page cannot police (on the dark teal canvas
+//      `--button-bg` sits at ~1.2:1 — DESIGN.md, "measured, not gated"), so a
+//      fill that drifts toward the cream ink shows up here and nowhere else.
 //
 // Like brand.test.ts and demo-tokens.test.ts, the gate proves it bites: the
 // mutation-control cases at the bottom must go red.
@@ -337,10 +337,12 @@ describe('gradient family tokens', () => {
 });
 
 describe('the gate bites', () => {
-  it('goes red when a stop is darkened under the button ink', () => {
-    // The exact failure the button case exists to catch: a "richer" fill that
-    // quietly drops below AA under the dark ink.
-    const mutated = GLOBAL.replace(/(\s--button-bg: )#fe4e02;/, '$1#3a1400;');
+  it('goes red when a stop is lightened toward the cream button ink', () => {
+    // The failure the button case exists to catch, in its current direction:
+    // --button-ink is the cream #f8f2da, so a fill that drifts *light* is what
+    // drops below AA. A darker fill is fine — the ramp may be any neutral, it
+    // only has to stay clear of the ink.
+    const mutated = GLOBAL.replace(/(\s--button-bg: )#171717;/, '$1#c9c2a8;');
     expect(mutated).not.toBe(GLOBAL);
     expect(aaFailures(mutated).some((f) => f.includes('--gradient-button'))).toBe(true);
   });

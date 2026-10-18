@@ -8,6 +8,7 @@
 // all present but folded into a `<details>` — native disclosure, no JavaScript.
 import type { DashboardSection, Lang } from '../lib/dashboard';
 import { DASHBOARD_COPY } from '../lib/dashboard';
+import Icon from './Icon.astro';
 
 interface Props {
   section: DashboardSection;
@@ -35,11 +36,17 @@ const folded = section.id === 'tools';
       <p class="dash-empty">{copy.empty}</p>
     ) : folded ? (
       <details class="dash-rows-group">
-        <summary>{copy.showAll(section.children.length)}</summary>
+        <summary>
+          {copy.showAll(section.children.length)}
+          <Icon name="chevron-down" size={16} class="dash-ico" />
+        </summary>
         <ul class="dash-rows">
           {section.children.map((row) => (
             <li>
-              <a href={row.href}>{row.title}</a>
+              <a href={row.href}>
+                {row.title}
+                <Icon name="external" size={16} class="dash-ico" />
+              </a>
               {row.count !== undefined && <span class="dash-row-count">{row.count}</span>}
             </li>
           ))}
@@ -49,7 +56,10 @@ const folded = section.id === 'tools';
       <ul class="dash-rows">
         {section.children.map((row) => (
           <li>
-            <a href={row.href}>{row.title}</a>
+            <a href={row.href}>
+              {row.title}
+              <Icon name="external" size={16} class="dash-ico" />
+            </a>
           </li>
         ))}
       </ul>
@@ -60,6 +70,7 @@ const folded = section.id === 'tools';
     section.href && remainder > 0 && (
       <a class="dash-card-more" href={section.href}>
         {copy.seeAll(section.count)}
+        <Icon name="arrow-right" size={16} class="dash-ico" />
       </a>
     )
   }

@@ -1,9 +1,11 @@
 ---
-// `/` — the gate (PRD §9): the identity, one primary action and three paths.
-// The gate always renders and never redirects, even for a returning visitor
-// with a stored choice (Q11).
+// `/` — the gate (PRD §9): the identity and three paths. The gate always renders
+// and never redirects, even for a returning visitor with a stored choice (Q11).
+// It is a static, in-flow hero (`HeroGate`), not the pan/zoom canvas: the canvas
+// fit measured a zero-height band on this page and pushed the HR route off the
+// top of the fold.
 import Base from '../layouts/Base.astro';
-import PersonaCanvas from '../components/PersonaCanvas.astro';
+import HeroGate from '../components/HeroGate.astro';
 import DashboardGrid from '../components/DashboardGrid.astro';
 import { DASHBOARD_COPY } from '../lib/dashboard';
 import { loadDashboard } from '../lib/dashboard-data';
@@ -56,31 +58,15 @@ const dashboard = await loadDashboard('ru');
   counterpartHref={withBase('en/')}
   jsonLd={jsonLd}
   showCtaRail
-  canvasFullBleed
 >
-  <!-- The hero keeps the composition it had on the locked single screen (the
-       dashboard contract's option A, §8). The cue is the price of that: a
-       full-screen hero says nothing about what is below it. -->
-  <div class="dash-hero">
-    <PersonaCanvas lang="ru" />
-    <a class="dash-cue" href="#dash">
-      {DASHBOARD_COPY.ru.heading}
-      <span aria-hidden="true">↓</span>
-    </a>
-  </div>
+  <!-- The gate is now an in-flow hero of natural height, so the page visibly
+       continues below it; the cue stays as the explicit affordance pointing at
+       the dashboard. It sits after the hero, in flow, because a cue absolutely
+       positioned inside a content-sized band would overlap the last card row. -->
+  <HeroGate lang="ru" />
+  <a class="dash-cue" href="#dash">
+    {DASHBOARD_COPY.ru.heading}
+    <span aria-hidden="true">↓</span>
+  </a>
   <DashboardGrid index={dashboard} />
 </Base>
-
-<style>
-  /* The RU homepage carries the fixed action rail, which only renders from
-     1860px up (Base.astro) — so the inset that keeps the board clear of it
-     belongs on the page that renders the rail, not in the global stylesheet,
-     where it leaked 264px onto every page below 1860px. A scoped style is
-     emitted only on this page; `:global()` is required here because .canvas-
-     viewport lives inside PersonaCanvas, not this file. */
-  @media (min-width: 1860px) {
-    :global(.canvas-viewport) {
-      padding-inline-end: var(--rail-total);
-    }
-  }
-</style>

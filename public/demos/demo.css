@@ -153,9 +153,9 @@
   /* 10% — accent: coral, interactive semantics only */
   --text-accent: #ff8569;
   --text-accent-hover: #ffa68a;
-  --button-bg: #fe4e02;
-  --button-bg-hover: #ff6a1f;
-  --button-ink: #1a1a1a;
+  --button-bg: #171717;
+  --button-bg-hover: #2e2e2e;
+  --button-ink: #f8f2da;
   --border-active: #ff8569;
 
   --shadow-color: rgba(0, 0, 0, 0.4);
@@ -246,9 +246,9 @@
 
   --text-accent: #a8331a;
   --text-accent-hover: #8a2a16;
-  --button-bg: #fe4e02;
-  --button-bg-hover: #ff6a1f;
-  --button-ink: #1a1a1a;
+  --button-bg: #171717;
+  --button-bg-hover: #2e2e2e;
+  --button-ink: #f8f2da;
   --border-active: #a8331a;
   --text-accent-dataviz: #0d7377;
 

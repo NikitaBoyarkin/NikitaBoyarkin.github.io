@@ -1,0 +1,53 @@
+---
+/**
+ * Renders one glyph from the frozen icon contract (`src/lib/icons.ts`).
+ *
+ * Use this when a component has NO scoped CSS targeting a bare `svg` selector.
+ * Where a component already styles its own `<svg>` (e.g. `.nav-role svg`,
+ * `.button svg`), keep that component's existing `<svg … set:html={ICON.name} />`
+ * scaffold instead — an `<Icon>` renders from *this* file, so this file's scope
+ * id lands on the element and the parent's `svg[data-astro-cid-…]` rule would
+ * miss it. The scaffold keeps the element in the parent's own template.
+ *
+ * Decorative by default (`aria-hidden`); pass `label` only when the icon is the
+ * sole name of a control.
+ */
+import {
+  ICON,
+  BRAND_ICON,
+  type IconName,
+  type BrandIconName,
+} from '../lib/icons';
+
+interface Props {
+  name: IconName | BrandIconName;
+  size?: number;
+  class?: string;
+  /** Accessible name. Omit for decorative icons (the default). */
+  label?: string;
+}
+
+const { name, size = 16, class: className, label } = Astro.props;
+
+const isBrand = Object.prototype.hasOwnProperty.call(BRAND_ICON, name);
+const markup = isBrand
+  ? BRAND_ICON[name as BrandIconName]
+  : ICON[name as IconName];
+---
+
+<svg
+  class={className}
+  viewBox="0 0 24 24"
+  width={size}
+  height={size}
+  fill={isBrand ? 'currentColor' : 'none'}
+  stroke={isBrand ? undefined : 'currentColor'}
+  stroke-width={isBrand ? undefined : 2}
+  stroke-linecap={isBrand ? undefined : 'round'}
+  stroke-linejoin={isBrand ? undefined : 'round'}
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  focusable="false"
+  set:html={markup}
+/>

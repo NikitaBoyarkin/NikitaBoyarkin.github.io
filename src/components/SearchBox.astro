@@ -6,6 +6,7 @@
 import { withBase } from "../lib/path";
 import { TOPICS } from "../lib/topics";
 import MorphIcon from "morphicons/astro";
+import Icon from "./Icon.astro";
 
 interface Props {
   lang?: "ru" | "en";
@@ -79,11 +80,21 @@ const X_D = "M6 6l12 12M6 18L18 6";
       aria-describedby="search-hint"
     />
     <div class="search-facets" role="group" aria-label={i18n.facetsLabel}>
-      <button class="search-facet is-active" data-facet="all" type="button">{i18n.all}</button>
-      <button class="search-facet" data-facet="project" type="button">{i18n.projects}</button>
-      <button class="search-facet" data-facet="post" type="button">{i18n.posts}</button>
-      <button class="search-facet" data-facet="term" type="button">{i18n.terms}</button>
-      <button class="search-facet" data-facet="source" type="button">{i18n.sources}</button>
+      <button class="search-facet is-active" data-facet="all" type="button">
+        <Icon name="filter" size={14} class="pill-icon" />{i18n.all}
+      </button>
+      <button class="search-facet" data-facet="project" type="button">
+        <Icon name="filter" size={14} class="pill-icon" />{i18n.projects}
+      </button>
+      <button class="search-facet" data-facet="post" type="button">
+        <Icon name="filter" size={14} class="pill-icon" />{i18n.posts}
+      </button>
+      <button class="search-facet" data-facet="term" type="button">
+        <Icon name="filter" size={14} class="pill-icon" />{i18n.terms}
+      </button>
+      <button class="search-facet" data-facet="source" type="button">
+        <Icon name="filter" size={14} class="pill-icon" />{i18n.sources}
+      </button>
     </div>
     <ul id="search-results" class="search-results" role="listbox" aria-label={i18n.resultsLabel}></ul>
     <p class="search-hint" id="search-hint">{i18n.hint}</p>
@@ -94,6 +105,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
   import { defineMorphIcon, type MorphIconElement } from "morphicons/element";
   import { ldWithin } from "../lib/fuzzy";
   import { track } from "../lib/analytics";
+  import { ICON } from "../lib/icons";
 
   // Same stroke paths as the SSR render (see frontmatter). Morphing the
   // toggle magnifier ↔ close is a pure animation on the custom element.
@@ -294,7 +306,12 @@ const X_D = "M6 6l12 12M6 18L18 6";
             const a = document.createElement("a");
             a.href = tp.h;
             a.className = "search-topic-chip";
-            a.textContent = tp.l;
+            // Leading glyph comes from the frozen contract, interpolated (not
+            // re-typed) into the client-built chip. `pill-icon` is the shared
+            // alignment class (blog.css).
+            a.innerHTML =
+              `<svg class="pill-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICON.tag}</svg>` +
+              escapeHtml(tp.l);
             wrap.appendChild(a);
           });
           block.appendChild(wrap);

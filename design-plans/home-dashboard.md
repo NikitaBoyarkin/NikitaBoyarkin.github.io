@@ -16,6 +16,7 @@ the 53 standalone apps that no index, no sitemap and no navigation currently exp
 | **B. Surface** | **done** — `src/components/Dashboard{Grid,Card,Metrics}.astro`, `src/pages/index.astro`, `src/pages/en/index.astro` | rendered in headless Chromium: 8 cards (7 on EN), 103 anchors, `details` folds 46 artefact rows, no horizontal overflow at 390 or 1440 |
 | **C. Visual system** | **done** — `src/styles/dashboard.css`, imported last in `Base.astro` | WCAG contrast computed on the rendered DOM: 0 failures in dark / light / cyberpunk (min 5.16 / 5.72 / 5.60) |
 | **D. Shell / search** | **done** — `Base.astro` (CSS import), `SearchBox.astro` (`⌘K` / `Ctrl+K` alias) | `astro check`: 0 errors; `tsc`: exit 0 |
+| **E. Canvas hero retired** | **done** (2026-10-18) — `src/components/HeroGate.astro` replaces `PersonaCanvas` on `/` + `/en/`; the cue moved in flow; `canvasFullBleed` dropped | `tests/built/homepage-gate.test.ts` (no canvas markup, three routes each with an icon, cue → `#dash`); `bun run build` 213 pages; render 1440×900/390×844/1860×1000 in dark + light: `<h1>` at y=162, all three gate cards fully visible, no console errors |
 
 Two facts the build changed while axis A was written, both recorded in the sections
 below: the `routes` metric was **dropped** (the sitemap is generated after endpoints
@@ -335,6 +336,15 @@ lock produced. The canvas is still live in that band: `canvas-static` is removed
 runtime, `.canvas-node` computes to `position: absolute`, and `.canvas-world` carries the
 fit transform (`matrix(0.6, 0, 0, 0.6, 288, -270)`). No console errors, no failed requests.
 
+> **Correction (2026-10-18).** That last clause was wrong, and it is the most useful
+> sentence in this file: `matrix(0.6, 0, 0, 0.6, 288, -270)` is not proof the canvas
+> *fitted* — it is the signature of the failure. `0.6` is `MIN_ZOOM` (the correct scale
+> for a 1440×783 band is 0.87) and `-270px` is `(0 − 900 × 0.6) / 2`, i.e. a vertical
+> offset computed against a viewport of height **zero**. Measured on the built page: the
+> identity node sat at `y = −135` and the HR card at `y = −15` — both above the fold — with
+> 783px of dead band below them. The band was measured; the composition inside it never
+> was. See decisions 36–37.
+
 ### A layout defect that measurement caught and a screenshot only hinted at
 
 The rail is 260px wide. A prose hint inside a surface chip wrapped to a second line there
@@ -426,6 +436,8 @@ Canonical reasoning lives here so a future agent does not re-litigate it.
 | 28 | Axis A split into four modules so the builder stays fixture-testable without Astro |
 | 29 | `routes` metric dropped — not derivable at build time without a literal |
 | 30 | `projects.json` dropped as a source — its demo links are already reachable twice |
+| 36 | **The canvas hero is retired** (2026-10-18, supersedes 15 and 31). Root cause: the canvas fit is a synchronous pre-paint `clientHeight` read (`CanvasStage.astro`), and on this page the `.dash-hero` band had no resolved block-size at that instant — the read returned 0, so zoom collapsed to `MIN_ZOOM` (0.6) and `--vp-ty` resolved to **−270px**. The identity and the HR card rendered *above* the fold. Option A kept the hero and paid for it with a cue; it did not survive the measurement. `HeroGate.astro` is plain in-flow markup: no world, no transform, no fit to get wrong |
+| 37 | The six header nav entries (`projects`, `about`, `writing`, `glossary`, `explorer`, `topics`) were removed and replaced by a single in-bar **«Главная»/«Home»**; `INLINE_NAV_KEYS = ['home']`. `graph` / `library` / `repo-audit` stay in the drawer. Every header and dashboard button now carries an icon from the frozen contract `src/lib/icons.ts` (`ICON` + `BRAND_ICON`), bound by `tests/lib/icons.test.ts` |
 
 ## 15. Open items
 
@@ -441,11 +453,10 @@ Canonical reasoning lives here so a future agent does not re-litigate it.
 3. **A human look at the hero.** The band is provably the same size and the canvas is
    provably live, but "the composition still looks right at 783px" is a judgement the
    measurements do not make. Worth one look in all three themes before this ships.
-3. **Nav entry for Tools & demos** — `navLinks` holds **9 items including `repo-audit`**
-   (`Base.astro:162-217`), and the homepage is **not** one of them (`activeNav="home"`
-   matches the brand link instead). The width-gated inline bar
-   (`INLINE_NAV_KEYS`, `Base.astro:223-230`) shows only **6** of the 9. A 10th entry
-   risks overflowing the drawer; deferred.
+3. **Nav entry for Tools & demos** — `navLinks` holds **10 rows** (`Base.astro`), and the
+   width-gated inline bar (`INLINE_NAV_KEYS`) shows exactly **one** of them — «Главная»/«Home»;
+   the other nine are drawer-only (decisions 36–37). A Tools & demos row would make it
+   eleven in the drawer; deferred.
 4. **Dead CSS** — `.home-board`, `#page-board` and `.kanban-column` are unreferenced
    (§1). Decide in a separate pass whether to mine or delete them; the dashboard must
    not resurrect them by accident.

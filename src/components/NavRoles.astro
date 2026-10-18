@@ -10,6 +10,7 @@
 // `persona_selected` — the same trap RoleSwitch.astro documents. The write +
 // capture happen in the module script below before the plain `<a href>` commits.
 import { withBase } from '../lib/path';
+import { ICON } from '../lib/icons';
 import { AUDIENCES, type Audience } from '../lib/projects';
 
 interface Props {
@@ -27,16 +28,11 @@ const LABELS: Record<Audience, string> = isEn
   ? { hr: 'HR', manager: 'Manager', colleague: 'Colleague' }
   : { hr: 'HR', manager: 'Менеджер', colleague: 'Коллега' };
 
-// 24×24 stroke glyphs (lucide-style). Inner markup only — the six nav links in
-// Base.astro use the same `<svg>` scaffold + `set:html` split. Literals, never
-// page content, so `set:html` cannot reach anything a visitor controls.
-const ICONS: Record<Audience, string> = {
-  hr: '<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M5 16h6"/><path d="M14 10h5"/><path d="M14 14h5"/>',
-  manager:
-    '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>',
-  colleague:
-    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-};
+// Persona glyphs come from the shared icon contract (`src/lib/icons.ts`): the
+// map below keys straight into `ICON`, which already carries `hr` / `manager` /
+// `colleague`. Inner markup only — the nav rows in Base.astro use the same
+// `<svg>` scaffold + `set:html` split, so `set:html` only ever receives a module
+// literal, never anything a visitor controls.
 
 const href = (target: Audience): string => withBase(isEn ? `en/${target}/` : `${target}/`);
 ---
@@ -68,7 +64,7 @@ const href = (target: Audience): string => withBase(isEn ? `en/${target}/` : `${
           stroke-linejoin="round"
           aria-hidden="true"
           focusable="false"
-          set:html={ICONS[audience]}
+          set:html={ICON[audience]}
         />
         <span class="nav-role-label">{LABELS[audience]}</span>
       </a>

@@ -4,6 +4,7 @@
 // The default slot carries board-level controls (the reorder reset + its hint)
 // so they sit in the same row as the chips instead of on a third line.
 import { projectToolFilters } from '../lib/projects';
+import Icon from './Icon.astro';
 
 interface Props {
   lang?: 'ru' | 'en';
@@ -26,6 +27,7 @@ const tools = projectToolFilters(lang);
           aria-pressed={tool.key === 'all' ? 'true' : 'false'}
           type="button"
         >
+          <Icon name={tool.key === 'all' ? 'filter' : 'tag'} size={14} class="pill-icon" />
           {tool.label}
         </button>
       ))

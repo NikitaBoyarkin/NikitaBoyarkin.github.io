@@ -3,6 +3,7 @@
 // (filtering, hash sync, analytics) lives in ProjectBoard's controller script,
 // which owns both filters so their state stays in one place.
 import { ALL_TRACKS } from '../lib/projects';
+import Icon from './Icon.astro';
 
 interface Track {
   key: string;
@@ -31,6 +32,7 @@ const allLabel = lang === 'en' ? 'All' : 'Все';
     aria-pressed="true"
     type="button"
   >
+    <Icon name="filter" size={14} class="pill-icon" />
     {allLabel} <span class="filter-count">{total}</span>
   </button>
   {
@@ -41,6 +43,7 @@ const allLabel = lang === 'en' ? 'All' : 'Все';
         aria-pressed="false"
         type="button"
       >
+        <Icon name="filter" size={14} class="pill-icon" />
         {track.label} <span class="filter-count">{track.count}</span>
       </button>
     ))

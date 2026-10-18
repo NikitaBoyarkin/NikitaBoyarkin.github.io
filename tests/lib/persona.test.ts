@@ -156,8 +156,8 @@ describe('audience storage (AC2)', () => {
 // nothing else fails if the component stops tracking.
 // ---------------------------------------------------------------------------
 describe('wiring (PRD §6, §9, §10)', () => {
-  it('PersonaCanvas tracks the gate view and gate-sourced selection', () => {
-    const s = src('src/components/PersonaCanvas.astro');
+  it('the live gate tracks the gate view and gate-sourced selection', () => {
+    const s = src('src/components/HeroGate.astro');
     expect(s).toContain("track('persona_gate_view'");
     expect(s).toContain("track('persona_selected'");
     expect(s).toMatch(/source:\s*'gate'/);
@@ -171,8 +171,8 @@ describe('wiring (PRD §6, §9, §10)', () => {
   });
 
   it('the gate is mounted on / and /en/ with the right locale', () => {
-    expect(src('src/pages/index.astro')).toMatch(/PersonaCanvas[^>]*lang="ru"/);
-    expect(src('src/pages/en/index.astro')).toMatch(/PersonaCanvas[^>]*lang="en"/);
+    expect(src('src/pages/index.astro')).toMatch(/HeroGate[^>]*lang="ru"/);
+    expect(src('src/pages/en/index.astro')).toMatch(/HeroGate[^>]*lang="en"/);
   });
 
   it('ships all six role routes', () => {
@@ -194,7 +194,12 @@ describe('wiring (PRD §6, §9, §10)', () => {
   });
 
   it('does not leak the retired taxonomy into the shipped source', () => {
-    for (const file of ['src/lib/analytics.ts', 'src/lib/projects.ts', 'src/components/PersonaCanvas.astro']) {
+    for (const file of [
+      'src/lib/analytics.ts',
+      'src/lib/projects.ts',
+      'src/components/PersonaCanvas.astro',
+      'src/components/HeroGate.astro',
+    ]) {
       const s = src(file);
       for (const stale of ['recruiter', 'learner']) {
         expect(s, `${file} still mentions "${stale}"`).not.toContain(`'${stale}'`);
@@ -215,7 +220,10 @@ describe('wiring (PRD §6, §9, §10)', () => {
 // "sticky action rail (Base.astro)" below.
 // ---------------------------------------------------------------------------
 describe('homepage primary CTA (docs/cta-inventory.md)', () => {
-  const gate = () => src('src/components/PersonaCanvas.astro');
+  // The live gate. `PersonaCanvas.astro` stays on disk as the retired canvas
+  // implementation, but the homepage mounts `HeroGate`, so these guards follow
+  // the surface that actually ships.
+  const gate = () => src('src/components/HeroGate.astro');
 
   it('leaves the hero CTA row off the board, and does not grow it back', () => {
     const s = gate();

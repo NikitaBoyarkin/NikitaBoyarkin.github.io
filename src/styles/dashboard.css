@@ -16,64 +16,20 @@
  * different band's children, not a general contract.
  */
 
-:root {
-  /* The height the one-screen lock reserved for the footer strip (global.css
-     `html.canvas-fullbleed footer`, "~36px instead of ~170px"). Reserved again
-     below so the canvas fit measures the band it has always measured, rather
-     than one 36px taller. The fit script clamps zoom, so a few px of drift is
-     invisible; the geometry is not load-bearing beyond that. */
-  --dash-strip: 36px;
-}
-
 /* ---------------------------------------------------------------------------
-   Lifting the one-screen lock, for the dashboard homepage only.
-
-   Same three gates as the lock it lifts (`min-width: 900px`, `min-height: 700px`,
-   canvas live) and one more: `:has(main > .dash)`. A page that renders the
-   dashboard scrolls; every other page keeps its locked single screen. `:has()`
-   is already an established pattern here (`body:has(main > #inner-toc…)`).
+   The scroll cue.
+   The gate is an in-flow hero of natural height now, so the page visibly
+   continues below it — the cue stays as the explicit affordance, centred
+   between the gate and the dashboard. It used to be absolutely positioned at
+   the bottom of a fixed one-screen band (`.dash-hero`); that band, the lock it
+   lifted and `--dash-strip` went with the canvas hero, so the pill is in flow.
    --------------------------------------------------------------------------- */
-@media (min-width: 900px) and (min-height: 700px) {
-  /* Was: block-size 100dvh + overflow hidden. The document now grows and
-     scrolls, and the first screen still fills the viewport. */
-  html.canvas-fullbleed:not(.canvas-static):has(main > .dash) body {
-    block-size: auto;
-    min-block-size: 100dvh;
-    overflow: visible;
-  }
-
-  /* The band `main` used to give the canvas, rebuilt from the site's own tokens:
-     the bar, the bar's 16px block-end margin, and the strip the footer reserved.
-     `main` keeps `flex: 1 1 auto` from the lock; with an auto-height body there
-     is no free space to distribute, so main is content-sized and this definite
-     height is what the viewport resolves its `100%` against. */
-  html.canvas-fullbleed:not(.canvas-static):has(main > .dash) .dash-hero {
-    position: relative;
-    block-size: calc(100dvh - var(--nav-mobile-h) - var(--space-4) - var(--dash-strip));
-  }
-
-  html.canvas-fullbleed:not(.canvas-static):has(main > .dash) .dash-hero .canvas-viewport {
-    block-size: 100%;
-  }
-}
-
-/* The hero is one screen tall with nothing above the fold saying so: the whole
-   point of option A is that the canvas composition is not resized, and the cost
-   of that is a visitor who never discovers the dashboard. Hence an explicit cue,
-   inside the hero, above the canvas (`--z-panel` < the bar's `--z-dialog`). */
-.dash-hero {
-  position: relative;
-}
-
 .dash-cue {
-  position: absolute;
-  inset-block-end: var(--space-5);
-  inset-inline-start: 50%;
-  transform: translateX(-50%);
-  z-index: var(--z-panel);
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: var(--space-2);
+  inline-size: fit-content;
+  margin: var(--space-6) auto var(--space-2);
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
@@ -85,13 +41,12 @@
 }
 
 .dash-cue:hover {
-  transform: translateX(-50%) translateY(-2px);
+  transform: translateY(-2px);
 }
 
-/* Below the lock's gates (a phone, a desktop with JS off, a short window) the
-   hero keeps its own 100vh from CanvasStage and the page already scrolls — the
-   cue would sit on top of the canvas' own bottom row, so it stands down. */
-@media (max-width: 899px), (max-height: 699px) {
+/* A phone hides it: the gate already fills the first screen, so the pill would
+   only take room from the first dashboard card. */
+@media (max-width: 899px) {
   .dash-cue {
     display: none;
   }
@@ -104,6 +59,16 @@
 .dash {
   padding-block: var(--space-12) var(--space-20);
   border-top: 1px solid var(--border-color);
+}
+
+/* One alignment box for every glyph the surface gained (surface chips, metric
+   values, folded rows, `see all`): the square is never allowed to flex, and
+   `display: block` kills the inline descender gap under an inline-level <svg> —
+   the same recipe as `.nav-role svg`. Spacing comes from each parent's own `gap`,
+   never from the icon. */
+.dash-ico {
+  flex: none;
+  display: block;
 }
 
 /* Panel rail + content, the shape `.xp` uses on /explorer/ — mirrored rather
@@ -180,6 +145,13 @@
   text-decoration: underline;
 }
 
+/* The chip's line stays `align-items: baseline` (its smaller hint sits on the
+   label's baseline, and a centred line would synthesize its baseline from the box
+   bottom and drop it), so the glyph opts out and centres itself instead. */
+.dash-chip .dash-ico {
+  align-self: center;
+}
+
 .dash-chip-hint {
   font-size: 0.72rem;
   /* `--text-normal`, not `--text-muted`: `.tag-chip` carries a
@@ -209,7 +181,11 @@
 }
 
 .dash-metric-value {
-  display: block;
+  /* The value now leads with a glyph on the same line; the label keeps its own
+     line below, because `.dash-metric` stays `display: block`. */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.1;
@@ -292,9 +268,15 @@
   color: var(--text-muted);
 }
 
-/* Pushed to the bottom so cards of unequal row counts share a baseline. */
+/* Pushed to the bottom so cards of unequal row counts share a baseline. It is
+   also the card's only inline-level child: `align-self` keeps the link's box
+   around its own text + glyph rather than stretching it across the card. */
 .dash-card-more {
   margin-block-start: auto;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--space-2);
   font-size: 0.85rem;
   color: var(--text-accent);
   text-decoration: none;
@@ -319,6 +301,17 @@
   font-size: 0.9rem;
 }
 
+/* This anchor stays inline on purpose: its line also carries `.dash-row-count`
+   and its title wraps, so an `inline-flex` line would shrink the text by the
+   glyph's width (re-breaking every two-line title in the tools fold) and, once
+   the line is full width, push the count onto a line of its own. The glyph rides
+   the text instead, centred on the x-height. */
+.dash-rows a .dash-ico {
+  display: inline-block;
+  vertical-align: middle;
+  margin-inline-start: var(--space-2);
+}
+
 .dash-rows a:hover {
   color: var(--text-accent);
   text-decoration: underline;
@@ -332,7 +325,13 @@
 
 /* The tools card is the only index the 46 artefacts have, so its rows are all
    present but folded away — `<details>` needs no JavaScript to open. */
+/* The fold now carries its own marker: `display: flex` drops the native
+   disclosure triangle, and the chevron takes its place — so the icon is the
+   affordance, and the summary line gets the glyph's own spacing. */
 .dash-rows-group > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   cursor: pointer;
   color: var(--text-accent);
   font-size: 0.85rem;

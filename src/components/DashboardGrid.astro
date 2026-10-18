@@ -8,8 +8,10 @@
 // `id="dash"` is a real anchor target: the hero's scroll cue points at it, and it
 // is the only affordance telling a visitor that a one-screen hero has anything
 // below it.
-import type { DashboardIndex } from '../lib/dashboard';
+import type { DashboardIndex, DashboardSurface } from '../lib/dashboard';
 import { DASHBOARD_COPY } from '../lib/dashboard';
+import type { IconName } from '../lib/icons';
+import Icon from './Icon.astro';
 import DashboardCard from './DashboardCard.astro';
 import DashboardMetrics from './DashboardMetrics.astro';
 
@@ -19,6 +21,16 @@ interface Props {
 
 const { index } = Astro.props;
 const copy = DASHBOARD_COPY[index.locale];
+
+// Each surface key names the route the chip opens, and every one of those four
+// names is also an `ICON` entry — so the map is total (`DashboardSurface['key']`
+// is a closed union) and needs no fallback branch.
+const SURFACE_ICON: Record<DashboardSurface['key'], IconName> = {
+  explorer: 'explorer',
+  graph: 'graph',
+  search: 'search',
+  notes: 'notes',
+};
 ---
 
 <section class="dash" id="dash" aria-labelledby="dash-title">
@@ -36,6 +48,7 @@ const copy = DASHBOARD_COPY[index.locale];
                 <li>
                   {surface.href ? (
                     <a class="tag-chip dash-chip" href={surface.href}>
+                      <Icon name={SURFACE_ICON[surface.key]} size={16} class="dash-ico" />
                       {surface.label}
                       {surface.hint && <span class="dash-chip-hint">{surface.hint}</span>}
                     </a>
@@ -44,6 +57,7 @@ const copy = DASHBOARD_COPY[index.locale];
                     // island (see below). With JS off it is inert, which costs no
                     // entry point — every page is reachable through the cards.
                     <button class="tag-chip dash-chip" type="button" data-dash-search>
+                      <Icon name={SURFACE_ICON[surface.key]} size={16} class="dash-ico" />
                       {surface.label}
                       {surface.hint && <span class="dash-chip-hint">{surface.hint}</span>}
                     </button>

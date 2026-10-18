@@ -101,15 +101,16 @@
   /* 10% — ACCENT: coral, interactive semantics only */
   --text-accent: #ff8569;
   --text-accent-hover: #ffa68a;
-  --button-bg: #fe4e02;                      /* orange fill (ACCENT_ON_BLUE) + dark ink */
-  --button-bg-hover: #ff6a1f;                /* stepped orange */
-  --button-ink: #1a1a1a;                     /* dark ink on orange (5.22:1, AA) */
+  --button-bg: #171717;                      /* BUTTON_FILL — near-black neutral fill */
+  --button-bg-hover: #2e2e2e;                /* stepped neutral (ramp partner of the fill) */
+  --button-ink: #f8f2da;                     /* cream ink on the dark fill (15.97:1, AA) */
   /* Ink for `--text-accent` used as a FILL — skip link, ::selection, accent
      badges, monograms. Separate from `--button-ink` on purpose: the button fill
-     is the brand orange in every theme, but the accent fill differs per theme,
-     so one token cannot serve both. `#1a1a1a` on the dark theme's coral is
-     7.30:1; the light theme's sienna needs white (6.66:1) — the dark ink is
-     2.61:1 there, under both the text and the large-text floor. */
+     is a near-black neutral (`#171717`) in dark/light and magenta in cyberpunk,
+     while the accent fill is coral/sienna — so one token cannot serve both.
+     `#1a1a1a` on the dark theme's coral is 7.30:1; the light theme's sienna
+     needs white (6.66:1) — the dark ink is 2.61:1 there, under both the text
+     and the large-text floor. */
   --accent-ink: #1a1a1a;
   --border-active: #ff8569;
 
@@ -273,12 +274,13 @@
   --table-border: #e4e4e7;
   --surface-secondary: #d4d4d8;        /* large secondary surfaces (30% bucket) */
 
-  /* 10% — ACCENT: burnt sienna (light-adapted coral) + coral button fill */
+  /* 10% — ACCENT: burnt sienna (light-adapted coral); the button fill is the
+     shared near-black neutral, same as the dark theme. */
   --text-accent: #a8331a;
   --text-accent-hover: #8a2a16;
-  --button-bg: #fe4e02;                      /* orange fill (ACCENT_ON_BLUE) + dark ink */
-  --button-bg-hover: #ff6a1f;                /* stepped orange */
-  --button-ink: #1a1a1a;                     /* dark ink on orange (5.22:1, AA) */
+  --button-bg: #171717;                      /* BUTTON_FILL — near-black neutral fill */
+  --button-bg-hover: #2e2e2e;                /* stepped neutral (ramp partner of the fill) */
+  --button-ink: #f8f2da;                     /* cream ink on the dark fill (15.97:1, AA) */
   /* Ink on the accent-as-fill: the light theme's accent is sienna (#a8331a),
      so the dark ink the other two themes use drops to 2.61:1 — white is
      6.66:1. See the token's note in :root. */
@@ -901,7 +903,8 @@ nav ul.links a[aria-current="page"] {
   justify-content: center;
   gap: var(--space-2);
   /* Subtle diagonal ramp across the fill. Both stops are the already-gated
-     button tokens, so --button-ink keeps its 5.23:1 / 5.44:1 anywhere on it. */
+     button tokens, so --button-ink holds AA anywhere on it (≈16:1 dark/light,
+     5.44:1 cyberpunk). */
   background: var(--gradient-button);
   color: var(--button-ink);
   padding: var(--space-3) var(--space-5);
