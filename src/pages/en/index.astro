@@ -2,6 +2,9 @@
 // `/en/` — the gate, see `src/pages/index.astro`.
 import Base from '../../layouts/Base.astro';
 import PersonaCanvas from '../../components/PersonaCanvas.astro';
+import DashboardGrid from '../../components/DashboardGrid.astro';
+import { DASHBOARD_COPY } from '../../lib/dashboard';
+import { loadDashboard } from '../../lib/dashboard-data';
 import { withBase } from '../../lib/path';
 
 // Person only: the `ItemList` of all projects would no longer describe this
@@ -30,6 +33,9 @@ const jsonLd = {
   ],
   speakable: { '@type': 'SpeakableSpecification', cssSelector: ['h1'] },
 };
+
+/** See `src/pages/index.astro` — the EN dashboard omits the RU-only topics card. */
+const dashboard = await loadDashboard('en');
 ---
 
 <Base
@@ -44,5 +50,12 @@ const jsonLd = {
   jsonLd={jsonLd}
   canvasFullBleed
 >
-  <PersonaCanvas lang="en" />
+  <div class="dash-hero">
+    <PersonaCanvas lang="en" />
+    <a class="dash-cue" href="#dash">
+      {DASHBOARD_COPY.en.heading}
+      <span aria-hidden="true">↓</span>
+    </a>
+  </div>
+  <DashboardGrid index={dashboard} />
 </Base>

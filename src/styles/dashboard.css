@@ -1,0 +1,355 @@
+/* Dashboard (dash-*) — the homepage surface below the persona canvas.
+ *
+ * Contract: design-plans/home-dashboard.md §6, §8 (owned by axis C). Keys are
+ * `dash-*` because `xp-` is the explorer's namespace and `kg-` the graph's.
+ * var(--token) only, no raw hex, so all three themes re-tint and
+ * .claude/hooks/contrast-gate.js can resolve every text/surface pair.
+ *
+ * Imported LAST in Base.astro, after global.css / blog.css / prose.css, because
+ * the first block below overrides the one-screen lock defined in global.css at
+ * equal-ish specificity — emission order is half of why it wins, and the extra
+ * `:has(main > .dash)` compound is the other half.
+ *
+ * Reused, not redefined: .container, .page-title, .proof-grid, .tag-chip,
+ * .visually-hidden. `.proof-grid` gives the metrics band its 4→2→1 columns;
+ * its child typography is not reused because `.proof-item/.proof-value` are a
+ * different band's children, not a general contract.
+ */
+
+:root {
+  /* The height the one-screen lock reserved for the footer strip (global.css
+     `html.canvas-fullbleed footer`, "~36px instead of ~170px"). Reserved again
+     below so the canvas fit measures the band it has always measured, rather
+     than one 36px taller. The fit script clamps zoom, so a few px of drift is
+     invisible; the geometry is not load-bearing beyond that. */
+  --dash-strip: 36px;
+}
+
+/* ---------------------------------------------------------------------------
+   Lifting the one-screen lock, for the dashboard homepage only.
+
+   Same three gates as the lock it lifts (`min-width: 900px`, `min-height: 700px`,
+   canvas live) and one more: `:has(main > .dash)`. A page that renders the
+   dashboard scrolls; every other page keeps its locked single screen. `:has()`
+   is already an established pattern here (`body:has(main > #inner-toc…)`).
+   --------------------------------------------------------------------------- */
+@media (min-width: 900px) and (min-height: 700px) {
+  /* Was: block-size 100dvh + overflow hidden. The document now grows and
+     scrolls, and the first screen still fills the viewport. */
+  html.canvas-fullbleed:not(.canvas-static):has(main > .dash) body {
+    block-size: auto;
+    min-block-size: 100dvh;
+    overflow: visible;
+  }
+
+  /* The band `main` used to give the canvas, rebuilt from the site's own tokens:
+     the bar, the bar's 16px block-end margin, and the strip the footer reserved.
+     `main` keeps `flex: 1 1 auto` from the lock; with an auto-height body there
+     is no free space to distribute, so main is content-sized and this definite
+     height is what the viewport resolves its `100%` against. */
+  html.canvas-fullbleed:not(.canvas-static):has(main > .dash) .dash-hero {
+    position: relative;
+    block-size: calc(100dvh - var(--nav-mobile-h) - var(--space-4) - var(--dash-strip));
+  }
+
+  html.canvas-fullbleed:not(.canvas-static):has(main > .dash) .dash-hero .canvas-viewport {
+    block-size: 100%;
+  }
+}
+
+/* The hero is one screen tall with nothing above the fold saying so: the whole
+   point of option A is that the canvas composition is not resized, and the cost
+   of that is a visitor who never discovers the dashboard. Hence an explicit cue,
+   inside the hero, above the canvas (`--z-panel` < the bar's `--z-dialog`). */
+.dash-hero {
+  position: relative;
+}
+
+.dash-cue {
+  position: absolute;
+  inset-block-end: var(--space-5);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-panel);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--card-background) 88%, transparent);
+  color: var(--text-normal);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: transform 0.18s ease;
+}
+
+.dash-cue:hover {
+  transform: translateX(-50%) translateY(-2px);
+}
+
+/* Below the lock's gates (a phone, a desktop with JS off, a short window) the
+   hero keeps its own 100vh from CanvasStage and the page already scrolls — the
+   cue would sit on top of the canvas' own bottom row, so it stands down. */
+@media (max-width: 899px), (max-height: 699px) {
+  .dash-cue {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   The surface.
+   --------------------------------------------------------------------------- */
+
+.dash {
+  padding-block: var(--space-12) var(--space-20);
+  border-top: 1px solid var(--border-color);
+}
+
+/* Panel rail + content, the shape `.xp` uses on /explorer/ — mirrored rather
+   than shared, so a change to the explorer's shell cannot move this one. */
+.dash-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-10);
+  align-items: start;
+}
+
+@media (min-width: 1000px) {
+  .dash-shell {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+
+  /* Same offset as the explorer's sticky panel, so the two rails sit level. */
+  .dash-rail {
+    position: sticky;
+    top: calc(var(--nav-mobile-h) + var(--space-4));
+  }
+}
+
+.dash-lead {
+  color: var(--text-muted);
+  max-width: 60ch;
+  margin-block: var(--space-2) 0;
+}
+
+.dash-title {
+  margin: 0;
+}
+
+/* Micro-label for the rail's two groups and the card counts. Uppercase, muted,
+   generous tracking — the same register as the explorer's facet titles. */
+.dash-sub {
+  margin: 0 0 var(--space-3);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.dash-group + .dash-group {
+  margin-block-start: var(--space-8);
+}
+
+.dash-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* `.tag-chip` brings the pill; this only adds the inline layout and the hint.
+   `text-decoration: none` is not cosmetic: the global link rule underlines every
+   anchor, and on this site an underline is the *active-filter* cue — a static
+   chip that wears one reads as "this filter is on". Hover restores it as a
+   non-colour cue. */
+.dash-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-decoration: none;
+}
+
+.dash-chip:hover {
+  text-decoration: underline;
+}
+
+.dash-chip-hint {
+  font-size: 0.72rem;
+  /* `--text-normal`, not `--text-muted`: `.tag-chip` carries a
+     `--background-tertiary` surface, where muted measures 4.34:1 in dark — below
+     AA. This is the same pairing global.css already documents for `.tag-chip` on
+     /writing/ ("--text-normal is 8.76:1"). Hierarchy comes from the size, not
+     from weakening the contrast. Measured, not assumed. */
+  color: var(--text-normal);
+}
+
+.dash-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  max-width: none;
+  margin: 0;
+}
+
+@media (min-width: 1000px) {
+  .dash-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.dash-metric {
+  display: block;
+  text-decoration: none;
+}
+
+.dash-metric-value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-accent);
+}
+
+.dash-metric-label {
+  display: block;
+  margin-block-start: 0.25rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.dash-metric:hover .dash-metric-value {
+  text-decoration: underline;
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+}
+
+@media (min-width: 700px) {
+  .dash-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1300px) {
+  .dash-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.dash-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background-color: var(--card-background);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.dash-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--shadow-color);
+}
+
+.dash-card-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 650;
+  color: var(--text-normal);
+}
+
+.dash-card-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.dash-card-title a:hover {
+  text-decoration: underline;
+}
+
+.dash-card-count {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.dash-card-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Pushed to the bottom so cards of unequal row counts share a baseline. */
+.dash-card-more {
+  margin-block-start: auto;
+  font-size: 0.85rem;
+  color: var(--text-accent);
+  text-decoration: none;
+}
+
+.dash-card-more:hover {
+  text-decoration: underline;
+}
+
+.dash-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dash-rows a {
+  color: var(--text-normal);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.dash-rows a:hover {
+  color: var(--text-accent);
+  text-decoration: underline;
+}
+
+.dash-row-count {
+  margin-inline-start: var(--space-2);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* The tools card is the only index the 46 artefacts have, so its rows are all
+   present but folded away — `<details>` needs no JavaScript to open. */
+.dash-rows-group > summary {
+  cursor: pointer;
+  color: var(--text-accent);
+  font-size: 0.85rem;
+}
+
+.dash-rows-group[open] > summary {
+  margin-block-end: var(--space-3);
+}
+
+/* Constrained so a 46-row list cannot push the card taller than its neighbours. */
+.dash-rows-group[open] .dash-rows {
+  max-block-size: 22rem;
+  overflow-y: auto;
+}
+
+.dash-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}

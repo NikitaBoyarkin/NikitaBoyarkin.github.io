@@ -1,0 +1,76 @@
+---
+// The dashboard surface: rail (surfaces + metrics) and the eight curated cards.
+//
+// It renders a `DashboardIndex`, which the page gets from `loadDashboard(lang)` —
+// the same loader the `/dashboard-index.json` endpoint uses, so the page and the
+// published numbers cannot disagree.
+//
+// `id="dash"` is a real anchor target: the hero's scroll cue points at it, and it
+// is the only affordance telling a visitor that a one-screen hero has anything
+// below it.
+import type { DashboardIndex } from '../lib/dashboard';
+import { DASHBOARD_COPY } from '../lib/dashboard';
+import DashboardCard from './DashboardCard.astro';
+import DashboardMetrics from './DashboardMetrics.astro';
+
+interface Props {
+  index: DashboardIndex;
+}
+
+const { index } = Astro.props;
+const copy = DASHBOARD_COPY[index.locale];
+---
+
+<section class="dash" id="dash" aria-labelledby="dash-title">
+  <div class="container">
+    <h2 class="page-title dash-title" id="dash-title">{copy.heading}</h2>
+    <p class="dash-lead">{copy.lead}</p>
+
+    <div class="dash-shell">
+      <div class="dash-rail">
+        <div class="dash-group">
+          <h3 class="dash-sub">{copy.surfacesTitle}</h3>
+          <ul class="dash-chips">
+            {
+              index.surfaces.map((surface) => (
+                <li>
+                  {surface.href ? (
+                    <a class="tag-chip dash-chip" href={surface.href}>
+                      {surface.label}
+                      {surface.hint && <span class="dash-chip-hint">{surface.hint}</span>}
+                    </a>
+                  ) : (
+                    // No href on purpose: this chip opens the existing SearchBox
+                    // island (see below). With JS off it is inert, which costs no
+                    // entry point — every page is reachable through the cards.
+                    <button class="tag-chip dash-chip" type="button" data-dash-search>
+                      {surface.label}
+                      {surface.hint && <span class="dash-chip-hint">{surface.hint}</span>}
+                    </button>
+                  )}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <DashboardMetrics metrics={index.metrics} title={copy.metricsTitle} />
+      </div>
+
+      <div class="dash-grid">
+        {index.sections.map((section) => <DashboardCard section={section} locale={index.locale} />)}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // The search chip routes into the island's own shortcut rather than growing a
+  // second entry point into it: SearchBox already handles `/` and knows that the
+  // panel lives inside an `inert` drawer, which it has to open first.
+  for (const chip of document.querySelectorAll('[data-dash-search]')) {
+    chip.addEventListener('click', () => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: '/', bubbles: true }));
+    });
+  }
+</script>

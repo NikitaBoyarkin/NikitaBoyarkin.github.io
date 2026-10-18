@@ -4,6 +4,10 @@ import '../styles/blog.css';
 // Prose layer last, so equal-specificity rules resolve to it.
 import '../styles/prose.css';
 import 'katex/dist/katex.min.css';
+// Dashboard last: its opening block lifts global.css's one-screen lock for the
+// homepage that renders the dashboard, and at equal specificity the later file
+// wins (the same reason prose.css sits after blog.css).
+import '../styles/dashboard.css';
 import { withBase } from '../lib/path';
 import Analytics from '../components/Analytics.astro';
 import LangSwitch from '../components/LangSwitch.astro';

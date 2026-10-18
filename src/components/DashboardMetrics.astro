@@ -1,0 +1,30 @@
+---
+// The metrics band. Six counts, every one computed at build time from the
+// collections and the `public/` scan — no literal lives in a component, so the
+// band cannot drift from what the site actually holds.
+//
+// `.proof-grid` supplies the column behaviour; the child typography is `dash-*`
+// because `.proof-item/.proof-value` belong to another band on another page.
+import type { DashboardMetric } from '../lib/dashboard';
+
+interface Props {
+  metrics: DashboardMetric[];
+  title: string;
+}
+
+const { metrics, title } = Astro.props;
+---
+
+<div class="dash-group">
+  <h3 class="dash-sub">{title}</h3>
+  <div class="proof-grid dash-metrics">
+    {
+      metrics.map((metric) => (
+        <a class="dash-metric" href={metric.href}>
+          <span class="dash-metric-value">{metric.value}</span>
+          <span class="dash-metric-label">{metric.label}</span>
+        </a>
+      ))
+    }
+  </div>
+</div>

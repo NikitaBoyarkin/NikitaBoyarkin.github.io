@@ -478,6 +478,17 @@ const X_D = "M6 6l12 12M6 18L18 6";
           (document.getElementById("nav-toggle") as HTMLButtonElement | null)?.click();
         }
         open();
+      } else if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
+        // `⌘K`/`Ctrl+K` is the shortcut people now expect a site search to answer
+        // to, and `/` alone reaches for the browser's own quick-find in enough
+        // browsers to be worth an alias. Same path as `/`, including the `typing`
+        // guard — but no `!typing` condition: from inside a field, `⌘K` should
+        // still open the panel rather than be swallowed.
+        e.preventDefault();
+        if (!document.body.classList.contains("nav-open")) {
+          (document.getElementById("nav-toggle") as HTMLButtonElement | null)?.click();
+        }
+        open();
       }
     });
   }

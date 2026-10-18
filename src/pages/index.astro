@@ -4,6 +4,9 @@
 // with a stored choice (Q11).
 import Base from '../layouts/Base.astro';
 import PersonaCanvas from '../components/PersonaCanvas.astro';
+import DashboardGrid from '../components/DashboardGrid.astro';
+import { DASHBOARD_COPY } from '../lib/dashboard';
+import { loadDashboard } from '../lib/dashboard-data';
 import { withBase } from '../lib/path';
 
 // Person only: the `ItemList` of all projects would no longer describe this
@@ -33,6 +36,13 @@ const jsonLd = {
   ],
   speakable: { '@type': 'SpeakableSpecification', cssSelector: ['h1'] },
 };
+
+/**
+ * The dashboard below the hero, from the same loader `/dashboard-index.json`
+ * serves — one source, so the rendered page and the published counts cannot
+ * disagree. Requirement: `design-plans/home-dashboard.md`.
+ */
+const dashboard = await loadDashboard('ru');
 ---
 
 <Base
@@ -48,7 +58,17 @@ const jsonLd = {
   showCtaRail
   canvasFullBleed
 >
-  <PersonaCanvas lang="ru" />
+  <!-- The hero keeps the composition it had on the locked single screen (the
+       dashboard contract's option A, §8). The cue is the price of that: a
+       full-screen hero says nothing about what is below it. -->
+  <div class="dash-hero">
+    <PersonaCanvas lang="ru" />
+    <a class="dash-cue" href="#dash">
+      {DASHBOARD_COPY.ru.heading}
+      <span aria-hidden="true">↓</span>
+    </a>
+  </div>
+  <DashboardGrid index={dashboard} />
 </Base>
 
 <style>
