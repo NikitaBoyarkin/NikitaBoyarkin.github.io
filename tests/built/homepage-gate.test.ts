@@ -202,7 +202,7 @@ describe('homepage gate (built HTML)', () => {
 
     it(`${file}: the drawer carries every destination, each with an icon`, () => {
       const rows = rowsIn(doc(), 'id="nav-links"');
-      expect(rows.map(({ href, label }) => ({ href, label }))).toEqual(NAV[lang].drawer);
+      expect(rows.map(({ href, label }) => ({ href, label }))).toEqual([...NAV[lang].drawer]);
       expect(rows.filter((row) => !row.icon), `${lang}: drawer rows without an icon`).toEqual([]);
     });
 
