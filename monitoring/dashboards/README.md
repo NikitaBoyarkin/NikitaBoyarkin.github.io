@@ -90,6 +90,8 @@ python3 verify_tiles.py        # every v2 tile's query against live data
 python3 verify_dashboards.py   # the same, but reading the queries back off the dashboards
 ```
 
+`verify_dashboards.py` prints one line per tile: `ok`, `EMPTY` (query returns nothing) or `THIN` (returns rows, but the underlying events number fewer than `VOLUME_FLOOR = 10` in the window). `THIN` is not a bug — it is the volume rule from `docs/analytics-dead-events.md` made executable: at 5–27 unique visitors a week, a tile under 10 events per quarter cannot carry a conclusion, and should be read as "no signal yet" rather than "a number".
+
 Optional environment overrides: `POSTHOG_PROJECT_ID` (default `451732`), `POSTHOG_HOST` (default `https://us.posthog.com`).
 
 ## Behavior notes

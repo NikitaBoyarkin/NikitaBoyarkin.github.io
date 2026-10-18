@@ -5,6 +5,7 @@ import importlib.util
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -22,21 +23,33 @@ HOST = (
 BASE = f"{HOST}/api/projects/{os.environ.get('POSTHOG_PROJECT_ID', '451732')}"
 
 
-def rows_for(query):
-    req = urllib.request.Request(
-        f"{BASE}/query/",
-        data=json.dumps({"query": query}).encode(),
-        headers={"Authorization": f"Bearer {KEY}", "Content-Type": "application/json"},
-        method="POST",
-    )
-    with urllib.request.urlopen(req) as r:
-        data = json.loads(r.read().decode())
-    results = data.get("results")
-    if results is None:
-        results = data.get("data", data)
-    if isinstance(results, list):
-        return len(results)
-    return 1 if results else 0
+def rows_for(query, attempts: int = 4):
+    """Row count for one query. The API drops connections intermittently, so a
+    failure is retried rather than reported as an empty tile."""
+    last = None
+    for _ in range(attempts):
+        try:
+            req = urllib.request.Request(
+                f"{BASE}/query/",
+                data=json.dumps({"query": query}).encode(),
+                headers={
+                    "Authorization": f"Bearer {KEY}",
+                    "Content-Type": "application/json",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=60) as r:
+                data = json.loads(r.read().decode())
+            results = data.get("results")
+            if results is None:
+                results = data.get("data", data)
+            if isinstance(results, list):
+                return len(results)
+            return 1 if results else 0
+        except Exception as e:  # noqa: BLE001
+            last = e
+            time.sleep(2)
+    raise last
 
 
 empty, failed = [], []

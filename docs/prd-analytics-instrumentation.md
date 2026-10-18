@@ -72,14 +72,13 @@ also injects them into the games drift check (`deploy.yml:94`).
 `public/games/` is served verbatim (not processed by Astro). Each of 10 SVG games plus the hub
 (`public/games/index.html`) embeds its own inline copy of the PostHog CDN loader, with the production
 token **hardcoded in 11 files** — deliberate, see REQ-A12. Until 2026-10-18 the games init omitted
-`defaults`, `session_recording` and `persistence` (so PostHog fell back to `localStorage+cookie` and
-set a first-party cookie); it now mirrors the site:
+`defaults`, `session_recording` and `persistence`; it now mirrors the site:
 
 ```js
 window.posthog.init(PH_KEY, {
   api_host: PH_HOST,
   defaults: '2026-05-30',
-  persistence: 'memory',
+  persistence: 'localStorage+cookie',
   capture_pageview: true,
   capture_pageleave: true,
   autocapture: true,
@@ -90,12 +89,16 @@ window.posthog.init(PH_KEY, {
 
 Two differences from the site remain, both accepted: the games still load `array.js` from
 `us-assets.i.posthog.com` (the site bundles `posthog-js`), so games pages pay a third-party
-request; and `persistence: 'memory'` means game sessions are not stitched across page views.
+request; and `persistence: 'localStorage+cookie'` sets the first-party `ph_<token>_posthog` cookie for
+365 days — the same posture as the main site, which §11 keeps deliberately. Game state is unaffected
+either way: streaks and best scores use the games' own `lsGet`/`lsSet` helpers, not PostHog persistence.
 
 Note on severity `[V]`: PostHog masks session-replay inputs by default
 (<https://posthog.com/docs/session-replay/privacy> — "As any input element is highly likely to contain
 sensitive text, we mask these by default"). The games config was therefore a **parity and hygiene**
-problem, not a live privacy breach — the cookie it set is now gone anyway.
+problem, not a live privacy breach. The stricter `persistence: 'memory'` option was considered and
+rejected on 2026-10-18 (see §5.12) in favour of site parity, so games and site share one attribution
+posture.
 
 ### 1.3 Current state — PostHog project `[V]`
 
@@ -113,13 +116,26 @@ Live query of `system.information_schema` / event schema on 2026-09-19:
 
 ### 1.4 Current state — saved artifacts `[V]`
 
-Dashboards:
+Dashboards — **13 non-deleted** on 2026-10-18 (`system.dashboards`), seven deleted:
 
-| id | Name | Note |
-|---|---|---|
-| `1994322` | Рекрутер | 3 tiles: Откуда пришли / Топ страниц / Funnel рекрутер→контакт |
-| `2024833` | Портфолио — аналитика | pageviews, top projects/posts, theme_change, lang_switched |
-| `1660826` | My App Dashboard | auto-generated starter; not portfolio-specific |
+| id | Name | Tiles | Note |
+|---|---|---|---|
+| `2226417` | 02 · Воронка: визит → проект → контакт | 6 | `DASHBOARDS_V2` |
+| `2226420` | 03 · Проекты и контент | 9 | `DASHBOARDS_V2` |
+| `2226421` | 04 · Персоны и CTA | 8 | `DASHBOARDS_V2` |
+| `2226422` | 05 · Здоровье аналитики | 7 | `DASHBOARDS_V2` |
+| `2226427` | 01 · Трафик и источники | 8 | `DASHBOARDS_V2` |
+| `1994322` | Рекрутер | 3 | legacy; hosts `zlXsA98W` |
+| `2024833` | Портфолио — аналитика | 5 | still `primary_dashboard` |
+| `2128846` | LLM — расход и токены | 4 | |
+| `2142402` | Контент и вовлечение | 6 | legacy; restates V2 `03` |
+| `2142403` | RU vs EN | 4 | legacy; restates V2 `04` |
+| `2142404` | Контакт-конверсия 30д | 4 | legacy; restates V2 `02` |
+| `2142405` | Games | 4 | legacy |
+| `2226380` | AI observability default | 9 | auto-created by PostHog 2026-10-18 |
+
+Deleted: `1660826` (My App Dashboard), `1994271`, `1994281`, `1994283`, `1994296`, `1994298`,
+`1994304`. The four legacy `2142402`–`2142405` dashboards are deletion candidates.
 
 Funnels and key insights:
 
@@ -259,7 +275,7 @@ source in the repo — `eng_analytics_test_census` and `analysis_completed` `[V]
 | Property | Source | Values |
 |---|---|---|
 | `locale` | path (`/en/…`) | `ru` \| `en` |
-| `audience` | `localStorage['audience']` | `recruiter` \| `peer` \| `curious` \| `null` |
+| `audience` | `localStorage['audience']` | `hr` \| `manager` \| `colleague` \| `null` — from `AUDIENCES` (`src/lib/projects.ts:24`); the `recruiter`/`peer`/`curious` literals in this section's earlier drafts never shipped |
 | `theme` | `localStorage` / `data-theme` | `dark` \| `light` \| `cyberpunk` |
 | `prefers_reduced_motion` | `matchMedia` | boolean |
 | `initial_referrer_class` | first-touch, normalized | `linkedin` \| `github` \| `google` \| `direct` \| `other` |
@@ -411,15 +427,18 @@ traffic with a green build. Keeping the literal keeps the secret as single sourc
 
 What was done instead:
 
-- Init aligned with the site: `defaults: '2026-05-30'`, `capture_pageview`, `capture_pageleave`,
-  `autocapture`, `capture_exceptions: true`, `session_recording: { maskAllInputs: true }`.
-- `persistence: 'memory'` added to all 11 inits. No consent gate exists anywhere in the repo, and the
-  default `localStorage+cookie` mode sets `ph_<token>_posthog` for 365 days; memory persistence scopes
-  storage to the page view. Game state is unaffected — streaks and best scores use the games' own
-  `lsGet`/`lsSet` localStorage helpers, not PostHog persistence.
+- Init aligned with the site: `defaults: '2026-05-30'`, `persistence: 'localStorage+cookie'`,
+  `capture_pageview`, `capture_pageleave`, `autocapture`, `capture_exceptions: true`,
+  `session_recording: { maskAllInputs: true }`.
+- **Decision 2026-10-18: site parity, not `persistence: 'memory'`.** No consent gate exists anywhere in
+  the repo and `localStorage+cookie` sets `ph_<token>_posthog` for 365 days, so `memory` would have been
+  the stricter option — but the funnel is the primary goal and §11 already accepts cookie persistence
+  for the site, so games and site share one attribution posture instead of diverging. Game state is
+  unaffected — streaks and best scores use the games' own `lsGet`/`lsSet` localStorage helpers, not
+  PostHog persistence.
 
 **Acceptance:** the `deploy.yml:88-107` drift check passes (`rc=0` across 11 files);
-`rg "persistence: 'memory'" public/games/` matches 11 files; the games init options match the ones
+`rg "localStorage\+cookie" public/games/` matches 11 files; the games init options match the ones
 listed in §1.2.
 
 ### 5.13 REQ-A13 — Artifacts reconciled
@@ -498,7 +517,7 @@ precondition.
 
 | Task | Work | Acceptance |
 |---|---|---|
-| A5.1 | **Rejected** 2026-10-18 — keeps the literals so the `deploy.yml` drift check stays meaningful. Instead: `persistence: 'memory'` + site-parity init across all 11 files. | `rg "persistence: 'memory'" public/games/` matches 11 files; drift check green. |
+| A5.1 | **Rejected** 2026-10-18 — keeps the literals so the `deploy.yml` drift check stays meaningful. Instead: `persistence: 'localStorage+cookie'` + site-parity init across all 11 files. | `rg "localStorage\+cookie" public/games/` matches 11 files; drift check green. |
 | A5.2 | **Dropped** — no postbuild injector while the literal token stays. | n/a |
 
 ### Phase A6 — PostHog artifacts
@@ -592,7 +611,11 @@ Run once after the first deploy that contains Phases A1–A3. Each line is pass/
 
 | Item | Status |
 |---|---|
-| `eng_analytics_test_census` — in the live schema, no source in the repo | `[V]` unexplained; investigate during A0.1, then annotate or ignore |
-| `analysis_completed` — in the live schema, no source in the repo | `[V]` unexplained; same as above |
+| `eng_analytics_test_census` — in the live schema, no source in the repo | `[V]` **explained 2026-10-18**: 46 events / 1 user over 90d, still flowing. Not the site — a separate pipeline writing into project `451732`; already grouped by the V2 tile «Мусорные события (свои пайплайны)». Keep |
+| `analysis_completed` — in the live schema, no source in the repo | `[V]` **explained 2026-10-18**: one event, fired 2026-08-28. One-off; no action |
 | `hero_cta_exposure` — historical data present, code removed | `[V]` leave historical data; remove only doc references (A7.2) |
 | PostHog retention window for `$ai_*` / LLM events | not relevant to this site; ignore |
+| 13 live dashboards vs. the 3 documented above | `[V]` 2026-10-18 — §1.4 now lists all 13; the legacy `2142402`–`2142405` set restates V2 and is a deletion candidate |
+| 36 of 38 V2 insights carry `filterTestAccounts: false` | `[V]` 2026-10-18 — `test_account_filters_default_checked` is `null`, so every V2 tile mixes the owner's own traffic with visitors'. Fix: default-check the cohort filter in project settings toggles, or set it per insight |
+| V2 tiles re-reference dead contact events | `[V]` 2026-10-18 — dashboards `02` (`See7a8LO`, `UlWlIfFB`, `SlwlMAdv`) use `telegram_contact` / `telegram_deeplink` / `linkedin_contact`, which `zlXsA98W` had explicitly dropped on 2026-10-12. Reconcile to `telegram_footer` / `linkedin_footer` / `github_footer` / `cv_download_pdf` |
+| `$exception` = 0 / 90d despite `capture_exceptions: true` and `autocapture_exceptions_opt_in: true` | `[NV]` 2026-10-18 — tile `AwMIg6fH` «Ошибки JS» (`2226422`) is structurally empty. Needs a live throw-test to separate "no errors occurred" from "errors are not ingested" |
