@@ -209,6 +209,15 @@
   --radius-xl: 16px;
   --radius-full: 9999px;
 
+  /* One card recipe for every repeated card unit — project, blog, dashboard
+     and gate (`tests/lib/card-recipe.test.ts`). The four had drifted into
+     24px/20px padding and 16px/12px radius with no reason behind either pair;
+     a reader moving from `/` to `/projects/` to `/writing/` saw three card
+     systems. Radius and padding are stated once here, so the next card cannot
+     invent a fourth. */
+  --card-padding: var(--space-6);
+  --card-radius: var(--radius-xl);
+
   /* Width budget for the right-hand CTA rail (Base.astro, ≥1860px). The nav is
      an off-canvas drawer at every width now, so this no longer offsets the
      content column — it only sizes the gutter the CTA rail needs. */
@@ -1700,8 +1709,8 @@ nav ul.links a[aria-current="page"] {
   flex-direction: column;
   background: var(--gradient-surface);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   position: relative;
   overflow: hidden;

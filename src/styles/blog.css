@@ -89,9 +89,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-5);
+  padding: var(--card-padding);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: var(--card-radius);
   background: var(--gradient-surface);
   text-decoration: none;
   position: relative;
