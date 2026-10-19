@@ -23,7 +23,7 @@ tools:
   - pytest
   - uv
 github: https://github.com/NikitaBoyarkin/churn-prediction
-updated: 2026-10-12
+updated: 2026-10-17
 date: 2026-09-18
 demo: demos/churn/index.html
 related:

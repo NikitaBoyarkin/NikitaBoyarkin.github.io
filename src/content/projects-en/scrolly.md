@@ -22,7 +22,7 @@ tools:
   - Tailwind v4
 github: https://github.com/NikitaBoyarkin/scrolly-english-speaking
 date: 2026-08-19
-updated: 2026-08-25
+updated: 2026-10-17
 demo: demos/scrolly/index.html
 related:
   - /projects/site/

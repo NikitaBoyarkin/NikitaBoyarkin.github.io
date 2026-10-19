@@ -21,7 +21,7 @@ tools:
   - CSS custom properties
 github: https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io
 date: 2026-08-11
-updated: 2026-09-20
+updated: 2026-10-18
 demo: demos/site/index.html
 related:
   - /projects/garden/

@@ -22,7 +22,7 @@ tools:
   - Playwright
 github: https://github.com/NikitaBoyarkin/browser-mini-games
 date: 2026-09-04
-updated: 2026-09-04
+updated: 2026-10-17
 demo: games/
 related:
   - /projects/ab/
