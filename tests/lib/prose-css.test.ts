@@ -30,7 +30,7 @@ import path from 'node:path';
  * on `.prose`; `.post-content` takes the wide frame as well.
  *
  * NOT bound here: the rendered result (does the heading actually look right,
- * is the measure actually ~75ch). That is «Verified by eye» in the PRD, not a test.
+ * is the measure actually ~66ch). That is «Verified by eye» in the PRD, not a test.
  */
 
 const ROOT = path.resolve(import.meta.dir, '../..');

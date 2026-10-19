@@ -26,6 +26,9 @@ tools:
   - uv + ruff
 github: https://github.com/NikitaBoyarkin/volta-banking
 updated: 2026-09-20
+bet: "KYC loss is form friction, not distrust: people leave because the flow is long. If distrust were the cause, splitting KYC into steps with a progress bar would have changed nothing."
+failureBar: "Declared before launch: ship only with significance, lift ≥ MDE +5pp and no SRM; after launch the effect had to hold in M3 retention, otherwise the fix only healed the funnel."
+retro: "The bet held after launch: M3 retention +9.09pp (95% CI [+6.21; +11.96]), flat pre-trends (p = 0.29–0.70), placebo ≈ 0. The effect did not dissolve across cohorts, so the decision stood."
 demo: demos/volta/index.html
 date: 2026-08-11
 faq:

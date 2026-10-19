@@ -28,26 +28,80 @@ export type Audience = (typeof AUDIENCES)[number];
 export const DEFAULT_AUDIENCE: Audience = 'colleague';
 
 /**
- * Project subset per role (PRD §7). Slugs must exist in `PROJECT_ORDER`; the
- * order inside a subset is this array's order, which is what the role page
- * renders — a shorter board, not a re-sorted one.
+ * Entry order per role. Slugs must exist in `PROJECT_ORDER`, and every role
+ * must list the WHOLE catalogue — a role is an angle on the portfolio, not a
+ * filter over it, so no version hides a project (2026-10-11).
  *
- * No role is curated any more (2026-10-11). A role is an angle on the
- * portfolio, not a filter over it, so no version hides a project. The key
- * survives as the one place the three roles are enumerated: `RoleLanding`
- * renders `hr` chronologically (`ProjectList.astro`, `groupByYear`) and hands
- * the key to `ProjectBoard` as its `slugs` prop for `manager`/`colleague` —
- * `PROJECT_ORDER` in all three cases, so nothing rots when a project is added.
+ * What changed on 2026-10-20: the angle is the *order*, not the copy. Until
+ * then all three roles read `PROJECT_ORDER`, so `/manager/` and `/colleague/`
+ * were the same board behind two different headings — a reader switching
+ * versions saw the same first card. Now:
+ *   - `hr`       reads the chronological list (`ProjectList` + `groupByYear`);
+ *   - `manager`  reads results first: the cases with a number to show lead;
+ *   - `colleague` reads method first: the toolkits and the causal work lead.
+ * `RoleLanding` passes the sequence to `ProjectBoard` with `ordered`, which
+ * keeps this order instead of regrouping by track. Membership is still the
+ * full catalogue, and `tests/lib/projects.test.ts` binds both invariants.
  *
  * Validity is bound by `tests/lib/projects.test.ts`, not by the type system:
  * `PROJECT_ORDER` is a plain `string[]`, and `as const` would force casts at
  * four call sites (`sortByProjectOrder`, `HeadlineCases.astro`, both
  * `projects/[slug].astro`) for a check a test covers more cheaply.
  */
+const RESULT_FIRST: readonly string[] = [
+  'volta',
+  'ab',
+  'cohort',
+  'rfm',
+  'churn',
+  'sql',
+  'causal',
+  'serp-rank',
+  'sales-calls',
+  'ml',
+  'rag',
+  'posthog',
+  'supabase',
+  'streamlit',
+  'airflow',
+  'bot',
+  'python',
+  'games',
+  'scrolly',
+  'garden',
+  'linkedin',
+  'site',
+];
+
+const METHOD_FIRST: readonly string[] = [
+  'ab',
+  'sql',
+  'causal',
+  'serp-rank',
+  'rag',
+  'cohort',
+  'rfm',
+  'churn',
+  'volta',
+  'ml',
+  'python',
+  'airflow',
+  'posthog',
+  'supabase',
+  'streamlit',
+  'sales-calls',
+  'games',
+  'scrolly',
+  'garden',
+  'linkedin',
+  'bot',
+  'site',
+];
+
 export const ROLE_CURATION: Record<Audience, readonly string[]> = {
   hr: PROJECT_ORDER,
-  manager: PROJECT_ORDER,
-  colleague: PROJECT_ORDER,
+  manager: RESULT_FIRST,
+  colleague: METHOD_FIRST,
 };
 
 /** Curated slugs for a role, in display order. */

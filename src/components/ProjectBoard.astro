@@ -10,8 +10,12 @@ interface Props {
   linkPrefix?: string;
   /** Role-landing subset: render only these slugs, in this order. */
   slugs?: readonly string[];
+  /** Keep the `slugs` order instead of regrouping by track. A role board is a
+   *  curated reading sequence; the full catalogue stays grouped so the track
+   *  filter still reads as a taxonomy. */
+  ordered?: boolean;
 }
-const { collection = 'projects', linkPrefix = '', slugs } = Astro.props;
+const { collection = 'projects', linkPrefix = '', slugs, ordered = false } = Astro.props;
 const lang: 'ru' | 'en' = linkPrefix.startsWith('en/') ? 'en' : 'ru';
 
 const all = sortByProjectOrder(await getCollection(collection, (p) => !p.data.draft));
@@ -29,10 +33,17 @@ const projects = slugs
 // One flat grid, cards grouped track by track. The track is a badge on the card,
 // not a section heading — the card carries `data-track` so the controller can
 // filter and reorder within it.
-const entries = flattenByTrack(
-  projects.map((project) => ({ ...project, track: project.data.track })),
-  lang,
-);
+const trackLabels = new Map(projectTracks(lang).map((track) => [track.key, track.label]));
+const entries =
+  ordered && slugs
+    ? projects.map((project) => ({
+        project,
+        trackLabel: trackLabels.get(project.data.track) ?? project.data.track,
+      }))
+    : flattenByTrack(
+        projects.map((project) => ({ ...project, track: project.data.track })),
+        lang,
+      );
 const counts = trackCounts(
   projects.map((project) => ({ track: project.data.track })),
   lang,
@@ -86,7 +97,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
           lang={lang}
           track={project.data.track}
           trackLabel={trackLabel}
-          draggable
+          draggable={!ordered}
           compact
         />
       ))

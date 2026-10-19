@@ -209,8 +209,8 @@ export const DASHBOARD_COPY: Record<
 > = {
   ru: {
     heading: 'Всё на сайте',
-    lead: 'Восемь входов и честные счётчики — отсюда достижима любая страница.',
-    surfacesTitle: 'Поверхности',
+    lead: 'Проекты, статьи, словарь и демо — с честными счётчиками.',
+    surfacesTitle: 'Разделы',
     metricsTitle: 'В цифрах',
     empty: 'Пока пусто.',
     seeAll: (n) => `Все ${n} →`,
@@ -230,15 +230,15 @@ export const DASHBOARD_COPY: Record<
       topics: { title: 'Темы', desc: 'Таксономия навыков: от SQL до metric design.' },
       tools: {
         title: 'Инструменты и демо',
-        desc: 'Интерактивные приложения. Ни одна другая страница сайта их не показывает.',
+        desc: 'Интерактивные приложения — открыть и потрогать.',
       },
       about: { title: 'Обо мне', desc: 'Кто это, CV и как связаться.' },
     },
   },
   en: {
     heading: 'Everything on the site',
-    lead: 'Eight entries and honest counters — every page is reachable from here.',
-    surfacesTitle: 'Surfaces',
+    lead: 'Projects, posts, glossary and demos — with honest counters.',
+    surfacesTitle: 'Sections',
     metricsTitle: 'In numbers',
     empty: 'Nothing here yet.',
     seeAll: (n) => `All ${n} →`,
@@ -258,7 +258,7 @@ export const DASHBOARD_COPY: Record<
       topics: { title: 'Topics', desc: 'Skill taxonomy: from SQL to metric design.' },
       tools: {
         title: 'Tools & demos',
-        desc: 'Interactive apps. No other page on the site surfaces them.',
+        desc: 'Interactive apps you can open and try.',
       },
       about: { title: 'About', desc: 'Who this is, the CV, and how to get in touch.' },
     },

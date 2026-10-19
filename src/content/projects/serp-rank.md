@@ -25,6 +25,11 @@ tools:
 github: https://github.com/NikitaBoyarkin/serp-rank-lab
 date: 2026-10-11
 updated: 2026-10-11
+bet: "Офлайн-NDCG — плохой релизный гейт: политика, которая выигрывает релевантность, может проигрывать деньги. Если бы NDCG и revenue per search шли в одну сторону, гейт можно было бы оставить на офлайн-скоре."
+rejected:
+  - option: "Relevance-first: максимизировать NDCG@10"
+    why: "Политика набирает клики и держит NDCG@10 = 1.000, но зарабатывает меньше за поиск."
+    cost: "Выбор revenue-first стоит 6,8% NDCG@10 (1.000 → 0.932) — это цена, которую платит релевантность выдачи."
 demo: demos/serp-rank/index.html
 related:
   - /projects/volta/

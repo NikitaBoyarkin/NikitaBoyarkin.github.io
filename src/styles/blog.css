@@ -268,7 +268,7 @@ button.blog-card-tag:hover {
   /* The page frame for a post/term — now the site-wide wide frame, so the
      header, related list and prev/next share the same edge as every other page.
      The reading measure itself stays on the prose body (`.post-body.prose`,
-     set by prose.css), so paragraphs remain ~75ch. `font-size` is still set
+     set by prose.css), so paragraphs remain ~66ch. `font-size` is still set
      here because `ch` resolves against an element's own size. */
   max-width: var(--content-max);
   font-size: var(--prose-size);

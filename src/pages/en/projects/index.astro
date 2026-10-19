@@ -3,13 +3,20 @@ import { getCollection } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import ProjectBoard from '../../../components/ProjectBoard.astro';
 import { withBase } from '../../../lib/path';
-import { sortByProjectOrder } from '../../../lib/projects';
+import { HEADLINE_PROJECTS, sortByProjectOrder, stripExt } from '../../../lib/projects';
 
 // Catalog-level rich result: the board is a list of projects, so it earns a
 // CollectionPage + ItemList. Positions follow the board's visible order
 // (PROJECT_ORDER via sortByProjectOrder) so the markup matches what renders.
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
 const projects = sortByProjectOrder(await getCollection('projects-en', (p) => !p.data.draft));
+
+// Entry point above the board: the three headline cases (PRD v6 S2.6) get a
+// named strip instead of ranking 4th–11th among 22 equal cards. Links only —
+// full cards would duplicate the board that sits right below.
+const headline = HEADLINE_PROJECTS.map((slug) =>
+  projects.find((project) => stripExt(project.id) === slug),
+).filter((project): project is (typeof projects)[number] => Boolean(project));
 const collectionJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
@@ -41,9 +48,103 @@ const collectionJsonLd = {
     <h1 class="page-title reveal">Projects</h1>
 
     <p class="reveal page-intro">
-      Pick a category and a tool — drag a card (or use ↑/↓) to reorder.
+      Product analytics case studies: A/B tests, retention, segmentation, dashboards. Filter by category and stack.
     </p>
+
+    <nav class="headline-strip reveal" aria-labelledby="headline-heading">
+      <h2 id="headline-heading" class="headline-strip-title">Where to start</h2>
+      <ol class="headline-strip-list">
+        {
+          headline.map((project, index) => (
+            <li>
+              <a
+                class="headline-strip-item"
+                href={withBase(`en/projects/${project.id.replace(/\.md$/, '')}/`)}
+              >
+                <span class="headline-strip-rank" aria-hidden="true">
+                  0{index + 1}
+                </span>
+                <span class="headline-strip-body">
+                  <span class="headline-strip-name">{project.data.title}</span>
+                  <span class="headline-strip-desc">
+                    {project.data.star?.result ?? project.data.description}
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
 
     <ProjectBoard collection="projects-en" linkPrefix="en/" />
   </div>
 </Base>
+
+<style>
+  .headline-strip {
+    margin: var(--space-8) 0 var(--space-6);
+  }
+
+  .headline-strip-title {
+    margin-bottom: var(--space-3);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .headline-strip-list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 860px) {
+    .headline-strip-list {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .headline-strip-item {
+    display: flex;
+    gap: var(--space-3);
+    height: 100%;
+    padding: var(--space-4);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background-color: var(--card-background);
+    color: var(--text-normal);
+    text-decoration: none;
+  }
+
+  .headline-strip-item:hover,
+  .headline-strip-item:focus-visible {
+    border-color: var(--text-accent);
+  }
+
+  .headline-strip-rank {
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+  }
+
+  .headline-strip-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .headline-strip-name {
+    font-weight: 600;
+  }
+
+  .headline-strip-desc {
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: var(--text-muted);
+  }
+</style>

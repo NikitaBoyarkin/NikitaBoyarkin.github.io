@@ -44,6 +44,16 @@ const projectSchema = z.object({
    *  hero must NOT go here — og:image consumers do not render SVG. */
   ogImage: z.string().optional(),
   faq: z.array(z.object({ question: z.string(), answer: z.string() })).default([]),
+  /** The judgement behind the case, rendered by `DecisionBlock` above it.
+   *  Optional on purpose: a toolkit or a coursework build made no product
+   *  decision, and a fabricated bet is worse than an absent one. See
+   *  `src/components/DecisionBlock.astro` for the four labels. */
+  bet: z.string().optional(),
+  failureBar: z.string().optional(),
+  rejected: z
+    .array(z.object({ option: z.string(), why: z.string(), cost: z.string() }))
+    .default([]),
+  retro: z.string().optional(),
   draft: z.boolean().default(false),
   private: z.boolean().default(false),
 });

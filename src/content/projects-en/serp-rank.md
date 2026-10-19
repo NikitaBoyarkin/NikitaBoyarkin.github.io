@@ -25,6 +25,11 @@ tools:
 github: https://github.com/NikitaBoyarkin/serp-rank-lab
 date: 2026-10-11
 updated: 2026-10-11
+bet: "Offline NDCG is a bad release gate: the policy that wins relevance can lose money. If NDCG and revenue per search moved together, the offline score could stay the gate."
+rejected:
+  - option: "Relevance-first: maximise NDCG@10"
+    why: "It wins clicks and holds NDCG@10 = 1.000, but earns less per search."
+    cost: "Choosing revenue-first costs 6.8% of NDCG@10 (1.000 → 0.932) — that is the price relevance pays."
 demo: demos/serp-rank/index.html
 related:
   - /projects/volta/

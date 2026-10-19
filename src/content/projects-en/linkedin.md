@@ -25,6 +25,9 @@ github: https://github.com/NikitaBoyarkin/linkedin-nikita-boyarkin
 date: 2026-10-11
 updated: 2026-10-11
 private: true
+bet: "Formats can be ranked rather than described: if the difference is real, per-post confidence intervals will show it."
+failureBar: "The standard was set in advance: overlapping 95% intervals mean the difference is not established, and that cut is reported as noise rather than as a place in a ranking."
+retro: "After the analysis a date-merge bug surfaced: two posts on 2026-09-13 collapsed into one (48 paired instead of the correct 49), and nothing went red. The parser core is now single and a test holds the invariant."
 demo: demos/linkedin/index.html
 related:
   - /projects/posthog/

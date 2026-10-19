@@ -187,16 +187,19 @@ describe('ROLE_CURATION', () => {
     }
   });
 
-  it('reads the whole catalogue for every role', () => {
-    // No role is curated any more. HR stopped being a 5–6 slug subset when its
-    // landing moved to a chronological list (`ProjectList` + `groupByYear`); the
-    // manager stopped being an 8–10 one on 2026-10-11. All three landings now
-    // read the whole catalogue — HR as a list, the other two as the board. The
-    // claim moved with the behaviour instead of being deleted, so reintroducing
-    // a subset turns this red.
+  it('keeps every project on every role landing — only the entry order differs', () => {
+    // A role is an angle, not a filter (2026-10-11): nothing may be hidden. The
+    // angle is the order a reader meets the work in (2026-10-20): a manager
+    // starts at the cases with a result, a colleague at the method toolkits.
+    // Both invariants are asserted here — reintroducing a subset turns the
+    // first red, collapsing the orders back into one turns the second red.
     for (const role of AUDIENCES) {
-      expect(ROLE_CURATION[role], `${role} is still curated`).toEqual(PROJECT_ORDER);
+      const curated = [...ROLE_CURATION[role]].sort();
+      expect(curated, `${role} hides a project`).toEqual([...PROJECT_ORDER].sort());
     }
+    expect(ROLE_CURATION.manager, 'manager and colleague read the same order').not.toEqual(
+      ROLE_CURATION.colleague,
+    );
   });
 
   it('gives every role a copy entry in both locales', () => {

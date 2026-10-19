@@ -93,18 +93,38 @@ jobs:
         env:
           PUBLIC_POSTHOG_KEY: ${{ secrets.PUBLIC_POSTHOG_KEY }}
         run: |
+          # A missing secret must fail, not skip: the site build injects the same
+          # variable, so an absent secret means the deploy would ship with no
+          # analytics at all. Exiting 0 here hides exactly that.
           if [ -z "$PUBLIC_POSTHOG_KEY" ]; then
-            echo "skip: PUBLIC_POSTHOG_KEY secret not available"
-            exit 0
+            echo "::error::PUBLIC_POSTHOG_KEY is not set — the drift check cannot run, and the build would ship without analytics"
+            exit 1
           fi
-          status=0
-          for f in $(grep -rlE 'phc_[A-Za-z0-9]{20,}' public/games/); do
+
+          # Iterate the expected set (the glob), not "files that happen to contain
+          # a token": the old version only inspected files that still had one, so
+          # a game that lost its token entirely was invisible and the build
+          # stayed green. `find -print0` + `read -d ''` is portable, unlike
+          # `grep -Z`, whose NUL output some greps silently downgrade to newlines.
+          rc=0
+          count=0
+          while IFS= read -r -d '' f; do
+            count=$((count + 1))
             if ! grep -q "$PUBLIC_POSTHOG_KEY" "$f"; then
-              echo "drift: $f hardcodes a capture key that differs from PUBLIC_POSTHOG_KEY"
-              status=1
+              echo "::error::$f does not carry PUBLIC_POSTHOG_KEY — a rotated secret or a lost token would silently change where this game reports"
+              rc=1
             fi
-          done
-          exit $status
+          done < <(find public/games -maxdepth 1 -type f \( -name '*.svg' -o -name 'index.html' \) -print0)
+
+          # Degenerate case: if the glob matched nothing the guard verified
+          # nothing, which must not read as success.
+          if [ "$count" -eq 0 ]; then
+            echo "::error::no games files found under public/games/ — the drift check verified nothing"
+            rc=1
+          fi
+
+          echo "checked $count file(s) under public/games/ against PUBLIC_POSTHOG_KEY"
+          exit $rc
 
       - name: Setup uv (Volta board CSV materialisation)
         # The board's `volta` source reads data/charts/funnel.csv, which

@@ -4,6 +4,7 @@ import Base from '../../layouts/Base.astro';
 import InnerTOC from '../../components/InnerTOC.astro';
 import InlineTOC from '../../components/InlineTOC.astro';
 import StarBlock from '../../components/StarBlock.astro';
+import DecisionBlock from '../../components/DecisionBlock.astro';
 import ProjectDemo from '../../components/ProjectDemo.astro';
 
 import ProjectGraph from '../../components/ProjectGraph.astro';
@@ -196,6 +197,14 @@ const pageJsonLd = {
         />
       )
     }
+
+    <DecisionBlock
+      bet={project.data.bet}
+      failureBar={project.data.failureBar}
+      rejected={project.data.rejected}
+      retro={project.data.retro}
+      lang="ru"
+    />
 
     <div class="project-meta">{project.data.star && (
         <div class="project-meta-group project-meta-star">
