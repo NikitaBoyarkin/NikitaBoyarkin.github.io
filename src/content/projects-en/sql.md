@@ -24,7 +24,7 @@ tools:
   - pytest
 github: https://github.com/NikitaBoyarkin/sql-analytics-case-study
 date: 2026-08-11
-updated: 2026-09-19
+updated: 2026-10-17
 demo: demos/sql/index.html
 faq:
   - question: "What data do the cases run on?"

@@ -21,7 +21,7 @@ tools:
   - pytest
   - uv
 github: https://github.com/NikitaBoyarkin/python
-updated: 2026-09-03
+updated: 2026-10-17
 date: 2026-09-03
 demo: demos/python/index.html
 related:

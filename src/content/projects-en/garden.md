@@ -22,7 +22,7 @@ tools:
   - Obsidian
 github: https://github.com/NikitaBoyarkin/digital_garden
 date: 2026-08-11
-updated: 2026-10-12
+updated: 2026-08-12
 demo: demos/garden/index.html
 related:
   - /projects/site/
