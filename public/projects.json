@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T21:40:21.454Z",
+  "generated_at": "2026-10-20T13:22:20.988Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -235,8 +235,8 @@
       "track": "analytics",
       "title": "SERP Rank Lab",
       "title_en": "SERP Rank Lab",
-      "description": "Лаборатория аналитики выдачи метапоиска: позиционное смещение правит IPW, NDCG и revenue per search расходятся, а всегда-валидный mSPRT держит false-positive rate ниже фиксированного горизонта.",
-      "description_en": "Metasearch SERP analytics lab: inverse-propensity weighting corrects position bias, NDCG and revenue per search disagree, and always-valid mSPRT holds the false-positive rate under repeated looks.",
+      "description": "Две политики на одном информационном множестве: деньги дают +34.45% выручки на поиск за −16.84% CTR, а раскатка по user_id — −14.26% и вердикт «не катим».",
+      "description_en": "Two policies on one information set: money buys +34.45% revenue per search for −16.84% CTR, while the user_id rollout returns −14.26% and a do-not-ship verdict.",
       "tools": [
         "Python",
         "DuckDB",
