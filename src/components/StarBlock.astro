@@ -6,12 +6,15 @@
  *
  * Renders nothing when `star` is absent, so the legacy «Эффект» / `Impact` line stays
  * the fallback until every file carries STAR — and remains the unreachable defence
- * afterwards.
+ * afterwards. It also renders nothing when a card asks for no preview
+ * (`preview: 'none'`), which hands that card's body back to its `description`.
  *
  * Styles live in src/styles/global.css, not a scoped block: five surfaces consume it
  * and the `.project-meta` grid needs the `.project-meta-star` modifier applied from
  * the outside.
  */
+import type { StarPreview } from '../lib/projects';
+
 interface Star {
   situation: string;
   task: string;
@@ -22,11 +25,14 @@ interface Star {
 interface Props {
   star?: Star;
   lang?: 'ru' | 'en';
-  /** Tighter, line-clamped variant used by ProjectCard. */
+  /** Card preview: renders a subset of the rows, not all four. */
   compact?: boolean;
+  /** Which rows the card preview keeps, or `none` to suppress the block on a
+   *  card entirely. Ignored unless `compact`. */
+  preview?: StarPreview;
 }
 
-const { star, lang = 'ru', compact = false } = Astro.props;
+const { star, lang = 'ru', compact = false, preview = 'result' } = Astro.props;
 const isEn = lang === 'en';
 
 const labels = isEn
@@ -34,15 +40,29 @@ const labels = isEn
   : { situation: 'Ситуация', task: 'Задача', action: 'Действия', result: 'Результат' };
 
 const KEYS = ['situation', 'task', 'action', 'result'] as const;
+
+// A card preview is a teaser, not a dossier: the four rows earn their space on
+// the project page, where the reader has already committed to the case.
+//
+// `result` alone is the outcome-first teaser (board index, colleague landing).
+// `task-result` is the manager landing: that reader judges a case as
+// "what was asked → what moved", and a Result with no Task in front of it is an
+// unfalsifiable claim. Situation and Actions still stay on the page — they are
+// the method, not the answer.
+const PREVIEW_KEYS: Record<Exclude<StarPreview, 'none'>, readonly (typeof KEYS)[number][]> = {
+  result: ['result'],
+  'task-result': ['task', 'result'],
+};
+const keys = compact && preview !== 'none' ? PREVIEW_KEYS[preview] : KEYS;
 ---
 
 {
-  star && (
+  star && preview !== 'none' && (
     <dl class:list={['star', compact && 'star-compact']}>
-      {KEYS.map((key) => (
+      {keys.map((key) => (
         <div class="star-row" data-star={key}>
           <dt class="star-label">{labels[key]}</dt>
-          <dd class="star-value">{star[key]}</dd>
+          <dd class="star-value" title={star[key]}>{star[key]}</dd>
         </div>
       ))}
     </dl>

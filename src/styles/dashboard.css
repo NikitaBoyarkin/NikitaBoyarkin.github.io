@@ -104,11 +104,13 @@
 
 /* Micro-label for the rail's two groups and the card counts. Uppercase, muted,
    generous tracking — the same register as the explorer's facet titles. */
+/* 0.68rem sat below the 0.72rem micro-label floor DESIGN.md sets, and at
+   0.12em its tracking was the widest on the site. */
 .dash-sub {
   margin: 0 0 var(--space-3);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -263,9 +265,9 @@
 
 .dash-card-desc {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--text-body);
   line-height: 1.5;
-  color: var(--text-muted);
+  color: var(--text-normal);
 }
 
 /* Pushed to the bottom so cards of unequal row counts share a baseline. It is

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { computeTopicRows, groupRowsByLevel, TOPICS } from '../../src/lib/topics';
+import { computeTopicRows, groupRowsByLevel, TOPICS, projectMatchesTopic } from '../../src/lib/topics';
 
 const post = (tags: string[]) => ({
   id: 'x.md',
@@ -36,6 +36,26 @@ describe('computeTopicRows', () => {
     const rows = computeTopicRows([], [project('volta', { description: 'retention funnel segmentation' })]);
     expect(rows.find((r) => r.key === 'retention')?.count).toBe(1);
     expect(rows.find((r) => r.key === 'segmentation')?.count).toBe(1);
+  });
+
+  it('counts a post once per topic even when it carries several of its tags', () => {
+    // `ab-testing` matches ab-testing, bayesian and statistics — the same post.
+    const rows = computeTopicRows([post(['ab-testing', 'bayesian', 'statistics'])], []);
+    expect(rows.find((r) => r.key === 'ab-testing')?.count).toBe(1);
+  });
+
+  it('project count agrees with the predicate the topic page renders with', () => {
+    const projects = [
+      project('volta', { description: 'retention funnel segmentation' }),
+      project('ab', { title: 'A/B testing toolkit', description: 'CUPED and mSPRT' }),
+      project('sql', { tools: ['SQL'] }),
+    ];
+    const rows = computeTopicRows([], projects);
+    for (const topic of TOPICS) {
+      const expected = projects.filter((p) => projectMatchesTopic(topic, p)).length;
+      const count = rows.find((r) => r.key === topic.key)?.count ?? 0;
+      expect({ key: topic.key, count }).toEqual({ key: topic.key, count: expected });
+    }
   });
 
   it('sorts rows by count desc', () => {

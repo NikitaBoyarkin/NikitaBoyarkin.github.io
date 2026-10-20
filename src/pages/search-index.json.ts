@@ -3,9 +3,10 @@
 // filters client-side — no backend, no runtime dependency.
 import { getCollection } from "astro:content";
 import { withBase } from "../lib/path";
+import { TOPICS } from "../lib/topics";
 
 interface Entry {
-  type: "project" | "post" | "term" | "source";
+  type: "project" | "part" | "post" | "term" | "source" | "topic";
   locale: "ru" | "en";
   title: string;
   desc: string;
@@ -26,6 +27,8 @@ export async function GET() {
   const [
     ruProjects,
     enProjects,
+    ruParts,
+    enParts,
     posts,
     enPosts,
     glossaryTerms,
@@ -35,6 +38,8 @@ export async function GET() {
   ] = await Promise.all([
     getCollection("projects", (p) => !p.data.draft),
     getCollection("projects-en", (p) => !p.data.draft),
+    getCollection("volta-parts", (p) => !p.data.draft),
+    getCollection("volta-parts-en", (p) => !p.data.draft),
     getCollection("posts", (p) => !p.data.draft),
     getCollection("posts-en", (p) => !p.data.draft),
     getCollection("glossary", (p) => !p.data.draft),
@@ -44,6 +49,20 @@ export async function GET() {
   ]);
 
   const entries: Entry[] = [
+    // Topic hubs. Ten indexable pages whose whole purpose is to collect content
+    // by subject — and search could not find them, so a reader who typed
+    // "retention" never saw the page built for exactly that query.
+    ...TOPICS.map<Entry>((t) => ({
+      type: "topic",
+      locale: "ru",
+      title: t.label,
+      desc: t.blurb,
+      tags: t.tags,
+      tools: [],
+      href: withBase(`topics/${t.key}/`),
+      date: null,
+      image: null,
+    })),
     ...ruProjects.map<Entry>((p) => ({
       type: "project",
       locale: "ru",
@@ -65,6 +84,32 @@ export async function GET() {
       href: withBase(`en/projects/${slugOf(p.id)}/`),
       date: null,
       image: p.data.hero ? withBase(p.data.hero) : null,
+    })),
+    // Volta sub-parts (23 RU + 23 EN). These are full project pages with their
+    // own routes, and they are the deepest content on the site; omitting them
+    // meant site search could not reach the flagship case's method pages at all.
+    // The route param is `part.data.part`, not the file name.
+    ...ruParts.map<Entry>((p) => ({
+      type: "part",
+      locale: "ru",
+      title: p.data.title,
+      desc: p.data.description,
+      tags: [],
+      tools: p.data.tools ?? [],
+      href: withBase(`projects/volta/${p.data.part}/`),
+      date: null,
+      image: null,
+    })),
+    ...enParts.map<Entry>((p) => ({
+      type: "part",
+      locale: "en",
+      title: p.data.title,
+      desc: p.data.description,
+      tags: [],
+      tools: p.data.tools ?? [],
+      href: withBase(`en/projects/volta/${p.data.part}/`),
+      date: null,
+      image: null,
     })),
     ...posts.map<Entry>((p) => ({
       type: "post",

@@ -64,6 +64,10 @@ interface Props {
    *  run edge to edge. Unlike `canvasFullBleed` it locks nothing — the document
    *  still scrolls. Only `/graph/` and `/en/graph/` pass it. */
   bleed?: boolean;
+  /** Keep the page out of search indexes. Emitted in `<head>` — a `robots` meta
+   *  rendered from a body slot is ignored by crawlers, which is how /404/ was
+   *  indexable despite carrying one. */
+  noindex?: boolean;
 }
 
 const {
@@ -84,6 +88,7 @@ const {
   showCtaRail = false,
   canvasFullBleed = false,
   bleed = false,
+  noindex = false,
 } = Astro.props;
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
@@ -310,6 +315,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={metaDescription} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     {keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
     {canonical && <link rel="canonical" href={pageUrl} />}
     {relPrev && <link rel="prev" href={relPrev} />}
@@ -791,7 +797,11 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         links.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
         scrim?.addEventListener('click', () => setOpen(false));
         document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') setOpen(false);
+          // A nested panel (search) handles Escape itself and calls
+          // preventDefault. Closing the drawer underneath it left that panel
+          // open behind a scrim, announcing aria-expanded="true" on a widget
+          // nobody could reach.
+          if (e.key === 'Escape' && !e.defaultPrevented && isOpen()) setOpen(false);
         });
         syncInert();
       })();

@@ -148,7 +148,7 @@ const fmt = (v: number, d: number) => formatNumber(v, d || undefined, lang);
     font-size: 0.75rem;
     color: var(--text-muted);
     max-width: 12ch;
-    line-height: 1.35;
+    line-height: 1.4;
   }
   /* Honesty caveat: the KYC/euro figures come from a synthetic-data case
      study, and a recruiter must be able to see that without scrolling. */
@@ -156,7 +156,6 @@ const fmt = (v: number, d: number) => formatNumber(v, d || undefined, lang);
     margin-top: var(--space-2);
     font-size: 0.72rem;
     color: var(--text-muted);
-    opacity: 0.85;
   }
 
   @media (max-width: 640px) {

@@ -1972,8 +1972,10 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   }
   /* Only the off state is signalled. Tinting every checked chip made a dozen of
      them read as "selected", competing with the accent-filled preset chip. */
+  /* 0.5 on an interactive label dropped it to 4.08:1; 0.75 keeps the off state
+     legible (6.2:1) while the dashed border still carries the signal. */
   .kg-legend-item:has(input:not(:checked)) {
-    opacity: 0.5;
+    opacity: 0.75;
     border-style: dashed;
   }
   .kg-legend-item:has(input:focus-visible) {

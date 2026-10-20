@@ -168,10 +168,10 @@ export const ROLE_CURATION: Record<'hr' | 'manager' | 'colleague', string[]> = {
 | Блок | HR | Менеджер | Коллега |
 |---|---|---|---|
 | Компакт-hero + кнопка **CV/скачать** | ✅ сразу | — | — |
-| Кейсы STAR (`star{}`, `impact[]`) — `StarBlock` | — | ✅ полные | ✅ |
+| Кейсы STAR (`star{}`, `impact[]`) — `StarBlock` | ✅ полные четыре строки (`ProjectList`) | ✅ Задача → Результат на карточке (`starPreview="task-result"`) | ✅ Результат на карточке (`starPreview="result"`) |
 | Метрики — `HeroMetrics` | ✅ | ✅ | ✅ |
-| Проекты | весь каталог — список по годам (`ProjectList`) | весь каталог — доска (`ProjectBoard`) | весь каталог — доска (`ProjectBoard`) |
-| Стек / инструменты (bento) | ✅ | ✅ | ✅ |
+| Проекты | весь каталог — список по годам, с табами категорий и чипами инструментов (`ProjectList filterable`) | весь каталог — доска (`ProjectBoard`) | весь каталог — плоский список в порядке метода, по строке `description`, с теми же фильтрами (`ProjectList variant="summary" filterable`) |
+| Стек / инструменты (bento) | ✅ | — (сразу к кейсам) | ✅ |
 | Граф знаний — `KnowledgeGraph`, GitHub — `GithubActivity` | — | — | ✅ |
 | Библиография / notes / library | — | — | ✅ |
 | Контакты — `ContactForm` | — (футер) | — (футер) | — (футер) |

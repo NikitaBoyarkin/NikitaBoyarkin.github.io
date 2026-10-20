@@ -72,13 +72,16 @@ export function layoutGraph(graph: GraphData, opts: LayoutOptions = {}): GraphDa
       n.y = gy + Math.sin(a) * r;
     });
   });
-  let coreI = 0;
-  for (const n of nodes) {
-    if (!n.core) continue;
-    const a = (coreI++ / 2) * 2 * Math.PI;
+  // Core nodes (projects / posts / glossary) sit on an inner ring. The divisor
+  // must be the number of cores: with a hardcoded 2, a third core landed on
+  // 2π — exactly on top of the first — and zero separation means the repulsion
+  // force can never pull them apart afterwards.
+  const cores = nodes.filter((n) => n.core);
+  cores.forEach((n, i) => {
+    const a = (i / Math.max(1, cores.length)) * 2 * Math.PI;
     n.x = cx + Math.cos(a) * 42;
     n.y = cy + Math.sin(a) * 42;
-  }
+  });
 
   // --- Resolve links to node indices (drop dangling edges defensively).
   const indexOf = new Map(nodes.map((n, i) => [n.id, i]));

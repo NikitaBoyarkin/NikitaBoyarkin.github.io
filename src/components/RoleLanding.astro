@@ -59,7 +59,12 @@ const t = {
       <h1 class="hero-name">{copy.h1}</h1>
       <p class="hero-pitch">{copy.lead}</p>
 
-      <StackCard lang={lang} />
+      {/* The stack mosaic is a screening signal — the HR reader matches it against
+          a vacancy, and the colleague reader wants the toolchain. A manager reads
+          impact and decisions (`ROLE_COPY.manager`), so `/manager/` opens straight
+          from the pitch into the cases: the mosaic plus its "All projects →" exit
+          were a detour between the promise and the proof. */}
+      {role !== 'manager' && <StackCard lang={lang} />}
     </div>
 
     {isColleague && (
@@ -122,18 +127,38 @@ const t = {
   </div>
 </section>
 
-{/* HR reads the whole catalogue as a list grouped by year — a screening reader
-    wants the timeline, not a curated grid. A manager and a colleague read the
-    board, curated per role, with the STAR skeleton `ProjectCard` renders
-    whenever `star` is present. */}
-{role === 'hr' ? (
-  <ProjectList collection={collection as 'projects' | 'projects-en'} linkPrefix={linkPrefix} />
-) : (
+{/* Two readers, two shapes:
+      - HR reads a list grouped by year — a screening reader wants the timeline
+        — and each row carries the full STAR skeleton (Situation → Task →
+        Actions → Result), because that reader is judging the reasoning. The
+        category + tool filters let that reader narrow the timeline to a vacancy:
+        the stack is the screening signal, the category is the follow-up.
+      - The colleague reads a flat list in the curated method-first order, each
+        row one `description` line, with the same filter bar over it.
+      - The manager reads the board, each card previewing Task → Result.
+    The board is the manager's alone now; the list is shared by the two lanes
+    that read a sequence (`ProjectList`). */}
+{role === 'manager' ? (
   <ProjectBoard
     collection={collection as 'projects' | 'projects-en'}
     linkPrefix={linkPrefix}
-    slugs={ROLE_CURATION[role]}
+    slugs={ROLE_CURATION.manager}
     ordered
+    starPreview="task-result"
+  />
+) : role === 'hr' ? (
+  <ProjectList
+    collection={collection as 'projects' | 'projects-en'}
+    linkPrefix={linkPrefix}
+    filterable
+  />
+) : (
+  <ProjectList
+    collection={collection as 'projects' | 'projects-en'}
+    linkPrefix={linkPrefix}
+    variant="summary"
+    order={ROLE_CURATION.colleague}
+    filterable
   />
 )}
 

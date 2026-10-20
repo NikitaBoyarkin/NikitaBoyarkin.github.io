@@ -4,6 +4,7 @@ import ProjectCard from './ProjectCard.astro';
 import ProjectFilter from './ProjectFilter.astro';
 import ProjectTrackFilter from './ProjectTrackFilter.astro';
 import { flattenByTrack, projectTracks, sortByProjectOrder, stripExt, trackCounts } from '../lib/projects';
+import type { StarPreview } from '../lib/projects';
 
 interface Props {
   collection?: 'projects' | 'projects-en';
@@ -14,8 +15,16 @@ interface Props {
    *  curated reading sequence; the full catalogue stays grouped so the track
    *  filter still reads as a taxonomy. */
   ordered?: boolean;
+  /** Card teaser rows: `result` (outcome only), `task-result` (the manager
+   *  landing, which reads a case as brief → outcome) or `none` (no STAR — the
+   *  card shows its `description`; the catalogue board). */
+  starPreview?: StarPreview;
+  /** Show the card cover above the body at every width. `/projects/` reads as a
+   *  catalogue, so the cover is the preview; the role boards keep the horizontal
+   *  cover the board's CSS gives them (hidden at ≥1140px to buy width for STAR). */
+  cover?: boolean;
 }
-const { collection = 'projects', linkPrefix = '', slugs, ordered = false } = Astro.props;
+const { collection = 'projects', linkPrefix = '', slugs, ordered = false, starPreview = 'result', cover = false } = Astro.props;
 const lang: 'ru' | 'en' = linkPrefix.startsWith('en/') ? 'en' : 'ru';
 
 const all = sortByProjectOrder(await getCollection(collection, (p) => !p.data.draft));
@@ -79,7 +88,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
       : 'В этой категории нет проектов с этим инструментом.'}
   </p>
 
-  <div id="project-list" class="project-track-grid">
+  <div id="project-list" class:list={['project-track-grid', cover && 'project-board-cover']}>
     {
       entries.map(({ project, trackLabel }) => (
         <ProjectCard
@@ -99,6 +108,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
           trackLabel={trackLabel}
           draggable={!ordered}
           compact
+          starPreview={starPreview}
         />
       ))
     }

@@ -109,6 +109,23 @@ export function curatedSlugs(role: Audience): readonly string[] {
   return ROLE_CURATION[role];
 }
 
+/**
+ * Which rows of the STAR skeleton a board card teases (the full four-row block
+ * lives on the project page).
+ *
+ *   - `result`      — outcome only. The default: on the colleague board the card
+ *                     is an index entry.
+ *   - `task-result` — Task + Result. The manager landing (`/manager/`) reads a
+ *                     case as "what was asked → what moved", so the card has to
+ *                     state the brief before the number or the number is just a
+ *                     claim. `tests/lib/manager-card-star.test.ts` binds it.
+ *   - `none`        — no STAR rows; the card falls back to the file's
+ *                     `description`. The catalogue board (`/projects/`) uses it:
+ *                     with the cover shown, the card is a preview of the work,
+ *                     not a verdict on it, and the Result belongs to the case.
+ */
+export type StarPreview = 'result' | 'task-result' | 'none';
+
 export interface RoleCopy {
   /** `<title>` — the visible page title. */
   title: string;

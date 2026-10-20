@@ -30,10 +30,16 @@ export const GET: APIRoute = ({ site }) => {
   const lines: string[] = [
     "# Portfolio — crawl freely; nothing here is blocking except the PDF.",
   ];
+  // A crawler obeys the most specific group that matches it and ignores `*`
+  // entirely, so the Disallow has to be repeated in every named group — in the
+  // `*` group alone it protected the CV from nobody.
+  // Crawler parsers only start a new group at a blank line: without one, every
+  // `User-agent` line above collapses into a single group with duplicated
+  // rules. One blank line per group keeps the file meaning what it reads like.
   for (const bot of AI_CRAWLERS) {
-    lines.push(`User-agent: ${bot}`, "Allow: /");
+    lines.push(`User-agent: ${bot}`, "Allow: /", `Disallow: ${cvPdf}`, "");
   }
-  lines.push("User-agent: *", "Allow: /", `Disallow: ${cvPdf}`);
+  lines.push("User-agent: *", "Allow: /", `Disallow: ${cvPdf}`, "");
   lines.push(`Sitemap: ${sitemap}`, "");
   return new Response(lines.join("\n"), {
     headers: { "Content-Type": "text/plain; charset=utf-8" },

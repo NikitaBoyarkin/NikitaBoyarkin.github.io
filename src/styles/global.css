@@ -131,6 +131,13 @@
   --type-section-h2: clamp(1.9rem, 2.3vw, 2.4rem);
   --type-page-title: clamp(2.5rem, 2.5rem + 0.6vw, 3rem);
 
+  /* One body size for every prose-carrying role outside `.prose` — card
+     descriptions, chart takeaways, career bullets, consent copy. DESIGN.md has
+     claimed «Prose size is 1.05rem wherever prose appears» since the editorial
+     pass, but seven literal sizes (0.9–0.98rem) had drifted in. Bound by
+     tests/lib/body-type-scale.test.ts. */
+  --text-body: 1.05rem;
+
   /* Dataviz accent — distinct from the coral action accent so charts/graphs
      read as information, not as interactive calls-to-action. */
   --text-accent-dataviz: #4ecdc4;
@@ -1369,7 +1376,7 @@ nav ul.links a[aria-current="page"] {
 }
 
 .bento-cell-text {
-  font-size: 0.95rem;
+  font-size: var(--text-body);
   line-height: 1.5;
   color: var(--text-normal);
   margin: 0;
@@ -1398,7 +1405,7 @@ nav ul.links a[aria-current="page"] {
 .bento-metric-label {
   font-size: 0.8rem;
   color: var(--text-muted);
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 /* Stack groups inside a bento cell: category label + chips. */
@@ -1485,11 +1492,11 @@ nav ul.links a[aria-current="page"] {
 }
 
 .featured-card-description {
-  font-size: 0.98rem;
+  font-size: var(--text-body);
   line-height: 1.5;
   color: var(--text-normal);
   margin: 0;
-  max-width: 70ch;
+  max-width: 66ch;
 }
 
 .featured-card-link {
@@ -1561,12 +1568,10 @@ nav ul.links a[aria-current="page"] {
   justify-content: flex-start;
 }
 
-.hero-visual .featured-card-hero .featured-card-description {
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+/* No line clamp here. This is the hero, not a level board row: the clamp cut
+   20 of 185 characters at 320px (and 94 of 118 at 1024px) with no way to read
+   the rest. The card is a flex column, so the sentence takes its natural
+   height and the panel grows instead of hiding it. */
 
 @media (max-width: 768px) {
   .featured-card {
@@ -1574,9 +1579,6 @@ nav ul.links a[aria-current="page"] {
   }
   .featured-card-image {
     max-height: 160px;
-  }
-  .hero-visual .featured-card-hero .featured-card-description {
-    -webkit-line-clamp: 3;
   }
 }
 
@@ -1813,7 +1815,7 @@ nav ul.links a[aria-current="page"] {
   color: var(--text-normal);
   margin-bottom: var(--space-4);
   line-height: 1.5;
-  font-size: 0.95rem;
+  font-size: var(--text-body);
 }
 
 /* Board cards are teasers: the description and the impact metrics are clamped
@@ -1833,7 +1835,7 @@ nav ul.links a[aria-current="page"] {
 .project .Impact {
   -webkit-line-clamp: 3;
   color: var(--text-normal);
-  font-size: 0.9375rem;
+  font-size: var(--text-body);
   margin-bottom: var(--space-5);
 }
 
@@ -2046,14 +2048,16 @@ nav ul.links a[aria-current="page"] {
 }
 
 .star-value {
-  font-size: 0.875rem;
+  font-size: var(--text-body);
   line-height: 1.5;
   color: var(--text-normal);
 }
 
-/* Result is the point of the block — same emphasis as GithubActivity's .gh-stat. */
+/* Result is the point of the block — same emphasis as GithubActivity's .gh-stat.
+   Not mono: these values are sentences, and a monospaced face on running prose
+   removes the word-shape cue exactly where the reader hunts for the number.
+   `tabular-nums` keeps the digits aligned without it. */
 .star-row[data-star='result'] .star-value {
-  font-family: var(--font-mono);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--text-accent);
@@ -2079,13 +2083,16 @@ nav ul.links a[aria-current="page"] {
   padding-block: 0.15rem;
 }
 
+/* The card teaser carries one row (`result`, the default) or two (`task-result`,
+   the manager landing). It is not clamped: showing one sentence and then cutting
+   it is the worst of both worlds, and at 15px the longest Result is ~7 lines on
+   a 324px card. The full skeleton lives on the project page. The added Task row
+   rides the same grid, so it needs no rules of its own — only the Result row is
+   emphasised (`.star-row[data-star='result']` above), which keeps the task
+   reading as context rather than a second claim. */
 .star-compact .star-value {
-  font-size: 0.82rem;
-  line-height: 1.45;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-size: 0.9375rem;
+  line-height: 1.5;
 }
 
 /* Below 600px `.project-meta` is one implicit column, so `1 / -1` is a no-op —
@@ -2094,6 +2101,27 @@ nav ul.links a[aria-current="page"] {
   .project-meta-star {
     padding-bottom: var(--space-4);
     border-bottom: 1px solid var(--border-color);
+  }
+
+  /* One column below 600px. The two-column label/value grid held a 140-char
+     value in a 124px column at 320px — 11 lines of ~13 characters beside the
+     labels. `display: contents` on the rows means dropping to one column
+     stacks each label above its value with no markup change. */
+  .star {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .star-label {
+    padding-block: 0.6rem 0;
+    border-bottom: none;
+  }
+
+  /* The row's own divider stays on the value; the label sits flush above it, so
+     the gap has to come from padding or the next label reads as a continuation
+     of the previous sentence. */
+  .star-value {
+    padding-block: 0.1rem 0.6rem;
   }
 }
 
@@ -2983,6 +3011,17 @@ button:focus-visible {
   outline: 2px solid var(--text-accent);
   outline-offset: 1px;
 }
+
+/* No `::placeholder` rule existed anywhere, so every input fell back to the UA
+   grey (#757575): 2.41:1 on the dark panel, 4.19 light, 3.70 cyberpunk — all
+   under AA, on the only label an empty field has. `--text-muted` is the
+   palette's metadata ink and clears AA on every input surface (5.16–7.73:1).
+   `opacity: 1` is required because Firefox dims placeholders by default. */
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
 .search-results {
   list-style: none;
   margin: var(--space-3) 0 0;
@@ -3012,6 +3051,13 @@ button:focus-visible {
 .search-result.active a {
   background: color-mix(in srgb, var(--text-accent) 12%, transparent);
 }
+
+/* Cross-rule pairing the contrast gate cannot see (colour on the child,
+   background from the hover rule above): muted on tertiary measured 4.34:1. */
+.search-result a:hover .search-result-desc,
+.search-result.active a .search-result-desc {
+  color: var(--text-normal);
+}
 .search-result-type {
   font-size: 0.72rem;
   font-weight: 600;
@@ -3023,17 +3069,22 @@ button:focus-visible {
   font-weight: 500;
   font-size: 0.95rem;
 }
+/* Two lines instead of one `nowrap` row: a description cut at 13.1px with an
+   ellipsis and no `title` cannot be read at all. `SearchBox.astro` now also
+   sets `title`, so the full text is reachable on hover. */
 .search-result-desc {
-  font-size: 0.82rem;
+  font-size: var(--text-body);
+  line-height: 1.4;
   color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .search-empty {
   padding: var(--space-3);
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--text-body);
 }
 .search-hint {
   margin: var(--space-3) 0 0;
@@ -3076,8 +3127,12 @@ button:focus-visible {
 }
 .search-result-title mark,
 .search-result-desc mark {
+  /* `inherit` made the matched run the least legible text in the panel: the
+     30% accent tint over the panel dropped --text-muted to 3.14:1 (2.76 on the
+     focused row). The match is the one run that must be read, so it takes the
+     body ink: 6.35 / 9.80 / 9.40. */
   background: color-mix(in srgb, var(--text-accent) 30%, transparent);
-  color: inherit;
+  color: var(--text-normal);
   border-radius: 2px;
   padding: 0 1px;
 }
@@ -3245,7 +3300,7 @@ button:focus-visible {
 .strip-title {
   font-weight: 600;
   font-size: 1rem;
-  line-height: 1.3;
+  line-height: 1.4;
 }
 .strip-meta {
   font-size: 0.82rem;
@@ -3438,6 +3493,33 @@ button:focus-visible {
     margin-bottom: var(--space-4);
   }
   .project.compact .project-body {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/* `/projects/` — the catalogue board. Its cards carry no STAR block (the page
+   reads as a preview of the work, not a verdict on it), so the cover is the
+   card's subject: at the two-column width where the role boards hide it to buy
+   room for the four STAR rows, the catalogue stacks it above the body instead.
+   Narrower widths already show the cover beside the body, so only the ≥1140px
+   branch changes. Specificity ties with the hide rule above and wins on source
+   order — keep this block after it. */
+@media (min-width: 1140px) {
+  #project-list.project-board-cover .project.compact {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  #project-list.project-board-cover .project.compact img {
+    display: block;
+    flex: none;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: var(--space-4);
+  }
+
+  #project-list.project-board-cover .project.compact .project-body {
     flex: none;
     width: 100%;
   }
@@ -3968,12 +4050,12 @@ button:focus-visible {
 .graph-legend-item dd {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--text-body);
 }
 
 .graph-note {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--text-body);
   margin-bottom: var(--space-8);
 }
 
@@ -4424,6 +4506,13 @@ html[data-theme="light"] .persona-card {
   color: var(--text-muted);
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
+}
+
+/* The facet row turns accent on hover; the count keeps its own muted colour and
+   lands at 4.34:1 on the tertiary hover surface in the dark theme. */
+.xp-facet-item:hover .xp-facet-count,
+.xp-facet-item.is-active .xp-facet-count {
+  color: var(--text-normal);
 }
 
 /* Toolbar — query + sort + count row above the results. */

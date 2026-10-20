@@ -20,10 +20,14 @@ export async function GET(context: APIContext) {
     items: posts.map((post) => ({
       title: post.data.title,
       description: post.data.excerpt,
-      pubDate: post.data.date,
+      // Report the edit date when one exists — a revised post is new to a
+      // subscriber, and the old code always showed the publication date.
+      pubDate: post.data.updated ?? post.data.date,
       link: `/en/posts/${post.id.replace(/\.md$/, "")}/`,
       categories: [post.data.category, ...post.data.tags],
     })),
-    customData: `<language>en-us</language><lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`,
+    // No <lastBuildDate>: it was the build clock, so every deploy claimed
+    // freshness the content did not have. Item dates carry it instead.
+    customData: `<language>en-us</language>`,
   });
 }

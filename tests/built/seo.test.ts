@@ -85,6 +85,59 @@ describe('built search index', () => {
       expect(existsSync(resolve(DIST, `.${pathname}index.html`))).toBe(true);
     }
   });
+
+  it('indexes every Volta sub-part and the topic hubs', () => {
+    // Both were invisible to site search: the fetch list simply omitted the
+    // collections, so the flagship case's 23 method pages and the topic hubs
+    // could not be found from the search panel at all.
+    const countIn = (dir: string) =>
+      readdirSync(resolve(ROOT, 'src', 'content', dir)).filter((f) => f.endsWith('.md')).length;
+    const parts = searchIndex.filter((entry) => entry.type === 'part');
+    expect(parts.filter((entry) => entry.locale === 'ru').length).toBe(countIn('volta-parts'));
+    expect(parts.filter((entry) => entry.locale === 'en').length).toBe(countIn('volta-parts-en'));
+    expect(parts.some((entry) => entry.locale === 'en')).toBe(true);
+
+    const topics = searchIndex.filter((entry) => entry.type === 'topic');
+    expect(topics.length).toBeGreaterThan(0);
+    expect(topics.every((entry) => entry.href.startsWith('/topics/'))).toBe(true);
+  });
+});
+
+describe('built head directives and feeds', () => {
+  it('noindexes the 404 from <head>, where crawlers actually read it', () => {
+    const html = readFileSync(resolve(DIST, '404.html'), 'utf8');
+    const headEnd = html.indexOf('</head>');
+    expect(html.slice(0, headEnd)).toContain('name="robots" content="noindex');
+    expect(html.slice(headEnd)).not.toContain('name="robots"');
+  });
+
+  it('puts the CV Disallow inside every named crawler group', () => {
+    // A named group overrides `*`, so a Disallow only in `*` protects the PDF
+    // from nobody. Groups are blank-line separated (RFC 9309).
+    const txt = readFileSync(resolve(DIST, 'robots.txt'), 'utf8');
+    const groups = txt.split(/\n\s*\n/).filter((g) => /^User-agent:/m.test(g));
+    expect(groups.length).toBeGreaterThan(1);
+    for (const group of groups) {
+      expect(group).toContain('Disallow: /CV-Nikita-Boyarkin.pdf');
+    }
+  });
+
+  it('dates a revised post by its edit, and never stamps the build clock', () => {
+    const rss = readFileSync(resolve(DIST, 'rss.xml'), 'utf8');
+    expect(rss).not.toContain('<lastBuildDate>');
+    const cases = [
+      ['src/content/posts/sql-window-functions.md', 'sql-window-functions'],
+      ['src/content/posts/bayesian-ab-testing.md', 'bayesian-ab-testing'],
+    ];
+    for (const [file, slug] of cases) {
+      const frontmatter = readFileSync(resolve(ROOT, file), 'utf8').split('---')[1] ?? '';
+      const { date, updated } = parseYaml(frontmatter) ?? {};
+      expect(updated).toBeTruthy();
+      const item = new RegExp(`<item>(?:(?!</item>).)*${slug}.*?</item>`, 's').exec(rss)?.[0] ?? '';
+      expect(item).toContain(`<pubDate>${new Date(updated).toUTCString()}</pubDate>`);
+      expect(item).not.toContain(`<pubDate>${new Date(date).toUTCString()}</pubDate>`);
+    }
+  });
 });
 
 /** Every JSON-LD node embedded in a built page (a page emits several scripts). */

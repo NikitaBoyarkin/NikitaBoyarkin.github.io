@@ -314,6 +314,10 @@ const X_D = "M6 6l12 12M6 18L18 6";
     }
 
     function close() {
+      // Capture focus before hiding the panel — a hidden subtree cannot hold
+      // the active element, so the post-hide check always saw <body> and the
+      // trigger never got focus back.
+      const hadFocus = !!root?.contains(document.activeElement);
       panel.hidden = true;
       backdrop.hidden = true;
       setBackgroundInert(false);
@@ -322,7 +326,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
       if (toggleLabel) toggleLabel.textContent = t.ctaOpen;
       // Return focus to the trigger only if focus was inside this widget —
       // don't steal it from a sibling (e.g. the search input).
-      if (root?.contains(document.activeElement)) toggle.focus();
+      if (hadFocus) toggle.focus();
       morphIcon(chatD);
     }
 

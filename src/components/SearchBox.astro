@@ -80,19 +80,19 @@ const X_D = "M6 6l12 12M6 18L18 6";
       aria-describedby="search-hint"
     />
     <div class="search-facets" role="group" aria-label={i18n.facetsLabel}>
-      <button class="search-facet is-active" data-facet="all" type="button">
+      <button class="search-facet is-active" data-facet="all" type="button" aria-pressed="true">
         <Icon name="filter" size={14} class="pill-icon" />{i18n.all}
       </button>
-      <button class="search-facet" data-facet="project" type="button">
+      <button class="search-facet" data-facet="project" type="button" aria-pressed="false">
         <Icon name="filter" size={14} class="pill-icon" />{i18n.projects}
       </button>
-      <button class="search-facet" data-facet="post" type="button">
+      <button class="search-facet" data-facet="post" type="button" aria-pressed="false">
         <Icon name="filter" size={14} class="pill-icon" />{i18n.posts}
       </button>
-      <button class="search-facet" data-facet="term" type="button">
+      <button class="search-facet" data-facet="term" type="button" aria-pressed="false">
         <Icon name="filter" size={14} class="pill-icon" />{i18n.terms}
       </button>
-      <button class="search-facet" data-facet="source" type="button">
+      <button class="search-facet" data-facet="source" type="button" aria-pressed="false">
         <Icon name="filter" size={14} class="pill-icon" />{i18n.sources}
       </button>
     </div>
@@ -164,7 +164,18 @@ const X_D = "M6 6l12 12M6 18L18 6";
       if (tp === "post") return lang === "en" ? "Post" : "Запись";
       if (tp === "term") return lang === "en" ? "Glossary" : "Словарь";
       if (tp === "source") return lang === "en" ? "Library" : "Библиотека";
+      if (tp === "part") return lang === "en" ? "Module" : "Модуль";
+      if (tp === "topic") return lang === "en" ? "Topic" : "Тема";
       return lang === "en" ? "Project" : "Проект";
+    };
+
+    /** A facet matches a record type. Volta sub-parts are project pages, so the
+     *  "Projects" chip covers them; topic hubs are only reachable from "All"
+     *  rather than earning a sixth chip that would not fit a phone. */
+    const inFacet = (entryType: string, active: string) => {
+      if (active === "all") return true;
+      if (active === "project") return entryType === "project" || entryType === "part";
+      return entryType === active;
     };
 
     type Entry = {
@@ -211,6 +222,10 @@ const X_D = "M6 6l12 12M6 18L18 6";
     }
 
     function close() {
+      // Capture focus *before* hiding: hiding the panel blurs its active
+      // descendant, so checking afterwards always saw <body> and never returned
+      // focus to the trigger — every close dropped the keyboard user.
+      const hadFocus = !!root?.contains(document.activeElement);
       panel.hidden = true;
       toggle.setAttribute("aria-expanded", "false");
       toggle.setAttribute("aria-label", t.toggleLabel);
@@ -224,13 +239,17 @@ const X_D = "M6 6l12 12M6 18L18 6";
       searchReported = false;
       // Return focus to the trigger so keyboard users aren't dropped to <body> —
       // but only if focus was inside this widget (don't steal it from a sibling).
-      if (root?.contains(document.activeElement)) toggle.focus();
+      if (hadFocus) toggle.focus();
       morphSearch(searchD);
     }
 
     function setFacet(next: string) {
       facet = next;
-      facetEls.forEach((b) => b.classList.toggle("is-active", b.dataset.facet === next));
+      facetEls.forEach((b) => {
+        const active = b.dataset.facet === next;
+        b.classList.toggle("is-active", active);
+        b.setAttribute("aria-pressed", String(active));
+      });
     }
 
     function escapeHtml(s: string): string {
@@ -348,6 +367,9 @@ const X_D = "M6 6l12 12M6 18L18 6";
         if (r.desc) {
           const d = document.createElement("span");
           d.className = "search-result-desc";
+          // The CSS clamps this to two lines; without a title the cut text is
+          // unreachable without opening the result.
+          d.title = r.desc;
           d.innerHTML = highlight(r.desc, tokens);
           a.appendChild(d);
         }
@@ -394,14 +416,14 @@ const X_D = "M6 6l12 12M6 18L18 6";
           return;
         }
         rows = idx
-          .filter((e) => e.locale === lang && e.type === facet)
+          .filter((e) => e.locale === lang && inFacet(e.type, facet))
           .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
           .slice(0, MAX_ROWS);
       } else {
         // No hard locale filter — score() boosts the current locale so
         // cross-locale results still surface when they match better.
         const matched = idx
-          .filter((e) => facet === "all" || e.type === facet)
+          .filter((e) => inFacet(e.type, facet))
           .map((e) => ({ e, s: score(e, tokens) }))
           .filter((x) => x.s >= 0)
           .sort((a, b) => b.s - a.s)
@@ -434,6 +456,16 @@ const X_D = "M6 6l12 12M6 18L18 6";
         runSearch();
         input.focus();
       });
+    });
+
+    // Escape closes from anywhere inside the panel. It used to be bound to the
+    // input alone, so once focus moved to a facet button the only ways out were
+    // the pointer or the toggle.
+    panel.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !panel.hidden) {
+        e.preventDefault();
+        close();
+      }
     });
 
     function move(delta: number) {

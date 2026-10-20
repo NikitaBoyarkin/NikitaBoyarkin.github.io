@@ -17,10 +17,14 @@ export async function GET(context: APIContext) {
     items: posts.map((post) => ({
       title: post.data.title,
       description: post.data.excerpt,
-      pubDate: post.data.date,
+      // A revised post is genuinely new to a subscriber: report the edit date
+      // when the frontmatter carries one, the publication date otherwise.
+      pubDate: post.data.updated ?? post.data.date,
       link: `${BASE}/posts/${post.id.replace(/\.md$/, "")}/`,
       categories: [post.data.category, ...post.data.tags],
     })),
-    customData: `<language>ru-ru</language><lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`,
+    // No <lastBuildDate>: the build clock moved on every deploy, so the channel
+    // claimed "changed today" even when no post had. Item dates carry freshness.
+    customData: `<language>ru-ru</language>`,
   });
 }

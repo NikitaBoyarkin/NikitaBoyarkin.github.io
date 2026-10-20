@@ -136,6 +136,7 @@ const caption =
   let restart: (() => void) | null = null;
   let dragging: any = null;
   let dragStart: { x: number; y: number } | null = null;
+  let dragRaf = 0;
   let moved = false;
 
   const adjacency = new Map<string, Set<string>>();
@@ -149,7 +150,14 @@ const caption =
 
   function rebuild() {
     svg.replaceChildren();
-    world = { w: svg.clientWidth || 600, h: svg.clientHeight || 280 };
+    // `clientWidth` is 0 while the host `SectionPanel` is `display:none` (the
+    // graph lives in the «Связи» tab). The old code then silently laid the
+    // world out for 600×280 and never re-measured, so on a phone the subgraph
+    // was clipped and on desktop it was off-centre. `renderWhenVisible` now
+    // refuses to lay anything out until the element has a real box, and the
+    // ResizeObserver re-runs it when a tab opens or the window changes.
+    const rect = svg.getBoundingClientRect();
+    world = { w: rect.width || svg.clientWidth || 600, h: rect.height || svg.clientHeight || 280 };
 
     nodes = data.nodes.map((n: any) => ({ ...n, x: 0, y: 0, vx: 0, vy: 0 }));
     const idx = new Map(nodes.map((n) => [n.id, n]));
@@ -375,6 +383,25 @@ const caption =
   }
 
   // Pointer: drag a node (click = navigate).
+  //
+  // The settle loop stops for good once alpha < alphaMin (~2.5 s), and after
+  // that nothing consumed the `fx/fy` a drag writes — so dragging a node was
+  // dead for the rest of the page's life while the cursor still said
+  // `grabbing`. A drag-only rAF applies the pin and redraws; it never restarts
+  // the physics, so grabbing a settled graph does not make it jump.
+  function dragFrame() {
+    dragRaf = 0;
+    if (!dragging) return;
+    dragging.x = dragging.fx;
+    dragging.y = dragging.fy;
+    const i = nodes.indexOf(dragging);
+    if (i >= 0 && nodeEls[i]) {
+      nodeEls[i].setAttribute('transform', `translate(${dragging.x},${dragging.y})`);
+    }
+    drawEdges();
+    dragRaf = requestAnimationFrame(dragFrame);
+  }
+
   function handlePointerDown(e: PointerEvent) {
     svg.setPointerCapture(e.pointerId);
     const target = nodeEls.find((g) => g.contains(e.target as Node));
@@ -387,6 +414,7 @@ const caption =
     n.fx = p.x;
     n.fy = p.y;
     target.style.cursor = 'grabbing';
+    if (!dragRaf) dragRaf = requestAnimationFrame(dragFrame);
   }
 
   function handlePointerMove(e: PointerEvent) {
@@ -405,6 +433,10 @@ const caption =
     const wasClick = !moved;
     n.fx = null;
     n.fy = null;
+    if (dragRaf) {
+      cancelAnimationFrame(dragRaf);
+      dragRaf = 0;
+    }
     const g = nodeEls[nodes.indexOf(n)];
     if (g) g.style.cursor = 'pointer';
     dragging = null;
@@ -469,7 +501,39 @@ const caption =
     }
   });
 
-  reduced ? renderStatic() : renderForce();
+  // Render only when the SVG has a real box, then keep it honest on resize.
+  // Laid out for a 0-width panel, the graph was clipped on phones and
+  // off-centre on desktop, and a later window resize never fixed it.
+  let renderMode: (() => void) | null = null;
+  let lastW = 0;
+  let lastH = 0;
+  let resizeRaf = 0;
+
+  function renderWhenVisible(): boolean {
+    const rect = svg.getBoundingClientRect();
+    if (rect.width < 40 || rect.height < 40) return false;
+    // Ignore sub-pixel churn and the scrollbar-width wobble.
+    if (Math.abs(rect.width - lastW) < 24 && Math.abs(rect.height - lastH) < 24) return false;
+    lastW = rect.width;
+    lastH = rect.height;
+    renderMode?.();
+    return true;
+  }
+
+  const resizeObserver = new ResizeObserver(() => {
+    if (resizeRaf) return;
+    resizeRaf = requestAnimationFrame(() => {
+      resizeRaf = 0;
+      renderWhenVisible();
+    });
+  });
+  resizeObserver.observe(svg);
+
+  renderMode = reduced ? renderStatic : renderForce;
+  renderWhenVisible();
+
+  // Visible at load → render now. Hidden in the «Связи» tab (or below an
+  // un-activated SectionPanel) → the observer above renders it when it opens.
 </script>
 
 <style is:global>

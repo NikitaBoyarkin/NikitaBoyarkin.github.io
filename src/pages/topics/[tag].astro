@@ -4,7 +4,7 @@ import BlogCard from '../../components/BlogCard.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
 import { getCollection } from 'astro:content';
 import { withBase } from '../../lib/path';
-import { TOPICS } from '../../lib/topics';
+import { TOPICS, postMatchesTopic, projectMatchesTopic } from '../../lib/topics';
 
 // Topic definitions + the route list both come from src/lib/topics.ts — no
 // more duplicated TOPIC_MATCH / key list in this file.
@@ -19,17 +19,14 @@ if (!topic) {
 }
 
 const posts = (await getCollection('posts', (p) => !p.data.draft))
-  .filter((p) => (p.data.tags ?? []).some((t) => topic.match(t)))
+  .filter((p) => postMatchesTopic(topic, p.data.tags))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-// Projects matched by topic tags appearing in slug/title/tools/description.
-const needle = topic.key.replace('-', ' ');
-const projects = (await getCollection('projects', (p) => !p.data.draft))
-  .filter((p) => {
-    const slug = p.id.replace(/\.md$/, '');
-    const hay = `${slug} ${p.data.title} ${(p.data.tools ?? []).join(' ')} ${p.data.description}`.toLowerCase();
-    return topic.tags.some((t) => hay.includes(t.replace('-', ' '))) || hay.includes(needle);
-  });
+// Projects use the same predicate the hub counts with (`projectMatchesTopic`),
+// so a card can never appear here without being counted there, or vice versa.
+const projects = (await getCollection('projects', (p) => !p.data.draft)).filter((p) =>
+  projectMatchesTopic(topic, p),
+);
 
 // CollectionPage + ItemList over exactly what the page renders — the same
 // projects/posts arrays, in the same order, so the markup can never list an

@@ -89,9 +89,35 @@ export interface TopicRow {
 
 // Minimal shape of a collection entry we depend on — decouples from astro:content
 // types so this module stays portable and testable.
-interface Countable {
+export interface Countable {
   id: string;
   data: { tags?: string[]; tools?: string[]; title: string; description?: string };
+}
+
+/** True iff a post's tags place it in this topic. A post belongs to a topic at
+ *  most once, however many of its canonical tags it carries. */
+export function postMatchesTopic(topic: Topic, tags: string[] | undefined): boolean {
+  return (tags ?? []).some((tag) => topic.match(tag));
+}
+
+/**
+ * True iff a project belongs to this topic.
+ *
+ * The signal is the project's slug/title/tools/description scanned for the
+ * topic's canonical tags (hyphens read as spaces, so `ab-testing` also matches
+ * prose "A/B testing") plus the topic key itself. Exported because the topic
+ * page renders its cards with this same predicate — the hub count and the page
+ * list must never be computed by two different rules.
+ */
+export function projectMatchesTopic(topic: Topic, project: Countable): boolean {
+  const slug = project.id.replace(/\.mdx?$/, "");
+  const hay = `${slug} ${project.data.title} ${(project.data.tools ?? []).join(" ")} ${project.data.description ?? ""}`
+    .toLowerCase()
+    .replace(/-/g, " ");
+  return (
+    topic.tags.some((tag) => hay.includes(tag.toLowerCase().replace(/-/g, " "))) ||
+    hay.includes(topic.key.replace(/-/g, " "))
+  );
 }
 
 /**
@@ -99,36 +125,23 @@ interface Countable {
  * projects (via slug/title/tools/description signal matching). Topics with a
  * zero count are dropped; the rest are sorted by count desc.
  *
- * Ported verbatim from the duplicated logic that lived in TopicMap.astro and
- * topics/index.astro so behaviour is unchanged.
+ * A post is counted **once per topic**, not once per matching tag: a post tagged
+ * `ab-testing, bayesian, statistics` is one A/B-testing post, and counting its
+ * three tags made the hub claim 9 when the topic page could only list 4.
  */
 export function computeTopicRows(posts: Countable[], projects: Countable[]): TopicRow[] {
   const postCounts = new Map<string, number>(TOPICS.map((t) => [t.key, 0]));
   for (const post of posts) {
-    for (const tag of post.data.tags ?? []) {
-      for (const topic of TOPICS) {
-        if (topic.match(tag)) postCounts.set(topic.key, (postCounts.get(topic.key) ?? 0) + 1);
+    for (const topic of TOPICS) {
+      if (postMatchesTopic(topic, post.data.tags)) {
+        postCounts.set(topic.key, (postCounts.get(topic.key) ?? 0) + 1);
       }
     }
   }
 
   const projectCounts = new Map<string, number>(TOPICS.map((t) => [t.key, 0]));
-  const projectSignals = projects.map((p) => ({
-    slug: p.id.replace(/\.md$/, ""),
-    title: p.data.title.toLowerCase(),
-    tools: (p.data.tools ?? []).join(" ").toLowerCase(),
-    desc: (p.data.description ?? "").toLowerCase(),
-  }));
   for (const topic of TOPICS) {
-    const needle = topic.key.replace("-", " ");
-    const hits = projectSignals.filter(
-      (p) =>
-        p.slug.includes(needle) ||
-        p.title.includes(needle) ||
-        p.tools.includes(needle) ||
-        p.desc.includes(needle),
-    );
-    projectCounts.set(topic.key, hits.length);
+    projectCounts.set(topic.key, projects.filter((p) => projectMatchesTopic(topic, p)).length);
   }
 
   return TOPICS.map((t) => ({

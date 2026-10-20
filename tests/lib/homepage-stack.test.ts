@@ -9,8 +9,9 @@
 // declares, or a RU/EN card that stops matching its counterpart.
 //
 // The card moved from `pages/index.astro` into the shared `StackCard.astro`
-// (the three role landings and the gate's colleague branch all render it), so the
-// claim is retargeted, not dropped: the two locale chip lists are now the two
+// (the HR and colleague role landings render it; `/manager/` drops it, so the
+// claim is about the lanes that carry it, not every page), so the claim is
+// retargeted, not dropped: the two locale chip lists are now the two
 // branches of one file, split on its `stack:ru|en` markers.
 import { describe, it, expect } from 'bun:test';
 import { readFileSync } from 'node:fs';

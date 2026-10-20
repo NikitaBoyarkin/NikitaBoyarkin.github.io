@@ -1,5 +1,6 @@
 ---
 import { withBase } from '../lib/path';
+import type { StarPreview } from '../lib/projects';
 import ArrowMorph from './ArrowMorph.astro';
 import StarBlock from './StarBlock.astro';
 
@@ -33,9 +34,12 @@ interface Props {
   /** Board teaser: clamps the description, the impact line and the tool chips,
    *  so a row of cards stays level. The full text lives on the project page. */
   compact?: boolean;
+  /** Which STAR rows the compact teaser keeps (`result` by default); `none`
+   *  leaves the card with its `description`. */
+  starPreview?: StarPreview;
 }
 
-const { slug, title, description, image, star, impact, tools, github, demo, private: isPrivate = false, linkPrefix = '', lang = 'ru', track, trackLabel, draggable = false, compact = false } = Astro.props;
+const { slug, title, description, image, star, impact, tools, github, demo, private: isPrivate = false, linkPrefix = '', lang = 'ru', track, trackLabel, draggable = false, compact = false, starPreview = 'result' } = Astro.props;
 const isEn = lang === 'en';
 const impactText = impact?.join(', ');
 // The compact (board) card shows the first few tools and counts the rest, so
@@ -68,7 +72,11 @@ const i18n = {
   {trackLabel && <p class="project-track-badge">{trackLabel}</p>}
   <h3>{title}</h3>
 
-  {star ? <StarBlock star={star} lang={lang} compact /> : <p>{description}</p>}
+  {star && starPreview !== 'none' ? (
+    <StarBlock star={star} lang={lang} compact preview={starPreview} />
+  ) : (
+    <p>{description}</p>
+  )}
 
   {
     tools && tools.length > 0 && (

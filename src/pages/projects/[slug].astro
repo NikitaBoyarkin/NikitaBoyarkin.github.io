@@ -267,10 +267,10 @@ const pageJsonLd = {
               Смотреть на GitHub →
             </a>
             {project.data.private && (
-              <span class="repo-private-note" style="display:block;font-size:.85rem;color:var(--text-normal);opacity:.75;margin-top:.25rem;">Репозиторий приватный — доступ по запросу</span>
+              <span class="repo-private-note" style="display:block;font-size:.875rem;color:var(--text-muted);margin-top:.25rem;">Репозиторий приватный — доступ по запросу</span>
             )}
             {project.data.updated && (
-              <span class="repo-updated-note" style="display:block;font-size:.85rem;color:var(--text-normal);opacity:.75;margin-top:.25rem;">Обновлено: {formatDate(project.data.updated)}</span>
+              <span class="repo-updated-note" style="display:block;font-size:.875rem;color:var(--text-muted);margin-top:.25rem;">Обновлено: {formatDate(project.data.updated)}</span>
             )}
           </div>
         )

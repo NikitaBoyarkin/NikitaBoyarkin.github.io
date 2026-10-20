@@ -163,8 +163,10 @@ const definedTermSetJsonLd = {
     font-weight: 500;
     color: var(--text-normal);
   }
+  /* The definition is the card's whole payload, not its metadata: 12.8px muted
+     read as a caption for a term the reader came to look up. */
   .term-blurb {
-    font-size: 0.8rem;
-    color: var(--text-muted);
+    font-size: var(--text-body);
+    color: var(--text-normal);
   }
 </style>

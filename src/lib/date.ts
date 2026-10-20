@@ -4,6 +4,11 @@ export function formatDate(date: Date | string): string {
     year: "numeric",
     month: "short",
     day: "numeric",
+    // Frontmatter carries date-only values, which parse as UTC midnight. Without
+    // an explicit zone the formatter uses the *reader's* zone, so a post dated
+    // 2026-08-05 renders as "Aug 4" for anyone west of UTC. A publication date
+    // is a calendar fact, not an instant — pin it to UTC.
+    timeZone: "UTC",
   });
 }
 

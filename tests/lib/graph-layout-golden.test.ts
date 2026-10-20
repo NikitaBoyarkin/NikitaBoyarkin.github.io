@@ -12,6 +12,12 @@
 // the code produced". If a change to the simulation is deliberate, re-record
 // them (and say so in the commit) — never edit one row to make a test pass.
 //
+// Re-recorded 2026-10-20, deliberately: the core ring divided the angle by a
+// hardcoded 2, so the third core (glossary) landed exactly on the first and
+// could never be separated by repulsion; and the Louvain gain doubled its whole
+// bracket instead of only the penalty, over-merging communities. Both fixes
+// move every coordinate, which is exactly what this fixture should report.
+//
 // The fixture graph is built here, not imported from the sibling test, so an
 // edit to `sampleGraph()` cannot silently move this golden.
 
@@ -72,41 +78,41 @@ function goldenGraph() {
 type Frozen = [id: string, x: number, y: number];
 
 const GOLDEN_GROUP: Frozen[] = [
-  ['core:me', 454.1, 279.66],
-  ['core:projects', 456.88, 350.98],
-  ['core:posts', 453.54, 211.77],
-  ['p:volta', 554.7, 303.23],
-  ['p:rfm', 538.11, 391.25],
-  ['p:supabase', 380.22, 348.53],
-  ['p:streamlit', 341.47, 404.88],
-  ['post:ab-calibration', 543.29, 200.24],
-  ['post:cohort-triangles', 369.58, 184.8],
-  ['vp:funnel', 643.63, 286.35],
-  ['topic:ab-testing', 511.13, 89.54],
-  ['topic:retention', 303.46, 262.98],
-  ['topic:segmentation', 239.27, 321.96],
+  ['core:me', 471.45, 276.31],
+  ['core:projects', 460.24, 346.81],
+  ['core:posts', 431.65, 220.86],
+  ['p:volta', 557.2, 305.94],
+  ['p:rfm', 537.94, 395.21],
+  ['p:supabase', 380.36, 315.25],
+  ['p:streamlit', 360.87, 385.33],
+  ['post:ab-calibration', 528.49, 203.54],
+  ['post:cohort-triangles', 337.95, 253.73],
+  ['vp:funnel', 644.99, 288.51],
+  ['topic:ab-testing', 506.03, 93.51],
+  ['topic:retention', 251.14, 323.8],
+  ['topic:segmentation', 307.69, 196.85],
 ];
 
 const GOLDEN_COMMUNITY: Frozen[] = [
-  ['core:me', 515.16, 268.7],
-  ['core:projects', 429.24, 275.66],
-  ['core:posts', 515.16, 268.7],
-  ['p:volta', 425.04, 451.15],
-  ['p:rfm', 493.98, 460.67],
-  ['p:supabase', 415.42, 152.45],
-  ['p:streamlit', 355.64, 207.47],
-  ['post:ab-calibration', 365.64, 471.73],
-  ['post:cohort-triangles', 280.44, 218.15],
-  ['vp:funnel', 365.37, 394.71],
-  ['topic:ab-testing', 448.08, 387.22],
-  ['topic:retention', 290.31, 132.72],
-  ['topic:segmentation', 351.95, 91.27],
+  ['core:me', 536.87, 285.62],
+  ['core:projects', 452.06, 294.58],
+  ['core:posts', 486.68, 224.06],
+  ['p:volta', 421.93, 452.87],
+  ['p:rfm', 491.21, 452.35],
+  ['p:supabase', 408.55, 160.8],
+  ['p:streamlit', 352.47, 218.06],
+  ['post:ab-calibration', 364.69, 480.29],
+  ['post:cohort-triangles', 277.66, 219.55],
+  ['vp:funnel', 352.53, 404],
+  ['topic:ab-testing', 426.89, 385.23],
+  ['topic:retention', 290.17, 135.45],
+  ['topic:segmentation', 353.12, 95.86],
 ];
 
 // Second, cheaper lock on the same thing: catches a shift that the per-node
 // table would still catch, but in one line and without a 13-row diff to read.
-const GOLDEN_GROUP_HASH = '556b4b68f368134d982404137ba85d8d22bd6a475a288d733cff6910c90fb56f';
-const GOLDEN_COMMUNITY_HASH = 'ba2bf5df122e6cd3eaa763e9bf984bf559325ab9a9d00b329b817cf644b8c894';
+const GOLDEN_GROUP_HASH = '3aab7ff76ad90218a09625bee96e58da670b64711379c3b998cc7a9628e0bd05';
+const GOLDEN_COMMUNITY_HASH = '443a08f53b1c90a6c492178099f85605c13a3279b65a29fef99eab5db23d1607';
 
 const layout = (groupBy?: 'group' | 'community') => {
   const out = layoutGraph(goldenGraph(), groupBy ? { groupBy } : {}) as {

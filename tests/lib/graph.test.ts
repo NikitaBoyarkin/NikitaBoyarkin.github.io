@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { buildGraph, isDirected, mergePostsForLocale, parseRelatedPath, subgraphAround } from '../../src/lib/graph';
+import { buildGraph, detectCommunities, isDirected, mergePostsForLocale, parseRelatedPath, subgraphAround } from '../../src/lib/graph';
 import { TOPICS } from '../../src/lib/topics';
 
 const project = (
@@ -466,5 +466,32 @@ describe('buildGraph', () => {
       expect(deg.get(h.id) ?? 0).toBeGreaterThan(3);
       expect(rootSize).toBeGreaterThan(h.size ?? 0);
     }
+  });
+});
+describe('detectCommunities', () => {
+  it('does not merge two dense clusters across a few bridges', () => {
+    // Two 4-cliques joined by 5 bridges: 17 edges, so the bridge share is
+    // 5/17 ≈ 0.29 — below the 0.5 that would justify one merged community.
+    // The gain used to double its whole bracket, which doubled the edge term
+    // while leaving the penalty short, so this pair cleared ΔQ > 0 and the
+    // graph collapsed into a single blob.
+    const cluster = (p: string) => [1, 2, 3, 4].map((i) => `${p}${i}`);
+    const nodes = [...cluster('a'), ...cluster('b')].map((id) => ({ id }));
+    const links: { source: string; target: string }[] = [];
+    for (const p of ['a', 'b']) {
+      const ids = cluster(p);
+      for (let i = 0; i < ids.length; i++) {
+        for (let j = i + 1; j < ids.length; j++) links.push({ source: ids[i], target: ids[j] });
+      }
+    }
+    for (let i = 0; i < 5; i++) links.push({ source: `a${(i % 4) + 1}`, target: `b${(i % 4) + 1}` });
+
+    const comm = detectCommunities(nodes, links);
+    const communities = new Set(comm.values());
+    // Greedy merge order may attach a bridge endpoint to a cluster, so the exact
+    // partition is not the spec — collapsing everything into ONE community is.
+    // With the old doubled bracket this graph produced a single community of 8.
+    expect(communities.size).toBeGreaterThan(1);
+    expect([...comm.values()].every((c) => c === comm.get('a1'))).toBe(false);
   });
 });

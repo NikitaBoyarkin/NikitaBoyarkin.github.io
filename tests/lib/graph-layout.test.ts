@@ -330,3 +330,24 @@ describe('layoutRadial (the single-center index graph)', () => {
     }
   });
 });
+
+describe('core placement', () => {
+  it('never lays two core nodes on the same point', () => {
+    // Cores (me / projects / posts) sit on an inner ring. The angle used to be
+    // divided by a hardcoded 2, so with three cores the third landed at 2π —
+    // on top of the first — and d = 0 meant repulsion could never separate
+    // them afterwards. A collision here is not cosmetic: both labels stack.
+    for (const mode of [undefined, 'group', 'community'] as const) {
+      const graph = sampleGraph();
+      // `core` is a layout-internal flag stripped from the returned nodes, so
+      // identify the cores by id on the input graph.
+      const coreIds = new Set(graph.nodes.filter((n) => n.id.startsWith('core:')).map((n) => n.id));
+      const nodes = laid(graph, mode ? { groupBy: mode } : undefined).nodes;
+      const cores = nodes.filter((n) => coreIds.has(n.id)).map((n) => `${n.x},${n.y}`);
+      expect(cores.length).toBeGreaterThanOrEqual(3);
+      expect(new Set(cores).size, `duplicate core position in ${mode ?? 'default'} mode`).toBe(
+        cores.length,
+      );
+    }
+  });
+});

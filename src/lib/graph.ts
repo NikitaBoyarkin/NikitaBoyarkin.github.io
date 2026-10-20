@@ -348,7 +348,6 @@ export function detectCommunities(
     if (a !== b) E[Math.min(a, b)][Math.max(a, b)]++;
   }
 
-  const twoM = 2 * m;
   // Greedy merge loop: repeatedly merge the pair with the largest ΔQ > 0.
   for (;;) {
     let bestDelta = 0;
@@ -358,7 +357,13 @@ export function detectCommunities(
       if (members[a].size === 0) continue;
       for (let b = a + 1; b < nodes.length; b++) {
         if (members[b].size === 0 || E[a][b] === 0) continue;
-        const delta = 2 * (E[a][b] / m - (K[a] / twoM) * (K[b] / twoM));
+        // ΔQ of merging communities a and b:
+        //   e_ab/m − K_a·K_b/(2m²)
+        // The old expression doubled the whole bracket, which inflated the
+        // gain term *and* left the penalty at half strength — so pairs cleared
+        // the > 0 threshold at roughly half the correct modularity and the
+        // graph over-merged into a few giant communities.
+        const delta = E[a][b] / m - (K[a] * K[b]) / (2 * m * m);
         if (delta > bestDelta) {
           bestDelta = delta;
           bestA = a;

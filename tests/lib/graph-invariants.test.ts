@@ -10,9 +10,17 @@ import { TOPICS } from '../../src/lib/topics';
 
 const CONTENT = join(__dirname, '..', '..', 'src', 'content');
 
+const collectionCache = new Map<string, { id: string; data: Record<string, unknown> }[]>();
+
+/** Memoised: the related-parsing test asks for the same collection once per
+ *  relation, and re-reading every file each time made that O(relations × files)
+ *  — 2.7 s uncached vs 23 ms cached, which is what pushed the test past its
+ *  timeout under load. Content is fixed for the lifetime of a test run. */
 function loadCollection(name: string): { id: string; data: Record<string, unknown> }[] {
+  const cached = collectionCache.get(name);
+  if (cached) return cached;
   const dir = join(CONTENT, name);
-  return readdirSync(dir)
+  const entries = readdirSync(dir)
     .filter((f) => f.endsWith('.md'))
     .map((f) => {
       const raw = readFileSync(join(dir, f), 'utf-8');
@@ -21,6 +29,8 @@ function loadCollection(name: string): { id: string; data: Record<string, unknow
       const data = (m ? parseYaml(m[1]) : {}) as Record<string, unknown>;
       return { id: f, data };
     });
+  collectionCache.set(name, entries);
+  return entries;
 }
 
 let graphs: { ru: GraphData; en: GraphData };

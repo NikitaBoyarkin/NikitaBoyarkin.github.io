@@ -1,20 +1,56 @@
 ---
-// HR's project section — the whole catalogue as a reverse-chronological list,
-// one group per year, in place of the track-grouped card grid the other two
-// roles read (`ProjectBoard.astro`). A screening reader scans titles and dates;
-// the cards' images and impact lines belong to the manager/colleague boards.
-// Server-rendered with no client script: the list has nothing to filter or
-// reorder, so it ships no JavaScript.
+// The project section as a reverse-chronological list, one group per year —
+// shared by the two role landings that read a sequence rather than a grid
+// (`hr` and `colleague`). A screening reader scans titles and dates, then reads
+// each case's full STAR skeleton — the same four rows the project page shows —
+// because a recruiter checks the reasoning, not the cover image. A colleague
+// reads the same rows with a one-line `description` instead: that reader came for
+// the method, and the reasoning has its own section on the page.
+//
+// With `filterable` the section carries the board's two filters: category tabs
+// (`ProjectTrackFilter`) and tool chips (`ProjectFilter`). The filtering is
+// client-side and additive: every row is server-rendered, the script only toggles
+// `is-hidden`, and with JS off the list is the full sequence.
+//
+// Both lanes opt in. HR is the lane the tool chips serve best — a screening reader
+// matches a vacancy's stack against the catalogue — and the category tabs answer
+// the next question ("what is there in experiments?"). The colleague lane carries
+// the same bar so one filter vocabulary covers both lists.
 import { getCollection } from 'astro:content';
-import { groupByYear, projectTrackLabels } from '../lib/projects';
+import {
+  groupByYear,
+  projectTrackLabels,
+  projectTracks,
+  stripExt,
+  trackCounts,
+} from '../lib/projects';
 import { withBase } from '../lib/path';
+import ProjectFilter from './ProjectFilter.astro';
+import ProjectTrackFilter from './ProjectTrackFilter.astro';
+import StarBlock from './StarBlock.astro';
 
 interface Props {
   collection?: 'projects' | 'projects-en';
   linkPrefix?: string;
+  /** Row body. `star` = the full four-row skeleton (HR, judging the reasoning);
+   *  `summary` = the one-line `description` (colleague, scanning the method). */
+  variant?: 'star' | 'summary';
+  /** Curated reading order — a role's angle. Present ⇒ one flat sequence with no
+   *  year headings: a curated order and a chronological order cannot both be the
+   *  page's order, and the angle is the point of the sequence. */
+  order?: readonly string[];
+  /** Category tabs above the rows (track filter). Off by default: a timeline
+   *  should not open with a query. */
+  filterable?: boolean;
 }
 
-const { collection = 'projects', linkPrefix = '' } = Astro.props;
+const {
+  collection = 'projects',
+  linkPrefix = '',
+  variant = 'star',
+  order,
+  filterable = false,
+} = Astro.props;
 const lang: 'ru' | 'en' = linkPrefix.startsWith('en/') ? 'en' : 'ru';
 
 const trackLabels = projectTrackLabels(lang);
@@ -31,56 +67,286 @@ const groups = groupByYear(
   })),
 );
 
+const curated = order
+  ?.map((slug) => projects.find((project) => stripExt(project.id) === slug))
+  .filter((project): project is (typeof projects)[number] => Boolean(project));
+
+// One shape for both modes: a year when the list is chronological, `null` when a
+// curated order owns the sequence. `year` drives both the heading and the row's
+// heading level — a flat list has no year `<h3>`, so its rows are `<h3>` to keep
+// the outline h2 → h3 → … without a skipped level.
+//
+// `inYear` is typed as the raw entry: `groupByYear` returns the lifted objects
+// (they carry `date`/`updated` at the top level, which the template never reads),
+// and those are assignable to it.
+type Row = (typeof projects)[number];
+const grouped: { year: number | null; inYear: Row[] }[] = curated
+  ? [{ year: null, inYear: curated }]
+  : groups.map((group) => ({ year: group.year, inYear: group.projects }));
+
 // The row is a scanning aid, not the full tool list — the project page owns
 // that. Four read as one line at 1180px and still cover the headline stack.
 const TOOL_LIMIT = 4;
 
 const t = {
   heading: lang === 'en' ? 'All projects' : 'Все проекты',
+  filterLabel: lang === 'en' ? 'Project category' : 'Категория проектов',
+  empty:
+    lang === 'en'
+      ? 'No projects with this tool in this category.'
+      : 'В этой категории нет проектов с этим инструментом.',
 };
+
+// Category tabs, counted over the rows this section actually renders — the
+// curated set, not the raw catalogue, so a count never promises a row the
+// reader cannot find.
+const visibleProjects = curated ?? projects;
+const counts = trackCounts(
+  visibleProjects.map((project) => ({ track: project.data.track })),
+  lang,
+);
+const tracks = projectTracks(lang).map((track) => ({
+  ...track,
+  count: counts[track.key] ?? 0,
+}));
 ---
 
-<section id="projects" class="reveal reveal-delay-2" aria-labelledby="projects-heading">
-  {/* Mirrors `ProjectBoard.astro`: the rows are h4 under a year h3, so the
+<section
+  id="projects"
+  class="reveal reveal-delay-2"
+  aria-labelledby="projects-heading"
+  data-project-list
+>
+  {/* Mirrors `ProjectBoard.astro`: the rows sit under a year `<h3>`, so the
       section needs its own h2 or the outline jumps h1 -> h3 and the Lighthouse
       heading-order audit fails. Kept visually hidden — the year headings carry
       the visible structure. */}
   <h2 id="projects-heading" class="visually-hidden">{t.heading}</h2>
 
   {
-    groups.map(({ year, projects: inYear }) => (
-      <section class="project-year" aria-labelledby={`project-year-${year}`}>
-        <h3 id={`project-year-${year}`} class="project-year-heading">
-          {year}
-        </h3>
-        <ul class="project-year-list">
-          {inYear.map((project) => {
-            const slug = project.id.replace(/\.md$/, '');
-            const tools = project.data.tools.slice(0, TOOL_LIMIT);
-            return (
-              <li class="project-row">
-                <div class="project-row-head">
-                  <h4 class="project-row-title">
-                    <a
-                      href={withBase(`${linkPrefix}projects/${slug}/`)}
-                      data-analytics-project={slug}
-                      data-analytics-surface="list"
-                    >
-                      {project.data.title}
-                    </a>
-                  </h4>
-                  <p class="project-row-track">{trackLabels[project.data.track]}</p>
-                </div>
-                <p class="project-row-description">{project.data.description}</p>
-                {tools.length > 0 && <p class="project-row-tools">{tools.join(' · ')}</p>}
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-    ))
+    filterable && (
+      <div class="project-filter-bar">
+        <ProjectTrackFilter lang={lang} tracks={tracks} total={visibleProjects.length} />
+        <ProjectFilter lang={lang} />
+      </div>
+    )
+  }
+  <span class="visually-hidden" role="status" aria-live="polite" id="list-filter-status" />
+  <p id="list-filter-empty" class="project-empty" hidden>
+    {t.empty}
+  </p>
+
+  {
+    grouped.map(({ year, inYear }) => {
+      const RowHeading = year === null ? 'h3' : 'h4';
+      return (
+        <section
+          class="project-year"
+          aria-labelledby={year === null ? undefined : `project-year-${year}`}
+        >
+          {year !== null && (
+            <h3 id={`project-year-${year}`} class="project-year-heading">
+              {year}
+            </h3>
+          )}
+          <ul class="project-year-list">
+            {inYear.map((project) => {
+              const slug = stripExt(project.id);
+              const tools = project.data.tools.slice(0, TOOL_LIMIT);
+              return (
+                <li
+                  class="project-row"
+                  data-track={project.data.track}
+                  data-tools={project.data.tools.join(',').toLowerCase()}
+                >
+                  <div class="project-row-head">
+                    <RowHeading class="project-row-title">
+                      <a
+                        href={withBase(`${linkPrefix}projects/${slug}/`)}
+                        data-analytics-project={slug}
+                        data-analytics-surface="list"
+                      >
+                        {project.data.title}
+                      </a>
+                    </RowHeading>
+                    <p class="project-row-track">{trackLabels[project.data.track]}</p>
+                  </div>
+                  {variant === 'star' && project.data.star ? (
+                    <div class="project-row-star">
+                      <StarBlock star={project.data.star} lang={lang} />
+                    </div>
+                  ) : (
+                    <p class="project-row-description">{project.data.description}</p>
+                  )}
+                  {tools.length > 0 && <p class="project-row-tools">{tools.join(' · ')}</p>}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      );
+    })
   }
 </section>
+
+{
+  filterable && (
+    <script>
+      import { ALL_TOOLS, ALL_TRACKS, emptyToolKeys, matchesTool } from '../lib/projects';
+      import { track } from '../lib/analytics';
+
+      // Category + tool filter for the list. Same state contract as the board's
+      // controller — category in `#track-<key>`, tool in `?tool=<key>`, a chip
+      // that cannot match in the active category is disabled — minus the reorder,
+      // which the list does not have. One category means one series in PostHog.
+      //
+      // A filtered-out year group is hidden whole, otherwise the reader sees
+      // "2026" followed by nothing.
+      const section = document.querySelector<HTMLElement>('[data-project-list]');
+      if (section) {
+        // Bound once: `section` is `HTMLElement | null`, and the hoisted
+        // `function apply()` below cannot rely on the narrowing at the guard.
+        const root: HTMLElement = section;
+        const lang: 'ru' | 'en' = document.documentElement.lang === 'en' ? 'en' : 'ru';
+        const trackButtons = Array.from(
+          root.querySelectorAll<HTMLButtonElement>('[data-track-filter]'),
+        );
+        const toolButtons = Array.from(
+          root.querySelectorAll<HTMLButtonElement>('[data-tool-filter]'),
+        );
+
+        if (trackButtons.length || toolButtons.length) {
+          const statusEl = document.getElementById('list-filter-status');
+          const emptyEl = document.getElementById('list-filter-empty');
+          let activeTrack = ALL_TRACKS;
+          let activeTool = ALL_TOOLS;
+
+          const rows = (): HTMLElement[] =>
+            Array.from(root.querySelectorAll<HTMLElement>('.project-row'));
+          const toolsOf = (row: HTMLElement): string[] =>
+            (row.dataset.tools || '').split(',').filter(Boolean);
+
+          const statusText = (n: number): string =>
+            lang === 'en' ? `${n} projects shown` : `Показано проектов: ${n}`;
+
+          function apply(): number {
+            let visible = 0;
+            for (const row of rows()) {
+              const inTrack = activeTrack === ALL_TRACKS || row.dataset.track === activeTrack;
+              const ok = inTrack && matchesTool(toolsOf(row), activeTool);
+              row.classList.toggle('is-hidden', !ok);
+              if (ok) visible += 1;
+            }
+
+            // A year heading belongs to its rows: no visible row, no heading.
+            for (const group of Array.from(
+              root.querySelectorAll<HTMLElement>('.project-year'),
+            )) {
+              const any = Array.from(
+                group.querySelectorAll<HTMLElement>('.project-row'),
+              ).some((row) => !row.classList.contains('is-hidden'));
+              group.classList.toggle('is-hidden', !any);
+            }
+
+            for (const btn of trackButtons) {
+              const isActive = (btn.dataset.trackFilter || ALL_TRACKS) === activeTrack;
+              btn.classList.toggle('active', isActive);
+              btn.setAttribute('aria-pressed', String(isActive));
+            }
+            for (const btn of toolButtons) {
+              const isActive = (btn.dataset.toolFilter || ALL_TOOLS) === activeTool;
+              btn.classList.toggle('active', isActive);
+              btn.setAttribute('aria-pressed', String(isActive));
+            }
+
+            // Disable chips that cannot match inside the active category, so a
+            // click never lands on an empty list. The active chip stays operable.
+            const scope =
+              activeTrack === ALL_TRACKS
+                ? rows()
+                : rows().filter((row) => row.dataset.track === activeTrack);
+            const emptyKeys = emptyToolKeys(
+              scope.map((row) => ({ tools: toolsOf(row) })),
+              lang,
+            );
+            for (const btn of toolButtons) {
+              const key = btn.dataset.toolFilter || ALL_TOOLS;
+              const disabled =
+                key !== ALL_TOOLS && key !== activeTool && emptyKeys.includes(key);
+              btn.disabled = disabled;
+              btn.setAttribute('aria-disabled', String(disabled));
+            }
+
+            if (statusEl) statusEl.textContent = statusText(visible);
+            if (emptyEl) emptyEl.hidden = visible > 0;
+            return visible;
+          }
+
+          function readUrl(): void {
+            const params = new URLSearchParams(location.search);
+            const tool = params.get('tool') || ALL_TOOLS;
+            activeTool = toolButtons.some((btn) => btn.dataset.toolFilter === tool)
+              ? tool
+              : ALL_TOOLS;
+
+            const hash = location.hash.replace(/^#/, '');
+            const key = hash.startsWith('track-') ? hash.slice('track-'.length) : '';
+            activeTrack = trackButtons.some((btn) => btn.dataset.trackFilter === key)
+              ? key
+              : ALL_TRACKS;
+          }
+
+          function urlFor(nextTrack: string, nextTool: string): string {
+            const params = new URLSearchParams(location.search);
+            if (nextTool === ALL_TOOLS) params.delete('tool');
+            else params.set('tool', nextTool);
+            const query = params.toString();
+            const hash = nextTrack === ALL_TRACKS ? '' : `#track-${nextTrack}`;
+            return `${location.pathname}${query ? `?${query}` : ''}${hash}`;
+          }
+
+          for (const btn of trackButtons) {
+            btn.addEventListener('click', () => {
+              const next = btn.dataset.trackFilter || ALL_TRACKS;
+              if (next === activeTrack) return;
+              activeTrack = next;
+              const visible = apply();
+              history.pushState(
+                { track: activeTrack },
+                '',
+                urlFor(activeTrack, activeTool),
+              );
+              track('projects_track_filter', {
+                track: activeTrack,
+                results_count: visible,
+                locale: lang,
+              });
+            });
+          }
+
+          for (const btn of toolButtons) {
+            btn.addEventListener('click', () => {
+              if (btn.disabled) return;
+              const next = btn.dataset.toolFilter || ALL_TOOLS;
+              if (next === activeTool) return;
+              activeTool = next;
+              apply();
+              history.replaceState(null, '', urlFor(activeTrack, activeTool));
+            });
+          }
+
+          window.addEventListener('popstate', () => {
+            readUrl();
+            apply();
+          });
+
+          readUrl();
+          apply();
+        }
+      }
+    </script>
+  )
+}
 
 <style>
   /* One rule per year, labelled at the left: the label sits in the gutter the
@@ -117,6 +383,13 @@ const t = {
 
   .project-row:last-child {
     border-bottom: none;
+  }
+
+  /* Filtered out by the category tabs. A year group goes with its last row, so
+     no heading is left standing over an empty stretch. */
+  .project-row.is-hidden,
+  .project-year.is-hidden {
+    display: none;
   }
 
   .project-row-head {
@@ -157,18 +430,27 @@ const t = {
   }
 
   .project-row-description {
-    max-width: 68ch;
+    max-width: 66ch;
     margin: 0.35rem 0 0;
-    font-size: 0.9375rem;
+    font-size: var(--text-body);
     line-height: 1.5;
-    color: var(--text-muted);
+    color: var(--text-normal);
   }
 
+  /* The STAR block keeps the reading-measure cap: the row spans the 1180px
+     frame, and without it a value line would run the full width. The label
+     column lives inside the cap, so the value column lands near 56–60ch. */
+  .project-row-star {
+    max-width: 66ch;
+    margin-top: 0.55rem;
+  }
+
+  /* No opacity: 0.85 — on top of --text-muted it measured 4.18–4.58:1 across
+     the card's gradient surface. The muted token alone is 5.16 / 6.88 / 5.60. */
   .project-row-tools {
     margin: 0.4rem 0 0;
-    font-size: 0.8125rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
-    opacity: 0.85;
   }
 
   /* The track label moves under the title rather than shrinking the title to a

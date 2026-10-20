@@ -204,10 +204,10 @@ button.blog-card-tag:hover {
 }
 
 .blog-card-excerpt {
-  font-size: 0.92rem;
+  font-size: var(--text-body);
   color: var(--text-normal);
   line-height: 1.5;
-  max-width: 65ch;
+  max-width: 66ch;
 }
 
 /* Page intro paragraphs with inline links — links must be accent, not UA blue. */
@@ -405,10 +405,12 @@ button.blog-card-tag:hover {
 
 /* Personal-data note under the form. Deliberately plain text: it names no
    policy page, because there is no `/privacy/` route to link to. */
+/* Consent copy is the one paragraph a reader is entitled to read comfortably:
+   it was 13.6px, below every other body role on the site. */
 .contact-note {
   margin: var(--space-3) 0 0;
-  max-width: 60ch;
-  font-size: 0.85rem;
+  max-width: 66ch;
+  font-size: var(--text-body);
   line-height: 1.5;
   color: var(--text-muted);
 }
