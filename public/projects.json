@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-20T22:37:05.433Z",
+  "generated_at": "2026-10-20T22:55:36.534Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -162,8 +162,8 @@
       "track": "analytics",
       "title": "Promo Margin Lab — цена промо в рублях",
       "title_en": "Promo Margin Lab — what a promo rouble actually earns",
-      "description": "Промо даёт +70.5 млн ₽ выручки и −17.6 млн ₽ прибыли: 95.3% волн убыточны, breakeven-глубина 2.0–20.5%, а оптимизатор покупает ту же прибыль за четверть денег.",
-      "description_en": "Promo returns +70.5 m RUB of revenue and −17.6 m RUB of profit: 95.3% of waves lose money, breakeven depth is 2.0–20.5%, and the optimiser buys the same profit for a quarter of the spend.",
+      "description": "Промо даёт +70.5 млн ₽ выручки и −17.6 млн ₽ прибыли: 95.3% волн убыточны, breakeven-глубина 2.0–20.5%, а оптимизатор берёт ту же прибыль за 487 тыс ₽ вместо 1.27 млн ₽ у top-15%.",
+      "description_en": "Promo returns +70.5 m RUB of revenue and −17.6 m RUB of profit: 95.3% of waves lose money, breakeven depth is 2.0–20.5%, and the optimiser earns it for 487 k RUB, not 1.27 m.",
       "tools": [
         "Python",
         "pandas",
