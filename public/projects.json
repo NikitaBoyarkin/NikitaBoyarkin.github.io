@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-20T13:22:20.988Z",
+  "generated_at": "2026-10-20T19:56:38.475Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -275,8 +275,8 @@
       "track": "product",
       "title": "Product Analytics + A/B on Supabase",
       "title_en": "Product Analytics + A/B on Supabase",
-      "description": "Full-stack аналитика на Supabase: A/B-эксперимент дал +11,1 пп (p ≈ 1,7·10⁻¹⁰, χ²), а Streamlit-дашборд читает живые данные через Row Level Security и SQL-вьюхи.",
-      "description_en": "Full-stack analytics on Supabase: an A/B experiment lifted conversion +11.1pp (p ≈ 1.7e-10, chi-square), with a Streamlit dashboard reading live data through Row Level Security.",
+      "description": "Full-stack аналитика на Supabase: A/B на сидированном потоке дал +11,1 пп (p ≈ 1,7·10⁻¹⁰, χ²), а Streamlit-дашборд читает живые данные через RLS и SQL-вьюхи.",
+      "description_en": "Full-stack analytics on Supabase: an A/B on a seeded event stream lifted conversion +11.1pp (p ≈ 1.7e-10, chi-square), with a Streamlit dashboard reading live data through RLS.",
       "tools": [
         "Python",
         "Streamlit",
@@ -311,8 +311,8 @@
       "track": "product",
       "title": "TaskFlow — PostHog Product Analytics Pipeline",
       "title_en": "TaskFlow — PostHog Product Analytics Pipeline",
-      "description": "7 анализов из типизированного каталога событий: SaaS-продукт инструментирован PostHog end-to-end — воронка, retention, A/B, revenue/LTV и time-to-convert, а не демо на готовом CSV.",
-      "description_en": "7 analyses from a typed event catalog: a SaaS product instrumented with PostHog end-to-end — funnel, retention, A/B, revenue/LTV and time-to-convert, not a demo on a ready-made CSV.",
+      "description": "7 анализов из типизированного каталога: PostHog end-to-end — воронка, retention, A/B, revenue/LTV, time-to-convert. Поток событий сидирован; ценность — в методах: каталог, скрабинг PII, SQL, CI.",
+      "description_en": "7 analyses from a typed event catalog: PostHog end-to-end — funnel, retention, A/B, revenue/LTV, time-to-convert. The stream is seeded; the value is the method: catalog, PII scrubbing, SQL, CI.",
       "tools": [
         "Python",
         "PostHog",
