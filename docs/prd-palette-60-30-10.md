@@ -89,12 +89,12 @@
 ### Must Have (P0)
 
 #### REQ-001: Доминирующий цвет (60%) — поверхность
-**Описание:** 60% площади — фон страницы, карточки, код-блоки, шапки таблиц. Семейство indigo (dark) / cream (light) / midnight (cyberpunk). Четыре ступени глубины (primary → secondary → tertiary → card); в тёмной теме ступень идёт **вниз** по светлоте — страница #1400c3 (L* ≈ 24) светлее любой поверхности над ней.
+**Описание:** 60% площади — фон страницы, карточки, код-блоки, шапки таблиц. Семейство indigo (dark) / cream (light) / нейтральный near-black (cyberpunk). Четыре ступени глубины (primary → secondary → tertiary → card); в тёмной теме ступень идёт **вниз** по светлоте — страница #1400c3 (L* ≈ 24) светлее любой поверхности над ней.
 
 **Acceptance Criteria:**
 - [ ] Dark: `#1400c3` (primary), `#16009f` (secondary), `#120093` (tertiary), `#0d0068` (card).
 - [ ] Light: `#f4efca` (primary), `#ffffff` (secondary), `#f4f4f5` (tertiary).
-- [ ] Cyberpunk: `#0a0a12` (primary), `#11111d` (secondary), `#1a1a2e` (tertiary).
+- [ ] Cyberpunk: `#171717` (primary), `#232327` (secondary), `#2a2a30` (tertiary).
 - [ ] Суммарная площадь этих семейств на экране `/` ∈ [55%, 65%]. (Phase 2: desktop/mobile PASS, tablet 60% CHECK 69.5–71.6%; см. раздел 3.1.)
 - [ ] Никакой из этих токенов не используется как текст/иконка (только поверхность).
 
@@ -113,9 +113,9 @@
 **Описание:** 30% — body text, metadata, границы, разделители. Ахроматическое семейство zinc (нейтральный серый), которое работает с любым доминантом и даёт глубину без конкуренции с акцентом.
 
 **Acceptance Criteria:**
-- [ ] Dark: `#e4e4e7` (text-normal), `#b3b3ba` (text-muted), `#8076d7` (border). Граница — periwinkle, а не нейтраль: на насыщенном синем нейтраль #3f3f46 даёт 1.11:1, и край карточки исчезает (заливка карты всего 1.49:1).
+- [ ] Dark: `#f8f2da` (text-normal), `#b3b3ba` (text-muted), `#8076d7` (border). Граница — periwinkle, а не нейтраль: на насыщенном синем нейтраль #3f3f46 даёт 1.11:1, и край карточки исчезает (заливка карты всего 1.49:1).
 - [ ] Light: `#18181b` (text-normal), `#52525b` (text-muted), `#e4e4e7` (border).
-- [ ] Cyberpunk: `#e6f1ff` (text-normal), `#8a8aa8` (text-muted), `#2a2a4a` (border).
+- [ ] Cyberpunk: `#f8f2da` (text-normal), `#9a9ab4` (text-muted), `#4a4a57` (border).
 - [ ] `text-muted` не используется для основного body text (только metadata).
 - [ ] Суммарная площадь вторичных токенов (text + border) на экране `/` ∈ [25%, 35%]. (Phase 2: desktop/mobile PASS, tablet 30% PASS 25.5–27.1%; см. раздел 3.1.)
 - [ ] Border-color — единственный токен границ; не вводить второй нейтральный border.
@@ -165,18 +165,18 @@
 - [ ] `text-normal` на `background-primary` ≥ 4.5:1 во всех 3 темах.
 - [ ] `text-muted` на `background-primary` ≥ 4.5:1 (dark/cyberpunk); на light muted `#52525b` на `#f4efca` — проверяется hook.
 - [ ] `text-accent` на `background-secondary` (карточка) ≥ 4.5:1 во всех темах.
-- [ ] Button text `#1a1a1a` на `--button-bg` ≥ 3:1 (UI/large) во всех темах; на cyberpunk `#ff2bd6` — если < 4.5:1, маркировать large-text only и верифицировать hook.
+- [ ] Button ink (`--button-ink`: `#f8f2da` в dark/light, `#1a1a1a` в cyberpunk) на `--button-bg` ≥ 3:1 (UI/large) во всех темах; на cyberpunk `#ff2bd6` — если < 4.5:1, маркировать large-text only и верифицировать hook.
 - [ ] CI-гейт (contrast-gate) зелёный.
 
 **Таблица верификации (заполняется по результатам hook):**
 
 | Пара | Dark | Light | Cyberpunk | Class |
 |---|---|---|---|---|
-| text-normal / bg-primary | 11.94:1 | 15.22:1 | 17.27:1 | Verified by hook |
-| text-muted / bg-primary | 5.91:1 | 6.64:1 | 5.90:1 | Verified by hook |
-| text-accent / bg-secondary | 5.55:1 | 6.66:1 | 7.85:1 | Verified by hook |
-| button-ink / button-bg | 6.00:1 | 6.00:1 | 5.44:1 | Verified by hook |
-| border-active / bg-primary (3:1) | 6.36:1 | 5.72:1 | 8.27:1 | Verified by hook |
+| text-normal / bg-primary | 10.29:1 | 15.22:1 | 15.97:1 | Verified by hook |
+| text-muted / bg-primary | 5.54:1 | 6.64:1 | 6.54:1 | Verified by hook |
+| text-accent / bg-secondary | 5.74:1 | 6.66:1 | 6.57:1 | Verified by hook |
+| button-ink / button-bg | 15.97:1 | 15.97:1 | 5.44:1 | Verified by hook |
+| border-active / bg-primary (3:1) | 4.85:1 | 5.72:1 | 7.52:1 | Verified by hook |
 
 > Числа — WCAG 2.1, та же формула, что в `contrast-gate.js`. Все три темы Verified: hook отработал PostToolUse на правках `global.css` без блокировок (exit 0, все пары ≥ порогов) + вычислены идентичной формулой. Cyberpunk теперь охвачен хуком (добавлен в массив `themes` — mechanism closed).
 

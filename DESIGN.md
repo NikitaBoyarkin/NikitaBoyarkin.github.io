@@ -6,7 +6,7 @@ colors:
   background-primary: "#1400c3"
   background-secondary: "#16009f"
   background-tertiary: "#120093"
-  text-normal: "#e4e4e7"
+  text-normal: "#f8f2da"
   text-muted: "#b3b3ba"
   text-accent: "#ff8569"
   text-accent-hover: "#ffa68a"
@@ -119,11 +119,11 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 ## Colors
 
 - The accent is semantic, not decorative: use it for links, active nav, focus rings, borders, and primary actions. Do not introduce a second accent.
-- Surfaces step primary → secondary → tertiary for page, card, and nested surfaces (code blocks, table headers, chips). **On the dark theme the step runs downward** — the page is a saturated colour field at L* ≈ 24, so every surface above it is *darker*: page `#1400c3` → secondary `#16009f` → tertiary `#120093` → card `#0d0068`. Stepping the surfaces *lighter*, the conventional direction, drops `--text-muted` under 4.5:1 (3.62:1 on `#3b2cbb`); the light theme keeps the conventional upward step. On dark, the `#8076d7` hairline (3.02:1 on the page, 4.51:1 on a card) is what carries the card edge, because the card fill is only 1.49:1 against the page.
+- Surfaces step primary → secondary → tertiary for page, card, and nested surfaces (code blocks, table headers, chips). **On the dark theme the step runs downward** — the page is a saturated colour field at L* ≈ 24, so every surface above it is *darker*: page `#1400c3` → secondary `#16009f` → tertiary `#120093` → card `#0d0068`. Stepping the surfaces *lighter*, the conventional direction, drops `--text-muted` under 4.5:1 (3.62:1 on `#3b2cbb`); the light theme keeps the conventional upward step. On dark, the `#8076d7` hairline (3.02:1 on the page, 4.51:1 on a card) is what carries the card edge, because the card fill is only 1.49:1 against the page. Cyberpunk runs that step the conventional way, **upward** from its neutral `#171717` page (`#1e1e22` surface-secondary → `#232327` card → `#2a2a30` tertiary → `#33333b` hover), and its card edge is carried by the `#4a4a57` hairline (2.06:1 on the page) because the fill step is only 1.14:1.
 - The button fill is a near-black neutral (`#171717`) with the cream `--button-ink` (`#f8f2da`) on top — a dark fill under light ink (15.97:1), which is the inverse of the convention the cyberpunk theme still uses. `--button-ink` is the ink that sits on the **button fill** only: cream (`#f8f2da`) in dark/light themes, dark (`#1a1a1a`) in cyberpunk (where the fill is magenta). Unlike the old orange fill it is not constant across the three themes, because the fill is not either.
 - `--accent-ink` is the ink that sits on `--text-accent` used as a **fill** — skip link, `::selection`, accent badges, source monograms, the pressed knowledge-graph chip. It is **not** constant: `#1a1a1a` in dark and cyberpunk (7.30:1 on the coral `#ff8569`), `#ffffff` in light (6.66:1 on the sienna `#a8331a`). The dark ink on the light theme's sienna measures **2.61:1** — under both the 4.5:1 text floor and the 3:1 large-text floor — which is why these six surfaces are token-driven rather than hardcoded. `--button-ink` cannot serve here: the button fill (near-black neutral) and the accent fill (coral/sienna) are different colours, so one token for both is impossible.
-- The fill was signal blue (`#1400c3`) until 2026-09. It sat at **1.31:1** against the then-teal canvas — a CTA that read as a hole punched in the page. No blue can clear 3:1 *against teal* and carry AA text on top, so the fill became light with dark ink. On 2026-10-18 the fill moved from the orange `#fe4e02` to the neutral `#171717`; the orange survives only as the OG-banner accent (`ACCENT_ON_BLUE`). The signal blue has since returned to the page itself (2026-10-20, `--background-primary`), where it carries `#e4e4e7` at 9.10:1 — but a near-black fill on the indigo page measures **1.55:1**, so the dark-theme button is still defined by its shape and its cream label rather than by fill contrast.
-- `text-muted` is for **metadata only** — dates, tags, captions, breadcrumbs, footer, counts. `text-normal` is for **body prose** and headings. The boundary is not "how important it feels": a paragraph of prose is body text even when it sits inside a card, so `.bento-cell-text`, `.featured-card-description`, `.blog-card-excerpt`, `.wwm-block ul`, `#project-content p` and `.post-content p` are all `text-normal`. Measured, this is the difference between 5.54:1 and 9.10:1 in dark (5.90:1 → 17.27:1 in cyberpunk).
+- The fill was signal blue (`#1400c3`) until 2026-09. It sat at **1.31:1** against the then-teal canvas — a CTA that read as a hole punched in the page. No blue can clear 3:1 *against teal* and carry AA text on top, so the fill became light with dark ink. On 2026-10-18 the fill moved from the orange `#fe4e02` to the neutral `#171717`; the orange survives only as the OG-banner accent (`ACCENT_ON_BLUE`). The signal blue has since returned to the page itself (2026-10-20, `--background-primary`), where it carries `#f8f2da` at 10.29:1 — but a near-black fill on the indigo page measures **1.55:1**, so the dark-theme button is still defined by its shape and its cream label rather than by fill contrast.
+- `text-muted` is for **metadata only** — dates, tags, captions, breadcrumbs, footer, counts. `text-normal` is for **body prose** and headings. The boundary is not "how important it feels": a paragraph of prose is body text even when it sits inside a card, so `.bento-cell-text`, `.featured-card-description`, `.blog-card-excerpt`, `.wwm-block ul`, `#project-content p` and `.post-content p` are all `text-normal`. Measured, this is the difference between 5.54:1 and 10.29:1 in dark (6.54:1 → 15.97:1 in cyberpunk).
 
 ## Color Roles — 60-30-10
 
@@ -131,20 +131,20 @@ The palette is formalized against the **60-30-10** rule (`docs/prd-palette-60-30
 
 | Role | Token | Dark | Light | Cyberpunk |
 |---|---|---|---|---|
-| **60% Dominant** (surfaces) | `--background-primary` | `#1400c3` | `#f4efca` | `#0a0a12` |
-| | `--background-secondary` | `#16009f` | `#ffffff` | `#11111d` |
-| | `--card-background` | `#0d0068` | `#f8f2da` | `#11111d` |
-| | `--background-tertiary` | `#120093` | `#f4f4f5` | `#1a1a2e` |
-| | `--interactive-normal` | `#120093` | `#f4f4f5` | `#1a1a2e` |
-| | `--interactive-hover` | `#0d0068` | `#e4e4e7` | `#232342` |
-| | `--code-background` | `#120093` | `#f4f4f5` | `#1a1a2e` |
-| | `--table-header-background` | `#120093` | `#f4f4f5` | `#1a1a2e` |
-| **30% Secondary** (neutrals) | `--text-normal` | `#e4e4e7` | `#18181b` | `#e6f1ff` |
-| | `--text-muted` | `#b3b3ba` | `#52525b` | `#8a8aa8` |
-| | `--border-color` | `#8076d7` | `#e4e4e7` | `#2a2a4a` |
-| | `--blockquote-border` | `#8076d7` | `#e4e4e7` | `#2a2a4a` |
-| | `--table-border` | `#8076d7` | `#e4e4e7` | `#2a2a4a` |
-| | `--surface-secondary` | `#120093` | `#d4d4d8` | `#16162e` |
+| **60% Dominant** (surfaces) | `--background-primary` | `#1400c3` | `#f4efca` | `#171717` |
+| | `--background-secondary` | `#16009f` | `#ffffff` | `#232327` |
+| | `--card-background` | `#0d0068` | `#f8f2da` | `#232327` |
+| | `--background-tertiary` | `#120093` | `#f4f4f5` | `#2a2a30` |
+| | `--interactive-normal` | `#120093` | `#f4f4f5` | `#2a2a30` |
+| | `--interactive-hover` | `#0d0068` | `#e4e4e7` | `#33333b` |
+| | `--code-background` | `#120093` | `#f4f4f5` | `#2a2a30` |
+| | `--table-header-background` | `#120093` | `#f4f4f5` | `#2a2a30` |
+| **30% Secondary** (neutrals) | `--text-normal` | `#f8f2da` | `#18181b` | `#f8f2da` |
+| | `--text-muted` | `#b3b3ba` | `#52525b` | `#9a9ab4` |
+| | `--border-color` | `#8076d7` | `#e4e4e7` | `#4a4a57` |
+| | `--blockquote-border` | `#8076d7` | `#e4e4e7` | `#4a4a57` |
+| | `--table-border` | `#8076d7` | `#e4e4e7` | `#4a4a57` |
+| | `--surface-secondary` | `#120093` | `#d4d4d8` | `#1e1e22` |
 | **10% Accent** (interactive) | `--text-accent` | `#ff8569` | `#a8331a` | `#ff8569` |
 | | `--text-accent-hover` | `#ffa68a` | `#8a2a16` | `#ffbe99` |
 | | `--button-bg` | `#171717` | `#171717` | `#ff2bd6` |
@@ -195,9 +195,9 @@ import the same module, so there are no bare brand hexes outside it.
 Bar widths approximate the 60/30/10 proportion (illustrative, not pixel-measured — see Goal 1 for a measured audit):
 
 ```
-Dark       60% ▰▰▰▰▰▰▰▰▰▰  #1400c3 indigo     · 30% ▰▰▰▰▰  #e4e4e7 zinc    · 10% ▰▰  #ff8569 coral  (button fill: #171717 neutral)
+Dark       60% ▰▰▰▰▰▰▰▰▰▰  #1400c3 indigo     · 30% ▰▰▰▰▰  #f8f2da cream   · 10% ▰▰  #ff8569 coral  (button fill: #171717 neutral)
 Light      60% ▰▰▰▰▰▰▰▰▰▰  #f4efca cream      · 30% ▰▰▰▰▰  #18181b zinc    · 10% ▰▰  #a8331a sienna  (button fill: #171717 neutral)
-Cyberpunk  60% ▰▰▰▰▰▰▰▰▰▰  #0a0a12 indigo     · 30% ▰▰▰▰▰  #e6f1ff cool    · 10% ▰▰  #ff8569 coral  (button fill: #ff2bd6 magenta)
+Cyberpunk  60% ▰▰▰▰▰▰▰▰▰▰  #171717 neutral    · 30% ▰▰▰▰▰  #f8f2da cream   · 10% ▰▰  #ff8569 coral  (button fill: #ff2bd6 magenta)
 ```
 
 ## Visual Area Audit — Phase 2
@@ -218,7 +218,7 @@ Measured on `/` with `scripts/audit-palette-coverage.mjs` (Playwright + pngjs). 
 
 **Result (re-run 2026-10-20, single method):** the dominant share lands at 94–97% in every theme and every breakpoint, so the 55–65% band reads CHECK. Read that number with the classifier in hand: it maps each sampled pixel to the *nearest* palette hex within ΔRGB 25, so on a palette with a near-neutral page a large part of the page's own gradient wash falls into the 30% bucket (which is how the teal palette measured ~62/35). A saturated page ground (#1400c3) keeps its wash variants close to the page hex, so almost every surface pixel classifies as dominant. The budget the rule actually protects — accent ≤15% — is met with two orders of magnitude to spare: the 10% bucket is 0.2–0.8% everywhere. Treat the 55–65% row as *not meaningful on a saturated-canvas theme* until the classifier is normalised (per-role hue distance, not one global threshold).
 
-**Method caveat, stated rather than hidden:** the light and cyberpunk palettes did not change on 2026-10-20, yet their rows moved from ~63/35/2 to ~97/3/0.3. The earlier rows are therefore not reproducible with the current script and the previous "PASS across all nine combinations" claim should not be relied on; this run is the single consistent baseline.
+**Method caveat, stated rather than hidden:** the light and cyberpunk palettes did not change when these rows were captured on 2026-10-20, yet their rows moved from ~63/35/2 to ~97/3/0.3. (Cyberpunk then moved to a neutral `#171717` page later the same day, so its rows above are a pre-pass baseline and need a re-run.) The earlier rows are therefore not reproducible with the current script and the previous "PASS across all nine combinations" claim should not be relied on; this run is the single consistent baseline.
 
 Screenshots + `summary.json` → `reports/palette-audit/`.
 
@@ -236,13 +236,13 @@ WCAG AA contrast is bound to a mechanism — `.claude/hooks/contrast-gate.js`, a
 
 | Pair | Dark | Light | Cyberpunk | Gate |
 |---|---|---|---|---|
-| text-normal / bg-primary | 9.10:1 | 15.22:1 | 17.27:1 | hook |
-| text-muted / bg-primary | 5.54:1 | 6.64:1 | 5.90:1 | hook |
-| text-accent / card-background | 7.24:1 | 6.66:1 | 7.85:1 | hook |
+| text-normal / bg-primary | 10.29:1 | 15.22:1 | 15.97:1 | hook |
+| text-muted / bg-primary | 5.54:1 | 6.64:1 | 6.54:1 | hook |
+| text-accent / card-background | 7.24:1 | 6.66:1 | 6.57:1 | hook |
 | `--button-ink` / button-bg | 15.97:1 | 15.97:1 | 5.44:1 | hook |
-| button-bg / bg-primary (3:1) | 1.55:1 | 15.41:1 | 6.17:1 | measured, not gated |
-| border-active / bg-primary (3:1) | 4.85:1 | 5.72:1 | 8.27:1 | hook |
-| border-color / bg-primary (3:1) | 3.02:1 | 1.20:1 | 1.53:1 | measured, not gated |
+| button-bg / bg-primary (3:1) | 1.55:1 | 15.41:1 | 5.61:1 | measured, not gated |
+| border-active / bg-primary (3:1) | 4.85:1 | 5.72:1 | 7.52:1 | hook |
+| border-color / bg-primary (3:1) | 3.02:1 | 1.20:1 | 2.06:1 | measured, not gated |
 
 Gradients are the one contrast surface that hook cannot see, and it says so itself (`contrast-gate.js:37` resolves solid hex and single-level `var()`, and skips gradient backgrounds). `tests/lib/gradient-tokens.test.ts` binds that gap: it parses every `--gradient-*` token per theme, rejects any stop that is not an existing token or `transparent`, and composites the ramp at 0/25/50/75/100% over the surface it replaces, asserting the text token sitting there holds AA. Narrowest margin is the light-theme hero under `--text-accent` at **4.93:1** — raising that tint past roughly 11% turns the gate red.
 
@@ -252,23 +252,23 @@ The default (dark) values live in the frontmatter. Light and cyberpunk re-map th
 
 | Token | Light | Cyberpunk |
 |---|---|---|
-| background-primary | `#f4efca` | `#0a0a12` |
-| background-secondary | `#ffffff` | `#11111d` |
-| background-tertiary | `#f4f4f5` | `#1a1a2e` |
-| text-normal | `#18181b` | `#e6f1ff` |
-| text-muted | `#52525b` | `#8a8aa8` |
+| background-primary | `#f4efca` | `#171717` |
+| background-secondary | `#ffffff` | `#232327` |
+| background-tertiary | `#f4f4f5` | `#2a2a30` |
+| text-normal | `#18181b` | `#f8f2da` |
+| text-muted | `#52525b` | `#9a9ab4` |
 | text-accent | `#a8331a` | `#ff8569` |
 | text-accent-hover | `#8a2a16` | `#ffbe99` |
 | button-bg | `#171717` | `#ff2bd6` |
 | button-bg-hover | `#2e2e2e` | `#ff5ce0` |
-| interactive-normal | `#f4f4f5` | `#1a1a2e` |
-| interactive-hover | `#e4e4e7` | `#232342` |
-| border-color | `#e4e4e7` | `#2a2a4a` |
+| interactive-normal | `#f4f4f5` | `#2a2a30` |
+| interactive-hover | `#e4e4e7` | `#33333b` |
+| border-color | `#e4e4e7` | `#4a4a57` |
 | border-active | `#a8331a` | `#ff8569` |
-| code-background | `#f4f4f5` | `#1a1a2e` |
-| blockquote-border | `#e4e4e7` | `#2a2a4a` |
-| table-border | `#e4e4e7` | `#2a2a4a` |
-| table-header-background | `#f4f4f5` | `#1a1a2e` |
+| code-background | `#f4f4f5` | `#2a2a30` |
+| blockquote-border | `#e4e4e7` | `#4a4a57` |
+| table-border | `#e4e4e7` | `#4a4a57` |
+| table-header-background | `#f4f4f5` | `#2a2a30` |
 | shadow-color | `rgba(0, 0, 0, 0.08)` | `rgba(255, 133, 105, 0.15)` |
 
 The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges, facets, counts) pass contrast on both; only the button fill shifts to magenta.

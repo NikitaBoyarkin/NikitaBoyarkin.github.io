@@ -281,7 +281,7 @@
 /* A hairline on every cell, so wide comparison tables read as a grid instead
    of loose columns. Measured off the theme tokens: `--table-border` alone is
    1.09:1 against the light theme's cream page, where the grid disappears;
-   tinting --text-muted 40% gives 2.10 / 1.88 / 1.86:1 (dark / light / cyberpunk)
+   tinting --text-muted 40% gives ≈1.7 / 1.9 / 2.1:1 (dark / light / cyberpunk)
    with `--table-border` kept as the fallback for engines without color-mix().
 
    That is deliberately under WCAG 1.4.11's 3:1 for non-text, on the judgement

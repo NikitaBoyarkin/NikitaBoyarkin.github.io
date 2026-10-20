@@ -147,7 +147,7 @@
   --interactive-hover: #0d0068;
 
   /* 30% — neutral text + hairlines */
-  --text-normal: #e4e4e7;
+  --text-normal: #f8f2da;
   --text-muted: #b3b3ba;
   --border-color: #8076d7;
   --surface-secondary: #120093;
@@ -223,7 +223,7 @@
 
   /* "You are here" marker (bayesian's current-n line). A copy of the theme's
      --text-normal so the marker carries text weight rather than a hue. */
-  --dv-current: #e4e4e7;
+  --dv-current: #f8f2da;
 
   /* Semantic trio, dataviz scope only. */
   --dv-good: #2fbf85;
@@ -273,18 +273,18 @@
 }
 
 [data-theme="cyberpunk"] {
-  /* ── Cyberpunk — neon on near-black. Copied verbatim from global.css. ── */
+  /* ── Cyberpunk — neon on neutral near-black. Copied verbatim from global.css. ── */
 
-  --background-primary: #0a0a12;
-  --background-secondary: #11111d;
-  --background-tertiary: #1a1a2e;
-  --interactive-normal: #1a1a2e;
-  --interactive-hover: #232342;
+  --background-primary: #171717;
+  --background-secondary: #232327;
+  --background-tertiary: #2a2a30;
+  --interactive-normal: #2a2a30;
+  --interactive-hover: #33333b;
 
-  --text-normal: #e6f1ff;
-  --text-muted: #8a8aa8;
-  --border-color: #2a2a4a;
-  --surface-secondary: #16162e;
+  --text-normal: #f8f2da;
+  --text-muted: #9a9ab4;
+  --border-color: #4a4a57;
+  --surface-secondary: #1e1e22;
 
   /* #ff8569 (was #ff6643): the darker accent fails 1.4.3 on accent-tinted
      backgrounds — see global.css for the full note. Kept identical here so the
@@ -302,15 +302,18 @@
 
   /* ── Cyberpunk dataviz roles ── */
 
-  --dv-label: #8a8aa8;
+  /* Lifted off #8a8aa8: the surfaces moved to a neutral near-black, and the
+     old value measured 4.37:1 on the new --background-tertiary. This holds
+     5.2:1 there. */
+  --dv-label: #9a9ab4;
   --dv-axis: #7a7a9c;
   --dv-threshold: #9a9ab8;
-  --dv-current: #e6f1ff;
+  --dv-current: #f8f2da;
 
   --dv-good: #34d399;
   --dv-warn: #ffab00;
   --dv-bad: #f87171;
-  --dv-neutral: #8a8aa8;
+  --dv-neutral: #9a9ab4;
 }
 
 * {

@@ -121,7 +121,7 @@ describe('theme (built HTML, real inline scripts)', () => {
     it('updates theme-color meta and toggle aria-label on switch', () => {
       const h = setup('index.html', null, false);
       h.clickToggle(); // → cyberpunk
-      expect(h.getThemeColor()).toBe('#0a0a12');
+      expect(h.getThemeColor()).toBe('#171717');
       expect(h.getAriaLabel()).toContain('cyberpunk');
     });
   });
@@ -130,7 +130,7 @@ describe('theme (built HTML, real inline scripts)', () => {
     it('restores a saved theme on a fresh page load', () => {
       const h = setup('index.html', 'cyberpunk');
       expect(h.getTheme()).toBe('cyberpunk');
-      expect(h.getThemeColor()).toBe('#0a0a12');
+      expect(h.getThemeColor()).toBe('#171717');
     });
 
     it('restores light when saved', () => {

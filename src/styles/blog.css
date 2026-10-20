@@ -459,7 +459,7 @@ nav ul.links a.active {
   font-size: 0.82rem;
   /* Chip label is interactive UI, not metadata: --text-muted on
      --background-tertiary is 4.34:1 in the dark theme (17 axe color-contrast
-     nodes on /writing/). --text-normal is 8.76 / 16.12 / 14.94:1 across
+     nodes on /writing/). --text-normal is 12.93 / 16.12 / 12.70:1 across
      dark / light / cyberpunk. */
   color: var(--text-normal);
   background: var(--background-tertiary);
@@ -485,7 +485,7 @@ nav ul.links a.active {
   font-size: 0.72rem;
   /* Sits on the accent-tinted pill over the chip's --background-tertiary, where
      --text-muted composites to 3.78:1 (dark) / 4.35:1 (cyberpunk). The tint is
-     kept; the text moves to --text-normal (7.63 / 13.84 / 12.73:1). */
+     kept; the text moves to --text-normal (12.05 / 13.84 / 10.76:1). */
   color: var(--text-normal);
   background: color-mix(in srgb, var(--text-accent) 10%, transparent);
   border-radius: var(--radius-full);
