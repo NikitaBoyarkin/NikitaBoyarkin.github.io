@@ -2,7 +2,7 @@
 // Single source of truth for the display order and the track (category) taxonomy
 // used by ProjectBoard and ProjectSpotlight.
 
-export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'streamlit', 'sales-calls', 'sql', 'rfm', 'cohort', 'churn', 'causal', 'rag', 'python', 'bot', 'scrolly', 'garden', 'serp-rank', 'airflow', 'ml', 'linkedin', 'site'];
+export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'streamlit', 'sales-calls', 'sql', 'rfm', 'cohort', 'churn', 'causal', 'rag', 'python', 'bot', 'scrolly', 'garden', 'serp-rank', 'airflow', 'ml', 'linkedin', 'promo', 'site'];
 
 // PRD v6 S2.6 — three headline case studies on the home page, each a distinct
 // proof with at least one reachable public artifact:
@@ -70,6 +70,7 @@ const RESULT_FIRST: readonly string[] = [
   'scrolly',
   'garden',
   'linkedin',
+  'promo',
   'site',
 ];
 
@@ -94,6 +95,7 @@ const METHOD_FIRST: readonly string[] = [
   'scrolly',
   'garden',
   'linkedin',
+  'promo',
   'bot',
   'site',
 ];

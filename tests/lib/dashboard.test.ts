@@ -226,7 +226,7 @@ describe('public/ scan', () => {
   const found = scanPublicArtifacts(PUBLIC);
 
   it('finds every demo app that has an entry point on disk', () => {
-    expect(disk.demos).toHaveLength(23);
+    expect(disk.demos).toHaveLength(24);
     expect(found.demos.map((d) => d.href).sort()).toEqual(
       disk.demos.map((name) => `/demos/${name}/`).sort(),
     );
@@ -262,7 +262,7 @@ describe('public/ scan', () => {
 
   it('names every row from the artefact itself, never from a slug fallback', () => {
     const rows = [...found.demos, ...found.diagrams, ...found.games, ...found.audits];
-    expect(rows.length).toBe(46);
+    expect(rows.length).toBe(47);
     for (const artefact of rows) {
       expect(artefact.title.trim(), `${artefact.href}: title`).not.toBe('');
       // `humanizeSlug` is the fallback for a missing `<title>`. A row still
@@ -273,19 +273,19 @@ describe('public/ scan', () => {
     }
   });
 
-  it('advertises the 53 interactive apps the dashboard promises', () => {
+  it('advertises the 54 interactive apps the dashboard promises', () => {
     const apps = found.demos.length + found.diagrams.length + found.games[0].count!;
-    expect(apps).toBe(53);
+    expect(apps).toBe(54);
   });
 
   it('renders the real numbers the plan froze, from the real scan', () => {
     const index = buildDashboard({ ...fixture('ru'), scanned: found });
     const tools = index.sections.find((s) => s.id === 'tools')!;
-    expect(tools.count).toBe(53);
-    expect(tools.countLabel).toBe('23 демо · 20 диаграмм · 10 игр · 2 аудита');
-    expect(tools.children).toHaveLength(46);
-    // 53 takes the Russian "few" form: «53 интерактивных приложения».
-    const apps = index.metrics.find((m) => m.value === '53')!;
+    expect(tools.count).toBe(54);
+    expect(tools.countLabel).toBe('24 демо · 20 диаграмм · 10 игр · 2 аудита');
+    expect(tools.children).toHaveLength(47);
+    // 54 takes the Russian "few" form: «54 интерактивных приложения».
+    const apps = index.metrics.find((m) => m.value === '54')!;
     expect(apps.label).toBe('интерактивных приложения');
   });
 });

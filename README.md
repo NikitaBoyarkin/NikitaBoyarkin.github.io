@@ -101,7 +101,7 @@ Links: **page** = the case study on the live site · **repo** = source on GitHub
 | **Volta Neobank** | Found the onboarding bottleneck and closed it with an A/B test: **+5.72 pp** KYC conversion, **€656K/yr**. 23 linked sub-projects across funnel → A/B → retention → segmentation | [page](https://nikitaboyarkin.github.io/projects/volta/) · [repo](https://github.com/NikitaBoyarkin/volta-banking) · [demo](https://nikitaboyarkin.github.io/demos/volta/index.html) |
 | **A/B Testing Toolkit** | 18 methodology modules, each calibrated by simulation — A/A holds Type I error at α, power curves plot achievable effect sizes | [page](https://nikitaboyarkin.github.io/projects/ab/) · [repo](https://github.com/NikitaBoyarkin/ab_test) |
 | **Browser Mini-Games** | 10 playable mini-games in self-contained SVG — 7 teaching analytics (A/B to p<0.05, funnel drop-off, cohort catch, retention day), 3 arcade | [page](https://nikitaboyarkin.github.io/projects/games/) · [repo](https://github.com/NikitaBoyarkin/browser-mini-games) · [demo](https://nikitaboyarkin.github.io/games/) |
-| **Causal / Uplift** | CUPED cut the standard error by **26%**: same power on 5.6k users per arm instead of 10k. Uplift models recover heterogeneous treatment effects | [page](https://nikitaboyarkin.github.io/projects/causal/) · [repo](https://github.com/NikitaBoyarkin/causal-uplift) |
+| **Causal / Uplift** | CUPED cut the standard error by **26%**: same power on 5.5k users per arm instead of 10k. Uplift models recover heterogeneous treatment effects | [page](https://nikitaboyarkin.github.io/projects/causal/) · [repo](https://github.com/NikitaBoyarkin/causal-uplift) |
 
 ### `track: analytics`
 
@@ -191,22 +191,22 @@ Lighthouse CI runs separately — see [CI/CD](#cicd).
 ```text
 ├── astro.config.mjs        # site, i18n, redirects, sitemap
 ├── src/
-│   ├── content.config.ts   # Zod schemas for all 6 collections
-│   ├── content/            # Markdown: projects(-en), posts(-en), volta-parts(-en)
+│   ├── content.config.ts   # Zod schemas for all 11 collections
+│   ├── content/            # Markdown/MDX: projects(-en), posts(-en), volta-parts(-en), glossary(-en), library(-en), about
 │   ├── layouts/            # Base.astro (nav, theme, meta, PostHog), Post.astro
-│   ├── components/         # 27 components + 7 chart primitives — cards, filters, graph, hero
+│   ├── components/         # 58 components — 47 top-level, 7 chart primitives, 4 about panels
 │   ├── lib/                # pure logic: metrics, topics, graph, fuzzy, charts, brand, path
-│   ├── pages/              # 24 routes + endpoints (rss, sitemap, robots, llms.txt, search-index.json)
+│   ├── pages/              # 48 route modules (30 RU + 18 EN): 38 pages + 10 endpoints
 │   ├── data/               # chart data + generated github-activity.json
 │   └── styles/             # global.css (tokens + themes), blog.css
 ├── scripts/                # OG/CV generators, GitHub sync, check_site.py, content-drift-audit, mobile audits
-├── tests/lib/              # 25 bun:test suites for src/lib/*
+├── tests/lib/              # 53 bun:test suites (src/lib + content contracts)
 ├── docs/                   # PRDs, ADRs, SPEC, analytics review ritual
 ├── monitoring/             # local RED monitoring stack (Prometheus + Grafana)
 └── public/                 # images, hero SVGs, OG images, fonts, CV PDF, demos, games
 ```
 
-`src/lib/` holds all non-trivial logic and is the only part covered by unit tests. Components stay presentational.
+`src/lib/` holds all non-trivial logic. Unit tests live in `tests/lib/` and additionally pin content contracts (skeleton, dates, frontmatter). Components stay presentational.
 
 ### Key `src/lib` modules
 
@@ -227,16 +227,21 @@ Lighthouse CI runs separately — see [CI/CD](#cicd).
 
 ## Content
 
-Six collections, schemas in `src/content.config.ts`:
+Eleven collections, schemas in `src/content.config.ts`:
 
 | Collection | Files | Language |
 |---|---|---|
-| `projects` | 17 | RU |
-| `projects-en` | 17 | EN |
+| `projects` | 22 | RU |
+| `projects-en` | 22 | EN |
 | `volta-parts` | 23 | RU |
 | `volta-parts-en` | 23 | EN |
 | `posts` | 24 | RU |
 | `posts-en` | 2 | EN |
+| `glossary` | 27 | RU |
+| `glossary-en` | 27 | EN |
+| `library` | 2 | RU |
+| `library-en` | 2 | EN |
+| `about` | 2 | RU + EN |
 
 ### Add a project
 
@@ -335,17 +340,20 @@ bun run sync:gh:candidates   # public, non-fork repos not yet featured
 
 ## CI/CD
 
-Three workflows in `.github/workflows/`:
+Six workflows in `.github/workflows/`:
 
 | Workflow | Trigger | Does |
 |---|---|---|
-| `deploy.yml` | push / PR to `master` \| `main` | install → **GitHub drift gate** (`sync:gh`, exits 1) → `bun run check` → `bun run test` → build → `make check` (tests + `test:monitoring` + `test:built` + `check_site.py`) → Lighthouse CI → deploy `dist/` to Pages |
-| `sync-github.yml` | weekly | runs `sync:gh:apply` and opens a PR with the changes |
-| `github-activity.yml` | daily | refreshes `github-activity.json`; commits only when the payload changed |
+| `deploy.yml` | push / PR to `master` \| `main`, manual | install → **GitHub drift gate** (`sync:gh`, exits 1) → registry + games-key drift checks → Volta board materialisation → `make check` (tests + `test:monitoring` + `test:built` + `check_site.py`) → build → deploy `dist/` to Pages |
+| `lighthouse.yml` | after `deploy.yml` completes on a successful push | reuses the Pages artifact, runs Lighthouse CI, rebuilds/validates the web-vitals board, uploads reports — never gates publishing |
+| `ci-failure-notify.yml` | after `deploy.yml` or `lighthouse.yml` fails on `master` | opens (or comments on) a tracking issue for the failed run |
+| `sync-github.yml` | weekly (Mon 03:17 UTC), manual | runs `sync:gh:apply` and opens a PR with the changes |
+| `github-activity.yml` | daily (04:51 UTC), manual, push to its script/workflow | refreshes `github-activity.json`; commits only when the payload changed |
+| `sync-contacts.yml` | daily (04:23 UTC), manual, push to its script/workflow | appends Supabase form submissions to the private `portfolio-contact-backend` log; skipped until `SUPABASE_URL` is set |
 
-Pull requests run every gate **except** deploy. Lighthouse runs in a separate job with no analytics env vars, so the scores stay clean.
+Pull requests run every gate **except** deploy. Lighthouse runs as a separate workflow triggered by a successful deploy, with no analytics env vars, so the scores stay clean.
 
-Lighthouse assertions (`.lighthouserc.json`, 7 URLs): accessibility, best-practices and SEO are **errors** at ≥ 0.95; performance is a **warning** at ≥ 0.85.
+Lighthouse assertions (`.lighthouserc.json`, 18 URLs): accessibility, best-practices and SEO are **errors** at ≥ 0.95; performance is a **warning** at ≥ 0.85.
 
 Do not push to `master` before confirming Pages is set to `Settings → Pages → Build and deployment → GitHub Actions`.
 
@@ -361,16 +369,16 @@ Do not push to `master` before confirming Pages is set to `Settings → Pages �
 |---|---|
 | `CLAUDE.md` | Full repository guide — schemas, conventions, command reference |
 | `CONTEXT.md` | Domain glossary for the conversion surface (RU) |
-| `docs/prd-v8.md` | Current PRD (RU) — replaces `prd-v7.md` |
+| `docs/prd-v9.md` | Current PRD (RU) — replaces `prd-v8.md` |
 | `docs/cta-inventory.md` | Every CTA, its event and destination |
 | `docs/analytics-events.md` | Event catalogue with payloads |
 | `docs/analytics-review.md` | Weekly 15-minute analytics ritual + funnel benchmark |
-| `docs/contact-log.md` | Manual hiring funnel log |
+| `portfolio-contact-backend/docs/contact-log.md` | Hiring funnel log — private repo, auto-synced by `sync-contacts.yml` |
 | `docs/backlog.md` | Open work |
 | `docs/adr/` | Architecture decision records |
 | `DESIGN.md` | Visual system notes |
 
-> Older PRDs (`prd-v2` … `prd-v7`) are kept for history. Prefer `docs/prd-v8.md` and `CLAUDE.md` when they disagree.
+> Older PRDs (`prd-v2` … `prd-v8`) are kept for history. Prefer `docs/prd-v9.md` and `CLAUDE.md` when they disagree.
 
 ## License
 

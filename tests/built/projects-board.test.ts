@@ -25,9 +25,9 @@ describe('/projects/ board — built pages', () => {
     it(`${page} renders a cover per card and no STAR rows`, () => {
       const source = html.get(page)!;
       expect(source).toContain('project-board-cover');
-      expect(source.match(/class="project reveal compact"/g) ?? []).toHaveLength(22);
+      expect(source.match(/class="project reveal compact"/g) ?? []).toHaveLength(23);
       // One cover image per card — the preview the catalogue is for.
-      expect(source.match(/<img src="[^"]*images\/[^"]*"/g) ?? []).toHaveLength(22);
+      expect(source.match(/<img src="[^"]*images\/[^"]*"/g) ?? []).toHaveLength(23);
       // No Result / Task rows on this board; the case owns them.
       expect(source).not.toMatch(/data-star=/);
       expect(source).not.toContain('class="star star-compact"');
@@ -39,7 +39,7 @@ describe('/projects/ board — built pages', () => {
   it('the manager board keeps its Task → Result cards and buys their width', () => {
     const source = readFileSync(resolve(DIST, 'manager/index.html'), 'utf8');
     expect(source).not.toContain('project-board-cover');
-    expect(source.match(/data-star="result"/g) ?? []).toHaveLength(22);
-    expect(source.match(/data-star="task"/g) ?? []).toHaveLength(22);
+    expect(source.match(/data-star="result"/g) ?? []).toHaveLength(23);
+    expect(source.match(/data-star="task"/g) ?? []).toHaveLength(23);
   });
 });

@@ -1,0 +1,47 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Promo margin lab: incremental profit per base unit rises to a shallow peak, crosses zero at the breakeven depth and keeps falling">
+  <defs>
+    <linearGradient id="promo-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8f2d8"/>
+      <stop offset="1" stop-color="#f1e9c2"/>
+    </linearGradient>
+    <linearGradient id="promo-loss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a8331a" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#a8331a" stop-opacity="0.04"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="600" fill="#f8f2d8"/>
+  <rect width="1200" height="600" fill="url(#promo-bg)" opacity="0.7"/>
+
+  <text x="80" y="104" font-family="Inter, system-ui, sans-serif" font-size="58" font-weight="700" letter-spacing="1" fill="#0f2a2b">PROMO MARGIN LAB</text>
+  <text x="80" y="150" font-family="Inter, system-ui, sans-serif" font-size="26" fill="#4a6b69">incremental profit per base unit, by discount depth</text>
+
+  <!-- zero line -->
+  <line x1="80" y1="340" x2="1120" y2="340" stroke="#4a6b69" stroke-width="2" stroke-dasharray="6 8"/>
+  <text x="80" y="322" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69">0</text>
+
+  <!-- loss region under zero, after breakeven -->
+  <path d="M 420 340 L 1120 340 L 1120 540 L 620 430 Z" fill="url(#promo-loss)"/>
+
+  <!-- profit curve: shallow peak, breakeven crossing, long fall -->
+  <path d="M 80 340 C 140 320, 200 300, 240 318 C 300 346, 360 340, 420 340 C 520 340, 700 420, 880 470 C 980 498, 1060 516, 1120 526"
+        fill="none" stroke="#0f2a2b" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- peak marker -->
+  <circle cx="240" cy="318" r="9" fill="#0f2a2b"/>
+  <text x="210" y="286" font-family="Inter, system-ui, sans-serif" font-size="24" fill="#0f2a2b">peak at 5%</text>
+
+  <!-- breakeven marker -->
+  <line x1="420" y1="250" x2="420" y2="430" stroke="#a8331a" stroke-width="3"/>
+  <circle cx="420" cy="340" r="10" fill="#a8331a"/>
+  <text x="442" y="240" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="600" fill="#a8331a">breakeven 10%</text>
+
+  <!-- depth axis -->
+  <line x1="80" y1="540" x2="1120" y2="540" stroke="#0f2a2b" stroke-width="3"/>
+  <text x="80" y="578" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69">5%</text>
+  <text x="560" y="578" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69">25%</text>
+  <text x="1050" y="578" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69">40%</text>
+  <text x="700" y="578" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69">depth</text>
+
+  <text x="700" y="250" font-family="Inter, system-ui, sans-serif" font-size="24" fill="#8c2c15">95.3% of waves lose money</text>
+</svg>

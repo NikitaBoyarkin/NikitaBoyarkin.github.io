@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Promo Margin Lab — dashboard (static render)</title>
+<style>
+ :root { color-scheme: dark; }
+ body { margin:0; background:#0b0b0f; color:#e4e4e7;
+        font:14px/1.5 ui-sans-serif, -apple-system, "Segoe UI", sans-serif; }
+ main { max-width: 1080px; margin: 0 auto; padding: 48px 24px 64px; }
+ h1 { font-size: 26px; margin: 0 0 6px; letter-spacing:-0.02em; }
+ h2 { font-size: 15px; margin: 40px 0 12px; color:#a1a1aa; text-transform:uppercase;
+       letter-spacing:0.08em; font-weight:600; }
+ .sub { color:#a1a1aa; margin:0 0 8px; }
+ .note { border-left:3px solid #f59e0b; padding:8px 12px; color:#d4d4d8;
+          background:#18181b; margin:16px 0 0; font-size:13px; }
+ .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:28px; }
+ .card { background:#131317; border:1px solid #27272a; border-radius:10px; padding:16px; }
+ .label { color:#a1a1aa; font-size:12px; }
+ .value { font-size:22px; font-weight:650; margin-top:6px; font-variant-numeric:tabular-nums; }
+ .pos { color:#4ade80; } .neg { color:#f87171; }
+ table { width:100%; border-collapse:collapse; background:#131317;
+          border:1px solid #27272a; border-radius:10px; overflow:hidden; }
+ th, td { padding:9px 12px; text-align:right; border-bottom:1px solid #1f1f23;
+           font-variant-numeric:tabular-nums; }
+ th { color:#a1a1aa; font-weight:600; font-size:12px; text-transform:uppercase;
+       letter-spacing:0.04em; }
+ th:first-child, td:first-child { text-align:left; }
+ tbody tr:last-child td { border-bottom:none; }
+ td.pos, td.neg { font-weight:600; }
+ svg { width:100%; height:auto; background:#131317; border:1px solid #27272a;
+        border-radius:10px; padding:12px; box-sizing:border-box; }
+ footer { margin-top:40px; color:#71717a; font-size:12px; }
+ code { color:#d4d4d8; }
+ @media (max-width: 760px) { .cards { grid-template-columns:repeat(2,1fr); } }
+</style></head><body><main>
+<h1>Promo Margin Lab</h1>
+<p class="sub">Промо-экономика офлайн-ритейла: лифт, каннибализация, маржа, потолок глубины.</p>
+<div class="note">Это <strong>статический рендер</strong>, а не интерактивная Superset-инстанция.
+Все числа получены запросами <code>sql/marts/*.sql</code> к <code>data/marts/promo.db</code>.
+Живой стек — <code>superset/docker-compose.yml</code>.</div>
+
+<div class="cards"><div class="card"><div class="label">Инкрементальная выручка</div><div class="value pos">+70.5 m ₽</div></div><div class="card"><div class="label">Инкрементальная прибыль</div><div class="value neg">−17.6 m ₽</div></div><div class="card"><div class="label">Волн с отрицательной прибылью</div><div class="value neg">95.3%</div></div><div class="card"><div class="label">Категорий выше потолка глубины</div><div class="value neg">6 / 6</div></div></div>
+
+<h2>Промо P&L по категориям</h2>
+<table><thead><tr><th>Категория</th><th>Волн</th><th>Net, юниты</th><th>Выручка, ₽</th><th>Скидка, ₽</th><th>Прибыль, ₽</th><th>Доля убыточных</th></tr></thead><tbody><tr><td>nonfood</td><td>1439</td><td>100,106.3</td><td>21,440,685.0</td><td>20,575,872.4</td><td class="neg">-4,888,644.9</td><td>0.9819</td></tr><tr><td>grocery</td><td>1432</td><td>107,131.9</td><td>11,173,407.6</td><td>7,977,678.7</td><td class="neg">-3,439,253.2</td><td>0.9951</td></tr><tr><td>dairy</td><td>1647</td><td>82,764.1</td><td>8,667,900.0</td><td>4,987,228.0</td><td class="neg">-3,071,656.7</td><td>0.9891</td></tr><tr><td>drinks</td><td>1435</td><td>188,939.1</td><td>9,324,643.0</td><td>9,394,942.2</td><td class="neg">-2,706,490.9</td><td>0.9777</td></tr><tr><td>bakery</td><td>1677</td><td>443,362.5</td><td>11,163,732.5</td><td>10,182,180.0</td><td class="neg">-1,754,596.8</td><td>0.9123</td></tr><tr><td>frozen</td><td>1423</td><td>74,118.6</td><td>8,732,404.3</td><td>6,859,025.7</td><td class="neg">-1,723,403.6</td><td>0.8637</td></tr></tbody></table>
+
+<h2>Прибыль по неделям</h2>
+<svg viewBox="0 0 720 160" role="img" aria-label="weekly profit"><line x1="8" y1="80.0" x2="712" y2="80.0" stroke="#3f3f46"/><rect x="8.0" y="80.0" width="17.5" height="40.1" fill="#f87171" opacity="0.85"/><rect x="26.5" y="80.0" width="17.5" height="35.9" fill="#f87171" opacity="0.85"/><rect x="45.1" y="80.0" width="17.5" height="52.7" fill="#f87171" opacity="0.85"/><rect x="63.6" y="80.0" width="17.5" height="48.4" fill="#f87171" opacity="0.85"/><rect x="82.1" y="80.0" width="17.5" height="58.0" fill="#f87171" opacity="0.85"/><rect x="100.6" y="80.0" width="17.5" height="54.1" fill="#f87171" opacity="0.85"/><rect x="119.2" y="80.0" width="17.5" height="38.9" fill="#f87171" opacity="0.85"/><rect x="137.7" y="80.0" width="17.5" height="37.3" fill="#f87171" opacity="0.85"/><rect x="156.2" y="80.0" width="17.5" height="64.5" fill="#f87171" opacity="0.85"/><rect x="174.7" y="80.0" width="17.5" height="59.3" fill="#f87171" opacity="0.85"/><rect x="193.3" y="80.0" width="17.5" height="70.5" fill="#f87171" opacity="0.85"/><rect x="211.8" y="80.0" width="17.5" height="64.5" fill="#f87171" opacity="0.85"/><rect x="230.3" y="80.0" width="17.5" height="39.2" fill="#f87171" opacity="0.85"/><rect x="248.8" y="80.0" width="17.5" height="37.4" fill="#f87171" opacity="0.85"/><rect x="267.4" y="80.0" width="17.5" height="57.9" fill="#f87171" opacity="0.85"/><rect x="285.9" y="80.0" width="17.5" height="54.1" fill="#f87171" opacity="0.85"/><rect x="304.4" y="80.0" width="17.5" height="59.9" fill="#f87171" opacity="0.85"/><rect x="322.9" y="80.0" width="17.5" height="52.0" fill="#f87171" opacity="0.85"/><rect x="341.5" y="80.0" width="17.5" height="33.3" fill="#f87171" opacity="0.85"/><rect x="360.0" y="80.0" width="17.5" height="32.4" fill="#f87171" opacity="0.85"/><rect x="378.5" y="80.0" width="17.5" height="51.3" fill="#f87171" opacity="0.85"/><rect x="397.1" y="80.0" width="17.5" height="45.4" fill="#f87171" opacity="0.85"/><rect x="415.6" y="80.0" width="17.5" height="56.7" fill="#f87171" opacity="0.85"/><rect x="434.1" y="80.0" width="17.5" height="47.4" fill="#f87171" opacity="0.85"/><rect x="452.6" y="80.0" width="17.5" height="36.4" fill="#f87171" opacity="0.85"/><rect x="471.2" y="80.0" width="17.5" height="31.4" fill="#f87171" opacity="0.85"/><rect x="489.7" y="80.0" width="17.5" height="58.2" fill="#f87171" opacity="0.85"/><rect x="508.2" y="80.0" width="17.5" height="54.9" fill="#f87171" opacity="0.85"/><rect x="526.7" y="80.0" width="17.5" height="59.5" fill="#f87171" opacity="0.85"/><rect x="545.3" y="80.0" width="17.5" height="58.4" fill="#f87171" opacity="0.85"/><rect x="563.8" y="80.0" width="17.5" height="37.6" fill="#f87171" opacity="0.85"/><rect x="582.3" y="80.0" width="17.5" height="41.3" fill="#f87171" opacity="0.85"/><rect x="600.8" y="80.0" width="17.5" height="62.9" fill="#f87171" opacity="0.85"/><rect x="619.4" y="80.0" width="17.5" height="59.5" fill="#f87171" opacity="0.85"/><rect x="637.9" y="80.0" width="17.5" height="72.0" fill="#f87171" opacity="0.85"/><rect x="656.4" y="80.0" width="17.5" height="66.6" fill="#f87171" opacity="0.85"/><rect x="674.9" y="80.0" width="17.5" height="42.6" fill="#f87171" opacity="0.85"/><rect x="693.5" y="80.0" width="17.5" height="41.4" fill="#f87171" opacity="0.85"/></svg>
+
+<h2>Качество контрфактуала</h2>
+<table><thead><tr><th>Оценщик</th><th>WAPE базы</th><th>Смещение лифта</th><th>Placebo p05</th><th>p50</th><th>p95</th></tr></thead><tbody><tr><td>forecast</td><td>0.0773</td><td class="neg">-0.0088</td><td>-0.1643</td><td>0.002</td><td>0.218</td></tr><tr><td>naive_mean</td><td>0.1211</td><td class="neg">-0.1561</td><td>-0.2547</td><td>-0.0176</td><td>0.2559</td></tr><tr><td>matched_control</td><td>0.1033</td><td class="neg">-0.1963</td><td>-0.1813</td><td>0.0153</td><td>0.2736</td></tr></tbody></table>
+
+<h2>Потолок глубины против факта</h2>
+<table><thead><tr><th>Категория</th><th>CM</th><th>Funding</th><th>Breakeven</th><th>Факт</th><th>Выше потолка</th><th>Флаг</th></tr></thead><tbody><tr><td>drinks</td><td>0.26</td><td>0.253</td><td>0.045</td><td>0.2612</td><td class="pos">0.2162</td><td>1</td></tr><tr><td>frozen</td><td>0.18</td><td>0.245</td><td>0.02</td><td>0.2256</td><td class="pos">0.2056</td><td>1</td></tr><tr><td>bakery</td><td>0.3</td><td>0.276</td><td>0.1</td><td>0.2737</td><td class="pos">0.1737</td><td>1</td></tr><tr><td>dairy</td><td>0.12</td><td>0.267</td><td>0.025</td><td>0.1979</td><td class="pos">0.1729</td><td>1</td></tr><tr><td>grocery</td><td>0.22</td><td>0.24</td><td>0.1</td><td>0.2416</td><td class="pos">0.1416</td><td>1</td></tr><tr><td>nonfood</td><td>0.35</td><td>0.263</td><td>0.205</td><td>0.3003</td><td class="pos">0.0953</td><td>1</td></tr></tbody></table>
+
+<footer>seed 42 · panel ae38964b1eb003e9 · собрано из
+<code>reports/ledger.json</code>, <code>reports/margin.json</code>,
+<code>reports/baseline.json</code> через SQL-марты. Данные синтетические.</footer>
+</main></body></html>

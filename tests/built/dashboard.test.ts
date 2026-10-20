@@ -176,13 +176,13 @@ describe('the scan is exhaustive over what reached dist/', () => {
     expect(arcade.count).toBe(games);
   });
 
-  it('advertises 53 interactive apps, counted from the shipped files', () => {
+  it('advertises 54 interactive apps, counted from the shipped files', () => {
     const apps = shippedDemos().length + shippedDiagrams().length;
     const games = readdirSync(resolve(DIST, 'games')).filter((name) => name.endsWith('.svg')).length;
     expect(card('ru', 'tools').count).toBe(apps + games);
-    expect(card('ru', 'tools').count).toBe(53);
+    expect(card('ru', 'tools').count).toBe(54);
     // The number is locale-independent: the same files serve both dashboards.
-    expect(card('en', 'tools').count).toBe(53);
+    expect(card('en', 'tools').count).toBe(54);
   });
 
   it('names every content card row from a real built page', () => {
