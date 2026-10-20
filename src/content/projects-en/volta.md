@@ -1,16 +1,16 @@
 ---
 title: Volta Neobank — Product Analytics
-description: "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €656K/year. 23 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2 → causal."
+description: "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €208.5K in 12 mo at 13.9× ROI. 23 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2 → causal."
 star:
   situation: "«Volta» is a fictional neobank losing users during onboarding: every team had its own number, and none explained where the money leaked"
   task: "Find the critical onboarding step and prove it so the conclusion cannot be dismissed as a convenient sample"
   action: "One discover → validate → measure → optimize loop: funnel, KYC progress-bar A/B, cohorts, KMeans segmentation, DiD causality check"
-  result: "KYC fix: +5.72pp conversion (p<0.0001) → €656K/yr at 44× ROI; M3 retention +9.2pp"
+  result: "KYC fix: +5.72pp conversion (p<0.0001) → €208.5K over 12 months at 13.9× ROI; M3 retention +9.2pp"
 track: experiments
 hero: images/volta.svg
 ogImage: /images/og/volta-neobank-case-study.png
 impact:
-  - +5.72pp KYC conversion (Z=5.82, p<0.0001), €656K/yr (44× ROI)
+  - +5.72pp KYC conversion (Z=5.82, p<0.0001), €208.5K over 12 months (13.9× ROI, 5.6-month payback)
   - +9.2pp M3 retention, +€227K/yr incremental LTV
   - 4 data-driven user segments with per-segment monetization strategy
   - CUPED variance reduction + AA-test (type-I = 0.050) + Bonferroni correction
@@ -78,7 +78,7 @@ children:
 
 - **Problem:** KYC was the onboarding bottleneck — the largest relative drop-off (56.6% step conversion).
 - **Fix:** a KYC progress bar lifted conversion **+5.72pp** (p < 0.0001), above the +5pp MDE.
-- **Money:** modelled business impact **€656K/yr** at 44× ROI.
+- **Money:** modelled business impact **€208.5K over 12 months** at 13.9× ROI (5.6-month payback).
 - **Retention:** the effect held — **+9.2pp** M3 retention, **+€227K/yr** incremental LTV.
 - **Causality:** a DiD check confirms the fix *caused* the shift: M3 retention **+9.09pp** (95% CI [+6.21, +11.96]).
 
@@ -122,7 +122,7 @@ A randomized A/B of segment offers with Holm correction and a segment × arm (Di
 ### Core — the discover → validate → measure → optimize loop
 
 - [Funnel Analysis](funnel/) — The neobank onboarding funnel: KYC is the bottleneck at 56.6% step conversion, registration loses the most in absolute terms (2,682). Broken down by channel and platform.
-- [KYC Progress-Bar A/B Test](ab/) — A KYC progress bar lifted conversion +5.72pp (Z=5.82, p<0.0001) against a +5pp MDE. CUPED, AA-test and Bonferroni protect the conclusion; +€656K/yr at 44× ROI.
+- [KYC Progress-Bar A/B Test](ab/) — A KYC progress bar lifted conversion +5.72pp (Z=5.82, p<0.0001) against a +5pp MDE. CUPED, AA-test and Bonferroni protect the conclusion; +€208.5K over 12 months at 13.9× ROI.
 - [Retention & Cohorts](retention/) — Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€227K/yr LTV. Premium LTV is 4.3× Free.
 - [User Segmentation](segmentation/) — KMeans with data-driven K=4: Power 12% drive 41% of revenue, 68% drive 92%. Cross-segment migration is worth up to +€310K/yr.
 
@@ -132,7 +132,7 @@ A randomized A/B of segment offers with Holm correction and a segment × arm (Di
 - [RFM Analysis](rfm/) — R/F/M scoring 1–5 splits the base into lifecycle segments from Champions to Lost; recency and monetary diverge — 'frequent but cheap' and 'rare but large'.
 - [CLV Modeling](clv/) — Three lifetime-value methods: historical, retention-curve and Gamma-Gamma. The order Power > Growth > Casual > Dormant is robust across all methods.
 - [Marketing Attribution](attribution/) — First-touch, last-touch, linear and Shapley attribution. Shapley (data-driven) reallocates budget and leads with referral; the conclusion is robust to model choice.
-- [Anomaly Detection](anomalies/) — Z-score, IQR and Isolation Forest against ground truth. IF has the best F1 (50.4%), catching amount, night-hour and frequency anomalies; Z-score is precise but cautious.
+- [Anomaly Detection](anomalies/) — Isolation Forest has the best F1 (50.4%), catching amount, night-hour and frequency anomalies. Z-score is precise but cautious; the comparison of the three detectors ran against ground truth.
 - [Spend Analysis](spend/) — Spend breakdown by category and channel: bills (25.8%) and travel (20.2%) make up nearly half the turnover, groceries is the most frequent category.
 - [Support & Churn](support-churn/) — Churn rises with ticket count: 37.1% at zero contacts vs 81.1% at 3+. Support is a measurable retention lever, not just a cost center.
 - [NPS Trends](nps/) — Monthly NPS hovers near zero; the strongest drivers are app quality (+30.3) and product (+29.4), the main source of dissatisfaction is fees (−59.4).
@@ -179,7 +179,7 @@ Test design:
 - **Bonferroni** across multiple metrics — multiplicity control
 - **Ship-gate**: ship only if significance ∧ lift ≥ MDE ∧ no SRM
 
-Verdict: control 55.8% → treatment 61.5%, **+5.72pp**, p < 0.0001, 95% CI [+3.78%, +7.66%], above the +5pp MDE → **ship**. At a realistic audience this is ≈ **€656K/yr** at 44× ROI.
+Verdict: control 55.8% → treatment 61.5%, **+5.72pp**, p < 0.0001, 95% CI [+3.78%, +7.66%], above the +5pp MDE → **ship**. At a realistic audience this is ≈ **€208.5K over 12 months** at 13.9× ROI (5.6-month payback).
 
 → [A/B Testing — case file](ab/)
 
@@ -217,7 +217,7 @@ A summary of decisions across all 23 projects: what to do, on what evidence, und
 
 **1. Onboarding & KYC — remove the main bottleneck**
 
-- Roll out the KYC progress bar to 100% (Project 2: +5.72 pp, p<0.0001, +€656K/yr at 44× ROI).
+- Roll out the KYC progress bar to 100% (Project 2: +5.72 pp, p<0.0001, +€208.5K over 12 months at 13.9× ROI).
 - Simplify registration (Project 1: −2,682 users) — A/B on removing the phone field.
 - A separate trust track for 45+, but not UX-only (Project 16: 45+ +1.4 pp ns vs +11.0 pp for 35–44).
 
@@ -268,7 +268,7 @@ A loop of four projects beats isolated analyses:
 
 ## Limitations
 
-Volta is a fictional bank and all data is synthetic and seeded: the figures (€656K/yr, 44× ROI, +9.2pp) show **the correctness of the methodology on a modelled product**, not a real launch result. ROI is computed against a €15K dev cost without subtracting margin, so it is an upper bound. The RAT v2 layer prices the portfolio's own recommendations, but on the same synthetic assumptions.
+Volta is a fictional bank and all data is synthetic and seeded: the figures (€208.5K over 12 months, 13.9× ROI, +9.2pp) show **the correctness of the methodology on a modelled product**, not a real launch result. ROI is computed against a €15K dev cost without subtracting margin, so it is an upper bound. The RAT v2 layer prices the portfolio's own recommendations, but on the same synthetic assumptions.
 
 ## Interactive board
 

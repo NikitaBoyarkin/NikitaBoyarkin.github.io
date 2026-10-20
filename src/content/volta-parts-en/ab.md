@@ -1,18 +1,18 @@
 ---
 title: "Volta — KYC Progress-Bar A/B Test"
-description: "A KYC progress bar lifted conversion +5.72pp (Z=5.82, p<0.0001) against a +5pp MDE. CUPED, AA-test and Bonferroni protect the conclusion; +€656K/yr at 44× ROI."
+description: "A KYC progress bar lifted conversion +5.72pp (Z=5.82, p<0.0001) against a +5pp MDE. CUPED, AA-test and Bonferroni protect the conclusion; +€208.5K over 12 months at 13.9× ROI."
 star:
   situation: "Validating the funnel finding: a snapshot is not proof, so the KYC progress-bar hypothesis was tested as an experiment"
   task: "Own the correctness of the experiment: design the test, run it, and protect the conclusion from statistical pitfalls"
   action: "Sample-size calculation for the MDE, SRM check, bootstrap CI, CUPED with a sessions covariate, AA-test and Bonferroni"
-  result: "KYC conversion 55.8% → 61.5%: +5.72pp at p<0.0001, above the MDE; gate passed, +€656K/yr"
+  result: "KYC conversion 55.8% → 61.5%: +5.72pp at p<0.0001, above the MDE; gate passed, +€208.5K over 12 months"
 part: ab
 order: 2
 layer: core
 impact:
   - "+5.72pp KYC conversion (Z=5.82, p<0.0001), above MDE"
   - "Ship-gate: significance ∧ lift≥MDE ∧ no SRM → ship"
-  - "+€656K/yr at 44× ROI on €15K dev-cost"
+  - "+€208.5K over 12 months at 13.9× ROI on €15K dev-cost (5.6-month payback)"
 tools:
   - "Python"
   - "pandas / NumPy"
@@ -51,9 +51,9 @@ The project is built as a full experiment, not a comparison of two snapshots: I 
 ## Result
 
 - Control **55.8%** → treatment **61.5%**: **+5.72pp**, 95% CI [+3.78%, +7.66%], p<0.0001 — above the +5pp MDE.
-- No SRM; covariate balance confirmed.
+- No SRM; covariates balanced descriptively (crosstabs by device / age_group / channel) — the script computes no formal SMD test.
 - 6/11 segments naively significant, 4/11 after Bonferroni.
-- Ship-gate passed → roll the progress bar out to 100%; business impact **+€656K/yr**.
+- Ship-gate passed → roll the progress bar out to 100%; business impact **+€208.5K over 12 months** (13.9× ROI, 5.6-month payback).
 
 ## Recommendations
 

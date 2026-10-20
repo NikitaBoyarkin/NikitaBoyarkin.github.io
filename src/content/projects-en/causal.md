@@ -1,11 +1,11 @@
 ---
 title: Causal / Uplift — CUPED and Individual Treatment Effects
-description: "CUPED cut the standard error by 26% — the same power on 5.5k users per arm instead of 10k. At n=6000 uplift metrics stay noise-dominated: QINI and AUUC cannot separate an oracle from random."
+description: "CUPED cut the standard error by 26% — same power on 5.5k users per arm instead of 10k. On a synthetic experiment with known HTE, uplift at n=6000 is noise: QINI and AUUC cannot separate an oracle."
 star:
   situation: "A two-sample t-test ignores the pre-period: experiments ask for more traffic than needed and retention offers go to everyone"
   task: "Implement CUPED and uplift modeling and prove neither is biased where the true answer is known in advance"
   action: "CUPED on a pre-period covariate and T-/S-learners on LightGBM; checked against ground truth with AUUC and QINI"
-  result: "Standard error down ~26%; 5.5k users per arm instead of 10k; new users respond ~8x more than returning ones"
+  result: "On a synthetic experiment with known HTE: standard error down ~26%, 5.5k users per arm instead of 10k, new users respond ~8x more than returning ones."
 track: experiments
 hero: images/causal.svg
 ogImage: /images/og/causal.png

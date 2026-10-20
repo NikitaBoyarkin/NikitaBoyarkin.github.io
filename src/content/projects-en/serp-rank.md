@@ -1,11 +1,11 @@
 ---
 title: SERP Rank Lab
-description: "Two policies on one information set: money buys +34.45% revenue per search for −16.84% CTR, while the user_id rollout returns −14.26% and a do-not-ship verdict."
+description: "On a synthetic log, two policies on one information set: money buys +34.45% revenue per search for −16.84% CTR, while the user_id rollout returns −14.26% and a do-not-ship verdict."
 star:
   situation: "A metasearch product earns on the position an offer occupies, so ranking and monetisation are not measured by the same number"
   task: "Find out how much revenue ranking for money produces, and what that revenue is paid for in clicks"
   action: "Two feasible policies on one information set, a user_id rollout with guardrails and a stopping rule, then a diagnosis through the signal source"
-  result: "+34.45% revenue per search for −16.84% CTR offline; the rollout returns −14.26% (p = 0.11) and −16.05% conversion → do not ship"
+  result: "On a synthetic log: +34.45% revenue per search for −16.84% CTR; the rollout returns −14.26% (p = 0.11) and −16.05% conversion → do not ship"
 track: analytics
 hero: images/serp-rank.svg
 ogImage: /images/og/serp-rank.png

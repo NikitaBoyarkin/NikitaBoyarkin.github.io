@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-20T19:56:38.475Z",
+  "generated_at": "2026-10-20T20:00:00.337Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -43,8 +43,8 @@
       "track": "experiments",
       "title": "Causal / Uplift — CUPED and Individual Treatment Effects",
       "title_en": "Causal / Uplift — CUPED and Individual Treatment Effects",
-      "description": "CUPED срезал стандартную ошибку на 26%: та же мощность достигается на 5,5k пользователей на руку вместо 10k. Uplift-метрики на n=6000 шумят: QINI и AUUC не отличают oracle от случайного.",
-      "description_en": "CUPED cut the standard error by 26% — the same power on 5.5k users per arm instead of 10k. At n=6000 uplift metrics stay noise-dominated: QINI and AUUC cannot separate an oracle from random.",
+      "description": "CUPED срезал стандартную ошибку на 26%: та же мощность на 5,5k пользователей на руку вместо 10k. На синтетическом эксперименте с известным HTE uplift на n=6000 шумит: QINI и AUUC не отличают oracle.",
+      "description_en": "CUPED cut the standard error by 26% — same power on 5.5k users per arm instead of 10k. On a synthetic experiment with known HTE, uplift at n=6000 is noise: QINI and AUUC cannot separate an oracle.",
       "tools": [
         "Python",
         "LightGBM",
@@ -64,8 +64,8 @@
       "track": "experiments",
       "title": "Volta Neobank — Product Analytics",
       "title_en": "Volta Neobank — Product Analytics",
-      "description": "Нашёл узкое место в онбординге необанка и закрыл A/B-тестом: +5,72 пп конверсии KYC и €656K в год. 23 проекта: воронка → A/B → retention → сегментация → Market & Jobs → RAT v2 → causal.",
-      "description_en": "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €656K/year. 23 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2 → causal.",
+      "description": "Закрыл узкое место онбординга необанка A/B-тестом: +5,72 пп конверсии KYC, €208,5K за 12 мес при 13,9× ROI. 23 проекта: воронка → A/B → retention → сегментация → Market & Jobs → RAT v2 → causal.",
+      "description_en": "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €208.5K in 12 mo at 13.9× ROI. 23 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2 → causal.",
       "tools": [
         "Python",
         "pandas / NumPy",
@@ -84,8 +84,8 @@
       "track": "analytics",
       "title": "Churn Prediction — Leakage-Free Retention Model",
       "title_en": "Churn Prediction — Leakage-Free Retention Model",
-      "description": "Leakage-free churn-модель: recall@top-10% = 0.544 и lift 5,44× при ROC-AUC 0.916 на хронологическом сплите — без утечки будущей активности в признаки.",
-      "description_en": "A leakage-free churn model: recall@top-10% of 0.544 and 5.44x lift at 0.916 ROC-AUC, on a chronological split with no future activity leaking into features.",
+      "description": "Leakage-free churn-модель: recall@top-10% = 0.544 и lift 5,44× при ROC-AUC 0.916 на хронологическом сплите; на at-risk подгруппе lift 1,75×, ведь 69,7% когорты — почти гарантированные негативы.",
+      "description_en": "A leakage-free churn model: recall@top-10% 0.544, 5.44x lift at 0.916 ROC-AUC on a chronological split; 1.75x on the at-risk subgroup, where 69.7% of the cohort is a near-guaranteed negative.",
       "tools": [
         "Python",
         "LightGBM",
@@ -235,8 +235,8 @@
       "track": "analytics",
       "title": "SERP Rank Lab",
       "title_en": "SERP Rank Lab",
-      "description": "Две политики на одном информационном множестве: деньги дают +34.45% выручки на поиск за −16.84% CTR, а раскатка по user_id — −14.26% и вердикт «не катим».",
-      "description_en": "Two policies on one information set: money buys +34.45% revenue per search for −16.84% CTR, while the user_id rollout returns −14.26% and a do-not-ship verdict.",
+      "description": "На синтетическом логе две политики на одном множестве: деньги дают +34.45% выручки на поиск за −16.84% CTR, а раскатка по user_id — −14.26% и вердикт «не катим».",
+      "description_en": "On a synthetic log, two policies on one information set: money buys +34.45% revenue per search for −16.84% CTR, while the user_id rollout returns −14.26% and a do-not-ship verdict.",
       "tools": [
         "Python",
         "DuckDB",
@@ -440,8 +440,8 @@
       "layer": "core",
       "title": "Volta — A/B-тест прогресс-бара KYC",
       "title_en": "Volta — KYC Progress-Bar A/B Test",
-      "description": "Progress-bar в KYC дал +5,72 п.п. конверсии (Z=5,82, p<0,0001) при MDE +5 п.п. CUPED, AA-тест и Bonferroni защищают вывод; +€656K/год при 44× ROI.",
-      "description_en": "A KYC progress bar lifted conversion +5.72pp (Z=5.82, p<0.0001) against a +5pp MDE. CUPED, AA-test and Bonferroni protect the conclusion; +€656K/yr at 44× ROI.",
+      "description": "Progress-bar в KYC дал +5,72 п.п. конверсии (Z=5,82, p<0,0001) при MDE +5 п.п. CUPED, AA-тест и Bonferroni защищают вывод; +€208,5K за 12 месяцев при 13,9× ROI.",
+      "description_en": "A KYC progress bar lifted conversion +5.72pp (Z=5.82, p<0.0001) against a +5pp MDE. CUPED, AA-test and Bonferroni protect the conclusion; +€208.5K over 12 months at 13.9× ROI.",
       "github": "https://github.com/NikitaBoyarkin/case-ab",
       "href": "https://nikitaboyarkin.github.io/projects/volta/ab/"
     },
