@@ -134,21 +134,23 @@
      (--dv-cat-9); the ramp's worst is 5.16:1. */
   --dv-cell-ink: #1f2430;
 
-  /* ── Obsidian dark theme (default) — dark teal. Copied verbatim from
+  /* ── Obsidian dark theme (default) — deep indigo. Copied verbatim from
      src/styles/global.css. ── */
 
-  /* 60% — page / card / nested surfaces */
-  --background-primary: #0f2a2b;
-  --background-secondary: #1a3435;
-  --background-tertiary: #234044;
-  --interactive-normal: #234044;
-  --interactive-hover: #3f3f46;
+  /* 60% — page / card / nested surfaces. The page ground is a filled colour
+     field (L* ≈ 24), so elevation runs downward: every surface above the page
+     is darker, and --border-color carries the edge. See global.css. */
+  --background-primary: #1400c3;
+  --background-secondary: #16009f;
+  --background-tertiary: #120093;
+  --interactive-normal: #120093;
+  --interactive-hover: #0d0068;
 
   /* 30% — neutral text + hairlines */
   --text-normal: #e4e4e7;
-  --text-muted: #a1a1aa;
-  --border-color: #3f3f46;
-  --surface-secondary: #27272a;
+  --text-muted: #b3b3ba;
+  --border-color: #8076d7;
+  --surface-secondary: #120093;
 
   /* 10% — accent: coral, interactive semantics only */
   --text-accent: #ff8569;
@@ -226,8 +228,10 @@
   /* Semantic trio, dataviz scope only. */
   --dv-good: #2fbf85;
   --dv-warn: #ffab00;
-  --dv-bad: #f87171;
-  --dv-neutral: #a1a1aa;
+  /* #f87171 measured 4.18:1 on the #1400c3 page ground — under the 4.5 text
+     floor (demo-tokens.test.ts binds it). #fb8b8b holds 5.04:1. */
+  --dv-bad: #fb8b8b;
+  --dv-neutral: #b3b3ba;
 }
 
 [data-theme="light"] {

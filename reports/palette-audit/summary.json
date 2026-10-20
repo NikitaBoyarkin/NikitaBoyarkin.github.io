@@ -4,17 +4,17 @@
     "breakpoint": "desktop",
     "dims": "1440x900",
     "total_sampled_px": 324000,
-    "palette_px": 319051,
+    "palette_px": 314951,
     "share_of_screen": {
-      "10": 0,
-      "30": 21.6,
-      "60": 76.8,
-      "other": 1.5
+      "10": 0.2,
+      "30": 2.4,
+      "60": 94.6,
+      "other": 2.8
     },
     "share_of_palette": {
-      "10": 0,
-      "30": 22,
-      "60": 78
+      "10": 0.2,
+      "30": 2.5,
+      "60": 97.3
     },
     "budget_verdict": {
       "10": "PASS",
@@ -28,17 +28,17 @@
     "breakpoint": "tablet",
     "dims": "768x1024",
     "total_sampled_px": 196608,
-    "palette_px": 194074,
+    "palette_px": 189989,
     "share_of_screen": {
-      "10": 0.5,
-      "30": 49.8,
-      "60": 48.4,
-      "other": 1.3
+      "10": 0.3,
+      "30": 3.5,
+      "60": 92.9,
+      "other": 3.4
     },
     "share_of_palette": {
-      "10": 0.5,
-      "30": 50.5,
-      "60": 49
+      "10": 0.3,
+      "30": 3.6,
+      "60": 96.1
     },
     "budget_verdict": {
       "10": "PASS",
@@ -52,17 +52,17 @@
     "breakpoint": "mobile",
     "dims": "375x812",
     "total_sampled_px": 76328,
-    "palette_px": 73844,
+    "palette_px": 73364,
     "share_of_screen": {
-      "10": 0.7,
-      "30": 66.7,
-      "60": 29.4,
-      "other": 3.3
+      "10": 0.5,
+      "30": 5.1,
+      "60": 90.5,
+      "other": 3.9
     },
     "share_of_palette": {
-      "10": 0.7,
-      "30": 68.9,
-      "60": 30.3
+      "10": 0.5,
+      "30": 5.3,
+      "60": 94.2
     },
     "budget_verdict": {
       "10": "PASS",
@@ -76,17 +76,17 @@
     "breakpoint": "desktop",
     "dims": "1440x900",
     "total_sampled_px": 324000,
-    "palette_px": 318282,
+    "palette_px": 309455,
     "share_of_screen": {
       "10": 0.1,
-      "30": 4,
-      "60": 94.2,
-      "other": 1.8
+      "30": 2.5,
+      "60": 92.9,
+      "other": 4.5
     },
     "share_of_palette": {
-      "10": 0.1,
-      "30": 4.1,
-      "60": 95.9
+      "10": 0.2,
+      "30": 2.6,
+      "60": 97.2
     },
     "budget_verdict": {
       "10": "PASS",
@@ -100,17 +100,17 @@
     "breakpoint": "tablet",
     "dims": "768x1024",
     "total_sampled_px": 196608,
-    "palette_px": 193922,
+    "palette_px": 186410,
     "share_of_screen": {
-      "10": 0.5,
-      "30": 2.4,
-      "60": 95.7,
-      "other": 1.4
+      "10": 0.2,
+      "30": 3.1,
+      "60": 91.4,
+      "other": 5.2
     },
     "share_of_palette": {
-      "10": 0.5,
-      "30": 2.4,
-      "60": 97.1
+      "10": 0.2,
+      "30": 3.3,
+      "60": 96.4
     },
     "budget_verdict": {
       "10": "PASS",
@@ -124,17 +124,17 @@
     "breakpoint": "mobile",
     "dims": "375x812",
     "total_sampled_px": 76328,
-    "palette_px": 73821,
+    "palette_px": 71579,
     "share_of_screen": {
-      "10": 0.7,
-      "30": 4.6,
-      "60": 91.4,
-      "other": 3.3
+      "10": 0.5,
+      "30": 4.5,
+      "60": 88.8,
+      "other": 6.2
     },
     "share_of_palette": {
-      "10": 0.7,
+      "10": 0.5,
       "30": 4.8,
-      "60": 94.5
+      "60": 94.7
     },
     "budget_verdict": {
       "10": "PASS",
@@ -148,17 +148,17 @@
     "breakpoint": "desktop",
     "dims": "1440x900",
     "total_sampled_px": 324000,
-    "palette_px": 320027,
+    "palette_px": 319752,
     "share_of_screen": {
-      "10": 0.3,
-      "30": 24.7,
-      "60": 73.8,
-      "other": 1.2
+      "10": 0.4,
+      "30": 2.8,
+      "60": 95.4,
+      "other": 1.3
     },
     "share_of_palette": {
-      "10": 0.3,
-      "30": 25,
-      "60": 74.7
+      "10": 0.5,
+      "30": 2.9,
+      "60": 96.7
     },
     "budget_verdict": {
       "10": "PASS",
@@ -172,17 +172,17 @@
     "breakpoint": "tablet",
     "dims": "768x1024",
     "total_sampled_px": 196608,
-    "palette_px": 194555,
+    "palette_px": 192495,
     "share_of_screen": {
-      "10": 0.6,
-      "30": 51.7,
-      "60": 46.6,
-      "other": 1
+      "10": 0.4,
+      "30": 4,
+      "60": 93.6,
+      "other": 2.1
     },
     "share_of_palette": {
-      "10": 0.6,
-      "30": 52.3,
-      "60": 47.1
+      "10": 0.4,
+      "30": 4.1,
+      "60": 95.6
     },
     "budget_verdict": {
       "10": "PASS",
@@ -196,17 +196,17 @@
     "breakpoint": "mobile",
     "dims": "375x812",
     "total_sampled_px": 76328,
-    "palette_px": 74341,
+    "palette_px": 74010,
     "share_of_screen": {
-      "10": 1,
-      "30": 68.5,
-      "60": 27.9,
-      "other": 2.6
+      "10": 0.8,
+      "30": 5.2,
+      "60": 91,
+      "other": 3
     },
     "share_of_palette": {
-      "10": 1,
-      "30": 70.3,
-      "60": 28.7
+      "10": 0.8,
+      "30": 5.4,
+      "60": 93.8
     },
     "budget_verdict": {
       "10": "PASS",

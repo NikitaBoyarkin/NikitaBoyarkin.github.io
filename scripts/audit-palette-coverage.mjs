@@ -36,8 +36,8 @@ const STEP = 2;      // sample every Nth pixel per dimension (4x downsample at 2
 // choice. Bound to the tokens by tests/lib/demo-tokens.test.ts + brand.test.ts.
 const palettes = {
   dark: {
-    '60': ['0f2a2b', '1a3435', '234044'],
-    '30': ['e4e4e7', 'a1a1aa', '3f3f46', '27272a'],
+    '60': ['1400c3', '16009f', '120093', '0d0068'],
+    '30': ['e4e4e7', 'b3b3ba', '8076d7'],
     '10': ['ff8569', 'ffa68a', 'fe4e02', 'ff6a1f', '4ecdc4'],
   },
   light: {

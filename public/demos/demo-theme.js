@@ -31,7 +31,7 @@
 
   var html = document.documentElement;
   var themeColorMeta = document.querySelector('meta[name="theme-color"]');
-  var THEME_COLORS = { dark: '#0f2a2b', light: '#f4efca', cyberpunk: '#0a0a12' };
+  var THEME_COLORS = { dark: '#1400c3', light: '#f4efca', cyberpunk: '#0a0a12' };
 
   function stored() {
     try {

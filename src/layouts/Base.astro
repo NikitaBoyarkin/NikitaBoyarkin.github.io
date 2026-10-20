@@ -364,7 +364,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         <link rel="preload" as="image" href={preloadImage} fetchpriority="high" />
       )
     }
-    <meta id="theme-color" name="theme-color" content="#0f2a2b" />
+    <meta id="theme-color" name="theme-color" content="#1400c3" />
 
     <meta property="og:site_name" content="Nikita Boyarkin" />
     <meta property="og:title" content={title} />
@@ -403,7 +403,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       (function () {
         const html = document.documentElement;
         const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-        const THEME_COLORS = { dark: '#0f2a2b', light: '#f4efca', cyberpunk: '#0a0a12' };
+        const THEME_COLORS = { dark: '#1400c3', light: '#f4efca', cyberpunk: '#0a0a12' };
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         let theme = prefersDark ? 'dark' : 'light';
         try {
@@ -673,7 +673,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         };
 
         const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-        const THEME_COLORS = { dark: '#0f2a2b', light: '#f4efca', cyberpunk: '#0a0a12' };
+        const THEME_COLORS = { dark: '#1400c3', light: '#f4efca', cyberpunk: '#0a0a12' };
         const ORDER = ['dark', 'light', 'cyberpunk'];
 
         function applyTheme(theme) {

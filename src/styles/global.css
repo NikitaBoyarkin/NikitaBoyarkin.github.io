@@ -73,30 +73,43 @@
 }
 
 :root {
-  /* Obsidian dark theme (default) — dark teal. Palette = 60-30-10:
+  /* Obsidian dark theme (default) — deep indigo. Palette = 60-30-10:
      60% dominant surfaces · 30% neutral text+borders · 10% coral accent.
-     Contrast verified WCAG AA by .claude/hooks/contrast-gate.js. */
+     Contrast verified WCAG AA by .claude/hooks/contrast-gate.js.
 
-  /* 60% — DOMINANT: page / card / nested surfaces (teal family) */
-  --background-primary: #0f2a2b;
-  --background-secondary: #1a3435;
+     The page ground is the owner's signal blue #1400c3 (BRAND_BLUE, the
+     OG-banner surface). It is a *filled* colour field, not a neutral canvas:
+     L* ≈ 24, so the elevation ladder runs DOWNWARD — every surface above the
+     page is darker, and the #8076d7 hairline is what carries the card edge
+     (3.02:1 page, 4.51:1 card). Stepping the surfaces *lighter*, the usual
+     direction, drops --text-muted under 4.5:1 (3.62:1 at #3b2cbb) and collapses
+     the type hierarchy. Do not "fix" the inversion without re-deriving muted. */
+
+  /* 60% — DOMINANT: page / card / nested surfaces (indigo family) */
+  --background-primary: #1400c3;
+  --background-secondary: #16009f;
   /* Project + article card surface. Split out from --background-secondary so the
      light theme can repaint cards alone: the secondary surface also carries
      forms, the nav rail, glossary rows and chart chrome, which must not move. */
-  --card-background: #1a3435;
-  --background-tertiary: #234044;
-  --interactive-normal: #234044;            /* alias of tertiary */
-  --interactive-hover: #3f3f46;             /* stepped surface */
-  --code-background: #234044;                /* alias of tertiary */
-  --table-header-background: #234044;        /* alias of tertiary */
+  --card-background: #0d0068;
+  --background-tertiary: #120093;
+  --interactive-normal: #120093;            /* alias of tertiary */
+  --interactive-hover: #0d0068;             /* stepped deeper (see inversion note) */
+  --code-background: #120093;                /* alias of tertiary */
+  --table-header-background: #120093;        /* alias of tertiary */
 
-  /* 30% — SECONDARY: neutral text + hairlines (zinc) */
+  /* 30% — SECONDARY: neutral text + hairlines (periwinkle on the blue ground) */
   --text-normal: #e4e4e7;
-  --text-muted: #a1a1aa;
-  --border-color: #3f3f46;
-  --blockquote-border: #3f3f46;
-  --table-border: #3f3f46;
-  --surface-secondary: #27272a;        /* large secondary surfaces (30% bucket) */
+  /* #a1a1aa clears the page at 4.51:1 — 0.01 of headroom, i.e. not safely.
+     #b3b3ba buys 5.54:1 on the page, 6.56 on secondary, 8.28 on a card. */
+  --text-muted: #b3b3ba;
+  /* Hairline reinstated for the blue ground: the old #3f3f46 sat at 1.11:1 and
+     the card fill is only 1.49:1, so at 1px the card edge needs the 3:1 floor
+     (also 4.51:1 against a card). Load-bearing, not decorative. */
+  --border-color: #8076d7;
+  --blockquote-border: #8076d7;
+  --table-border: #8076d7;
+  --surface-secondary: #120093;        /* large secondary surfaces (30% bucket) */
 
   /* 10% — ACCENT: coral, interactive semantics only */
   --text-accent: #ff8569;
@@ -142,10 +155,11 @@
      read as information, not as interactive calls-to-action. */
   --text-accent-dataviz: #4ecdc4;
 
-  /* Graph core «Статьи». The owner's #1400c3 is a deep indigo sitting at
-     1.3:1 on this page's teal, so the dark theme carries the lightened
-     #6a5cff (4.2:1); the light theme below restores the exact hex. */
-  --kg-core-articles: #6a5cff;
+  /* Graph core «Статьи». #1400c3 is the page ground now, so the exact hex
+     disappears into it (2.52:1 on the page, 3.77 on a card); the dark theme
+     carries the lightened #8d82ff (4.41:1 on the #16009f graph panel, 3.72 on
+     the page). The light theme below restores the exact hex. */
+  --kg-core-articles: #8d82ff;
 
   /* Wallpaper — the honeycomb lattice behind every page (DESIGN.md). Alpha is
      deliberately tiny: the grid is texture on the 60% surface, never a second

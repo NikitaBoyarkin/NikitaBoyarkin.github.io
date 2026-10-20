@@ -89,10 +89,10 @@
 ### Must Have (P0)
 
 #### REQ-001: Доминирующий цвет (60%) — поверхность
-**Описание:** 60% площади — фон страницы, карточки, код-блоки, шапки таблиц. Семейство teal (dark) / cream (light) / indigo (cyberpunk). Три ступени глубины (primary → secondary → tertiary).
+**Описание:** 60% площади — фон страницы, карточки, код-блоки, шапки таблиц. Семейство indigo (dark) / cream (light) / midnight (cyberpunk). Четыре ступени глубины (primary → secondary → tertiary → card); в тёмной теме ступень идёт **вниз** по светлоте — страница #1400c3 (L* ≈ 24) светлее любой поверхности над ней.
 
 **Acceptance Criteria:**
-- [ ] Dark: `#0f2a2b` (primary), `#1a3435` (secondary), `#234044` (tertiary) — без изменений.
+- [ ] Dark: `#1400c3` (primary), `#16009f` (secondary), `#120093` (tertiary), `#0d0068` (card).
 - [ ] Light: `#f4efca` (primary), `#ffffff` (secondary), `#f4f4f5` (tertiary).
 - [ ] Cyberpunk: `#0a0a12` (primary), `#11111d` (secondary), `#1a1a2e` (tertiary).
 - [ ] Суммарная площадь этих семейств на экране `/` ∈ [55%, 65%]. (Phase 2: desktop/mobile PASS, tablet 60% CHECK 69.5–71.6%; см. раздел 3.1.)
@@ -101,18 +101,19 @@
 **Токен-спека:**
 ```css
 /* 60% — DOMINANT surfaces */
---background-primary:   #0f2a2b;  /* page bg */
---background-secondary: #1a3435;  /* cards */
---background-tertiary:  #234044;  /* nested: code, table header, chips */
---code-background:      #234044;  /* alias of tertiary */
---table-header-background: #234044;
+--background-primary:   #1400c3;  /* page bg */
+--background-secondary: #16009f;  /* nav rail, forms, chart chrome */
+--background-tertiary:  #120093;  /* nested: code, table header, chips */
+--card-background:      #0d0068;  /* project / article cards */
+--code-background:      #120093;  /* alias of tertiary */
+--table-header-background: #120093;
 ```
 
 #### REQ-002: Вторичный цвет (30%) — нейтральный текст и границы
 **Описание:** 30% — body text, metadata, границы, разделители. Ахроматическое семейство zinc (нейтральный серый), которое работает с любым доминантом и даёт глубину без конкуренции с акцентом.
 
 **Acceptance Criteria:**
-- [ ] Dark: `#e4e4e7` (text-normal), `#a1a1aa` (text-muted), `#3f3f46` (border).
+- [ ] Dark: `#e4e4e7` (text-normal), `#b3b3ba` (text-muted), `#8076d7` (border). Граница — periwinkle, а не нейтраль: на насыщенном синем нейтраль #3f3f46 даёт 1.11:1, и край карточки исчезает (заливка карты всего 1.49:1).
 - [ ] Light: `#18181b` (text-normal), `#52525b` (text-muted), `#e4e4e7` (border).
 - [ ] Cyberpunk: `#e6f1ff` (text-normal), `#8a8aa8` (text-muted), `#2a2a4a` (border).
 - [ ] `text-muted` не используется для основного body text (только metadata).

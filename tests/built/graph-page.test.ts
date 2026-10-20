@@ -159,7 +159,8 @@ describe('graph core colour token (built CSS)', () => {
   it('defines --kg-core-articles once per theme, and only light keeps the hex', () => {
     // Three values, three scopes, one order. Nothing else in the build binds
     // them: drop the light override and the cream page silently gets the
-    // washed-out #6a5cff, keep the hex on dark and the hub disappears at 1.3:1.
+    // washed-out #8d82ff, keep a dark hex on dark and the hub sinks into the
+    // #1400c3 page ground (2.52:1).
     const css = builtCss();
 
     const scopes = [...css.matchAll(/--kg-core-articles:\s*(#[0-9a-fA-F]{6})/g)].map((m) => {
@@ -168,7 +169,7 @@ describe('graph core colour token (built CSS)', () => {
     });
 
     expect(scopes).toEqual([
-      [':root', '#6a5cff'],
+      [':root', '#8d82ff'],
       ['[data-theme=light]', '#1400c3'],
       ['[data-theme=cyberpunk]', '#6a5cff'],
     ]);
