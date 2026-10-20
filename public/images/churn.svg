@@ -5,29 +5,29 @@
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
     <linearGradient id="churn-accent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#ffa68a"/>
+      <stop offset="1" stop-color="#ff8569"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#churn-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
 
-  <text x="600" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7" text-anchor="middle">SNAPSHOT SPLIT</text>
+  <text x="600" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#0f2a2b" text-anchor="middle">SNAPSHOT SPLIT</text>
 
   <!-- chronological timeline -->
-  <line x1="100" y1="270" x2="1100" y2="270" stroke="#234044" stroke-width="4"/>
+  <line x1="100" y1="270" x2="1100" y2="270" stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="4"/>
 
   <!-- train / val / test panels -->
   <rect x="120" y="180" width="280" height="180" rx="18" fill="url(#churn-accent)"/>
-  <rect x="460" y="180" width="280" height="180" rx="18" fill="url(#churn-accent)" opacity="0.78"/>
-  <rect x="800" y="180" width="280" height="180" rx="18" fill="url(#churn-accent)" opacity="0.58"/>
+  <rect x="460" y="180" width="280" height="180" rx="18" fill="url(#churn-accent)" opacity="0.92"/>
+  <rect x="800" y="180" width="280" height="180" rx="18" fill="url(#churn-accent)" opacity="0.85"/>
   <text x="260" y="285" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#0f2a2b" text-anchor="middle">TRAIN</text>
   <text x="600" y="285" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#0f2a2b" text-anchor="middle">VAL</text>
   <text x="940" y="285" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#0f2a2b" text-anchor="middle">TEST</text>
 
   <!-- top-decile recall -->
-  <text x="120" y="440" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#a1a1aa">RECALL @ 10%</text>
-  <rect x="120" y="460" width="760" height="44" rx="6" fill="#234044"/>
-  <rect x="120" y="460" width="403" height="44" rx="6" fill="url(#churn-accent)"/>
-  <text x="920" y="496" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500" fill="#ff8569">53%</text>
+  <text x="120" y="440" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#4a6b69">RECALL @ 10%</text>
+  <rect x="120" y="460" width="760" height="44" rx="6" fill="#0f2a2b" fill-opacity="0.08"/>
+  <rect x="120" y="460" width="403" height="44" rx="6" fill="#d2573a"/>
+  <text x="920" y="496" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500" fill="#a8331a">53%</text>
 </svg>

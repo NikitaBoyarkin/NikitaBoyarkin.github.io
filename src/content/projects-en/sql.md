@@ -125,7 +125,7 @@ Also:
 - RFM degenerates into a recency story; the top decile delivers only 22% of revenue (no whales);
 - logo churn climbs to ~15%/month even as MRR compounds;
 - sessionization reproduces 80k pre-assigned sessions at **99.6%** fidelity;
-- **real data flips the conclusion**: on UCI Online Retail II, 72.4% of customers repeat and the top 15% drive 65% of revenue — same SQL, opposite business answer.
+- **real data flips the conclusion**: on UCI Online Retail II, 72.4% of customers repeat and customers with 11+ orders (14.9% of the base) drive 65% of revenue — same SQL, opposite business answer.
 
 Splitting question and SQL in one file plus regression invariants makes the cases self-checking: 43 pytest tests and 17 dbt tests keep `cases.md` and the code in sync, and `dbt build` is green in CI.
 

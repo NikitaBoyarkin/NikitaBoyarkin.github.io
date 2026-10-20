@@ -1,39 +1,40 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SERP ranking lab: ranked offer bars by position and an examination-probability curve decaying down the page">
   <defs>
     <linearGradient id="serp-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0f2a2b"/>
-      <stop offset="1" stop-color="#1a3435"/>
+      <stop offset="0" stop-color="#f8f2d8"/>
+      <stop offset="1" stop-color="#f2ebc6"/>
     </linearGradient>
     <linearGradient id="serp-bar" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#a8331a"/>
+      <stop offset="1" stop-color="#d2573a"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#serp-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
+  <rect width="1200" height="600" fill="url(#serp-bg)" opacity="0.55"/>
 
-  <text x="80" y="130" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7">SERP RANK LAB</text>
+  <text x="80" y="130" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#0f2a2b">SERP RANK LAB</text>
 
   <!-- ranked offers: width falls with position -->
   <g>
-    <rect x="80" y="188" width="470" height="38" rx="8" fill="#ff8569"/>
-    <rect x="80" y="234" width="410" height="38" rx="8" fill="url(#serp-bar)" opacity="0.85"/>
-    <rect x="80" y="280" width="350" height="38" rx="8" fill="url(#serp-bar)" opacity="0.72"/>
-    <rect x="80" y="326" width="290" height="38" rx="8" fill="#ff6643" opacity="0.58"/>
-    <rect x="80" y="372" width="235" height="38" rx="8" fill="#ff6643" opacity="0.46"/>
-    <rect x="80" y="418" width="180" height="38" rx="8" fill="#ff6643" opacity="0.34"/>
-    <rect x="80" y="464" width="130" height="38" rx="8" fill="#ff6643" opacity="0.24"/>
-    <rect x="80" y="510" width="90" height="38" rx="8" fill="#ff6643" opacity="0.16"/>
+    <rect x="80" y="188" width="470" height="38" rx="8" fill="url(#serp-bar)"/>
+    <rect x="80" y="234" width="410" height="38" rx="8" fill="#d2573a"/>
+    <rect x="80" y="280" width="350" height="38" rx="8" fill="#d2573a"/>
+    <rect x="80" y="326" width="290" height="38" rx="8" fill="#d2573a"/>
+    <rect x="80" y="372" width="235" height="38" rx="8" fill="#d2573a"/>
+    <rect x="80" y="418" width="180" height="38" rx="8" fill="#d2573a"/>
+    <rect x="80" y="464" width="130" height="38" rx="8" fill="#d2573a"/>
+    <rect x="80" y="510" width="90" height="38" rx="8" fill="#d2573a"/>
   </g>
 
   <!-- position-bias examination curve -->
-  <polyline points="660,214 720,268 780,326 840,376 900,412 960,440 1020,460 1075,470" fill="none" stroke="#ff8569" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <line x1="660" y1="214" x2="660" y2="472" stroke="#a1a1aa" stroke-width="3" stroke-dasharray="10 10"/>
-  <line x1="660" y1="472" x2="1080" y2="472" stroke="#a1a1aa" stroke-width="3" stroke-dasharray="10 10"/>
+  <polyline points="660,214 720,268 780,326 840,376 900,412 960,440 1020,460 1075,470" fill="none" stroke="#a8331a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="660" y1="214" x2="660" y2="472" stroke="#4a6b69" stroke-width="3" stroke-dasharray="10 10"/>
+  <line x1="660" y1="472" x2="1080" y2="472" stroke="#4a6b69" stroke-width="3" stroke-dasharray="10 10"/>
 
-  <circle cx="660" cy="214" r="8" fill="#ff8569"/>
-  <circle cx="1075" cy="470" r="8" fill="#ff6643"/>
+  <circle cx="660" cy="214" r="8" fill="#a8331a"/>
+  <circle cx="1075" cy="470" r="8" fill="#d2573a"/>
 
-  <text x="865" y="300" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="600" fill="#a1a1aa" text-anchor="middle">EXAMINATION</text>
-  <text x="870" y="545" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="600" fill="#a1a1aa" text-anchor="middle">POSITION</text>
+  <text x="880" y="272" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="600" fill="#4a6b69" text-anchor="middle">EXAMINATION</text>
+  <text x="870" y="545" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="600" fill="#4a6b69" text-anchor="middle">POSITION</text>
 </svg>

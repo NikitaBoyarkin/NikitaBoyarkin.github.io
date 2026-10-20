@@ -5,31 +5,31 @@
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
     <linearGradient id="ab-accent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#d2573a"/>
+      <stop offset="1" stop-color="#a8331a"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#ab-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
 
-  <text x="80" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7">A/B TESTING</text>
+  <text x="80" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#0f2a2b">A/B TESTING</text>
 
   <!-- control distribution -->
-  <polygon points="80,435 100,432 120,426 140,418 160,407 180,392 200,372 220,350 240,325 260,300 280,276 300,257 320,244 340,240 360,244 380,257 400,276 420,300 440,325 460,350 480,372 500,392 520,407 540,418 560,426 580,432 600,435 620,437 640,439 660,439 680,440 700,440 720,440 740,440 760,440 780,440 800,440 820,440 840,440 860,440 860,440 80,440" fill="#a1a1aa" opacity="0.18"/>
+  <polygon points="80,435 100,432 120,426 140,418 160,407 180,392 200,372 220,350 240,325 260,300 280,276 300,257 320,244 340,240 360,244 380,257 400,276 420,300 440,325 460,350 480,372 500,392 520,407 540,418 560,426 580,432 600,435 620,437 640,439 660,439 680,440 700,440 720,440 740,440 760,440 780,440 800,440 820,440 840,440 860,440 860,440 80,440" fill="#4a6b69" fill-opacity="0.18"/>
 
   <!-- treatment distribution -->
   <polygon points="80,440 100,440 120,440 140,440 160,440 180,440 200,440 220,440 240,439 260,438 280,436 300,433 320,428 340,421 360,409 380,393 400,372 420,345 440,314 460,279 480,244 500,211 520,184 540,166 560,160 580,166 600,184 620,211 640,244 660,279 680,314 700,345 720,372 740,393 760,409 780,421 800,428 820,433 840,436 860,438 860,440 80,440" fill="url(#ab-accent)" opacity="0.22"/>
 
   <!-- power region: treatment mass right of the decision boundary -->
-  <polygon points="580,166 600,184 620,211 640,244 660,279 680,314 700,345 720,372 740,393 760,409 780,421 800,428 820,433 840,436 860,438 860,440 580,440" fill="#ff6643" opacity="0.5"/>
+  <polygon points="580,166 600,184 620,211 640,244 660,279 680,314 700,345 720,372 740,393 760,409 780,421 800,428 820,433 840,436 860,438 860,440 580,440" fill="#ff8569" opacity="0.5"/>
 
-  <polyline points="80,435 100,432 120,426 140,418 160,407 180,392 200,372 220,350 240,325 260,300 280,276 300,257 320,244 340,240 360,244 380,257 400,276 420,300 440,325 460,350 480,372 500,392 520,407 540,418 560,426 580,432 600,435 620,437 640,439 660,439 680,440 700,440 720,440 740,440 760,440 780,440 800,440 820,440 840,440 860,440" fill="none" stroke="#a1a1aa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="80,435 100,432 120,426 140,418 160,407 180,392 200,372 220,350 240,325 260,300 280,276 300,257 320,244 340,240 360,244 380,257 400,276 420,300 440,325 460,350 480,372 500,392 520,407 540,418 560,426 580,432 600,435 620,437 640,439 660,439 680,440 700,440 720,440 740,440 760,440 780,440 800,440 820,440 840,440 860,440" fill="none" stroke="#4a6b69" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   <polyline points="80,440 100,440 120,440 140,440 160,440 180,440 200,440 220,440 240,439 260,438 280,436 300,433 320,428 340,421 360,409 380,393 400,372 420,345 440,314 460,279 480,244 500,211 520,184 540,166 560,160 580,166 600,184 620,211 640,244 660,279 680,314 700,345 720,372 740,393 760,409 780,421 800,428 820,433 840,436 860,438" fill="none" stroke="url(#ab-accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
 
   <!-- decision boundary -->
-  <line x1="580" y1="170" x2="580" y2="440" stroke="#e4e4e7" stroke-width="4" stroke-dasharray="12 10"/>
+  <line x1="580" y1="170" x2="580" y2="440" stroke="#0f2a2b" stroke-width="4" stroke-dasharray="12 10"/>
 
-  <text x="650" y="430" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#e4e4e7" text-anchor="middle">POWER</text>
-  <text x="300" y="530" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#a1a1aa" text-anchor="middle">CONTROL</text>
-  <text x="800" y="530" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#ff8569" text-anchor="middle">TREATMENT</text>
+  <text x="650" y="430" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#0f2a2b" text-anchor="middle">POWER</text>
+  <text x="300" y="530" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#4a6b69" text-anchor="middle">CONTROL</text>
+  <text x="800" y="530" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#a8331a" text-anchor="middle">TREATMENT</text>
 </svg>

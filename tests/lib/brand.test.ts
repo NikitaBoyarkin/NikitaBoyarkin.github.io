@@ -32,8 +32,9 @@ const EXPECTED: Expected = {
   ':root': {
     // The CTA fill is the neutral BUTTON_FILL, not an accent hue: the button
     // reads as *action* rather than as the 10% accent, and its cream ink
-    // clears AA at 15.97:1. The orange ACCENT_ON_BLUE now belongs to the OG
-    // banner regime alone (see DESIGN.md, "Double regime").
+    // clears AA at 15.97:1. The orange ACCENT_ON_BLUE was the banner accent
+    // until 2026-10-20, when the cream picture surface replaced it with
+    // BANNER_ACCENT (see DESIGN.md, "Pictures — the cream image regime").
     'button-bg': BUTTON_FILL,
     'button-bg-hover': BUTTON_FILL_HOVER,
     'button-ink': BUTTON_INK,

@@ -1,26 +1,27 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SQL analytics case study: tables, queries, window functions">
   <defs>
     <linearGradient id="sql-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0f2a2b"/>
-      <stop offset="1" stop-color="#1a3435"/>
+      <stop offset="0" stop-color="#f8f2d8"/>
+      <stop offset="1" stop-color="#f2ebc6"/>
     </linearGradient>
     <linearGradient id="sql-accent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#ffa68a"/>
+      <stop offset="1" stop-color="#ff8569"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#sql-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
+  <rect width="1200" height="600" fill="url(#sql-bg)" opacity="0.55"/>
 
-  <text x="600" y="120" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7" text-anchor="middle">WINDOW FUNCTIONS</text>
+  <text x="600" y="120" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#0f2a2b" text-anchor="middle">WINDOW FUNCTIONS</text>
 
   <!-- result grid: header row + 3 data rows -->
-  <g fill="url(#sql-accent)" opacity="0.25">
+  <g fill="#0f2a2b" fill-opacity="0.10">
     <rect x="140" y="180" width="220" height="60" rx="6"/>
     <rect x="400" y="180" width="220" height="60" rx="6"/>
     <rect x="660" y="180" width="220" height="60" rx="6"/>
   </g>
-  <g fill="#234044" opacity="0.6">
+  <g fill="#0f2a2b" fill-opacity="0.06">
     <rect x="140" y="260" width="220" height="60" rx="6"/>
     <rect x="400" y="260" width="220" height="60" rx="6"/>
     <rect x="140" y="340" width="220" height="60" rx="6"/>
@@ -30,19 +31,19 @@
   </g>
 
   <!-- highlighted query results -->
-  <rect x="660" y="260" width="220" height="60" rx="6" fill="#ff6643" opacity="0.55"/>
-  <rect x="400" y="340" width="220" height="60" rx="6" fill="url(#sql-accent)" opacity="0.45"/>
-  <rect x="140" y="420" width="220" height="60" rx="6" fill="#ff6643" opacity="0.4"/>
+  <rect x="660" y="260" width="220" height="60" rx="6" fill="#ff8569"/>
+  <rect x="400" y="340" width="220" height="60" rx="6" fill="#ffa68a"/>
+  <rect x="140" y="420" width="220" height="60" rx="6" fill="#ffa68a"/>
 
-  <text x="770" y="305" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#e4e4e7" text-anchor="middle">RANK()</text>
-  <text x="510" y="385" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#e4e4e7" text-anchor="middle">LAG()</text>
-  <text x="250" y="465" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#e4e4e7" text-anchor="middle">SUM()</text>
+  <text x="770" y="305" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#0f2a2b" text-anchor="middle">RANK()</text>
+  <text x="510" y="385" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#0f2a2b" text-anchor="middle">LAG()</text>
+  <text x="250" y="465" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#0f2a2b" text-anchor="middle">SUM()</text>
 
   <!-- duck mark -->
   <g transform="translate(950,380)">
-    <ellipse cx="50" cy="30" rx="46" ry="22" fill="url(#sql-accent)"/>
+    <ellipse cx="50" cy="30" rx="46" ry="22" fill="#d2573a"/>
     <circle cx="86" cy="20" r="14" fill="#ff8569"/>
     <circle cx="90" cy="18" r="3" fill="#0f2a2b"/>
-    <polygon points="100,20 118,24 100,30" fill="#ffa68a"/>
+    <polygon points="100,20 118,24 100,30" fill="#a8331a"/>
   </g>
 </svg>

@@ -1,75 +1,98 @@
-<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Streamlit product analytics dashboard: AARRR KPI cards, cohort retention heatmap, and revenue bars">
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Streamlit product analytics dashboard: AARRR KPI cards, acquisition pipeline, and monthly revenue bars">
   <defs>
     <linearGradient id="tbg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2a1417"/>
-      <stop offset="1" stop-color="#341a1e"/>
+      <stop offset="0" stop-color="#f8f2d8"/>
+      <stop offset="1" stop-color="#f2ebc6"/>
     </linearGradient>
     <linearGradient id="tacc" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff6b6b"/>
-      <stop offset="1" stop-color="#ff4b4b"/>
+      <stop offset="0" stop-color="#ffa68a"/>
+      <stop offset="1" stop-color="#ff8569"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#tbg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
+  <rect width="1200" height="600" fill="url(#tbg)" opacity="0.55"/>
+
+  <!-- masthead -->
+  <g font-family="Inter, system-ui, sans-serif">
+    <text x="80" y="112" font-size="64" font-weight="700" letter-spacing="1" fill="#0f2a2b">AARRR</text>
+    <text x="318" y="112" font-size="64" font-weight="700" letter-spacing="1" fill="#a8331a">DASHBOARD</text>
+    <text x="80" y="152" font-size="24" fill="#4a6b69">Streamlit &#183; product analytics &#183; seed 42</text>
+  </g>
+  <line x1="80" y1="176" x2="1120" y2="176" stroke="#0f2a2b" stroke-opacity="0.20" stroke-width="2"/>
 
   <!-- KPI cards -->
-  <g transform="translate(80,90)" font-family="Inter, sans-serif">
-    <g>
-      <rect x="0" y="0" width="150" height="90" rx="10" fill="#3a1d22" stroke="#5a2b32" stroke-width="1"/>
-      <text x="14" y="32" fill="#d99" font-size="13">Users</text>
-      <text x="14" y="66" fill="#fff" font-size="26" font-weight="700">8,000</text>
-    </g>
-    <g transform="translate(165,0)">
-      <rect x="0" y="0" width="150" height="90" rx="10" fill="#3a1d22" stroke="#5a2b32" stroke-width="1"/>
-      <text x="14" y="32" fill="#d99" font-size="13">MRR</text>
-      <text x="14" y="66" fill="url(#tacc)" font-size="26" font-weight="700">↑</text>
-    </g>
-    <g transform="translate(330,0)">
-      <rect x="0" y="0" width="150" height="90" rx="10" fill="#3a1d22" stroke="#5a2b32" stroke-width="1"/>
-      <text x="14" y="32" fill="#d99" font-size="13">Stickiness</text>
-      <text x="14" y="66" fill="#fff" font-size="26" font-weight="700">DAU/MAU</text>
-    </g>
+  <g font-family="Inter, system-ui, sans-serif">
+    <rect x="80" y="200" width="180" height="104" rx="14" fill="#0f2a2b" fill-opacity="0.06"/>
+    <text x="100" y="240" font-size="22" fill="#4a6b69">USERS</text>
+    <text x="100" y="284" font-size="38" font-weight="700" fill="#0f2a2b">8,000</text>
+
+    <rect x="280" y="200" width="180" height="104" rx="14" fill="#0f2a2b" fill-opacity="0.06"/>
+    <text x="300" y="240" font-size="22" fill="#4a6b69">MRR</text>
+    <text x="300" y="284" font-size="38" font-weight="700" fill="#0f2a2b">$42k</text>
+
+    <rect x="480" y="200" width="180" height="104" rx="14" fill="url(#tacc)"/>
+    <text x="500" y="240" font-size="22" fill="#0f2a2b">STICKINESS</text>
+    <text x="500" y="284" font-size="38" font-weight="700" fill="#0f2a2b">38%</text>
   </g>
 
-  <!-- AARRR funnel steps -->
-  <g transform="translate(80,240)" font-family="SF Mono, Monaco, monospace" font-size="13" fill="#e4c9c9">
-    <text x="0" y="0">AARRR</text>
-    <rect x="0" y="14" width="430" height="26" fill="#4a2329"/>
-    <rect x="0" y="14" width="430" height="26" fill="url(#tacc)" opacity="0.85"/>
-    <text x="8" y="32">app_open → signup → activate → start_trial → subscribe</text>
+  <!-- pipeline strip: label — track + fill — absolute -->
+  <text x="80" y="352" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69">AARRR PIPELINE</text>
+
+  <g>
+    <text x="80" y="399" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#0f2a2b">ACQUISITION</text>
+    <rect x="250" y="384" width="300" height="16" rx="8" fill="#0f2a2b" fill-opacity="0.07"/>
+    <rect x="250" y="384" width="300" height="16" rx="8" fill="#d2573a"/>
+    <text x="660" y="399" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69" text-anchor="end">8,000</text>
+
+    <text x="80" y="437" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#0f2a2b">ACTIVATION</text>
+    <rect x="250" y="422" width="300" height="16" rx="8" fill="#0f2a2b" fill-opacity="0.07"/>
+    <rect x="250" y="422" width="150" height="16" rx="8" fill="#d2573a"/>
+    <text x="660" y="437" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69" text-anchor="end">3,600</text>
+
+    <text x="80" y="475" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#0f2a2b">RETENTION</text>
+    <rect x="250" y="460" width="300" height="16" rx="8" fill="#0f2a2b" fill-opacity="0.07"/>
+    <rect x="250" y="460" width="92" height="16" rx="8" fill="#d2573a"/>
+    <text x="660" y="475" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69" text-anchor="end">2,100</text>
+
+    <text x="80" y="513" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#0f2a2b">REFERRAL</text>
+    <rect x="250" y="498" width="300" height="16" rx="8" fill="#0f2a2b" fill-opacity="0.07"/>
+    <rect x="250" y="498" width="50" height="16" rx="8" fill="#d2573a"/>
+    <text x="660" y="513" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69" text-anchor="end">640</text>
+
+    <text x="80" y="551" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#0f2a2b">REVENUE</text>
+    <rect x="250" y="536" width="300" height="16" rx="8" fill="#0f2a2b" fill-opacity="0.07"/>
+    <rect x="250" y="536" width="34" height="16" rx="8" fill="#d2573a"/>
+    <text x="660" y="551" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69" text-anchor="end">410</text>
   </g>
 
-  <!-- Cohort heatmap -->
-  <g transform="translate(620,150)">
-    <text x="0" y="-8" fill="#d99" font-family="SF Mono, Monaco, monospace" font-size="15">cohort retention</text>
-    <g>
-      <rect x="0" y="0" width="44" height="44" fill="#3a1d22"/>
-      <rect x="0" y="48" width="44" height="44" fill="#5a2b32"/>
-      <rect x="0" y="96" width="44" height="44" fill="#7a3038"/>
-      <rect x="48" y="0" width="44" height="44" fill="#4a2329"/>
-      <rect x="48" y="48" width="44" height="44" fill="#6e2d36"/>
-      <rect x="48" y="96" width="44" height="44" fill="url(#tacc)" opacity="0.7"/>
-      <rect x="96" y="0" width="44" height="44" fill="#52262d"/>
-      <rect x="96" y="48" width="44" height="44" fill="#7a3038"/>
-      <rect x="96" y="96" width="44" height="44" fill="#ff4b4b" opacity="0.5"/>
-    </g>
+  <!-- revenue panel -->
+  <rect x="700" y="200" width="420" height="348" rx="16" fill="#0f2a2b" fill-opacity="0.06" stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="2"/>
+
+  <g font-family="Inter, system-ui, sans-serif">
+    <text x="732" y="248" font-size="22" fill="#4a6b69">REVENUE / MRR</text>
+    <text x="732" y="306" font-size="44" font-weight="700" fill="#a8331a">+18.4%</text>
+    <text x="732" y="342" font-size="22" fill="#4a6b69">net revenue, 7 months</text>
   </g>
 
-  <!-- Revenue bars -->
-  <g transform="translate(820,150)">
-    <text x="0" y="-8" fill="#d99" font-family="SF Mono, Monaco, monospace" font-size="15">revenue / MRR</text>
-    <g fill="url(#tacc)">
-      <rect x="0" y="110" width="26" height="30"/>
-      <rect x="34" y="90" width="26" height="50"/>
-      <rect x="68" y="70" width="26" height="70"/>
-      <rect x="102" y="48" width="26" height="92"/>
-      <rect x="136" y="26" width="26" height="114"/>
-    </g>
-    <line x1="0" y1="140" x2="170" y2="140" stroke="#5a2b32" stroke-width="2"/>
+  <g>
+    <rect x="732" y="450" width="36" height="40" fill="#d2573a"/>
+    <rect x="786" y="428" width="36" height="62" fill="#d2573a"/>
+    <rect x="840" y="438" width="36" height="52" fill="#d2573a"/>
+    <rect x="894" y="412" width="36" height="78" fill="#d2573a"/>
+    <rect x="948" y="422" width="36" height="68" fill="#d2573a"/>
+    <rect x="1002" y="390" width="36" height="100" fill="#d2573a"/>
+    <rect x="1056" y="372" width="36" height="118" fill="#a8331a"/>
   </g>
+  <line x1="732" y1="490" x2="1092" y2="490" stroke="#0f2a2b" stroke-opacity="0.20" stroke-width="2"/>
 
-  <!-- footer -->
-  <g transform="translate(80,420)" font-family="SF Mono, Monaco, monospace" font-size="15" fill="#d99">
-    <text x="0" y="0">seed = 42 · @st.cache_data · 5 pages · reproducible</text>
+  <g font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69" text-anchor="middle">
+    <text x="750" y="520" fill="#4a6b69">J</text>
+    <text x="804" y="520" fill="#4a6b69">F</text>
+    <text x="858" y="520" fill="#4a6b69">M</text>
+    <text x="912" y="520" fill="#4a6b69">A</text>
+    <text x="966" y="520" fill="#4a6b69">M</text>
+    <text x="1020" y="520" fill="#4a6b69">J</text>
+    <text x="1074" y="520" fill="#4a6b69">J</text>
   </g>
 </svg>

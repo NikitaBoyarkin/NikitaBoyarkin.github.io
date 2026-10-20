@@ -2225,14 +2225,22 @@ footer p {
   transform: translateX(-5px);
 }
 
+/* The hero is a 1200x600 (2:1) illustration, so it must never be cropped. The
+   old `max-height: 400px` + `object-fit: cover` made the box 1116x558 on a
+   desktop container and clipped 79px off the top and bottom — 85 SVG units,
+   enough to cut the axis labels off ten of the corners (ml, serp-rank, rfm,
+   cohort, volta, ab, sales-calls, linkedin, supabase, scrolly). Capping the
+   width instead keeps the art's real ratio and puts the same 400–450px ceiling
+   on the height without losing a pixel. */
 .hero-image {
+  display: block;
   width: 100%;
-  max-width: 100%;
+  max-width: 900px;
   height: auto;
-  max-height: 400px;
-  object-fit: cover;
+  aspect-ratio: 2 / 1;
+  object-fit: contain;
+  margin: 0 auto 2rem;
   border-radius: 12px;
-  margin-bottom: 2rem;
   border: 1px solid var(--border-color);
 }
 

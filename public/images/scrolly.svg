@@ -1,37 +1,38 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Scrollytelling: narrative column synced with visualization panels on scroll">
   <defs>
     <linearGradient id="scrolly-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0f2a2b"/>
-      <stop offset="1" stop-color="#1a3435"/>
+      <stop offset="0" stop-color="#f8f2d8"/>
+      <stop offset="1" stop-color="#f2ebc6"/>
     </linearGradient>
     <linearGradient id="scrolly-accent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#a8331a"/>
+      <stop offset="1" stop-color="#d2573a"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#scrolly-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
+  <rect width="1200" height="600" fill="url(#scrolly-bg)" opacity="0.55"/>
 
   <g font-family="Inter, system-ui, sans-serif">
-    <text x="80" y="120" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7">Narrative</text>
-    <text x="640" y="120" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7">Panels</text>
+    <text x="80" y="120" font-size="64" font-weight="700" letter-spacing="1" fill="#0f2a2b">Narrative</text>
+    <text x="640" y="120" font-size="64" font-weight="700" letter-spacing="1" fill="#a8331a">Panels</text>
   </g>
 
   <!-- narrative column -->
-  <rect x="80" y="160" width="440" height="380" rx="18" fill="#234044" fill-opacity="0.5"/>
+  <rect x="80" y="160" width="440" height="380" rx="18" fill="#0f2a2b" fill-opacity="0.06"/>
 
   <!-- scroll progress rail -->
-  <line x1="120" y1="200" x2="120" y2="480" stroke="#3f3f46" stroke-width="4" stroke-linecap="round"/>
+  <line x1="120" y1="200" x2="120" y2="480" stroke="#0f2a2b" stroke-opacity="0.20" stroke-width="4" stroke-linecap="round"/>
   <line x1="120" y1="200" x2="120" y2="340" stroke="url(#scrolly-accent)" stroke-width="4" stroke-linecap="round"/>
-  <circle cx="120" cy="200" r="8" fill="#ff8569"/>
-  <circle cx="120" cy="270" r="8" fill="#ff8569"/>
-  <circle cx="120" cy="340" r="20" fill="none" stroke="#ffa68a" stroke-width="4" opacity="0.5"/>
-  <circle cx="120" cy="340" r="12" fill="#ff8569"/>
-  <circle cx="120" cy="410" r="8" fill="#3f3f46"/>
-  <circle cx="120" cy="480" r="8" fill="#3f3f46"/>
+  <circle cx="120" cy="200" r="8" fill="#a8331a"/>
+  <circle cx="120" cy="270" r="8" fill="#a8331a"/>
+  <circle cx="120" cy="340" r="20" fill="none" stroke="#d2573a" stroke-width="4"/>
+  <circle cx="120" cy="340" r="12" fill="#a8331a"/>
+  <circle cx="120" cy="410" r="8" fill="#0f2a2b" fill-opacity="0.20"/>
+  <circle cx="120" cy="480" r="8" fill="#0f2a2b" fill-opacity="0.20"/>
 
   <!-- narrative text lines -->
-  <g stroke="#3f3f46" stroke-width="8" stroke-linecap="round">
+  <g stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="8" stroke-linecap="round">
     <line x1="180" y1="220" x2="480" y2="220"/>
     <line x1="180" y1="270" x2="420" y2="270"/>
     <line x1="180" y1="320" x2="460" y2="320"/>
@@ -41,20 +42,20 @@
   </g>
 
   <!-- active visualization panel -->
-  <rect x="640" y="160" width="480" height="260" rx="18" fill="#234044"/>
+  <rect x="640" y="160" width="480" height="260" rx="18" fill="#0f2a2b" fill-opacity="0.05"/>
   <rect x="640" y="160" width="480" height="260" rx="18" fill="none" stroke="url(#scrolly-accent)" stroke-width="4" opacity="0.7"/>
   <g>
-    <rect x="690" y="310" width="60" height="70" rx="6" fill="#3f3f46"/>
-    <rect x="770" y="280" width="60" height="100" rx="6" fill="#3f3f46"/>
+    <rect x="690" y="310" width="60" height="70" rx="6" fill="#0f2a2b" fill-opacity="0.16"/>
+    <rect x="770" y="280" width="60" height="100" rx="6" fill="#0f2a2b" fill-opacity="0.16"/>
     <rect x="850" y="230" width="60" height="150" rx="6" fill="url(#scrolly-accent)"/>
-    <rect x="930" y="260" width="60" height="120" rx="6" fill="#3f3f46"/>
+    <rect x="930" y="260" width="60" height="120" rx="6" fill="#0f2a2b" fill-opacity="0.16"/>
     <rect x="1010" y="220" width="60" height="160" rx="6" fill="url(#scrolly-accent)"/>
-    <line x1="690" y1="380" x2="1070" y2="380" stroke="#3f3f46" stroke-width="4" stroke-linecap="round"/>
+    <line x1="690" y1="380" x2="1070" y2="380" stroke="#0f2a2b" stroke-opacity="0.20" stroke-width="4" stroke-linecap="round"/>
   </g>
 
   <!-- upcoming panels -->
-  <rect x="640" y="440" width="480" height="40" rx="18" fill="#234044" fill-opacity="0.45"/>
-  <line x1="690" y1="460" x2="1070" y2="460" stroke="#3f3f46" stroke-width="8" stroke-linecap="round"/>
-  <rect x="640" y="500" width="480" height="40" rx="18" fill="#234044" fill-opacity="0.3"/>
-  <line x1="690" y1="520" x2="980" y2="520" stroke="#3f3f46" stroke-width="8" stroke-linecap="round"/>
+  <rect x="640" y="440" width="480" height="40" rx="18" fill="#0f2a2b" fill-opacity="0.05"/>
+  <line x1="690" y1="460" x2="1070" y2="460" stroke="#0f2a2b" stroke-opacity="0.16" stroke-width="8" stroke-linecap="round"/>
+  <rect x="640" y="500" width="480" height="40" rx="18" fill="#0f2a2b" fill-opacity="0.04"/>
+  <line x1="690" y1="520" x2="980" y2="520" stroke="#0f2a2b" stroke-opacity="0.16" stroke-width="8" stroke-linecap="round"/>
 </svg>

@@ -1,11 +1,11 @@
 ---
 title: Product Analytics + A/B on Supabase
-description: "Full-stack аналитика на Supabase: A/B-эксперимент дал +11,1 пп (p ≈ 1,7·10⁻¹⁰, χ²), а Streamlit-дашборд читает живые данные через Row Level Security и SQL-вьюхи."
+description: "Full-stack аналитика на Supabase: A/B на сидированном потоке дал +11,1 пп (p ≈ 1,7·10⁻¹⁰, χ²), а Streamlit-дашборд читает живые данные через RLS и SQL-вьюхи."
 star:
   situation: "Аналитическое портфолио показывает метрики на чистом CSV, а невидимой остаётся аналитика внутри multi-tenant продукта"
   task: "Собрать слой целиком: авторизация, изоляция по организациям, приём событий и результат эксперимента, считаемый в базе"
   action: "SQL-вьюхи считают funnel, cohort, MRR и DAU; v_results считает A/B в базе; RLS изолирует строки по организациям"
-  result: "Итог A/B: control 29,6% против treatment 40,7%, +11,1 пп при p ≈ 1,7·10⁻¹⁰ (χ²); метрики считаются в базе для любого клиента"
+  result: "Итог A/B на сидированном потоке: control 29,6% против treatment 40,7%, +11,1 пп при p ≈ 1,7·10⁻¹⁰ (χ²); метрики считаются в живой базе для любого клиента"
 track: product
 hero: images/supabase.svg
 ogImage: /images/og/supabase.png

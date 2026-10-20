@@ -122,7 +122,7 @@ Goal: shift the homepage from a "dashboard-by-numbers" stack to an editorial + b
 - Surfaces step primary → secondary → tertiary for page, card, and nested surfaces (code blocks, table headers, chips). **On the dark theme the step runs downward** — the page is a saturated colour field at L* ≈ 24, so every surface above it is *darker*: page `#1400c3` → secondary `#16009f` → tertiary `#120093` → card `#0d0068`. Stepping the surfaces *lighter*, the conventional direction, drops `--text-muted` under 4.5:1 (3.62:1 on `#3b2cbb`); the light theme keeps the conventional upward step. On dark, the `#8076d7` hairline (3.02:1 on the page, 4.51:1 on a card) is what carries the card edge, because the card fill is only 1.49:1 against the page. Cyberpunk runs that step the conventional way, **upward** from its neutral `#171717` page (`#1e1e22` surface-secondary → `#232327` card → `#2a2a30` tertiary → `#33333b` hover), and its card edge is carried by the `#4a4a57` hairline (2.06:1 on the page) because the fill step is only 1.14:1.
 - The button fill is a near-black neutral (`#171717`) with the cream `--button-ink` (`#f8f2da`) on top — a dark fill under light ink (15.97:1), which is the inverse of the convention the cyberpunk theme still uses. `--button-ink` is the ink that sits on the **button fill** only: cream (`#f8f2da`) in dark/light themes, dark (`#1a1a1a`) in cyberpunk (where the fill is magenta). Unlike the old orange fill it is not constant across the three themes, because the fill is not either.
 - `--accent-ink` is the ink that sits on `--text-accent` used as a **fill** — skip link, `::selection`, accent badges, source monograms, the pressed knowledge-graph chip. It is **not** constant: `#1a1a1a` in dark and cyberpunk (7.30:1 on the coral `#ff8569`), `#ffffff` in light (6.66:1 on the sienna `#a8331a`). The dark ink on the light theme's sienna measures **2.61:1** — under both the 4.5:1 text floor and the 3:1 large-text floor — which is why these six surfaces are token-driven rather than hardcoded. `--button-ink` cannot serve here: the button fill (near-black neutral) and the accent fill (coral/sienna) are different colours, so one token for both is impossible.
-- The fill was signal blue (`#1400c3`) until 2026-09. It sat at **1.31:1** against the then-teal canvas — a CTA that read as a hole punched in the page. No blue can clear 3:1 *against teal* and carry AA text on top, so the fill became light with dark ink. On 2026-10-18 the fill moved from the orange `#fe4e02` to the neutral `#171717`; the orange survives only as the OG-banner accent (`ACCENT_ON_BLUE`). The signal blue has since returned to the page itself (2026-10-20, `--background-primary`), where it carries `#f8f2da` at 10.29:1 — but a near-black fill on the indigo page measures **1.55:1**, so the dark-theme button is still defined by its shape and its cream label rather than by fill contrast.
+- The fill was signal blue (`#1400c3`) until 2026-09. It sat at **1.31:1** against the then-teal canvas — a CTA that read as a hole punched in the page. No blue can clear 3:1 *against teal* and carry AA text on top, so the fill became light with dark ink. On 2026-10-18 the fill moved from the orange `#fe4e02` to the neutral `#171717`; the orange then held the banner accent until 2026-10-20, when the cream picture surface replaced it with `BANNER_ACCENT` (`#b8431f`, 4.84:1 — the orange measures 2.96:1 there). The signal blue has since returned to the page itself (2026-10-20, `--background-primary`), where it carries `#f8f2da` at 10.29:1 — but a near-black fill on the indigo page measures **1.55:1**, so the dark-theme button is still defined by its shape and its cream label rather than by fill contrast.
 - `text-muted` is for **metadata only** — dates, tags, captions, breadcrumbs, footer, counts. `text-normal` is for **body prose** and headings. The boundary is not "how important it feels": a paragraph of prose is body text even when it sits inside a card, so `.bento-cell-text`, `.featured-card-description`, `.blog-card-excerpt`, `.wwm-block ul`, `#project-content p` and `.post-content p` are all `text-normal`. Measured, this is the difference between 5.54:1 and 10.29:1 in dark (6.54:1 → 15.97:1 in cyberpunk).
 
 ## Color Roles — 60-30-10
@@ -153,7 +153,7 @@ The palette is formalized against the **60-30-10** rule (`docs/prd-palette-60-30
 | | `--accent-ink` | `#1a1a1a` | `#ffffff` | `#1a1a1a` |
 | | `--border-active` | `#ff8569` | `#a8331a` | `#ff8569` |
 
-Application budget: dominant 55–65% of any screen, secondary 25–35%, accent ≤15%. The accent is reserved for links, active nav, focus rings, `border-active`, accent bars, and badge pills — never as the fill of a content block. The primary button fill is the one element that **leaves** the accent bucket: it takes the neutral `#171717` (magenta `#ff2bd6` in cyberpunk), a deliberate move to the achromatic family so the button reads as *action* rather than as the 10% accent. It carries the cream ink at 15.97:1. On the light cream page the near-black fill clears the 3:1 graphical floor easily (15.41:1); on the dark indigo page it measures **1.55:1**, so there the button relies on its shape and label rather than on fill contrast (see the contrast table below). The orange `#fe4e02` that filled the button until 2026-10-18 now belongs to the OG-banner surface only.
+Application budget: dominant 55–65% of any screen, secondary 25–35%, accent ≤15%. The accent is reserved for links, active nav, focus rings, `border-active`, accent bars, and badge pills — never as the fill of a content block. The primary button fill is the one element that **leaves** the accent bucket: it takes the neutral `#171717` (magenta `#ff2bd6` in cyberpunk), a deliberate move to the achromatic family so the button reads as *action* rather than as the 10% accent. It carries the cream ink at 15.97:1. On the light cream page the near-black fill clears the 3:1 graphical floor easily (15.41:1); on the dark indigo page it measures **1.55:1**, so there the button relies on its shape and label rather than on fill contrast (see the contrast table below). The orange `#fe4e02` that filled the button until 2026-10-18 was the banner accent until 2026-10-20; on the cream picture surface it is retired (2.96:1), replaced by `BANNER_ACCENT` `#b8431f`.
 
 **Scoped exceptions** (raw hex outside the token system, by technical necessity — not palette drift):
 - `Base.astro` `theme-color` meta + `THEME_COLORS` JS map — meta content cannot be a CSS variable; values mirror the dominant 60% per theme.
@@ -167,27 +167,81 @@ and the marketing-surface depth tints:
 
 | Export | Value | Where it lands |
 |---|---|---|
-| `BRAND_BLUE` | `#1400c3` | the OG banner surface; the blue depth tints' family |
+| `BRAND_BLUE` | `#1400c3` | `--background-primary` (dark) **and** the banner ink on cream |
 | `ACCENT_ON_TEAL` | `#ff8569` | `--text-accent` (dark + cyberpunk) |
 | `ACCENT_ON_TEAL_LIGHT` | `#a8331a` | `--text-accent` (light) |
-| `ACCENT_ON_BLUE` | `#fe4e02` | the OG banner accent (the CTA fill until 2026-10-18) |
+| `ACCENT_ON_BLUE` | `#fe4e02` | retired as a banner accent on 2026-10-20 — 2.96:1 on cream, under the 3:1 graphics floor |
 | `BUTTON_FILL` | `#171717` | `--button-bg` (dark + light) |
 | `BUTTON_FILL_HOVER` | `#2e2e2e` | `--button-bg-hover` (dark + light) |
 | `BUTTON_INK` | `#f8f2da` | `--button-ink` (dark + light) |
-| `CREAM` | `#f4efca` | `--background-primary` (light) **and** the OG banner ink |
+| `CREAM` | `#f4efca` | `--background-primary` (light) |
+| `CREAM_SURFACE` | `#f8f2d8` | every picture: the 22 hero SVGs and all banners |
+| `BANNER_INK` | `#1400c3` | banner text on cream — 10.28:1 |
+| `BANNER_INK_DEEP` | `#0a0070` | banner values and emphasis — 14.98:1 |
+| `BANNER_MUTED` | `#5b4fc4` | banner secondary labels — 5.56:1 |
+| `BANNER_ACCENT` | `#b8431f` | banner rules, rings, hexes — 4.84:1 |
 
-The two accents are deliberate, not drift: the high-chroma orange reads on the
-royal-blue marketing surface, the coral on the teal site canvas. They are
-separated by **role**, not just by surface — the orange is the banner accent
-(and would fail as accent text on a card, 3.97:1); the coral is the site's text
-accent and never appears on the blue banner. The CTA fill sits outside this pair
-entirely: it is the neutral `BUTTON_FILL`, not an accent.
+The two site accents are deliberate, not drift: the high-chroma coral reads on the
+dark canvas, the burnt sienna carries the light cream page. They are separated by
+**role**, not just by surface. The CTA fill sits outside this pair entirely: it is the
+neutral `BUTTON_FILL`, not an accent.
+
+The **picture surface** is a third, separate regime. Every image asset — hero
+illustration and banner alike — sits on `CREAM_SURFACE` (`#f8f2d8`) with a dark ink,
+so no picture is ever light-on-light. The old blue banner surface and its orange
+accent are retired: `#fe4e02` measures 2.96:1 on cream, under the 3:1 graphical floor,
+and its role moved to `BANNER_ACCENT` (`#b8431f`, 4.84:1). The reason for the split is
+that a picture cannot inherit a theme: an `<img>` is one set of pixels in all three
+themes, so its palette has to be legible on its own surface rather than on the page
+behind it.
 
 `global.css` stays hand-written; agreement between it and `brand.ts` is enforced
 by `tests/lib/brand.test.ts`, which parses the `:root`, `[data-theme="light"]` and
-`[data-theme="cyberpunk"]` token blocks and fails on any divergence. The four
-banner generators (`scripts/generate-{cv-og,cv-linkedin,home-og,graph-og}.mjs`)
-import the same module, so there are no bare brand hexes outside it.
+`[data-theme="cyberpunk"]` token blocks and fails on any divergence. The banner
+generators (`scripts/generate-*.mjs`) import the same module, so there are no bare
+brand hexes outside it.
+
+## Pictures — the cream image regime
+
+Contract and measured tables: `design-plans/cream-image-regime.md`.
+
+Two audiences, one surface. The **hero illustrations** (`public/images/*.svg`, 22
+files, one per project) are hand-authored, so their hexes live in the files; the
+**banners** (`public/images/og/*.png`, plus the CV cover PDF) are generated by six
+scripts that import `brand.ts`. Both now paint `#f8f2d8` and both carry dark ink.
+
+Illustration inks (measured on `#f8f2d8`): primary `#0f2a2b` 13.48:1, muted `#4a6b69`
+5.19:1, accent ink `#a8331a` 5.92:1, accent fill `#ff8569` with `#0f2a2b` on top
+6.36:1, data-only accent fill `#d2573a` 3.62:1. The old light inks (`#e4e4e7`,
+`#a1a1aa`, `#c9d6d5`, `#8aa3a2`, `#5f7a79`) measure 1.1–2.4:1 on cream and are banned.
+`tests/lib/illustration-palette.test.ts` is the ratchet: it asserts the 1200×600
+surface rect is `CREAM_SURFACE`, every `<text>` declares an allowlisted ink, no
+`font-size` falls below 22 units, and no retired hex survives anywhere in the file.
+That last rule is why `#ff6643` — the old coral — is gone from the covers rather than
+left as a stroke nobody re-measured. On cream it is 2.58:1.
+
+The **type floor of 22 units** exists because a cover is also a thumbnail: at the
+board-card width (`clamp(260px, 38%, 420px)`) it renders at roughly 0.32×, so 22
+units land at 7px and anything smaller is texture rather than a label. `streamlit.svg`
+was rebuilt for this reason — it had carried 13/15px labels that arrived at 3–4px.
+
+Geometry is untouched by the regime: `viewBox="0 0 1200 600"` on every cover keeps
+the 2:1 frame (`global.css`, LHCI `image-aspect-ratio`) and every filename stays put,
+because `hero:` frontmatter, the `volta.svg` LCP preload and
+`tests/built/homepage-lcp.test.ts` all bind them.
+
+The hero is also no longer cropped. `.hero-image` used to cap height at 400px with
+`object-fit: cover` inside a 1116px container, which scaled the art to 1116×558 and
+sliced 79px off the top and bottom — 85 SVG units, enough to cut the axis labels off
+ten of the 22 covers. Capping width at 900px keeps the same ceiling without losing a
+pixel.
+
+The banner generators gate themselves: `assertContrast()` in
+`scripts/lib/og-render.mjs` throws on any text token under 4.5:1 (3:1 for large text),
+so a missed ink is a hard failure. Decorative tokens are exempt and are the silent
+failure mode — the honeycomb lattice, frames and rings are checked by eye, and they
+invert with the surface (`#1400c3` at 0.10–0.18 rather than cream at 0.11–0.14).
+
 
 
 ## Palette Swatches — 60-30-10
@@ -355,7 +409,7 @@ Five named tokens, one family, declared once in `:root` and consumed at five sur
 
 The standalone boards under `public/demos/<slug>/` load two shared files from the site root — `/demos/demo.css` and `/demos/demo-theme.js` — and follow the site's three themes instead of each shipping an ad-hoc palette. A board reaches a reader three ways, and they are independent: as an iframe in the `Дашборд` panel of its project page (driven by that project's `demo:` frontmatter, `components/ProjectDemo.astro`), as an iframe an article embeds (the article owns that iframe's `height=`), and as the card's `Демо` button. `volta-board/` is the exception — it is a generated dbt-charts export, not a hand-authored board, and is deliberately absent from the gate's slug list.
 
-- `public/` is copied verbatim and never processed, so `demo.css` cannot `@import` from `src/styles/global.css` and restates the tokens instead. `tests/lib/demo-tokens.test.ts` is what makes the copy safe: it parses both files, compares every shared token, and goes red on drift. Not hypothetical — `public/games/index.html` drifted exactly this way, its cyberpunk accent stuck on the pre-fix `#ff6643` while nothing watched. That page is fixed, and the same test now carries a second parity block for it, bound through an alias map because it keeps local token names (`--bg`, `--accent`) and does not load `demo.css`. The hexes baked into the `public/images/*.svg` and `public/games/*.svg` illustrations are a separate question — illustration tint, not a UI token.
+- `public/` is copied verbatim and never processed, so `demo.css` cannot `@import` from `src/styles/global.css` and restates the tokens instead. `tests/lib/demo-tokens.test.ts` is what makes the copy safe: it parses both files, compares every shared token, and goes red on drift. Not hypothetical — `public/games/index.html` drifted exactly this way, its cyberpunk accent stuck on the pre-fix `#ff6643` while nothing watched. That page is fixed, and the same test now carries a second parity block for it, bound through an alias map because it keeps local token names (`--bg`, `--accent`) and does not load `demo.css`. The hexes baked into the `public/images/*.svg` and `public/games/*.svg` illustrations are a separate question — illustration tint, not a UI token. Tint is still local; **legibility is not**: `tests/lib/illustration-palette.test.ts` pins the hero covers to the cream regime (surface, ink allowlist, 22-unit type floor), so an illustration can choose its hue but not its contrast.
 - Theme sync needs no parent-side code. The site stores `localStorage['theme']`; a demo is a same-origin browsing context, so a write in the parent fires a `storage` event inside the iframe. The `matchMedia` fallback covers the state where nothing has been stored yet, guarded the same way `Base.astro` guards it — `Base.astro` is deliberately untouched.
 - `--dv-*` is the demos' own dataviz bucket, with no canon in `global.css`. Rule: **`--dv-*` never styles a button, a link, a focus ring, `--border-active` or any hover affordance.** That separation is what keeps the coral action accent at an honest 10% of the surface area.
 - Why a luminance ramp and not the site's alpha idiom: `ChartCohort.astro` fills cells with one hue at `fill-opacity` 0.1–1.0, which works because its cells carry no text. The demos print `val%` inside the cell, and the middle of a mid-luminance teal is a dead zone — alpha 0.52 reaches 3.5:1 in dark and 2.9:1 in cyberpunk, so no ink passes AA there. Hence `--dv-seq-1..7` living in the light half of the range, and one theme-invariant ink, `--dv-cell-ink`.

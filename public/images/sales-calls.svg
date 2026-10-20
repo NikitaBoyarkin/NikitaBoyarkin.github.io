@@ -1,22 +1,23 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sales calls analytics dashboard: four-step funnel with drop-off, engagement by hour, and KPI cards">
   <defs>
     <linearGradient id="sales-calls-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0f2a2b"/>
-      <stop offset="1" stop-color="#1a3435"/>
+      <stop offset="0" stop-color="#f8f2d8"/>
+      <stop offset="1" stop-color="#f2ebc6"/>
     </linearGradient>
     <linearGradient id="sales-calls-accent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#a8331a"/>
+      <stop offset="1" stop-color="#d2573a"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#sales-calls-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
+  <rect width="1200" height="600" fill="url(#sales-calls-bg)" opacity="0.55"/>
 
-  <text x="120" y="150" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">AI SALES CALLS</text>
-  <text x="120" y="215" fill="#ff8569" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">4-step funnel &#183; drop-off</text>
+  <text x="120" y="150" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">AI SALES CALLS</text>
+  <text x="120" y="210" fill="#a8331a" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">4-step funnel &#183; drop-off</text>
 
   <!-- funnel -->
-  <rect x="120" y="240" width="640" height="60" rx="6" fill="#ff6643"/>
+  <rect x="120" y="240" width="640" height="60" rx="6" fill="#ff8569"/>
   <text x="152" y="284" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Приветствие</text>
 
   <rect x="160" y="320" width="560" height="60" rx="6" fill="#ff8569"/>
@@ -25,13 +26,13 @@
   <rect x="200" y="400" width="480" height="60" rx="6" fill="#ffa68a"/>
   <text x="232" y="444" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Встреча</text>
 
-  <rect x="240" y="480" width="400" height="60" rx="6" fill="#234044" stroke="#ffa68a" stroke-width="4"/>
-  <text x="272" y="524" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Квалификация</text>
+  <rect x="240" y="480" width="400" height="60" rx="6" fill="#0f2a2b" fill-opacity="0.08" stroke="#a8331a" stroke-width="4"/>
+  <text x="272" y="524" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Квалификация</text>
 
   <!-- engagement panel -->
-  <rect x="800" y="180" width="320" height="360" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
-  <text x="832" y="250" fill="#ff8569" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">CALLS</text>
-  <text x="832" y="306" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">16,891</text>
+  <rect x="800" y="180" width="320" height="360" rx="18" fill="#0f2a2b" fill-opacity="0.06" stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="4"/>
+  <text x="832" y="250" fill="#a8331a" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">CALLS</text>
+  <text x="832" y="306" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">16,891</text>
 
   <g fill="url(#sales-calls-accent)">
     <rect x="832" y="450" width="24" height="50" rx="6"/>
@@ -42,5 +43,5 @@
     <rect x="1012" y="410" width="24" height="90" rx="6"/>
     <rect x="1048" y="440" width="24" height="60" rx="6"/>
   </g>
-  <rect x="832" y="500" width="240" height="6" fill="#3f3f46"/>
+  <rect x="832" y="500" width="240" height="6" fill="#0f2a2b" fill-opacity="0.20"/>
 </svg>

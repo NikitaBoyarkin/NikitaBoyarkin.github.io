@@ -5,37 +5,37 @@
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
     <linearGradient id="posthog-accent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#d2573a"/>
+      <stop offset="1" stop-color="#a8331a"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#posthog-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
 
   <g font-family="Inter, system-ui, sans-serif">
-    <text x="80" y="150" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7">Funnel</text>
-    <text x="480" y="150" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7">Cohort</text>
-    <text x="880" y="150" font-size="44" font-weight="600" fill="#e4e4e7">A/B</text>
+    <text x="80" y="150" font-size="64" font-weight="700" letter-spacing="1" fill="#0f2a2b">Funnel</text>
+    <text x="480" y="150" font-size="64" font-weight="700" letter-spacing="1" fill="#0f2a2b">Cohort</text>
+    <text x="880" y="150" font-size="44" font-weight="600" fill="#0f2a2b">A/B</text>
   </g>
 
   <!-- funnel -->
-  <rect x="80" y="200" width="320" height="90" rx="6" fill="#3f3f46"/>
-  <rect x="80" y="310" width="240" height="90" rx="6" fill="#3f3f46"/>
+  <rect x="80" y="200" width="320" height="90" rx="6" fill="#0f2a2b" fill-opacity="0.18"/>
+  <rect x="80" y="310" width="240" height="90" rx="6" fill="#0f2a2b" fill-opacity="0.18"/>
   <rect x="80" y="420" width="160" height="90" rx="6" fill="url(#posthog-accent)"/>
 
   <!-- cohort retention grid -->
-  <rect x="480" y="200" width="90" height="90" rx="6" fill="#234044"/>
-  <rect x="590" y="200" width="90" height="90" rx="6" fill="#234044"/>
-  <rect x="700" y="200" width="90" height="90" rx="6" fill="#3f3f46"/>
-  <rect x="480" y="310" width="90" height="90" rx="6" fill="#234044"/>
-  <rect x="590" y="310" width="90" height="90" rx="6" fill="#3f3f46"/>
+  <rect x="480" y="200" width="90" height="90" rx="6" fill="#0f2a2b" fill-opacity="0.08"/>
+  <rect x="590" y="200" width="90" height="90" rx="6" fill="#0f2a2b" fill-opacity="0.08"/>
+  <rect x="700" y="200" width="90" height="90" rx="6" fill="#0f2a2b" fill-opacity="0.18"/>
+  <rect x="480" y="310" width="90" height="90" rx="6" fill="#0f2a2b" fill-opacity="0.08"/>
+  <rect x="590" y="310" width="90" height="90" rx="6" fill="#0f2a2b" fill-opacity="0.18"/>
   <rect x="700" y="310" width="90" height="90" rx="6" fill="url(#posthog-accent)" opacity="0.6"/>
-  <rect x="480" y="420" width="90" height="90" rx="6" fill="#3f3f46"/>
+  <rect x="480" y="420" width="90" height="90" rx="6" fill="#0f2a2b" fill-opacity="0.18"/>
   <rect x="590" y="420" width="90" height="90" rx="6" fill="url(#posthog-accent)" opacity="0.6"/>
   <rect x="700" y="420" width="90" height="90" rx="6" fill="url(#posthog-accent)"/>
 
   <!-- A/B -->
-  <rect x="880" y="200" width="200" height="90" rx="6" fill="#3f3f46"/>
+  <rect x="880" y="200" width="200" height="90" rx="6" fill="#0f2a2b" fill-opacity="0.18"/>
   <rect x="880" y="310" width="240" height="90" rx="6" fill="url(#posthog-accent)"/>
-  <text x="880" y="470" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500" fill="#ffa68a">+5.1pp</text>
+  <text x="880" y="470" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500" fill="#a8331a">+5.1pp</text>
 </svg>

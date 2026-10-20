@@ -1,41 +1,42 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Astro portfolio site: code window with component islands and content collections">
   <defs>
     <linearGradient id="site-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0f2a2b"/>
-      <stop offset="1" stop-color="#1a3435"/>
+      <stop offset="0" stop-color="#f8f2d8"/>
+      <stop offset="1" stop-color="#f2ebc6"/>
     </linearGradient>
     <linearGradient id="site-accent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#a8331a"/>
+      <stop offset="1" stop-color="#d2573a"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#site-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
+  <rect width="1200" height="600" fill="url(#site-bg)" opacity="0.55"/>
 
   <!-- code window -->
-  <rect x="80" y="80" width="640" height="440" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
-  <circle cx="132" cy="124" r="12" fill="#ff6643"/>
-  <circle cx="180" cy="124" r="12" fill="#ff8569"/>
-  <circle cx="228" cy="124" r="12" fill="#ffa68a"/>
+  <rect x="80" y="80" width="640" height="440" rx="18" fill="#0f2a2b" fill-opacity="0.06" stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="4"/>
+  <circle cx="132" cy="124" r="12" fill="#a8331a"/>
+  <circle cx="180" cy="124" r="12" fill="#d2573a"/>
+  <circle cx="228" cy="124" r="12" fill="#ff8569"/>
   <rect x="80" y="168" width="640" height="8" fill="url(#site-accent)"/>
 
-  <text x="128" y="290" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">ASTRO SITE</text>
-  <text x="128" y="370" fill="#a1a1aa" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">hero: images/site.svg</text>
-  <text x="128" y="430" fill="#a1a1aa" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">content collections</text>
+  <text x="128" y="290" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">ASTRO SITE</text>
+  <text x="128" y="370" fill="#4a6b69" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">hero: images/site.svg</text>
+  <text x="128" y="430" fill="#4a6b69" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">content collections</text>
 
   <!-- island cards -->
-  <rect x="800" y="80" width="320" height="180" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
-  <rect x="832" y="124" width="200" height="20" rx="6" fill="#ff8569"/>
-  <rect x="832" y="164" width="256" height="20" rx="6" fill="#e4e4e7"/>
-  <rect x="832" y="204" width="160" height="20" rx="6" fill="#a1a1aa"/>
+  <rect x="800" y="80" width="320" height="180" rx="18" fill="#0f2a2b" fill-opacity="0.06" stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="4"/>
+  <rect x="832" y="124" width="200" height="20" rx="6" fill="#a8331a"/>
+  <rect x="832" y="164" width="256" height="20" rx="6" fill="#0f2a2b"/>
+  <rect x="832" y="204" width="160" height="20" rx="6" fill="#0f2a2b" fill-opacity="0.35"/>
 
-  <rect x="800" y="300" width="320" height="180" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
-  <rect x="832" y="344" width="180" height="20" rx="6" fill="#ffa68a"/>
-  <rect x="832" y="384" width="240" height="20" rx="6" fill="#e4e4e7"/>
-  <rect x="832" y="424" width="140" height="20" rx="6" fill="#a1a1aa"/>
+  <rect x="800" y="300" width="320" height="180" rx="18" fill="#0f2a2b" fill-opacity="0.06" stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="4"/>
+  <rect x="832" y="344" width="180" height="20" rx="6" fill="#d2573a"/>
+  <rect x="832" y="384" width="240" height="20" rx="6" fill="#0f2a2b"/>
+  <rect x="832" y="424" width="140" height="20" rx="6" fill="#0f2a2b" fill-opacity="0.35"/>
 
   <!-- Astro mark -->
   <g transform="translate(1056,490)">
-    <path d="M0,50 L22,0 L44,50 L33,50 L22,22 L11,50 Z" fill="#ff6643"/>
+    <path d="M0,50 L22,0 L44,50 L33,50 L22,22 L11,50 Z" fill="#a8331a"/>
   </g>
 </svg>

@@ -5,41 +5,41 @@
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
     <linearGradient id="games-accent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#ffa68a"/>
+      <stop offset="1" stop-color="#ff8569"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#games-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
 
-  <text x="120" y="150" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">MINI-GAMES</text>
-  <text x="120" y="230" fill="#ff8569" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">10 games &#183; 7 analytics</text>
+  <text x="120" y="150" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">MINI-GAMES</text>
+  <text x="120" y="230" fill="#a8331a" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">10 games &#183; 7 analytics</text>
 
   <!-- gamepad -->
   <g>
-    <rect x="120" y="280" width="400" height="240" rx="30" fill="#234044" stroke="#3f3f46" stroke-width="6"/>
-    <rect x="248" y="340" width="44" height="116" rx="8" fill="#ff8569"/>
-    <rect x="212" y="372" width="116" height="44" rx="8" fill="#ff8569"/>
-    <circle cx="420" cy="372" r="26" fill="#ff6643"/>
-    <circle cx="472" cy="372" r="26" fill="#ff6643"/>
-    <circle cx="420" cy="424" r="26" fill="#ff6643"/>
-    <circle cx="472" cy="424" r="26" fill="#ff6643"/>
-    <rect x="200" y="470" width="64" height="20" rx="6" fill="#3f3f46"/>
-    <rect x="280" y="470" width="64" height="20" rx="6" fill="#3f3f46"/>
+    <rect x="120" y="280" width="400" height="240" rx="30" fill="#0f2a2b" fill-opacity="0.06" stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="6"/>
+    <rect x="248" y="340" width="44" height="116" rx="8" fill="#d2573a"/>
+    <rect x="212" y="372" width="116" height="44" rx="8" fill="#d2573a"/>
+    <circle cx="420" cy="372" r="26" fill="#d2573a"/>
+    <circle cx="472" cy="372" r="26" fill="#d2573a"/>
+    <circle cx="420" cy="424" r="26" fill="#d2573a"/>
+    <circle cx="472" cy="424" r="26" fill="#d2573a"/>
+    <rect x="200" y="470" width="64" height="20" rx="6" fill="#0f2a2b" fill-opacity="0.22"/>
+    <rect x="280" y="470" width="64" height="20" rx="6" fill="#0f2a2b" fill-opacity="0.22"/>
   </g>
 
   <!-- game chips -->
   <g>
-    <rect x="680" y="280" width="400" height="60" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
-    <circle cx="716" cy="310" r="10" fill="#ff8569"/>
-    <text x="744" y="322" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">A/B Test</text>
+    <rect x="680" y="280" width="400" height="60" rx="18" fill="#0f2a2b" fill-opacity="0.06" stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="4"/>
+    <circle cx="716" cy="310" r="10" fill="#d2573a"/>
+    <text x="744" y="322" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">A/B Test</text>
 
-    <rect x="680" y="360" width="400" height="60" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
-    <circle cx="716" cy="390" r="10" fill="#ff8569"/>
-    <text x="744" y="402" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Funnel Drop</text>
+    <rect x="680" y="360" width="400" height="60" rx="18" fill="#0f2a2b" fill-opacity="0.06" stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="4"/>
+    <circle cx="716" cy="390" r="10" fill="#d2573a"/>
+    <text x="744" y="402" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Funnel Drop</text>
 
-    <rect x="680" y="440" width="400" height="60" rx="18" fill="#234044" stroke="#3f3f46" stroke-width="4"/>
-    <circle cx="716" cy="470" r="10" fill="#ff8569"/>
-    <text x="744" y="482" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Cohort Catch</text>
+    <rect x="680" y="440" width="400" height="60" rx="18" fill="#0f2a2b" fill-opacity="0.06" stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="4"/>
+    <circle cx="716" cy="470" r="10" fill="#d2573a"/>
+    <text x="744" y="482" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">Cohort Catch</text>
   </g>
 </svg>

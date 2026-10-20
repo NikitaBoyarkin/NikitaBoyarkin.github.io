@@ -5,12 +5,12 @@
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
     <linearGradient id="bot-accent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#ffa68a"/>
+      <stop offset="1" stop-color="#ff8569"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#bot-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
 
   <!-- Telegram paper-plane mark -->
   <g transform="translate(940,80)">
@@ -19,23 +19,23 @@
   </g>
 
   <!-- KPI chat bubble -->
-  <rect x="80" y="80" width="620" height="320" rx="18" fill="#234044"/>
-  <rect x="104" y="112" width="8" height="256" rx="6" fill="url(#bot-accent)"/>
-  <text x="144" y="165" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">WEEKLY KPI</text>
-  <text x="144" y="245" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">DAU 12,480 +8.2%</text>
-  <text x="144" y="305" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">ARPU 3.41 EUR +1.4%</text>
-  <text x="144" y="365" fill="#a1a1aa" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">Conv 4.7% +0.3pp</text>
+  <rect x="80" y="80" width="620" height="320" rx="18" fill="#0f2a2b" fill-opacity="0.06"/>
+  <rect x="104" y="112" width="8" height="256" rx="6" fill="#a8331a"/>
+  <text x="144" y="165" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">WEEKLY KPI</text>
+  <text x="144" y="245" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">DAU 12,480 +8.2%</text>
+  <text x="144" y="305" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">ARPU 3.41 EUR +1.4%</text>
+  <text x="144" y="365" fill="#4a6b69" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="500">Conv 4.7% +0.3pp</text>
 
   <!-- sparkline bubble -->
-  <rect x="80" y="440" width="520" height="100" rx="18" fill="#234044"/>
+  <rect x="80" y="440" width="520" height="100" rx="18" fill="#0f2a2b" fill-opacity="0.06"/>
   <polyline points="120,515 180,490 240,500 300,470 360,480 420,458 480,470 540,452"
-    fill="none" stroke="#ff8569" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    fill="none" stroke="#a8331a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
 
   <!-- cron clock -->
   <g transform="translate(940,400)">
-    <circle cx="60" cy="60" r="60" fill="none" stroke="#ff8569" stroke-width="8"/>
-    <line x1="60" y1="60" x2="60" y2="24" stroke="#ff8569" stroke-width="8" stroke-linecap="round"/>
-    <line x1="60" y1="60" x2="96" y2="60" stroke="#ff8569" stroke-width="8" stroke-linecap="round"/>
-    <circle cx="60" cy="60" r="8" fill="#ff8569"/>
+    <circle cx="60" cy="60" r="60" fill="none" stroke="#a8331a" stroke-width="8"/>
+    <line x1="60" y1="60" x2="60" y2="24" stroke="#a8331a" stroke-width="8" stroke-linecap="round"/>
+    <line x1="60" y1="60" x2="96" y2="60" stroke="#a8331a" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="60" cy="60" r="8" fill="#a8331a"/>
   </g>
 </svg>

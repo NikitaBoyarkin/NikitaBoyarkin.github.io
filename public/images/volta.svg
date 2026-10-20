@@ -1,39 +1,40 @@
 <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Volta Neobank analytics: funnel, A/B test, retention, segmentation">
   <defs>
     <linearGradient id="volta-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0f2a2b"/>
-      <stop offset="1" stop-color="#1a3435"/>
+      <stop offset="0" stop-color="#f8f2d8"/>
+      <stop offset="1" stop-color="#f2ebc6"/>
     </linearGradient>
     <linearGradient id="volta-accent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#a8331a"/>
+      <stop offset="1" stop-color="#d2573a"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#volta-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
+  <rect width="1200" height="600" fill="url(#volta-bg)" opacity="0.55"/>
 
   <!-- funnel -->
-  <text x="290" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7" text-anchor="middle">FUNNEL</text>
-  <polygon points="80,180 500,180 440,240 140,240" fill="url(#volta-accent)" opacity="0.95"/>
-  <polygon points="140,260 440,260 400,320 180,320" fill="url(#volta-accent)" opacity="0.75"/>
-  <polygon points="180,340 400,340 360,400 220,400" fill="url(#volta-accent)" opacity="0.55"/>
-  <polygon points="220,420 360,420 330,480 250,480" fill="url(#volta-accent)" opacity="0.38"/>
+  <text x="290" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#0f2a2b" text-anchor="middle">FUNNEL</text>
+  <polygon points="80,180 500,180 440,240 140,240" fill="#d2573a"/>
+  <polygon points="140,260 440,260 400,320 180,320" fill="#d2573a"/>
+  <polygon points="180,340 400,340 360,400 220,400" fill="#d2573a"/>
+  <polygon points="220,420 360,420 330,480 250,480" fill="#a8331a"/>
 
   <!-- A/B split bars -->
-  <rect x="580" y="280" width="80" height="200" rx="6" fill="#3f3f46"/>
+  <rect x="580" y="280" width="80" height="200" rx="6" fill="#0f2a2b" fill-opacity="0.16"/>
   <rect x="700" y="200" width="80" height="280" rx="6" fill="url(#volta-accent)"/>
-  <text x="620" y="540" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#a1a1aa" text-anchor="middle">A</text>
-  <text x="740" y="540" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#ff8569" text-anchor="middle">B</text>
+  <text x="620" y="540" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#4a6b69" text-anchor="middle">A</text>
+  <text x="740" y="540" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#a8331a" text-anchor="middle">B</text>
 
   <!-- retention curves -->
-  <text x="940" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7" text-anchor="middle">RETENTION</text>
-  <polyline points="820,420 880,340 940,290 1000,262 1060,248 1120,240" fill="none" stroke="#ff8569" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <polyline points="820,420 880,370 940,340 1000,322 1060,312 1120,306" fill="none" stroke="#3f3f46" stroke-width="4" stroke-dasharray="12 10" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="940" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#0f2a2b" text-anchor="middle">RETENTION</text>
+  <polyline points="820,420 880,340 940,290 1000,262 1060,248 1120,240" fill="none" stroke="#a8331a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="820,420 880,370 940,340 1000,322 1060,312 1120,306" fill="none" stroke="#4a6b69" stroke-width="4" stroke-dasharray="12 10" stroke-linecap="round" stroke-linejoin="round"/>
 
   <!-- segmentation cluster -->
-  <circle cx="900" cy="470" r="14" fill="#ff6643"/>
-  <circle cx="950" cy="455" r="11" fill="#ff8569"/>
-  <circle cx="995" cy="475" r="9" fill="#ffa68a"/>
-  <circle cx="1035" cy="460" r="8" fill="#3f3f46"/>
-  <circle cx="1070" cy="478" r="7" fill="#ff8569"/>
+  <circle cx="900" cy="470" r="14" fill="#a8331a"/>
+  <circle cx="950" cy="455" r="11" fill="#d2573a"/>
+  <circle cx="995" cy="475" r="9" fill="#d2573a"/>
+  <circle cx="1035" cy="460" r="8" fill="#0f2a2b" fill-opacity="0.20"/>
+  <circle cx="1070" cy="478" r="7" fill="#a8331a"/>
 </svg>

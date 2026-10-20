@@ -5,24 +5,24 @@
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
     <linearGradient id="garden-accent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#d2573a"/>
+      <stop offset="1" stop-color="#a8331a"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#garden-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
 
-  <text x="120" y="150" fill="#e4e4e7" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">DIGITAL GARDEN</text>
-  <text x="120" y="230" fill="#ff8569" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">linked notes graph</text>
+  <text x="120" y="150" fill="#0f2a2b" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1">DIGITAL GARDEN</text>
+  <text x="120" y="230" fill="#a8331a" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600">linked notes graph</text>
 
   <!-- graph edges -->
-  <g stroke="#ff8569" stroke-width="6" stroke-linecap="round">
+  <g stroke="#a8331a" stroke-width="6" stroke-linecap="round">
     <line x1="820" y1="360" x2="620" y2="220"/>
     <line x1="820" y1="360" x2="1020" y2="220"/>
     <line x1="820" y1="360" x2="620" y2="500"/>
     <line x1="820" y1="360" x2="1020" y2="500"/>
   </g>
-  <g stroke="#3f3f46" stroke-width="4" stroke-linecap="round">
+  <g stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="4" stroke-linecap="round">
     <line x1="620" y1="220" x2="820" y2="120"/>
     <line x1="1020" y1="220" x2="820" y2="120"/>
     <line x1="620" y1="220" x2="460" y2="360"/>
@@ -35,12 +35,12 @@
 
   <!-- nodes -->
   <circle cx="820" cy="360" r="56" fill="url(#garden-accent)"/>
-  <circle cx="620" cy="220" r="36" fill="#ff8569"/>
-  <circle cx="1020" cy="220" r="36" fill="#ff8569"/>
-  <circle cx="620" cy="500" r="36" fill="#ff8569"/>
-  <circle cx="1020" cy="500" r="36" fill="#ff8569"/>
-  <circle cx="820" cy="120" r="24" fill="#ffa68a"/>
-  <circle cx="460" cy="360" r="24" fill="#ffa68a"/>
-  <circle cx="1100" cy="360" r="24" fill="#ffa68a"/>
-  <circle cx="820" cy="500" r="24" fill="#ffa68a"/>
+  <circle cx="620" cy="220" r="36" fill="#d2573a"/>
+  <circle cx="1020" cy="220" r="36" fill="#d2573a"/>
+  <circle cx="620" cy="500" r="36" fill="#d2573a"/>
+  <circle cx="1020" cy="500" r="36" fill="#d2573a"/>
+  <circle cx="820" cy="120" r="24" fill="#a8331a"/>
+  <circle cx="460" cy="360" r="24" fill="#a8331a"/>
+  <circle cx="1100" cy="360" r="24" fill="#a8331a"/>
+  <circle cx="820" cy="500" r="24" fill="#a8331a"/>
 </svg>

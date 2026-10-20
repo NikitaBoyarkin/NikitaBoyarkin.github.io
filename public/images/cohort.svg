@@ -6,61 +6,61 @@
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#cohort-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
 
-  <text x="600" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7" text-anchor="middle">COHORT RETENTION</text>
+  <text x="600" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#0f2a2b" text-anchor="middle">COHORT RETENTION</text>
 
   <!-- triangular heatmap: rows = cohorts, cols = periods, fading right and down -->
   <g>
-    <rect x="176" y="176" width="72" height="32" rx="6" fill="#ff8569"/>
-    <rect x="256" y="176" width="72" height="32" rx="6" fill="#ff6643" opacity="0.85"/>
-    <rect x="336" y="176" width="72" height="32" rx="6" fill="#ff6643" opacity="0.65"/>
-    <rect x="416" y="176" width="72" height="32" rx="6" fill="#ff6643" opacity="0.55"/>
-    <rect x="496" y="176" width="72" height="32" rx="6" fill="#ff6643" opacity="0.42"/>
-    <rect x="576" y="176" width="72" height="32" rx="6" fill="#ff6643" opacity="0.32"/>
-    <rect x="656" y="176" width="72" height="32" rx="6" fill="#ff6643" opacity="0.24"/>
-    <rect x="736" y="176" width="72" height="32" rx="6" fill="#ff6643" opacity="0.18"/>
+    <rect x="176" y="176" width="72" height="32" rx="6" fill="#a8331a"/>
+    <rect x="256" y="176" width="72" height="32" rx="6" fill="#d2573a" opacity="0.85"/>
+    <rect x="336" y="176" width="72" height="32" rx="6" fill="#d2573a" opacity="0.65"/>
+    <rect x="416" y="176" width="72" height="32" rx="6" fill="#d2573a" opacity="0.55"/>
+    <rect x="496" y="176" width="72" height="32" rx="6" fill="#d2573a" opacity="0.42"/>
+    <rect x="576" y="176" width="72" height="32" rx="6" fill="#d2573a" opacity="0.32"/>
+    <rect x="656" y="176" width="72" height="32" rx="6" fill="#d2573a" opacity="0.24"/>
+    <rect x="736" y="176" width="72" height="32" rx="6" fill="#d2573a" opacity="0.18"/>
 
-    <rect x="176" y="216" width="72" height="32" rx="6" fill="#ff8569"/>
-    <rect x="256" y="216" width="72" height="32" rx="6" fill="#ff6643" opacity="0.85"/>
-    <rect x="336" y="216" width="72" height="32" rx="6" fill="#ff6643" opacity="0.65"/>
-    <rect x="416" y="216" width="72" height="32" rx="6" fill="#ff6643" opacity="0.55"/>
-    <rect x="496" y="216" width="72" height="32" rx="6" fill="#ff6643" opacity="0.42"/>
-    <rect x="576" y="216" width="72" height="32" rx="6" fill="#ff6643" opacity="0.32"/>
-    <rect x="656" y="216" width="72" height="32" rx="6" fill="#ff6643" opacity="0.24"/>
+    <rect x="176" y="216" width="72" height="32" rx="6" fill="#a8331a"/>
+    <rect x="256" y="216" width="72" height="32" rx="6" fill="#d2573a" opacity="0.85"/>
+    <rect x="336" y="216" width="72" height="32" rx="6" fill="#d2573a" opacity="0.65"/>
+    <rect x="416" y="216" width="72" height="32" rx="6" fill="#d2573a" opacity="0.55"/>
+    <rect x="496" y="216" width="72" height="32" rx="6" fill="#d2573a" opacity="0.42"/>
+    <rect x="576" y="216" width="72" height="32" rx="6" fill="#d2573a" opacity="0.32"/>
+    <rect x="656" y="216" width="72" height="32" rx="6" fill="#d2573a" opacity="0.24"/>
 
-    <rect x="176" y="256" width="72" height="32" rx="6" fill="#ff8569"/>
-    <rect x="256" y="256" width="72" height="32" rx="6" fill="#ff6643" opacity="0.85"/>
-    <rect x="336" y="256" width="72" height="32" rx="6" fill="#ff6643" opacity="0.65"/>
-    <rect x="416" y="256" width="72" height="32" rx="6" fill="#ff6643" opacity="0.55"/>
-    <rect x="496" y="256" width="72" height="32" rx="6" fill="#ff6643" opacity="0.42"/>
-    <rect x="576" y="256" width="72" height="32" rx="6" fill="#ff6643" opacity="0.32"/>
+    <rect x="176" y="256" width="72" height="32" rx="6" fill="#a8331a"/>
+    <rect x="256" y="256" width="72" height="32" rx="6" fill="#d2573a" opacity="0.85"/>
+    <rect x="336" y="256" width="72" height="32" rx="6" fill="#d2573a" opacity="0.65"/>
+    <rect x="416" y="256" width="72" height="32" rx="6" fill="#d2573a" opacity="0.55"/>
+    <rect x="496" y="256" width="72" height="32" rx="6" fill="#d2573a" opacity="0.42"/>
+    <rect x="576" y="256" width="72" height="32" rx="6" fill="#d2573a" opacity="0.32"/>
 
-    <rect x="176" y="296" width="72" height="32" rx="6" fill="#ff8569"/>
-    <rect x="256" y="296" width="72" height="32" rx="6" fill="#ff6643" opacity="0.85"/>
-    <rect x="336" y="296" width="72" height="32" rx="6" fill="#ff6643" opacity="0.65"/>
-    <rect x="416" y="296" width="72" height="32" rx="6" fill="#ff6643" opacity="0.55"/>
-    <rect x="496" y="296" width="72" height="32" rx="6" fill="#ff6643" opacity="0.42"/>
+    <rect x="176" y="296" width="72" height="32" rx="6" fill="#a8331a"/>
+    <rect x="256" y="296" width="72" height="32" rx="6" fill="#d2573a" opacity="0.85"/>
+    <rect x="336" y="296" width="72" height="32" rx="6" fill="#d2573a" opacity="0.65"/>
+    <rect x="416" y="296" width="72" height="32" rx="6" fill="#d2573a" opacity="0.55"/>
+    <rect x="496" y="296" width="72" height="32" rx="6" fill="#d2573a" opacity="0.42"/>
 
-    <rect x="176" y="336" width="72" height="32" rx="6" fill="#ff8569"/>
-    <rect x="256" y="336" width="72" height="32" rx="6" fill="#ff6643" opacity="0.85"/>
-    <rect x="336" y="336" width="72" height="32" rx="6" fill="#ff6643" opacity="0.65"/>
-    <rect x="416" y="336" width="72" height="32" rx="6" fill="#ff6643" opacity="0.55"/>
+    <rect x="176" y="336" width="72" height="32" rx="6" fill="#a8331a"/>
+    <rect x="256" y="336" width="72" height="32" rx="6" fill="#d2573a" opacity="0.85"/>
+    <rect x="336" y="336" width="72" height="32" rx="6" fill="#d2573a" opacity="0.65"/>
+    <rect x="416" y="336" width="72" height="32" rx="6" fill="#d2573a" opacity="0.55"/>
 
-    <rect x="176" y="376" width="72" height="32" rx="6" fill="#ff8569"/>
-    <rect x="256" y="376" width="72" height="32" rx="6" fill="#ff6643" opacity="0.85"/>
-    <rect x="336" y="376" width="72" height="32" rx="6" fill="#ff6643" opacity="0.65"/>
+    <rect x="176" y="376" width="72" height="32" rx="6" fill="#a8331a"/>
+    <rect x="256" y="376" width="72" height="32" rx="6" fill="#d2573a" opacity="0.85"/>
+    <rect x="336" y="376" width="72" height="32" rx="6" fill="#d2573a" opacity="0.65"/>
 
-    <rect x="176" y="416" width="72" height="32" rx="6" fill="#ff8569"/>
-    <rect x="256" y="416" width="72" height="32" rx="6" fill="#ff6643" opacity="0.85"/>
+    <rect x="176" y="416" width="72" height="32" rx="6" fill="#a8331a"/>
+    <rect x="256" y="416" width="72" height="32" rx="6" fill="#d2573a" opacity="0.85"/>
 
-    <rect x="176" y="456" width="72" height="32" rx="6" fill="#ff8569"/>
+    <rect x="176" y="456" width="72" height="32" rx="6" fill="#a8331a"/>
   </g>
 
   <!-- axis labels -->
-  <text x="100" y="332" transform="rotate(-90 100 332)" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#a1a1aa" text-anchor="middle">COHORT</text>
-  <text x="492" y="540" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#a1a1aa" text-anchor="middle">PERIOD</text>
+  <text x="100" y="332" transform="rotate(-90 100 332)" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#4a6b69" text-anchor="middle">COHORT</text>
+  <text x="492" y="540" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="600" fill="#4a6b69" text-anchor="middle">PERIOD</text>
 
   <!-- LTV curve overlay -->
-  <polyline points="870,510 920,430 970,370 1020,325 1070,295 1130,272" fill="none" stroke="#ff8569" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="870,510 920,430 970,370 1020,325 1070,295 1130,272" fill="none" stroke="#a8331a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

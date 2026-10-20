@@ -7,8 +7,11 @@
 // Single source of truth: imports buildGraph / layoutGraph / TOPICS and the
 // shared visual tokens straight from src/lib, so the preview can never drift
 // from the graph the site renders.
-// Palette matches the homepage banner (portfolio-banner-v2.png): the blue
-// surface, orange accent and unified cream come from src/lib/brand.ts.
+// Palette matches the homepage banner (portfolio-banner-v2.png): the cream
+// picture surface, royal-blue ink and burnt-coral accent come from
+// src/lib/brand.ts. The graph's categorical node colours are no longer separate
+// hexes — they are alpha tints of the ink and the accent, so no node can be a
+// colour that exists nowhere else in the banner.
 //
 // Fonts: identity name is Cormorant, all service text is Inter — the same
 // families the site ships. They are vendored as static TTF in scripts/og-fonts/
@@ -37,9 +40,10 @@ import {
 import { layoutGraph } from '../src/lib/graph-layout.ts';
 import { TOPICS } from '../src/lib/topics.ts';
 import {
-  ACCENT_ON_BLUE,
-  BRAND_BLUE,
-  CREAM,
+  BANNER_ACCENT,
+  BANNER_INK,
+  BANNER_MUTED,
+  CREAM_SURFACE,
   hexPoints,
   hexPointsFlat,
 } from '../src/lib/brand.ts';
@@ -47,7 +51,9 @@ import {
   FONT_SANS,
   FONT_SERIF,
   assertContrast,
+  contrastRatio,
   esc,
+  hexToRgb,
   honeycombLayer,
   honeycombPattern,
   renderSvgToPng,
@@ -58,34 +64,37 @@ const CONTENT = join(ROOT, 'src/content');
 const OUT = join(ROOT, 'public/images/og/portfolio-graph-v2.png');
 const PORTRAIT = join(ROOT, 'public/images/00_profile.jpg');
 
-// --- Palette — brand tokens + graph-only node tints. ---
-const BG = BRAND_BLUE; // royal blue surface
-const ORANGE = ACCENT_ON_BLUE; // brand accent — semantic, never body text
-const MUTED = '#bdb5ea'; // secondary text (cream dimmed toward the blue)
-const PERI = '#9db4ff'; // light periwinkle — keeps topic nodes legible on blue
-const PEACH = '#ffb38a'; // warm tint for the Volta group
+// --- Palette — brand tokens only; the node tints are alphas of those tokens. ---
+const SURFACE = CREAM_SURFACE; // cream picture surface
+const INK = BANNER_INK; // titles, body, labels
+const MUTED = BANNER_MUTED; // legend labels
+const ACCENT = BANNER_ACCENT; // rings, rules, hub halos
 
-// Categorical node colors, remapped into the brand family so the graph reads
-// as part of the banner instead of a rainbow on blue. Hub groups anchor the
-// palette; everything else falls back to cream for a calmer field.
+// Categorical node paints, remapped into the brand family so the graph reads as
+// part of the banner instead of a rainbow on cream. Hub groups anchor the
+// palette; everything else falls back to ink for a calmer field. `alpha` is
+// baked into the paint (not written at the call site) so a plotted node and its
+// legend swatch can never disagree. Each tint holds >= 3:1 against the surface
+// AND against the panel's darkest edge (4.84/4.27, 10.28/9.06, 3.81/3.65,
+// 3.49/3.19) — the WCAG 1.4.11 graphics floor, asserted below.
 const NODE_PAINT = {
-  projects: ORANGE,
-  articles: CREAM,
-  topic: PERI,
-  experiments: PEACH,
+  projects: { color: ACCENT, alpha: 1 }, // burnt coral
+  articles: { color: INK, alpha: 1 }, // royal ink
+  topic: { color: INK, alpha: 0.55 }, // periwinkle read
+  experiments: { color: ACCENT, alpha: 0.8 }, // peach read
 };
-const NODE_FALLBACK = CREAM;
+const NODE_FALLBACK = { color: INK, alpha: 1 };
 
 // Edge color + alpha per type. The site styles edges with CSS color-mix();
 // a standalone SVG can't, so the same intent is expressed as hex + opacity.
 // Explicit `related`/`children` links stay legible; thematic/`shared`/`core`
 // edges fade back so the preview reads as structure, not a hairball.
 const EDGE_PAINT = {
-  related: [ORANGE, 0.55],
-  children: [CREAM, 0.42],
-  topic: [CREAM, 0.07],
-  shared: [CREAM, 0.06],
-  core: [ORANGE, 0.08],
+  related: [ACCENT, 0.55],
+  children: [INK, 0.42],
+  topic: [INK, 0.07],
+  shared: [INK, 0.06],
+  core: [ACCENT, 0.08],
 };
 
 // Legend entries — the node categories a reader actually sees in the preview,
@@ -165,7 +174,10 @@ const visible = byDegree.filter((n) => radial(n, cx, cy) <= radialCutoff);
 const visibleIds = new Set(visible.map((n) => n.id));
 const links = laid.links.filter((l) => visibleIds.has(l.source) && visibleIds.has(l.target));
 
-const groupColor = (g) => NODE_PAINT[g] ?? NODE_FALLBACK;
+const groupPaint = (g) => NODE_PAINT[g] ?? NODE_FALLBACK;
+/** `fill` / `fill-opacity` attributes for a node paint, shared by nodes and swatches. */
+const paintAttrs = ({ color, alpha }) =>
+  `fill="${color}"${alpha < 1 ? ` fill-opacity="${alpha}"` : ''}`;
 const edgeEndpoints = (l) => {
   const a = nodeById.get(l.source);
   const b = nodeById.get(l.target);
@@ -220,9 +232,10 @@ const edgeSvg = links
   .filter(Boolean)
   .join('\n      ');
 
-// Hubs (top nodes by degree) get an orange halo so the eye lands on structure
-// instead of counting dots. Everything keeps a background-colored stroke so
-// overlapping nodes stay separable on blue.
+// Hubs (top nodes by degree) get an accent halo so the eye lands on structure
+// instead of counting dots. Every node keeps a surface-coloured hairline: on a
+// cream sheet the fills already clear 3:1 on their own, so the stroke's job is
+// only to keep overlapping nodes separable from each other.
 const hubIds = new Set(
   visible
     .slice()
@@ -235,9 +248,9 @@ const nodeSvg = visible
   .map((n) => {
     const r = radius(n);
     const halo = hubIds.has(n.id)
-      ? `<circle cx="${n.x}" cy="${n.y}" r="${(r + 3.5).toFixed(2)}" fill="none" stroke="${ORANGE}" stroke-opacity="0.5" stroke-width="1.6"/>`
+      ? `<circle cx="${n.x}" cy="${n.y}" r="${(r + 3.5).toFixed(2)}" fill="none" stroke="${ACCENT}" stroke-opacity="0.5" stroke-width="1.6"/>`
       : '';
-    return `${halo}<circle cx="${n.x}" cy="${n.y}" r="${r.toFixed(2)}" fill="${groupColor(n.group)}" stroke="${BG}" stroke-width="1.6"/>`;
+    return `${halo}<circle cx="${n.x}" cy="${n.y}" r="${r.toFixed(2)}" ${paintAttrs(groupPaint(n.group))} stroke="${SURFACE}" stroke-width="1.6"/>`;
   })
   .join('\n      ');
 
@@ -251,16 +264,16 @@ const anchorSvg = ANCHOR_LABELS
       .map((n) => {
         const sx = tx + n.x * scale + radius(n) * scale + 5;
         const sy = ty + n.y * scale + 4;
-        return `<text x="${sx.toFixed(1)}" y="${sy.toFixed(1)}" font-family="${FONT_SANS}" font-size="12" font-weight="500" fill="${CREAM}">${esc(n.label)}</text>`;
+        return `<text x="${sx.toFixed(1)}" y="${sy.toFixed(1)}" font-family="${FONT_SANS}" font-size="12" font-weight="500" fill="${INK}">${esc(n.label)}</text>`;
       })
       .join('\n      ')
   : '';
 
 // Legend as a horizontal row under the graph, each swatch matching a node group.
 const LEGEND_Y = 584;
-const legendSvg = LEGEND.map(([label, color], i) => {
+const legendSvg = LEGEND.map(([label, paint], i) => {
   const x = 56 + i * 160;
-  return `<circle cx="${x}" cy="${LEGEND_Y - 5}" r="6" fill="${color}"/>
+  return `<circle cx="${x}" cy="${LEGEND_Y - 5}" r="6" ${paintAttrs(paint)}/>
   <text x="${x + 16}" y="${LEGEND_Y}" font-family="${FONT_SANS}" font-size="15" font-weight="500" fill="${MUTED}">${esc(label)}</text>`;
 }).join('\n  ');
 
@@ -280,20 +293,58 @@ const PORTRAIT_BOX = { x: 830, y: 20, w: 390, h: 600 };
 const portraitData = `data:image/jpeg;base64,${readFileSync(PORTRAIT).toString('base64')}`;
 
 // AA gate (REQ-03): every text token must clear 4.5:1 (3:1 for large text).
-// The orange role of v1 is gone — ORANGE stays decorative only.
+// The accent is decorative here — rings, rules, halos, the top bar.
 assertContrast(
-  BG,
+  SURFACE,
   [
-    { name: 'name', color: CREAM, size: 52, weight: 600 },
-    { name: 'role', color: CREAM, size: 22, weight: 600 },
-    { name: 'logo', color: CREAM, size: 34, weight: 700 },
-    { name: 'caption', color: CREAM, size: 14, weight: 700 },
+    { name: 'name', color: INK, size: 52, weight: 600 },
+    { name: 'role', color: INK, size: 22, weight: 600 },
+    { name: 'logo', color: INK, size: 34, weight: 700 },
+    { name: 'caption', color: INK, size: 14, weight: 700 },
     { name: 'legend', color: MUTED, size: 15, weight: 500 },
-    { name: 'url', color: CREAM, size: 20, weight: 500 },
-    { name: 'graphic:legend dot (orange)', color: ORANGE, decorative: true },
+    { name: 'url', color: INK, size: 20, weight: 500 },
+    { name: 'graphic: accent ring / rule / halo', color: ACCENT, decorative: true },
   ],
   'graph OG banner',
 );
+
+// sRGB composite of `color` at `alpha` over `bg` — the colour the rasteriser
+// actually paints for a tinted node or swatch.
+const over = (color, alpha, bg) => {
+  const fg = hexToRgb(color);
+  const base = hexToRgb(bg);
+  const mix = fg.map((c, i) => Math.round(c * alpha + base[i] * (1 - alpha)));
+  return `#${mix.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+};
+
+// The text gate above cannot speak for the node field: a node is a mark, not a
+// glyph, so its floor is 3:1 (WCAG 1.4.11) rather than 4.5:1. Assert that floor
+// explicitly — a tint that drifts too pale would otherwise fade into the cream
+// surface silently, which is exactly the failure this palette flip risks.
+//
+// Two backgrounds matter: the bare sheet, and the panel's darkest point (the
+// vignette's 0.06 stop at the panel edge, which is where the two trimmed margin
+// nodes actually sit). A tint is only legible if it clears both.
+const PANEL_EDGE = over(INK, 0.06, SURFACE);
+const tintWidth = Math.max(...Object.keys(NODE_PAINT).map((g) => g.length));
+for (const [group, paint] of Object.entries(NODE_PAINT)) {
+  for (const [where, bg] of [
+    ['surface', SURFACE],
+    ['vignette', PANEL_EDGE],
+  ]) {
+    const flat = over(paint.color, paint.alpha, bg);
+    const ratio = contrastRatio(flat, bg);
+    const pass = ratio >= 3;
+    console.log(
+      `[contrast] node:${group.padEnd(tintWidth)}  ${flat}  ${ratio.toFixed(2).padStart(5)}:1  graphic on ${where.padEnd(8)}  ${pass ? 'PASS' : 'FAIL'}`,
+    );
+    if (!pass) {
+      throw new Error(
+        `WCAG graphics contrast failed (node:${group} on ${where}): ${ratio.toFixed(2)}:1 < 3:1`,
+      );
+    }
+  }
+}
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630" text-rendering="geometricPrecision">
   <defs>
@@ -304,21 +355,22 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.
       <polygon points="${HEX_PHOTO}"/>
     </clipPath>
     <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="${ORANGE}" stop-opacity="0.08"/>
-      <stop offset="1" stop-color="${ORANGE}" stop-opacity="0"/>
+      <stop offset="0" stop-color="${ACCENT}" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="${ACCENT}" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="vignette" cx="0.5" cy="0.5" r="0.72">
-      <stop offset="0.55" stop-color="#000000" stop-opacity="0"/>
-      <stop offset="1" stop-color="#000000" stop-opacity="0.32"/>
+      <stop offset="0.55" stop-color="${INK}" stop-opacity="0"/>
+      <stop offset="1" stop-color="${INK}" stop-opacity="0.06"/>
     </radialGradient>
-    ${honeycombPattern({ color: CREAM })}
+    ${honeycombPattern({ color: INK, opacity: 0.1 })}
   </defs>
 
-  <rect width="1200" height="630" fill="${BG}"/>
+  <rect width="1200" height="630" fill="${SURFACE}"/>
   ${honeycombLayer()}
-  <rect x="0" y="0" width="1200" height="6" fill="${ORANGE}"/>
+  <rect x="0" y="0" width="1200" height="6" fill="${ACCENT}"/>
 
-  <!-- graph surface: warm glow + inner vignette separate the panel from the page -->
+  <!-- graph surface: accent glow + faint ink vignette so the panel reads as a
+       recess in the sheet without turning into a shadow on a light surface -->
   <ellipse cx="${PANEL.x + PANEL.w / 2}" cy="${PANEL.y + PANEL.h / 2}" rx="${PANEL.w / 2}" ry="${PANEL.h / 2}" fill="url(#glow)"/>
   <rect x="${PANEL.x}" y="${PANEL.y}" width="${PANEL.w}" height="${PANEL.h}" rx="18" fill="url(#vignette)"/>
 
@@ -334,25 +386,25 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.
     </g>
     ${anchorSvg}
   </g>
-  <rect x="${PANEL.x + 0.5}" y="${PANEL.y + 0.5}" width="${PANEL.w - 1}" height="${PANEL.h - 1}" rx="18" fill="none" stroke="${CREAM}" stroke-opacity="0.14" stroke-width="1"/>
+  <rect x="${PANEL.x + 0.5}" y="${PANEL.y + 0.5}" width="${PANEL.w - 1}" height="${PANEL.h - 1}" rx="18" fill="none" stroke="${INK}" stroke-opacity="0.18" stroke-width="1"/>
 
   <!-- compact identity header, top-left -->
-  <polygon points="${hexPointsFlat(LOGO.cx, LOGO.cy, LOGO.r)}" fill="none" stroke="${ORANGE}" stroke-width="4.6"/>
-  <text x="${LOGO.cx}" y="${LOGO.cy + LOGO.dy}" font-family="${FONT_SANS}" font-size="34.5" font-weight="700" fill="${CREAM}" text-anchor="middle">NB</text>
-  <text x="186" y="104" font-family="${FONT_SERIF}" font-size="52" font-weight="600" letter-spacing="-0.5" fill="${CREAM}">Nikita Boyarkin</text>
-  <text x="186" y="142" font-family="${FONT_SANS}" font-size="22" font-weight="600" fill="${CREAM}">Product / Data Analyst</text>
-  <rect x="186" y="158" width="110" height="3" fill="${ORANGE}"/>
+  <polygon points="${hexPointsFlat(LOGO.cx, LOGO.cy, LOGO.r)}" fill="none" stroke="${ACCENT}" stroke-width="4.6"/>
+  <text x="${LOGO.cx}" y="${LOGO.cy + LOGO.dy}" font-family="${FONT_SANS}" font-size="34.5" font-weight="700" fill="${INK}" text-anchor="middle">NB</text>
+  <text x="186" y="104" font-family="${FONT_SERIF}" font-size="52" font-weight="600" letter-spacing="-0.5" fill="${INK}">Nikita Boyarkin</text>
+  <text x="186" y="142" font-family="${FONT_SANS}" font-size="22" font-weight="600" fill="${INK}">Product / Data Analyst</text>
+  <rect x="186" y="158" width="110" height="3" fill="${ACCENT}"/>
 
-  <text x="56" y="192" font-family="${FONT_SANS}" font-size="14" font-weight="700" letter-spacing="3" fill="${CREAM}">ГРАФ КОНТЕНТА</text>
+  <text x="56" y="192" font-family="${FONT_SANS}" font-size="14" font-weight="700" letter-spacing="3" fill="${INK}">ГРАФ КОНТЕНТА</text>
 
   ${legendSvg}
 
-  <text x="56" y="616" font-family="${FONT_SANS}" font-size="20" font-weight="500" fill="${CREAM}">nikitaboyarkin.github.io</text>
+  <text x="56" y="616" font-family="${FONT_SANS}" font-size="20" font-weight="500" fill="${INK}">nikitaboyarkin.github.io</text>
 
-  <!-- portrait: warm halo + clipped photo + orange ring (no cream plate) -->
-  <polygon points="${HEX_HALO}" fill="none" stroke="${ORANGE}" stroke-width="8" opacity="0.14"/>
+  <!-- portrait: accent halo + clipped photo + accent ring (no plate) -->
+  <polygon points="${HEX_HALO}" fill="none" stroke="${ACCENT}" stroke-width="8" opacity="0.14"/>
   <image x="${PORTRAIT_BOX.x}" y="${PORTRAIT_BOX.y}" width="${PORTRAIT_BOX.w}" height="${PORTRAIT_BOX.h}" preserveAspectRatio="xMidYMid slice" clip-path="url(#hexPhoto)" xlink:href="${portraitData}" href="${portraitData}"/>
-  <polygon points="${HEX_RING}" fill="none" stroke="${ORANGE}" stroke-width="7"/>
+  <polygon points="${HEX_RING}" fill="none" stroke="${ACCENT}" stroke-width="7"/>
 </svg>`;
 
 renderSvgToPng(svg, OUT, { tmpName: 'og-graph' });

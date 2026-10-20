@@ -5,34 +5,34 @@
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
     <linearGradient id="causal-accent" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#d2573a"/>
+      <stop offset="1" stop-color="#a8331a"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#causal-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
 
-  <line x1="600" y1="100" x2="600" y2="520" stroke="#234044" stroke-width="4"/>
+  <line x1="600" y1="100" x2="600" y2="520" stroke="#0f2a2b" stroke-opacity="0.18" stroke-width="4"/>
 
   <g font-family="Inter, system-ui, sans-serif">
     <!-- CUPED: same ATE, narrower CI -->
-    <text x="80" y="140" font-size="64" font-weight="700" letter-spacing="1" fill="#ff8569">CUPED</text>
+    <text x="80" y="140" font-size="64" font-weight="700" letter-spacing="1" fill="#a8331a">CUPED</text>
 
-    <text x="80" y="220" font-size="44" font-weight="600" fill="#e4e4e7">naive</text>
-    <rect x="80" y="240" width="300" height="80" rx="6" fill="#3f3f46"/>
-    <text x="400" y="295" font-size="40" font-weight="500" fill="#a1a1aa">0.076</text>
+    <text x="80" y="220" font-size="44" font-weight="600" fill="#0f2a2b">naive</text>
+    <rect x="80" y="240" width="300" height="80" rx="6" fill="#0f2a2b" fill-opacity="0.18"/>
+    <text x="400" y="295" font-size="40" font-weight="500" fill="#4a6b69">0.076</text>
 
-    <text x="80" y="400" font-size="44" font-weight="600" fill="#e4e4e7">cuped</text>
+    <text x="80" y="400" font-size="44" font-weight="600" fill="#0f2a2b">cuped</text>
     <rect x="80" y="420" width="225" height="80" rx="6" fill="url(#causal-accent)"/>
-    <text x="325" y="475" font-size="40" font-weight="500" fill="#ffa68a">0.057</text>
+    <text x="325" y="475" font-size="40" font-weight="500" fill="#a8331a">0.057</text>
 
     <!-- Uplift recovery by segment -->
-    <text x="640" y="140" font-size="64" font-weight="700" letter-spacing="1" fill="#ff8569">Uplift</text>
+    <text x="640" y="140" font-size="64" font-weight="700" letter-spacing="1" fill="#a8331a">Uplift</text>
 
-    <text x="640" y="220" font-size="44" font-weight="600" fill="#e4e4e7">new</text>
+    <text x="640" y="220" font-size="44" font-weight="600" fill="#0f2a2b">new</text>
     <rect x="640" y="240" width="300" height="80" rx="6" fill="url(#causal-accent)"/>
 
-    <text x="640" y="400" font-size="44" font-weight="600" fill="#e4e4e7">returning</text>
-    <rect x="640" y="420" width="30" height="80" rx="6" fill="#3f3f46"/>
+    <text x="640" y="400" font-size="44" font-weight="600" fill="#0f2a2b">returning</text>
+    <rect x="640" y="420" width="30" height="80" rx="6" fill="#0f2a2b" fill-opacity="0.18"/>
   </g>
 </svg>

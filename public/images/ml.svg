@@ -5,45 +5,45 @@
       <stop offset="1" stop-color="#1a3435"/>
     </linearGradient>
     <linearGradient id="ml-accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#ff8569"/>
-      <stop offset="1" stop-color="#ff6643"/>
+      <stop offset="0" stop-color="#d2573a"/>
+      <stop offset="1" stop-color="#a8331a"/>
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="600" fill="url(#ml-bg)"/>
+  <rect width="1200" height="600" fill="#f8f2d8"/>
 
-  <text x="80" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#e4e4e7">ML PIPELINE</text>
-  <text x="80" y="190" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="500" fill="#a1a1aa">ColumnTransformer · fit on train only</text>
+  <text x="80" y="140" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="1" fill="#0f2a2b">ML PIPELINE</text>
+  <text x="80" y="190" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="500" fill="#4a6b69">ColumnTransformer · fit on train only</text>
 
   <!-- pipeline stages -->
-  <g font-family="Inter, system-ui, sans-serif" font-size="36" font-weight="600" fill="#e4e4e7" text-anchor="middle">
-    <rect x="80" y="250" width="180" height="88" rx="14" fill="none" stroke="#a1a1aa" stroke-width="3"/>
-    <text x="170" y="305">DATA</text>
-    <rect x="367" y="250" width="180" height="88" rx="14" fill="none" stroke="#a1a1aa" stroke-width="3"/>
-    <text x="457" y="305">IMPUTE</text>
-    <rect x="653" y="250" width="180" height="88" rx="14" fill="none" stroke="#a1a1aa" stroke-width="3"/>
-    <text x="743" y="305">ENCODE</text>
-    <rect x="940" y="250" width="180" height="88" rx="14" fill="none" stroke="#a1a1aa" stroke-width="3"/>
-    <text x="1030" y="305">SCALE</text>
+  <g font-family="Inter, system-ui, sans-serif" font-size="36" font-weight="600" fill="#0f2a2b" text-anchor="middle">
+    <rect x="80" y="250" width="180" height="88" rx="14" fill="none" stroke="#4a6b69" stroke-width="3"/>
+    <text x="170" y="305" fill="#0f2a2b">DATA</text>
+    <rect x="367" y="250" width="180" height="88" rx="14" fill="none" stroke="#4a6b69" stroke-width="3"/>
+    <text x="457" y="305" fill="#0f2a2b">IMPUTE</text>
+    <rect x="653" y="250" width="180" height="88" rx="14" fill="none" stroke="#4a6b69" stroke-width="3"/>
+    <text x="743" y="305" fill="#0f2a2b">ENCODE</text>
+    <rect x="940" y="250" width="180" height="88" rx="14" fill="none" stroke="#4a6b69" stroke-width="3"/>
+    <text x="1030" y="305" fill="#0f2a2b">SCALE</text>
   </g>
 
   <!-- arrows -->
-  <g stroke="#ff8569" stroke-width="4" stroke-linecap="round">
+  <g stroke="#a8331a" stroke-width="4" stroke-linecap="round">
     <line x1="266" y1="294" x2="352" y2="294"/>
     <line x1="553" y1="294" x2="638" y2="294"/>
     <line x1="839" y1="294" x2="924" y2="294"/>
   </g>
-  <g fill="#ff8569">
+  <g fill="#a8331a">
     <polygon points="352,284 366,294 352,304"/>
     <polygon points="638,284 652,294 638,304"/>
     <polygon points="924,284 938,294 924,304"/>
   </g>
 
   <!-- deterministic train/test split bar -->
-  <rect x="80" y="440" width="1040" height="44" rx="22" fill="#a1a1aa" opacity="0.18"/>
+  <rect x="80" y="440" width="1040" height="44" rx="22" fill="#0f2a2b" fill-opacity="0.08"/>
   <rect x="80" y="440" width="832" height="44" rx="22" fill="url(#ml-accent)" opacity="0.92"/>
-  <line x1="912" y1="426" x2="912" y2="498" stroke="#e4e4e7" stroke-width="4" stroke-dasharray="10 8"/>
+  <line x1="912" y1="426" x2="912" y2="498" stroke="#0f2a2b" stroke-width="4" stroke-dasharray="10 8"/>
 
-  <text x="496" y="548" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="600" fill="#ff8569" text-anchor="middle">TRAIN 80%</text>
-  <text x="1016" y="548" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="600" fill="#a1a1aa" text-anchor="middle">TEST 20%</text>
+  <text x="496" y="548" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="600" fill="#a8331a" text-anchor="middle">TRAIN 80%</text>
+  <text x="1016" y="548" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="600" fill="#4a6b69" text-anchor="middle">TEST 20%</text>
 </svg>

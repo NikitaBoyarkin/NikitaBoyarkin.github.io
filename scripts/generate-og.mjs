@@ -1,18 +1,27 @@
 // Per-content branded OG image generator.
 // Reads src/content/posts/*.md and src/content/projects/*.md frontmatter,
-// renders a 1200x630 branded SVG per entry, and converts it to PNG (+ a WebP
-// sibling) into public/images/og/.
+// renders a 1200x630 branded SVG per entry, and converts it to PNG into
+// public/images/og/.
 // Run: bun run og
 // Not wired into the build — run manually when content changes; commit the PNGs.
 //
-// A project that already declares `ogImage` owns its card (volta ships a
-// hand-made case-study banner) and is skipped, so a re-run never clobbers it.
+// Two escape hatches, both opt-in:
 //
-// Palette: this is the BLUE marketing surface — BRAND_BLUE / ACCENT_ON_BLUE /
-// CREAM, the same regime as portfolio-banner-v2 and portfolio-graph-v2, so all
-// OG previews read as one series. Every hex comes from src/lib/brand.ts.
-// MUTED is the one local tint (cream dimmed toward the blue) and mirrors
-// generate-graph-og.mjs.
+//   1. FORCE (`bun run og --force`). A project that declares `ogImage` owns its
+//      card and is skipped, so a routine re-run never clobbers a hand-made
+//      banner. Every project declares one, though, which meant the palette flip
+//      would have left all 22 project cards on the retired blue surface. With
+//      --force the skip is inverted: declared cards are re-rendered too.
+//   2. OUTPUT_NAME. The override map below renames the written file for a slug
+//      whose frontmatter points somewhere other than `<slug>.png` — today only
+//      `volta` (→ volta-neobank-case-study.png). Adding an entry here is the
+//      only supported way to break the `<slug>.png` convention; otherwise the
+//      frontmatter and the generator drift and the preview 404s.
+//
+// Palette: the cream picture surface (`CREAM_SURFACE`) with royal-blue ink and
+// a burnt-coral accent — the same regime as portfolio-banner-v2 and
+// portfolio-graph-v2, so all OG previews read as one series. Every hex comes
+// from src/lib/brand.ts; this file holds no brand hex of its own.
 //
 // Fonts: Cormorant 600 for the post title, Inter for all service text — the
 // families the site ships, vendored as static TTF in scripts/og-fonts/ and
@@ -21,18 +30,26 @@
 // Requires `rsvg-convert` (librsvg) on PATH.
 //
 // AA gate: like the other banners, this script throws if any text token falls
-// below its WCAG contrast threshold on the blue surface.
+// below its WCAG contrast threshold on the cream surface.
 
 import { readdirSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ACCENT_ON_BLUE, BRAND_BLUE, CREAM, hexPoints, hexPointsFlat } from '../src/lib/brand.ts';
+import {
+  BANNER_ACCENT,
+  BANNER_INK,
+  BANNER_MUTED,
+  CREAM_SURFACE,
+  hexPoints,
+  hexPointsFlat,
+} from '../src/lib/brand.ts';
 import {
   FONT_SANS,
   FONT_SERIF,
   assertContrast,
   esc,
+  hexToRgb,
   honeycombLayer,
   honeycombPattern,
   renderSvgToPng,
@@ -54,11 +71,22 @@ const TRACK_LABELS = {
 
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true });
 
-// Palette — the blue regime only.
-const BLUE = BRAND_BLUE;
-const ORANGE = ACCENT_ON_BLUE;
-const MUTED = '#bdb5ea'; // secondary text (cream dimmed toward the blue)
-const WELL = '#0a0070'; // inset well behind the category pill
+// Palette — the cream regime. Aliases only: every value is imported from
+// src/lib/brand.ts, so the banner cannot become the only place a hex lives.
+const SURFACE = CREAM_SURFACE;
+const INK = BANNER_INK; // titles, body, name, URL
+const MUTED = BANNER_MUTED; // secondary text (role line)
+const ACCENT = BANNER_ACCENT; // rules, rings, hexes, top bar
+
+// Re-render cards that declare their own `ogImage` instead of skipping them.
+const FORCE = process.argv.includes('--force');
+
+// Slug → output filename, for the one project whose frontmatter points at a
+// name the `<slug>.png` convention would not produce. Keep in sync with
+// src/content/projects/*.md (tests/lib/og-images.test.ts binds the target).
+const OUTPUT_NAME = {
+  volta: 'volta-neobank-case-study.png',
+};
 
 // Type sizes. The title steps DOWN as it needs more lines; each step carries
 // its own character budget so the block always clears the right margin.
@@ -126,7 +154,7 @@ function buildSvg(title, category) {
   const tspans = lines
     .map(
       (ln, i) =>
-        `<text x="80" y="${Math.round(startY + i * lineHeight)}" font-family="${FONT_SERIF}" font-size="${size}" font-weight="600" letter-spacing="-1" fill="${CREAM}">${esc(ln)}</text>`,
+        `<text x="80" y="${Math.round(startY + i * lineHeight)}" font-family="${FONT_SERIF}" font-size="${size}" font-weight="600" letter-spacing="-1" fill="${INK}">${esc(ln)}</text>`,
     )
     .join('\n  ');
 
@@ -139,61 +167,71 @@ function buildSvg(title, category) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" text-rendering="geometricPrecision">
   <defs>
     <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="${ORANGE}" stop-opacity="0.07"/>
-      <stop offset="1" stop-color="${ORANGE}" stop-opacity="0"/>
+      <stop offset="0" stop-color="${ACCENT}" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="${ACCENT}" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="shade" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="${CREAM}" stop-opacity="0.05"/>
-      <stop offset="1" stop-color="${CREAM}" stop-opacity="0"/>
-    </linearGradient>
-    ${honeycombPattern({ color: CREAM })}
+    ${honeycombPattern({ color: INK, opacity: 0.1 })}
   </defs>
 
-  <rect width="1200" height="630" fill="${BLUE}"/>
+  <rect width="1200" height="630" fill="${SURFACE}"/>
   ${honeycombLayer()}
-  <rect width="1200" height="630" fill="url(#shade)"/>
   <ellipse cx="420" cy="330" rx="460" ry="215" fill="url(#glow)"/>
-  <rect x="0" y="0" width="1200" height="6" fill="${ORANGE}"/>
+  <rect x="0" y="0" width="1200" height="6" fill="${ACCENT}"/>
 
   <!-- decorative hexagons, same language as the other banners -->
-  <g fill="none" stroke="${CREAM}" stroke-width="2" opacity="0.12">
+  <g fill="none" stroke="${INK}" stroke-width="2" opacity="0.14">
     <polygon points="${hexPoints(1082, 138, 58)}"/>
     <polygon points="${hexPoints(946, 226, 26)}"/>
   </g>
 
   <!-- logo lockup -->
-  <polygon points="${hexPointsFlat(LOGO.cx, LOGO.cy, LOGO.r)}" fill="none" stroke="${ORANGE}" stroke-width="4.2"/>
-  <text x="${LOGO.cx}" y="${LOGO.cy + LOGO.dy}" font-family="${FONT_SANS}" font-size="${LOGO.size}" font-weight="700" fill="${CREAM}" text-anchor="middle">NB</text>
+  <polygon points="${hexPointsFlat(LOGO.cx, LOGO.cy, LOGO.r)}" fill="none" stroke="${ACCENT}" stroke-width="4.2"/>
+  <text x="${LOGO.cx}" y="${LOGO.cy + LOGO.dy}" font-family="${FONT_SANS}" font-size="${LOGO.size}" font-weight="700" fill="${INK}" text-anchor="middle">NB</text>
 
-  <!-- category pill, inset well -->
-  <rect x="196" y="84" width="${pillW}" height="44" rx="22" fill="${WELL}"/>
-  <rect x="196.5" y="84.5" width="${pillW - 1}" height="43" rx="22" fill="none" stroke="${CREAM}" stroke-opacity="0.14" stroke-width="1"/>
-  <text x="220" y="113" font-family="${FONT_SANS}" font-size="22" font-weight="600" fill="${CREAM}">${esc(cat)}</text>
+  <!-- category pill, inset well: ink at 7% over the surface, ink text on top -->
+  <rect x="196" y="84" width="${pillW}" height="44" rx="22" fill="${INK}" fill-opacity="0.07"/>
+  <rect x="196.5" y="84.5" width="${pillW - 1}" height="43" rx="22" fill="none" stroke="${INK}" stroke-opacity="0.18" stroke-width="1"/>
+  <text x="220" y="113" font-family="${FONT_SANS}" font-size="22" font-weight="600" fill="${INK}">${esc(cat)}</text>
 
   ${tspans}
 
   <!-- identity footer -->
-  <rect x="80" y="486" width="110" height="3" fill="${ORANGE}"/>
-  <text x="80" y="528" font-family="${FONT_SANS}" font-size="28" font-weight="600" fill="${CREAM}">Nikita Boyarkin</text>
+  <rect x="80" y="486" width="110" height="3" fill="${ACCENT}"/>
+  <text x="80" y="528" font-family="${FONT_SANS}" font-size="28" font-weight="600" fill="${INK}">Nikita Boyarkin</text>
   <text x="80" y="558" font-family="${FONT_SANS}" font-size="20" font-weight="500" fill="${MUTED}">Data / Product Analyst</text>
-  <text x="1120" y="558" font-family="${FONT_SANS}" font-size="20" font-weight="500" fill="${CREAM}" text-anchor="end">nikitaboyarkin.github.io</text>
+  <text x="1120" y="558" font-family="${FONT_SANS}" font-size="20" font-weight="500" fill="${INK}" text-anchor="end">nikitaboyarkin.github.io</text>
 </svg>`;
 }
 
 // The AA gate (REQ-03 pattern). Runs once — the token set is static, only the
 // title text varies, and Cormorant at every step is large text.
+//
+// The category pill is the exception the surface gate cannot speak for: its text
+// sits on the 7%-ink well, not on the bare sheet, and that well is *darker* than
+// the surface, so it is the stricter background. Both are measured.
+const over = (color, alpha, bg) => {
+  const fg = hexToRgb(color);
+  const base = hexToRgb(bg);
+  const mix = fg.map((c, i) => Math.round(c * alpha + base[i] * (1 - alpha)));
+  return `#${mix.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+};
+const PILL_BG = over(INK, 0.07, SURFACE);
+
+const rows = [
+  { name: 'title', color: INK, size: TITLE_STEPS.at(-1).size, weight: 600 },
+  { name: 'category pill', color: INK, size: 22, weight: 600, bg: PILL_BG },
+  { name: 'logo', color: INK, size: 30, weight: 700 },
+  { name: 'name', color: INK, size: 28, weight: 600 },
+  { name: 'role', color: MUTED, size: 20, weight: 500 },
+  { name: 'url', color: INK, size: 20, weight: 500 },
+  { name: 'graphic: accent rule / ring / hexes', color: ACCENT, decorative: true },
+];
+
+assertContrast(SURFACE, rows.filter((r) => !r.bg), 'post OG');
 assertContrast(
-  BLUE,
-  [
-    { name: 'title', color: CREAM, size: TITLE_STEPS.at(-1).size, weight: 600 },
-    { name: 'category pill', color: CREAM, size: 22, weight: 600 },
-    { name: 'logo', color: CREAM, size: 30, weight: 700 },
-    { name: 'name', color: CREAM, size: 28, weight: 600 },
-    { name: 'role', color: MUTED, size: 20, weight: 500 },
-    { name: 'url', color: CREAM, size: 20, weight: 500 },
-    { name: 'graphic: orange rule / ring / hexes', color: ORANGE, decorative: true },
-  ],
-  'post OG',
+  PILL_BG,
+  rows.filter((r) => r.bg).map(({ bg: _bg, ...r }) => r),
+  'post OG · category pill',
 );
 
 /**
@@ -221,10 +259,10 @@ function generate({ dir, pill, skip = () => false }) {
       console.log(`  --  ${slug} (declares its own ogImage)`);
       continue;
     }
-    const pngPath = join(OUT_DIR, `${slug}.png`);
+    const pngPath = join(OUT_DIR, OUTPUT_NAME[slug] ?? `${slug}.png`);
     renderSvgToPng(buildSvg(fm.title, pill(fm)), pngPath, { tmpName: `og-${slug}` });
     made++;
-    console.log(`  OK  ${slug}.png`);
+    console.log(`  OK  ${OUTPUT_NAME[slug] ?? `${slug}.png`}`);
   }
   return { made, errors };
 }
@@ -235,7 +273,9 @@ const postRun = generate({ dir: POSTS_DIR, pill: (fm) => fm.category });
 const projectRun = generate({
   dir: PROJECTS_DIR,
   pill: (fm) => TRACK_LABELS[fm.track] ?? 'Project',
-  skip: (fm) => Boolean(fm.ogImage),
+  // Every project declares `ogImage` today, so without --force this collection
+  // renders nothing at all.
+  skip: (fm) => Boolean(fm.ogImage) && !FORCE,
 });
 
 const made = postRun.made + projectRun.made;
