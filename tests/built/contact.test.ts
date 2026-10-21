@@ -75,7 +75,17 @@ describe.each(pages)('built contact page ($label)', ({ path }) => {
       expect(html).not.toContain('<form');
       expect(html).not.toContain('id="contact-submit"');
       expect(html).toContain('https://t.me/lofinibo');
-      expect(html).toContain('data-analytics="telegram_contact"');
+      expect(html).toContain('data-analytics="telegram_deeplink"');
+    });
+
+    it('offers each channel once, from the single CTA row', () => {
+      // The Telegram card duplicated the button above it: two clicks, one
+      // destination, two event names to reconcile in PostHog.
+      expect(html.match(/data-analytics="telegram_deeplink"/g)?.length).toBe(1);
+      expect(html).not.toContain('telegram_contact');
+      expect(html).toContain('data-analytics="linkedin_contact"');
+      expect(html).not.toContain('Другие способы связи');
+      expect(html).not.toContain('Other ways to reach me');
     });
   }
 });

@@ -1,19 +1,19 @@
 ---
 import Base from '../layouts/Base.astro';
 import ContactForm from '../components/ContactForm.astro';
-import LinkedInBadge from '../components/LinkedInBadge.astro';
 import { withBase } from '../lib/path';
 import { CAL_BOOKING_URL, CONTACT_FORM_ENABLED } from '../lib/contact';
 
 // Telegram deep-link: pre-fills the message so the first contact carries context.
 const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent('Привет! Обсудим продуктовую аналитику / роли аналитика.')}`;
+const LINKEDIN_URL = 'https://www.linkedin.com/in/nikita-boyarkin';
 ---
 
 <Base title="Контакты | Nikita Boyarkin" description="Связаться с Никитой Бояркиным — продуктовая аналитика, A/B-тестирование, сотрудничество." activeNav="contact" canonical={withBase('contact/')} lang="ru" counterpartHref={withBase('en/contact/')}>
   <section class="container reveal">
     <h1 class="contact-title">Связаться</h1>
     <p class="contact-text">
-      Открыт к Data / Product Analyst ролям и к разговорам про product-аналитику, A/B-тестирование и сотрудничество.
+      Три входа: свободный слот, Telegram или LinkedIn. Отвечаю в течение дня.
     </p>
 
     <div class="contact-layout">
@@ -30,41 +30,31 @@ const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent('Приве�
         )
       }
 
-      <div class="cta-row">
+      <div class="cta-row contact-cta">
         <a
           href={CAL_BOOKING_URL}
           class="button"
           target="_blank"
           rel="noopener noreferrer"
-          data-analytics="booking_click">Записаться на 30 минут</a
+          data-analytics="booking_click"
+          data-analytics-surface="contact_cta">Выбрать свободный слот</a
         >
         <a
           href={tgDeepLink}
           class="button button-secondary"
           target="_blank"
           rel="noopener noreferrer"
-          data-analytics="telegram_deeplink">Написать в Telegram →</a
+          data-analytics="telegram_deeplink"
+          data-analytics-surface="contact_cta">Написать в Telegram →</a
         >
-      </div>
-
-      <div class="board-card">
-        <h2 class="look-title">Другие способы связи</h2>
-        <div class="contact-channels">
-          <a
-            href="https://t.me/lofinibo"
-            class="contact-email"
-            data-analytics="telegram_contact"
-            target="_blank"
-            rel="noopener noreferrer">Telegram: @lofinibo</a
-          >
-          <a
-            href="https://www.linkedin.com/in/nikita-boyarkin"
-            class="contact-email"
-            data-analytics="linkedin_contact"
-            target="_blank"
-            rel="noopener noreferrer">LinkedIn</a
-          >
-        </div>
+        <a
+          href={LINKEDIN_URL}
+          class="contact-inline-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-analytics="linkedin_contact"
+          data-analytics-surface="contact_cta">LinkedIn →</a
+        >
       </div>
 
       <div class="board-card look-card">
@@ -85,7 +75,5 @@ const tgDeepLink = `https://t.me/lofinibo?text=${encodeURIComponent('Приве�
         </dl>
       </div>
     </div>
-
-    <LinkedInBadge lang="ru" />
   </section>
 </Base>

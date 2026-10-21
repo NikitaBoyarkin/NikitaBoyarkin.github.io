@@ -13,7 +13,7 @@
 export const CONTACT_ENDPOINT =
   'https://PROJECT_REF.supabase.co/functions/v1/contact';
 
-export const CAL_BOOKING_URL = 'https://cal.com/lofinibo/30min';
+export const CAL_BOOKING_URL = 'https://cal.com/lofinibo/bored-call-me';
 
 /**
  * The form is inert until the placeholder above is replaced: every submission

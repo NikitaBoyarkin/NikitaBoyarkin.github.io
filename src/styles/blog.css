@@ -305,7 +305,7 @@ button.blog-card-tag:hover {
 
 /* Contact section — the single `.container` frame (same wide frame as /graph/
    and /library/). Single reading-order column: title, intro, call to action,
-   channels, then what-I'm-looking-for. */
+   then what-I'm-looking-for. */
 .contact-title {
   font-family: var(--font-display);
   font-weight: 500;
@@ -322,10 +322,13 @@ button.blog-card-tag:hover {
   max-width: 65ch;
 }
 
+/* 68ch, not the full 1116px frame: a card holding two short lines stretched to
+   the container edge leaves the section reading as empty. Matches `.contact-text`. */
 .contact-layout {
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
+  max-width: 68ch;
 }
 
 /* Uniform card padding across the section (the base .board-card ships a
@@ -334,22 +337,32 @@ button.blog-card-tag:hover {
   padding: var(--space-6);
 }
 
-.contact-email {
+/* Third channel sits in the CTA row as a quiet link: two filled/outlined
+   buttons plus one text action, so the booking slot still leads. */
+.contact-inline-link {
   color: var(--text-accent);
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   text-decoration: none;
+  padding: var(--space-2) 0;
 }
 
-.contact-email:hover {
+.contact-inline-link:hover {
   color: var(--text-accent-hover);
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
 
-.contact-channels {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+/* The row is a flex child of `.contact-layout`, whose gap already spaces it;
+   `.cta-row`'s own margin-top would double that. */
+.contact-cta {
+  margin-top: 0;
+}
+
+/* These cards hold no link, so the base board-card lift is a false affordance. */
+.contact-layout .board-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--border-color);
 }
 
 /* Card micro-label — shared by the channels / look cards. */
