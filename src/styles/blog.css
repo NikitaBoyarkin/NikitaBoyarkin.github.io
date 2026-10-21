@@ -102,30 +102,10 @@
     box-shadow 0.2s ease;
 }
 
-.blog-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(
-    90deg,
-    var(--text-accent),
-    var(--text-accent-hover)
-  );
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
 .blog-card:hover {
   border-color: color-mix(in srgb, var(--text-accent) 30%, transparent);
   transform: translateY(-3px);
   box-shadow: 0 12px 28px var(--shadow-color);
-}
-
-.blog-card:hover::before {
-  opacity: 1;
 }
 
 .blog-card-body {

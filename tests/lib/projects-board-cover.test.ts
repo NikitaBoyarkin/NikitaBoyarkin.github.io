@@ -49,7 +49,7 @@ describe('/projects/ board — cover on, Result off', () => {
 
   it('renders the description when the preview is `none`', () => {
     expect(CARD).toMatch(/starPreview !== 'none' \? \(/);
-    expect(CARD).toMatch(/\) : \(\s*<p>\{description\}<\/p>/);
+    expect(CARD).toMatch(/\) : \(\s*<p title=\{description\}>\{description\}<\/p>/);
     expect(STAR).toMatch(/star && preview !== 'none' && \(/);
     expect(read('src/lib/projects.ts')).toMatch(
       /export type StarPreview = 'result' \| 'task-result' \| 'none';/,

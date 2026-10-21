@@ -226,7 +226,7 @@ const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string
 
   .hero-claim {
     margin: var(--space-3) 0 0;
-    font-size: 1.0625rem;
+    font-size: var(--text-body);
     line-height: 1.55;
     color: var(--text-normal);
     text-wrap: pretty;
@@ -270,29 +270,11 @@ const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
 
-  /* The site's card signature: a 3px accent rule that appears on hover. */
-  .gate-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--text-accent), var(--text-accent-hover));
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
   .gate-card:hover,
   .gate-card:focus-visible {
     border-color: color-mix(in srgb, var(--text-accent) 30%, transparent);
     transform: translateY(-3px);
     box-shadow: 0 12px 28px var(--shadow-color);
-  }
-
-  .gate-card:hover::before,
-  .gate-card:focus-visible::before {
-    opacity: 1;
   }
 
   .gate-card:focus-visible {
@@ -381,10 +363,6 @@ const CARDS: Array<{ role: Audience; label: string; title: string; blurb: string
     .gate-card:hover,
     .gate-card:focus-visible {
       transform: none;
-    }
-
-    .gate-card::before {
-      transition: none;
     }
   }
 </style>

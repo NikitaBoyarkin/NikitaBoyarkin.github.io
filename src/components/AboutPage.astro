@@ -133,12 +133,10 @@ const { Content } = await render(entry);
     scroll-margin-top: calc(var(--nav-mobile-h) + var(--space-4));
   }
 
-  /* ── Section headings: Cormorant + coral tick ───────────────── */
+  /* ── Section headings: Cormorant ────────────────────────────── */
   .about-body :global(h2) {
     margin: var(--space-10) 0 var(--space-4);
     font-family: var(--font-display);
-    padding-left: var(--space-4);
-    border-left: 4px solid var(--text-accent);
     font-size: clamp(1.5rem, 1.2rem + 1vw, 1.9rem);
     letter-spacing: -0.01em;
   }
@@ -181,8 +179,18 @@ const { Content } = await render(entry);
     background: var(--card-background);
   }
   .about-body :global(.location-list li) {
-    padding-left: var(--space-4);
-    border-left: 2px solid color-mix(in srgb, var(--text-accent) 55%, transparent);
+    position: relative;
+    padding-left: var(--space-5);
+  }
+  .about-body :global(.location-list li)::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0.55em;
+    inline-size: 6px;
+    block-size: 6px;
+    border-radius: var(--radius-full);
+    background: var(--text-accent);
   }
 
   /* ── Profile bento: «Кто я» as cards ────────────────────────── */

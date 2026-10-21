@@ -97,6 +97,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
       </button>
     </div>
     <ul id="search-results" class="search-results" role="listbox" aria-label={i18n.resultsLabel}></ul>
+    <div id="search-status" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap"></div>
     <p class="search-hint" id="search-hint">{i18n.hint}</p>
   </div>
 </div>
@@ -303,6 +304,12 @@ const X_D = "M6 6l12 12M6 18L18 6";
 
     function render(rows: Entry[], tokens: string[], more: boolean, query: string) {
       resultsEl.innerHTML = "";
+      const statusEl = document.getElementById("search-status");
+      if (statusEl) {
+        statusEl.textContent = rows.length
+          ? `${rows.length} — ${t.resultsLabel}`
+          : t.empty;
+      }
       document.querySelector(".search-sibling")?.remove();
       if (!rows.length) {
         // Empty state lives OUTSIDE the listbox: a listbox may only contain

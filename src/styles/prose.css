@@ -33,6 +33,7 @@
 
 .prose {
   max-width: var(--prose-measure);
+  margin-inline: auto;
   font-size: var(--prose-size);
   line-height: var(--prose-lh);
   color: var(--text-normal);
@@ -118,6 +119,8 @@
    very start of the body, or anywhere the line is not a prose column. */
 .prose > p:first-child,
 .prose :is(h1, h2, h3, h4, h5, h6) + p,
+.prose :is(ul, ol, pre, table, figure, blockquote, details, hr) + p,
+.prose img + p,
 .prose li p,
 .prose blockquote p,
 .prose td p,
