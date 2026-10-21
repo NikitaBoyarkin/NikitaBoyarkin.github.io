@@ -51,8 +51,8 @@ const collectionJsonLd = {
       Product analytics case studies: A/B tests, retention, segmentation, dashboards. Filter by category and stack.
     </p>
 
-    <nav class="headline-strip reveal" aria-labelledby="headline-heading">
-      <h2 id="headline-heading" class="headline-strip-title">Where to start</h2>
+    <nav class="headline-strip reveal" aria-labelledby="headline-strip-label">
+      <p id="headline-strip-label" class="headline-strip-title">Where to start</p>
       <ol class="headline-strip-list">
         {
           headline.map((project, index) => (
@@ -87,6 +87,7 @@ const collectionJsonLd = {
   }
 
   .headline-strip-title {
+    margin-top: 0;
     margin-bottom: var(--space-3);
     font-size: 0.8125rem;
     font-weight: 600;
@@ -101,6 +102,14 @@ const collectionJsonLd = {
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+
+  /* Below the board's single-column breakpoint the strip only delays the
+     first card: keep the markup for desktop and no-CSS, hide it on phones. */
+  @media (max-width: 859px) {
+    .headline-strip {
+      display: none;
+    }
   }
 
   @media (min-width: 860px) {

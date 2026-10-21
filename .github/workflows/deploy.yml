@@ -148,9 +148,17 @@ jobs:
         # vendor/volta-banking. `--output` resolves relative to --project-dir,
         # not the cwd, so the target must be absolute. Runs before the Astro
         # build so public/ carries the fresh render into dist/.
+        #
+        # Pinned, not floating: dbt-charts 0.10.0 makes every `type: csv` file
+        # source unreadable — `ERR-FILE-SOURCE-UNSUPPORTED-TYPE: reading the
+        # schema of the object registered as '_dct_arrow_ingest' failed:
+        # ResourceInUseException: connection has an unfinished result from
+        # execute()`. It fires even on a bare `SELECT COUNT(*) FROM funnel`,
+        # so it is the loader, not the board's SQL. 0.9.1 renders the same
+        # file green; drop the pin once upstream fixes the arrow ingest path.
         run: |
           mkdir -p public/demos/volta-board
-          pipx run --spec dbt-charts dct render charts/volta-core.yml \
+          pipx run --spec dbt-charts==0.9.1 dct render charts/volta-core.yml \
             --project-dir vendor/volta-banking \
             --format html \
             --output "$GITHUB_WORKSPACE/public/demos/volta-board/index.html"

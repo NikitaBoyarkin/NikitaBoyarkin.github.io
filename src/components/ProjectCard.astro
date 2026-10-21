@@ -67,7 +67,7 @@ const i18n = {
       {isEn ? ' — reorder with Arrow Up/Down' : ' — перемещение стрелками ↑/↓'}
     </span>
   )}
-  {image && <img src={withBase(image)} alt={title} loading="lazy" />}
+  {image && <img src={withBase(image)} alt="" width={1200} height={600} loading="lazy" />}
   <div class="project-body">
   {trackLabel && <p class="project-track-badge">{trackLabel}</p>}
   <h3>{title}</h3>
@@ -92,7 +92,7 @@ const i18n = {
   {!star && impactText && <p class="Impact">{i18n.impact}: {impactText}</p>}
 
   <div class="project-actions">
-    <a class="button" href={withBase(`${linkPrefix}projects/${slug}/`)} data-analytics-project={slug} data-analytics-surface="card">{i18n.view} <ArrowMorph /></a>
+    <a class="button" href={withBase(`${linkPrefix}projects/${slug}/`)} aria-label={`${i18n.view}: ${title}`} data-analytics-project={slug} data-analytics-surface="card">{i18n.view} <ArrowMorph /></a>
     {
       (demo || github) && (
         <div class="project-action-links">
@@ -102,17 +102,19 @@ const i18n = {
               href={demo.startsWith('http') ? demo : withBase(demo)}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label={`${i18n.demo}: ${title}, ${i18n.newTab}`}
               data-analytics={`project_demo_${slug}`}
             >
               {i18n.demo} <ArrowMorph label={i18n.newTab} />
             </a>
           )}
-          {github && (
+          {github && !isPrivate && (
             <a
               class="project-action-link"
               href={github}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label={`GitHub: ${title}`}
               data-analytics={`project_github_${slug}`}
             >
               GitHub <ArrowMorph label={i18n.newTab} />

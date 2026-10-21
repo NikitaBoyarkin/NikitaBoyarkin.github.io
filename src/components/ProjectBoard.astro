@@ -85,7 +85,10 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
   <p id="project-empty" class="project-empty" hidden>
     {lang === 'en'
       ? 'No projects with this tool in this category.'
-      : 'В этой категории нет проектов с этим инструментом.'}
+      : 'В этой категории нет проектов с этим инструментом.'}{' '}
+    <button class="filter-tag" id="project-empty-reset" type="button">
+      {lang === 'en' ? 'Reset filters' : 'Сбросить фильтры'}
+    </button>
   </p>
 
   <div id="project-list" class:list={['project-track-grid', cover && 'project-board-cover']}>
@@ -127,10 +130,15 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
   if (board) {
     const root = board as HTMLElement;
     const lang: 'ru' | 'en' = document.documentElement.lang === 'en' ? 'en' : 'ru';
+    const noToolInTrack =
+      lang === 'en'
+        ? 'No projects use this tool in this category'
+        : 'Нет проектов с этим инструментом в этой категории';
     const storageKey = `project-order-${lang}`;
     const hintEl = document.getElementById('board-hint');
     const resetBtn = document.getElementById('board-reset');
     const emptyEl = document.getElementById('project-empty');
+    const emptyResetBtn = document.getElementById('project-empty-reset');
     const statusEl = document.getElementById('project-filter-status');
 
     const trackBtns = Array.from(
@@ -169,7 +177,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
       for (const btn of trackBtns) {
         const isActive = (btn.dataset.trackFilter || ALL_TRACKS) === activeTrack;
         btn.classList.toggle('active', isActive);
-        btn.setAttribute('aria-pressed', String(isActive));
+        btn.setAttribute('aria-checked', String(isActive));
       }
       for (const btn of toolBtns) {
         const isActive = (btn.dataset.toolFilter || ALL_TOOLS) === activeTool;
@@ -179,6 +187,9 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
 
       // Disable tool chips that cannot match inside the active category so a
       // click never lands on an empty board. The active chip stays operable.
+      // `aria-disabled`, not `disabled`: a real disabled button leaves the tab
+      // order and announces nothing, so a screen reader user never learns why
+      // the chip cannot be picked. The click handler below honours the state.
       const scope = activeTrack === ALL_TRACKS ? cards() : cardsOfTrack(activeTrack);
       const emptyKeys = emptyToolKeys(
         scope.map((card) => ({ tools: toolsOf(card) })),
@@ -187,8 +198,9 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
       for (const btn of toolBtns) {
         const key = btn.dataset.toolFilter || ALL_TOOLS;
         const disabled = key !== ALL_TOOLS && key !== activeTool && emptyKeys.includes(key);
-        btn.disabled = disabled;
         btn.setAttribute('aria-disabled', String(disabled));
+        if (disabled) btn.title = noToolInTrack;
+        else btn.removeAttribute('title');
       }
 
       if (emptyEl) emptyEl.hidden = visible > 0;
@@ -245,7 +257,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
 
     for (const btn of toolBtns) {
       btn.addEventListener('click', () => {
-        if (btn.disabled) return;
+        if (btn.getAttribute('aria-disabled') === 'true') return;
         const next = btn.dataset.toolFilter || ALL_TOOLS;
         if (next === activeTool) return;
         activeTool = next;
@@ -259,6 +271,18 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
       readUrl();
       apply();
       flash();
+    });
+
+    // The empty state's only offer: clear the category and the tool together,
+    // then hand focus back to the "All" tab — the Reset button is about to be
+    // hidden along with the empty block it sits in.
+    emptyResetBtn?.addEventListener('click', () => {
+      activeTrack = ALL_TRACKS;
+      activeTool = ALL_TOOLS;
+      apply();
+      flash();
+      history.replaceState(null, '', urlFor(ALL_TRACKS, ALL_TOOLS));
+      trackBtns[0]?.focus();
     });
 
     // --- Reorder: drag, keyboard (ArrowUp/Down) and reset, within one track ---

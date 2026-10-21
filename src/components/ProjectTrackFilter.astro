@@ -23,13 +23,14 @@ const allLabel = lang === 'en' ? 'All' : 'Все';
 
 <div
   class="filter-row project-track-filter reveal reveal-delay-1"
-  role="group"
+  role="radiogroup"
   aria-label={lang === 'en' ? 'Project category' : 'Категория проектов'}
 >
   <button
     class="filter-tag active"
     data-track-filter={ALL_TRACKS}
-    aria-pressed="true"
+    role="radio"
+    aria-checked="true"
     type="button"
   >
     <Icon name="filter" size={14} class="pill-icon" />
@@ -40,7 +41,8 @@ const allLabel = lang === 'en' ? 'All' : 'Все';
       <button
         class="filter-tag"
         data-track-filter={track.key}
-        aria-pressed="false"
+        role="radio"
+        aria-checked="false"
         type="button"
       >
         <Icon name="filter" size={14} class="pill-icon" />
