@@ -19,7 +19,7 @@ const indexUrl = withBase("search-index.json");
 // design-plans/explorer-surface.md §4). Stamped server-side like `indexUrl`, so
 // the client never resolves the locale itself.
 const explorerUrl = withBase(isEn ? "en/explorer/" : "explorer/");
-const topicLinks = TOPICS.map((t) => ({ l: t.label, h: withBase(`topics/${t.key}/`) }));
+const topicLinks = TOPICS.map((t) => ({ l: isEn ? t.labelEn : t.label, h: withBase(`topics/${t.key}/`) }));
 
 const i18n = {
   placeholder: isEn ? "Search projects & writing…" : "Поиск по проектам и записям…",

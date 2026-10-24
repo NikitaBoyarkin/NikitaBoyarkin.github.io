@@ -87,7 +87,7 @@ export const QA_CORPUS: QAPair[] = [
       question: "What's your stack?",
       answer:
         "SQL (DuckDB), Python (pandas, NumPy, SciPy, scikit-learn), A/B testing, retention analysis, segmentation (RFM), Tableau, automation (Telegram bots, cron). Visualization — Matplotlib / Seaborn / Streamlit.",
-      links: [{ label: "Topics", href: "en/topics/" }],
+      links: [{ label: "Topics", href: "topics/" }],
     },
   },
   {

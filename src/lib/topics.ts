@@ -7,6 +7,9 @@ export type TopicLevel = "junior" | "middle" | "senior" | "meta";
 export interface Topic {
   key: string;
   label: string;
+  /** EN label for surfaces that render on `/en/`. Topic *pages* stay RU-only,
+   *  so the link target is the same `/topics/<key>/` route in both locales. */
+  labelEn: string;
   level: TopicLevel;
   blurb: string;
   /** Canonical tag spellings for this topic — used for post matching and as
@@ -19,33 +22,36 @@ export interface Topic {
 function topic(
   key: string,
   label: string,
+  labelEn: string,
   level: TopicLevel,
   blurb: string,
   tags: string[],
 ): Topic {
-  return { key, label, level, blurb, tags, match: (t) => tags.includes(t) };
+  return { key, label, labelEn, level, blurb, tags, match: (t) => tags.includes(t) };
 }
 
 export const TOPICS: Topic[] = [
-  topic("sql", "SQL", "junior", "Запросы, оконные функции, агрегации — фундамент аналитика.", ["sql"]),
-  topic("python", "Python", "junior", "pandas, NumPy, воспроизводимые пайплайны данных.", [
+  topic("sql", "SQL", "SQL", "junior", "Запросы, оконные функции, агрегации — фундамент аналитика.", ["sql"]),
+  topic("python", "Python", "Python", "junior", "pandas, NumPy, воспроизводимые пайплайны данных.", [
     "python",
     "pandas",
   ]),
   topic(
     "ab-testing",
     "A/B-тестирование",
+    "A/B testing",
     "middle",
     "Методология экспериментов: дизайн, AA-тесты, поправки на множественные сравнения, байесовский вывод.",
     ["ab-testing", "bayesian", "statistics"],
   ),
-  topic("retention", "Retention / когорты", "middle", "Когортный анализ, кривые retention, отток.", [
+  topic("retention", "Retention / когорты", "Retention / cohorts", "middle", "Когортный анализ, кривые retention, отток.", [
     "retention",
     "cohort-analysis",
   ]),
   topic(
     "segmentation",
     "Сегментация",
+    "Segmentation",
     "middle",
     "RFM, поведенческие и денежные сегменты клиентов.",
     ["rfm", "segmentation", "customer-analytics"],
@@ -53,11 +59,12 @@ export const TOPICS: Topic[] = [
   topic(
     "automation",
     "Автоматизация",
+    "Automation",
     "middle",
     "Telegram-боты, отчётность, оркестрация пайплайнов.",
     ["automation", "telegram", "reporting"],
   ),
-  topic("career", "Карьера", "meta", "Портфолио, интервью, развитие data-аналитика.", [
+  topic("career", "Карьера", "Career", "meta", "Портфолио, интервью, развитие data-аналитика.", [
     "career",
     "portfolio",
     "data-analyst",
@@ -65,12 +72,14 @@ export const TOPICS: Topic[] = [
   topic(
     "causal-inference",
     "Causal-вывод",
+    "Causal inference",
     "senior",
     "Причинность вне рамок A/B: feature impact, разность разностей, синтетический контроль.",
     ["causal-inference", "feature-impact", "causal"],
   ),
   topic(
     "metric-design",
+    "Metric design",
     "Metric design",
     "senior",
     "North Star, дерево метрик, конфликты метрик и закон Гудхарта.",
