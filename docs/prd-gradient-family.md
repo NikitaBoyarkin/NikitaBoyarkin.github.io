@@ -42,7 +42,7 @@ Also: **axe/Lighthouse cannot measure text over a gradient**, which is why gradi
 | REQ-02 | Every colour stop is an **existing brand token** or `transparent`. A raw hex in a gradient token is a defect. |
 | REQ-03 | Because stops are `var()` references, they resolve per theme with no per-theme duplication. Per-theme blocks override **composition only** (a percentage), never colour. |
 | REQ-04 | No gradient is applied to text (`background-clip: text`). Section headings keep `--text-normal`; the accent lives in a rule/underline beside them. |
-| REQ-05 | Intensity is subtle: alpha ≤14% on large surfaces, so the accent area budget (≤15%, `DESIGN.md`) holds. `--gradient-page` is the widest member (α 6/7% over the whole viewport) and the first whose accent share is not provable from the recipe — it is re-measured by `scripts/audit-palette-coverage.mjs`. |
+| REQ-05 | Intensity is subtle: accent share ≤14% on large surfaces, so the accent area budget (≤15%, `DESIGN.md`) holds. `--gradient-page` is the widest member but carries no accent at all — a two-stop diagonal between two dominant surfaces — so the budget rests on the hero glow and the rule. `scripts/audit-palette-coverage.mjs` measures the rendered share. |
 | REQ-06 | A test binds the invariant: stop allowlist + worst-case ramp composite vs the text token that sits on that surface, with mutation control. |
 | REQ-07 | Gradients are removed under `@media print`, `@media (forced-colors: active)`, `@media (prefers-contrast: more)` — joining the wallpaper removal list at `DESIGN.md:303`. |
 | REQ-08 | `DESIGN.md` documents the family and names the binding test. |
@@ -119,7 +119,7 @@ Per-theme overrides — composition only:
 Open, deliberately not closed:
 
 - [ ] **Aesthetic judgement.** The probe proves each surface paints *a* gradient and that the collapse works; it cannot say the ramp looks right. Screenshots in `reports/gradient-shots/` await a human (or vision) pass.
-- [ ] **Route drift in §1/§5.** The surfaces are not on `/`. `#intro` and `.featured-card` live on the persona routes (`/hr/`, `/manager/`, `/colleague/`, plus EN), `.blog-card` on the writing routes (`/notes/`, `/en/writing/`, `/topics/*`). §1's table reads as if these were homepage rules — true of the source, misleading about where they render.
+- [ ] **Route drift in §1/§5.** The surfaces are not on `/`. `#intro` and `.featured-card` live on the persona routes (`/hr/`, `/manager/`, `/colleague/`, plus EN), `.blog-card` on the writing routes (`/notes/`, `/en/writing/`, `/topics/*`), `.project` on `/projects/`. §1's table reads as if these were homepage rules — true of the source, misleading about where they render. The probe's card surface therefore points at `/projects/`: `/colleague/` carries exactly one `.featured-card` and it is the hero variant, so requiring a card there asked for something the design deliberately omits.
 - [ ] **`.featured-card-hero` is deliberately unfilled.** On `/colleague/` the first `.featured-card` also carries `featured-card-hero`, and `.hero-visual .featured-card-hero` (`global.css:1414`) sets `background: none` at higher specificity — so the family reaches non-hero cards only. Verified, not a defect; §11's `.featured-card → --gradient-surface` holds for the non-hero class alone.
 
 ## 10. Evidence
@@ -134,7 +134,9 @@ Open, deliberately not closed:
 | Tokens and 4 application rules reach `dist` | Verified | grep on `dist/_astro/Base.*.css` |
 | The built CSS is bound, not just the source | Verified | `tests/built/gradient.test.ts`, 8 tests / 20 assertions, incl. 3 mutation controls |
 | The collapse is real in the engine | Verified | `probe-gradient.mjs`: under `print`, `forced-colors: active` and `prefers-contrast: more` the hero's `background-image` is `none` and no `--gradient-*` token still holds a gradient |
-| Every declared surface paints a gradient | Verified | same probe, `reports/gradient-shots/probe-gradient.json` (per-surface rows, three themes). **Computed style only** — it says the declaration parses, not that anything is perceptible. See the two rows below. |
+| Every declared surface paints a gradient | Verified | same probe, `reports/gradient-shots/probe-gradient.json` (per-surface rows, three themes). 42/48 rows carry a gradient; the six `none` rows are exactly the two collapse layers × three contexts. **Computed style only** — it says the declaration parses, not that anything is perceptible. See the two rows below. |
+| The page ground is a diagonal ramp, not a flat fill | Verified | probe, all three themes × four routes: `linear-gradient(135deg, rgb(20,0,195), rgb(22,0,159))` dark, `rgb(244,239,202) → rgb(255,255,255)` light, `rgb(23,23,23) → rgb(35,35,39)` cyberpunk. `body::after` computed `content: none` — the old wash layer is gone, so the lattice sits on the ramp. |
+| The probe no longer asks for an impossible surface | Verified | card surface moved from `/colleague/` (one `.featured-card`, hero variant, unfilled by design) to `/projects/` (23 `.project` cards); probe run reports 0 failures, 0 absences |
 | The gradients are *perceptible* | **Not verified — fails** | pixel diff, surface vs same surface with `--gradient-*: none`, dark theme, 1440×900: `#intro` meanΔ **0.04/255** (0.8% of pixels move >6), `.button` meanΔ **0** (maxΔ 0 — the `--button-bg`→`--button-bg-hover` ramp is between two visually identical tokens, so removing it changes nothing), `.blog-card` meanΔ 5.87 (66% of pixels), `.project` meanΔ 11.7. The hero glow, the surface the design was built around, is not visible. |
 | Aesthetic judgement | **Not verified** | screenshots in `reports/gradient-shots/`; owner reads them |
 | `.featured-card-hero` has no fill | Verified | computed `background-image: none`; cause is the `.hero-visual .featured-card-hero` specificity, not a broken token |
@@ -151,3 +153,12 @@ Committed as `5aabc3a` (owner) — `src/styles/global.css`, `src/styles/blog.css
 | `scripts/probe-gradient.mjs` | **new** — the browser pass: route-aware surfaces × three themes × two viewports, computed styles, hover, screenshots to `reports/gradient-shots/`, and REQ-07 across the three collapse contexts. |
 
 Rollback for the uncommitted pair: `git clean -n` then remove the two files.
+
+**Page ground, 2026-10-24 — uncommitted.** The owner asked for a gradient on the main background; variant B shipped: `--gradient-page` became a two-stop diagonal down the dominant-surface ladder, and the application moved from a fixed `body::after` wash to `html`, so the wallpaper lattice reads on top of the ramp instead of under a wash.
+
+| File | Change |
+|---|---|
+| `src/styles/global.css` | `--gradient-page` → `linear-gradient(135deg, var(--background-primary), var(--background-secondary))`; `html { background: var(--gradient-page) var(--background-primary) }`; `body::after` removed (opaque stops made the wash layer redundant) |
+| `DESIGN.md` | token-table row for `--gradient-page`; accent-budget bullet now rests on the hero glow and the rule only |
+| `tests/built/gradient.test.ts` | application note `html` (the selector moved with the token) |
+| `scripts/probe-gradient.mjs` | `page ground` surface on `html`; card surface moved to `/projects/` |

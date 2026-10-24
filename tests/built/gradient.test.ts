@@ -61,7 +61,7 @@ const APPLICATIONS = [
   { token: 'gradient-hero', note: '#intro::before' },
   { token: 'gradient-button', note: '.button' },
   { token: 'gradient-rule', note: '#projects h2::after' },
-  { token: 'gradient-page', note: 'body::after' },
+  { token: 'gradient-page', note: 'html' },
 ] as const;
 
 let ALL = '';

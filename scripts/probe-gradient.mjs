@@ -13,9 +13,11 @@
  * Does NOT prove they look right. That is the screenshots this writes; a human
  * (or a later vision pass) still owns the aesthetic judgement.
  *
- * Route note: the surfaces no longer sit on `/`. `#intro` and `.featured-card`
- * were found only on the persona routes, `.blog-card` only on the writing/notes
- * routes (grep over dist/*.html, 2026-10-11). Hence PAGES below.
+ * Route note: the surfaces no longer sit on `/`. `#intro` lives on the persona
+ * routes, `.blog-card` on the writing/notes routes, and `.project` on
+ * `/projects/` (grep over dist/*.html, 2026-10-11). `/colleague/` is not used
+ * for the card surface: its single `.featured-card` is also
+ * `.featured-card-hero`, which is unfilled by design. Hence PAGES below.
  */
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -34,7 +36,7 @@ const THEMES = ['dark', 'light', 'cyberpunk'];
 // Surfaces on the document itself: identical on every route, so they ride each
 // page's sweep rather than needing a page of their own.
 const GLOBAL_SURFACES = [
-  { label: 'page wash', token: 'gradient-page', sels: ['body::after'], required: true },
+  { label: 'page ground', token: 'gradient-page', sels: ['html'], required: true },
 ];
 
 const PAGES = [
@@ -48,10 +50,15 @@ const PAGES = [
     ],
   },
   {
-    path: '/colleague/',
+    // /colleague/ carries exactly one .featured-card and it also carries
+    // .featured-card-hero, which global.css:1414 deliberately leaves unfilled
+    // (docs/prd-gradient-family.md §9) — so requiring a card surface there asks
+    // for something the design says must not exist. /projects/ has 23 .project
+    // cards, all non-hero, which is the real home of --gradient-surface.
+    path: '/projects/',
     views: ['desktop'],
     surfaces: [
-      { label: 'featured card', token: 'gradient-surface', sels: ['.featured-card:not(.featured-card-hero)', '.project'], required: true },
+      { label: 'project card', token: 'gradient-surface', sels: ['.project'], required: true },
     ],
   },
   {
@@ -175,7 +182,7 @@ for (const c of CONTEXTS) {
   await page.emulateMedia(c.media);
   await page.waitForTimeout(200);
   const got = await readSurface(page, ['#intro::before', '#intro']);
-  const wash = await readSurface(page, ['body::after']);
+  const ground = await readSurface(page, ['html']);
   const tokens = await page.evaluate(() =>
     ['gradient-hero', 'gradient-surface', 'gradient-button', 'gradient-rule', 'gradient-page'].map((n) => [
       n,
@@ -196,13 +203,13 @@ for (const c of CONTEXTS) {
   }
   rows.push({
     tag: `@${c.name}`,
-    surface: 'page wash',
+    surface: 'page ground',
     token: '—',
-    sel: wash?.sel ?? 'none',
-    bg: wash?.bg ?? '',
+    sel: ground?.sel ?? 'none',
+    bg: ground?.bg ?? '',
   });
-  if (!wash) failures.push(`@${c.name}: body::after absent on /hr/ — cannot judge the reset`);
-  else check(!/gradient\(/.test(wash.bg), `@${c.name}: page wash still painted a gradient → ${wash.bg}`);
+  if (!ground) failures.push(`@${c.name}: html absent on /hr/ — cannot judge the reset`);
+  else check(!/gradient\(/.test(ground.bg), `@${c.name}: page ground still painted a gradient → ${ground.bg}`);
   const still = tokens.filter(([, val]) => /gradient\(/.test(val)).map(([n]) => n);
   check(still.length === 0, `@${c.name}: tokens not reset → ${still.join(', ') || '(none)'}`);
 }

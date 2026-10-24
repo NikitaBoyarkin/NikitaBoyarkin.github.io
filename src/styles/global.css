@@ -195,16 +195,20 @@
   );
   --gradient-button: linear-gradient(135deg, var(--button-bg), var(--button-bg-hover));
   --gradient-rule: linear-gradient(90deg, var(--text-accent) 0%, transparent 70%);
-  /* Full-page wash — the fifth surface, a coral→teal ramp over the page itself
-     (DESIGN.md, "Gradients"). Same family rules: token stops only, α ≤7% so the
-     accent-area budget still holds, and it collapses flat under print /
-     forced-colors / stronger contrast. Consumed by `body::after`, one layer
-     above the wallpaper lattice. */
+  /* Page ground — the fifth surface, and the only one that is not decoration:
+     it *is* the page itself (DESIGN.md, "Gradients"). A two-stop diagonal down
+     the dominant-surface ladder: the top-left keeps --background-primary and
+     the far corner settles one step along it, so the ground reads as a
+     direction rather than a flat indigo. No accent stop, so the accent-area
+     budget sees nothing from this token. Stops are opaque, which is why the
+     separate `body::after` wash layer is gone — the wallpaper lattice
+     (`body::before`) now sits directly on it. Consumed by `html`; collapses
+     flat under print / forced-colors / stronger contrast through its
+     background-color companion. */
   --gradient-page: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--text-accent) 6%, transparent) 0%,
-    color-mix(in srgb, var(--text-accent-dataviz) 7%, transparent) 55%,
-    transparent 100%
+    135deg,
+    var(--background-primary),
+    var(--background-secondary)
   );
 
   /* Spacing scale */
@@ -2630,8 +2634,10 @@ footer p {
 /* Smooth scroll behavior */
 html {
   scroll-behavior: smooth;
-  /* The page colour lives on the root so `body` can stay transparent. */
-  background-color: var(--background-primary);
+  /* The page ground lives on the root so `body` can stay transparent: the flat
+     --background-primary as the colour (what print/forced-colors fall back to
+     once --gradient-page collapses to `none`) plus the ramp as the image. */
+  background: var(--gradient-page) var(--background-primary);
 }
 
 /* Wallpaper: a flat-top honeycomb lattice behind every page (DESIGN.md).
@@ -2663,32 +2669,21 @@ body::before {
   mask-position: center;
 }
 
-/* The full-page wash (--gradient-page): a fixed layer over the lattice and
-   under the content. It shares `--z-decor` with `body::before`, so source order
-   decides — `::after` paints over `::before`, which tints the lattice rather
-   than sitting beneath it. */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-decor);
-  pointer-events: none;
-  background: var(--gradient-page);
-}
+/* The page ground ramp (--gradient-page) is applied to `html`, not to a fixed
+   overlay: it is opaque now, so a layer above the lattice would paint the
+   honeycomb out. */
 
 /* Forced-colours drops background images but not masks — a tinted lattice over
    a user-chosen high-contrast palette is noise, so opt out entirely. The same
    reasoning covers a user who asked the OS for stronger contrast directly. */
 @media (forced-colors: active) {
-  body::before,
-  body::after {
+  body::before {
     display: none;
   }
 }
 
 @media (prefers-contrast: more) {
-  body::before,
-  body::after {
+  body::before {
     display: none;
   }
 }

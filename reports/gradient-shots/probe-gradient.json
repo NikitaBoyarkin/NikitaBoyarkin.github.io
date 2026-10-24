@@ -22,14 +22,14 @@
       "surface": "primary button",
       "token": "--gradient-button",
       "sel": ".button",
-      "bg": "linear-gradient(135deg, rgb(254, 78, 2), rgb(255, 106, 31))"
+      "bg": "linear-gradient(135deg, rgb(23, 23, 23), rgb(46, 46, 46))"
     },
     {
       "tag": "dark/desktop/hr/",
-      "surface": "page wash",
+      "surface": "page ground",
       "token": "--gradient-page",
-      "sel": "body::after",
-      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+      "sel": "html",
+      "bg": "linear-gradient(135deg, rgb(20, 0, 195), rgb(22, 0, 159))"
     },
     {
       "tag": "dark/mobile/hr/",
@@ -50,56 +50,56 @@
       "surface": "primary button",
       "token": "--gradient-button",
       "sel": ".button",
-      "bg": "linear-gradient(135deg, rgb(254, 78, 2), rgb(255, 106, 31))"
+      "bg": "linear-gradient(135deg, rgb(23, 23, 23), rgb(46, 46, 46))"
     },
     {
       "tag": "dark/mobile/hr/",
-      "surface": "page wash",
+      "surface": "page ground",
       "token": "--gradient-page",
-      "sel": "body::after",
-      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+      "sel": "html",
+      "bg": "linear-gradient(135deg, rgb(20, 0, 195), rgb(22, 0, 159))"
     },
     {
-      "tag": "dark/desktop/colleague/",
-      "surface": "featured card",
+      "tag": "dark/desktop/projects/",
+      "surface": "project card",
       "token": "--gradient-surface",
       "sel": ".project",
-      "bg": "linear-gradient(rgb(26, 52, 53), color(srgb 0.0967843 0.199216 0.203137))"
+      "bg": "linear-gradient(rgb(13, 0, 104), color(srgb 0.0542745 0 0.450667))"
     },
     {
-      "tag": "dark/desktop/colleague/",
-      "surface": "page wash",
+      "tag": "dark/desktop/projects/",
+      "surface": "page ground",
       "token": "--gradient-page",
-      "sel": "body::after",
-      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+      "sel": "html",
+      "bg": "linear-gradient(135deg, rgb(20, 0, 195), rgb(22, 0, 159))"
     },
     {
-      "tag": "dark/desktop/colleague/",
+      "tag": "dark/desktop/projects/",
       "surface": "card hover",
       "token": "—",
       "sel": ".project",
-      "bg": "linear-gradient(rgb(26, 52, 53), color(srgb 0.0967843 0.199216 0.203137))"
+      "bg": "linear-gradient(rgb(13, 0, 104), color(srgb 0.0542745 0 0.450667))"
     },
     {
       "tag": "dark/desktop/notes/",
       "surface": "blog card",
       "token": "--gradient-surface",
       "sel": ".blog-card",
-      "bg": "linear-gradient(rgb(26, 52, 53), color(srgb 0.0967843 0.199216 0.203137))"
+      "bg": "linear-gradient(rgb(13, 0, 104), color(srgb 0.0542745 0 0.450667))"
     },
     {
       "tag": "dark/desktop/notes/",
-      "surface": "page wash",
+      "surface": "page ground",
       "token": "--gradient-page",
-      "sel": "body::after",
-      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+      "sel": "html",
+      "bg": "linear-gradient(135deg, rgb(20, 0, 195), rgb(22, 0, 159))"
     },
     {
       "tag": "dark/desktop/notes/",
       "surface": "card hover",
       "token": "—",
       "sel": ".blog-card",
-      "bg": "linear-gradient(rgb(26, 52, 53), color(srgb 0.0967843 0.199216 0.203137))"
+      "bg": "linear-gradient(rgb(13, 0, 104), color(srgb 0.0542745 0 0.450667))"
     },
     {
       "tag": "light/desktop/hr/",
@@ -120,14 +120,14 @@
       "surface": "primary button",
       "token": "--gradient-button",
       "sel": ".button",
-      "bg": "linear-gradient(135deg, rgb(254, 78, 2), rgb(255, 106, 31))"
+      "bg": "linear-gradient(135deg, rgb(23, 23, 23), rgb(46, 46, 46))"
     },
     {
       "tag": "light/desktop/hr/",
-      "surface": "page wash",
+      "surface": "page ground",
       "token": "--gradient-page",
-      "sel": "body::after",
-      "bg": "linear-gradient(color(srgb 0.658824 0.2 0.101961 / 0.06) 0%, color(srgb 0.0509804 0.45098 0.466667 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+      "sel": "html",
+      "bg": "linear-gradient(135deg, rgb(244, 239, 202), rgb(255, 255, 255))"
     },
     {
       "tag": "light/mobile/hr/",
@@ -148,31 +148,31 @@
       "surface": "primary button",
       "token": "--gradient-button",
       "sel": ".button",
-      "bg": "linear-gradient(135deg, rgb(254, 78, 2), rgb(255, 106, 31))"
+      "bg": "linear-gradient(135deg, rgb(23, 23, 23), rgb(46, 46, 46))"
     },
     {
       "tag": "light/mobile/hr/",
-      "surface": "page wash",
+      "surface": "page ground",
       "token": "--gradient-page",
-      "sel": "body::after",
-      "bg": "linear-gradient(color(srgb 0.658824 0.2 0.101961 / 0.06) 0%, color(srgb 0.0509804 0.45098 0.466667 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+      "sel": "html",
+      "bg": "linear-gradient(135deg, rgb(244, 239, 202), rgb(255, 255, 255))"
     },
     {
-      "tag": "light/desktop/colleague/",
-      "surface": "featured card",
+      "tag": "light/desktop/projects/",
+      "surface": "project card",
       "token": "--gradient-surface",
       "sel": ".project",
       "bg": "linear-gradient(rgb(248, 242, 218), color(srgb 0.971608 0.948314 0.851137))"
     },
     {
-      "tag": "light/desktop/colleague/",
-      "surface": "page wash",
+      "tag": "light/desktop/projects/",
+      "surface": "page ground",
       "token": "--gradient-page",
-      "sel": "body::after",
-      "bg": "linear-gradient(color(srgb 0.658824 0.2 0.101961 / 0.06) 0%, color(srgb 0.0509804 0.45098 0.466667 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+      "sel": "html",
+      "bg": "linear-gradient(135deg, rgb(244, 239, 202), rgb(255, 255, 255))"
     },
     {
-      "tag": "light/desktop/colleague/",
+      "tag": "light/desktop/projects/",
       "surface": "card hover",
       "token": "—",
       "sel": ".project",
@@ -187,10 +187,10 @@
     },
     {
       "tag": "light/desktop/notes/",
-      "surface": "page wash",
+      "surface": "page ground",
       "token": "--gradient-page",
-      "sel": "body::after",
-      "bg": "linear-gradient(color(srgb 0.658824 0.2 0.101961 / 0.06) 0%, color(srgb 0.0509804 0.45098 0.466667 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+      "sel": "html",
+      "bg": "linear-gradient(135deg, rgb(244, 239, 202), rgb(255, 255, 255))"
     },
     {
       "tag": "light/desktop/notes/",
@@ -222,10 +222,10 @@
     },
     {
       "tag": "cyberpunk/desktop/hr/",
-      "surface": "page wash",
+      "surface": "page ground",
       "token": "--gradient-page",
-      "sel": "body::after",
-      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+      "sel": "html",
+      "bg": "linear-gradient(135deg, rgb(23, 23, 23), rgb(35, 35, 39))"
     },
     {
       "tag": "cyberpunk/mobile/hr/",
@@ -250,52 +250,52 @@
     },
     {
       "tag": "cyberpunk/mobile/hr/",
-      "surface": "page wash",
+      "surface": "page ground",
       "token": "--gradient-page",
-      "sel": "body::after",
-      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+      "sel": "html",
+      "bg": "linear-gradient(135deg, rgb(23, 23, 23), rgb(35, 35, 39))"
     },
     {
-      "tag": "cyberpunk/desktop/colleague/",
-      "surface": "featured card",
+      "tag": "cyberpunk/desktop/projects/",
+      "surface": "project card",
       "token": "--gradient-surface",
       "sel": ".project",
-      "bg": "linear-gradient(rgb(17, 17, 29), color(srgb 0.0633726 0.0633726 0.108549))"
+      "bg": "linear-gradient(rgb(35, 35, 39), color(srgb 0.131608 0.131608 0.145412))"
     },
     {
-      "tag": "cyberpunk/desktop/colleague/",
-      "surface": "page wash",
+      "tag": "cyberpunk/desktop/projects/",
+      "surface": "page ground",
       "token": "--gradient-page",
-      "sel": "body::after",
-      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+      "sel": "html",
+      "bg": "linear-gradient(135deg, rgb(23, 23, 23), rgb(35, 35, 39))"
     },
     {
-      "tag": "cyberpunk/desktop/colleague/",
+      "tag": "cyberpunk/desktop/projects/",
       "surface": "card hover",
       "token": "—",
       "sel": ".project",
-      "bg": "linear-gradient(rgb(17, 17, 29), color(srgb 0.0633726 0.0633726 0.108549))"
+      "bg": "linear-gradient(rgb(35, 35, 39), color(srgb 0.131608 0.131608 0.145412))"
     },
     {
       "tag": "cyberpunk/desktop/notes/",
       "surface": "blog card",
       "token": "--gradient-surface",
       "sel": ".blog-card",
-      "bg": "linear-gradient(rgb(17, 17, 29), color(srgb 0.0633726 0.0633726 0.108549))"
+      "bg": "linear-gradient(rgb(35, 35, 39), color(srgb 0.131608 0.131608 0.145412))"
     },
     {
       "tag": "cyberpunk/desktop/notes/",
-      "surface": "page wash",
+      "surface": "page ground",
       "token": "--gradient-page",
-      "sel": "body::after",
-      "bg": "linear-gradient(color(srgb 1 0.521569 0.411765 / 0.06) 0%, color(srgb 0.305882 0.803922 0.768627 / 0.07) 55%, rgba(0, 0, 0, 0) 100%)"
+      "sel": "html",
+      "bg": "linear-gradient(135deg, rgb(23, 23, 23), rgb(35, 35, 39))"
     },
     {
       "tag": "cyberpunk/desktop/notes/",
       "surface": "card hover",
       "token": "—",
       "sel": ".blog-card",
-      "bg": "linear-gradient(rgb(17, 17, 29), color(srgb 0.0633726 0.0633726 0.108549))"
+      "bg": "linear-gradient(rgb(35, 35, 39), color(srgb 0.131608 0.131608 0.145412))"
     },
     {
       "tag": "@print",
@@ -306,9 +306,9 @@
     },
     {
       "tag": "@print",
-      "surface": "page wash",
+      "surface": "page ground",
       "token": "—",
-      "sel": "body::after",
+      "sel": "html",
       "bg": "none"
     },
     {
@@ -320,9 +320,9 @@
     },
     {
       "tag": "@forced-colors",
-      "surface": "page wash",
+      "surface": "page ground",
       "token": "—",
-      "sel": "body::after",
+      "sel": "html",
       "bg": "none"
     },
     {
@@ -334,11 +334,11 @@
     },
     {
       "tag": "@prefers-contrast:more",
-      "surface": "page wash",
+      "surface": "page ground",
       "token": "—",
-      "sel": "body::after",
+      "sel": "html",
       "bg": "none"
     }
   ],
-  "generatedAt": "2026-10-11T14:39:26.078Z"
+  "generatedAt": "2026-10-24T12:32:57.696Z"
 }
