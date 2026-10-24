@@ -61,8 +61,8 @@ Existing dashboards **1994322 «Рекрутер»** and **2024833 «Портф�
 | Dashboard | Tiles |
 |---|---|
 | «Контент и вовлечение» | post_read by slug; read_depth 50 & 100; search_used vs search_no_results; top search queries (events table); ask_me_used total vs answer_matched=true; random_post_click |
-| «RU vs EN» | $pageview by locale; lang_switched; project_viewed by locale; contact CTAs (cv_download_pdf, telegram_contact, booking_click) by locale |
-| «Контакт-конверсия 30д» | funnel $pageview "/" → project_viewed → cv_download_pdf; contact CTA trends; outbound_click by domain; $pageview by utm_source |
+| «RU vs EN» | $pageview by locale; lang_switched; project_viewed by locale; contact CTAs (telegram_contact, booking_click) by locale |
+| «Контакт-конверсия 30д» | funnel $pageview "/" → project_viewed → booking_click; contact CTA trends; outbound_click by domain; $pageview by utm_source |
 | «Games» | game_started unique users by game; funnel game_selected → game_started → game_win; daily_completed trend; contact_click by channel |
 
 All v1 tiles are last 30 days, daily interval. Insights use the `query` node format (`TrendsQuery` / `FunnelsQuery` / `EventsQuery`) — the legacy top-level `filters` field is blocked by the API and is not used.
@@ -101,7 +101,7 @@ Optional environment overrides: `POSTHOG_PROJECT_ID` (default `451732`), `POSTHO
 - **A failed tile read aborts that dashboard, it does not look "empty".** `existing_tiles` returns `None` (not `{}`) when the GET fails; the dashboard is skipped and reported. Treating a dropped connection as "no tiles" is what duplicated all nine tiles of dashboard 03 on 2026-10-18 before this was fixed; the duplicates were soft-deleted.
 - **`dynamic=True` tiles are re-synced, the rest are skipped.** Use it for tiles whose query is generated from the repo (see the dead-event detector below).
 - **Failures are contained and reported.** Any 4xx/5xx body goes to stderr, the run continues, and the exit code is non-zero when something failed — so a partial run is visible instead of silent. If the initial dashboard listing fails, the run aborts (rather than risk duplicates).
-- **Funnel OR-steps.** A step that is "any of these events" is a `GroupNode` with `operator: "OR"` — that is how the contact step covers CV / Telegram / LinkedIn / GitHub / cal.com, and how the home step covers `/`, `/en/` and the legacy base.
+- **Funnel OR-steps.** A step that is "any of these events" is a `GroupNode` with `operator: "OR"` — that is how the contact step covers Telegram / LinkedIn / GitHub / cal.com, and how the home step covers `/`, `/en/` and the legacy base.
 - **HogQL tiles are `DataTableNode`.** A top-level `DataTableNode` wrapping `HogQLQuery` is accepted; wrapping it in `InsightVizNode` is not (400: no `DataTableNode` tag).
 
 ## Verified API shapes (2026-10-18)
