@@ -42,7 +42,7 @@ Also: **axe/Lighthouse cannot measure text over a gradient**, which is why gradi
 | REQ-02 | Every colour stop is an **existing brand token** or `transparent`. A raw hex in a gradient token is a defect. |
 | REQ-03 | Because stops are `var()` references, they resolve per theme with no per-theme duplication. Per-theme blocks override **composition only** (a percentage), never colour. |
 | REQ-04 | No gradient is applied to text (`background-clip: text`). Section headings keep `--text-normal`; the accent lives in a rule/underline beside them. |
-| REQ-05 | Intensity is subtle: accent share ≤14% on large surfaces, so the accent area budget (≤15%, `DESIGN.md`) holds. `--gradient-page` is the widest member but carries no accent at all — a two-stop diagonal between two dominant surfaces — so the budget rests on the hero glow and the rule. `scripts/audit-palette-coverage.mjs` measures the rendered share. |
+| REQ-05 | Intensity is subtle: accent share ≤14% on large surfaces, so the accent area budget (≤15%, `DESIGN.md`) holds. `--gradient-page` is the widest member but carries no accent at all — a three-stop diagonal across dominant surfaces — so the budget rests on the hero glow and the rule. `scripts/audit-palette-coverage.mjs` measures the rendered share. |
 | REQ-06 | A test binds the invariant: stop allowlist + worst-case ramp composite vs the text token that sits on that surface, with mutation control. |
 | REQ-07 | Gradients are removed under `@media print`, `@media (forced-colors: active)`, `@media (prefers-contrast: more)` — joining the wallpaper removal list at `DESIGN.md:303`. |
 | REQ-08 | `DESIGN.md` documents the family and names the binding test. |
@@ -154,11 +154,11 @@ Committed as `5aabc3a` (owner) — `src/styles/global.css`, `src/styles/blog.css
 
 Rollback for the uncommitted pair: `git clean -n` then remove the two files.
 
-**Page ground, 2026-10-24 — uncommitted.** The owner asked for a gradient on the main background; variant B shipped: `--gradient-page` became a two-stop diagonal down the dominant-surface ladder, and the application moved from a fixed `body::after` wash to `html`, so the wallpaper lattice reads on top of the ramp instead of under a wash.
+**Page ground, 2026-10-24 — uncommitted.** The owner asked for a gradient on the main background; variant B shipped: `--gradient-page` became a diagonal down the dominant-surface ladder, and the application moved from a fixed `body::after` wash to `html`, so the wallpaper lattice reads on top of the ramp instead of under a wash. A follow-up in the same session added the third stop: the two-stop ramp interpolated `--background-primary` → `--background-secondary`, which are one near-identical step apart in the dark theme, so the direction was invisible. `--card-background` closes the ramp and the diagonal now reads.
 
 | File | Change |
 |---|---|
-| `src/styles/global.css` | `--gradient-page` → `linear-gradient(135deg, var(--background-primary), var(--background-secondary))`; `html { background: var(--gradient-page) var(--background-primary) }`; `body::after` removed (opaque stops made the wash layer redundant) |
+| `src/styles/global.css` | `--gradient-page` → `linear-gradient(135deg, var(--background-primary) 0%, var(--background-secondary) 55%, var(--card-background) 100%)`; `html { background: var(--gradient-page) var(--background-primary) }`; `body::after` removed (opaque stops made the wash layer redundant) |
 | `DESIGN.md` | token-table row for `--gradient-page`; accent-budget bullet now rests on the hero glow and the rule only |
 | `tests/built/gradient.test.ts` | application note `html` (the selector moved with the token) |
 | `scripts/probe-gradient.mjs` | `page ground` surface on `html`; card surface moved to `/projects/` |

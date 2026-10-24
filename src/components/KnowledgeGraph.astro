@@ -411,7 +411,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
 
 <script>
   import { GRAPH_SECTION_COLORS, GRAPH_COMMUNITY_COLORS, NODE_SIZE, isDirected } from '../lib/graph';
-  import { clampZoom, viewBoxOf, zoomAt, panBy, centerOn } from '../lib/graph-zoom';
+  import { clampZoom, viewBoxOf, zoomAt, panBy, centerOn, readableZoom } from '../lib/graph-zoom';
   import { decodeGraphState, encodeGraphState } from '../lib/graph-url';
   import { easeTo, physicsParams, stepSim, type Point, type SimLink, type SimNode } from '../lib/graph-physics';
   import { nodeKindOf } from '../lib/graph-tooltip';
@@ -448,6 +448,11 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
 
   // World size must match the SSR viewBox (see the template above).
   const world = { w: 900, h: 560 };
+  // The label size is read from the rendered label below, never re-declared:
+  // `.kg-label`'s font-size is the one number this zoom depends on, and a second
+  // copy of it here would drift silently.
+  const READABLE_LABEL_PX = 11;
+  const MAX_READABLE_ZOOM = 3.2;
   // Must match the label font-size in the component styles and the build-time
   // placement call in the template above.
   const LABEL_FONT_SIZE = 11;
@@ -916,8 +921,25 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
   }
 
+  /** Zoom that keeps the labels legible in CSS pixels. On a phone the world is
+   *  scaled to ~0.35 CSS px per unit, so an 11px label renders under 5px — the
+   *  reset view opens zoomed in on the centre instead, and the reader pans from
+   *  there. At desktop width the multiplier is already 1, so nothing changes. */
+  function initialZoom() {
+    const labelEl = svg.querySelector('.kg-label');
+    if (!labelEl) return 1;
+    const labelPx = parseFloat(getComputedStyle(labelEl).fontSize) || 11;
+    return readableZoom(
+      svg.getBoundingClientRect().width,
+      world.w,
+      labelPx,
+      READABLE_LABEL_PX,
+      MAX_READABLE_ZOOM,
+    );
+  }
+
   function resetViewport() {
-    vp = centerOn({ x: 0, y: 0, k: 1 }, { x: world.w / 2, y: world.h / 2 }, 1, world);
+    vp = centerOn({ x: 0, y: 0, k: 1 }, { x: world.w / 2, y: world.h / 2 }, initialZoom(), world);
     applyViewport();
   }
 

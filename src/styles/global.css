@@ -196,19 +196,23 @@
   --gradient-button: linear-gradient(135deg, var(--button-bg), var(--button-bg-hover));
   --gradient-rule: linear-gradient(90deg, var(--text-accent) 0%, transparent 70%);
   /* Page ground — the fifth surface, and the only one that is not decoration:
-     it *is* the page itself (DESIGN.md, "Gradients"). A two-stop diagonal down
-     the dominant-surface ladder: the top-left keeps --background-primary and
-     the far corner settles one step along it, so the ground reads as a
-     direction rather than a flat indigo. No accent stop, so the accent-area
-     budget sees nothing from this token. Stops are opaque, which is why the
-     separate `body::after` wash layer is gone — the wallpaper lattice
-     (`body::before`) now sits directly on it. Consumed by `html`; collapses
-     flat under print / forced-colors / stronger contrast through its
+     it *is* the page itself (DESIGN.md, "Gradients"). A three-stop diagonal
+     down the dominant-surface ladder: the top-left keeps --background-primary,
+     the middle holds --background-secondary, and the far corner settles on
+     --card-background, so the ground reads as a direction rather than a flat
+     indigo. The third stop is what makes the direction visible: primary and
+     secondary are one near-identical step apart in the dark theme, so a
+     two-stop ramp was indistinguishable from the flat colour. No accent stop,
+     so the accent-area budget sees nothing from this token. Stops are opaque,
+     which is why the separate `body::after` wash layer is gone — the wallpaper
+     lattice (`body::before`) now sits directly on it. Consumed by `html`;
+     collapses flat under print / forced-colors / stronger contrast through its
      background-color companion. */
   --gradient-page: linear-gradient(
     135deg,
-    var(--background-primary),
-    var(--background-secondary)
+    var(--background-primary) 0%,
+    var(--background-secondary) 55%,
+    var(--card-background) 100%
   );
 
   /* Spacing scale */
@@ -872,7 +876,6 @@ nav ul.links a[aria-current="page"] {
   padding: var(--space-6) 0;
   position: relative;
   overflow: hidden;
-  max-height: 75vh;
 }
 
 #intro::before {
@@ -1134,7 +1137,6 @@ nav ul.links a[aria-current="page"] {
    identity column on the left and a dataviz panel on the right.
    ============================================================ */
 #intro:has(.hero-editorial) {
-  max-height: none;
   /* Homepage hero must fit one 800px viewport unscrolled. The footer's own
      margin-top (32px) collapses with this section's margin, so the bottom
      padding is the only lever that actually moves page height. */

@@ -5,6 +5,7 @@ import {
   zoomAt,
   panBy,
   centerOn,
+  readableZoom,
   MIN_ZOOM,
   MAX_ZOOM,
 } from '../../src/lib/graph-zoom';
@@ -61,5 +62,37 @@ describe('graph-zoom viewport math', () => {
     // The viewBox window is centered on the target.
     expect(vb.x + vb.w / 2).toBeCloseTo(800, 5);
     expect(vb.y + vb.h / 2).toBeCloseTo(200, 5);
+  });
+});
+
+// The phone case: the 900×560 world in a 360px-wide SVG renders the 11px
+// labels at ~4.4 CSS px, which is why the graph opened unreadable. These bind
+// the zoom that restores them and its two edges.
+describe('readableZoom', () => {
+  const LABEL = 11;
+  const READABLE = 11;
+  const CAP = 3.2;
+
+  it('is exactly 1 wherever the labels already render at the target size', () => {
+    // 900 world units in a 900px SVG: 1 CSS px per unit, an 11px label stays 11.
+    expect(readableZoom(900, 900, LABEL, READABLE, CAP)).toBe(1);
+    // Wider than the world — a desktop board never opens zoomed in.
+    expect(readableZoom(1440, 900, LABEL, READABLE, CAP)).toBe(1);
+  });
+
+  it('zooms in on a phone until the label reaches the target size', () => {
+    const k = readableZoom(360, 900, LABEL, READABLE, CAP);
+    expect(k).toBeCloseTo(2.5, 5);
+    // The claim that matters: the rendered label is the target size.
+    expect((360 / 900) * k * LABEL).toBeCloseTo(READABLE, 5);
+  });
+
+  it('is capped, so a very narrow SVG does not zoom into a dot', () => {
+    const k = readableZoom(200, 900, LABEL, READABLE, CAP);
+    expect(k).toBe(CAP);
+  });
+
+  it('falls back to 1 when the SVG has no width yet (pre-layout)', () => {
+    expect(readableZoom(0, 900, LABEL, READABLE, CAP)).toBe(1);
   });
 });

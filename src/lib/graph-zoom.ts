@@ -62,3 +62,25 @@ export function centerOn(
   const h = world.h / clamped;
   return { x: target.x - w / 2, y: target.y - h / 2, k: clamped };
 }
+
+/**
+ * Zoom at which a label of `labelWorldPx` world units renders at least
+ * `readablePx` CSS pixels in an SVG `viewportWidth` wide.
+ *
+ * At `k = 1` the whole world fits the viewport, so one world unit is
+ * `viewportWidth / worldWidth` CSS pixels — on a 360px phone the 11px labels
+ * come out at ~4.4px, legible as texture rather than text. This returns the
+ * multiplier that restores them, capped at `maxZoom` and at 1 so a wide
+ * viewport is never zoomed in on load.
+ */
+export function readableZoom(
+  viewportWidth: number,
+  worldWidth: number,
+  labelWorldPx: number,
+  readablePx: number,
+  maxZoom: number,
+): number {
+  if (viewportWidth <= 0) return 1;
+  const k = (worldWidth * readablePx) / (labelWorldPx * viewportWidth);
+  return Math.min(maxZoom, Math.max(1, k));
+}
