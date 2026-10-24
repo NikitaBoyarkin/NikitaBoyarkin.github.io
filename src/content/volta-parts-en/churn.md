@@ -49,7 +49,7 @@ I treated churn as a lever-selection problem: first compared models, then looked
 
 ### Local SHAP
 
-![SHAP breakdown of a single prediction](/images/volta/churn_shap_local.png)
+<img src="/images/volta/churn_shap_local.png" alt="SHAP breakdown of a single prediction" width="1464" height="842" loading="lazy" decoding="async" />
 
 *Why one specific user is high risk: each feature's contribution.*
 

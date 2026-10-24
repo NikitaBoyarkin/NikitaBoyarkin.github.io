@@ -49,7 +49,7 @@ github: https://github.com/NikitaBoyarkin/case-churn
 
 ### Локальный SHAP
 
-![SHAP-разбор отдельного прогноза](/images/volta/churn_shap_local.png)
+<img src="/images/volta/churn_shap_local.png" alt="SHAP-разбор отдельного прогноза" width="1464" height="842" loading="lazy" decoding="async" />
 
 *Почему конкретный пользователь получил высокий риск: вклад каждого признака.*
 
