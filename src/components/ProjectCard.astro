@@ -29,7 +29,9 @@ interface Props {
   track?: string;
   /** Localized track name, printed as the card's eyebrow badge. */
   trackLabel?: string;
-  /** Enable HTML5 drag on the card (kanban board reorder). */
+  /** Make the card reorderable. Renders `data-reorder` (styling + the grip);
+   *  the board's script turns on native HTML5 drag only where the pointer is
+   *  fine, and drives a long-press gesture everywhere else. */
   draggable?: boolean;
   /** Board teaser: clamps the description, the impact line and the tool chips,
    *  so a row of cards stays level. The full text lives on the project page. */
@@ -60,7 +62,7 @@ const i18n = {
 };
 ---
 
-<article class={`project reveal${compact ? ' compact' : ''}`} data-tools={(tools ?? []).join(',').toLowerCase()} data-track={track} data-slug={slug} draggable={draggable ? 'true' : undefined} tabindex={draggable ? '0' : undefined}>
+<article class={`project reveal${compact ? ' compact' : ''}`} data-tools={(tools ?? []).join(',').toLowerCase()} data-track={track} data-slug={slug} data-reorder={draggable ? 'true' : undefined} tabindex={draggable ? '0' : undefined}>
   <span class="project-grip" aria-hidden="true"><span></span><span></span><span></span></span>
   {draggable && (
     <span class="visually-hidden">

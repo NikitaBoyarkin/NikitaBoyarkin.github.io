@@ -120,6 +120,7 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
 
 <script>
   import { track } from '../lib/analytics';
+  import { columnCount, insertionAfter } from '../lib/board-reorder';
   import { ALL_TOOLS, ALL_TRACKS, emptyToolKeys, matchesTool } from '../lib/projects';
 
   // One controller for the whole board: category tabs + tool chips share the
@@ -420,6 +421,196 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
     });
 
     root.addEventListener('dragend', clearDrag);
+
+    // --- Touch reorder: hold, then drag with pointer events ---
+    // HTML5 `dragstart` never fires from a touch pointer, so coarse pointers get
+    // a second path: hold a card ~0.4s, then move it. Reorder, persistence and
+    // the hint are shared with the drag path; only the gesture differs. Arrow
+    // keys stay the third path.
+    const LONG_PRESS_MS = 400;
+    const MOVE_TOLERANCE_PX = 10;
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+
+    // Native drag for fine pointers only. Left on for touch it races the hold:
+    // iOS starts its own HTML5 drag from the same long press.
+    if (!coarse) {
+      for (const card of root.querySelectorAll<HTMLElement>('.project[data-reorder="true"]')) {
+        card.draggable = true;
+      }
+    }
+
+    let pressTimer: ReturnType<typeof setTimeout> | undefined;
+    let pressCard: HTMLElement | null = null;
+    let pressPointer = -1;
+    let pressX = 0;
+    let pressY = 0;
+    let touchCard: HTMLElement | null = null;
+    let touchTrack = '';
+    let touchOver: HTMLElement | null = null;
+    let swallowClick = false;
+    let dragX = 0;
+    let dragY = 0;
+    let autoScroll = 0;
+
+    function cancelPress(): void {
+      if (pressTimer) clearTimeout(pressTimer);
+      pressTimer = undefined;
+      pressCard = null;
+      pressPointer = -1;
+    }
+
+    function markOver(card: HTMLElement | null): void {
+      if (touchOver === card) return;
+      touchOver?.classList.remove('drag-over');
+      touchOver = card;
+      touchOver?.classList.add('drag-over');
+    }
+
+    // Hit-testing, not `e.target`: pointer capture retargets the events to the
+    // board, so the card under the finger has to be looked up by position.
+    function cardUnder(x: number, y: number): HTMLElement | null {
+      const hit = document.elementFromPoint(x, y) as HTMLElement | null;
+      const card = hit?.closest<HTMLElement>('.project') ?? null;
+      return card && card !== touchCard && card.dataset.track === touchTrack ? card : null;
+    }
+
+    function endTouchDrag(): void {
+      touchCard?.classList.remove('dragging');
+      markOver(null);
+      if (autoScroll) cancelAnimationFrame(autoScroll);
+      autoScroll = 0;
+      touchCard = null;
+      touchTrack = '';
+    }
+
+    // A board card is taller than half a phone screen, so the next card's
+    // midpoint — where the insertion flips — is off-screen at the start of a
+    // drag. Holding the finger near an edge walks the page under it, which is
+    // the only way to reach that midpoint without a second gesture.
+    function edgeScrollStep(): void {
+      if (!touchCard) {
+        autoScroll = 0;
+        return;
+      }
+      const EDGE = 96;
+      const STEP = 14;
+      const height = window.innerHeight;
+      let dy = 0;
+      if (dragY < EDGE) dy = -(1 - dragY / EDGE) * STEP;
+      else if (dragY > height - EDGE) dy = Math.min(1, (dragY - (height - EDGE)) / EDGE) * STEP;
+      if (dy) {
+        window.scrollBy(0, dy);
+        markOver(cardUnder(dragX, dragY));
+      }
+      autoScroll = requestAnimationFrame(edgeScrollStep);
+    }
+
+    root.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch' || touchCard) return;
+      const target = e.target as HTMLElement;
+      // A hold on a link or a button is the user's own gesture, not a drag.
+      if (target.closest('a, button')) return;
+      const card = target.closest<HTMLElement>('.project');
+      if (!card || !root.contains(card) || card.dataset.reorder !== 'true') return;
+      cancelPress();
+      pressCard = card;
+      pressPointer = e.pointerId;
+      pressX = e.clientX;
+      pressY = e.clientY;
+      pressTimer = setTimeout(() => {
+        const held = pressCard;
+        const pointerId = pressPointer;
+        cancelPress();
+        if (!held) return;
+        try {
+          root.setPointerCapture(pointerId);
+        } catch {
+          /* the pointer was released before the hold completed */
+        }
+        touchCard = held;
+        touchTrack = held.dataset.track || '';
+        dragX = pressX;
+        dragY = pressY;
+        held.classList.add('dragging');
+        navigator.vibrate?.(10);
+        if (!autoScroll) autoScroll = requestAnimationFrame(edgeScrollStep);
+      }, LONG_PRESS_MS);
+    });
+
+    root.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'touch') return;
+      if (touchCard) {
+        dragX = e.clientX;
+        dragY = e.clientY;
+        markOver(cardUnder(dragX, dragY));
+        return;
+      }
+      // Moving before the hold completes means the user is scrolling.
+      if (pressCard && Math.hypot(e.clientX - pressX, e.clientY - pressY) > MOVE_TOLERANCE_PX) {
+        cancelPress();
+      }
+    });
+
+    // A pointer handler cannot cancel a scroll, and `touch-action` cannot change
+    // mid-gesture — so the move itself has to be eaten. Idle unless a drag runs.
+    root.addEventListener(
+      'touchmove',
+      (e) => {
+        if (touchCard) e.preventDefault();
+      },
+      { passive: false },
+    );
+
+    root.addEventListener('pointerup', (e) => {
+      if (e.pointerType !== 'touch') return;
+      cancelPress();
+      if (!touchCard) return;
+      const card = touchCard;
+      const target = touchOver;
+      endTouchDrag();
+      // A hold that became a drag must not also open the card's link.
+      swallowClick = true;
+      setTimeout(() => {
+        swallowClick = false;
+      }, 400);
+      if (!target) return;
+      const after = insertionAfter(
+        columnCount(getComputedStyle(root).gridTemplateColumns),
+        { x: e.clientX, y: e.clientY },
+        target.getBoundingClientRect(),
+      );
+      const ref = after ? target.nextSibling : target;
+      // A hold released without crossing the target's midpoint leaves the card
+      // where it was: don't persist an unchanged order or claim it was saved.
+      if (card === ref || card.nextSibling === ref) return;
+      root.insertBefore(card, ref);
+      writeOrder(currentOrder());
+      showHint(hintEl?.dataset.saved || 'Saved');
+    });
+
+    root.addEventListener('pointercancel', () => {
+      cancelPress();
+      endTouchDrag();
+    });
+
+    root.addEventListener(
+      'click',
+      (e) => {
+        if (!swallowClick) return;
+        swallowClick = false;
+        e.preventDefault();
+        e.stopPropagation();
+      },
+      true,
+    );
+
+    // The long-press menu and Android's text selection would otherwise open in
+    // the middle of a drag.
+    root.addEventListener('contextmenu', (e) => {
+      if (touchCard) e.preventDefault();
+    });
+
+    window.addEventListener('scroll', cancelPress, { passive: true });
 
     // Keyboard reorder (WCAG 2.1.1 / 2.5.7): ArrowUp/ArrowDown moves the focused
     // card one slot within its own track. Drag stays the pointer enhancement.

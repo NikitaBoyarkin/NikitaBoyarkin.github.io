@@ -1826,9 +1826,13 @@ nav ul.links a[aria-current="page"] {
   min-width: 0;
 }
 
-/* The drag grip spans the card's full width above cover and body. */
+/* The drag grip spans the card's full width above cover and body. `flex-basis:
+   100%` gives it a row of its own; without `align-self: stretch` the card's
+   `align-items: flex-start` still shrinks it to the three dots (18px) and the
+   dotted separator stops being a separator. */
 .project.compact .project-grip {
   flex-basis: 100%;
+  align-self: stretch;
 }
 
 .project h3 {
@@ -3620,11 +3624,14 @@ textarea::placeholder {
   }
 }
 
-/* Grip handle — only a draggable card (the board's) has one. */
+/* Grip handle — only a reorderable card (the board's) has one. Keyed on
+   `data-reorder`, not `draggable`: the board sets the `draggable` attribute at
+   runtime for fine pointers only, so a touch-only card keeps its grip while
+   the browser's own drag gesture stays off. */
 .project-grip {
   display: none;
 }
-.project[draggable='true'] .project-grip {
+.project[data-reorder='true'] .project-grip {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -3635,7 +3642,7 @@ textarea::placeholder {
   border-bottom: 1px dashed color-mix(in srgb, var(--border-color) 60%, transparent);
   cursor: grab;
 }
-.project[draggable='true'] .project-grip:active {
+.project[data-reorder='true'] .project-grip:active {
   cursor: grabbing;
 }
 .project-grip span {
@@ -3643,6 +3650,16 @@ textarea::placeholder {
   height: 4px;
   border-radius: 50%;
   background: var(--text-muted);
+}
+
+/* Holding a reorderable card *is* the touch drag gesture, so the same hold
+   must not also start a text selection or open the iOS callout. */
+@media (pointer: coarse) {
+  .project[data-reorder='true'] {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
 }
 
 /* ============================================================
