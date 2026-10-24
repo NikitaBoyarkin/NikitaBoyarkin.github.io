@@ -72,7 +72,9 @@
      1140px column (all measured at 1440px). `/en/writing/` (2 posts) had the same
      580px cards. `auto-fill` keeps the track, so a card is the same size whatever
      the filter and however few posts a page has. */
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  /* `min(300px, 100%)`: a fixed 300px floor cannot shrink, so at 320px every
+     card was 300px wide inside a 290px slot and the card scrolled sideways. */
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: var(--space-5);
 }
 

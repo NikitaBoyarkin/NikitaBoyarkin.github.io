@@ -1688,7 +1688,8 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
        is `--space-4`: at `--space-5` the 40px of vertical padding left the
        drawing 5px *shorter* than the board it replaced on a 700px-tall window
        (513px vs 518px). */
-    padding: var(--space-4) var(--page-pad);
+    padding: calc(var(--space-4) + env(safe-area-inset-top)) var(--page-pad)
+      calc(var(--space-4) + env(safe-area-inset-bottom));
     /* No hairline frame: the border would be drawn flush against the window
        edge, and it is 2px the drawing cannot have (which is what made the
        overlay 343px wide against the bare board's 345px at 375px). */
@@ -2047,7 +2048,8 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     background: var(--background-primary);
     color: var(--text-normal);
     border-radius: var(--radius-sm);
-    font-size: 0.85rem;
+    /* iOS zooms the page on focus below 16px and does not zoom back out. */
+    font-size: 1rem;
     font-family: var(--font-sans);
   }
   .kg-search-input:focus {

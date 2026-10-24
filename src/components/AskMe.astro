@@ -496,7 +496,8 @@ const X_D = "M6 6l12 12M6 18L18 6";
     border: 1px solid var(--border-color);
     background: var(--background-tertiary);
     color: var(--text-normal);
-    font-size: 0.95rem;
+    /* iOS zooms the page on focus below 16px and does not zoom back out. */
+    font-size: 1rem;
   }
   .askme-input:focus-visible {
     outline: 2px solid var(--text-accent);

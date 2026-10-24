@@ -671,7 +671,8 @@ const dirGlyph = pageDefaults.dir === 'asc' ? '↑' : '↓';
     border-radius: var(--radius-md);
     color: var(--text-normal);
     font: inherit;
-    font-size: 0.9rem;
+    /* iOS zooms the page on focus below 16px and does not zoom back out. */
+    font-size: 1rem;
     padding: var(--space-2) var(--space-3);
   }
 

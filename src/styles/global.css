@@ -270,8 +270,12 @@
   /* Height of the sticky top bar (`.nav-mobile`). The projects
      filter bar pins directly below it, and a hand-picked offset there drifted
      from the bar it was meant to sit under — this is the single source for both
-     the bar's own min-height and the filter's sticky offset. */
-  --nav-mobile-h: 65px;
+     the bar's own min-height and the filter's sticky offset.
+
+     `env(safe-area-inset-top)` is part of it because `viewport-fit=cover` lets
+     the bar paint under the notch; the bar's own padding adds the same inset, so
+     the two must move together or everything pinned below sits 47px too high. */
+  --nav-mobile-h: calc(65px + env(safe-area-inset-top));
 
   /* Z-index scale — fixed tokens, no bare layer numbers */
   --z-decor: -1;
@@ -626,7 +630,8 @@ p {
   flex-direction: column;
   align-items: stretch;
   gap: var(--space-5);
-  padding: var(--space-5);
+  padding: calc(var(--space-5) + env(safe-area-inset-top)) var(--space-5)
+    calc(var(--space-5) + env(safe-area-inset-bottom));
   overflow-y: auto;
   overscroll-behavior: contain;
   background-color: var(--background-primary);
@@ -674,7 +679,7 @@ body.nav-open .nav-scrim {
   z-index: var(--z-dialog);
   margin-block: calc(-1 * var(--page-pad)) var(--space-4);
   margin-inline: calc(-1 * var(--page-pad));
-  padding: var(--space-4) var(--space-5);
+  padding: calc(var(--space-4) + env(safe-area-inset-top)) var(--space-5) var(--space-4);
   background-color: color-mix(in srgb, var(--background-primary) 88%, transparent);
   border-bottom: 1px solid var(--border-color);
   -webkit-backdrop-filter: blur(14px) saturate(1.1);
@@ -759,6 +764,28 @@ body.nav-open .nav-scrim {
 
 #theme-toggle:active {
   transform: scale(0.95);
+}
+
+/* Header controls are drawn at 28–32px on purpose — the bar must stay short —
+   but a 32px circle is below the 44×44 touch floor and the chips sit in a row,
+   so a thumb lands on the neighbour. Coarse pointers only: a mouse does not
+   need the padding, and the bar would grow ~12px taller on desktop for nothing. */
+@media (pointer: coarse) {
+  #theme-toggle {
+    width: 44px;
+    height: 44px;
+  }
+  /* `min-*`, not `width`/`height`: `.nav-toggle`'s own 32px rule is declared
+     later in this file at equal specificity and would win the cascade. */
+  .nav-toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  /* The 44px targets make the bar taller than its 65px token, and everything
+     pinned below it reads that token. Keep the two in step. */
+  :root {
+    --nav-mobile-h: calc(77px + env(safe-area-inset-top));
+  }
 }
 
 /* Mobile nav toggle (hidden on desktop; hamburger ↔ ✕ via morphicons) */
@@ -2164,7 +2191,9 @@ nav ul.links a[aria-current="page"] {
 /* Footer */
 footer {
   text-align: center;
-  padding: var(--space-10) 0;
+  /* The last line of the page must clear the home indicator once
+     `viewport-fit=cover` lets content sit under it. */
+  padding: var(--space-10) 0 calc(var(--space-10) + env(safe-area-inset-bottom));
   border-top: 1px solid var(--border-color);
   color: var(--text-muted);
   font-size: 0.9rem;
@@ -2503,12 +2532,6 @@ footer p {
 
   footer {
     padding: 1.5rem 0;
-  }
-
-  /* Smaller toggle on mobile */
-  #theme-toggle {
-    width: 28px;
-    height: 28px;
   }
 
   nav ul.links {
@@ -3017,7 +3040,9 @@ button:focus-visible {
   border-radius: var(--radius-md);
   color: var(--text-normal);
   padding: var(--space-3) var(--space-4);
-  font-size: 0.95rem;
+  /* 16px is the iOS Safari auto-zoom floor: a smaller field zooms the whole
+     page on focus and leaves it zoomed after blur. 0.95rem was 15.2px. */
+  font-size: 1rem;
   font-family: inherit;
 }
 .search-input:focus {
@@ -4670,5 +4695,32 @@ html[data-theme="light"] .persona-card {
   .xp-item:hover {
     transform: none;
     transition: none;
+  }
+}
+
+/* ============================================================
+   Touch targets
+   ------------------------------------------------------------
+   Filter chips, tab strips and the nav search rows are sized by their text
+   (28–38px), which is a fine mouse target and a cramped thumb one — the chips
+   sit shoulder to shoulder, so a miss activates the neighbour. The classes are
+   styled in scoped component blocks; `min-height` is not set there, so this one
+   coarse-pointer rule reaches all of them without a second copy per component.
+   Mouse users keep the compact rows.
+   ============================================================ */
+@media (pointer: coarse) {
+  .filter-tag,
+  .about-tab,
+  .nt-shortcut,
+  .nt-input,
+  .kg-search-input,
+  .kg-btn,
+  .kg-chip,
+  .nav-brand {
+    min-height: 44px;
+  }
+  /* The zoom/pan buttons are square by design; keep them square at 44. */
+  .kg-btn {
+    min-width: 44px;
   }
 }

@@ -302,7 +302,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
 >
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={metaDescription} />
     {noindex && <meta name="robots" content="noindex, follow" />}
@@ -319,7 +319,9 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <link rel="alternate" hreflang="x-default" href={ruAltUrl ?? pageUrl} />
 
     <link rel="icon" type="image/svg+xml" href={faviconUrl} />
-    <link rel="apple-touch-icon" href={faviconUrl} />
+    {/* iOS ignores SVG here and falls back to a screenshot of the page. The PNG
+        is the same mark, generated from `favicon.svg` at 180×180. */}
+    <link rel="apple-touch-icon" sizes="180x180" href={withBase('apple-touch-icon.png')} />
     <link
       rel="alternate"
       type="application/rss+xml"
@@ -938,6 +940,16 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       .nav-chip:focus-visible {
         outline: 2px solid var(--border-active);
         outline-offset: 2px;
+      }
+
+      /* 34×26 is a comfortable mouse target and a cramped thumb one; the chips
+         are the outbound-contact row, so a miss opens the wrong profile. The
+         pad is paid only by coarse pointers — a mouse keeps the compact bar. */
+      @media (pointer: coarse) {
+        .nav-chip {
+          min-width: 44px;
+          min-height: 44px;
+        }
       }
 
       /* Below the canvas breakpoint the wordmark goes visually hidden — NOT

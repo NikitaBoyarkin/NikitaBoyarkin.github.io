@@ -145,6 +145,14 @@ const href = (target: Audience): string => withBase(isEn ? `en/${target}/` : `${
     outline-offset: 2px;
   }
 
+  /* The three role landings are adjacent chips 26px tall; a thumb aimed at one
+     lands on its neighbour, which is the wrong pitch entirely. */
+  @media (pointer: coarse) {
+    .nav-role {
+      min-height: 44px;
+    }
+  }
+
   /* One copy at a time. Below 768px the top bar has no room for a fourth group,
      so the bar copy yields to the drawer copy; from 768px up the drawer copy
      steps aside and the bar owns the control. */

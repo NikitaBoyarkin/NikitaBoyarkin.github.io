@@ -43,4 +43,15 @@ const ariaLabel = ruActive ? 'Переключатель языка' : 'Language
   .lang-switch-sep {
     opacity: 0.5;
   }
+  /* RU and EN sit 25×24 apart; on a phone the two are one thumb-width and the
+     inactive one is the only target, so a tap that misses does nothing at all. */
+  @media (pointer: coarse) {
+    .lang-switch a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+    }
+  }
 </style>
