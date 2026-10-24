@@ -1,0 +1,267 @@
+---
+// Browser-style tab strip: every internal page the visitor opens in this session
+// is kept as a tab, the current one is marked, and any tab can be closed with ×.
+//
+// Static-site friendly by design — the strip never intercepts navigation. It
+// records a tab on click and lets the browser follow the plain `<a href>`, so a
+// visitor with JavaScript off, or a crawler, sees the ordinary pages. State is
+// `sessionStorage` (per browser tab, gone on close), not `localStorage`.
+import { withBase } from '../lib/path';
+
+interface Props {
+  lang?: 'ru' | 'en';
+}
+const { lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+const homeUrl = withBase(isEn ? 'en/' : '/');
+const labels = isEn
+  ? { strip: 'Open tabs', close: 'Close tab', untitled: 'Home' }
+  : { strip: 'Открытые вкладки', close: 'Закрыть вкладку', untitled: 'Главная' };
+---
+
+<nav
+  class="site-tabs"
+  id="site-tabs"
+  aria-label={labels.strip}
+  data-home={homeUrl}
+  data-close-label={labels.close}
+  data-untitled={labels.untitled}
+  hidden
+>
+  <ul class="site-tabs-track" id="site-tabs-track"></ul>
+</nav>
+
+<script>
+  function init() {
+    const strip = document.getElementById('site-tabs');
+    const track = document.getElementById('site-tabs-track');
+    if (!strip || !track) return;
+
+    const KEY = 'site-tabs:v1';
+    const MAX = 12;
+    const home = strip.dataset.home || '/';
+    const closeLabel = strip.dataset.closeLabel || 'Close tab';
+    const untitled = strip.dataset.untitled || '';
+
+    type Tab = { href: string; label: string };
+
+    const norm = (href: string) => {
+      const url = new URL(href, location.origin);
+      return url.pathname + url.search;
+    };
+
+    const read = (): Tab[] => {
+      try {
+        const raw = sessionStorage.getItem(KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter(
+          (t): t is Tab =>
+            !!t && typeof t.href === 'string' && typeof t.label === 'string' && t.href.length > 0,
+        );
+      } catch {
+        return [];
+      }
+    };
+
+    const write = (tabs: Tab[]) => {
+      try {
+        sessionStorage.setItem(KEY, JSON.stringify(tabs));
+      } catch {
+        // sessionStorage blocked (private mode): the strip simply does not persist
+      }
+    };
+
+    /** Page titles carry the site name after a separator; the tab wants the page. */
+    const titleLabel = () => {
+      // The homepage's title is the person's name, which reads as a tab called
+      // "Nikita Boyarkin" beside "Проекты"/"Статьи". Chrome calls this tab
+      // "New Tab"; this strip calls it what the nav calls it.
+      if (norm(location.href) === norm(home)) return untitled;
+      const raw = (document.title || '').trim();
+      const cut = raw.split(/\s+[|—–]\s+/)[0].trim();
+      return cut || raw || untitled;
+    };
+
+    const labelOf = (anchor: HTMLAnchorElement) => {
+      const explicit = anchor.dataset.tabLabel;
+      if (explicit) return explicit;
+      const text = (anchor.textContent || '').replace(/\s+/g, ' ').trim();
+      return text || untitled;
+    };
+
+    let tabs: Tab[] = [];
+
+    function render() {
+      const current = norm(location.href);
+      track!.innerHTML = '';
+      for (const tab of tabs) {
+        const li = document.createElement('li');
+        li.className = 'site-tab';
+        const isActive = norm(tab.href) === current;
+        if (isActive) li.classList.add('is-active');
+
+        const a = document.createElement('a');
+        a.className = 'site-tab-link';
+        a.href = tab.href;
+        a.textContent = tab.label;
+        if (isActive) a.setAttribute('aria-current', 'page');
+
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'site-tab-close';
+        close.setAttribute('aria-label', `${closeLabel}: ${tab.label}`);
+        close.innerHTML =
+          '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+        close.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          remove(tab, isActive);
+        });
+
+        li.append(a, close);
+        track!.append(li);
+      }
+      // One tab is the page you are on — a strip for it would be noise. The home
+      // page in particular stays a clean new-tab surface until a second tab exists.
+      strip!.hidden = tabs.length < 2;
+    }
+
+    function remove(tab: Tab, wasActive: boolean) {
+      tabs = tabs.filter((t) => t !== tab);
+      write(tabs);
+      render();
+      if (wasActive) {
+        const next = tabs[tabs.length - 1];
+        location.href = next ? next.href : home;
+      }
+    }
+
+    function remember(href: string, label: string) {
+      const key = norm(href);
+      const existing = tabs.find((t) => norm(t.href) === key);
+      if (existing) {
+        existing.label = label;
+      } else {
+        tabs.push({ href: key, label });
+      }
+      if (tabs.length > MAX) tabs = tabs.slice(tabs.length - MAX);
+      write(tabs);
+      render();
+    }
+
+    tabs = read();
+    remember(norm(location.href), titleLabel());
+
+    // Record on click, never preventDefault: the browser still performs the
+    // navigation, so the strip cannot break a link, a modifier-click or a
+    // download.
+    document.addEventListener('click', (event) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = event.target as Element | null;
+      const anchor = target?.closest?.('a[href]') as HTMLAnchorElement | null;
+      if (!anchor) return;
+      if (anchor.target && anchor.target !== '_self') return;
+      if (anchor.hasAttribute('download')) return;
+
+      const href = anchor.getAttribute('href') || '';
+      if (!href || href.startsWith('#') || /^(mailto:|tel:|javascript:)/i.test(href)) return;
+
+      const url = new URL(href, location.href);
+      if (url.origin !== location.origin) return;
+      // Same-page anchor: the page is already a tab, nothing opens.
+      if (url.hash && norm(url.href) === norm(location.href)) return;
+
+      remember(norm(url.href), labelOf(anchor));
+    });
+  }
+
+  init();
+</script>
+
+<style>
+  .site-tabs {
+    margin-block: calc(-1 * var(--space-3)) var(--space-4);
+    margin-inline: calc(-1 * var(--page-pad));
+    padding-inline: var(--page-pad);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .site-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .site-tabs-track {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  :global(.site-tab) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    max-inline-size: 15rem;
+    padding-inline: var(--space-3) var(--space-2);
+    border: 1px solid transparent;
+    border-block-end: 0;
+    border-start-start-radius: var(--radius-md);
+    border-start-end-radius: var(--radius-md);
+    background-color: color-mix(in srgb, var(--card-background) 55%, transparent);
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+  }
+
+  :global(.site-tab:hover) {
+    background-color: color-mix(in srgb, var(--card-background) 85%, transparent);
+  }
+
+  :global(.site-tab.is-active) {
+    border-color: var(--border-color);
+    background-color: var(--card-background);
+  }
+
+  :global(.site-tab-link) {
+    flex: 1;
+    min-inline-size: 0;
+    padding-block: var(--space-2);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    text-decoration: none;
+  }
+
+  :global(.site-tab.is-active .site-tab-link) {
+    color: var(--text-normal);
+    font-weight: 500;
+  }
+
+  :global(.site-tab-close) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  :global(.site-tab-close:hover),
+  :global(.site-tab-close:focus-visible) {
+    background-color: color-mix(in srgb, var(--text-normal) 14%, transparent);
+    color: var(--text-normal);
+    outline: none;
+  }
+</style>

@@ -1,0 +1,586 @@
+---
+// The homepage as a new-tab surface: a clock, a search field and a row of
+// shortcuts. It replaces `HeroGate` (three persona cards) on `/` and `/en/` by
+// the owner's call — the persona landings stay reachable from the header's
+// `NavRoles` group and from the drawer.
+//
+// The search is deliberately its own small island rather than a second mount of
+// `SearchBox`: that component owns the drawer's panel and keys off fixed ids
+// (`#search-toggle`, `#search-panel`), so a second instance on the same page
+// would collide. This one reads the same `search-index.json` and hands a longer
+// query off to the Explorer surface, which already accepts `?q=`.
+import { ICON } from '../lib/icons';
+import { withBase } from '../lib/path';
+
+interface Props {
+  lang?: 'ru' | 'en';
+}
+const { lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+const indexUrl = withBase('search-index.json');
+const explorerUrl = withBase(isEn ? 'en/explorer/' : 'explorer/');
+
+const t = isEn
+  ? {
+      clockLabel: 'Current time',
+      placeholder: 'Search projects, writing, glossary…',
+      empty: 'Nothing found',
+      all: 'All results',
+      searchLabel: 'Site search',
+      shortcutsLabel: 'Shortcuts',
+      id: 'Nikita Boyarkin — Product Analyst',
+    }
+  : {
+      clockLabel: 'Текущее время',
+      placeholder: 'Поиск по проектам, статьям, словарю…',
+      empty: 'Ничего не найдено',
+      all: 'Все результаты',
+      searchLabel: 'Поиск по сайту',
+      shortcutsLabel: 'Быстрые ссылки',
+      id: 'Никита Бояркин — Продуктовый аналитик',
+    };
+
+const SHORTCUTS = [
+  {
+    icon: ICON.projects,
+    href: withBase(isEn ? 'en/projects/' : 'projects/'),
+    label: isEn ? 'Projects' : 'Проекты',
+  },
+  {
+    icon: ICON.writing,
+    href: withBase(isEn ? 'en/writing/' : 'writing/'),
+    label: isEn ? 'Writing' : 'Статьи',
+  },
+  {
+    icon: ICON.glossary,
+    href: withBase(isEn ? 'en/glossary/' : 'glossary/'),
+    label: isEn ? 'Glossary' : 'Словарь',
+  },
+  {
+    icon: ICON.graph,
+    href: withBase(isEn ? 'en/graph/' : 'graph/'),
+    label: isEn ? 'Graph' : 'Граф',
+  },
+  {
+    icon: ICON.explorer,
+    href: explorerUrl,
+    label: isEn ? 'Explorer' : 'Обозреватель',
+  },
+  {
+    icon: ICON.about,
+    href: withBase(isEn ? 'en/about/' : 'about/'),
+    label: isEn ? 'About' : 'Обо мне',
+  },
+];
+---
+
+<section
+  class="newtab"
+  data-nt
+  data-index-url={indexUrl}
+  data-explorer-url={explorerUrl}
+  data-empty={t.empty}
+  data-all={t.all}
+  data-type-project={isEn ? 'Project' : 'Проект'}
+  data-type-post={isEn ? 'Post' : 'Запись'}
+  data-type-term={isEn ? 'Glossary' : 'Словарь'}
+  data-type-source={isEn ? 'Library' : 'Библиотека'}
+  data-type-part={isEn ? 'Module' : 'Модуль'}
+  data-type-topic={isEn ? 'Topic' : 'Тема'}
+>
+  <div class="nt-center">
+    <time class="nt-clock" id="nt-clock" aria-label={t.clockLabel}>--:--</time>
+    <p class="nt-date" id="nt-date"></p>
+    <h1 class="nt-id">{t.id}</h1>
+
+    <form class="nt-form" id="nt-form" role="search" aria-label={t.searchLabel} autocomplete="off">
+      <svg
+        class="nt-form-icon"
+        viewBox="0 0 24 24"
+        width="18"
+        height="18"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        focusable="false"
+        set:html={ICON.search}
+      />
+      <input
+        class="nt-input"
+        id="nt-input"
+        type="search"
+        name="q"
+        placeholder={t.placeholder}
+        aria-label={t.searchLabel}
+        aria-expanded="false"
+        aria-controls="nt-results"
+        aria-autocomplete="list"
+        role="combobox"
+      />
+    </form>
+    <ul class="nt-results" id="nt-results" role="listbox" aria-label={t.searchLabel} hidden></ul>
+
+    <ul class="nt-shortcuts" aria-label={t.shortcutsLabel}>
+      {
+        SHORTCUTS.map((s) => (
+          <li>
+            <a class="nt-shortcut" href={s.href}>
+              <span
+                class="nt-shortcut-icon"
+                aria-hidden="true"
+                set:html={`<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">${s.icon}</svg>`}
+              />
+              {s.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<script>
+  type Entry = {
+    type: string;
+    locale: string;
+    title: string;
+    desc: string;
+    tags?: string[];
+    tools?: string[];
+    href: string;
+  };
+
+  function init() {
+    const root = document.querySelector<HTMLElement>('[data-nt]');
+    if (!root) return;
+
+    const locale = document.documentElement.lang === 'en' ? 'en-GB' : 'ru-RU';
+    const clock = document.getElementById('nt-clock') as HTMLTimeElement | null;
+    const dateEl = document.getElementById('nt-date');
+
+    // Minute precision, so a 10s tick only exists to catch the rollover without
+    // a busy loop.
+    const timeFmt = new Intl.DateTimeFormat(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    const dateFmt = new Intl.DateTimeFormat(locale, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+    if (clock && dateEl) {
+      const tick = () => {
+        const now = new Date();
+        clock.textContent = timeFmt.format(now);
+        clock.dateTime = now.toISOString();
+        dateEl.textContent = dateFmt.format(now).replace(/^\p{Ll}/u, (c) => c.toUpperCase());
+      };
+      tick();
+      setInterval(tick, 10_000);
+    }
+
+    const form = document.getElementById('nt-form') as HTMLFormElement | null;
+    const input = document.getElementById('nt-input') as HTMLInputElement | null;
+    const results = document.getElementById('nt-results');
+    const indexUrl = root.dataset.indexUrl;
+    if (!form || !input || !results || !indexUrl) return;
+
+    const explorerUrl = root.dataset.explorerUrl || '/';
+    const typeOf = (tp: string) => root.dataset[`type${tp[0].toUpperCase()}${tp.slice(1)}`] || tp;
+
+    let index: Entry[] | null = null;
+    let rows: Entry[] = [];
+    let active = -1;
+
+    async function getIndex() {
+      if (!index) {
+        try {
+          const res = await fetch(indexUrl!);
+          index = res.ok ? ((await res.json()) as Entry[]) : [];
+        } catch {
+          index = [];
+        }
+      }
+      return index;
+    }
+
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'ru';
+
+    function score(entry: Entry, tokens: string[]) {
+      const title = entry.title.toLowerCase();
+      const desc = (entry.desc || '').toLowerCase();
+      const tags = (entry.tags || []).map((x) => x.toLowerCase());
+      const tools = (entry.tools || []).map((x) => x.toLowerCase());
+      let s = 0;
+      for (const token of tokens) {
+        const hit =
+          title.includes(token) ||
+          desc.includes(token) ||
+          tags.some((x) => x === token) ||
+          tools.some((x) => x === token);
+        if (!hit) return -1;
+        s += title.includes(token) ? 3 : 0;
+        s += tags.includes(token) || tools.includes(token) ? 2 : 0;
+        s += 1;
+      }
+      if (entry.locale === lang) s += 5;
+      return s;
+    }
+
+    function close() {
+      results!.hidden = true;
+      results!.innerHTML = '';
+      input!.setAttribute('aria-expanded', 'false');
+      active = -1;
+    }
+
+    function render() {
+      const query = input!.value.trim().toLowerCase();
+      const tokens = query ? query.split(/\s+/).filter(Boolean) : [];
+      if (!tokens.length) {
+        close();
+        return;
+      }
+
+      rows = (index || [])
+        .map((e) => ({ e, s: score(e, tokens) }))
+        .filter((x) => x.s >= 0)
+        .sort((a, b) => b.s - a.s)
+        .slice(0, 6)
+        .map((x) => x.e);
+
+      results!.innerHTML = '';
+      if (!rows.length) {
+        const empty = document.createElement('li');
+        empty.className = 'nt-result nt-result-empty';
+        empty.textContent = root!.dataset.empty || '';
+        results!.append(empty);
+      } else {
+        rows.forEach((r, i) => {
+          const li = document.createElement('li');
+          li.className = 'nt-result';
+          li.setAttribute('role', 'option');
+          li.setAttribute('aria-selected', 'false');
+          li.dataset.idx = String(i);
+
+          const a = document.createElement('a');
+          a.href = r.href;
+
+          const type = document.createElement('span');
+          type.className = 'nt-result-type';
+          type.textContent = typeOf(r.type);
+
+          const title = document.createElement('span');
+          title.className = 'nt-result-title';
+          title.textContent = r.title;
+          a.append(type, title);
+
+          if (r.desc) {
+            const desc = document.createElement('span');
+            desc.className = 'nt-result-desc';
+            desc.textContent = r.desc;
+            a.append(desc);
+          }
+          li.append(a);
+          results!.append(li);
+        });
+      }
+
+      const more = document.createElement('li');
+      more.className = 'nt-result nt-result-all';
+      const moreLink = document.createElement('a');
+      moreLink.href = `${explorerUrl}?q=${encodeURIComponent(input!.value.trim())}`;
+      moreLink.textContent = root!.dataset.all || '';
+      more.append(moreLink);
+      results!.append(more);
+
+      results!.hidden = false;
+      input!.setAttribute('aria-expanded', 'true');
+      active = -1;
+    }
+
+    let debounce: ReturnType<typeof setTimeout> | undefined;
+    input.addEventListener('input', () => {
+      clearTimeout(debounce);
+      debounce = setTimeout(async () => {
+        await getIndex();
+        render();
+      }, 120);
+    });
+
+    function move(delta: number) {
+      const items = results!.querySelectorAll<HTMLElement>('.nt-result[data-idx]');
+      if (!items.length) return;
+      active = (active + delta + items.length) % items.length;
+      items.forEach((it, i) => {
+        it.classList.toggle('is-active', i === active);
+        it.setAttribute('aria-selected', String(i === active));
+      });
+    }
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        move(1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        move(-1);
+      } else if (e.key === 'Escape') {
+        close();
+        input.blur();
+      }
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const query = input.value.trim();
+      if (!query) return;
+      if (active >= 0 && rows[active]) {
+        window.location.href = rows[active].href;
+        return;
+      }
+      window.location.href = rows[0] ? rows[0].href : `${explorerUrl}?q=${encodeURIComponent(query)}`;
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!root.contains(e.target as Node)) close();
+    });
+  }
+
+  init();
+</script>
+
+<style>
+  /* Centred in the viewport minus the sticky bar, so the clock sits where the
+     eye expects a new-tab page's clock to sit. `align-content: center` keeps it
+     centred without the overflow clipping `place-items` causes on short phones. */
+  .newtab {
+    display: grid;
+    align-content: center;
+    min-block-size: calc(100dvh - var(--nav-mobile-h) - var(--space-12));
+    padding-block: var(--space-10);
+  }
+
+  .nt-center {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    inline-size: 100%;
+  }
+
+  .nt-clock {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 14vw, 8rem);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-normal);
+  }
+
+  .nt-date {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+  }
+
+  .nt-id {
+    margin: var(--space-2) 0 var(--space-5);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .nt-form {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    inline-size: min(38rem, 100%);
+    padding: var(--space-3) var(--space-5);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    background-color: color-mix(in srgb, var(--card-background) 92%, transparent);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .nt-form:focus-within {
+    border-color: var(--border-active);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--text-accent) 18%, transparent);
+  }
+
+  .nt-form-icon {
+    flex: none;
+    color: var(--text-muted);
+  }
+
+  .nt-input {
+    flex: 1;
+    min-inline-size: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-normal);
+    font: inherit;
+    font-size: 1rem;
+  }
+
+  .nt-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .nt-input:focus {
+    outline: none;
+  }
+
+  .nt-results {
+    inline-size: min(38rem, 100%);
+    margin: var(--space-2) 0 0;
+    padding: var(--space-1);
+    list-style: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--gradient-surface);
+    box-shadow: 0 18px 40px var(--shadow-color);
+    text-align: start;
+  }
+
+  .nt-shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nt-shortcut {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    background-color: color-mix(in srgb, var(--card-background) 70%, transparent);
+    color: var(--text-normal);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  }
+
+  .nt-shortcut:hover,
+  .nt-shortcut:focus-visible {
+    border-color: var(--border-active);
+    color: var(--text-accent);
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  .nt-shortcut-icon {
+    display: inline-flex;
+    color: var(--text-muted);
+  }
+
+  .nt-shortcut:hover .nt-shortcut-icon,
+  .nt-shortcut:focus-visible .nt-shortcut-icon {
+    color: var(--text-accent);
+  }
+
+  @media (max-width: 599px) {
+    .nt-form {
+      padding: var(--space-3) var(--space-4);
+    }
+
+    .nt-shortcuts {
+      gap: var(--space-1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nt-form,
+    .nt-shortcut {
+      transition: none;
+    }
+
+    .nt-shortcut:hover,
+    .nt-shortcut:focus-visible {
+      transform: none;
+    }
+  }
+
+  /* The result rows are built by the island, so they carry no scoped attribute
+     and need `:global` — which Astro rewrites inside a scoped block (a literal
+     `:global(` in an imported stylesheet would be dropped by the browser). */
+  :global(.nt-result) {
+    border-radius: var(--radius-sm);
+  }
+
+  :global(.nt-result a) {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :global(.nt-result.is-active a),
+  :global(.nt-result a:hover) {
+    background-color: color-mix(in srgb, var(--text-accent) 12%, transparent);
+  }
+
+  :global(.nt-result-type) {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    align-self: center;
+  }
+
+  :global(.nt-result-title) {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--text-normal);
+  }
+
+  :global(.nt-result-desc) {
+    grid-column: 2;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }
+
+  :global(.nt-result-empty) {
+    padding: var(--space-3);
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  :global(.nt-result-all a) {
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    border-top: 1px solid var(--border-color);
+    margin-top: var(--space-1);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-accent);
+    text-decoration: none;
+  }
+</style>

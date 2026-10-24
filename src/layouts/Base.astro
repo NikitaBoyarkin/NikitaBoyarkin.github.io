@@ -14,6 +14,7 @@ import Analytics from '../components/Analytics.astro';
 import LangSwitch from '../components/LangSwitch.astro';
 import NavRoles from '../components/NavRoles.astro';
 import SearchBox from '../components/SearchBox.astro';
+import SiteTabs from '../components/SiteTabs.astro';
 import MorphIcon from 'morphicons/astro';
 import BeaconMetrics from '../components/BeaconMetrics.astro';
 
@@ -505,6 +506,12 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         <MorphIcon id="nav-icon" icon={NAV_MENU} spring="snappy" reducedMotion="user" size={20} />
       </button>
     </header>
+
+    {/* Browser-style strip of the pages opened this session. In flow, not
+        sticky: the drawer, the projects filter bar and the graph overlay all
+        pin themselves at `--nav-mobile-h`, and a second sticky row would move
+        their offsets out from under them. */}
+    <SiteTabs lang={lang} />
 
     <nav id="site-nav" aria-label={isEn ? 'Main navigation' : 'Основная навигация'}>
       <a href={aboutHref} class="nav-brand">

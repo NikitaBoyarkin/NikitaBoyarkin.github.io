@@ -177,9 +177,14 @@ describe('wiring (PRD §6, §9, §10)', () => {
     expect(s, 'RoleSwitch must write the choice').toContain('writeAudience');
   });
 
-  it('the gate is mounted on / and /en/ with the right locale', () => {
-    expect(src('src/pages/index.astro')).toMatch(/HeroGate[^>]*lang="ru"/);
-    expect(src('src/pages/en/index.astro')).toMatch(/HeroGate[^>]*lang="en"/);
+  it('mounts the new-tab surface on / and /en/, and keeps the landings linked', () => {
+    // The three gate cards left the homepage on 2026-10-24 by the owner's call.
+    // The guard moves with the surface rather than disappearing: the homepage
+    // must mount the new-tab hero, and the persona landings it used to open must
+    // still be one tap away from the header.
+    expect(src('src/pages/index.astro')).toMatch(/HomeNewTab[^>]*lang="ru"/);
+    expect(src('src/pages/en/index.astro')).toMatch(/HomeNewTab[^>]*lang="en"/);
+    expect(src('src/layouts/Base.astro')).toMatch(/<NavRoles lang=\{lang\}[^>]*active=\{activeRole\}/);
   });
 
   it('ships all six role routes', () => {

@@ -1,21 +1,19 @@
-// The homepage after the canvas hero was retired (2026-10-18).
+// The homepage after the new-tab rework (2026-10-24).
 //
-// Why this file replaces `tests/built/canvas.test.ts`: that file asserted the
-// canvas MARKUP on `/index.html` *and* PersonaCanvas's EMITTED scoped CSS. The
-// canvas is no longer mounted on `/`, so Astro no longer emits that component's
-// stylesheet and every one of those assertions lost its subject. Deleting them
-// without a replacement would leave the homepage's real contract — an `<h1>`,
-// three reachable routes, the dashboard below, no one-screen lock — unguarded.
+// History: the canvas hero was retired on 2026-10-18 for `HeroGate` (three
+// persona cards), and the gate was retired on 2026-10-24 in favour of a
+// new-tab surface — a clock, a search field and shortcut chips. Each time this
+// file moved with the surface rather than being deleted, because the homepage's
+// real contract survived every rework: an `<h1>`, the persona landings still
+// reachable, no one-screen lock, every internal link resolving. Deleting the
+// file would have left all four unguarded.
 //
-// The bug this guards against: the canvas fitted its world with a synchronous
-// pre-paint `el.clientHeight` read. On the dashboard homepage the hero band had
-// no resolved block-size at that moment, so the read returned 0, zoom collapsed
-// to `MIN_ZOOM` and the vertical offset resolved to `-270px` — the identity and
-// the HR card rendered ABOVE the visible hero. Built-HTML string assertions
-// cannot see computed layout, which is exactly why the old file stayed green
-// while the page shipped broken. So this file does not try to assert a fit; it
-// guards the structural property that makes the failure impossible — the gate
-// is plain in-flow markup, not a canvas.
+// The bug the original file guarded still applies: the canvas fitted its world
+// with a synchronous pre-paint `el.clientHeight` read, which returned 0 on this
+// page and pushed the primary route above the fold. Built-HTML assertions cannot
+// see computed layout, so this file guards the structural property instead — the
+// hero is plain in-flow markup, not a canvas, and no dashboard band needs a
+// measured fit.
 //
 // Requires `bun run build` first (reads dist/*.html).
 import { describe, it, expect, beforeAll } from 'bun:test';
@@ -120,7 +118,7 @@ function unresolved(source: string): string[] {
   return out;
 }
 
-describe('homepage gate (built HTML)', () => {
+describe('homepage new tab (built HTML)', () => {
   for (const { file, lang, h1 } of PAGES) {
     const doc = () => html.get(file)!;
 
@@ -138,9 +136,13 @@ describe('homepage gate (built HTML)', () => {
       expect(d, `${lang}: the canvas zoom controls are back`).not.toContain('data-canvas-zoom');
     });
 
-    it(`${file}: renders the static gate, not the retired component`, () => {
+    it(`${file}: renders the new-tab surface, not the retired gate`, () => {
       const d = doc();
-      expect(d, `${lang}: the gate section is missing`).toContain('class="hero-gate"');
+      expect(d, `${lang}: the new-tab section is missing`).toContain('class="newtab"');
+      expect(d, `${lang}: the clock is missing`).toContain('id="nt-clock"');
+      expect(d, `${lang}: the hero search field is missing`).toContain('id="nt-input"');
+      expect(d, `${lang}: the gate section is back`).not.toContain('class="hero-gate"');
+      expect(d, `${lang}: the gate cards are back`).not.toContain('data-source="gate"');
       expect(d, `${lang}: still rendering persona-gate`).not.toContain('class="persona-gate"');
     });
 
@@ -160,38 +162,21 @@ describe('homepage gate (built HTML)', () => {
       );
     });
 
-    it(`${file}: renders exactly three gate cards, each after the h1 and carrying an icon`, () => {
+    it(`${file}: the clock and the search sit above the shortcuts, and the h1 stays real text`, () => {
       const d = doc();
-      // `data-source="gate"` is unique to the gate cards: the header persona
-      // group writes `header` / `menu`, so the drawer copies cannot inflate it.
-      const cards = d.split('data-source="gate"').length - 1;
-      expect(cards, `${lang}: gate cards`).toBe(3);
-
       const h1At = d.indexOf('<h1');
       expect(h1At, `${lang}: no <h1>`).toBeGreaterThan(-1);
-      for (const at of [...d.matchAll(/data-source="gate"/g)].map((m) => m.index!)) {
-        expect(at, `${lang}: a gate card precedes the h1`).toBeGreaterThan(h1At);
-      }
 
-      // Every card carries a purpose icon and a trailing arrow ("all buttons
-      // have icons"): three of each, from the frozen contract. Counted by the
-      // attribute form — the bare class name also appears once in the page's
-      // inlined scoped `<style>`, which is not a rendered icon.
-      expect(d.split('class="gate-card-icon"').length - 1, `${lang}: card icons`).toBe(3);
-      expect(d.split('class="gate-card-arrow"').length - 1, `${lang}: card arrows`).toBe(3);
-    });
+      const clockAt = d.indexOf('id="nt-clock"');
+      const searchAt = d.indexOf('id="nt-input"');
+      const shortcutsAt = d.indexOf('class="nt-shortcuts"');
+      expect(clockAt, `${lang}: no clock`).toBeGreaterThan(-1);
+      expect(searchAt, `${lang}: no search field`).toBeGreaterThan(clockAt);
+      expect(shortcutsAt, `${lang}: no shortcuts`).toBeGreaterThan(searchAt);
 
-    it(`${file}: each gate card points at its own persona route, in this locale`, () => {
-      const cards = [...doc().matchAll(/<a[^>]*class="gate-card"[^>]*>/g)].map((m) => ({
-        persona: /data-persona="([^"]+)"/.exec(m[0])?.[1],
-        href: /href="([^"]+)"/.exec(m[0])?.[1],
-      }));
-      const prefix = lang === 'en' ? '/en/' : '/';
-      expect(cards).toEqual([
-        { persona: 'hr', href: `${prefix}hr/` },
-        { persona: 'manager', href: `${prefix}manager/` },
-        { persona: 'colleague', href: `${prefix}colleague/` },
-      ]);
+      // The site-wide tab strip is mounted by the layout on every page, the
+      // homepage included; it renders empty and hidden until a second tab exists.
+      expect(d, `${lang}: the tab strip is missing`).toContain('id="site-tabs"');
     });
 
     it(`${file}: the inline bar is the single «Главная»/«Home» link, with an icon`, () => {
@@ -210,17 +195,13 @@ describe('homepage gate (built HTML)', () => {
       expect(unresolved(doc()), `${lang}: links pointing nowhere`).toEqual([]);
     });
 
-    it(`${file}: keeps the dashboard below the gate, and the cue pointing at it`, () => {
+    it(`${file}: carries no dashboard band any more`, () => {
       const d = doc();
-      expect(d, `${lang}: the dashboard section is missing`).toContain('id="dash"');
-      expect(d, `${lang}: the scroll cue is missing`).toContain('class="dash-cue"');
-      expect(d, `${lang}: the cue no longer targets the dashboard`).toContain('href="#dash"');
-      const cueAt = d.indexOf('class="dash-cue"');
-      const dashAt = d.indexOf('id="dash"');
-      expect(cueAt, `${lang}: the cue sits after the gate`).toBeGreaterThan(
-        d.indexOf('class="hero-gate"'),
-      );
-      expect(dashAt, `${lang}: the cue precedes the dashboard`).toBeGreaterThan(cueAt);
+      // The dashboard summary moved off `/` with the gate on 2026-10-24; the
+      // Explorer surface is the browsable replacement. Guard the removal so the
+      // band cannot quietly return without a scroll cue and its own contract.
+      expect(d, `${lang}: the dashboard band is back`).not.toContain('id="dash"');
+      expect(d, `${lang}: the scroll cue is back`).not.toContain('class="dash-cue"');
     });
   }
 });

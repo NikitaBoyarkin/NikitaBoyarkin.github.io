@@ -5,10 +5,7 @@
 // fit measured a zero-height band on this page and pushed the HR route off the
 // top of the fold.
 import Base from '../layouts/Base.astro';
-import HeroGate from '../components/HeroGate.astro';
-import DashboardGrid from '../components/DashboardGrid.astro';
-import { DASHBOARD_COPY } from '../lib/dashboard';
-import { loadDashboard } from '../lib/dashboard-data';
+import HomeNewTab from '../components/HomeNewTab.astro';
 import { withBase } from '../lib/path';
 
 // Person only: the `ItemList` of all projects would no longer describe this
@@ -40,11 +37,11 @@ const jsonLd = {
 };
 
 /**
- * The dashboard below the hero, from the same loader `/dashboard-index.json`
- * serves — one source, so the rendered page and the published counts cannot
- * disagree. Requirement: `design-plans/home-dashboard.md`.
+ * The homepage is a new-tab surface: clock, search, shortcuts. The persona
+ * landings (`/hr/`, `/manager/`, `/colleague/`) stay one tap away in the header's
+ * `NavRoles` group and in the drawer; the dashboard summary left `/` with the
+ * gate — the Explorer surface (`/explorer/`) is the browsable replacement.
  */
-const dashboard = await loadDashboard('ru');
 ---
 
 <Base
@@ -58,14 +55,5 @@ const dashboard = await loadDashboard('ru');
   counterpartHref={withBase('en/')}
   jsonLd={jsonLd}
 >
-  <!-- The gate is now an in-flow hero of natural height, so the page visibly
-       continues below it; the cue stays as the explicit affordance pointing at
-       the dashboard. It sits after the hero, in flow, because a cue absolutely
-       positioned inside a content-sized band would overlap the last card row. -->
-  <HeroGate lang="ru" />
-  <a class="dash-cue" href="#dash">
-    {DASHBOARD_COPY.ru.heading}
-    <span aria-hidden="true">↓</span>
-  </a>
-  <DashboardGrid index={dashboard} />
+  <HomeNewTab lang="ru" />
 </Base>
