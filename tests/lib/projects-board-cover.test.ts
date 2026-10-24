@@ -34,8 +34,8 @@ const CSS = read('src/styles/global.css');
 
 describe('/projects/ board — cover on, Result off', () => {
   it('asks for the cover and for no STAR preview, in both locales', () => {
-    expect(RU).toMatch(/<ProjectBoard starPreview="none" cover \/>/);
-    expect(EN).toMatch(/<ProjectBoard[^>]*starPreview="none" cover \/>/);
+    expect(RU).toMatch(/<ProjectBoard starPreview="none" cover sphereFilter \/>/);
+    expect(EN).toMatch(/<ProjectBoard[^>]*starPreview="none" cover sphereFilter \/>/);
   });
 
   it('scopes the cover override to the catalogue board', () => {

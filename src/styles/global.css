@@ -3446,6 +3446,38 @@ textarea::placeholder {
   gap: var(--space-2);
 }
 
+/* Board controls (sort + reset) share the tools row, so adding a sort does not
+   cost a fourth chip row — `docs/analytics-dead-events.md` already shows the
+   category tabs go clickless, and the bar is the tallest thing on the page. */
+.board-controls {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* A native select styled to read as one more `.filter-tag`: no border, no
+   background, muted ink that turns accent on hover/focus. */
+.board-sort-select {
+  padding: var(--space-2) 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.board-sort-select:hover,
+.board-sort-select:focus-visible {
+  color: var(--text-accent);
+}
+
+/* Newest-first owns the order, so the grip would promise a drag that is gone. */
+#project-list.is-date-sorted .project-grip {
+  display: none;
+}
+
 /* Counts are metadata, not actions — inherit the chip's own ink instead of
    painting a second accent pill inside it. Full strength on purpose: the
    count is 11.5px, so a reduced opacity drops the active chip's `--text-accent`

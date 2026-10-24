@@ -36,6 +36,38 @@ describe('/projects/ board — built pages', () => {
     });
   }
 
+  it('both catalogues carry the sphere facet and tag every card for it', () => {
+    for (const page of PAGES) {
+      const source = html.get(page)!;
+      // `all` + six spheres; keys contain hyphens (`saas-product`).
+      const chips = source.match(/data-sphere-filter="[a-z-]+"/g) ?? [];
+      expect(chips).toHaveLength(7);
+      expect(chips[0]).toContain('all');
+      expect(source.match(/data-sphere="[a-z-]+"/g) ?? []).toHaveLength(23);
+    }
+  });
+
+  it('offers newest-first on the catalogue only, keyed by the card date', () => {
+    for (const page of PAGES) {
+      const source = html.get(page)!;
+      expect(source).toContain('id="board-sort"');
+      expect(source).toMatch(/<option value="curated"/);
+      expect(source).toMatch(/<option value="new"/);
+      // The sort key is the rendered date, one per card.
+      expect(source.match(/data-date="\d{4}-\d{2}-\d{2}"/g) ?? []).toHaveLength(23);
+    }
+    // A role landing is a curated reading sequence — it must not offer a sort.
+    const manager = readFileSync(resolve(DIST, 'manager/index.html'), 'utf8');
+    expect(manager).not.toContain('id="board-sort"');
+  });
+
+  it('keeps the sphere facet off the role landings', () => {
+    // `/manager/` renders the same board; the facet is catalogue-only, and this
+    // is what stops it leaking there on the next copy of the props.
+    const source = readFileSync(resolve(DIST, 'manager/index.html'), 'utf8');
+    expect(source).not.toContain('data-sphere-filter=');
+  });
+
   it('the manager board keeps its Task → Result cards and buys their width', () => {
     const source = readFileSync(resolve(DIST, 'manager/index.html'), 'utf8');
     expect(source).not.toContain('project-board-cover');

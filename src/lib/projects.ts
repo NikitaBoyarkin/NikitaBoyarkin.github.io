@@ -307,6 +307,21 @@ export function groupByYear<T extends { id: string; date?: Date; updated?: Date 
   return groups;
 }
 
+/**
+ * Newest first, as slug order — the board's "newest first" view. The input is
+ * already in curated order and `Array#sort` is stable, so projects sharing a
+ * date (four share 2026-08-11) keep their curated slot instead of reshuffling
+ * between builds. `date` is an ISO `YYYY-MM-DD` string, so lexicographic order
+ * is chronological order and the client needs no `Date` parsing.
+ */
+export function sortSlugsByNewest<T extends { slug: string; date?: string }>(
+  cards: readonly T[],
+): string[] {
+  return [...cards]
+    .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
+    .map((card) => card.slug);
+}
+
 /** Project count per track key, including empty tracks (`0`). */
 export function trackCounts<T extends { track: string }>(
   projects: readonly T[],
@@ -371,4 +386,98 @@ export function emptyToolKeys<T extends { tools: string[] }>(
     .filter(({ key }) => key !== ALL_TOOLS)
     .filter(({ key }) => !projects.some((p) => matchesTool(p.tools, key)))
     .map(({ key }) => key);
+}
+
+// ---------------------------------------------------------------------------
+// Sphere (business domain) — a third facet, next to the method (`track`) and
+// the stack (`tools`). A track says how the work was made; a sphere says whose
+// problem it solves, which is what a reader with a domain in mind scans for.
+//
+// Authored here rather than in frontmatter on purpose: the key is
+// language-neutral, so the same value would have to be duplicated across 23 RU
+// and 23 EN files, and nothing would catch the pair drifting apart (`track`
+// has the same exposure, but it predates this facet). One map cannot disagree
+// with itself; `tests/lib/projects.test.ts` binds it to `PROJECT_ORDER`, so a
+// new project without a sphere goes red instead of falling out of the filter.
+// ---------------------------------------------------------------------------
+
+export const ALL_SPHERES = 'all';
+
+export const SPHERES = [
+  { key: 'fintech', ru: 'Финтех', en: 'Fintech' },
+  { key: 'saas-product', ru: 'SaaS-продукт', en: 'SaaS Product' },
+  { key: 'commerce-growth', ru: 'Коммерция и рост', en: 'Commerce & Growth' },
+  { key: 'learning-content', ru: 'Обучение и контент', en: 'Learning & Content' },
+  { key: 'tooling', ru: 'Инструменты', en: 'Tooling' },
+  { key: 'meta', ru: 'Мета', en: 'Meta' },
+] as const;
+
+export type SphereKey = (typeof SPHERES)[number]['key'];
+
+/**
+ * Slug → sphere. `commerce-growth` covers the sales/promo/ranking work whose
+ * data belongs to a revenue funnel, `learning-content` the work whose subject
+ * is the teaching material itself (coursework included), and `tooling` the
+ * projects with no business domain — the method is the artifact.
+ */
+export const PROJECT_SPHERES: Record<string, SphereKey> = {
+  volta: 'fintech',
+  rfm: 'fintech',
+  posthog: 'saas-product',
+  streamlit: 'saas-product',
+  supabase: 'saas-product',
+  churn: 'saas-product',
+  cohort: 'saas-product',
+  bot: 'saas-product',
+  promo: 'commerce-growth',
+  causal: 'commerce-growth',
+  'sales-calls': 'commerce-growth',
+  'serp-rank': 'commerce-growth',
+  airflow: 'commerce-growth',
+  games: 'learning-content',
+  scrolly: 'learning-content',
+  sql: 'learning-content',
+  ml: 'learning-content',
+  garden: 'learning-content',
+  linkedin: 'learning-content',
+  ab: 'tooling',
+  python: 'tooling',
+  rag: 'tooling',
+  site: 'meta',
+};
+
+/** Sphere of a project slug (extension tolerated); `undefined` when unmapped. */
+export function projectSphere(slug: string): SphereKey | undefined {
+  return PROJECT_SPHERES[stripExt(slug)];
+}
+
+export interface SphereFilter {
+  key: string;
+  label: string;
+  count: number;
+}
+
+/** Sphere chips in taxonomy order; `all` is prepended and carries the total. */
+export function projectSphereFilters(
+  projects: readonly { id: string }[],
+  lang: 'ru' | 'en' = 'ru',
+): SphereFilter[] {
+  return [
+    {
+      key: ALL_SPHERES,
+      label: lang === 'en' ? 'All spheres' : 'Все сферы',
+      count: projects.length,
+    },
+    ...SPHERES.map(({ key, ru, en }) => ({
+      key,
+      label: lang === 'en' ? en : ru,
+      count: projects.filter((project) => projectSphere(project.id) === key).length,
+    })),
+  ];
+}
+
+/** `all` passes everything; an unmapped project matches only `all`. */
+export function matchesSphere(sphere: string | undefined, sphereKey: string): boolean {
+  if (sphereKey === ALL_SPHERES) return true;
+  return sphere === sphereKey;
 }

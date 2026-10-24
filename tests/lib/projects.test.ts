@@ -5,14 +5,21 @@ import {
   AUDIENCES,
   DEFAULT_AUDIENCE,
   PROJECT_ORDER,
+  PROJECT_SPHERES,
+  SPHERES,
   ROLE_COPY,
   ROLE_CURATION,
+  ALL_SPHERES,
   ALL_TOOLS,
   emptyToolKeys,
   groupByTrack,
+  matchesSphere,
   matchesTool,
+  projectSphere,
+  projectSphereFilters,
   projectToolFilters,
   sortByProjectOrder,
+  sortSlugsByNewest,
   stripExt,
   trackCounts,
 } from '../../src/lib/projects';
@@ -165,6 +172,83 @@ describe('emptyToolKeys', () => {
       project('e', 'analytics', ['TypeScript']),
     ];
     expect(emptyToolKeys(everything)).toEqual([]);
+  });
+});
+
+describe('sphere facet', () => {
+  // The map is the only place a sphere is authored, so these tests are the only
+  // thing that can notice a new project slipping in without one — a chip set
+  // would simply be missing it, and the board would still look whole.
+  it('maps exactly the catalogue — no gap, no stale slug', () => {
+    expect(Object.keys(PROJECT_SPHERES).sort()).toEqual([...PROJECT_ORDER].sort());
+  });
+
+  it('uses declared sphere keys only', () => {
+    const declared = SPHERES.map(({ key }) => key);
+    for (const [slug, sphere] of Object.entries(PROJECT_SPHERES)) {
+      expect(declared, `${slug}: "${sphere}" is not a sphere`).toContain(sphere);
+    }
+  });
+
+  it('splits the catalogue across spheres without losing a project', () => {
+    const chips = projectSphereFilters(
+      PROJECT_ORDER.map((slug) => ({ id: `${slug}.md` })),
+    );
+    expect(chips.map((chip) => chip.key)).toEqual([ALL_SPHERES, ...SPHERES.map(({ key }) => key)]);
+    expect(chips[0].count).toBe(PROJECT_ORDER.length);
+    expect(chips.slice(1).reduce((sum, chip) => sum + chip.count, 0)).toBe(PROJECT_ORDER.length);
+  });
+
+  it('localizes the chips', () => {
+    const ru = projectSphereFilters([{ id: 'volta.md' }], 'ru');
+    const en = projectSphereFilters([{ id: 'volta.md' }], 'en');
+    expect(ru[0].label).toBe('Все сферы');
+    expect(en[0].label).toBe('All spheres');
+    expect(ru.map(({ label }) => label)).not.toEqual(en.map(({ label }) => label));
+  });
+
+  it('reads a slug with or without its extension', () => {
+    expect(projectSphere('volta.md')).toBe('fintech');
+    expect(projectSphere('volta')).toBe('fintech');
+    expect(projectSphere('brand-new')).toBeUndefined();
+  });
+
+  it('matches an unmapped project only under "all"', () => {
+    expect(matchesSphere(undefined, ALL_SPHERES)).toBe(true);
+    expect(matchesSphere(undefined, 'fintech')).toBe(false);
+    expect(matchesSphere('fintech', 'fintech')).toBe(true);
+    expect(matchesSphere('fintech', 'tooling')).toBe(false);
+  });
+});
+
+describe('sortSlugsByNewest', () => {
+  const card = (slug: string, date?: string) => ({ slug, date });
+
+  it('puts the newest date first', () => {
+    expect(sortSlugsByNewest([card('a', '2025-06-19'), card('b', '2026-10-20')])).toEqual([
+      'b',
+      'a',
+    ]);
+  });
+
+  it('keeps the curated order when dates tie', () => {
+    // Four catalogue projects share 2026-08-11; a stable sort is what stops the
+    // board reshuffling between builds.
+    const tied = [card('volta', '2026-08-11'), card('sql', '2026-08-11'), card('site', '2026-08-11')];
+    expect(sortSlugsByNewest(tied)).toEqual(['volta', 'sql', 'site']);
+  });
+
+  it('sinks a card with no date to the end', () => {
+    expect(sortSlugsByNewest([card('undated'), card('old', '2025-06-19')])).toEqual([
+      'old',
+      'undated',
+    ]);
+  });
+
+  it('does not mutate the input', () => {
+    const input = [card('a', '2025-06-19'), card('b', '2026-10-20')];
+    sortSlugsByNewest(input);
+    expect(input.map((entry) => entry.slug)).toEqual(['a', 'b']);
   });
 });
 

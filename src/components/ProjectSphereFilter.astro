@@ -1,0 +1,43 @@
+---
+// Sphere (business domain) chips for the projects board. Markup only — the
+// behaviour (filtering, `?sphere=` sync, empty state) lives in ProjectBoard's
+// controller script, which owns all three facets so their state stays in one
+// place. Rendered on the catalogue board only (`sphereFilter` in ProjectBoard):
+// the role landings are curated reading sequences, not a browse surface.
+import { ALL_SPHERES } from '../lib/projects';
+import Icon from './Icon.astro';
+
+interface Sphere {
+  key: string;
+  label: string;
+  count: number;
+}
+
+interface Props {
+  lang?: 'ru' | 'en';
+  spheres: Sphere[];
+}
+
+const { lang = 'ru', spheres } = Astro.props;
+---
+
+<div
+  class="filter-row project-sphere-filter reveal reveal-delay-1"
+  role="radiogroup"
+  aria-label={lang === 'en' ? 'Project sphere' : 'Сфера проектов'}
+>
+  {
+    spheres.map((sphere) => (
+      <button
+        class={sphere.key === ALL_SPHERES ? 'filter-tag active' : 'filter-tag'}
+        data-sphere-filter={sphere.key}
+        role="radio"
+        aria-checked={sphere.key === ALL_SPHERES ? 'true' : 'false'}
+        type="button"
+      >
+        <Icon name={sphere.key === ALL_SPHERES ? 'filter' : 'tag'} size={14} class="pill-icon" />
+        {sphere.label} <span class="filter-count">{sphere.count}</span>
+      </button>
+    ))
+  }
+</div>
