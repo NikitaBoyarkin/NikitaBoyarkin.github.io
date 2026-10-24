@@ -27,7 +27,6 @@ related:
   - /projects/sql/
   - /projects/cohort/
   - /projects/ab/
-draft: true
 faq:
   - question: "Why does delivery time not depend on load?"
     answer: "On the day × city × channel × category aggregate the Spearman correlation between volume and time is rho = −0.044, and mean time moves from 30.58 to 30.35 min across extreme deciles. The spread is explained by category, not by order count."
@@ -85,7 +84,7 @@ The dashboard is a single offline HTML file of ≈81 KB with no CDN and no clien
 
 ## Result
 
-The forecast reaches 6.01% WAPE at the weekly horizon with the seasonal baseline; the complex model does not beat it, and that is what the recommendation says. The bottleneck is category, not load: snacks take 13.4 min (+50%) longer than pizza in every channel. The channel mix is shifting: the mp share grew 5.7 pp in six months. One negative result — H2 on weekends — was rejected by the pre-registered rule and left as "no trend".
+The forecast reaches 6.01% WAPE at the weekly horizon (h=7) with the seasonal baseline; the complex model does not beat it, and that is what the recommendation says. The bottleneck is category, not load (rho = −0.044): snacks take 40.0 min against 26.6 min for pizza, 13.4 min (+50%) longer in every channel. The channel mix is shifting: the mp share grew 5.7 pp in six months. One negative result — H2 on weekends — was rejected by the pre-registered rule and left as "no trend".
 
 ## Limitations
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-20T22:55:36.534Z",
+  "generated_at": "2026-10-24T21:46:11.018Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -118,6 +118,24 @@
       "demo": "demos/cohort/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/cohort/"
+    },
+    {
+      "slug": "delivery",
+      "track": "analytics",
+      "title": "Delivery Control Tower",
+      "title_en": "Delivery Control Tower",
+      "description": "Агрегат 550 710 строк день × город × канал × категория: star-schema в DuckDB, бэктест прогноза заказов, узкие места доставки, 14 оконных SQL-запросов и офлайн-дашборд по трём ролям.",
+      "description_en": "A 550,710-row day × city × channel × category aggregate: DuckDB star schema, rolling-origin order forecast, delivery bottlenecks, 14 window SQL queries and an offline dashboard for three roles.",
+      "tools": [
+        "python",
+        "sql",
+        "duckdb",
+        "superset"
+      ],
+      "github": null,
+      "demo": null,
+      "private": false,
+      "href": "https://nikitaboyarkin.github.io/projects/delivery/"
     },
     {
       "slug": "linkedin",

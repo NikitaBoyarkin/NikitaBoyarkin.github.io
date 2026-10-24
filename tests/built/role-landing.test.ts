@@ -70,7 +70,7 @@ describe('role landings — project section shape', () => {
     for (const file of ['colleague/index.html', 'en/colleague/index.html']) {
       const source = html.get(file)!;
       expect(source).not.toContain('id="project-list"');
-      expect(rows(source)).toBe(23);
+      expect(rows(source)).toBe(24);
       expect(source).toContain('class="project-row-description"');
       // A curated order owns the sequence, so no year headings are printed.
       expect(source).not.toContain('class="project-year-heading"');
@@ -109,8 +109,8 @@ describe('role landings — project section shape', () => {
       expect(tracks[0]).toContain('all');
       expect(tools[0]).toContain('all');
       // Every row must be matchable by both filters.
-      expect(source.match(/data-track="[a-z]+"/g) ?? []).toHaveLength(23);
-      expect(source.match(/data-tools="/g) ?? []).toHaveLength(23);
+      expect(source.match(/data-track="[a-z]+"/g) ?? []).toHaveLength(24);
+      expect(source.match(/data-tools="/g) ?? []).toHaveLength(24);
       expect(source).toContain('id="list-filter-status"');
     }
   });
