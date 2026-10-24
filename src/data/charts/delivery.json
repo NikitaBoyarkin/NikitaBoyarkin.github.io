@@ -1,0 +1,83 @@
+{
+  "slug": "delivery",
+  "source": "delivery-control-tower: reports/forecast_metrics.csv (rolling-origin backtest, 4 folds, 28-day test window) and reports/bottleneck_channels.csv (qty-weighted mean delivery time by channel × category, 2022-01-01..2022-06-30)",
+  "charts": [
+    {
+      "id": "forecast-wape",
+      "type": "bar",
+      "title": {
+        "ru": "WAPE прогноза заказов по горизонтам",
+        "en": "Order forecast WAPE by horizon"
+      },
+      "description": {
+        "ru": "Взвешенная абсолютная процентная ошибка (WAPE, %) для четырёх моделей на горизонтах 1, 7 и 14 дней. Rolling-origin бэктест: 28-дневное тестовое окно, четыре фолда, переобучение каждые 7 дней. Чем ниже — тем лучше.",
+        "en": "Weighted absolute percentage error (WAPE, %) for four models at horizons of 1, 7 and 14 days. Rolling-origin backtest: 28-day test window, four folds, refit every 7 days. Lower is better."
+      },
+      "xLabel": {
+        "ru": "Горизонт",
+        "en": "Horizon"
+      },
+      "yLabel": {
+        "ru": "WAPE, %",
+        "en": "WAPE, %"
+      },
+      "data": {
+        "categories": ["h=1", "h=7", "h=14"],
+        "series": [
+          { "name": "naive", "values": [22.68, 12.53, 12.54] },
+          { "name": "seasonal_naive", "values": [5.4, 6.01, 6.25] },
+          { "name": "holt_winters", "values": [3.91, 7.16, 7.22] },
+          { "name": "hgb", "values": [7.14, 7.9, 8.09] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "На h=7 и h=14 лучший результат у seasonal_naive — 6.01% и 6.25%; именно эта модель рекомендуется, а не более сложная.",
+          "en": "At h=7 and h=14 seasonal_naive is best — 6.01% and 6.25%; that baseline, not the more complex model, is the recommendation."
+        },
+        {
+          "ru": "holt_winters выигрывает только день вперёд (3.91%), а градиентный бустинг проигрывает бейзлайну на всех трёх горизонтах: 7.14 / 7.90 / 8.09% против 5.40 / 6.01 / 6.25%.",
+          "en": "holt_winters wins only one day ahead (3.91%), and gradient boosting loses to the baseline at all three horizons: 7.14 / 7.90 / 8.09% against 5.40 / 6.01 / 6.25%."
+        }
+      ]
+    },
+    {
+      "id": "delivery-time-channel-category",
+      "type": "bar",
+      "title": {
+        "ru": "Время доставки по каналу и категории",
+        "en": "Delivery time by channel and category"
+      },
+      "description": {
+        "ru": "Среднее время доставки в минутах, взвешенное по числу позиций (qty), за 2022-01-01..2022-06-30. Каналы mp, web и other показаны рядом внутри каждой категории: разброс между каналами мал, между категориями — велик. Общая корреляция объёма и времени (Спирмен) — rho = −0.044.",
+        "en": "Mean delivery time in minutes, weighted by item count (qty), for 2022-01-01..2022-06-30. Channels mp, web and other sit side by side within each category: the spread across channels is small, across categories it is large. Pooled Spearman correlation between volume and time is rho = −0.044."
+      },
+      "xLabel": {
+        "ru": "Категория",
+        "en": "Category"
+      },
+      "yLabel": {
+        "ru": "Минуты",
+        "en": "Minutes"
+      },
+      "data": {
+        "categories": ["пицца", "закуски", "напитки", "десерты"],
+        "series": [
+          { "name": "mp", "values": [26.56, 39.97, 30.0, 24.98] },
+          { "name": "web", "values": [26.55, 39.99, 29.85, 24.97] },
+          { "name": "other", "values": [26.49, 39.95, 30.05, 25.05] }
+        ]
+      },
+      "conclusions": [
+        {
+          "ru": "Закуски идут ≈40.0 мин, пицца — ≈26.5 мин: разрыв +13.4 мин, то есть примерно +50% времени, и он одинаков во всех трёх каналах.",
+          "en": "Snacks take ≈40.0 min against ≈26.5 min for pizza: a +13.4 min gap, roughly +50% of the time, and it holds in all three channels."
+        },
+        {
+          "ru": "Канал почти не меняет время: худший и лучший канал внутри одной категории отличаются не более чем на 0.2 мин (например, напитки 29.85 против 30.05).",
+          "en": "The channel barely moves time: the worst and best channel within one category differ by at most 0.2 min (drinks, for example, 29.85 against 30.05)."
+        }
+      ]
+    }
+  ]
+}

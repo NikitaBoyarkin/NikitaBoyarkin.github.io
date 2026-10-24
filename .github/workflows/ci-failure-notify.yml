@@ -29,10 +29,20 @@ concurrency:
 
 jobs:
   notify:
+    # A `Lighthouse` run is itself started by `workflow_run`, so its own `event`
+    # is `workflow_run`, never `push` — the push/branch filter would skip every
+    # Lighthouse failure. That gate belongs to the deploy run only: Lighthouse
+    # reaches here at all only after a successful push deploy to master (see
+    # its own `if:`), so a failed audit is notify-worthy on its own.
     if: >-
       github.event.workflow_run.conclusion == 'failure'
-      && github.event.workflow_run.event == 'push'
-      && github.event.workflow_run.head_branch == 'master'
+      && (
+        github.event.workflow_run.name == 'Lighthouse'
+        || (
+          github.event.workflow_run.event == 'push'
+          && github.event.workflow_run.head_branch == 'master'
+        )
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

@@ -1,0 +1,99 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Delivery Control Tower: данные, витрины, прогноз заказов и узкие места доставки">
+  <defs>
+    <linearGradient id="dct-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#e8eef5"/>
+    </linearGradient>
+    <linearGradient id="dct-line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#475569"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="600" fill="url(#dct-bg)"/>
+  <rect x="0.5" y="0.5" width="1199" height="599" fill="none" stroke="#cbd5e1"/>
+
+  <text x="80" y="92" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="44" font-weight="700" letter-spacing="2" fill="#0f172a">DELIVERY CONTROL TOWER</text>
+  <text x="80" y="132" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="20" fill="#475569">операционная аналитика доставки · 550 710 строк · 264 города</text>
+
+  <g font-family="system-ui, -apple-system, Segoe UI, sans-serif">
+    <g>
+      <rect x="80" y="176" width="230" height="86" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+      <text x="100" y="208" font-size="17" font-weight="600" fill="#0f172a">Данные</text>
+      <text x="100" y="236" font-size="15" fill="#64748b">день × город × канал</text>
+    </g>
+    <path d="M318 219 H352" stroke="#94a3b8" stroke-width="2"/>
+    <path d="M346 213 L353 219 L346 225" fill="none" stroke="#94a3b8" stroke-width="2"/>
+    <g>
+      <rect x="360" y="176" width="230" height="86" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+      <text x="380" y="208" font-size="17" font-weight="600" fill="#0f172a">Витрины</text>
+      <text x="380" y="236" font-size="15" fill="#64748b">star-schema · DuckDB</text>
+    </g>
+    <path d="M598 219 H632" stroke="#94a3b8" stroke-width="2"/>
+    <path d="M626 213 L633 219 L626 225" fill="none" stroke="#94a3b8" stroke-width="2"/>
+    <g>
+      <rect x="640" y="176" width="230" height="86" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+      <text x="660" y="208" font-size="17" font-weight="600" fill="#0f172a">Прогноз</text>
+      <text x="660" y="236" font-size="15" fill="#64748b">WAPE 6.01% · h=7</text>
+    </g>
+    <path d="M878 219 H912" stroke="#94a3b8" stroke-width="2"/>
+    <path d="M906 213 L913 219 L906 225" fill="none" stroke="#94a3b8" stroke-width="2"/>
+    <g>
+      <rect x="920" y="176" width="200" height="86" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+      <text x="940" y="208" font-size="17" font-weight="600" fill="#0f172a">Дашборд</text>
+      <text x="940" y="236" font-size="15" fill="#64748b">офлайн · 3 роли</text>
+    </g>
+  </g>
+
+  <g>
+    <rect x="80" y="300" width="500" height="230" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="104" y="334" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="17" font-weight="600" fill="#0f172a">Прогноз заказов, WAPE h=7</text>
+    <g stroke="#e2e8f0" stroke-width="1">
+      <path d="M104 400 H556"/><path d="M104 450 H556"/><path d="M104 500 H556"/>
+    </g>
+    <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" fill="#94a3b8">
+      <text x="104" y="396">10%</text><text x="104" y="446">5%</text><text x="104" y="496">0</text>
+    </g>
+    <g>
+      <rect x="150" y="375" width="64" height="125" rx="4" fill="#cbd5e1"/>
+      <rect x="252" y="440" width="64" height="60" rx="4" fill="#0f172a"/>
+      <rect x="354" y="428" width="64" height="72" rx="4" fill="#475569"/>
+      <rect x="456" y="421" width="64" height="79" rx="4" fill="#94a3b8"/>
+    </g>
+    <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="600" fill="#0f172a" text-anchor="middle">
+      <text x="182" y="367">12.53</text>
+      <text x="284" y="432">6.01</text>
+      <text x="386" y="420">7.16</text>
+      <text x="488" y="413">7.90</text>
+    </g>
+    <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">
+      <text x="182" y="522">naive</text>
+      <text x="284" y="522">сезон</text>
+      <text x="386" y="522">HW</text>
+      <text x="488" y="522">hgb</text>
+    </g>
+  </g>
+
+  <g>
+    <rect x="620" y="300" width="500" height="230" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="644" y="334" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="17" font-weight="600" fill="#0f172a">Время доставки по категориям, мин</text>
+    <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="14" fill="#475569">
+      <text x="644" y="378">закуски</text>
+      <text x="644" y="422">напитки</text>
+      <text x="644" y="466">пицца</text>
+      <text x="644" y="510">десерты</text>
+    </g>
+    <g>
+      <rect x="760" y="362" width="300" height="22" rx="4" fill="#0f172a"/>
+      <rect x="760" y="406" width="228" height="22" rx="4" fill="#475569"/>
+      <rect x="760" y="450" width="201" height="22" rx="4" fill="#94a3b8"/>
+      <rect x="760" y="494" width="190" height="22" rx="4" fill="#cbd5e1"/>
+    </g>
+    <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="14" font-weight="600" fill="#0f172a">
+      <text x="1072" y="380">40.0</text>
+      <text x="1000" y="424">30.0</text>
+      <text x="973" y="468">26.5</text>
+      <text x="962" y="512">25.0</text>
+    </g>
+  </g>
+</svg>

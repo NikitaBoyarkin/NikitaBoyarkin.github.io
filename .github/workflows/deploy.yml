@@ -7,10 +7,12 @@ on:
     branches: [master, main]
   workflow_dispatch:
 
+# Least privilege: the `build` job executes third-party PyPI code (pandas,
+# dbt-charts) and must not be able to mint an OIDC token or publish. Pages/OIDC
+# write is granted on the `deploy` job only — job-level `permissions` replaces
+# this block, it does not merge with it.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Concurrency is set per job, not per workflow — see the build and deploy jobs.
 # A workflow-level `group: pages` would put every run, build included, behind the
@@ -34,6 +36,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          # Nothing in this job pushes; keeping the token out of .git/config
+          # removes the most useful thing a compromised dependency could read.
+          persist-credentials: false
 
       # The site repo is checked out alone, so the drift guard cannot see the
       # sibling case-study repo it counts .sql files from. Fetch that public
@@ -43,6 +49,7 @@ jobs:
         with:
           repository: NikitaBoyarkin/sql-analytics-case-study
           path: vendor/sql-analytics-case-study
+          persist-credentials: false
 
       # The Volta analytics board (charts/volta-core.yml) and its CSVs live in
       # the sibling volta-banking repo — the single source of truth. Checked out
@@ -53,6 +60,7 @@ jobs:
         with:
           repository: NikitaBoyarkin/volta-banking
           path: vendor/volta-banking
+          persist-credentials: false
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
@@ -141,7 +149,10 @@ jobs:
           cd vendor/volta-banking
           # --no-project: the transform only needs pandas. Syncing the project's
           # own env would pull scikit-learn, shap and scipy for nothing.
-          uv run --no-project --with pandas python scripts/build_charts_data.py
+          # Exact pin, not `pandas`: this job runs unpinned code from PyPI, and
+          # 2.3.3 is the version volta-banking's own uv.lock resolves — bump it
+          # there first, then here.
+          uv run --no-project --with pandas==2.3.3 python scripts/build_charts_data.py
 
       - name: Render Volta board demo
         # Regenerate public/demos/volta-board/index.html from the board in
@@ -185,6 +196,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
     concurrency:
       # Not cancellable: killing this job mid-flight can leave GitHub Pages on a
       # half-published release. It is short and rare enough that serialising it

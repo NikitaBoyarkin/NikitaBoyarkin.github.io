@@ -2,7 +2,7 @@
 // Single source of truth for the display order and the track (category) taxonomy
 // used by ProjectBoard and ProjectSpotlight.
 
-export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'streamlit', 'sales-calls', 'sql', 'rfm', 'cohort', 'churn', 'causal', 'rag', 'python', 'bot', 'scrolly', 'garden', 'serp-rank', 'airflow', 'ml', 'linkedin', 'promo', 'site'];
+export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'streamlit', 'sales-calls', 'sql', 'delivery', 'rfm', 'cohort', 'churn', 'causal', 'rag', 'python', 'bot', 'scrolly', 'garden', 'serp-rank', 'airflow', 'ml', 'linkedin', 'promo', 'site'];
 
 // PRD v6 S2.6 — three headline case studies on the home page, each a distinct
 // proof with at least one reachable public artifact:
@@ -55,6 +55,7 @@ const RESULT_FIRST: readonly string[] = [
   'rfm',
   'churn',
   'sql',
+  'delivery',
   'causal',
   'serp-rank',
   'sales-calls',
@@ -77,6 +78,7 @@ const RESULT_FIRST: readonly string[] = [
 const METHOD_FIRST: readonly string[] = [
   'ab',
   'sql',
+  'delivery',
   'causal',
   'serp-rank',
   'rag',
@@ -430,6 +432,7 @@ export const PROJECT_SPHERES: Record<string, SphereKey> = {
   cohort: 'saas-product',
   bot: 'saas-product',
   promo: 'commerce-growth',
+  delivery: 'commerce-growth',
   causal: 'commerce-growth',
   'sales-calls': 'commerce-growth',
   'serp-rank': 'commerce-growth',
