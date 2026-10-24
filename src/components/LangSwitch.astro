@@ -55,3 +55,25 @@ const ariaLabel = ruActive ? 'Переключатель языка' : 'Language
     }
   }
 </style>
+
+<script>
+  // Language on this site is URL-based (/ vs /en/), so a page outside the paired
+  // routes — public/repo-audit/ — has nothing to read the choice from. Record it
+  // on the switch itself; the audit pages read `siteLang` and fall back to
+  // `navigator.language`. Written on click only: landing on a shared link is not
+  // a choice.
+  for (const link of document.querySelectorAll<HTMLAnchorElement>(
+    '.lang-switch a[hreflang]',
+  )) {
+    link.addEventListener('click', () => {
+      const lang = link.getAttribute('hreflang');
+      if (lang !== 'ru' && lang !== 'en') return;
+      try {
+        localStorage.setItem('siteLang', lang);
+      } catch {
+        // Storage blocked (private mode / quota): the audit page falls back to
+        // the browser language, which is the same answer for most visitors.
+      }
+    });
+  }
+</script>

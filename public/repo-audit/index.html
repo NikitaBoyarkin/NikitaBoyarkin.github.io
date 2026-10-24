@@ -46,21 +46,27 @@
 
 :root{
   /* Mirrors the dark theme in NikitaBoyarkin.github.io/src/styles/global.css:
-     60-30-10 — teal surfaces, zinc text/borders, one coral accent. Orange is a
-     *fill* only, carrying dark ink; it is never used as an accent-text colour
-     (see src/lib/brand.ts, "Double regime"). */
-  --bg:#0f2a2b; --panel:#1a3435; --panel2:#234044; --border:#3f3f46;
-  --text:#e4e4e7; --muted:#a1a1aa; --accent:#ff8569; --accent-hover:#ffa68a;
-  --accent2:#4ecdc4; --warn:#fe4e02; --ink:#1a1a1a; --chip:#234044;
-  --hairline:rgba(161,161,170,.14);   /* derived from --text-muted */
-  --scrim:rgba(15,42,43,.72);         /* derived from --bg */
+     60-30-10 — indigo surfaces on the signal-blue ground, cream text and
+     hairlines, one coral accent. The elevation ladder runs DOWNWARD (surfaces
+     darker than the page), same as the site: text 10.29:1 on --bg, muted
+     5.54:1, coral 7.50:1 on a card. */
+  --bg:#1400c3; --panel:#0d0068; --panel2:#120093; --border:#8076d7;
+  --text:#f8f2da; --muted:#b3b3ba; --accent:#ff8569; --accent-hover:#ffa68a;
+  --accent2:#4ecdc4; --warn:#ff8569; --ink:#1a1a1a; --chip:#120093;
+  --hairline:rgba(128,118,215,.32);   /* derived from --border */
+  --scrim:rgba(13,0,104,.82);         /* derived from --panel */
+  --btn:#171717; --btn-hover:#2e2e2e; --btn-ink:#f8f2da;
+  /* Site wallpaper — honeycomb lattice, dataviz teal at low alpha. Texture on
+     the 60% surface, never a second surface. */
+  --wallpaper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='24' viewBox='0 0 42 24'%3E%3Cpath d='M35 12 28 24 14 24 7 12 14 0 28 0Z' fill='none' stroke='%234ecdc4' stroke-opacity='.07'/%3E%3Cpath d='M0 12h7M35 12h7' fill='none' stroke='%234ecdc4' stroke-opacity='.07'/%3E%3C/svg%3E");
   --font-sans:'Inter','Inter Fallback',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,sans-serif;
   --font-display:'Cormorant','Cormorant Fallback',Georgia,"Times New Roman",Literata,"Noto Serif","PT Serif",serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
-  background:var(--bg); color:var(--text);
+  background-color:var(--bg); background-image:var(--wallpaper);
+  color:var(--text);
   font:14px/1.5 var(--font-sans);
   -webkit-font-smoothing:antialiased;
 }
@@ -69,9 +75,32 @@ a:hover{color:var(--accent-hover);text-decoration:underline}
 a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{
   outline:2px solid var(--accent); outline-offset:2px; border-radius:4px;
 }
+/* Portfolio button — same geometry as the site's .button: neutral diagonal
+   fill (never the accent bucket), cream ink, radius 8px, hover lift with a
+   coral-tinted shadow, press returns to rest, 44px touch target on phones. */
+.button{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(135deg,var(--btn),var(--btn-hover));
+  color:var(--btn-ink);padding:10px 20px;border:1px solid transparent;
+  border-radius:8px;font-size:.9rem;font-weight:500;line-height:1.2;
+  white-space:nowrap;cursor:pointer;
+  transition:transform .2s ease,background-color .2s ease,color .2s ease,
+    border-color .2s ease,box-shadow .2s ease;
+}
+.button:hover{
+  background:var(--btn-hover);color:var(--btn-ink);text-decoration:none;
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(255,133,105,.25);
+}
+.button:active{transform:translateY(0);box-shadow:0 2px 6px rgba(255,133,105,.18)}
+@media(max-width:480px){.button{min-height:44px}}
+.crumbs{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px}
+.crumbs .sep{color:var(--muted);opacity:.6}
+.crumbs .meta{color:var(--muted);font-size:12.5px}
 header{padding:26px 24px 6px}
-h1{font-family:var(--font-display);font-size:30px;font-weight:600;line-height:1.15;
-   letter-spacing:.005em;margin:0 0 6px}
+h1{font-family:var(--font-display);font-size:clamp(2rem,1.6rem + 1vw,2.5rem);
+   font-weight:600;line-height:1.15;
+   letter-spacing:.005em;margin:0 0 10px}
 .sub{color:var(--muted);font-size:12.5px}
 main{padding:0 24px 48px;max-width:1400px;margin:0 auto}
 section{margin:22px 0}
@@ -141,11 +170,13 @@ footer{color:var(--muted);font-size:11.5px;padding:8px 24px 40px;max-width:1400p
 </head>
 <body>
 <header>
+  <nav class="crumbs" aria-label="Portfolio navigation">
+    <a class="button" id="back-portfolio" href="/" hreflang="ru">← Портфолио</a>
+    <a class="meta" href="portfolio.html">Portfolio index → the 47 authored repos, with showcase metrics</a>
+  </nav>
   <h1>GitHub repo audit — NikitaBoyarkin</h1>
   <p class="sub">1776 repos indexed · 76 own · 1700 starred
      · generated 2026-10-14 · offline report · no CDN, no JS dependencies</p>
-  <p class="sub"><a href="portfolio.html">Portfolio index → the 47 authored repos, with showcase metrics</a>
-     · <a href="/">nikitaboyarkin.github.io</a></p>
 </header>
 <main>
   <section aria-labelledby="kpi-h">
@@ -486,6 +517,22 @@ footer{color:var(--muted);font-size:11.5px;padding:8px 24px 40px;max-width:1400p
 
   renderHead();
   render();
+})();
+</script>
+<script>
+/* Back-link label follows the site's own language switch when it was used
+   (LangSwitch records `siteLang`), otherwise the browser language. */
+(function(){
+  var el = document.getElementById('back-portfolio');
+  if(!el){ return; }
+  var lang = null;
+  try { lang = localStorage.getItem('siteLang'); } catch(e){}
+  if(lang !== 'ru' && lang !== 'en'){
+    lang = String(navigator.language || '').toLowerCase().indexOf('ru') === 0 ? 'ru' : 'en';
+  }
+  el.textContent = lang === 'ru' ? '← Портфолио' : '← Portfolio';
+  el.setAttribute('hreflang', lang);
+  el.setAttribute('lang', lang);
 })();
 </script>
 </body>
