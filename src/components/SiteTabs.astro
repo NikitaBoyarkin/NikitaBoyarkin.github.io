@@ -72,14 +72,21 @@ const labels = isEn
       }
     };
 
-    /** Page titles carry the site name after a separator; the tab wants the page. */
+    /**
+     * Page titles carry the site name after a separator; the tab wants the page.
+     * The persona landings prefix the OWNER instead ("Никита Бояркин —
+     * продуктовый аналитик, найм"), so that prefix is stripped first — otherwise
+     * the tab for `/hr/` reads as the author's name rather than the page.
+     */
+    const OWNER_PREFIX = /^(?:Никита Бояркин|Nikita Boyarkin)\s*[|—–]\s*/i;
     const titleLabel = () => {
       // The homepage's title is the person's name, which reads as a tab called
       // "Nikita Boyarkin" beside "Проекты"/"Статьи". Chrome calls this tab
       // "New Tab"; this strip calls it what the nav calls it.
       if (norm(location.href) === norm(home)) return untitled;
       const raw = (document.title || '').trim();
-      const cut = raw.split(/\s+[|—–]\s+/)[0].trim();
+      const stripped = raw.replace(OWNER_PREFIX, '');
+      const cut = stripped.split(/\s+[|—–]\s+/)[0].trim();
       return cut || raw || untitled;
     };
 
@@ -137,11 +144,14 @@ const labels = isEn
       }
     }
 
-    function remember(href: string, label: string) {
+    function remember(href: string, label: string, overwrite = true) {
       const key = norm(href);
       const existing = tabs.find((t) => norm(t.href) === key);
       if (existing) {
-        existing.label = label;
+        // A label captured from the link the visitor clicked ("HR") outranks a
+        // title-derived one ("продуктовый аналитик, найм"), so the page-load
+        // registration must not rewrite a tab that already has one.
+        if (overwrite) existing.label = label;
       } else {
         tabs.push({ href: key, label });
       }
@@ -151,7 +161,7 @@ const labels = isEn
     }
 
     tabs = read();
-    remember(norm(location.href), titleLabel());
+    remember(norm(location.href), titleLabel(), false);
 
     // Record on click, never preventDefault: the browser still performs the
     // navigation, so the strip cannot break a link, a modifier-click or a
