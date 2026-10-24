@@ -16,7 +16,7 @@ Two sets live in the script:
 | [01 · Трафик и источники](https://us.posthog.com/project/451732/dashboard/2226427) | 2226427 | pageviews/visitors weekly; top paths; referring domains; first-touch class; `$session_entry_utm_source`; devices; browsers |
 | [02 · Воронка: визит → проект → контакт](https://us.posthog.com/project/451732/dashboard/2226417) | 2226417 | visit→project→contact funnel; **home(/, /en/, legacy base)**→project→contact funnel; time-to-convert; home→/projects/; contact CTAs weekly; outbound domains |
 | [03 · Проекты и контент](https://us.posthog.com/project/451732/dashboard/2226420) | 2226420 | top projects; `project_viewed` by surface; top posts; `read_depth` by depth and by content type; `/about` sections; filters by surface; search by surface (see note); library tiles |
-| [04 · Персоны и CTA](https://us.posthog.com/project/451732/dashboard/2226421) | 2226421 | gate views vs unique visitors; persona choice; gate→choice funnel; choice by source; RU/EN pageviews; language switches; theme; **CTA rail exposure→click**; CTA exposure |
+| [04 · Персоны и CTA](https://us.posthog.com/project/451732/dashboard/2226421) | 2226421 | gate views vs unique visitors; persona choice; gate→choice funnel; choice by source; RU/EN pageviews; language switches; theme |
 | [05 · Здоровье аналитики](https://us.posthog.com/project/451732/dashboard/2226422) | 2226422 | per-event volume + last-seen (HogQL); **expected-but-dead events (HogQL, re-synced from the repo)**; all-events daily; junk events from own pipelines; Web Vitals p75 by path; rageclicks by path; JS exceptions; games funnel |
 
 Design rules the v2 set follows:
@@ -36,7 +36,7 @@ Design rules the v2 set follows:
 
 On 2026-10-18 it reported **32 of 54 declared events with zero rows in 90 days**. The zeroes sort to the top, and they mean one of three things — the tile description says which:
 
-- not deployed yet (`surface` on the search events, `surface` on the rail CTA),
+- not deployed yet (`surface` on the search events),
 - deliberately inert (`contact_submit` / `contact_form_error` — `CONTACT_FORM_ENABLED=false`),
 - dead code or a dead feature (`headline_*` before they were removed, games events before they shared the site's `distinct_id`).
 

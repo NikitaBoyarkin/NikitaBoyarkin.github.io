@@ -554,7 +554,7 @@ HOME_STEP = group(
 
 CONTACT_STEP = group(
     [node(e, name=e) for e in CONTACT_EVENTS],
-    name="Контакт (CV / Telegram / LinkedIn / GitHub / звонок)",
+    name="Контакт (Telegram / LinkedIn / GitHub / звонок)",
 )
 
 DASHBOARDS_V2: list[dict] = [
@@ -642,7 +642,7 @@ DASHBOARDS_V2: list[dict] = [
         "name": "02 · Воронка: визит → проект → контакт",
         "description": (
             "Главная воронка портфолио за 90 дней. Шаг «контакт» — OR-набор всех "
-            "каналов (CV, Telegram, LinkedIn, GitHub, звонок). Вторая воронка "
+            "каналов (Telegram, LinkedIn, GitHub, звонок). Вторая воронка "
             "охватывает и `/`, и `/en/`, и легаси-базу `/Personal_Projects.github.io/`."
         ),
         "tiles": [
@@ -702,7 +702,7 @@ DASHBOARDS_V2: list[dict] = [
             tile(
                 "Контактные CTA по неделям",
                 "По одной серии на канал контакта, недельный интервал — видно, какие каналы "
-                "вообще используются (CV / Telegram / LinkedIn / GitHub / cal.com).",
+                "вообще используются (Telegram / LinkedIn / GitHub / cal.com).",
                 trends(
                     [node(e, math="total") for e in CONTACT_EVENTS], interval="week"
                 ),
@@ -893,34 +893,6 @@ DASHBOARDS_V2: list[dict] = [
                     display="ActionsTable",
                 ),
             ),
-            tile(
-                "CTA rail: экспозиция → клик",
-                "Две ступени: cta_exposure (surface=home_rail) → cv_download_pdf "
-                "(surface=home_rail). Пара соединяется по surface с 2026-10-18: rail-ссылка "
-                "несёт data-analytics-surface. До деплоя правая ступень = 0, и это "
-                "ожидаемо, а не сломанный тайл.",
-                funnel(
-                    [
-                        node(
-                            "cta_exposure",
-                            properties=[prop_filter("surface", "home_rail")],
-                            name="Экспозиция rail",
-                        ),
-                        node(
-                            "cv_download_pdf",
-                            properties=[prop_filter("surface", "home_rail")],
-                            name="Клик по CV из rail",
-                        ),
-                    ]
-                ),
-            ),
-            tile(
-                "CTA-экспозиция (десктоп ≥1860px)",
-                "cta_exposure — знаменатель для rate экспозиция→клик. Огонь только на главной "
-                "и только при ширине ≥1860px, surface = home_rail; клик (cv_download_pdf) "
-                "несёт лишь {path}, поэтому пара не соединяется по общему свойству.",
-                trends([node("cta_exposure", math="total")], interval="week"),
-            ),
         ],
     },
     # (5) Analytics health ----------------------------------------------------
@@ -958,7 +930,7 @@ DASHBOARDS_V2: list[dict] = [
                 "Сверка кода с данными. Список имён собран из AnalyticsEventMap, таблиц "
                 "docs/analytics-events.md §1–§2 и игрового бандла; тайл синхронизируется "
                 "при каждом `--apply`. events = 0 означает одно из трёх: событие объявлено "
-                "и не задеплоено (surface у поиска, surface у rail-CTA), фича инертна "
+                "и не задеплоено (surface у поиска), фича инертна "
                 "(contact_submit при выключенной форме), или код мёртв (headline_*). "
                 "Сверху — самые мёртвые.",
                 hogql_table(dead_events_query()),
