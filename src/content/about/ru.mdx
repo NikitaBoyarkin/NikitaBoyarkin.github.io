@@ -12,8 +12,7 @@ lang: ru
       панелей; на них ведут редиректы (astro.config.mjs);
     · id="career" приходит из <CareerSnapshot>;
     · data-analytics-section со значениями who / how / now / work / location /
-      value — из них Analytics.astro эмитит `section_viewed` при активации панели;
-    · ссылка на CV несёт download и data-analytics="cv_download_pdf".
+      value — из них Analytics.astro эмитит `section_viewed` при активации панели.
 
   Цифры здесь не набираются: <CareerSnapshot> и <ValueOffers> читают
   src/lib/metrics.ts, поэтому буллеты и OG-баннеры не разъезжаются.
@@ -178,8 +177,6 @@ lang: ru
   <a href="https://github.com/NikitaBoyarkin" target="_blank" rel="noopener noreferrer">GitHub</a>
   {' · '}
   <a href="https://www.linkedin.com/in/nikita-boyarkin" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-  {' · '}
-  <a href="/CV-Nikita-Boyarkin.pdf" download data-analytics="cv_download_pdf">CV</a>
   {' · '}
   <a href="/writing/">Статьи</a>
   {' · '}

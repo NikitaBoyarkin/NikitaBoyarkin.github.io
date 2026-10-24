@@ -150,9 +150,9 @@ export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
     hr: {
       title: 'Никита Бояркин — продуктовый аналитик, найм',
       description:
-        'Продуктовый аналитик: 5 лет в исследованиях, SQL, Python, A/B-тесты. Стек, метрики и CV — для скрининга по вакансии.',
+        'Продуктовый аналитик: 5 лет в исследованиях, SQL, Python, A/B-тесты. Стек и метрики — для скрининга по вакансии.',
       h1: 'Продуктовый аналитик — для найма',
-      lead: 'Роль, стек, метрики и CV — чтобы сверить с вакансией.',
+      lead: 'Роль, стек и метрики — чтобы сверить с вакансией.',
     },
     manager: {
       title: 'Никита Бояркин — продуктовый аналитик, результаты',
@@ -173,9 +173,9 @@ export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
     hr: {
       title: 'Nikita Boyarkin — Product Analyst, hiring',
       description:
-        'Product analyst: 5 years in research, SQL, Python, A/B testing. Stack, metrics and CV — for screening against a vacancy.',
+        'Product analyst: 5 years in research, SQL, Python, A/B testing. Stack and metrics — for screening against a vacancy.',
       h1: 'Product Analyst — for hiring',
-      lead: 'Role, stack, metrics and CV — to match against a vacancy.',
+      lead: 'Role, stack and metrics — to match against a vacancy.',
     },
     manager: {
       title: 'Nikita Boyarkin — Product Analyst, impact',

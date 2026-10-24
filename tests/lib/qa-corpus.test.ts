@@ -31,7 +31,7 @@ describe('QA_CORPUS', () => {
 
   it('covers the core recruiter topics', () => {
     const ids = QA_CORPUS.map((p) => p.id);
-    for (const id of ['who', 'role', 'experience', 'stack', 'ab-testing', 'retention', 'segmentation', 'sql', 'automation', 'volta', 'contact', 'cv', 'differentiate']) {
+    for (const id of ['who', 'role', 'experience', 'stack', 'ab-testing', 'retention', 'segmentation', 'sql', 'automation', 'volta', 'contact', 'differentiate']) {
       expect(ids).toContain(id);
     }
   });

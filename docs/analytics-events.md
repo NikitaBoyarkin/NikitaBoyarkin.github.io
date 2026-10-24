@@ -29,7 +29,6 @@ Canonical event taxonomy for the portfolio, per
 | `booking_click` | `{ path }` | the 30-minute booking CTA (`cal.com/lofinibo/30min`) is clicked | `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
 | `persona_gate_view` | `{ lang, has_stored_choice }` | the persona gate card is rendered | `HeroGate.astro` (homepage) |
 | `persona_selected` | `{ persona, lang, source }` | a persona is chosen (`source ∈ {gate, switch, header, menu}` — `header`/`menu` are `NavRoles`'s bar/drawer variants) | `NavRoles.astro`, `RoleSwitch.astro`, `HeroGate.astro` |
-| `cta_exposure` | `{ surface, lang }` | the primary CTA is exposed (denominator for the exposure→click rate); desktop ≥1860px only | `Base.astro:817` — `surface:'home_rail'`, and only on pages passing `showCtaRail` (the homepage). The matching click is `cv_download_pdf` **with `surface:'home_rail'`** (the rail link carries `data-analytics-surface`, added 2026-10-18) — before that the pair was not joinable, and rows from before the change carry `{path}` only |
 | `library_tile` | `{ path }` | a library tile is clicked | `ReadingBlock.astro`, via `[data-analytics]` |
 | `source_external` | `{ path }` | the "source ↗" link of a library entry is clicked. Currently **inert**: no library entry carries `url:`, so the link never renders | `ReadingBlock.astro`, `library/[slug].astro` (RU + EN), via `[data-analytics]` |
 | `linkedin_contact` | `{ path }` | the LinkedIn CTA on the contact page is clicked (the contact page's LinkedIn channel, separate from `linkedin_footer`) | `contact.astro` / `en/contact.astro`, via `[data-analytics]` |
@@ -40,10 +39,9 @@ Canonical event taxonomy for the portfolio, per
 
 > **Placements.** Any `[data-analytics]` element may also carry
 > `data-analytics-surface="<placement>"`; the delegated handler then adds
-> `surface` to the event props. Today the only placement is the desktop CTA rail
-> (`surface:'home_rail'`, `Base.astro`), which is what makes `cta_exposure →
-> cv_download_pdf` computable — the exposure row and the click row now share
-> `surface`. Add the attribute to any new CTA whose exposure you intend to count.
+> `surface` to the event props. No placement uses it today — the only one was the
+> desktop CTA rail (`surface:'home_rail'`), retired with the CV on 2026-10-24.
+> Add the attribute to any new CTA whose exposure you intend to count.
 
 ### Super properties (registered once per load, PRD §4.2)
 
@@ -65,7 +63,6 @@ These keep their historical names (they are the slider for the "hard naming" cas
 | `featured_project`, `featured_demo`, `featured_github` | `RoleLanding.astro` — **colleague role pages only** (`/colleague/`, `/en/colleague/`). The homepage hero does not render them |
 | `bento_stack` | `StackCard.astro` (via `RoleLanding`) — all six role pages |
 | `bento_notes`, `bento_shelf`, `bento_writing` | `RoleLanding.astro` — colleague role pages (`bento_notes` RU only) |
-| `cv_download_pdf` | every "CV" button: `Base.astro` nav chips + nav rail, hero, `contact.astro` / `en/contact.astro` |
 | `telegram_contact`, `telegram_deeplink`, `telegram_footer` | `contact.astro`, `Base.astro` nav chips |
 | `github_footer`, `linkedin_footer` | `Base.astro` nav chips (moved out of the footer 2026-10-10; the `_footer` suffix is kept so the PostHog series does not split) |
 | `value_cta`, `work_with_me_cta`, `whois_cta` | `about/{ru,en}.mdx` via `TelegramCta.astro` on `/about#value` |
@@ -125,6 +122,7 @@ The SDK is lazy: it loads on the first `pointerdown` / `keydown` / `scroll` /
 | `hero_cta_click`, `hero_cta_exposure` | doc-only removal | A/B flag deactivated 2026-09-15; code already gone (PRD §4.6) |
 | `hero_projects`, `hero_contact` | removed | never wired; `HeroCta.astro` deleted with the A/B test (2026-09-27). Live hero CTAs: `featured_project`, `featured_demo`, `featured_github` |
 | `hero_cv`, `cv_footer`, `cv_pdf_footer`, `cv_source_github` | removed | CV unified into one "CV" download button → `cv_download_pdf` (2026-09-19); `/cv/` page deleted |
+| `cv_download_pdf`, `cta_exposure` | removed | the CV was removed from the site on 2026-10-24 (every link, the rail that carried it, the `/cv/` redirect and the robots `Disallow`). Historical rows stay in PostHog; re-adding a CV needs both events back |
 | `projects_shuffle` | removed | "Shuffle" button deleted with the category-view rewrite (2026-09-21); random order fought `PROJECT_ORDER` |
 | `writing_footer` | removed | the "Статьи" header chip was deleted 2026-10-11 on the owner's call. `/writing/` moved into the drawer's link list (no event, like the other five nav links) and stays reachable from the homepage bento (`bento_writing`) and from post pages |
 

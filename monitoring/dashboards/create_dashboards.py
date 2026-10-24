@@ -327,10 +327,9 @@ DASHBOARDS: list[dict] = [
             ),
             tile(
                 "Контактные события по locale",
-                "cv_download_pdf, telegram_contact, booking_click с разбивкой по locale.",
+                "telegram_contact, booking_click с разбивкой по locale.",
                 trends_query(
                     [
-                        events_node("cv_download_pdf", math="total"),
                         events_node("telegram_contact", math="total"),
                         events_node("booking_click", math="total"),
                     ],
@@ -344,34 +343,33 @@ DASHBOARDS: list[dict] = [
         "name": "Контакт-конверсия 30д",
         "description": (
             "Воронка контакт-конверсии за 30 дней и тренды контактных CTA. "
-            "North Star — контакты/мес, прокси — CTR резюме (cv_download_pdf). "
+            "North Star — контакты/мес. "
             "Воронка закодирована одиночными событиями на шаг: "
-            "$pageview '/' → project_viewed → cv_download_pdf. "
+            "$pageview '/' → project_viewed → booking_click. "
             "OR-наборы на шаг (project_viewed ИЛИ $pageview /projects/; "
-            "cv_download_pdf ИЛИ telegram_contact ИЛИ booking_click ИЛИ "
+            "booking_click ИЛИ telegram_contact ИЛИ "
             "contact_submit) базовым FunnelsQuery не выражаются — см. README."
         ),
         "tiles": [
             tile(
                 "Воронка: главная → проект → CTA",
                 "Шаг 1: $pageview ($pathname = '/'), шаг 2: project_viewed, "
-                "шаг 3: cv_download_pdf. Сравнение по времени первого события "
+                "шаг 3: booking_click. Сравнение по времени первого события "
                 "(first_ts) — как у существующей воронки zlXsA98W.",
                 funnels_query(
                     [
                         events_node("$pageview", properties=[prop("$pathname", "/")]),
                         events_node("project_viewed"),
-                        events_node("cv_download_pdf"),
+                        events_node("booking_click"),
                     ]
                 ),
             ),
             tile(
                 "Тренды контактных CTA",
-                "cv_download_pdf, telegram_contact, booking_click, contact_submit — "
+                "telegram_contact, booking_click, contact_submit — "
                 "по одной серии на событие, 30 дней.",
                 trends_query(
                     [
-                        events_node("cv_download_pdf", math="total"),
                         events_node("telegram_contact", math="total"),
                         events_node("booking_click", math="total"),
                         events_node("contact_submit", math="total"),
@@ -527,7 +525,6 @@ def dead_events_query() -> str:
 
 # Every channel that counts as "the visitor contacted me".
 CONTACT_EVENTS = [
-    "cv_download_pdf",
     "booking_click",
     "telegram_contact",
     "telegram_deeplink",

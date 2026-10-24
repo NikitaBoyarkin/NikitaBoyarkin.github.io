@@ -25,7 +25,6 @@
     "og:cv": "bun run scripts/generate-cv-og.mjs",
     "og:cv:li": "bun run scripts/generate-cv-linkedin.mjs",
     "og:cv:cover": "bun run scripts/generate-cv-cover.mjs",
-    "cv:pdf": "bun run scripts/sync-cv-pdf.mjs",
     "sync:gh": "bun run scripts/sync-github-projects.mjs",
     "sync:gh:apply": "bun run scripts/sync-github-projects.mjs --apply",
     "sync:gh:candidates": "bun run scripts/sync-github-projects.mjs --candidates",

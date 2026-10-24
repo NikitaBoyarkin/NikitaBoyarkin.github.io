@@ -232,7 +232,7 @@ export const DASHBOARD_COPY: Record<
         title: 'Инструменты и демо',
         desc: 'Интерактивные приложения — открыть и потрогать.',
       },
-      about: { title: 'Обо мне', desc: 'Кто это, CV и как связаться.' },
+      about: { title: 'Обо мне', desc: 'Кто это и как связаться.' },
     },
   },
   en: {
@@ -260,7 +260,7 @@ export const DASHBOARD_COPY: Record<
         title: 'Tools & demos',
         desc: 'Interactive apps you can open and try.',
       },
-      about: { title: 'About', desc: 'Who this is, the CV, and how to get in touch.' },
+      about: { title: 'About', desc: 'Who this is, and how to get in touch.' },
     },
   },
 };
@@ -377,13 +377,6 @@ function aboutSection(locale: Lang): DashboardSection {
   const children: DashboardChild[] = [
     { title: ru ? 'Обо мне' : 'About', href: withBase(`${p}about/`), kind: 'page' },
     { title: ru ? 'Связаться' : 'Contact', href: withBase(`${p}contact/`), kind: 'page' },
-    {
-      title: 'CV (PDF)',
-      // Language-neutral: one PDF serves both locales.
-      href: withBase('CV-Nikita-Boyarkin.pdf'),
-      kind: 'page',
-      external: true,
-    },
   ];
   return {
     id: 'about',

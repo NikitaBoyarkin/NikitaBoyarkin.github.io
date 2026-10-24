@@ -7,19 +7,19 @@
 | # | Локация | Текст CTA | Событие PostHog | Целевой URL |
 |---|---|---|---|---|
 | 1 | ~~Hero CTA (index, RU+EN)~~ — **удалён 2026-09-27** | — | `hero_cta_click` / `hero_cta_exposure` — 0 вхождений в `src/` (`HeroCta` удалён в `90630fa`) | — |
-| 2 | Hero (index, RU+EN) | «Скачать CV (PDF)» + «Контакты» | `cv_download_pdf` (Контакты — без события) | `CV-Nikita-Boyarkin.pdf` · `contact/` |
+| 2 | ~~Hero (index, RU+EN)~~ — **удалено 2026-10-24** | — | — | — |
 | 3 | Featured card (index) | «Разбор проекта» / «Демо» / «GitHub» | `featured_project` / `featured_demo` / `featured_github` | внутренний + внешние |
-| 4 | Header nav | чипы у бренда: CV (залитый) + рейл ≥1860px | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
-| 5 | Header nav (чипы у бренда) — **переехало из футера 2026-10-10** | GitHub · LinkedIn · Telegram · CV | `github_footer` / `linkedin_footer` / `telegram_footer` / `cv_download_pdf` | внешние + внутренние |
+| 4 | ~~Header nav — чип CV + рейл ≥1860px~~ — **удалено 2026-10-24** | — | — | — |
+| 5 | Header nav (чипы у бренда) — **переехало из футера 2026-10-10** | GitHub · LinkedIn · Telegram | `github_footer` / `linkedin_footer` / `telegram_footer` | внешние |
 | 6 | ~~HomeBoard (главная)~~ — **удалён 2026-09-27** | — | `telegram_board` / `github_board` / `linkedin_board` — 0 вхождений в `src/` и `public/` | — |
 | 7 | contact.astro | «Telegram: @lofinibo» | `telegram_contact` | `t.me/lofinibo` |
 | 8 | contact.astro | «Написать с контекстом →» | `telegram_deeplink` | tg deep-link |
-| 9 | contact.astro | «CV» | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
+| 9 | ~~contact.astro — «CV»~~ — **удалено 2026-10-24** | — | — | — |
 | 10 | ValueOffers.astro (`/about#value`) | «Написать в Telegram →» | `value_cta` | tg deep-link |
 | 11 | ValueOffers.astro (`/about#value`) | «GitHub →» | `value_github` | `github.com/NikitaBoyarkin` |
 | 12 | about.astro (#work) | «Обсудить формат →» | `work_with_me_cta` | tg deep-link |
 | 13 | about.astro (links footer) | «Написать в Telegram →» | `whois_cta` | tg deep-link |
-| 14 | about.astro / ValueOffers.astro / CareerSnapshot | «CV» | `cv_download_pdf` | `CV-Nikita-Boyarkin.pdf` |
+| 14 | ~~about.astro / ValueOffers.astro / CareerSnapshot — «CV»~~ — **удалено 2026-10-24** | — | — | — |
 | 15 | games (`/games/`) | LinkedIn / Telegram (contact-секция) | `contact_click` (channel) | внешние |
 | 16 | AskMe (главная) | «Спросить» (открывает панель) | `ask_me_open` | — (панель) |
 | 17 | SearchBox (header) | «Поиск» (открывает панель) | `search_open` | — (панель) |
@@ -122,6 +122,26 @@ All CV entry points collapsed to a single "CV" button that downloads the PDF
 
 The `CV-Nikita-Boyarkin.pdf` `Disallow` in `robots.txt` is unchanged. Historical
 rows for the removed events stay in PostHog.
+
+## CV removed from the site (2026-10-24)
+
+Owner's call: no CV download anywhere. Removed, with no replacement CTA:
+
+| Removed | Was |
+|---|---|
+| Header nav chip «Скачать CV (PDF)» / «Download CV (PDF)» | the one filled chip beside GitHub · LinkedIn · Telegram |
+| Sticky action rail (`cta-rail`, ≥1860px, `showCtaRail`) | a second CV button in the right gutter — the rail's only action, so the rail went with it |
+| `CareerSnapshot` «CV →», `ValueOffers` «CV →», `about/{ru,en}.mdx` CV link | in-page CV entries |
+| Dashboard tile «CV (PDF)» (`dashboard.ts`) | the About section's third child |
+| `cv_download_pdf`, `cta_exposure` events | emitter, `AnalyticsEventMap` rows, `docs/analytics-events.md` rows |
+| `/cv/` → PDF redirect (`astro.config.mjs`) | legacy route |
+| `Disallow: /CV-Nikita-Boyarkin.pdf` in every `robots.txt` group | the crawl exception |
+| `cv:pdf` npm script | CV sync from the rendercv project (`scripts/sync-cv-pdf.mjs` stays on disk, unwired) |
+
+The PDF itself is left in `public/CV-Nikita-Boyarkin.pdf` but nothing links to
+it. Re-adding a CV means restoring the emitter events too, not just a link.
+PostHog dashboards under `monitoring/dashboards/` still reference
+`cv_download_pdf` / `cta_exposure` — those views now have no numerator.
 
 ## Форма связи + запись звонка (2026-09-26)
 

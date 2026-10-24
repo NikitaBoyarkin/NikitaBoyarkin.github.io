@@ -77,11 +77,6 @@ export interface AnalyticsEventMap {
     lang: Locale;
     source: 'gate' | 'switch' | 'header' | 'menu';
   };
-  // Denominator for the primary-CTA rate (exposure→click). The numerator is the
-  // delegated `booking_click` / `cv_download_pdf` from `[data-analytics]`, which
-  // carries `{ path }` and no surface prop — so the pair is joined on
-  // `surface` against the event's own path in PostHog, not on a shared prop.
-  cta_exposure: { surface: string; lang: Locale };
   // Library + contact surfaces that were already shipping through the delegated
   // `[data-analytics]` handler but were never declared here (docs §2 drift).
   library_tile: { path: string };

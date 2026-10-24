@@ -44,14 +44,6 @@ interface Props {
   /** Above-the-fold image that is the page's LCP element — preloaded in <head>. */
   preloadImage?: string;
   /**
-   * Render the sticky action rail in the right-hand gutter. It only appears
-   * from 1860px up, where that gutter is wide enough to hold it without
-   * overlapping the content column (see the `min-width: 1860px` block below);
-   * on `/` the hero already carries both actions, so the rail is a second,
-   * always-reachable entry to the same two links rather than a new ask.
-   */
-  showCtaRail?: boolean;
-  /**
    * Render the page as one full-bleed screen: the canvas spans the whole
    * window and the document is locked to `100dvh` so it never scrolls. Marks
    * <html> with `canvas-fullbleed`, which global.css keys the lock off; the
@@ -85,7 +77,6 @@ const {
   lang = 'ru',
   counterpartHref,
   preloadImage,
-  showCtaRail = false,
   canvasFullBleed = false,
   bleed = false,
   noindex = false,
@@ -157,8 +148,6 @@ const t = {
   // The footer's own label. «Связаться» reads as an action and matches the
   // /contact/ heading, while the drawer button stays the noun «Контакты».
   footerContact: isEn ? 'Get in touch' : 'Связаться',
-  railLabel: isEn ? 'Quick actions' : 'Быстрые действия',
-  navCv: isEn ? 'Download CV (PDF)' : 'Скачать CV (PDF)',
   navOpen: isEn ? 'Open menu' : 'Открыть меню',
   navClose: isEn ? 'Close menu' : 'Закрыть меню',
   themeTitle: isEn ? 'Theme: dark / light / cyberpunk' : 'Тема: тёмная / светлая / киберпанк',
@@ -485,15 +474,12 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           </li>
         ))}
       </ul>
-      {/* The site's off-site and download links live in the top bar, next to
-          the brand they belong to. The CV chip is the row's primary action,
-          so it carries the fill and there is no second CV `.nav-cta` beside
-          it — one label, one target, one `cv_download_pdf`. The event names
-          keep their `_footer` suffix: PostHog series (`github_footer` in the
-          B3 repo-click rate) are read over time, and a rename would silently
-          split them. From 1200px up the three identity chips drop their visible
-          labels (icon only, name kept visually hidden) to pay for `.nav-inline`;
-          the CV chip keeps its label, because it is the one action there. */}
+      {/* The site's off-site links live in the top bar, next to the brand they
+          belong to. The event names keep their `_footer` suffix: PostHog series
+          (`github_footer` in the B3 repo-click rate) are read over time, and a
+          rename would silently split them. From 1200px up the chips drop their
+          visible labels (icon only, name kept visually hidden) to pay for
+          `.nav-inline`. */}
       <div class="nav-chips">
         <a class="nav-chip" href="https://github.com/NikitaBoyarkin" data-analytics="github_footer">
           <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.github} />
@@ -506,10 +492,6 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         <a class="nav-chip" href="https://t.me/lofinibo" data-analytics="telegram_footer">
           <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.telegram} />
           <span class="nav-chip-label">Telegram</span></a
-        >
-        <a class="nav-chip nav-chip--filled" href={withBase('CV-Nikita-Boyarkin.pdf')} download data-analytics="cv_download_pdf">
-          <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" set:html={ICON.download} />
-          <span class="nav-chip-label">{t.navCv}</span></a
         >
       </div>
 
@@ -592,40 +574,6 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     </nav>
 
     <div class="nav-scrim" id="nav-scrim"></div>
-
-    {
-      /* The right-hand rail. It is `display: none` below 1860px, so it is out of
-         the a11y tree and out of the tab order everywhere it cannot be seen —
-         the one action it carries is one the hero and the nav rail already
-         offer, never a new ask. */
-      showCtaRail && (
-        <aside class="cta-rail" aria-label={t.railLabel}>
-          <a
-            class="button"
-            href={withBase('CV-Nikita-Boyarkin.pdf')}
-            download
-            data-analytics="cv_download_pdf"
-            data-analytics-surface="home_rail"
-          >
-            <svg
-              class="btn-icon"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              focusable="false"
-              set:html={ICON.download}
-            />
-            {t.navCv}
-          </a>
-        </aside>
-      )
-    }
 
     <main id="main" tabindex="-1">
       <slot />
@@ -819,14 +767,6 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         });
       });
 
-      // Rail exposure — the denominator for its own click rate (D3). Gated on the
-      // breakpoint rather than on the element existing: the rail is in the DOM
-      // but `display: none` below 1860px, and counting a hidden rail as an
-      // exposure would deflate its rate against clicks that could not happen.
-      const rail = document.querySelector('.cta-rail');
-      if (rail && window.matchMedia('(min-width: 1860px)').matches) {
-        track('cta_exposure', { surface: 'home_rail', lang: document.documentElement.lang === 'en' ? 'en' : 'ru' });
-      }
     </script>
 
     <slot name="scripts" />
@@ -912,12 +852,11 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         }
         /* Icon-only chips, ≥1200px: the identity glyphs are recognisable on
            their own and the label stays visually hidden, so each anchor keeps
-           its accessible name. The CV chip is exempt — it is the primary action
-           in the row and its label is the point. This rule has always shared
-           `.nav-inline`'s breakpoint (it is the same media block) because the
-           icon-only chips are what paid for the inline links; with one link the
-           pair moves down to 1200px together. */
-        .nav-chip:not(.nav-chip--filled) .nav-chip-label {
+           its accessible name. This rule has always shared `.nav-inline`'s
+           breakpoint (it is the same media block) because the icon-only chips
+           are what paid for the inline links; with one link the pair moves down
+           to 1200px together. */
+        .nav-chip-label {
           position: absolute;
           width: 1px;
           height: 1px;
@@ -977,32 +916,18 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         border-color: var(--text-accent);
       }
 
-      /* A leading glyph on the three `.button` CTAs (drawer contact, rail CV,
-         footer contact). Same reason as `.nav-chip svg`: `display: block` kills
-         the inline descender gap, `flex: none` holds the 16px box while the
-         label wraps or the button is squeezed by `.cta-rail`'s fixed width. */
+      /* A leading glyph on the two `.button` CTAs (drawer contact, footer
+         contact). Same reason as `.nav-chip svg`: `display: block` kills the
+         inline descender gap, `flex: none` holds the 16px box while the label
+         wraps or the button is squeezed. */
       .btn-icon {
         display: block;
         flex: none;
       }
 
-      /* The CV download is the row's primary action: filled, same recipe as
-         `.button`, just compact. */
-      .nav-chip--filled {
-        background: var(--button-bg);
-        color: var(--button-ink);
-        border-color: transparent;
-      }
-
-      .nav-chip--filled:hover {
-        background: var(--button-bg-hover);
-        color: var(--button-ink);
-        border-color: transparent;
-      }
-
       /* `--border-active` is the only stroke that clears the 3:1 non-text floor
          in all three themes; `outline-offset` keeps the ring on the drawer
-         background, so one rule covers both chip variants. */
+         background. */
       .nav-chip:focus-visible {
         outline: 2px solid var(--border-active);
         outline-offset: 2px;
@@ -1026,7 +951,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       }
 
       /* The chips need the wider cutover. With the persona group (≥768px) and the
-         theme toggle (every width) now sharing the bar, brand + four labelled
+         theme toggle (every width) now sharing the bar, brand + three labelled
          chips + two controls no longer fit below 1024px, so the chip labels go
          icon-only there. Visually hidden, not `display: none`, so each anchor
          keeps its accessible name (the glyph beside it is `aria-hidden`). */
@@ -1063,39 +988,6 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       .footer-actions .button {
         font-size: 0.85rem;
         padding: var(--space-2) var(--space-4);
-      }
-
-      /* Right-hand action rail. Hidden by default — it exists only where the
-         layout leaves a gutter for it, and the breakpoint is arithmetic, not a
-         taste call: the content column is 1180px centred in the full viewport,
-         so the free band on the right measures `(100vw - 1180) / 2`. A 160px
-         rail pinned 24px from the viewport edge needs that band to be ≥ 184px,
-         i.e. ≥ 1548px. The threshold stays at 1860px — it was derived when the
-         nav rail still pushed the column 264px right, and the extra margin
-         costs nothing. */
-      .cta-rail {
-        display: none;
-      }
-
-      @media (min-width: 1860px) {
-        .cta-rail {
-          position: fixed;
-          top: 50%;
-          right: var(--space-6);
-          transform: translateY(-50%);
-          z-index: var(--z-float);
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-3);
-          inline-size: 160px;
-        }
-        /* Compact: the rail is a persistent affordance, not the hero, so the
-           buttons do not need the hero's padding to stay tappable at a pointer. */
-        .cta-rail .button {
-          padding: var(--space-2) var(--space-4);
-          font-size: 0.875rem;
-          text-align: center;
-        }
       }
     </style>
   </body>

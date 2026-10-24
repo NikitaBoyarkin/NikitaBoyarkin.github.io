@@ -5,8 +5,8 @@
 //      it just lands on the top of the page. Nothing else checks that.
 //   2. Analytics.astro emits `section_viewed` from [data-analytics-section].
 //      Dropping the attribute kills the event with no error anywhere.
-//   3. The CV link is documented in docs/cta-inventory.md as carrying
-//      cv_download_pdf; it did not, so the download was invisible.
+//   3. The CV download was removed from the site on 2026-10-24. Nothing must
+//      quietly bring the PDF link (or its cv_download_pdf event) back.
 //   4. The ProfilePage Person node is what makes the page useful to a
 //      knowledge panel; the enriching fields are easy to lose in a rewrite.
 //   5. The /about dashboard is a tab widget. Rename a tab id and the redirect
@@ -81,10 +81,11 @@ describe.each(PAGES)('about page contract ($label)', ({ path }) => {
     }
   });
 
-  it('tags the CV link so the download is measurable', () => {
-    const cvLink = /<a[^>]*download[^>]*>/.exec(html)?.[0] ?? '';
-    expect(cvLink).not.toBe('');
-    expect(cvLink).toContain('data-analytics="cv_download_pdf"');
+  it('carries no CV download — the PDF was retired on 2026-10-24', () => {
+    expect(html, 'the CV PDF link is back on /about').not.toContain('CV-Nikita-Boyarkin.pdf');
+    expect(html, 'the CV download event is back on /about').not.toContain(
+      'data-analytics="cv_download_pdf"',
+    );
   });
 
   it('keeps the AskMe widget (asserted by morph.test.ts)', () => {

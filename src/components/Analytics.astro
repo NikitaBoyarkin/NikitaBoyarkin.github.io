@@ -251,13 +251,11 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
                 path,
               });
             } else if (kind) {
-              // REQ-038: carry the page path so contact events (cv_download_pdf,
-              // telegram_*, github_footer, …) are attributable to the page they
-              // were clicked on, not just the event name.
-              // `data-analytics-surface` additionally names the *placement*
-              // (e.g. the desktop CTA rail), which is what its exposure event
-              // carries — without it the exposure→click rate is not computable
-              // because the two rows share no property.
+              // REQ-038: carry the page path so contact events (telegram_*,
+              // github_footer, …) are attributable to the page they were
+              // clicked on, not just the event name.
+              // `data-analytics-surface` additionally names the *placement* of a
+              // repeated CTA, so two rows of the same action stay separable.
               const surface = named.getAttribute('data-analytics-surface');
               track(kind, surface ? { path, surface } : { path });
             }

@@ -1,13 +1,12 @@
 ---
 // «Опыт» + «Образование» — compact snapshot under the board.
-// Career-switcher honesty: no employer history exists in the CV, so the
-// experience card leads with the grade claim (Junior) and measured
-// portfolio outcomes — the same numbers shown across the homepage, sourced
-// from src/lib/metrics.ts (CV-authoritative). Education comes from rendercv.
+// Career-switcher honesty: no employer history exists, so the experience card
+// leads with the grade claim (Junior) and measured portfolio outcomes — the
+// same numbers shown across the homepage, sourced from src/lib/metrics.ts.
+// Education comes from rendercv.
 // The homepage hides the experience half (`showExperience={false}`) because the
 // hero already states that pitch; /about renders both. Either way the section
 // keeps `id="career"` — redirects and the /about anchors point at it.
-import { withBase } from "../lib/path";
 import { METRICS as SIG } from "../lib/metrics";
 import { formatNumber } from "../lib/format";
 
@@ -53,7 +52,6 @@ const I18N = {
     { degree: isEn ? "MSc · Work psychology" : "MSc · Психология труда", years: "2020–2022", place: isEn ? "UMC" : "UMC" },
     { degree: isEn ? "PhD · Work psychology" : "PhD · Психология труда", years: "2022–2025", place: isEn ? "UMC" : "UMC" },
   ],
-  link: "CV →",
 };
 ---
 
@@ -90,9 +88,6 @@ const I18N = {
           </li>
         ))}
       </ul>
-      <p class="career-cta">
-        <a href={withBase("CV-Nikita-Boyarkin.pdf")} download>{I18N.link}</a>
-      </p>
     </div>
   </div>
 </section>
@@ -210,20 +205,6 @@ const I18N = {
     font-size: 0.85rem;
     color: var(--text-accent);
     white-space: nowrap;
-  }
-
-  .career-cta {
-    margin: 0;
-    padding-top: var(--space-2);
-  }
-  .career-cta a {
-    color: var(--text-accent);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.92rem;
-  }
-  .career-cta a:hover {
-    color: var(--text-accent-hover);
   }
 
   @media (max-width: 900px) {

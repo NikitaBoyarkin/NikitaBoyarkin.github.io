@@ -220,11 +220,10 @@ describe('wiring (PRD §6, §9, §10)', () => {
 // inverted. Each of those shipped as a bug once: a dead href, a primary action
 // with no exposure event, a CTA pointing at a placeholder. (The "show all
 // projects" link was removed from the hero on 2026-10-10.) The CV and Contact
-// buttons left the board on 2026-10-10 as well (PRD §13, second wave), so these
-// assertions now guard the REMOVAL: the page must not grow the row back, and if
-// it does, no test here goes quietly green. The denominator that used to live in
-// the gate is not gone from the site — the rail still fires it, asserted under
-// "sticky action rail (Base.astro)" below.
+// buttons left the board on 2026-10-10 as well (PRD §13, second wave), and the
+// CV was removed from the site entirely on 2026-10-24, so these assertions now
+// guard the REMOVAL: the page must not grow the row back, and if it does, no
+// test here goes quietly green.
 // ---------------------------------------------------------------------------
 describe('homepage primary CTA (docs/cta-inventory.md)', () => {
   // The live gate. `PersonaCanvas.astro` stays on disk as the retired canvas
@@ -251,25 +250,28 @@ describe('homepage primary CTA (docs/cta-inventory.md)', () => {
 
   it('fires no cta_exposure — the board carries no exposed CTA to have a rate for', () => {
     // Kept as a NEGATIVE assertion rather than deleted: a rate whose denominator
-    // counts a button that is not on the page is worse than no rate. The event
-    // still fires from the rail, where the CTA is actually visible.
+    // counts a button that is not on the page is worse than no rate.
     expect(gate()).not.toContain("track('cta_exposure'");
   });
 });
 
 // ---------------------------------------------------------------------------
-// Sticky action rail (D7). Its whole point is the breakpoint: it exists to fill
-// the gutter right of the content column, and that gutter does not exist on a
-// 1440px screen. The numbers below are the arithmetic from global.css
-// (`--rail-total: 264px`, `--content-max: 1180px`) — if either token moves, the
-// 1860px threshold here goes stale and the rail starts overlapping the content.
+// Sticky action rail (D7) — retired 2026-10-24. The rail carried exactly one
+// action, the CV download, so removing the CV removed the rail with it. These
+// assertions guard the removal: Base.astro must not grow the rail, its prop, or
+// its exposure event back.
 // ---------------------------------------------------------------------------
-describe('sticky action rail (Base.astro)', () => {
+describe('sticky action rail (Base.astro) — retired', () => {
   const base = () => src('src/layouts/Base.astro');
 
-  it('carries the CV download the hero already offers', () => {
+  it('carries no CV download anywhere in the layout', () => {
     const s = base();
-    expect(s).toContain('data-analytics="cv_download_pdf"');
+    expect(s, 'the retired CV download is back in the layout').not.toContain(
+      'data-analytics="cv_download_pdf"',
+    );
+    expect(s, 'the retired CV file link is back in the layout').not.toContain(
+      'CV-Nikita-Boyarkin.pdf',
+    );
     // The rail/nav booking button was removed on 2026-10-10; booking_click now
     // fires only from /contact and /en/contact.
     expect(s, 'the rail/nav must not carry the retired booking link').not.toContain(
@@ -278,21 +280,14 @@ describe('sticky action rail (Base.astro)', () => {
     expect(s).not.toContain('CAL_BOOKING_URL');
   });
 
-  it('is rendered only where a gutter exists, and only when asked for', () => {
-    expect(base()).toContain('@media (min-width: 1860px)');
-    expect(base(), 'the rail is off by default so non-home pages do not get it').toContain(
-      'showCtaRail = false',
-    );
-    expect(src('src/pages/index.astro'), 'the rail never renders without the prop').toMatch(
-      /^\s*showCtaRail$/m,
-    );
-  });
-
-  it('counts its exposure only when the rail is actually visible', () => {
+  it('keeps the rail, its prop and its breakpoint out of the layout', () => {
     const s = base();
-    expect(s).toContain("track('cta_exposure'");
-    expect(s, 'a hidden rail counted as an exposure deflates its own click rate').toContain(
-      "matchMedia('(min-width: 1860px)').matches",
+    expect(s, 'the rail markup is back').not.toContain('cta-rail');
+    expect(s, 'the rail prop is back').not.toContain('showCtaRail');
+    expect(s, 'the rail exposure event is back').not.toContain("track('cta_exposure'");
+    expect(s, 'the rail breakpoint is back').not.toContain('min-width: 1860px');
+    expect(src('src/pages/index.astro'), 'the homepage still asks for the rail').not.toContain(
+      'showCtaRail',
     );
   });
 });

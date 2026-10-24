@@ -198,20 +198,14 @@ export const QA_CORPUS: QAPair[] = [
     ru: {
       question: "Как с тобой связаться?",
       answer:
-        "Быстрее всего — Telegram @lofinibo. Также GitHub, LinkedIn и страница контактов. CV — одной кнопкой, скачивается в PDF.",
-      links: [
-        { label: "Контакты", href: "contact/" },
-        { label: "CV", href: "CV-Nikita-Boyarkin.pdf" },
-      ],
+        "Быстрее всего — Telegram @lofinibo. Также GitHub, LinkedIn и страница контактов.",
+      links: [{ label: "Контакты", href: "contact/" }],
     },
     en: {
       question: "How can I reach you?",
       answer:
-        "Fastest — Telegram @lofinibo. Also GitHub, LinkedIn and the contact page. The CV is a single button that downloads a PDF.",
-      links: [
-        { label: "Contact", href: "en/contact/" },
-        { label: "CV", href: "CV-Nikita-Boyarkin.pdf" },
-      ],
+        "Fastest — Telegram @lofinibo. Also GitHub, LinkedIn and the contact page.",
+      links: [{ label: "Contact", href: "en/contact/" }],
     },
   },
   {
@@ -316,22 +310,6 @@ export const QA_CORPUS: QAPair[] = [
       answer:
         "An interactive map of the product-analytics domain: topics, projects and posts as graph nodes. It shows how SQL, A/B testing, retention and segmentation connect — and where I sit in that map.",
       links: [{ label: "Graph", href: "en/graph/" }],
-    },
-  },
-  {
-    id: "cv",
-    keywords: ["резюме", "cv", "resume", "pdf", "скачать"],
-    ru: {
-      question: "Где резюме?",
-      answer:
-        "CV скачивается одной кнопкой «CV» на всех страницах — файл в формате PDF. Синхронизирован с источником истины в rendercv.",
-      links: [{ label: "CV", href: "CV-Nikita-Boyarkin.pdf" }],
-    },
-    en: {
-      question: "Where is the CV?",
-      answer:
-        "The CV downloads from the «CV» button on every page — a PDF file. Kept in sync with the rendercv source of truth.",
-      links: [{ label: "CV", href: "CV-Nikita-Boyarkin.pdf" }],
     },
   },
   {

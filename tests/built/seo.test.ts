@@ -111,15 +111,13 @@ describe('built head directives and feeds', () => {
     expect(html.slice(headEnd)).not.toContain('name="robots"');
   });
 
-  it('puts the CV Disallow inside every named crawler group', () => {
-    // A named group overrides `*`, so a Disallow only in `*` protects the PDF
-    // from nobody. Groups are blank-line separated (RFC 9309).
+  it('blocks nothing — the CV Disallow left with the PDF on 2026-10-24', () => {
+    // Groups stay blank-line separated (RFC 9309) so each named crawler group
+    // still parses as its own group.
     const txt = readFileSync(resolve(DIST, 'robots.txt'), 'utf8');
     const groups = txt.split(/\n\s*\n/).filter((g) => /^User-agent:/m.test(g));
     expect(groups.length).toBeGreaterThan(1);
-    for (const group of groups) {
-      expect(group).toContain('Disallow: /CV-Nikita-Boyarkin.pdf');
-    }
+    expect(txt).not.toContain('Disallow:');
   });
 
   it('dates a revised post by its edit, and never stamps the build clock', () => {

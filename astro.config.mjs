@@ -181,8 +181,6 @@ export default defineConfig({
     "/en/value/": "/en/about/#value",
     // S1.3 (PRD v6): /guides/ merged into the parameterised /notes/ route.
     "/guides/": "/notes/guides/",
-    // 2026-09-19: the standalone /cv/ page became a PDF download button.
-    "/cv/": "/CV-Nikita-Boyarkin.pdf",
   },
   integrations: [
     // MDX inherits `markdown.processor` (satteri) by default — the /about body
