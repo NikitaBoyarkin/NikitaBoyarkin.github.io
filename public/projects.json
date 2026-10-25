@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T17:16:47.918Z",
+  "generated_at": "2026-10-25T19:03:34.839Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -242,8 +242,8 @@
       "track": "analytics",
       "title": "RAG Evaluation Harness — retrieval and generation metrics",
       "title_en": "RAG Evaluation Harness — retrieval and generation metrics",
-      "description": "RAG-пайплайн с офлайн-харнессом оценки: recall@5 и MRR = 1.00 на 20 размеченных вопросах, correctness 0.37. TF-IDF-ретрив без API-ключей; faithfulness ≡1.00 — инвариант экстрактива, не измерение.",
-      "description_en": "RAG pipeline with a real offline harness: recall@5 and MRR = 1.00 on 20 questions, correctness 0.37. TF-IDF retrieval, no API keys; faithfulness ≡1.00 — an extractive invariant, not a measurement.",
+      "description": "RAG-пайплайн с офлайн-харнессом оценки: recall@5 и MRR = 1.00 на 20 размеченных вопросах, correctness 0.37 — и 0.00 на 11-вопросном контроле с промахами ретрива (MRR@all 0.12), то есть метрика показана падающей. TF-IDF без API-ключей; faithfulness ≡1.00 — инвариант экстрактива, не измерение.",
+      "description_en": "RAG pipeline with a real offline harness: recall@5 and MRR = 1.00 on 20 questions, correctness 0.37 — and 0.00 on an 11-question control set of retrieval misses (MRR@all 0.12), so the metric is shown falling. TF-IDF retrieval, no API keys; faithfulness ≡1.00 — an extractive invariant, not a measurement.",
       "tools": [
         "Python",
         "scikit-learn",
@@ -347,7 +347,7 @@
       ],
       "github": "https://github.com/NikitaBoyarkin/supabase-product-analytics",
       "demo": "demos/supabase/index.html",
-      "private": true,
+      "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/supabase/"
     },
     {
