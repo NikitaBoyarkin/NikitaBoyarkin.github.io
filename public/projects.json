@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T20:50:01.682Z",
+  "generated_at": "2026-10-25T21:57:36.136Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -148,8 +148,8 @@
       "track": "analytics",
       "title": "Cohort Analysis Dashboard",
       "title_en": "Cohort Analysis Dashboard",
-      "description": "Python внутри Tableau: 4 когортных расчёта на TabPy-сервере и 39 тестов; треугольная матрица удержания с ARPU и LTV по когортам, оговоркой о возрасте наблюдения и экспортом CSV + Hyper.",
-      "description_en": "Python inside Tableau: 4 cohort calculations on a TabPy server and 39 tests; a triangular retention matrix with per-cohort ARPU and LTV, an observation-age caveat and a CSV + Hyper export.",
+      "description": "Python внутри Tableau: 4 когортных расчёта на TabPy-сервере и 65 тестов; треугольная матрица удержания с ARPU и LTV по когортам, оговоркой о возрасте наблюдения и экспортом CSV + Hyper.",
+      "description_en": "Python inside Tableau: 4 cohort calculations on a TabPy server and 65 tests; a triangular retention matrix with per-cohort ARPU and LTV, an observation-age caveat and a CSV + Hyper export.",
       "tools": [
         "Python",
         "pandas",
@@ -464,6 +464,7 @@
         "Python",
         "Apache Airflow 3",
         "PostgreSQL",
+        "Docker Compose",
         "Google Sheets API",
         "pytest",
         "uv"
