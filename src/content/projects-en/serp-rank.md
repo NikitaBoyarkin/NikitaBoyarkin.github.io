@@ -24,7 +24,7 @@ tools:
   - uv
 github: https://github.com/NikitaBoyarkin/serp-rank-lab
 date: 2026-10-11
-updated: 2026-10-20
+updated: 2026-10-25
 bet: "The bottleneck is the signal, not the objective: until a ranker sees the relevance the production blend sees, any optimisation for money buys clicks, not revenue."
 rejected:
   - option: "Ship revenue-objective straight away: offline it returns +34.45% revenue per search"

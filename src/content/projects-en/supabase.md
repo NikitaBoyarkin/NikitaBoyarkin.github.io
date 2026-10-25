@@ -22,8 +22,7 @@ tools:
   - supabase-py
 github: https://github.com/NikitaBoyarkin/supabase-product-analytics
 date: 2026-08-14
-updated: 2026-10-12
-private: true
+updated: 2026-10-25
 demo: demos/supabase/index.html
 related:
   - /projects/streamlit/

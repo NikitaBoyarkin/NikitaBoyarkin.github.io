@@ -25,7 +25,7 @@ tools:
   - Docker
 github: https://github.com/NikitaBoyarkin/posthog-saas-analytics
 date: 2026-08-14
-updated: 2026-09-15
+updated: 2026-10-25
 private: true
 demo: demos/posthog/index.html
 related:
