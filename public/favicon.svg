@@ -4,7 +4,7 @@
        letters merge into one blob, so the fill carries the mark and the
        lettermark is knocked out of it. One fixed palette for both colour
        schemes — the mark reads the same on light and dark browser chrome. */
-    .cell { fill: #171717; }
+    .cell { fill: #1400c3; }
     .mono { fill: #f8f2d8; }
   </style>
   <path class="cell" d="M96 50 73 89.8 27 89.8 4 50 27 10.2 73 10.2Z"/>

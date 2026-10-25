@@ -14,7 +14,7 @@ import sharp from 'sharp';
 const ROOT = process.cwd();
 const SVG = path.join(ROOT, 'public/favicon.svg');
 const OUT = path.join(ROOT, 'public/apple-touch-icon.png');
-const FILL = '#171717';
+const FILL = '#1400c3';
 
 await sharp(SVG, { density: 720 })
   .resize(180, 180)
