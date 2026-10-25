@@ -24,6 +24,7 @@ tools:
   - pytest
   - uv
 github: https://github.com/NikitaBoyarkin/crm-experiment-lab
+demo: https://github.com/NikitaBoyarkin/crm-experiment-lab/blob/main/reports/readout/crm-experiment-lab-readout.html
 date: 2026-10-12
 updated: 2026-10-13
 related:

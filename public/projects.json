@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T14:54:08.604Z",
+  "generated_at": "2026-10-25T17:16:47.918Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -76,7 +76,7 @@
         "uv"
       ],
       "github": "https://github.com/NikitaBoyarkin/crm-experiment-lab",
-      "demo": null,
+      "demo": "https://github.com/NikitaBoyarkin/crm-experiment-lab/blob/main/reports/readout/crm-experiment-lab-readout.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/crm-experiment-lab/"
     },
