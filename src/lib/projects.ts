@@ -9,8 +9,8 @@ export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'st
 //   volta  — experimentation + funnel + retention (public repo + demo)
 //   sql    — analytics engineering (public repo + live report)
 //   cohort — retention / product metrics (public repo + interactive demo)
-// Private-repo projects (supabase, posthog, streamlit) stay in the compressed
-// list until their S2.1–S2.3 compensating artifacts land; then they can swap in.
+// Private-repo projects (posthog, streamlit) stay in the compressed
+// list until their S2.1–S2.2 compensating artifacts land; then they can swap in.
 export const HEADLINE_PROJECTS = ['volta', 'sql', 'cohort'] as const;
 
 // ---------------------------------------------------------------------------

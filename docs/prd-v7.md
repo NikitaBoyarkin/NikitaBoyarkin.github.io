@@ -77,7 +77,7 @@ Verified against the repository on 2026-09-19:
 | S3.2 / D14 — proof-reach instrument | `case_study_read` was replaced by `read_depth` (`src/lib/scroll-depth.ts`, `src/components/Analytics.astro:75–90`) |
 
 **Consequence: the remaining site work is narrow.** What has not shipped is the compensating-artifact set for the
-three private flagships (S2.1–S2.3), its evidence marker (S2.4), the public self-dashboard (S2.7), and EN
+private flagships (S2.1–S2.3), its evidence marker (S2.4), the public self-dashboard (S2.7), and EN
 translations (S3.1 — `posts-en` holds 2 files against 24 RU). Everything else in the "build the site" direction
 is done. `[V]`
 
@@ -236,7 +236,7 @@ decision made on a sub-threshold sample is a failure of this task, not a success
 
 #### V2.3 — v6 S2.3: `supabase-product-analytics` → public dataset + schema + RLS extract
 
-#### V2.4 — v6 S2.4: verifiability marker on the three cards
+#### V2.4 — v6 S2.4: verifiability marker on the two cards
 
 **Acceptance (all four):** identical to v6 S2.1–S2.4. v7 adds one: each artifact is referenced from
 `docs/prd-v7-findings.md` as the answer to the interview bar recorded in V1.1, or explicitly reported as not
@@ -273,7 +273,7 @@ publication carries UTM.
 | **Finals (new lagging metric)** | 0 | ≥1 | 120 days |
 | G16 — proof-reach (`read_depth` 75%) | not recorded | recorded; then ≥40% of project-page sessions | 30 days after V0.2 |
 | G7.4 — specialism vs neutral headline | not measured | decided, or "insufficient sample" | ≥14 days |
-| G6.3 (v6) — flagship verifiability | 3 private | each has a reachable artifact | Sprint 2 |
+| G6.3 (v6) — flagship verifiability | 2 private | each has a reachable artifact | Sprint 2 |
 
 **Interpretation rule:** evaluate the leading metrics (contacts, proof-reach) as counts and the lagging metric
 (finals) as an absolute count. Do not derive a conversion percentage from a sample under the `CONTEXT.md` traffic
