@@ -22,6 +22,7 @@
     "og:home": "bun run scripts/generate-home-og.mjs",
     "og:home:watch": "bun run --watch scripts/generate-home-og.mjs",
     "og:graph": "bun run scripts/generate-graph-og.mjs",
+    "icons": "bun run scripts/generate-icons.mjs",
     "sync:gh": "bun run scripts/sync-github-projects.mjs",
     "sync:gh:apply": "bun run scripts/sync-github-projects.mjs --apply",
     "sync:gh:candidates": "bun run scripts/sync-github-projects.mjs --candidates",

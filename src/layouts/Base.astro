@@ -91,16 +91,16 @@ const pageUrl = canonical ? `${siteUrl}${canonical}` : Astro.url.toString();
 /* Telegram, LinkedIn and the rest cache the preview by `og:image` URL, so a
    redrawn banner behind the same path would never reach them. The content hash
    makes every revision a new URL, which is the only signal those caches honour. */
-const ogImageVersion = ogImage.startsWith('http')
-  ? ''
-  : createHash('sha1')
-      .update(readFileSync(path.join(process.cwd(), 'public', ogImage)))
-      .digest('hex')
-      .slice(0, 8);
+const assetVersion = (rel: string) =>
+  createHash('sha1')
+    .update(readFileSync(path.join(process.cwd(), 'public', rel)))
+    .digest('hex')
+    .slice(0, 8);
 const fullOgImage = ogImage.startsWith('http')
   ? ogImage
-  : `${siteUrl}${withBase(ogImage)}?v=${ogImageVersion}`;
-const faviconUrl = withBase('favicon.svg');
+  : `${siteUrl}${withBase(ogImage)}?v=${assetVersion(ogImage)}`;
+const faviconUrl = `${withBase('favicon.svg')}?v=${assetVersion('favicon.svg')}`;
+const appleTouchIconUrl = `${withBase('apple-touch-icon.png')}?v=${assetVersion('apple-touch-icon.png')}`;
 
 // Search-result snippet: clamped to ~160 characters on a word boundary. The
 // authored `description:` is 120–200 chars (PRD D12) and stays full for
@@ -335,7 +335,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <link rel="icon" type="image/svg+xml" href={faviconUrl} />
     {/* iOS ignores SVG here and falls back to a screenshot of the page. The PNG
         is the same mark, generated from `favicon.svg` at 180×180. */}
-    <link rel="apple-touch-icon" sizes="180x180" href={withBase('apple-touch-icon.png')} />
+    <link rel="apple-touch-icon" sizes="180x180" href={appleTouchIconUrl} />
     <link
       rel="alternate"
       type="application/rss+xml"
