@@ -14,6 +14,7 @@ impact:
   - Churn label = a future 30-day inactivity window for recently active users only
   - "Decision metric: recall@top-10% = 0.544, lift@top-10% = 5.44x"
   - LightGBM Brier 0.063 vs 0.062 for a fairly-fitted logistic baseline — an honest tie, not a boosting win
+  - "The score is turned into a money decision: offer cost and retained-customer value set the probability floor below which the campaign does not run"
 tools:
   - Python
   - LightGBM
@@ -97,6 +98,9 @@ Outputs land in `reports/`: `metrics.json` + `evaluation.png` (ROC, PR, SHAP bar
 ## Result
 
 LightGBM and logistic regression run even: the synthetic features are nearly linear, and the linear model is no worse — LogReg is marginally ahead on AUC, PR-AUC and Brier (0.062 vs 0.063). The honest finding: boosting earns no trophy here. The project demonstrates a leakage-free evaluation setup, not that GBM beats logistic regression. `recency_days` is so strong that the lift ceiling is low for any model: within the top 10% riskiest users the model catches 54.4% of real churners at 5.44x lift.
+
+- **Money threshold:** the score becomes a spending decision — offer cost and retained-customer value set the minimum probability below which no contact pays back.
+- **Honest scale:** on the at-risk subgroup (n = 1,692 of 5,581) lift falls to 1.75x and Brier rises to 0.163 / 0.157 — the headline metrics are earned mostly on users who could not have churned inside the label window.
 
 ## Limitations
 

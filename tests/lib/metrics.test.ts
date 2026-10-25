@@ -13,7 +13,9 @@ describe('METRICS (CV-authoritative)', () => {
     expect(METRICS.retention).toEqual({ deltaPp: 9.2, ltvEurK: 227 });
     expect(METRICS.rfm).toEqual({ revenueBeforePct: 12, revenueAfterPct: 41 });
     expect(METRICS.bot).toEqual({ hoursBefore: 2, minutesAfter: 5 });
-    expect(METRICS.portfolio).toEqual({ projects: 26, sqlCases: 26 });
+    // `projects` is not a CV figure (the CV lists 26 SQL cases, not a card count);
+    // it is pinned here so a metrics.ts edit cannot slip past review silently.
+    expect(METRICS.portfolio).toEqual({ projects: 27, sqlCases: 26 });
   });
 });
 

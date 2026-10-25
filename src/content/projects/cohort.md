@@ -1,11 +1,11 @@
 ---
 title: Cohort Analysis Dashboard
-description: "Треугольная когортная матрица удержания и LTV на синтетических данных: ARPU и LTV по когортам с оговоркой о возрасте наблюдения, выгрузка в Tableau (CSV + Hyper)."
+description: "Python внутри Tableau: 4 когортных расчёта на TabPy-сервере и 39 тестов; треугольная матрица удержания с ARPU и LTV по когортам, оговоркой о возрасте наблюдения и экспортом CSV + Hyper."
 star:
   situation: "Когортный анализ удержания и LTV на синтетических данных: средний retention прячет динамику"
   task: "Показать поведение каждой когорты отдельно, а не сглаженную среднюю по всей базе"
   action: "Матрица удержания, ARPU и LTV по когортам, оговорка о возрасте наблюдения, выгрузка в Tableau (CSV + Hyper)"
-  result: "Когортная матрица вместо среднего retention: видно скорость оттока и расхождение монетизации с удержанием"
+  result: "Python внутри Tableau: 4 когортных расчёта на TabPy-сервере и 39 тестов; когортная матрица вместо среднего retention показывает скорость оттока и расхождение монетизации с удержанием"
 track: analytics
 hero: images/cohort.svg
 ogImage: /images/og/cohort.png
@@ -13,7 +13,8 @@ impact:
   - Когортная матрица удержания с треугольным убыванием
   - ARPU / LTV по когортам с корректной оговоркой о возрасте наблюдения
   - Tableau-ready экспорт (CSV + .hyper-экстракт)
-  - Воспроизводимый пайплайн с фиксированным seed=42
+  - "Слой TabPy: 4 расчёта исполняет Python-сервер на localhost:9004 — деплой через tabpy/deploy.py (6 endpoints), расчёт идёт внутри Tableau"
+  - "39 тестов: 16 real_data + 14 cohort_analysis + 9 tableau_export"
 tools:
   - Python
   - pandas
@@ -22,7 +23,7 @@ tools:
   - Tableau (Hyper API)
 github: https://github.com/NikitaBoyarkin/tableau_cohort_analysis
 date: 2026-07-12
-updated: 2026-10-17
+updated: 2026-10-25
 demo: demos/cohort/index.html
 related:
   - /posts/cohort-retention-guide/
@@ -83,6 +84,9 @@ faq:
 ## Результат
 
 Когортный вид важнее среднего retention: на нём видно скорость оттока и монетизацию относительно удержания. Ключевые решения по методологии — `cohort_month` выводится из `join_date` (а не отдельным случайным полем), period 0 = 100% по конвенции, NaN замаскированы в heatmap вместо рендера `nan%`.
+
+- **Python внутри Tableau:** 4 расчёта развёрнуты на TabPy-сервере (localhost:9004) скриптом `tabpy/deploy.py` — 6 endpoints, расчёт исполняется внутри Tableau.
+- **Тесты:** 39 (16 real_data + 14 cohort_analysis + 9 tableau_export) держат пайплайн воспроизводимым.
 
 ## Ограничения
 

@@ -25,8 +25,8 @@ tools:
   - pytest
   - uv
 github: https://github.com/NikitaBoyarkin/product-ab-funnel-analytics
-date: 2026-10-25
-updated: 2026-10-25
+date: 2026-10-14
+updated: 2026-10-14
 related:
   - /projects/volta/
   - /projects/ab/

@@ -2,7 +2,7 @@
 // Single source of truth for the display order and the track (category) taxonomy
 // used by ProjectBoard and ProjectSpotlight.
 
-export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'streamlit', 'sales-calls', 'sql', 'delivery', 'rfm', 'cohort', 'churn', 'causal', 'crm-experiment-lab', 'rag', 'python', 'bot', 'scrolly', 'garden', 'serp-rank', 'airflow', 'ml', 'linkedin', 'promo', 'product-ab-funnel', 'site'];
+export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'streamlit', 'sales-calls', 'sql', 'delivery', 'gmv-drop-rca', 'rfm', 'cohort', 'churn', 'causal', 'crm-experiment-lab', 'rag', 'python', 'bot', 'scrolly', 'garden', 'serp-rank', 'airflow', 'ml', 'linkedin', 'promo', 'product-ab-funnel', 'site'];
 
 // PRD v6 S2.6 — three headline case studies on the home page, each a distinct
 // proof with at least one reachable public artifact:
@@ -56,6 +56,7 @@ const RESULT_FIRST: readonly string[] = [
   'churn',
   'sql',
   'delivery',
+  'gmv-drop-rca',
   'causal',
   'crm-experiment-lab',
   'serp-rank',
@@ -81,6 +82,7 @@ const METHOD_FIRST: readonly string[] = [
   'ab',
   'sql',
   'delivery',
+  'gmv-drop-rca',
   'causal',
   'crm-experiment-lab',
   'serp-rank',
@@ -438,6 +440,7 @@ export const PROJECT_SPHERES: Record<string, SphereKey> = {
   'product-ab-funnel': 'saas-product',
   promo: 'commerce-growth',
   delivery: 'commerce-growth',
+  'gmv-drop-rca': 'commerce-growth',
   causal: 'commerce-growth',
   'crm-experiment-lab': 'commerce-growth',
   'sales-calls': 'commerce-growth',

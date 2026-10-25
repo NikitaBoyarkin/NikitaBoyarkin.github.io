@@ -1,11 +1,11 @@
 ---
 title: TaskFlow — PostHog Product Analytics Pipeline
-description: "7 analyses from a typed event catalog: PostHog end-to-end — funnel, retention, A/B, revenue/LTV, time-to-convert. The stream is seeded; the value is the method: catalog, PII scrubbing, SQL, CI."
+description: "Onboarding test on a seeded event stream: completion 55.9% → 70.8% (+26.6%), χ² = 40.10, p < 0.0001 at SRM p = 0.90; 6.3% of completed signups reach a paid upgrade."
 star:
   situation: "An analytics portfolio usually starts from a ready-made CSV; this one starts earlier — with instrumenting the app"
   task: "Define events without PII leaks, get them into the analytics tool, and turn raw events into decisions"
   action: "Typed event catalog, PII scrubbing; A/B with chi-square, uplift, Wilson CI, SRM; SQL mirror, Streamlit dashboard, CI, Docker"
-  result: "Full analytics lifecycle on a seeded event stream: 7 analyses, a typed event catalog with no PII leaks, metrics that reproduce in both Python and SQL"
+  result: "Onboarding test on a seeded stream: completion 55.9% → 70.8% (+26.6%, χ² = 40.10, p < 0.0001, SRM p = 0.90), and 6.3% of completed signups reach a paid upgrade"
 track: product
 hero: images/posthog.svg
 ogImage: /images/og/posthog.png
@@ -14,6 +14,8 @@ impact:
   - Feature flag → onboarding A/B variant; A/B analysis with chi-square, uplift, Wilson CI + SRM check
   - Day-N cohort retention, time-to-convert, revenue/LTV, first-feature → upgrade conversion
   - The same metrics as SQL (BI / interview reference) + interactive Streamlit dashboard
+  - "Onboarding A/B: 55.9% → 70.8% (+26.6% relative), χ² = 40.10, p < 0.0001, SRM p = 0.90 — clean buckets"
+  - "Funnel to money: 6.3% of completed signups reach an upgrade (107 of 1,709), $1,712 of revenue at $1.00 ARPU; median signup → first core action is 2.0 h"
   - CI (pytest + ruff) + Docker + render.yaml for one-click deploy
 tools:
   - Python
@@ -68,9 +70,12 @@ dashboard/          interactive Streamlit dashboard
 
 The value is in the completeness of the cycle. The typed event catalog and PII scrubbing separate production instrumentation from a demo: events are defined in one place, PII does not leak, and the metrics reproduce in both Python and SQL. One repo covers the full analytics lifecycle — instrument → generate → analyze → dashboard → deploy.
 
+- **Onboarding:** completion 55.9% → 70.8% (+26.6% relative), χ² = 40.10, p < 0.0001 at SRM p = 0.90 — uneven buckets do not explain the effect.
+- **Money and speed:** 6.3% of completed signups reach a paid upgrade (107 of 1,709) for $1,712 of revenue at $1.00 ARPU; the median signup-to-first-core-action time is 2.0 h.
+
 ## Limitations
 
-Traffic comes from a simulator, not real users, so the analysis numbers illustrate the correctness of the pipeline rather than product insights. The value is the instrumentation discipline and the complete cycle, where every step reproduces.
+Traffic comes from a simulator, not real users: the event stream is seeded, so every number above demonstrates the methods rather than a production result. The value is the instrumentation discipline and the complete cycle, where every step reproduces.
 
 ## Documentation
 

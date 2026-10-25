@@ -56,7 +56,7 @@ const attr = (tag: string, name: string): string | null => {
 
 describe('hero illustrations hold the cream regime', () => {
   it('covers every hero SVG in public/images', () => {
-    expect(svgs.length).toBe(25);
+    expect(svgs.length).toBe(26);
   });
 
   for (const file of svgs) {

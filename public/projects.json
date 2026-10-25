@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T20:21:16.217Z",
+  "generated_at": "2026-10-25T20:50:01.682Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -7,8 +7,8 @@
       "track": "experiments",
       "title": "A/B Testing Methodology Toolkit",
       "title_en": "A/B Testing Methodology Toolkit",
-      "description": "18 модулей A/B-методологии, каждый откалиброван симуляцией: A/A-тест держит Type I error на уровне α, power-кривые показывают реальную мощность.",
-      "description_en": "18 A/B methodology modules, each calibrated by simulation: an A/A null check holds Type I error at α, and power curves show the effect size each method can actually detect.",
+      "description": "18 модулей A/B-методологии с калибровкой: CUPED срезает дисперсию на 17.7% (SE 0.00360 → 0.00327), delta-method ловит CTR-лифт +0.51 pp при p < 0.0001, SRM p = 0.8376.",
+      "description_en": "18 A/B modules, each calibrated: CUPED cuts variance 17.7% (SE 0.00360 → 0.00327), the delta method finds a +0.51 pp CTR lift at p < 0.0001, and SRM p = 0.8376.",
       "tools": [
         "Python",
         "NumPy / SciPy",
@@ -43,8 +43,8 @@
       "track": "experiments",
       "title": "Causal / Uplift — CUPED and Individual Treatment Effects",
       "title_en": "Causal / Uplift — CUPED and Individual Treatment Effects",
-      "description": "CUPED срезал стандартную ошибку на 26%: та же мощность на 5,5k пользователей на руку вместо 10k. На синтетическом эксперименте с известным HTE uplift на n=6000 шумит: QINI и AUUC не отличают oracle.",
-      "description_en": "CUPED cut the standard error by 26% — same power on 5.5k users per arm instead of 10k. On a synthetic experiment with known HTE, uplift at n=6000 is noise: QINI and AUUC cannot separate an oracle.",
+      "description": "CUPED срезал стандартную ошибку на 26%: та же мощность на 5,5k пользователей на руку вместо 10k. Предрегистрированный порог окупаемости 0.05 отправляет кампанию только на new.",
+      "description_en": "CUPED cut the standard error by 26% — same power on 5.5k users per arm instead of 10k — and a pre-registered break-even threshold of 0.05 ships the campaign to new users only.",
       "tools": [
         "Python",
         "LightGBM",
@@ -148,8 +148,8 @@
       "track": "analytics",
       "title": "Cohort Analysis Dashboard",
       "title_en": "Cohort Analysis Dashboard",
-      "description": "Треугольная когортная матрица удержания и LTV на синтетических данных: ARPU и LTV по когортам с оговоркой о возрасте наблюдения, выгрузка в Tableau (CSV + Hyper).",
-      "description_en": "A triangular cohort retention and LTV matrix on synthetic data: per-cohort ARPU and LTV with an observation-age caveat, plus a Tableau-ready CSV and Hyper export.",
+      "description": "Python внутри Tableau: 4 когортных расчёта на TabPy-сервере и 39 тестов; треугольная матрица удержания с ARPU и LTV по когортам, оговоркой о возрасте наблюдения и экспортом CSV + Hyper.",
+      "description_en": "Python inside Tableau: 4 cohort calculations on a TabPy server and 39 tests; a triangular retention matrix with per-cohort ARPU and LTV, an observation-age caveat and a CSV + Hyper export.",
       "tools": [
         "Python",
         "pandas",
@@ -181,6 +181,28 @@
       "href": "https://nikitaboyarkin.github.io/projects/delivery/"
     },
     {
+      "slug": "gmv-drop-rca",
+      "track": "analytics",
+      "title": "GMV Drop RCA — разбор падения на реальных данных",
+      "title_en": "GMV Drop RCA — root cause on real data",
+      "description": "Внедрённое падение GMV на −10% на реальных UCI Online Retail II: дерево метрик относит 56,2% именованного спада к UK дециль-1, а полная атрибуция сходится в £0,00.",
+      "description_en": "An injected −10% GMV drop on real UCI Online Retail II data: the metric tree attributes 56.2% of the named drop to UK decile-1 and the full attribution reconciles to £0.00.",
+      "tools": [
+        "Python",
+        "pandas",
+        "DuckDB",
+        "Plotly",
+        "SQL",
+        "PyYAML",
+        "pytest",
+        "uv + ruff"
+      ],
+      "github": null,
+      "demo": null,
+      "private": false,
+      "href": "https://nikitaboyarkin.github.io/projects/gmv-drop-rca/"
+    },
+    {
       "slug": "linkedin",
       "track": "analytics",
       "title": "LinkedIn Content Analytics",
@@ -204,8 +226,8 @@
       "track": "analytics",
       "title": "ML Fundamentals — scikit-learn Pipeline",
       "title_en": "ML Fundamentals — scikit-learn Pipeline",
-      "description": "Пайплайн scikit-learn без утечки данных: импутация пропусков, кодирование категорий, детерминированный сплит и масштабирование — в одном ColumnTransformer, обученном только на трейне.",
-      "description_en": "A leak-free scikit-learn pipeline: missing-data imputation, categorical encoding, a deterministic split and feature scaling, all in one ColumnTransformer fit on the training split only.",
+      "description": "Leak-free пайплайн scikit-learn: вся предобработка в одном ColumnTransformer, обученном только на трейне, детерминированный сплит и 21 тест (7 + 9 + 5) на воспроизводимость.",
+      "description_en": "A leak-free scikit-learn pipeline: all preprocessing in one ColumnTransformer fit on the train split only, a deterministic split, and 21 tests (7 + 9 + 5) guarding reproducibility.",
       "tools": [
         "Python",
         "scikit-learn",
@@ -244,8 +266,8 @@
       "track": "analytics",
       "title": "Promo Margin Lab — цена промо в рублях",
       "title_en": "Promo Margin Lab — what a promo rouble actually earns",
-      "description": "Промо даёт +68.5 млн ₽ выручки и −24.4 млн ₽ прибыли: 97.9% волн убыточны, breakeven-глубина 1.0–19.5%, а оптимизатор зарабатывает +267 850 ₽ за 841 тыс ₽ против +191 502 ₽ у top-15% за 1.07 млн ₽.",
-      "description_en": "Promo: +68.5 m RUB revenue, −24.4 m RUB profit, 97.9% of waves loss-making, breakeven 1.0–19.5%; optimiser +267 850 ₽ (841 k spend) vs top-15% +191 502 ₽ (1.07 m).",
+      "description": "Промо даёт +68.5 млн ₽ выручки и −24.4 млн ₽ прибыли: 97.9% волн убыточны, breakeven-глубина 1.0–19.5% при фактической 25.4%, а оптимизатор — +231 496 ₽ против +136 648 ₽ у top-15%.",
+      "description_en": "Promo returns +68.5 m RUB of revenue but −24.4 m RUB of profit: 97.9% of waves lose money at a 1.0–19.5% breakeven vs 25.4% actual, and the optimiser earns +231 496 ₽ vs +136 648 ₽ for top-15%.",
       "tools": [
         "Python",
         "pandas",
@@ -415,8 +437,8 @@
       "track": "product",
       "title": "TaskFlow — PostHog Product Analytics Pipeline",
       "title_en": "TaskFlow — PostHog Product Analytics Pipeline",
-      "description": "7 анализов из типизированного каталога: PostHog end-to-end — воронка, retention, A/B, revenue/LTV, time-to-convert. Поток событий сидирован; ценность — в методах: каталог, скрабинг PII, SQL, CI.",
-      "description_en": "7 analyses from a typed event catalog: PostHog end-to-end — funnel, retention, A/B, revenue/LTV, time-to-convert. The stream is seeded; the value is the method: catalog, PII scrubbing, SQL, CI.",
+      "description": "Онбординг-тест на сидированном потоке событий: завершение 55.9% → 70.8% (+26.6%), χ² = 40.10, p < 0.0001 при SRM p = 0.90; 6.3% завершивших регистрацию доходят до платного апгрейда.",
+      "description_en": "Onboarding test on a seeded event stream: completion 55.9% → 70.8% (+26.6%), χ² = 40.10, p < 0.0001 at SRM p = 0.90; 6.3% of completed signups reach a paid upgrade.",
       "tools": [
         "Python",
         "PostHog",
@@ -436,8 +458,8 @@
       "track": "engineering",
       "title": "Airflow DAG Platform",
       "title_en": "Airflow DAG Platform",
-      "description": "Платформа отчётов на Apache Airflow 3: каждый отчёт — версионируемый DAG по шаблону fetch → validate → write → record_metrics, с DQ-валидацией, алертами и метриками запусков.",
-      "description_en": "Report platform on Apache Airflow 3: every report is a versioned DAG on a fetch → validate → write → record_metrics template, with DQ validation, run alerts and observability metrics.",
+      "description": "Платформа отчётов на Airflow 3: полный DAG проходит за 440 с, задача forecast — за 413 с; каждый отчёт — версионируемый DAG с DQ-валидацией, алертами и метриками запусков.",
+      "description_en": "A report platform on Airflow 3: the full DAG runs in 440 s and the forecast task alone takes 413 s; every report is a versioned DAG with DQ validation, alerts and run metrics.",
       "tools": [
         "Python",
         "Apache Airflow 3",

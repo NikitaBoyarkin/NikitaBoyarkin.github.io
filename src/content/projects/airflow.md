@@ -1,11 +1,11 @@
 ---
 title: Airflow DAG Platform
-description: "Платформа отчётов на Apache Airflow 3: каждый отчёт — версионируемый DAG по шаблону fetch → validate → write → record_metrics, с DQ-валидацией, алертами и метриками запусков."
+description: "Платформа отчётов на Airflow 3: полный DAG проходит за 440 с, задача forecast — за 413 с; каждый отчёт — версионируемый DAG с DQ-валидацией, алертами и метриками запусков."
 star:
   situation: "Ручной отчёт из Postgres в Google Sheets давал задержки, ошибки копирования и полное отсутствие воспроизводимости"
   task: "Заменить ручную выгрузку воспроизводимым идемпотентным пайплайном с DQ-валидацией, алертами и метриками запусков"
   action: "Платформа на Airflow 3: DAG-шаблон fetch → validate → write → record_metrics и shared-модули config, dq, alerts, metrics, output, windows"
-  result: "Три DAG-а по общему шаблону, 69 тестов без Airflow-сервисов и БД, CI из четырёх гейтов: ruff, format, mypy, pytest"
+  result: "Три DAG-а по общему шаблону, 69 тестов без Airflow-сервисов и БД; полный прогон DAG занимает 440 с, из них задача forecast — 413 с"
 track: engineering
 hero: images/airflow.svg
 ogImage: /images/og/airflow.png
@@ -15,6 +15,7 @@ impact:
   - "DQ-валидация перед записью: заголовок, неотрицательные revenue и orders, пустой результат как отдельный NoDataError"
   - "Observability: каждый успешный запуск пишет строку в dag_metrics, падение — в on_failure_callback (алерт + failed-метрика)"
   - "Конфиг целиком из Airflow Variables с префиксом AIRFLOW_CFG_ — без хардкода, dev-фолбэк пишет CSV вместо Sheets"
+  - "Замеренный прогон: полный DAG — 440 с, задача forecast — 413 с"
 tools:
   - Python
   - Apache Airflow 3
@@ -24,7 +25,7 @@ tools:
   - uv
 github: https://github.com/NikitaBoyarkin/airflow
 date: 2026-09-27
-updated: 2026-10-17
+updated: 2026-10-25
 demo: demos/airflow/index.html
 related:
   - /projects/volta/
@@ -100,6 +101,8 @@ uv run pytest                # 69 тестов, хуки замоканы
 ## Результат
 
 Платформа доводит три отчёта до приёмника по расписанию, каждый — отдельный версионируемый DAG. Качество держится на четырёх гейтах CI: `ruff check`, `ruff format --check`, `mypy` и `pytest` проходят на 69 тестах, которым не нужны ни Airflow-сервисы, ни живая БД (хуки замоканы). Конфигурация целиком вынесена в Airflow Variables с префиксом `AIRFLOW_CFG_`, а dev-режим `output="file"` работает без внешних API.
+
+- **Замер прогона:** полный DAG проходит за 440 с, из них задача `forecast` — 413 с.
 
 ## Ограничения
 

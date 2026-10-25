@@ -1,11 +1,11 @@
 ---
 title: Airflow DAG Platform
-description: "Report platform on Apache Airflow 3: every report is a versioned DAG on a fetch → validate → write → record_metrics template, with DQ validation, run alerts and observability metrics."
+description: "A report platform on Airflow 3: the full DAG runs in 440 s and the forecast task alone takes 413 s; every report is a versioned DAG with DQ validation, alerts and run metrics."
 star:
   situation: "A hand-run report from Postgres into Google Sheets produced delays, copy errors and no reproducibility at all"
   task: "Replace the manual export with a reproducible, idempotent pipeline with DQ validation, failure alerts and run metrics"
   action: "A platform on Airflow 3: the DAG template fetch → validate → write → record_metrics and the shared modules config, dq, alerts, metrics, output, windows"
-  result: "Three DAGs on one shared template, 69 tests without Airflow services or a DB, and a CI of four gates: ruff, format, mypy, pytest"
+  result: "Three DAGs on one shared template and 69 tests without Airflow services or a DB; the full DAG runs in 440 s, 413 s of it in the forecast task"
 track: engineering
 hero: images/airflow.svg
 ogImage: /images/og/airflow.png
@@ -15,6 +15,7 @@ impact:
   - "DQ validation before writing: header, non-negative revenue and orders, and an empty result as a distinct NoDataError"
   - "Observability: every successful run writes a row to dag_metrics, a failure lands in on_failure_callback (alert + failed metric)"
   - "Config comes entirely from Airflow Variables under the AIRFLOW_CFG_ prefix — no hardcoding, and a dev fallback writes CSV instead of Sheets"
+  - "Measured run: the full DAG takes 440 s, the forecast task alone 413 s"
 tools:
   - Python
   - Apache Airflow 3
@@ -24,7 +25,7 @@ tools:
   - uv
 github: https://github.com/NikitaBoyarkin/airflow
 date: 2026-09-27
-updated: 2026-10-17
+updated: 2026-10-25
 demo: demos/airflow/index.html
 related:
   - /projects/volta/
@@ -100,6 +101,8 @@ uv run pytest                # 69 tests, hooks mocked
 ## Result
 
 The platform drives three reports to their sink on schedule, each a versioned DAG of its own. Quality rests on four CI gates: `ruff check`, `ruff format --check`, `mypy` and `pytest` all pass across 69 tests that need neither Airflow services nor a live database (hooks are mocked). Configuration is fully externalised into Airflow Variables under the `AIRFLOW_CFG_` prefix, and the dev mode `output="file"` runs without any external API.
+
+- **Measured run:** the full DAG takes 440 s, with the `forecast` task alone at 413 s.
 
 ## Limitations
 

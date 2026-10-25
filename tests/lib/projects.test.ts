@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   AUDIENCES,
@@ -313,5 +313,23 @@ describe('ROLE_CURATION', () => {
     expect(script, 'the default drifts from DEFAULT_AUDIENCE').toContain(
       `= '${DEFAULT_AUDIENCE}'`
     );
+  });
+});
+
+describe('PROJECT_ORDER — the catalogue on disk', () => {
+  // Closes the gap that let a content file exist without a PROJECT_ORDER entry:
+  // `projectRank` sinks an unlisted slug to the end instead of throwing, so the
+  // board still looked whole while the intended order silently lost a project.
+  const onDisk = readdirSync(join(import.meta.dir, '../../src/content/projects'))
+    .filter((file) => file.endsWith('.md') && !file.startsWith('_'))
+    .map((file) => file.replace(/\.md$/, ''))
+    .sort();
+
+  it('lists exactly the RU content files — no gap, no stale slug', () => {
+    expect([...PROJECT_ORDER].sort()).toEqual(onDisk);
+  });
+
+  it('carries no duplicate slug', () => {
+    expect(new Set(PROJECT_ORDER).size).toBe(PROJECT_ORDER.length);
   });
 });

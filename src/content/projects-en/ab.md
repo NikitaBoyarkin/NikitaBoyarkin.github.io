@@ -1,11 +1,11 @@
 ---
 title: A/B Testing Methodology Toolkit
-description: "18 A/B methodology modules, each calibrated by simulation: an A/A null check holds Type I error at α, and power curves show the effect size each method can actually detect."
+description: "18 A/B modules, each calibrated: CUPED cuts variance 17.7% (SE 0.00360 → 0.00327), the delta method finds a +0.51 pp CTR lift at p < 0.0001, and SRM p = 0.8376."
 star:
   situation: "An A/B method is only as good as its Type I error under the null and its power under a real effect"
   task: "Make the method guarantees verifiable, backed by a simulation run rather than by a citation"
   action: "Modules from the primary literature — SRM, CUPED, delta method, mSPRT, HTE, BH — each calibrated by simulation"
-  result: "Type I error ≈ α for every method under its null; CI coverage ≈ 95% for the bootstrap; 18 modules calibrated by simulation"
+  result: "CUPED cuts variance 17.7% (SE 0.00360 → 0.00327) and the delta method finds a +0.51 pp CTR lift at p < 0.0001 with SRM p = 0.8376 — all 18 modules calibrated by simulation"
 track: experiments
 hero: images/ab.svg
 ogImage: /images/og/ab.png
@@ -15,6 +15,8 @@ impact:
   - "Naive peeking inflates Type I error — Pocock/OBF and mSPRT keep it under control"
   - "Delta method gives the correct SE for ratio metrics (CTR, RPC) — the naive per-unit t-test is biased"
   - "End-to-end pipeline: SRM → CUPED → delta-method CTR → per-segment ATE + BH → novelty check"
+  - "CUPED on the pipeline run: variance −17.7%, SE 0.00360 → 0.00327"
+  - "Delta-method CTR: +0.51 pp lift at p < 0.0001; SRM p = 0.8376 — clean buckets"
 tools:
   - Python
   - NumPy / SciPy
@@ -93,7 +95,9 @@ The `tests/` suite re-runs every calibration with assertions:
 - CI coverage ≈ 95% for the bootstrap;
 - naive peeking inflates Type I, always-valid / alpha-spending control it;
 - the naive per-unit ratio SE is inaccurate, the delta-method SE is accurate;
-- correctness on known-answer fixtures (SRM splits, segment uplifts, etc.).
+- correctness on known-answer fixtures (SRM splits, segment uplifts, etc.);
+- CUPED on the pipeline run: variance −17.7%, SE 0.00360 → 0.00327;
+- delta-method CTR: +0.51 pp lift at p < 0.0001, SRM p = 0.8376.
 
 ## Limitations
 

@@ -1,11 +1,11 @@
 ---
 title: A/B Testing Methodology Toolkit
-description: "18 модулей A/B-методологии, каждый откалиброван симуляцией: A/A-тест держит Type I error на уровне α, power-кривые показывают реальную мощность."
+description: "18 модулей A/B-методологии с калибровкой: CUPED срезает дисперсию на 17.7% (SE 0.00360 → 0.00327), delta-method ловит CTR-лифт +0.51 pp при p < 0.0001, SRM p = 0.8376."
 star:
   situation: "Метод A/B-теста хорош настолько, насколько верны его Type I error под нулём и мощность под эффектом"
   task: "Сделать свойства методов проверяемыми: контроль ошибки подкреплён прогоном, а не ссылкой на литературу"
   action: "Реализация методов из первичной литературы — SRM, CUPED, delta-method, mSPRT, HTE, BH — и калибровка каждого симуляцией"
-  result: "Type I error ≈ α у каждого метода; покрытие CI ≈ 95% для bootstrap; 18 модулей калибруются симуляцией"
+  result: "CUPED срезает дисперсию на 17.7% (SE 0.00360 → 0.00327), delta-method находит CTR-лифт +0.51 pp при p < 0.0001, SRM p = 0.8376 — все 18 модулей откалиброваны симуляцией"
 track: experiments
 hero: images/ab.svg
 ogImage: /images/og/ab.png
@@ -15,6 +15,8 @@ impact:
   - "Наивный peeking раздувает Type I error — Pocock/OBF и mSPRT держат его под контролем"
   - "Delta-method даёт корректный SE для ratio-метрик (CTR, RPC) — наивный per-unit t-test смещён"
   - "End-to-end pipeline: SRM → CUPED → delta-method CTR → сегментные ATE + BH → novelty check"
+  - "CUPED на прогоне пайплайна: дисперсия −17.7%, SE 0.00360 → 0.00327"
+  - "Delta-method CTR: лифт +0.51 pp при p < 0.0001; SRM p = 0.8376 — бакеты чистые"
 tools:
   - Python
   - NumPy / SciPy
@@ -101,7 +103,9 @@ uv run python scripts/run_full_pipeline.py   # end-to-end demo → outputs/repor
 - покрытие CI ≈ 95% для bootstrap;
 - наивный peeking раздувает Type I, always-valid / alpha-spending контролируют его;
 - наивный per-unit SE для ratio-метрик неточен, delta-method точен;
-- корректность на known-answer фикстурах (SRM splits, сегментные uplift-ы).
+- корректность на known-answer фикстурах (SRM splits, сегментные uplift-ы);
+- CUPED на прогоне: дисперсия −17.7%, SE 0.00360 → 0.00327;
+- delta-method CTR: +0.51 pp при p < 0.0001, SRM p = 0.8376.
 
 ## Ограничения
 

@@ -1,11 +1,11 @@
 ---
 title: ML Fundamentals — scikit-learn Pipeline
-description: "A leak-free scikit-learn pipeline: missing-data imputation, categorical encoding, a deterministic split and feature scaling, all in one ColumnTransformer fit on the training split only."
+description: "A leak-free scikit-learn pipeline: all preprocessing in one ColumnTransformer fit on the train split only, a deterministic split, and 21 tests (7 + 9 + 5) guarding reproducibility."
 star:
   situation: "Preprocessing is the foundation of all later ML work: a test leak into training or hand-rolled imputation invalidates every model above it"
   task: "Build preprocessing correctly for modern scikit-learn: no leakage, no reliance on a random seed, reproducible at every pipeline stage"
   action: "ColumnTransformer (SimpleImputer → StandardScaler for numerics, OneHotEncoder for categoricals) fit on train only; a deterministic split by sorting on (Country, Age); a dataset generator and EDA plots"
-  result: "A split reproducible without a seed: Train (8, 5), Test (2, 5); six course datasets plus four synthetic ones (400, 300, 500 and 800 rows); EDA in dark_background at 300 dpi"
+  result: "A split reproducible without a seed (Train (8, 5), Test (2, 5)), four synthetic datasets and 21 tests (7 + 9 + 5) that keep the pipeline runnable"
 track: analytics
 hero: images/ml.svg
 ogImage: /images/og/ml.png
@@ -15,6 +15,7 @@ impact:
   - "The generator yields one synthetic dataset per pipeline stage: 400, 300, 500 and 800 rows"
   - "EDA charts for every dataset in one dark_background style at 300 dpi, plus a combined dashboard.png"
   - "Code migrated off the removed API (cross_validation, Imputer) onto modern scikit-learn"
+  - "21 tests (7 + 9 + 5) across data_preprocessing, eda_plots and generate_dummy_data — the pipeline runs on any machine"
 tools:
   - Python
   - scikit-learn
@@ -91,7 +92,8 @@ The outcome is a correct, reproducible preprocessing pipeline rather than a mode
 - The split reproduces without a seed: on `Data.csv` — Train `(8, 5)`, Test `(2, 5)`.
 - Six course datasets plus four synthetic ones (400, 300, 500 and 800 rows).
 - EDA charts for each dataset in one `dark_background` style at 300 dpi, plus a combined `dashboard.png`.
-- Code migrated to the modern scikit-learn API; pytest tests keep the pipeline runnable.
+- Code migrated to the modern scikit-learn API.
+- 21 tests (7 + 9 + 5) keep the pipeline runnable: data_preprocessing, eda_plots, generate_dummy_data.
 
 ## Limitations
 

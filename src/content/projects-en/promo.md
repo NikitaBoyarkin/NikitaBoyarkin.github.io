@@ -1,11 +1,11 @@
 ---
 title: Promo Margin Lab — what a promo rouble actually earns
-description: "Promo: +68.5 m RUB revenue, −24.4 m RUB profit, 97.9% of waves loss-making, breakeven 1.0–19.5%; optimiser +267 850 ₽ (841 k spend) vs top-15% +191 502 ₽ (1.07 m)."
+description: "Promo returns +68.5 m RUB of revenue but −24.4 m RUB of profit: 97.9% of waves lose money at a 1.0–19.5% breakeven vs 25.4% actual, and the optimiser earns +231 496 ₽ vs +136 648 ₽ for top-15%."
 star:
   situation: "Offline retail measures promo against a pre-period average and picks the discount depth without pricing cannibalisation or margin"
   task: "Measure promo in margin roubles and choose depth and store set under a budget so that the numbers can be re-checked"
   action: "Synthetic panel with known truth, counterfactual, four-bucket ledger, P&L, breakeven, cluster test validated by simulation, Qini against policy value, budget allocation"
-  result: "The naive baseline understates lift by −19.9%, the forecast by −3.7%; promo returns +68.5 m RUB of revenue and −24.4 m RUB of profit; 97.9% of waves lose money at a breakeven depth of 1.0–19.5% against an actual 25.4%"
+  result: "Promo returns +68.5 m RUB of revenue and −24.4 m RUB of profit; 97.9% of waves lose money at a breakeven depth of 1.0–19.5% against 25.4% actual, and on one budget the optimiser earns +231 496 ₽ versus +136 648 ₽ for top-15%"
 track: analytics
 hero: images/promo.svg
 ogImage: /images/og/promo.png

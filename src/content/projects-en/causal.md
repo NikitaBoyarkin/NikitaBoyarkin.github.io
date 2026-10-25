@@ -1,11 +1,11 @@
 ---
 title: Causal / Uplift — CUPED and Individual Treatment Effects
-description: "CUPED cut the standard error by 26% — same power on 5.5k users per arm instead of 10k. On a synthetic experiment with known HTE, uplift at n=6000 is noise: QINI and AUUC cannot separate an oracle."
+description: "CUPED cut the standard error by 26% — same power on 5.5k users per arm instead of 10k — and a pre-registered break-even threshold of 0.05 ships the campaign to new users only."
 star:
   situation: "A two-sample t-test ignores the pre-period: experiments ask for more traffic than needed and retention offers go to everyone"
   task: "Implement CUPED and uplift modeling and prove neither is biased where the true answer is known in advance"
   action: "CUPED on a pre-period covariate and T-/S-learners on LightGBM; checked against ground truth with AUUC and QINI"
-  result: "On a synthetic experiment with known HTE: standard error down ~26%, 5.5k users per arm instead of 10k, new users respond ~8x more than returning ones."
+  result: "CUPED cuts the standard error 26% (5.5k users per arm instead of 10k), and a pre-registered break-even threshold of 0.05 ships the campaign to new users only."
 track: experiments
 hero: images/causal.svg
 ogImage: /images/og/causal.png
@@ -14,6 +14,7 @@ impact:
   - Same power with ~5.5k users/arm instead of 10k (95% CI narrows 1.35x)
   - Uplift models recover that new users respond ~8x more than returning users
   - Implemented from scratch on LightGBM — no causalml/econml dependency
+  - "Pre-registered ship rule: break-even threshold 0.05 — the campaign ships to new users only and not to returning"
 tools:
   - Python
   - LightGBM
@@ -85,6 +86,8 @@ Outputs: `reports/metrics.json` + `reports/uplift.png` (QINI curves + segment up
 CUPED buys power for free: no new experiment design is needed, only a better estimator on data you already collected — provided a pre-period covariate exists. The point estimate is unchanged (0.270 → 0.276, within noise), the standard error shrinks by ~26%, and the CI narrows 1.35x — an experiment that needed 10k users per arm now needs ~5.5k.
 
 Uplift answers a different question than A/B testing: not "does the treatment work on average" but "who does it work on". At n = 6000 the curve metrics are noise-dominated: the T-learner sits 0.81σ from the null baseline (AUUC +0.00293 ± 0.00164), the S-learner 1.72σ, and even the oracle ranking by the known true τ reaches only 2.25σ; a single seeded random scorer lands on 2.90σ by chance, above both real models. What is clean is not AUUC or QINI but the segment recovery and corr(τ) = 0.50–0.66 against 0.011 for randomness. The model recovered the shape of the effect: "new" users respond ~8x more than "returning" users — the targeting signal a discount campaign would act on.
+
+- **Ship rule (pre-registered):** a break-even threshold of 0.05 — the campaign ships to `new` users only and is not shipped to `returning`.
 
 | Segment | Truth (binary uplift) | T-learner | S-learner |
 |---|---|---|---|
