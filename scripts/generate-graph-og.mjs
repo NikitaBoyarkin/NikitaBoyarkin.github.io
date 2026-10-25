@@ -4,14 +4,14 @@
 // /graph/ and /graph.json), the right side is the hexagon-clipped portrait.
 // Converts it to PNG via rsvg-convert into public/images/og/portfolio-graph-v2.png.
 //
-// Single source of truth: imports buildGraph / layoutGraph / TOPICS and the
+// Single source of truth: imports buildGraph / layoutRadial / TOPICS and the
 // shared visual tokens straight from src/lib, so the preview can never drift
 // from the graph the site renders.
 // Palette matches the homepage banner (portfolio-banner-v2.png): the cream
 // picture surface, royal-blue ink and burnt-coral accent come from
-// src/lib/brand.ts. The graph's categorical node colours are no longer separate
-// hexes — they are alpha tints of the ink and the accent, so no node can be a
-// colour that exists nowhere else in the banner.
+// src/lib/brand.ts. Node colours are the site's own section palette
+// (GRAPH_SECTION_COLORS), adapted only where a standalone SVG cannot resolve a
+// CSS token or where the cream sheet needs a darker tint.
 //
 // Fonts: identity name is Cormorant, all service text is Inter — the same
 // families the site ships. They are vendored as static TTF in scripts/og-fonts/
@@ -37,7 +37,7 @@ import {
   LINK_THICKNESS,
   NODE_SIZE,
 } from '../src/lib/graph.ts';
-import { layoutGraph } from '../src/lib/graph-layout.ts';
+import { layoutRadial } from '../src/lib/graph-layout.ts';
 import { TOPICS } from '../src/lib/topics.ts';
 import {
   BANNER_ACCENT,
@@ -70,18 +70,21 @@ const INK = BANNER_INK; // titles, body, labels
 const MUTED = BANNER_MUTED; // legend labels
 const ACCENT = BANNER_ACCENT; // rings, rules, hub halos
 
-// Categorical node paints, remapped into the brand family so the graph reads as
-// part of the banner instead of a rainbow on cream. Hub groups anchor the
-// palette; everything else falls back to ink for a calmer field. `alpha` is
-// baked into the paint (not written at the call site) so a plotted node and its
-// legend swatch can never disagree. Each tint holds >= 3:1 against the surface
-// AND against the panel's darkest edge (4.84/4.27, 10.28/9.06, 3.81/3.65,
-// 3.49/3.19) — the WCAG 1.4.11 graphics floor, asserted below.
-const NODE_PAINT = {
-  projects: { color: ACCENT, alpha: 1 }, // burnt coral
-  articles: { color: INK, alpha: 1 }, // royal ink
-  topic: { color: INK, alpha: 0.55 }, // periwinkle read
-  experiments: { color: ACCENT, alpha: 0.8 }, // peach read
+// Categorical node paints — the site's own section palette
+// (GRAPH_SECTION_COLORS in src/lib/graph.ts), so the banner reads as the same
+// graph the page renders. Two adaptations are required and deliberate:
+//   • the site's `articles`/`root` are CSS tokens that a standalone SVG cannot
+//     resolve, so their light-theme hexes are used here;
+//   • cyan/magenta/orange are darkened until they clear the 3:1 graphics floor
+//     on the cream sheet (site values sit at 2.2–3.0:1 there).
+// Keys are `section`, not `group`: the site paints every volta part as
+// «Проекты» too, and a taxonomy hue would break that one-section-per-hue rule.
+const SECTION_PAINT = {
+  projects: { color: ACCENT, alpha: 1 }, // #b8431f — site #ff4e02, darkened (4.84:1)
+  articles: { color: INK, alpha: 1 }, // #1400c3 — the light-theme token itself (10.28:1)
+  topic: { color: '#1f7f8e', alpha: 1 }, // site #38b2c4 darkened (4.17:1)
+  glossary: { color: '#a63d70', alpha: 1 }, // site #e0609b darkened (5.30:1)
+  root: { color: '#0a5f63', alpha: 1 }, // site light #0d7377 darkened (6.60:1)
 };
 const NODE_FALLBACK = { color: INK, alpha: 1 };
 
@@ -90,20 +93,21 @@ const NODE_FALLBACK = { color: INK, alpha: 1 };
 // Explicit `related`/`children` links stay legible; thematic/`shared`/`core`
 // edges fade back so the preview reads as structure, not a hairball.
 const EDGE_PAINT = {
-  related: [ACCENT, 0.55],
-  children: [INK, 0.42],
+  related: [ACCENT, 0.38],
+  children: [INK, 0.28],
   topic: [INK, 0.07],
   shared: [INK, 0.06],
   core: [ACCENT, 0.08],
 };
 
 // Legend entries — the node categories a reader actually sees in the preview,
-// resolved against NODE_PAINT so the swatches match the plotted nodes.
+// resolved against SECTION_PAINT so the swatches match the plotted nodes.
 const LEGEND = [
-  ['Проекты', NODE_PAINT.projects],
-  ['Статьи', NODE_PAINT.articles],
-  ['Темы', NODE_PAINT.topic],
-  ['Volta', NODE_PAINT.experiments],
+  ['Проекты', SECTION_PAINT.projects],
+  ['Статьи', SECTION_PAINT.articles],
+  ['Темы', SECTION_PAINT.topic],
+  ['Словарь', SECTION_PAINT.glossary],
+  ['Ядро', SECTION_PAINT.root],
 ];
 
 // Anchor labels (REQ-06): tried at 12px, but in the ~500px social preview they
@@ -115,7 +119,7 @@ const ANCHOR_COUNT = 5;
 
 // --- Load the RU collections from disk (the same set graph-data.ts feeds
 // buildGraph) by parsing frontmatter with the `yaml` package. ---
-function loadCollection(name) {
+function loadCollection(name, { dropDrafts = true } = {}) {
   const dir = join(CONTENT, name);
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
@@ -126,21 +130,24 @@ function loadCollection(name) {
       const data = m ? parseYaml(m[1]) || {} : {};
       return { id: f, data };
     })
-    .filter((e) => !e.data.draft);
+    .filter((e) => !dropDrafts || !e.data.draft);
 }
 
 const graph = buildGraph({
   projects: loadCollection('projects'),
   posts: loadCollection('posts'),
   parts: loadCollection('volta-parts'),
+  // Unfiltered, mirroring graph-data.ts: the site's graph is built from the
+  // whole glossary collection, so a draft-flagged term still has a node.
+  glossary: loadCollection('glossary', { dropDrafts: false }),
   topics: TOPICS,
   lang: 'ru',
 });
 
 // --- PRESENTATION-ONLY readability filter. ---
-// Degree is computed from the untouched graph, then low-degree leaves
-// (degree <= 1: nodes with a single dangling link) are dropped from the STILL
-// IMAGE only. buildGraph / layoutGraph / TOPICS stay untouched — the site and
+// Degree is computed from the untouched graph, then dangling leaves
+// (degree <= 1: nodes with a single link) are dropped from the STILL IMAGE
+// only. buildGraph / layoutRadial / TOPICS stay untouched — the site and
 // /graph.json keep rendering the full set.
 const degree = new Map();
 for (const l of graph.links) {
@@ -148,33 +155,41 @@ for (const l of graph.links) {
   degree.set(l.target, (degree.get(l.target) ?? 0) + 1);
 }
 const MIN_DEGREE = 2;
-// The force layout pins a weakly-linked group to the world margin — five nodes
-// end up stacked on the exact same pixel, several more hug the box edge — and
-// their cross-panel links are the "random line" artifacts. The farthest ~28% by
-// radial distance from the centroid are trimmed: they are that margin group.
-const RADIAL_KEEP = 0.72;
+const kept = graph.nodes.filter((n) => (degree.get(n.id) ?? 0) >= MIN_DEGREE);
+const keptIds = new Set(kept.map((n) => n.id));
+// Filter BEFORE the layout: the radial packer assigns ring slots from the node
+// list it is handed, so removing nodes afterwards would leave holes in the rings.
+const filtered = {
+  nodes: kept,
+  links: graph.links.filter((l) => keptIds.has(l.source) && keptIds.has(l.target)),
+};
 
-// Same deterministic build-time layout the site renders, then fit to the panel.
-// A wide world lets the spring simulation reach equilibrium INSIDE its margin —
-// at the site's 900x560 the repulsion pins ~30 nodes to the border (harmless
-// with zoom/pan, but a rectangular cage in a still image).
-const WORLD = { w: 1000, h: 800 };
-const laid = layoutGraph(graph, WORLD);
+// The site's own layout: root at the centre, everything else packed into rings
+// by hop distance from it. Sized to the panel's 2:1 aspect so the rings fill it
+// instead of letterboxing inside a square world.
+const WORLD = { w: 760, h: 380 };
+const radial = layoutRadial(filtered, {
+  width: WORLD.w,
+  height: WORLD.h,
+  minArc: 26,
+  ringStep: 46,
+  startRadius: 78,
+});
+// The panel is 2:1 but the rings are circles, so a round graph leaves half the
+// panel empty. Stretching x about the centre turns the rings into wide ellipses
+// and spends that width — vertical spacing, which is the scarce axis, is untouched.
+const STRETCH_X = 1.45;
+const cwx = WORLD.w / 2;
+const laid = {
+  ...radial,
+  nodes: radial.nodes.map((n) => ({ ...n, x: cwx + (n.x - cwx) * STRETCH_X })),
+};
 const nodeById = new Map(laid.nodes.map((n) => [n.id, n]));
 
-const byDegree = laid.nodes.filter((n) => (degree.get(n.id) ?? 0) >= MIN_DEGREE);
-const radial = (n, cx, cy) => Math.hypot(n.x - cx, n.y - cy);
-const cx = byDegree.reduce((s, n) => s + n.x, 0) / byDegree.length;
-const cy = byDegree.reduce((s, n) => s + n.y, 0) / byDegree.length;
-const radialSorted = byDegree.map((n) => radial(n, cx, cy)).sort((a, b) => a - b);
-const radialCutoff =
-  radialSorted[Math.floor(RADIAL_KEEP * (radialSorted.length - 1))];
+const visible = laid.nodes;
+const links = laid.links;
 
-const visible = byDegree.filter((n) => radial(n, cx, cy) <= radialCutoff);
-const visibleIds = new Set(visible.map((n) => n.id));
-const links = laid.links.filter((l) => visibleIds.has(l.source) && visibleIds.has(l.target));
-
-const groupPaint = (g) => NODE_PAINT[g] ?? NODE_FALLBACK;
+const sectionPaint = (s) => SECTION_PAINT[s] ?? NODE_FALLBACK;
 /** `fill` / `fill-opacity` attributes for a node paint, shared by nodes and swatches. */
 const paintAttrs = ({ color, alpha }) =>
   `fill="${color}"${alpha < 1 ? ` fill-opacity="${alpha}"` : ''}`;
@@ -188,25 +203,34 @@ const edgeEndpoints = (l) => {
   const r = (b.size || 6) + 2;
   return { x1: a.x, y1: a.y, x2: b.x - (dx / d) * r, y2: b.y - (dy / d) * r };
 };
-// The left panel is smaller than the old full-right one, so node radii get a
-// modest boost to stay legible at the ~500px preview.
-const RADIUS_BOOST = 1.15;
-const radius = (n) => (n.size || 6) * NODE_SIZE * RADIUS_BOOST;
+// The rings pack ~88 nodes into a 344px-tall panel, so radii are pulled in
+// slightly: at 1.0 the high-degree hubs on the inner ring touch their neighbours.
+const RADIUS_BOOST = 0.95;
+// Clamp the degree-driven sizes. Uncapped, the collection hubs run ~2.5x a leaf
+// and swallow the inner ring they sit on; the floor keeps leaves from vanishing
+// in the ~500px social preview.
+const MIN_R = 4;
+const MAX_R = 12;
+const radius = (n) =>
+  n.section === 'root'
+    ? MAX_R + 2.5 // the centre stays the largest mark on the image
+    : Math.min(MAX_R, Math.max(MIN_R, (n.size || 6) * NODE_SIZE * RADIUS_BOOST));
 
-// --- Fit the laid-out world to the panel. Percentile bounds (2%..98%) over the
-// visible nodes keep the framing on the main cluster instead of the bare
-// extremes; the length fade dissolves the few long tail links. ---
+// --- Fit the laid-out world to the panel. Full extents, not percentiles: the
+// outermost ring has to stay whole, and cropping it would cut nodes off the
+// circle. The length fade dissolves the few long cross-ring links. ---
 const PANEL = { x: 56, y: 208, w: 692, h: 344 };
-const PAD = 16; // world units around the graph
+const PAD = 10; // world units around the graph
 // Screen-space length (px) past which an edge starts to dissolve (see edgeSvg).
 const EDGE_FADE_START = 0.3 * Math.hypot(PANEL.w, PANEL.h);
-const q = (sorted, p) => sorted[Math.max(0, Math.min(sorted.length - 1, Math.floor(p * (sorted.length - 1))))];
-const fxs = visible.map((n) => n.x).sort((a, b) => a - b);
-const fys = visible.map((n) => n.y).sort((a, b) => a - b);
-const minX = q(fxs, 0.02) - PAD;
-const maxX = q(fxs, 0.98) + PAD;
-const minY = q(fys, 0.02) - PAD;
-const maxY = q(fys, 0.98) + PAD;
+// How much of its alpha even the longest edge keeps.
+const FADE_FLOOR = 0.15;
+const fxs = visible.map((n) => n.x);
+const fys = visible.map((n) => n.y);
+const minX = Math.min(...fxs) - PAD;
+const maxX = Math.max(...fxs) + PAD;
+const minY = Math.min(...fys) - PAD;
+const maxY = Math.max(...fys) + PAD;
 const bw = maxX - minX;
 const bh = maxY - minY;
 const scale = Math.min(PANEL.w / bw, PANEL.h / bh);
@@ -222,9 +246,13 @@ const edgeSvg = links
     const dash = GRAPH_EDGE_STYLE[l.type];
     // Length fade: an edge spanning most of the panel reads as a stray line
     // rather than structure, so long ones dissolve instead of crossing the field.
+    // It bottoms out at FADE_FLOOR rather than zero — a node whose every edge
+    // vanished (the sparse outer rings) reads as a detached dot, not as a leaf.
     const len = Math.hypot(e.x2 - e.x1, e.y2 - e.y1) * scale;
     const fade =
-      len <= EDGE_FADE_START ? 1 : Math.max(0, 1 - (len - EDGE_FADE_START) / (EDGE_FADE_START * 1.1));
+      len <= EDGE_FADE_START
+        ? 1
+        : Math.max(0, 1 - (len - EDGE_FADE_START) / (EDGE_FADE_START * 1.1)) || FADE_FLOOR;
     const effAlpha = alpha * fade;
     if (effAlpha < 0.01) return '';
     return `<line x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}" stroke="${color}" stroke-opacity="${effAlpha.toFixed(3)}" stroke-width="${width.toFixed(2)}"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
@@ -244,14 +272,22 @@ const hubIds = new Set(
     .map((n) => n.id),
 );
 
-const nodeSvg = visible
-  .map((n) => {
-    const r = radius(n);
-    const halo = hubIds.has(n.id)
-      ? `<circle cx="${n.x}" cy="${n.y}" r="${(r + 3.5).toFixed(2)}" fill="none" stroke="${ACCENT}" stroke-opacity="0.5" stroke-width="1.6"/>`
-      : '';
-    return `${halo}<circle cx="${n.x}" cy="${n.y}" r="${r.toFixed(2)}" ${paintAttrs(groupPaint(n.group))} stroke="${SURFACE}" stroke-width="1.6"/>`;
-  })
+const nodeMark = (n) => {
+  const r = radius(n);
+  const isRoot = n.section === 'root';
+  // The root is the one centre: it always carries the halo (whatever its rank)
+  // and a wider surface gap, so it reads as the anchor rather than as one more
+  // teal topic dot at the middle.
+  const halo = isRoot || hubIds.has(n.id)
+    ? `<circle cx="${n.x}" cy="${n.y}" r="${(r + (isRoot ? 5 : 3.5)).toFixed(2)}" fill="none" stroke="${ACCENT}" stroke-opacity="${isRoot ? 0.85 : 0.5}" stroke-width="${isRoot ? 2.2 : 1.6}"/>`
+    : '';
+  const gap = isRoot ? 2.4 : 1.6;
+  return `${halo}<circle cx="${n.x}" cy="${n.y}" r="${r.toFixed(2)}" ${paintAttrs(sectionPaint(n.section))} stroke="${SURFACE}" stroke-width="${gap}"/>`;
+};
+
+// Root is painted last so the ring-1 hubs can never sit on top of the centre.
+const nodeSvg = [...visible.filter((n) => n.section !== 'root'), ...visible.filter((n) => n.section === 'root')]
+  .map(nodeMark)
   .join('\n      ');
 
 // Screen-space anchor labels for the biggest hubs (panel coords, outside the
@@ -272,7 +308,7 @@ const anchorSvg = ANCHOR_LABELS
 // Legend as a horizontal row under the graph, each swatch matching a node group.
 const LEGEND_Y = 584;
 const legendSvg = LEGEND.map(([label, paint], i) => {
-  const x = 56 + i * 160;
+  const x = 56 + i * 135;
   return `<circle cx="${x}" cy="${LEGEND_Y - 5}" r="6" ${paintAttrs(paint)}/>
   <text x="${x + 16}" y="${LEGEND_Y}" font-family="${FONT_SANS}" font-size="15" font-weight="500" fill="${MUTED}">${esc(label)}</text>`;
 }).join('\n  ');
@@ -326,8 +362,8 @@ const over = (color, alpha, bg) => {
 // vignette's 0.06 stop at the panel edge, which is where the two trimmed margin
 // nodes actually sit). A tint is only legible if it clears both.
 const PANEL_EDGE = over(INK, 0.06, SURFACE);
-const tintWidth = Math.max(...Object.keys(NODE_PAINT).map((g) => g.length));
-for (const [group, paint] of Object.entries(NODE_PAINT)) {
+const tintWidth = Math.max(...Object.keys(SECTION_PAINT).map((g) => g.length));
+for (const [group, paint] of Object.entries(SECTION_PAINT)) {
   for (const [where, bg] of [
     ['surface', SURFACE],
     ['vignette', PANEL_EDGE],

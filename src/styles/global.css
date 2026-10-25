@@ -130,6 +130,13 @@
   --accent-ink: #1a1a1a;
   --border-active: #ff8569;
 
+  /* The OG banner's cream picture surface and its deep-blue ink, exposed to CSS
+     so an element can read as a chip of the banner on any theme. CREAM_SURFACE
+     and SURFACE_BLUE_DEEP in src/lib/brand.ts; 14.98:1 ink-on-surface, where the
+     coral accent would sit at 1.60:1. */
+  --cream-surface: #f8f2d8;
+  --banner-ink-deep: #0a0070;
+
   --shadow-color: rgba(0, 0, 0, 0.4);
   --font-sans:
     "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
@@ -2240,6 +2247,20 @@ footer p {
 .back:hover {
   color: var(--text-accent-hover);
   transform: translateX(-5px);
+}
+
+/* The "back to portfolio" link only — a cream plate from the OG banner, so it
+   keeps the accent's coral off the cream (1.60:1) in favour of banner ink. */
+.back--portfolio {
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  background: var(--cream-surface);
+  color: var(--banner-ink-deep);
+}
+
+.back--portfolio:hover {
+  color: var(--banner-ink-deep);
+  background: var(--cream-surface);
 }
 
 /* The hero is a 1200x600 (2:1) illustration, so it must never be cropped. The

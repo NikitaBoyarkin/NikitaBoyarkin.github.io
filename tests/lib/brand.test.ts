@@ -9,6 +9,8 @@ import {
   BUTTON_INK,
   CREAM,
   CREAM_CARD,
+  CREAM_SURFACE,
+  SURFACE_BLUE_DEEP,
   ACCENT_ON_TEAL,
   ACCENT_ON_TEAL_LIGHT,
   type BrandHex,
@@ -39,6 +41,10 @@ const EXPECTED: Expected = {
     'button-bg-hover': BUTTON_FILL_HOVER,
     'button-ink': BUTTON_INK,
     'text-accent': ACCENT_ON_TEAL,
+    // The "back to portfolio" plate: the banner's picture surface with its
+    // deep-blue ink, so the link matches the OG banner on every theme.
+    'cream-surface': CREAM_SURFACE,
+    'banner-ink-deep': SURFACE_BLUE_DEEP,
   },
   '[data-theme="light"]': {
     'background-primary': CREAM,
