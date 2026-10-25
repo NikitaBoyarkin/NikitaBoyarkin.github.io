@@ -41,11 +41,11 @@ _Avoid_: about page (страница целиком), about sections, tabs
 ## Контакт и CTA
 
 **Hero CTA**:
-CTA-строки в hero больше нет (удалена вместе с компонентом `HeroCta`); «concrete»-сигнал hero несёт featured project card (событие `featured_project`), а единственная CTA-кнопка, оставшаяся на всех страницах, — «CV» (`cv_download_pdf` — скачивание PDF). A/B `hero_cta_variant` снят 13.09.
+CTA-строки в hero больше нет (удалена вместе с компонентом `HeroCta`); «concrete»-сигнал hero несёт featured project card (событие `featured_project`). Резюме и `/cv/` удалены с сайта 24.10.2026, поэтому кнопки «CV» нет; контактные CTA — чипы в навигации (`github_footer`, `linkedin_footer`). A/B `hero_cta_variant` снят 13.09.
 _Avoid_: hero CTA variant, A/B CTA
 
 **Contact action**:
-Любое событие, означающее контакт-инициативу: `cv_download_pdf` (единая кнопка «CV» → PDF), `github_footer`, `linkedin_footer`. Переходы в проекты (`featured_project`, `bento_*`, `headline_all_projects`) контактом НЕ являются. Это click-уровень (что нажали), а не исход контакта — исход ведётся в **Contact stage** (корневой контекст).
+Любое событие, означающее контакт-инициативу: `github_footer`, `linkedin_footer`, `telegram_footer`, `booking_click`, `linkedin_contact`. Переходы в проекты (`featured_project`, `bento_*`, `headline_all_projects`) контактом НЕ являются. Это click-уровень (что нажали), а не исход контакта — исход ведётся в **Contact stage** (корневой контекст).
 _Avoid_: click, conversion event (неспецифично)
 
 ## Метрики

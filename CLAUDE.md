@@ -40,9 +40,8 @@ bun run coverage
 # Serve the production dist/ with Bun.serve (ETag, content-types)
 bun run serve-dist
 
-# Regenerate OG/CV on change (bun --watch)
+# Regenerate OG images on change (bun --watch)
 bun run og:watch
-bun run cv:watch
 
 # Generate OG images
 bun run og          # per-post OG cards
@@ -301,17 +300,6 @@ Auth: `GITHUB_TOKEN`/`GH_TOKEN` env (higher rate limit, sees private repos). Una
 3. No registry to update: the source is picked up by the `/library/` index, the search index (`search-index.json`, facet «Библиотека»/«Library») and `llms.txt`. Content with a digit in the slug moves the `audit:content` baseline — review the diff, then `bun run audit:content:snapshot`.
 4. Run `bun run build` and `make check`.
 
-## CV Source of Truth
-
-The CV is **not** authored here — it lives in a separate rendercv project at `/Users/nikitaboarkin/Desktop/00 ide/00 portfolio/cv/` (source: `Boyarkin_Nikita_Product_Analyst_CV.yaml`). The portfolio ships it as one downloadable PDF (`public/CV-Nikita-Boyarkin.pdf`) and exposes a single "CV" button on every page (hero, footer, contact, about, career snapshot) that downloads it.
-
-To update the CV:
-
-1. Re-render there: `rendercv render Boyarkin_Nikita_Product_Analyst_CV.yaml`.
-2. Sync the PDF: `bun run cv:pdf` — copies `../cv/rendercv_output/Boyarkin_Nikita_CV.pdf` → `public/CV-Nikita-Boyarkin.pdf` (override the source dir with `CV_SOURCE_DIR`). Commit the PDF.
-
-The standalone `/cv/` HTML page was removed — the YAML is the canonical source and the PDF is the only artifact. Do not reintroduce a hand-authored CV page.
-
 ## Internal Links
 
 Always use the `withBase()` helper from `src/lib/path.ts` for internal links and image paths so the `base` path is applied correctly:
@@ -329,7 +317,7 @@ import { withBase } from '../lib/path';
 - English mirrors live in `src/pages/en/` and render the `projects-en` collection.
 - Each `Base` page declares `lang` and `counterpartHref` (the URL of the other-language version); `LangSwitch.astro` toggles between them and `<link rel="alternate" hreflang>` tags are emitted for SEO.
 - When adding a page or project, add **both** language versions and keep `counterpartHref` wired on both sides.
-- Pages that are intentionally RU-only (no EN mirror): `cv`, `guides`, `notes`, `now`, `404`. Do not pass `counterpartHref` on these — `LangSwitch` is hidden and no hreflang alternates are emitted.
+- Pages that are intentionally RU-only (no EN mirror): `guides`, `notes`, `now`, `404`. Do not pass `counterpartHref` on these — `LangSwitch` is hidden and no hreflang alternates are emitted.
 - Writing has an EN mirror: `en/writing` lists the `posts-en` collection, `en/posts/[slug]` renders EN post pages, and posts link to each other via `counterpartHref` when an EN version exists. EN posts currently: the two evergreen guides (`ab-calibration-simulation`, `cohort-triangles-retention`).
 
 ## Theme System
@@ -371,7 +359,6 @@ instead (homepage headline cases and `ProjectCard`). Existing named attributes:
 `headline_all_projects` (HeadlineCases), `featured_project` / `featured_demo` /
 `featured_github` (homepage featured card), `bento_stack` / `bento_graph` /
 `bento_notes` (homepage bento),
-`cv_download_pdf` (every "CV" download button — nav rail, footer, contact),
 `telegram_deeplink` (contact «написать с контекстом»),
 `telegram_contact` (contact main Telegram link),
 `github_footer` / `linkedin_footer` / `telegram_footer` / `writing_footer`

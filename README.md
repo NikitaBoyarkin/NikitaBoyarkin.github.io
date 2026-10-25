@@ -1,235 +1,282 @@
 # NikitaBoyarkin.github.io
 
-Personal portfolio site of **Nikita Boyarkin** — Product / Data Analyst.
-Static Astro build, bilingual (RU / EN), 22 case studies, client JS only where it earns its place.
+Портфолио продуктового и дата-аналитика Никиты Бояркина. Статическая
+сборка на Astro, две локали (RU и EN), 22 кейса. Клиентский JavaScript —
+только там, где без него не обойтись.
 
 [![Deploy](https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io/actions/workflows/deploy.yml)
 
-**Live:** https://nikitaboyarkin.github.io/ · **EN mirror:** https://nikitaboyarkin.github.io/en/
+**Живой сайт:** https://nikitaboyarkin.github.io/ ·
+**Английская версия:** https://nikitaboyarkin.github.io/en/
 
-![Homepage banner](public/images/og/portfolio-banner-v2.png)
+![Баннер главной страницы](public/images/og/portfolio-banner-v2.png)
 
-> 22 case studies, bilingual RU/EN Astro portfolio — the flagship Volta case found the onboarding bottleneck and closed it with +5.72 pp KYC conversion.
+> 22 кейса и двуязычное портфолио на Astro. Флагманский кейс Volta нашёл
+> узкое место в онбординге и закрыл его: конверсия в KYC выросла на
+> 5.72 процентного пункта.
 
-## Navigation
+## Навигация
 
-- 🌐 [Portfolio site](https://nikitaboyarkin.github.io)
-- 🏦 [Flagship: Volta neobank](https://github.com/NikitaBoyarkin/volta-banking)
-- 🧪 Related: [A/B Testing Toolkit](https://github.com/NikitaBoyarkin/ab_test) · [Causal / Uplift](https://github.com/NikitaBoyarkin/causal-uplift) · [SQL Analytics Case Study](https://github.com/NikitaBoyarkin/sql-analytics-case-study) · [Churn Prediction](https://github.com/NikitaBoyarkin/churn-prediction)
+- 🌐 [Сайт портфолио](https://nikitaboyarkin.github.io)
+- 🏦 [Флагман: необанк Volta](https://github.com/NikitaBoyarkin/volta-banking)
+- 🧪 Рядом: [A/B Testing Toolkit](https://github.com/NikitaBoyarkin/ab_test) ·
+  [Causal / Uplift](https://github.com/NikitaBoyarkin/causal-uplift) ·
+  [SQL Analytics Case Study](https://github.com/NikitaBoyarkin/sql-analytics-case-study) ·
+  [Churn Prediction](https://github.com/NikitaBoyarkin/churn-prediction)
 
-**On this page:** [Situation](#situation) · [Task](#task) · [Actions](#actions) · [Result](#result) · [What's on the site](#whats-on-the-site) · [Projects](#projects) · [Stack](#stack) · [Quick start](#quick-start) · [Project structure](#project-structure) · [License](#license)
+**На этой странице:** [Ситуация](#ситуация) · [Задача](#задача) ·
+[Действия](#действия) · [Результат](#результат) ·
+[Что на сайте](#что-на-сайте) · [Проекты](#проекты) · [Стек](#стек) ·
+[Быстрый старт](#быстрый-старт) · [Структура проекта](#структура-проекта) ·
+[Лицензия](#лицензия)
 
-## Situation
+## Ситуация
 
-The portfolio had to prove analytical work, not merely describe it: a Product /
-Data Analyst with a growing body of case studies and no single reachable
-artifact tying each method to its result.
+Портфолио должно доказывать аналитическую работу, а не пересказывать её.
+У аналитика накапливались кейсы, но не было одной точки входа, где каждый
+метод связан с результатом.
 
-## Task
+## Задача
 
-Ship a static, bilingual (RU / EN) site where every case study is navigable,
-every headline number is frozen and machine-checked, and each project page
-follows the mandated STAR order — `Ситуация → Задача → Действия → Результат →
-Ограничения → Документация` (EN: `Situation → Task → Actions → Result →
-Limitations → Documentation`).
+Собрать статический двуязычный сайт (RU и EN), где:
 
-## Actions
+- каждый кейс доступен по своему адресу;
+- каждый заголовочный показатель заморожен и проверяется машиной;
+- страница проекта идёт в обязательном порядке STAR: `Ситуация → Задача →
+  Действия → Результат → Ограничения → Документация`
+  (EN: `Situation → Task → Actions → Result → Limitations → Documentation`).
 
-Built on Astro 7 + TypeScript, with all non-trivial logic in `src/lib/` under
-unit tests. 22 case studies across the four `track`s, 23 linked Volta sub-parts,
-and 24 notes. Headline numbers are authored in `src/lib/metrics.ts` and
-cross-checked by `check_metrics_drift`; `bun run audit:content` diffs every
-numeric token against `docs/content-baseline.json`. Project pages follow the
-mandated STAR skeleton, enforced by `tests/lib/content-skeleton.test.ts`.
+## Действия
 
-## Result
+Сайт собран на Astro 7 и TypeScript. Вся нетривиальная логика лежит в
+`src/lib/` и покрыта юнит-тестами. В репозитории 22 кейса в четырёх
+`track`, 23 связанные части кейса Volta и 24 заметки.
 
-A live static site at https://nikitaboyarkin.github.io with an EN mirror,
-self-checking builds (`make check` inspects the built `dist/`), Lighthouse gates,
-and frozen metrics. The flagship Volta case: +5.72 pp KYC conversion, €656K/yr.
+Заголовочные числа живут в `src/lib/metrics.ts`, их сверяет
+`check_metrics_drift`. Команда `bun run audit:content` сравнивает каждый
+числовой токен с `docs/content-baseline.json`. Порядок разделов на
+странице проекта проверяет `tests/lib/content-skeleton.test.ts`.
 
-## Contents
+## Результат
 
-- [What's on the site](#whats-on-the-site)
-- [Projects](#projects)
-- [Stack](#stack)
-- [Requirements](#requirements)
-- [Quick start](#quick-start)
-- [Verification](#verification)
-- [Project structure](#project-structure)
-- [Content](#content)
-- [Analytics](#analytics)
-- [OG image generation](#og-image-generation)
-- [CV](#cv)
-- [GitHub ↔ portfolio sync](#github--portfolio-sync)
-- [Monitoring](#monitoring)
+Сайт работает по адресу https://nikitaboyarkin.github.io, у него есть
+английское зеркало, самопроверяющаяся сборка (`make check` смотрит
+готовый `dist/`) и пороги Lighthouse. Показатели заморожены. Флагманский
+кейс Volta: +5.72 п. п. конверсии в KYC и €656K в год.
+
+## Содержание
+
+- [Что на сайте](#что-на-сайте)
+- [Проекты](#проекты)
+- [Стек](#стек)
+- [Требования](#требования)
+- [Быстрый старт](#быстрый-старт)
+- [Проверка](#проверка)
+- [Структура проекта](#структура-проекта)
+- [Контент](#контент)
+- [Аналитика](#аналитика)
+- [OG-картинки](#og-картинки)
+- [Синхронизация с GitHub](#синхронизация-с-github)
+- [Мониторинг](#мониторинг)
 - [CI/CD](#cicd)
-- [Local hooks](#local-hooks)
-- [Documentation](#documentation)
-- [License](#license)
+- [Локальные хуки](#локальные-хуки)
+- [Документация](#документация)
+- [Лицензия](#лицензия)
 
-## What's on the site
+## Что на сайте
 
-Russian is the default locale; every route below has an `/en/…` mirror unless noted.
+Русский — язык по умолчанию. У каждого адреса ниже есть зеркало
+`/en/…`, если не сказано обратное.
 
-| Route | What it holds |
+| Адрес | Что там |
 |---|---|
-| `/` | Home — hero, headline cases, career snapshot, bento grid, featured writing |
-| `/projects/` | Catalogue — all 22 cases as a board, grouped by `track` |
-| `/projects/<slug>/` | Case study page (RU source + EN mirror) |
-| `/projects/volta/<part>/` | The 23 linked sub-parts of the Volta case |
-| `/about/` | About + jump nav to anchors `#who`, `#work`, `#now`, `#start`, `#value` |
-| `/notes/` | Notes hub with category filters (absorbs `/guides/`) |
-| `/writing/` | Paginated article archive |
-| `/topics/`, `/topics/<tag>/` | Topic taxonomy and level grouping |
-| `/graph/` | Knowledge graph of the notes — communities, force layout, zoom |
-| `/contact/` | Contact |
-| `/404` | RU only — no EN mirror, no `hreflang` |
+| `/` | Главная: первый экран, заголовочные кейсы, срез карьеры, bento-сетка, избранные тексты |
+| `/projects/` | Каталог: все 22 кейса доской, сгруппированы по `track` |
+| `/projects/<slug>/` | Страница кейса (русский оригинал и английское зеркало) |
+| `/projects/volta/<part>/` | 23 связанные части кейса Volta |
+| `/about/` | О себе и переходы к якорям `#who`, `#work`, `#now`, `#start`, `#value` |
+| `/notes/` | Хаб заметок с фильтрами по категориям (поглотил `/guides/`) |
+| `/writing/` | Архив статей с пагинацией |
+| `/topics/`, `/topics/<tag>/` | Таксономия тем и группировка по уровню |
+| `/graph/` | Граф знаний по заметкам: сообщества, force-раскладка, зум |
+| `/contact/` | Контакты |
+| `/404` | Только по-русски: без английского зеркала и без `hreflang` |
 
-Generated endpoints: `/rss.xml`, `/sitemap-index.xml`, `/robots.txt`, `/llms.txt`, `/.well-known/llms.txt`, `/search-index.json`, `/graph.json`, `/graph-en.json`. Search is client-side over `search-index.json` — there is no `/search/` page.
+Генерируемые адреса: `/rss.xml`, `/sitemap-index.xml`, `/robots.txt`,
+`/llms.txt`, `/.well-known/llms.txt`, `/search-index.json`, `/graph.json`,
+`/graph-en.json`. Поиск работает в браузере поверх `search-index.json`,
+отдельной страницы `/search/` нет.
 
-## Projects
+## Проекты
 
-**22 case studies**, each with a page at `/projects/<slug>/`, a board column set by `track`, and a public repo and/or live demo where one exists. Three are the **headline cases** featured on the home page — `volta`, `sql`, `cohort` — chosen because each is backed by a reachable public artifact.
+**22 кейса.** У каждого есть страница `/projects/<slug>/`, колонка на
+доске по `track`, публичный репозиторий или живая демка — если они есть.
+Три кейса вынесены на главную — `volta`, `sql`, `cohort`: у каждого есть
+публичный артефакт, до которого можно дойти.
 
-Links: **page** = the case study on the live site · **repo** = source on GitHub · **demo** = runnable artifact.
+Обозначения: **page** — страница кейса на сайте · **repo** — исходники
+на GitHub · **demo** — то, что можно запустить.
 
 ### `track: experiments`
 
-| Project | What it shows | Links |
+| Проект | Что показывает | Ссылки |
 |---|---|---|
-| **Volta Neobank** | Found the onboarding bottleneck and closed it with an A/B test: **+5.72 pp** KYC conversion, **€656K/yr**. 23 linked sub-projects across funnel → A/B → retention → segmentation | [page](https://nikitaboyarkin.github.io/projects/volta/) · [repo](https://github.com/NikitaBoyarkin/volta-banking) · [demo](https://nikitaboyarkin.github.io/demos/volta/index.html) |
-| **A/B Testing Toolkit** | 18 methodology modules, each calibrated by simulation — A/A holds Type I error at α, power curves plot achievable effect sizes | [page](https://nikitaboyarkin.github.io/projects/ab/) · [repo](https://github.com/NikitaBoyarkin/ab_test) |
-| **Browser Mini-Games** | 10 playable mini-games in self-contained SVG — 7 teaching analytics (A/B to p<0.05, funnel drop-off, cohort catch, retention day), 3 arcade | [page](https://nikitaboyarkin.github.io/projects/games/) · [repo](https://github.com/NikitaBoyarkin/browser-mini-games) · [demo](https://nikitaboyarkin.github.io/games/) |
-| **Causal / Uplift** | CUPED cut the standard error by **26%**: same power on 5.5k users per arm instead of 10k. Uplift models recover heterogeneous treatment effects | [page](https://nikitaboyarkin.github.io/projects/causal/) · [repo](https://github.com/NikitaBoyarkin/causal-uplift) |
+| **Volta Neobank** | Нашёл узкое место в онбординге и закрыл его A/B-тестом: **+5.72 п. п.** конверсии в KYC, **€656K в год**. 23 связанные части: воронка → A/B → retention → сегментация | [страница](https://nikitaboyarkin.github.io/projects/volta/) · [репозиторий](https://github.com/NikitaBoyarkin/volta-banking) · [демо](https://nikitaboyarkin.github.io/demos/volta/index.html) |
+| **A/B Testing Toolkit** | 18 методических модулей, каждый откалиброван симуляцией: A/A держит ошибку первого рода на уровне α, кривые мощности показывают достижимые размеры эффекта | [страница](https://nikitaboyarkin.github.io/projects/ab/) · [репозиторий](https://github.com/NikitaBoyarkin/ab_test) |
+| **Browser Mini-Games** | 10 играбельных мини-игр на голом SVG: 7 учат аналитике (A/B до p < 0.05, провалы воронки, ловля когорт, день удержания), 3 — аркады | [страница](https://nikitaboyarkin.github.io/projects/games/) · [репозиторий](https://github.com/NikitaBoyarkin/browser-mini-games) · [демо](https://nikitaboyarkin.github.io/games/) |
+| **Causal / Uplift** | CUPED сократил стандартную ошибку на **26%**: та же мощность на 5.5k пользователей в плече вместо 10k. Uplift-модели восстанавливают неоднородные эффекты | [страница](https://nikitaboyarkin.github.io/projects/causal/) · [репозиторий](https://github.com/NikitaBoyarkin/causal-uplift) |
 
 ### `track: analytics`
 
-| Project | What it shows | Links |
+| Проект | Что показывает | Ссылки |
 |---|---|---|
-| **SQL Analytics Case Study** | 26 SQL cases — 25 on a synthetic dataset (~183k events) plus 1 real-data on UCI Online Retail II: funnel, retention, LTV, attribution | [page](https://nikitaboyarkin.github.io/projects/sql/) · [repo](https://github.com/NikitaBoyarkin/sql-analytics-case-study) · [demo](https://nikitaboyarkin.github.io/sql-analytics-case-study/) |
-| **RFM Segmentation** | Split a bank's client base into 6 RFM segments and showed a small high-value share drives most of the revenue; marketing moved off mass campaigns | [page](https://nikitaboyarkin.github.io/projects/rfm/) · [repo](https://github.com/NikitaBoyarkin/rfm-analysis-of-bank-clients) · [demo](https://nikitaboyarkin.github.io/demos/rfm/index.html) |
-| **Cohort Analysis** | Triangular retention and LTV cohort matrix on synthetic data: ARPU and LTV per cohort corrected for observation age, with export | [page](https://nikitaboyarkin.github.io/projects/cohort/) · [repo](https://github.com/NikitaBoyarkin/tableau_cohort_analysis) · [demo](https://nikitaboyarkin.github.io/demos/cohort/index.html) |
-| **Churn Prediction** | Leakage-free model: recall@top-10% = **0.544**, lift **5.44×** at ROC-AUC 0.916 on a chronological split — no future-activity leakage | [page](https://nikitaboyarkin.github.io/projects/churn/) · [repo](https://github.com/NikitaBoyarkin/churn-prediction) |
-| **Python Analytics Playground** | Modular Python toolkit — load, clean, EDA, visualise — assembled into one pipeline with pytest coverage ≥ 80% | [page](https://nikitaboyarkin.github.io/projects/python/) · [repo](https://github.com/NikitaBoyarkin/python) |
-| **Sales Calls Analytics** | Streamlit dashboard over 16,891 synthetic AI-call records: 4-step funnel (greeting → offer → meeting → qualification) and loss analysis | [page](https://nikitaboyarkin.github.io/projects/sales-calls/) · [repo](https://github.com/NikitaBoyarkin/sales-calls-dashboard) |
+| **SQL Analytics Case Study** | 26 SQL-кейсов: 25 на синтетическом датасете (~183k событий) и 1 на реальных данных UCI Online Retail II — воронка, retention, LTV, атрибуция | [страница](https://nikitaboyarkin.github.io/projects/sql/) · [репозиторий](https://github.com/NikitaBoyarkin/sql-analytics-case-study) · [демо](https://nikitaboyarkin.github.io/sql-analytics-case-study/) |
+| **RFM Segmentation** | Разбил клиентскую базу банка на 6 RFM-сегментов и показал, что небольшая доля дорогих клиентов приносит основную выручку; маркетинг ушёл от массовых рассылок | [страница](https://nikitaboyarkin.github.io/projects/rfm/) · [репозиторий](https://github.com/NikitaBoyarkin/rfm-analysis-of-bank-clients) · [демо](https://nikitaboyarkin.github.io/demos/rfm/index.html) |
+| **Cohort Analysis** | Треугольная матрица retention и LTV по когортам на синтетике: ARPU и LTV на когорту с поправкой на возраст наблюдения, с экспортом | [страница](https://nikitaboyarkin.github.io/projects/cohort/) · [репозиторий](https://github.com/NikitaBoyarkin/tableau_cohort_analysis) · [демо](https://nikitaboyarkin.github.io/demos/cohort/index.html) |
+| **Churn Prediction** | Модель без утечек: recall@top-10% = **0.544**, lift **5.44×** при ROC-AUC 0.916 на хронологическом сплите — активности из будущего в признаках нет | [страница](https://nikitaboyarkin.github.io/projects/churn/) · [репозиторий](https://github.com/NikitaBoyarkin/churn-prediction) |
+| **Python Analytics Playground** | Модульный набор на Python — загрузка, чистка, EDA, визуализация — собран в один пайплайн с покрытием pytest ≥ 80% | [страница](https://nikitaboyarkin.github.io/projects/python/) · [репозиторий](https://github.com/NikitaBoyarkin/python) |
+| **Sales Calls Analytics** | Дашборд на Streamlit по 16 891 синтетической записи звонков ИИ: воронка из 4 шагов (приветствие → оффер → встреча → квалификация) и анализ потерь | [страница](https://nikitaboyarkin.github.io/projects/sales-calls/) · [репозиторий](https://github.com/NikitaBoyarkin/sales-calls-dashboard) |
 
 ### `track: product`
 
-| Project | What it shows | Links |
+| Проект | Что показывает | Ссылки |
 |---|---|---|
-| **Supabase Product Analytics** | Full-stack analytics on Supabase: A/B gave **+11.1 pp** (p ≈ 1.7e-10, chi-square); a Streamlit dashboard reads live data through Row-Level Security | [page](https://nikitaboyarkin.github.io/projects/supabase/) · [repo](https://github.com/NikitaBoyarkin/supabase-product-analytics) |
-| **TaskFlow × PostHog** | A SaaS product instrumented end-to-end with PostHog: typed event catalogue, generated traffic and 7 analyses — funnel, retention, paths | [page](https://nikitaboyarkin.github.io/projects/posthog/) · [repo](https://github.com/NikitaBoyarkin/posthog-saas-analytics) |
-| **Streamlit Dashboard** | Product dashboard on a synthetic SaaS dataset (8,000 users): AARRR funnel, cohort retention, revenue — MRR, ARPU, churn | [page](https://nikitaboyarkin.github.io/projects/streamlit/) · [repo](https://github.com/NikitaBoyarkin/streamlit-app) |
+| **Supabase Product Analytics** | Аналитика полного цикла на Supabase: A/B дал **+11.1 п. п.** (p ≈ 1.7e-10, хи-квадрат), дашборд Streamlit читает живые данные через Row-Level Security | [страница](https://nikitaboyarkin.github.io/projects/supabase/) · [репозиторий](https://github.com/NikitaBoyarkin/supabase-product-analytics) |
+| **TaskFlow × PostHog** | SaaS-продукт, инструментированный PostHog от начала до конца: типизированный каталог событий, сгенерированный трафик и 7 разборов — воронка, retention, пути | [страница](https://nikitaboyarkin.github.io/projects/posthog/) · [репозиторий](https://github.com/NikitaBoyarkin/posthog-saas-analytics) |
+| **Streamlit Dashboard** | Продуктовый дашборд на синтетическом датасете SaaS (8 000 пользователей): воронка AARRR, retention по когортам, выручка — MRR, ARPU, churn | [страница](https://nikitaboyarkin.github.io/projects/streamlit/) · [репозиторий](https://github.com/NikitaBoyarkin/streamlit-app) |
 
 ### `track: engineering`
 
-| Project | What it shows | Links |
+| Проект | Что показывает | Ссылки |
 |---|---|---|
-| **Reporting Automation Bot** | Telegram bot replaced manual weekly reporting with cron: 1–2 hours of manual work became a scheduled report with KPI tables | [page](https://nikitaboyarkin.github.io/projects/bot/) · [demo](https://nikitaboyarkin.github.io/demos/telegram/index.html) |
-| **Scrolly English Speaking** | Scrollytelling guide to spoken English for work conversations (A2–B1): MDX narrative with D3 visualisations | [page](https://nikitaboyarkin.github.io/projects/scrolly/) · [repo](https://github.com/NikitaBoyarkin/scrolly-english-speaking) |
-| **Digital Garden** | Personal Zettelkasten published as a Quartz v4 site: linked notes, backlinks and a graph instead of a chronological feed | [page](https://nikitaboyarkin.github.io/projects/garden/) · [repo](https://github.com/NikitaBoyarkin/digital_garden) |
-| **This Portfolio Site** | The site you are reading: Astro 7, TypeScript, Markdown collections, static build, dark/light theme, RSS, sitemap, JSON-LD, Pages deploy | [page](https://nikitaboyarkin.github.io/projects/site/) · [repo](https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io) |
+| **Reporting Automation Bot** | Телеграм-бот заменил ручную недельную отчётность кроном: 1–2 часа работы превратились в отчёт по расписанию с таблицами KPI | [страница](https://nikitaboyarkin.github.io/projects/bot/) · [демо](https://nikitaboyarkin.github.io/demos/telegram/index.html) |
+| **Scrolly English Speaking** | Скроллителлинг о разговорном английском для рабочих бесед (A2–B1): повествование на MDX с визуализациями D3 | [страница](https://nikitaboyarkin.github.io/projects/scrolly/) · [репозиторий](https://github.com/NikitaBoyarkin/scrolly-english-speaking) |
+| **Digital Garden** | Личный цеттелькастен, опубликованный на Quartz v4: связанные заметки, обратные ссылки и граф вместо хронологической ленты | [страница](https://nikitaboyarkin.github.io/projects/garden/) · [репозиторий](https://github.com/NikitaBoyarkin/digital_garden) |
+| **This Portfolio Site** | Сайт, который вы читаете: Astro 7, TypeScript, коллекции Markdown, статическая сборка, тёмная и светлая темы, RSS, sitemap, JSON-LD, деплой на Pages | [страница](https://nikitaboyarkin.github.io/projects/site/) · [репозиторий](https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io) |
 
-Board order is set by `PROJECT_ORDER` in `src/lib/projects.ts`; featured cases by `HEADLINE_PROJECTS` in the same file. Every metric above is authored in the project's Markdown file and cross-checked against `src/lib/metrics.ts`.
+Порядок на доске задаёт `PROJECT_ORDER` в `src/lib/projects.ts`,
+заголовочные кейсы — `HEADLINE_PROJECTS` там же. Каждый показатель выше
+записан в Markdown-файле проекта и сверяется с `src/lib/metrics.ts`.
 
-## Stack
+## Стек
 
-| Layer | Choice |
+| Слой | Что выбрано |
 |---|---|
-| Framework | [Astro](https://astro.build/) 7 (`output: "static"`, no `base` — user Pages site served from the domain root) |
-| Language | TypeScript 5.9 (strict), Astro components |
-| Content | Markdown collections with Zod schemas (`src/content.config.ts`, Astro Content Layer) |
-| Styling | Hand-written CSS custom properties (`src/styles/global.css`), 3 themes: dark (default), light, cyberpunk |
-| Toolchain | [Bun](https://bun.sh/) — install, scripts, tests (`bun:test`), lockfile |
-| Analytics | PostHog (`posthog-js`), inert when the build-time key is unset; optional Plausible |
-| Hosting | GitHub Pages via GitHub Actions |
-| Charting | Native SVG chart components + `src/lib/chart-svg.ts` (no chart library) |
+| Фреймворк | [Astro](https://astro.build/) 7 (`output: "static"`, без `base` — сайт пользователя отдаётся с корня домена) |
+| Язык | TypeScript 5.9 (strict), компоненты Astro |
+| Контент | Коллекции Markdown со схемами Zod (`src/content.config.ts`, Astro Content Layer) |
+| Стили | CSS-переменные, написанные руками (`src/styles/global.css`), три темы: тёмная (по умолчанию), светлая, cyberpunk |
+| Инструменты | [Bun](https://bun.sh/) — установка, скрипты, тесты (`bun:test`), лок-файл |
+| Аналитика | PostHog (`posthog-js`), молчит, пока не задан ключ на сборке; опционально Plausible |
+| Хостинг | GitHub Pages через GitHub Actions |
+| Графики | Свои SVG-компоненты и `src/lib/chart-svg.ts`, без библиотеки графиков |
 
-No client framework ships: interactive bits (search, graph, theme, filters, analytics) are small vanilla modules, and `posthog-js` loads lazily after the first interaction.
+Клиентский фреймворк не грузится вовсе. Интерактив — поиск, граф, тема,
+фильтры, аналитика — собран из маленьких модулей на чистом JavaScript.
+`posthog-js` подключается лениво, после первого действия.
 
-## Requirements
+## Требования
 
-- **Bun** — the only package manager used here (`bun.lock` is the lockfile)
-- **Python 3** for `make check` (`scripts/check_site.py`)
-- **`rsvg-convert`** (librsvg) — only for regenerating OG images
-- Optional: `GITHUB_TOKEN` / `GH_TOKEN` for the GitHub sync scripts (higher rate limit, sees private repos)
+- **Bun** — единственный пакетный менеджер (`bun.lock` и есть лок-файл).
+- **Python 3** для `make check` (`scripts/check_site.py`).
+- **`rsvg-convert`** (librsvg) — только чтобы перегенерировать OG-картинки.
+- По желанию: `GITHUB_TOKEN` или `GH_TOKEN` для скриптов синхронизации
+  с GitHub — выше лимит запросов, видны приватные репозитории.
 
-## Quick start
+## Быстрый старт
 
 ```bash
 bun install
-bun run dev          # http://localhost:4321
-bun run build        # static output → dist/
-bun run preview      # serve the production build
+
+# Дев-сервер на http://localhost:4321
+bun run dev
+
+# Статика в dist/
+bun run build
+
+# Собрать и отдать продакшн-сборку
+bun run preview
 ```
 
-## Verification
+## Проверка
 
-Run this triad after every content or component change. All green = safe to commit.
+Прогоняйте этот набор после каждой правки контента или компонента.
+Всё зелёное — можно коммитить.
 
 ```bash
-bun run build        # Astro build
-bun run check        # astro check + tsc --noEmit on tests
-make check           # astro check + tests + test:monitoring + test:built + check_site.py — validates the built dist/
-bun run coverage     # same suite with coverage
+# Сборка Astro
+bun run build
+
+# Типы Astro и тестов
+bun run check
+
+# Типы, тесты, мониторинг и проверка готового dist/
+make check
+
+# То же, но с покрытием
+bun run coverage
 ```
 
-`make check` runs `bun run check` (Astro/TS type-check), the test suite (`test`, then `test:monitoring` and `test:built`), and then inspects the **built output**, failing on:
+`make check` запускает `bun run check` (типы Astro и TS), тесты
+(`test`, затем `test:monitoring` и `test:built`) и смотрит **готовый
+`dist/`**. Сборка падает, если:
 
-- missing required pages
-- internal links that do not resolve to a file in `dist/`
-- missing images referenced from HTML
-- the profile photo exceeding 500 KB
-- required assets absent from `index.html`
-- **metrics drift** — headline numbers in `src/lib/metrics.ts` vs. the site (`check_metrics_drift`)
+- нет обязательных страниц;
+- внутренняя ссылка не находит файл в `dist/`;
+- картинка из HTML отсутствует;
+- фото профиля тяжелее 500 KB;
+- в `index.html` нет нужных ассетов;
+- **показатели разъехались** — числа в `src/lib/metrics.ts` против сайта
+  (`check_metrics_drift`).
 
-Lighthouse CI runs separately — see [CI/CD](#cicd).
+Lighthouse CI работает отдельно — см. [CI/CD](#cicd).
 
-## Project structure
+## Структура проекта
 
 ```text
-├── astro.config.mjs        # site, i18n, redirects, sitemap
+├── astro.config.mjs        # адрес, i18n, редиректы
 ├── src/
-│   ├── content.config.ts   # Zod schemas for all 11 collections
-│   ├── content/            # Markdown/MDX: projects(-en), posts(-en), volta-parts(-en), glossary(-en), library(-en), about
-│   ├── layouts/            # Base.astro (nav, theme, meta, PostHog), Post.astro
-│   ├── components/         # 58 components — 47 top-level, 7 chart primitives, 4 about panels
-│   ├── lib/                # pure logic: metrics, topics, graph, fuzzy, charts, brand, path
-│   ├── pages/              # 48 route modules (30 RU + 18 EN): 38 pages + 10 endpoints
-│   ├── data/               # chart data + generated github-activity.json
-│   └── styles/             # global.css (tokens + themes), blog.css
-├── scripts/                # OG/CV generators, GitHub sync, check_site.py, content-drift-audit, mobile audits
-├── tests/lib/              # 53 bun:test suites (src/lib + content contracts)
-├── docs/                   # PRDs, ADRs, SPEC, analytics review ritual
-├── monitoring/             # local RED monitoring stack (Prometheus + Grafana)
-└── public/                 # images, hero SVGs, OG images, fonts, CV PDF, demos, games
+│   ├── content.config.ts   # схемы Zod, 11 коллекций
+│   ├── content/            # Markdown и MDX всех коллекций
+│   ├── layouts/            # Base.astro, Post.astro
+│   ├── components/         # 61 компонент
+│   ├── lib/                # чистая логика: metrics, graph…
+│   ├── pages/              # 48 модулей маршрутов
+│   ├── data/               # данные графиков, github-activity
+│   └── styles/             # global.css, blog.css
+├── scripts/                # OG, синхронизация, check_site
+├── tests/lib/              # 54 набора bun:test
+├── docs/                   # PRD, ADR, SPEC
+├── monitoring/             # RED-стек: Prometheus, Grafana
+└── public/                 # картинки, шрифты, демо
 ```
 
-`src/lib/` holds all non-trivial logic. Unit tests live in `tests/lib/` and additionally pin content contracts (skeleton, dates, frontmatter). Components stay presentational.
+Вся нетривиальная логика лежит в `src/lib/`. Тесты — в `tests/lib/`, они
+же фиксируют контракты контента: скелет страницы, даты, frontmatter.
+Компоненты остаются презентационными.
 
-### Key `src/lib` modules
+### Ключевые модули `src/lib`
 
-| Module | Responsibility |
+| Модуль | За что отвечает |
 |---|---|
-| `metrics.ts` | **Single source of truth** for headline numbers (hero, career snapshot, value page, CV cross-check) |
-| `projects.ts` | `PROJECT_ORDER`, project loading, sorting |
-| `topics.ts` | `TOPICS` taxonomy + level grouping — drives `/topics/` |
-| `posts.ts` | Post loading, `PER_PAGE` pagination |
-| `graph.ts` / `graph-layout.ts` / `graph-data.ts` / `graph-tooltip.ts` / `graph-zoom.ts` / `graph-url.ts` | Build-time knowledge graph: greedy-modularity communities, force layout, interaction |
-| `charts.ts` / `chart-svg.ts` | Chart config and the SVG primitives the chart components render |
-| `fuzzy.ts` | Dependency-free Levenshtein ≤ 2 for search (Cyrillic-safe) |
-| `analytics.ts` / `beacon.ts` / `scroll-depth.ts` | Client analytics: typed `track()`, RED beacon, read-depth |
-| `brand.ts` | Palette tokens + WCAG contrast assertion (shared with the OG renderer) |
-| `path.ts` | `withBase()` — use it for every internal link and asset path |
-| `llms-txt.ts` | Build-time `llms.txt` generator, shared by `/llms.txt` and `/.well-known/llms.txt` so the two cannot drift |
-| `qa-corpus.ts` | Curated bilingual Q&A corpus behind the "Ask me" widget (`AskMe.astro`) |
+| `metrics.ts` | **Единственный источник правды** для заголовочных чисел: первый экран, срез карьеры, страница ценности |
+| `projects.ts` | `PROJECT_ORDER`, загрузка и сортировка проектов |
+| `topics.ts` | Таксономия `TOPICS` и группировка по уровням — питает `/topics/` |
+| `posts.ts` | Загрузка постов и пагинация `PER_PAGE` |
+| `graph.ts` / `graph-layout.ts` / `graph-data.ts` / `graph-tooltip.ts` / `graph-zoom.ts` / `graph-url.ts` | Граф знаний на этапе сборки: сообщества по жадной модулярности, force-раскладка, взаимодействие |
+| `charts.ts` / `chart-svg.ts` | Конфиг графиков и SVG-примитивы, из которых собраны компоненты |
+| `fuzzy.ts` | Расстояние Левенштейна ≤ 2 без зависимостей, для поиска (не ломается на кириллице) |
+| `analytics.ts` / `beacon.ts` / `scroll-depth.ts` | Клиентская аналитика: типизированный `track()`, RED-маячок, глубина чтения |
+| `brand.ts` | Токены палитры и проверка контраста по WCAG (общая с рендерером OG) |
+| `path.ts` | `withBase()` — нужен каждой внутренней ссылке и пути к ассету |
+| `llms-txt.ts` | Генератор `llms.txt` на этапе сборки, общий для `/llms.txt` и `/.well-known/llms.txt`, чтобы они не разъезжались |
+| `qa-corpus.ts` | Двуязычный корпус вопросов и ответов для виджета «Ask me» (`AskMe.astro`) |
 
-## Content
+## Контент
 
-Eleven collections, schemas in `src/content.config.ts`:
+Одиннадцать коллекций, схемы — в `src/content.config.ts`:
 
-| Collection | Files | Language |
+| Коллекция | Файлов | Язык |
 |---|---|---|
 | `projects` | 22 | RU |
 | `projects-en` | 22 | EN |
@@ -243,143 +290,226 @@ Eleven collections, schemas in `src/content.config.ts`:
 | `library-en` | 2 | EN |
 | `about` | 2 | RU + EN |
 
-### Add a project
+### Как добавить проект
 
-1. Create `src/content/projects/<id>.md` **and** `src/content/projects-en/<id>.md` — always both.
-2. Add a hero SVG to `public/images/` (the `hero` field is required).
-3. Set `track` (`experiments` | `analytics` | `product` | `engineering`) for the kanban board.
-4. Add the slug to `PROJECT_ORDER` in `src/lib/projects.ts`.
-5. `bun run build && make check`.
-6. `bun run sync:gh:apply` to set `updated:` from the repo's last push.
+1. Создайте `src/content/projects/<id>.md` **и** `src/content/projects-en/<id>.md` — всегда оба файла.
+1. Положите hero-SVG в `public/images/`: поле `hero` обязательное.
+1. Задайте `track` (`experiments`, `analytics`, `product` или `engineering`) для канбан-доски.
+1. Допишите slug в `PROJECT_ORDER` в `src/lib/projects.ts`.
+1. Запустите `bun run build && make check`.
+1. Запустите `bun run sync:gh:apply`, чтобы проставить `updated:` по дате последнего пуша.
 
-### Add a blog post
+### Как добавить пост
 
-Create `src/content/posts/<slug>.md`. `category` must be one of `decision-log`, `framework`, `guide`, `note` — a local hook (`portfolio-category-guard.js`) blocks anything else. Add an EN mirror in `posts-en/` when it should be bilingual.
+Создайте `src/content/posts/<slug>.md`. Поле `category` — одно из
+`decision-log`, `framework`, `guide`, `note`; локальный хук
+`portfolio-category-guard.js` не пропустит чужое значение. Английское
+зеркало кладите в `posts-en/`, если пост должен быть двуязычным.
 
-### Authoring rules
+### Правила авторства
 
-- **Project page skeleton — STAR** (H2 order): `Ситуация → Задача → Действия → Результат → Ограничения → Документация`. EN: `Situation → Task → Actions → Result → Limitations → Documentation`. Action should be the longest section (50–60% of the body); `Задача` is 1–2 sentences of first-person goal and carries **no digits**. Volta parts add `Рекомендации` / `Recommendations`; the `volta` hub keeps its own D10 narrative. Bound by `tests/lib/content-skeleton.test.ts`.
-- **Descriptions:** 1–2 sentences, result + number first, 120–200 chars; the first 72 chars must stand alone (`MaterialStrip` truncates there). Author RU and EN independently — meaning parity, not literal translation.
-- **Numbers are frozen.** A readability rewrite never changes a metric. `bun run audit:content` diffs every numeric token in `src/content/**` against `docs/content-baseline.json` and exits 1 on any change. Accept an intentional change with `bun run audit:content:snapshot`.
-- **`related:` is locale-neutral** — write `/projects/<slug>/` and `/posts/<slug>/` in both languages; the EN resolver prefixes `en/` itself. Never write `/en/projects/...`.
-- **Volta hub map is generated.** The grouped map in `projects/volta.md` between `<!-- volta-map:start -->`/`<!-- volta-map:end -->` comes from `bun run volta:map`. Re-run after adding or renaming a part.
-- Fold one-off sections (`Architecture`, `Run`, `Testing`, …) under `Действия` / `Actions`.
+- **Скелет страницы проекта — STAR** (порядок `<h2>`): `Ситуация →
+  Задача → Действия → Результат → Ограничения → Документация`.
+  EN: `Situation → Task → Actions → Result → Limitations → Documentation`.
+  Раздел «Действия» — самый длинный, 50–60% текста. «Задача» — одно-два
+  предложения от первого лица и **без единой цифры**. У частей Volta
+  добавляется `Рекомендации` / `Recommendations`, у хаба `volta` остаётся
+  своё повествование D10. За порядком следит
+  `tests/lib/content-skeleton.test.ts`.
+- **Описания:** одно-два предложения, сначала результат и число,
+  120–200 символов. Первые 72 символа должны читаться отдельно —
+  `MaterialStrip` обрезает именно там. Русский и английский пишутся
+  независимо: совпадает смысл, а не перевод.
+- **Числа заморожены.** Переписывание ради читаемости не меняет
+  показатель. `bun run audit:content` сравнивает каждый числовой токен
+  в `src/content/**` с `docs/content-baseline.json` и выходит с кодом 1
+  при любом расхождении. Осознанное изменение принимают командой
+  `bun run audit:content:snapshot`.
+- **`related:` не зависит от локали** — в обоих языках пишите
+  `/projects/<slug>/` и `/posts/<slug>/`. Префикс `en/` резолвер
+  добавит сам. Писать `/en/projects/...` нельзя.
+- **Карта хаба Volta генерируется.** Сгруппированная карта в
+  `projects/volta.md` между `<!-- volta-map:start -->` и
+  `<!-- volta-map:end -->` приходит из `bun run volta:map`. Повторите
+  после добавления или переименования части.
+- Разовые разделы (`Architecture`, `Run`, `Testing`, …) складывайте
+  внутрь «Действий» / `Actions`.
 
-### Bilingual routing
+### Двуязычная маршрутизация
 
-- RU is the default locale; EN mirrors live in `src/pages/en/` and render the `-en` collections.
-- Every `Base` page passes `lang` and `counterpartHref`; `LangSwitch.astro` toggles and emits `<link rel="alternate" hreflang>`.
-- When adding a page, ship both languages and wire `counterpartHref` on both sides.
-- RU-only on purpose — no EN mirror, no hreflang: `notes`, `404`.
+- Русский — локаль по умолчанию. Английские зеркала лежат в
+  `src/pages/en/` и рендерят коллекции с суффиксом `-en`.
+- Каждая страница `Base` передаёт `lang` и `counterpartHref`;
+  `LangSwitch.astro` переключает язык и выводит
+  `<link rel="alternate" hreflang>`.
+- Добавляя страницу, делайте обе локали и прописывайте `counterpartHref`
+  с двух сторон.
+- Только по-русски, намеренно: `notes`, `404` — без зеркала и без
+  hreflang.
 
-### Redirects
+### Редиректы
 
-Old routes collapse into the `/about` anchor cluster (`astro.config.mjs`): `/whois/`, `/work-with-me/`, `/now/`, `/start/` → `/about/#…` (with `/en/` twins for the first three); `/guides/` → `/notes/guides/`; `/cv/` → the CV PDF.
+Старые адреса схлопываются в кластер якорей `/about`
+(`astro.config.mjs`): `/whois/`, `/work-with-me/`, `/now/`, `/start/` →
+`/about/#…` (у первых трёх есть пары `/en/`); `/guides/` → `/notes/guides/`.
 
-## Analytics
+## Аналитика
 
-`src/components/Analytics.astro` renders the PostHog snippet. It is **inert unless the build-time env vars are set** — all of them are `PUBLIC_*`, so they bake into the static build:
+`src/components/Analytics.astro` выводит фрагмент PostHog. Он **молчит,
+пока не заданы переменные окружения на сборке** — все они `PUBLIC_*`,
+поэтому вшиваются в статический билд:
 
-| Variable | Purpose |
+| Переменная | Зачем |
 |---|---|
-| `PUBLIC_POSTHOG_KEY` | Project token — no snippet rendered when unset |
-| `PUBLIC_POSTHOG_HOST` | Defaults to `https://us.i.posthog.com` |
-| `PUBLIC_PLAUSIBLE_DOMAIN` | Optional — Plausible script, for a privacy-friendly counter |
-| `PUBLIC_PLAUSIBLE_SRC` | Optional — custom or self-hosted Plausible script URL |
-| `PUBLIC_BEACON_ENDPOINT` | Optional — pushes scroll-depth / RED beacon events to the monitoring stack (`BeaconMetrics.astro`) |
+| `PUBLIC_POSTHOG_KEY` | Токен проекта — без него фрагмент не рендерится |
+| `PUBLIC_POSTHOG_HOST` | По умолчанию `https://us.i.posthog.com` |
+| `PUBLIC_PLAUSIBLE_DOMAIN` | Опционально — скрипт Plausible как дружелюбный к приватности счётчик |
+| `PUBLIC_PLAUSIBLE_SRC` | Опционально — свой или self-hosted адрес скрипта Plausible |
+| `PUBLIC_BEACON_ENDPOINT` | Опционально — отправляет глубину чтения и RED-маячок в стек мониторинга (`BeaconMetrics.astro`) |
 
-Copy `.env.example` to `.env` for local development; for CI the same names go into GitHub Actions secrets.
+Для локальной разработки скопируйте `.env.example` в `.env`. В CI те же
+имена кладутся в секреты GitHub Actions.
 
-`src/lib/analytics.ts` is the **only** client module that talks to PostHog besides `Analytics.astro` (which owns init). Components call `track()`; they never touch the global. `posthog-js` is lazy-loaded after the first user interaction, so consumer chunks stay off the critical path, and `track()` buffers (bounded, flushed on attach) rather than dropping early events.
+`src/lib/analytics.ts` — единственный клиентский модуль, который говорит
+с PostHog, кроме `Analytics.astro` (он владеет инициализацией).
+Компоненты зовут `track()` и не трогают глобальный объект. `posthog-js`
+подгружается лениво, после первого действия пользователя, поэтому
+потребительские чанки не попадают на критический путь. `track()`
+буферизует события — в ограниченном буфере, с отправкой при подключении —
+и не теряет ранние.
 
-Typed events (`AnalyticsEventMap`): `project_viewed`, `post_read`, `lang_switched`, `theme_change`, `ask_me_used`, `random_post_click`, `section_viewed`, `outbound_click`, `search_used`, `search_no_results`, `read_depth`, `filter_applied`, `projects_track_filter`. Super properties: `locale`, `theme`, `prefers_reduced_motion`, `initial_referrer_class`, `landing_path` — the first-touch class is computed once per visitor and persisted.
+Типизированные события (`AnalyticsEventMap`): `project_viewed`,
+`post_read`, `lang_switched`, `theme_change`, `ask_me_used`,
+`random_post_click`, `section_viewed`, `outbound_click`, `search_used`,
+`search_no_results`, `read_depth`, `filter_applied`,
+`projects_track_filter`. Суперсвойства: `locale`, `theme`,
+`prefers_reduced_motion`, `initial_referrer_class`, `landing_path`.
+Класс первого касания считается один раз на посетителя и сохраняется.
 
-**Convention:** any element carrying `data-analytics="<name>"` fires `<name>` on click through a delegated listener in `Analytics.astro` (`featured_project`, `cv_download_pdf`, `bento_*`, `headline_all_projects`, …). New CTAs should reuse that attribute instead of calling `track()` for the same click — mix the two and a click is counted twice.
+**Договорённость:** любой элемент с `data-analytics="<name>"` отправляет
+событие `<name>` по клику через делегированный слушатель в
+`Analytics.astro` (`featured_project`, `github_footer`, `bento_*`,
+`headline_all_projects`, …). Новые кнопки должны переиспользовать этот
+атрибут, а не звать `track()` на тот же клик — иначе клик посчитается
+дважды.
 
-## OG image generation
-
-```bash
-bun run og         # per-post OG cards (24 PNG + webp)
-bun run og:home    # homepage identity banner
-bun run og:graph   # knowledge-graph preview
-bun run og:cv      # CV OG / LinkedIn / cover variants (og:cv:li, og:cv:cover)
-bun run og:watch   # regenerate on change
-```
-
-Rendering goes through `rsvg-convert` with vendored fonts in `scripts/og-fonts/`. `scripts/lib/og-render.mjs` sets **both** `FONTCONFIG_FILE` and `PANGOCAIRO_BACKEND=fc` — macOS defaults to the CoreText backend, which ignores fontconfig and silently renders the wrong font. Every generated banner passes a WCAG AA contrast assertion before it is written. Palette lives in `src/lib/brand.ts`, shared with `global.css`. `scripts/audit-palette-coverage.mjs` reports where palette tokens are used (it has no npm script — run it directly with `bun`).
-
-## CV
-
-The CV is **not authored here**. It lives in a separate [rendercv](https://github.com/rendercv/rendercv) project at `../cv/` (`Boyarkin_Nikita_Product_Analyst_CV.yaml`). The portfolio ships one downloadable PDF, `public/CV-Nikita-Boyarkin.pdf`, behind a single "CV" button on every page.
-
-```bash
-# in ../cv/
-rendercv render Boyarkin_Nikita_Product_Analyst_CV.yaml
-# here
-bun run cv:pdf     # copies into public/ — override the source dir with CV_SOURCE_DIR
-```
-
-Headline numbers must agree with `src/lib/metrics.ts`. Commit the PDF; do not reintroduce a hand-authored `/cv/` page.
-
-## GitHub ↔ portfolio sync
-
-`scripts/sync-github-projects.mjs` keeps `updated:` and `private:` frontmatter in sync with the GitHub API for every repo referenced by `github:` (RU + EN twins). It never touches `date:`, which is the authored publication date.
+## OG-картинки
 
 ```bash
-bun run sync:gh              # check mode — reports drift, exit 1 on hard drift (runs in CI)
-bun run sync:gh:apply        # write updated:/private: back into frontmatter
-bun run sync:gh --dry-run    # preview
-bun run sync:gh:candidates   # public, non-fork repos not yet featured
+# OG-карточки постов: 24 PNG и webp
+bun run og
+
+# Баннер главной
+bun run og:home
+
+# Превью графа знаний
+bun run og:graph
+
+# Перегенерация при изменении
+bun run og:watch
 ```
 
-`scripts/sync-github-activity.mjs` writes `src/data/github-activity.json` (contributions, streaks, 5 chart cards) for the `/about` charts. Auth via `GITHUB_TOKEN` / `GH_TOKEN` / `STREAK_PAT`. Both run on schedules — see [CI/CD](#cicd).
+Рендер идёт через `rsvg-convert` со шрифтами из `scripts/og-fonts/`.
+`scripts/lib/og-render.mjs` выставляет **и** `FONTCONFIG_FILE`, **и**
+`PANGOCAIRO_BACKEND=fc`: macOS по умолчанию берёт бэкенд CoreText,
+который игнорирует fontconfig и молча рисует не тем шрифтом. Каждый
+баннер проходит проверку контраста по WCAG AA до записи на диск.
+Палитра живёт в `src/lib/brand.ts` и общая с `global.css`.
+`scripts/audit-palette-coverage.mjs` показывает, где используются токены
+палитры; npm-скрипта у него нет — запускайте напрямую через `bun`.
 
-## Monitoring
+## Синхронизация с GitHub
 
-`monitoring/` holds a self-contained RED stack (Rate / Errors / Duration): a Bun exporter with Prometheus exposition + embedded SQLite, Prometheus, Grafana and a Cloudflare tunnel. Runs locally via Docker. See [`monitoring/README.md`](monitoring/README.md) — it needs a PostHog **personal** API key, not the public project token.
+`scripts/sync-github-projects.mjs` держит `updated:` и `private:` во
+frontmatter в согласии с GitHub API для каждого репозитория из `github:`
+(русский файл и английский двойник). Поле `date:` он не трогает — это
+дата публикации, её пишет автор.
+
+```bash
+# Только проверка: расхождения, код 1 на жёстком дрейфе
+# (запускается в CI)
+bun run sync:gh
+
+# Записать updated: и private: во frontmatter
+bun run sync:gh:apply
+
+# Показать, что изменится
+bun run sync:gh --dry-run
+
+# Публичные репозитории, которых ещё нет в портфолио
+bun run sync:gh:candidates
+```
+
+`scripts/sync-github-activity.mjs` пишет `src/data/github-activity.json`
+— вклад, серии дней, пять карточек для графиков на `/about`. Авторизация
+через `GITHUB_TOKEN`, `GH_TOKEN` или `STREAK_PAT`. Оба скрипта ходят по
+расписанию — см. [CI/CD](#cicd).
+
+## Мониторинг
+
+В `monitoring/` лежит самостоятельный стек RED (Rate / Errors /
+Duration): экспортёр на Bun с выдачей метрик в формате Prometheus и
+встроенной SQLite, Prometheus, Grafana и туннель Cloudflare. Запускается
+локально через Docker. Подробности — в
+[`monitoring/README.md`](monitoring/README.md); нужен **личный** ключ
+PostHog API, а не публичный токен проекта.
 
 ## CI/CD
 
-Six workflows in `.github/workflows/`:
+Шесть workflow в `.github/workflows/`:
 
-| Workflow | Trigger | Does |
+| Workflow | Когда запускается | Что делает |
 |---|---|---|
-| `deploy.yml` | push / PR to `master` \| `main`, manual | install → **GitHub drift gate** (`sync:gh`, exits 1) → registry + games-key drift checks → Volta board materialisation → `make check` (tests + `test:monitoring` + `test:built` + `check_site.py`) → build → deploy `dist/` to Pages |
-| `lighthouse.yml` | after `deploy.yml` completes on a successful push | reuses the Pages artifact, runs Lighthouse CI, rebuilds/validates the web-vitals board, uploads reports — never gates publishing |
-| `ci-failure-notify.yml` | after `deploy.yml` or `lighthouse.yml` fails on `master` | opens (or comments on) a tracking issue for the failed run |
-| `sync-github.yml` | weekly (Mon 03:17 UTC), manual | runs `sync:gh:apply` and opens a PR with the changes |
-| `github-activity.yml` | daily (04:51 UTC), manual, push to its script/workflow | refreshes `github-activity.json`; commits only when the payload changed |
-| `sync-contacts.yml` | daily (04:23 UTC), manual, push to its script/workflow | appends Supabase form submissions to the private `portfolio-contact-backend` log; skipped until `SUPABASE_URL` is set |
+| `deploy.yml` | пуш или PR в `master` и `main`, вручную | установка → **гейт расхождений с GitHub** (`sync:gh`, выход с кодом 1) → проверки реестра и ключей игр → материализация доски Volta → `make check` (тесты, `test:monitoring`, `test:built`, `check_site.py`) → сборка → выкладка `dist/` на Pages |
+| `lighthouse.yml` | после успешного `deploy.yml` по пушу | берёт артефакт Pages, гоняет Lighthouse CI, пересобирает и проверяет доску веб-метрик, выгружает отчёты — публикацию не гейтит никогда |
+| `ci-failure-notify.yml` | после падения `deploy.yml` или `lighthouse.yml` на `master` | открывает задачу на упавший прогон или комментирует уже открытую |
+| `sync-github.yml` | раз в неделю (пн, 03:17 UTC), вручную | запускает `sync:gh:apply` и открывает PR с изменениями |
+| `github-activity.yml` | ежедневно (04:51 UTC), вручную, по пушу в свой скрипт или workflow | обновляет `github-activity.json`; коммитит, только если данные изменились |
+| `sync-contacts.yml` | ежедневно (04:23 UTC), вручную, по пушу в свой скрипт или workflow | дописывает заявки из формы Supabase в приватный журнал `portfolio-contact-backend`; пропускается, пока не задан `SUPABASE_URL` |
 
-Pull requests run every gate **except** deploy. Lighthouse runs as a separate workflow triggered by a successful deploy, with no analytics env vars, so the scores stay clean.
+В пулреквестах работают все гейты, кроме выкладки. Lighthouse идёт
+отдельным workflow после успешного деплоя, без переменных аналитики,
+поэтому оценки остаются чистыми.
 
-Lighthouse assertions (`.lighthouserc.json`, 18 URLs): accessibility, best-practices and SEO are **errors** at ≥ 0.95; performance is a **warning** at ≥ 0.85.
+Пороги Lighthouse (`.lighthouserc.json`, 18 адресов): accessibility,
+best-practices и SEO — **ошибки** при ≥ 0.95, performance —
+**предупреждение** при ≥ 0.85.
 
-Do not push to `master` before confirming Pages is set to `Settings → Pages → Build and deployment → GitHub Actions`.
+Не пушьте в `master`, пока в `Settings → Pages → Build and deployment`
+не выбрано `GitHub Actions`.
 
-## Local hooks
+## Локальные хуки
 
-`.claude/hooks/` — `contrast-gate.js` (colour-contrast gate on generated output) and `portfolio-category-guard.js` (blocks post frontmatter with an out-of-taxonomy `category`).
+`.claude/hooks/` — `contrast-gate.js` (гейт контраста для
+сгенерированного вывода) и `portfolio-category-guard.js` (не даёт
+посту получить `category` вне таксономии).
 
-`bun run verify:writing-filter` is a Playwright regression check for the `/writing/` filter. It runs against a **served build** (`bun run serve-dist` first, or point `BASE_URL` anywhere) and guards the CSS-cascade bug fixed in `src/styles/blog.css`, where an author `display` beat the UA `[hidden] { display: none }` rule and the list stayed visible after a filter click.
+`bun run verify:writing-filter` — регрессионная проверка фильтра на
+`/writing/` через Playwright. Работает против **запущенной сборки**
+(сначала `bun run serve-dist`, либо укажите свой `BASE_URL` где угодно)
+и сторожит баг каскада CSS из `src/styles/blog.css`: авторское
+`display` перебивало пользовательское правило `[hidden] { display: none }`,
+и список оставался видимым после клика по фильтру.
 
-## Documentation
+## Документация
 
-| Path | Contents |
+| Путь | Что внутри |
 |---|---|
-| `CLAUDE.md` | Full repository guide — schemas, conventions, command reference |
-| `CONTEXT.md` | Domain glossary for the conversion surface (RU) |
-| `docs/prd-v9.md` | Current PRD (RU) — replaces `prd-v8.md` |
-| `docs/cta-inventory.md` | Every CTA, its event and destination |
-| `docs/analytics-events.md` | Event catalogue with payloads |
-| `docs/analytics-review.md` | Weekly 15-minute analytics ritual + funnel benchmark |
-| `portfolio-contact-backend/docs/contact-log.md` | Hiring funnel log — private repo, auto-synced by `sync-contacts.yml` |
-| `docs/backlog.md` | Open work |
-| `docs/adr/` | Architecture decision records |
-| `DESIGN.md` | Visual system notes |
+| `CLAUDE.md` | Полное руководство по репозиторию — схемы, конвенции, справочник команд |
+| `CONTEXT.md` | Глоссарий предметной области конверсионной поверхности (RU) |
+| `docs/prd-v9.md` | Актуальный PRD (RU) — заменяет `prd-v8.md` |
+| `docs/cta-inventory.md` | Каждая кнопка, её событие и адрес |
+| `docs/analytics-events.md` | Каталог событий с нагрузкой |
+| `docs/analytics-review.md` | Недельный пятнадцатиминутный ритуал аналитики и бенчмарк воронки |
+| `portfolio-contact-backend/docs/contact-log.md` | Журнал воронки найма — приватный репозиторий, синхронизируется `sync-contacts.yml` |
+| `docs/backlog.md` | Открытые задачи |
+| `docs/adr/` | Записи об архитектурных решениях |
+| `DESIGN.md` | Заметки о визуальной системе |
 
-> Older PRDs (`prd-v2` … `prd-v8`) are kept for history. Prefer `docs/prd-v9.md` and `CLAUDE.md` when they disagree.
+> Старые PRD (`prd-v2` … `prd-v8`) оставлены для истории. Если они
+> расходятся с `docs/prd-v9.md` и `CLAUDE.md`, верьте второй паре.
 
-## License
+## Лицензия
 
-See [`LICENSE.txt`](LICENSE.txt). Site content and copy are personal — please don't reuse the text or profile assets.
+См. [`LICENSE.txt`](LICENSE.txt). Тексты и изображения профиля личные —
+пожалуйста, не переиспользуйте их.

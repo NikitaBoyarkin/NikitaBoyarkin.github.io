@@ -3,6 +3,7 @@
 **Автор:** Nikita Boyarkin
 **Дата:** 2026-09-19
 **Статус:** Draft — план согласован в грилинге 2026-09-19, ожидает подтверждения владельца перед исполнением
+**Актуализация 2026-10-25:** CV удалён с сайта — `generate-cv-*.mjs`, `sync-cv-pdf.mjs`, `cv-banner.png`, `cv-linkedin.png`, `cv-cover.*` удалены. Упоминания CV ниже — исторический протокол, не текущая задача.
 **Версия:** 1.0
 **Проект:** `Personal_Projects.github.io` (Astro 7, чистый CSS, RU/EN, три темы)
 **Связанные документы:** `docs/prd-og-banner-restyle.md` (исполнен 2026-09-19), `docs/prd-palette-60-30-10.md`, `docs/prd-readability.md`, `DESIGN.md`

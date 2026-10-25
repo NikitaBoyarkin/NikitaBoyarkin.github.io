@@ -183,7 +183,7 @@ gh run view <id> --json jobs -q '.jobs[].name'   # build, deploy
 | 1 | Подтверждение, что удаление `caseStudy`-метрик было намеренным |
 | 2 | Выбор закрытия v8 C7 (reframe через Kill / свой отменённый тест / `kyc-45` вторым кейсом) |
 | 3 | Третья формулировка грейда на `/contact` после сведения к одной |
-| 4 | PDF-файл резюме |
+| 4 | ~~PDF-файл резюме~~ — снят 25.10.2026, CV удалён с сайта |
 | 5 | Домен `nikitaboyarkin.com` + доступ к Vercel |
 | 6 | Утверждение блока «подойдёт, если…» |
 
@@ -192,7 +192,6 @@ gh run view <id> --json jobs -q '.jobs[].name'   # build, deploy
 | ID | Задача |
 |---|---|
 | P3-1 | Токен PostHog в `public/games/*` — только если игры трогаются |
-| P3-2 | `/cv/`: canonical → PDF при закрытом `robots.txt` |
 | P3-3 | `/games/` и `/demos/*` без canonical и sitemap |
 | P3-4 | Каннибализация `/notes/` против `/writing/` |
 

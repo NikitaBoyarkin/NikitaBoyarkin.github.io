@@ -136,10 +136,11 @@ Owner's call: no CV download anywhere. Removed, with no replacement CTA:
 | `cv_download_pdf`, `cta_exposure` events | emitter, `AnalyticsEventMap` rows, `docs/analytics-events.md` rows |
 | `/cv/` → PDF redirect (`astro.config.mjs`) | legacy route |
 | `Disallow: /CV-Nikita-Boyarkin.pdf` in every `robots.txt` group | the crawl exception |
-| `cv:pdf` npm script | CV sync from the rendercv project (`scripts/sync-cv-pdf.mjs` stays on disk, unwired) |
+| `cv:pdf` npm script | CV sync from the rendercv project. `scripts/sync-cv-pdf.mjs` and `scripts/generate-cv-*.mjs` deleted on 2026-10-25 with the PDF |
 
-The PDF itself is left in `public/CV-Nikita-Boyarkin.pdf` but nothing links to
-it. Re-adding a CV means restoring the emitter events too, not just a link.
+The CV PDF and its generator scripts are gone from the repository.
+Re-adding a CV means restoring the assets, the scripts and the emitter
+events too, not just a link.
 PostHog dashboards under `monitoring/dashboards/` still reference
 `cv_download_pdf` / `cta_exposure` — those views now have no numerator.
 

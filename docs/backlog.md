@@ -59,7 +59,7 @@
 | 3 | Выбор закрытия C7: reframe через Kill / свой отменённый тест / +`kyc-45` вторым кейсом | C7 |
 | 4 | Утверждение блока «подойдёт, если…» (черновик: `docs/prd-v8-c4-draft.md`) | C4 |
 | 5 | Третья формулировка грейда на `/contact` после сведения к одной (PRD v8 C6) | C6 |
-| 6 | PDF-файл резюме | C8 |
+| 6 | ~~PDF-файл резюме~~ — снят 25.10.2026, CV удалён с сайта | C8 (снят) |
 | 7 | Покупка `nikitaboyarkin.com` + DNS | P1-1 |
 | 8 | Доступ к Vercel | P1-2 |
 
@@ -91,7 +91,7 @@
 | W2-2 | TS-механизмы: экспорт `Track`/`PostCategory`/`VoltaLayer`/`Star` из `content.config.ts` (сейчас схемы module-local → ~10 сайтов с расширенным `string`, добавление трека в zod молча убирает проекты с доски); общий `Entry` для `search-index.json.ts` ↔ `SearchBox.astro`; `LaidOutGraph` с обязательными `x`/`y` | Каскадный рефактор: сначала типы, потом ошибки компиляции сами называют сайты |
 | W2-3 | i18n-словарь: единый `src/lib/i18n.ts` вместо inline-тернарников в `Base.astro:64-77`, `SearchBox`, `AskMe`, `KnowledgeGraph`, `LAYER_LABELS` | ADR-worthy (единый словарь vs текущий подход — реальный trade-off); многофайловый рефактор |
 | W2-4 | ESLint (flat-config + astro-plugin) в CI | Сначала зафиксировать текущее состояние — иначе сотня новых находок расширит дифф |
-| W2-5 | `/cv/`: canonical → PDF, закрытый в `robots.txt` (Google не читает заблокированную цель) — определиться: снять `Disallow` с PDF или убрать canonical | Решение владельца о политике индексации резюме |
+| W2-5 | закрыто 25.10.2026: CV и `/cv/` удалены с сайта, задача снята | — |
 | W2-6 | `/games/` и `/demos/*` (файлы в `public/`) — нет canonical и нет в sitemap, хотя индексируемы и связаны изнутри | Нужен `sitemap.customPages` или явные `.astro`-страницы |
 | W2-7 | JSON-LD-гигиена: `WebSite` `@id` на EN-страницах заявляет RU-корень как англоязычный; `Person` переобъявляется без `@id` на 6 страницах (расщепление сущности); `BlogPosting` без `@id` → нет `workTranslation` между RU/EN | Средний приоритет, ловится только ручным аудитом rich-results |
 | W2-8 | Каннибализация `/notes/` + `/notes/guides/` против `/writing/` | UX-решение: canonical на `/writing/` или `noindex, follow` |

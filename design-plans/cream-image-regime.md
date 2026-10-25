@@ -1,7 +1,8 @@
 # Cream image regime — `#f8f2d8`
 
 Status: implemented 2026-10-20. Applies to every picture asset in `public/images/`:
-the 22 hand-authored hero SVGs and the 6 OG/CV generators that write the PNG/PDF set.
+the 22 hand-authored hero SVGs and the 3 OG generators that write the PNG set (the CV
+banners were deleted on 2026-10-25).
 
 ## Why
 
@@ -66,7 +67,7 @@ in a 1200×600 canvas. Below that a cover is unreadable at card width
 (`clamp(260px, 38%, 420px)` ≈ 0.32×, so 22 → 7px). `streamlit.svg`'s 13/15px labels are
 the reason this rule exists.
 
-## Banner palette (OG PNGs and the CV cover)
+## Banner palette (OG PNGs)
 
 Sourced from `src/lib/brand.ts` — no bare hex in a generator.
 

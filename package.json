@@ -22,9 +22,6 @@
     "og:home": "bun run scripts/generate-home-og.mjs",
     "og:home:watch": "bun run --watch scripts/generate-home-og.mjs",
     "og:graph": "bun run scripts/generate-graph-og.mjs",
-    "og:cv": "bun run scripts/generate-cv-og.mjs",
-    "og:cv:li": "bun run scripts/generate-cv-linkedin.mjs",
-    "og:cv:cover": "bun run scripts/generate-cv-cover.mjs",
     "sync:gh": "bun run scripts/sync-github-projects.mjs",
     "sync:gh:apply": "bun run scripts/sync-github-projects.mjs --apply",
     "sync:gh:candidates": "bun run scripts/sync-github-projects.mjs --candidates",
@@ -57,7 +54,6 @@
     "playwright": "^1.64.1",
     "playwright-core": "^1.64.1",
     "pngjs": "^7.0.0",
-    "sharp": "^0.35.4",
     "typescript": "^5.9.3"
   },
   "patchedDependencies": {

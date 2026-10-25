@@ -79,15 +79,11 @@ bun run verify:writing-filter        # Post category taxonomy check
 # OG / banner generation
 bun run og                           # per-post OG cards
 bun run og:home / og:graph           # homepage identity + graph banners
-bun run og:cv / og:cv:li / og:cv:cover
 
 # Sync (needs a GitHub token)
 bun run sync:gh                      # check drift (exit 1 on hard drift) — runs in CI
 bun run sync:gh:apply                # write updated: / private: back to frontmatter
 bun run sync:activity                # refresh src/data/github-activity.json
-
-# CV (source of truth is a sibling repo)
-bun run cv:pdf                       # copy ../cv/rendercv_output/… → public/CV-Nikita-Boyarkin.pdf
 
 # Lighthouse
 bunx @lhci/cli autorun              # uses .lighthouserc.json thresholds
@@ -209,8 +205,10 @@ Run order before committing: `bun run build` → `bun test` → `bun run check` 
 
 - Commit secrets. `.env` holds `PUBLIC_POSTHOG_KEY`/`PUBLIC_POSTHOG_HOST` — never commit it;
   never log the key.
-- Re-author or reintroduce a hand-written `/cv/` page — the rendercv YAML in the sibling
-  `../cv/` repo is the only CV source; the site ships `public/CV-Nikita-Boyarkin.pdf`.
+- Re-add a CV as a bare link — the PDF, `scripts/generate-cv-*.mjs`, the
+  `/cv/` redirect and the `cv_download_pdf` emitter were all removed on
+  2026-10-25. Restoring it means restoring the whole chain
+  (`docs/cta-inventory.md`).
 - Introduce raw brand hexes outside `src/lib/brand.ts` (except the documented scoped
   exceptions).
 - Break a drift guard to make a test pass — fix the artifact or the source-of-truth value.
