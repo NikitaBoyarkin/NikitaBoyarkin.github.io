@@ -10,8 +10,8 @@ track: analytics
 hero: images/sql.svg
 ogImage: /images/og/sql.png
 impact:
-  - 26 self-contained SQL-кейсов (funnel → RFM) + 1 real-data кейс
-  - dbt-слой на DuckDB (staging → marts, 17 dbt-тестов)
+  - 25 self-contained SQL-кейсов (funnel → RFM) + 1 real-data кейс
+  - dbt-слой на DuckDB (staging → marts, 18 dbt-тестов)
   - Regression-тесты с детерминированными инвариантами на каждый кейс
   - Синтетика seed=42 (+ аддитивный seed=43) и UCI Online Retail II
   - Живой интерактивный отчёт на GitHub Pages
@@ -34,7 +34,7 @@ faq:
   - question: "Как выглядит удержание?"
     answer: "Retention падает с ~19.5% на D1 до ~4% на D30, повторных покупок — 3.5%; на real data возвращаются 72.4%."
   - question: "Что даёт dbt-слой?"
-    answer: "Модели staging → marts на DuckDB, 17 dbt-тестов и regression-тест с детерминированными инвариантами на каждый кейс."
+    answer: "Модели staging → marts на DuckDB, 18 dbt-тестов и regression-тест с детерминированными инвариантами на каждый кейс."
 ---
 
 # SQL Analytics Case Study
@@ -43,7 +43,7 @@ faq:
 
 ## Ситуация
 
-Take-home–формат: показать владение SQL на продуктовых задачах, когда продакшен-данных нет, а учебные задачи не демонстрируют системное мышление. 25 end-to-end кейсов на синтетическом продуктовом датасете **плюс один real-data кейс** на UCI Online Retail II. Каждый кейс — один самодостаточный `.sql` файл с вопросом и подходом в leading-комментарии. Без сервера, без кредов — одна команда строит данные и базу DuckDB. Дополнительно — **dbt-слой** (staging → marts, 17 тестов) на той же базе.
+Take-home–формат: показать владение SQL на продуктовых задачах, когда продакшен-данных нет, а учебные задачи не демонстрируют системное мышление. 25 end-to-end кейсов на синтетическом продуктовом датасете **плюс один real-data кейс** на UCI Online Retail II. Каждый кейс — один самодостаточный `.sql` файл с вопросом и подходом в leading-комментарии. Без сервера, без кредов — одна команда строит данные и базу DuckDB. Дополнительно — **dbt-слой** (staging → marts, 18 тестов) на той же базе.
 
 ## Задача
 
@@ -106,7 +106,7 @@ uv run python run.py 1          # запустить кейс 1
 uv run python run.py 26         # real-data кейс
 uv run --extra dev pytest -q    # 43 regression-теста
 uv run python scripts/report.py # reports/index.html
-cd dbt && uv run dbt build --profiles-dir .   # dbt: модели + 17 тестов
+cd dbt && uv run dbt build --profiles-dir .   # dbt: модели + 18 тестов
 ```
 
 Runner печатает вопрос кейса, выполняет SQL против `data/analytics.duckdb`, рендерит результат таблицей. Отчёт с графиками публикуется на GitHub Pages автоматически при push.
@@ -126,7 +126,7 @@ Runner печатает вопрос кейса, выполняет SQL прот
 - sessionization воспроизводит 80k предразмеченных сессий с точностью **99.6%**;
 - **real data переворачивает вывод**: на UCI Online Retail II 72.4% клиентов возвращаются, а клиенты с 11+ заказами (14.9% базы) дают 65% выручки — тот же SQL, противоположный бизнес-вывод.
 
-Расхождение вопрос/подход в одном файле + regression-инварианты делают кейсы самопроверяемыми: 43 pytest-теста и 17 dbt-тестов держат `cases.md` и код в синхроне, `dbt build` зелёный в CI.
+Расхождение вопрос/подход в одном файле + regression-инварианты делают кейсы самопроверяемыми: 43 pytest-теста и 18 dbt-тестов держат `cases.md` и код в синхроне, `dbt build` зелёный в CI.
 
 ## Ограничения
 

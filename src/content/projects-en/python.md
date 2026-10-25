@@ -50,8 +50,10 @@ I needed routine analysis to stop starting from scratch, so I owned the shared m
 - **`eda.py`** (REQ-004) — descriptive stats, missingness, correlations.
 - **`viz.py`** (REQ-005) — histograms, correlation heatmaps.
 - **`pipeline.py`** (REQ-006) — end-to-end pipeline runnable as `python -m python_analytics`.
+- **`segment.py`** — value segments, age cohorts and Pareto instead of RFM: the data is cross-sectional, with no transaction history.
+- **`report.py`** — assembles a markdown report from the EDA and viz results.
 
-Each module covers a single requirement from the PRD (`docs/prd.md`), and the tests in `tests/` check exactly those requirements — coverage ≥80%.
+Each module covers a single requirement from the PRD (`docs/prd.md`), and the 34 tests in `tests/` check exactly those requirements — coverage ≥80%.
 
 ### Run
 

@@ -1,11 +1,11 @@
 ---
 title: Cohort Analysis Dashboard
-description: "Python inside Tableau: 4 cohort calculations on a TabPy server and 39 tests; a triangular retention matrix with per-cohort ARPU and LTV, an observation-age caveat and a CSV + Hyper export."
+description: "Python inside Tableau: 4 cohort calculations on a TabPy server and 65 tests; a triangular retention matrix with per-cohort ARPU and LTV, an observation-age caveat and a CSV + Hyper export."
 star:
   situation: "Cohort retention and LTV on synthetic data: average retention hides the per-cohort dynamics"
   task: "Make retention and LTV readable per acquisition cohort rather than as a single average"
   action: "Retention matrix, ARPU and LTV by cohort, observation-age caveat, Tableau export (CSV + Hyper)"
-  result: "Python inside Tableau: 4 cohort calculations on a TabPy server and 39 tests; the cohort matrix replaces average retention and shows churn speed and where monetization diverges"
+  result: "Python inside Tableau: 4 cohort calculations on a TabPy server and 65 tests; the cohort matrix replaces average retention and shows churn speed and where monetization diverges"
 track: analytics
 hero: images/cohort.svg
 ogImage: /images/og/cohort.png
@@ -14,7 +14,7 @@ impact:
   - ARPU / LTV by cohort with proper observation-age caveat
   - Tableau-ready export (CSV + .hyper extract)
   - "TabPy layer: 4 calculations executed by a Python server on localhost:9004, deployed by tabpy/deploy.py (6 endpoints) — Python runs inside Tableau"
-  - "39 tests: 16 real_data + 14 cohort_analysis + 9 tableau_export"
+  - "65 tests: 26 tabpy + 16 real_data + 14 cohort_analysis + 9 tableau_export"
 tools:
   - Python
   - pandas
@@ -74,6 +74,8 @@ I needed retention and lifetime value to be readable per acquisition cohort rath
 
 **Functions:** `cohort_sizes()` (monthly inflow), `retention_matrix()` (matrix + curves), `revenue_by_cohort()` (ARPU/LTV).
 
+**Real data:** `real_data.py` accepts a CSV on the same "user × month" contract — fail-fast validation (required columns, types, duplicates, period-0 coverage), with PII (email, phone, name) dropped by whitelist.
+
 **Tableau export** (`tableau_export.py`) creates in `tableau/`:
 - `cohort_export.csv` — flat shape for Tableau (adds `cohort_label` and `period_date` — the calendar observation month);
 - `cohort_extract.hyper` — a Tableau Hyper extract via the official Hyper API.
@@ -85,7 +87,7 @@ I needed retention and lifetime value to be readable per acquisition cohort rath
 The cohort view matters more than average retention: it exposes churn speed and where monetization diverges from it. The key methodological choices — `cohort_month` is derived from `join_date` (not a separate random field), period 0 = 100% by convention, and NaNs are masked in the heatmap instead of rendering `nan%`.
 
 - **Python inside Tableau:** 4 calculations are deployed to a TabPy server (localhost:9004) by `tabpy/deploy.py` — 6 endpoints, with Python executed inside Tableau.
-- **Tests:** 39 (16 real_data + 14 cohort_analysis + 9 tableau_export) keep the pipeline reproducible.
+- **Tests:** 65 (26 tabpy + 16 real_data + 14 cohort_analysis + 9 tableau_export) keep the pipeline reproducible.
 
 ## Limitations
 

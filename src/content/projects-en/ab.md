@@ -62,7 +62,10 @@ I needed a testing toolkit whose methods hold up under the null and under a real
 | `srm_test.py` | Sample Ratio Mismatch (χ²) | catches bucketing/traffic bugs before any downstream test |
 | `sample_size.py` | Fixed-horizon sizing | n/arm for proportions and means |
 | `delta_method_ratio.py` | Ratio metrics (CTR, RPC) | correct SE for ΣY/ΣX; the naive per-unit t-test is biased |
+| `ratio_cuped.py` | CUPED on a ratio metric | linearise Z = Y − R·X: pre-period data cuts SE without new sample |
 | `cuped.py` | Variance reduction | variance ↓ by ρ², SE by ~ρ, using pre-period data |
+| `cupac.py` | CUPAC | OLS over every pre-period column removes more variance than one covariate |
+| `post_stratification.py` | Post-stratification | repairs a drifted split using pre-registered strata |
 | `group_sequential.py` | Alpha-spending boundaries | Pocock/OBF control Type I while naive peeking inflates it |
 | `msprt_always_valid.py` | Always-valid p-values | mSPRT lets you peek and stop any time, validly |
 | `sequential_ratio.py` | Sequential ratio metrics | delta-method + mSPRT for CTR under continuous monitoring |
@@ -85,6 +88,7 @@ I needed a testing toolkit whose methods hold up under the null and under a real
 uv sync --all-groups
 uv run pytest                 # calibration test suite
 uv run python scripts/run_full_pipeline.py   # end-to-end demo → outputs/report.md
+uv run python scripts/cli.py --help          # run any method from the terminal
 ```
 
 ## Result

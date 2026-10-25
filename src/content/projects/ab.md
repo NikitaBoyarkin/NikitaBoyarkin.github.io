@@ -70,7 +70,10 @@ faq:
 | `srm_test.py` | Sample Ratio Mismatch (χ²) | ловит бакинг-баги до любых downstream-тестов |
 | `sample_size.py` | Fixed-horizon sizing | n/arm для пропорций и средних |
 | `delta_method_ratio.py` | Ratio-метрики (CTR, RPC) | корректный SE для ΣY/ΣX; наивный per-unit t-test смещён |
+| `ratio_cuped.py` | CUPED на ratio-метрике | линеаризация Z = Y − R·X: pre-period снижает SE без новой выборки |
 | `cuped.py` | Variance reduction | дисперсия ↓ на ρ², SE — примерно в ρ раз, за счёт pre-period |
+| `cupac.py` | CUPAC | OLS по всем pre-period колонкам снимает больше дисперсии, чем один ковариат |
+| `post_stratification.py` | Post-stratification | чинит разъехавшийся сплит по пре-регистрированным стратам |
 | `group_sequential.py` | Alpha-spending границы | Pocock/OBF держат Type I, пока наивный peeking его раздувает |
 | `msprt_always_valid.py` | Always-valid p-values | mSPRT позволяет смотреть и останавливаться когда угодно |
 | `sequential_ratio.py` | Sequential ratio-метрики | delta-method + mSPRT для CTR под мониторингом |
@@ -93,6 +96,7 @@ faq:
 uv sync --all-groups
 uv run pytest                 # calibration test suite
 uv run python scripts/run_full_pipeline.py   # end-to-end demo → outputs/report.md
+uv run python scripts/cli.py --help          # любой метод из терминала
 ```
 
 ## Результат

@@ -10,8 +10,8 @@ track: analytics
 hero: images/sql.svg
 ogImage: /images/og/sql.png
 impact:
-  - 26 self-contained SQL cases (funnel → RFM) + 1 real-data case
-  - dbt model layer on DuckDB (staging → marts, 17 dbt tests)
+  - 25 self-contained SQL cases (funnel → RFM) + 1 real-data case
+  - dbt model layer on DuckDB (staging → marts, 18 dbt tests)
   - Regression tests with deterministic invariants per case
   - Synthetic deterministic data (seed=42 + additive seed=43) + UCI Online Retail II
   - Live interactive report on GitHub Pages
@@ -34,7 +34,7 @@ faq:
   - question: "What does retention look like?"
     answer: "Retention falls from ~19.5% on D1 to ~4% on D30 and only 3.5% repeat; on the real dataset 72.4% return."
   - question: "What does the dbt layer add?"
-    answer: "A staging → marts model layer on DuckDB, 17 dbt tests, and a regression test with deterministic invariants per case."
+    answer: "A staging → marts model layer on DuckDB, 18 dbt tests, and a regression test with deterministic invariants per case."
 ---
 
 # SQL Analytics Case Study
@@ -45,7 +45,7 @@ faq:
 
 A take-home format: prove SQL skill on product tasks when there is no production data, and textbook exercises do not demonstrate systems thinking. 25 end-to-end cases on a synthetic product dataset **plus one real-data case** on UCI Online Retail II.
 
-Each case is one self-contained `.sql` file with the question and approach in a leading comment. No server, no credentials — a single command builds the data and a DuckDB database. Plus a **dbt layer** (staging → marts, 17 tests) on the same database.
+Each case is one self-contained `.sql` file with the question and approach in a leading comment. No server, no credentials — a single command builds the data and a DuckDB database. Plus a **dbt layer** (staging → marts, 18 tests) on the same database.
 
 ## Task
 
@@ -107,7 +107,7 @@ uv run python run.py 1          # run case 1
 uv run python run.py 26         # real-data case
 uv run --extra dev pytest -q    # 43 regression tests
 uv run python scripts/report.py # reports/index.html
-cd dbt && uv run dbt build --profiles-dir .   # dbt: models + 17 tests
+cd dbt && uv run dbt build --profiles-dir .   # dbt: models + 18 tests
 ```
 
 The runner prints the case question, executes the SQL against `data/analytics.duckdb`, and renders the result as a table. The charted report is published to GitHub Pages automatically on every push.
@@ -127,7 +127,7 @@ Also:
 - sessionization reproduces 80k pre-assigned sessions at **99.6%** fidelity;
 - **real data flips the conclusion**: on UCI Online Retail II, 72.4% of customers repeat and customers with 11+ orders (14.9% of the base) drive 65% of revenue — same SQL, opposite business answer.
 
-Splitting question and SQL in one file plus regression invariants makes the cases self-checking: 43 pytest tests and 17 dbt tests keep `cases.md` and the code in sync, and `dbt build` is green in CI.
+Splitting question and SQL in one file plus regression invariants makes the cases self-checking: 43 pytest tests and 18 dbt tests keep `cases.md` and the code in sync, and `dbt build` is green in CI.
 
 ## Limitations
 

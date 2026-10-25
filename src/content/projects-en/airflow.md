@@ -20,6 +20,7 @@ tools:
   - Python
   - Apache Airflow 3
   - PostgreSQL
+  - Docker Compose
   - Google Sheets API
   - pytest
   - uv
@@ -86,6 +87,7 @@ uv sync
 uv run pytest                                 # tests without an Airflow runtime
 uv run python scripts/generate_sales_data.py --days 7 --rows-per-day 10000
 export AIRFLOW_HOME=$(pwd) && uv run airflow standalone   # UI :8082, login admin, password generated on first run
+docker compose up -d --build                  # Postgres + Airflow in containers, no local Airflow needed
 uv run python scripts/metrics_report.py --days 7
 ```
 
