@@ -1,6 +1,6 @@
 {
   "slug": "volta",
-  "source": "github.com/NikitaBoyarkin/volta-banking — 22 projects; figures recomputed from the repo's own datasets (data/*.csv) via its analysis scripts. Funnel counts from data/volta_funnel_data.csv (10,000 users); A/B, retention, segmentation, churn, RFM, CLV, attribution, anomalies, spend, support, NPS, JTBD, unit economics, premium, KYC deep-dive, referral, assisted CAC, FX sourcing, premium offers, anchor CAC and dormant win-back follow the published project narrative (README + part pages).",
+  "source": "github.com/NikitaBoyarkin/volta-banking — 23 projects; figures recomputed from the repo's own datasets (data/*.csv) via its analysis scripts. Funnel counts from data/volta_funnel_data.csv (10,000 users); A/B, retention, segmentation, churn, RFM, CLV, attribution, anomalies, spend, support, NPS, JTBD, unit economics, premium, KYC deep-dive, referral, assisted CAC, FX sourcing, premium offers, anchor CAC and dormant win-back follow the published project narrative (README + part pages).",
   "charts": [
     {
       "id": "onboarding-funnel",

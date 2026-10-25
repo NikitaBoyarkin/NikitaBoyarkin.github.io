@@ -38,7 +38,7 @@ faq:
   - question: "Why is the decision metric recall and not AUC alone?"
     answer: "A retention campaign works the top of the risk list, so the decision follows recall@top-10% and lift."
   - question: "Why look at Brier?"
-    answer: "Brier is sensitive to probability calibration: 0.063 for LightGBM versus 0.062 for a fairly-fitted logistic baseline — a tie. The earlier 0.068/0.099 gap was an artifact of an unbalanced baseline."
+    answer: "Brier is sensitive to probability calibration: 0.063 for LightGBM versus 0.062 for a fairly-fitted logistic baseline — a tie. The earlier 0.099 Brier was an artifact of an unbalanced baseline."
 ---
 
 # Churn Prediction — Leakage-Free Retention Model
@@ -57,7 +57,7 @@ I needed a churn model whose offline score would survive contact with production
 
 ## Actions
 
-The data is synthetic and deterministic (seed = 42): 12,000 users sign up between Jun 2023 and Jan 2024, a channel-driven tenure (exponential lifetime) and a plan-driven daily activity probability; activity decays slightly approaching churn, giving a churn rate of ~16% per snapshot.
+The data is synthetic and deterministic (seed = 42): 12,000 users sign up between Jun 2023 and Jan 2024, a channel-driven tenure (exponential lifetime) and a plan-driven daily activity probability; activity decays slightly approaching churn; the snapshot base rate `base_rate = 0.174` is a mixture artifact, not a churn share.
 
 ### Features and label
 
@@ -66,14 +66,14 @@ The data is synthetic and deterministic (seed = 42): 12,000 users sign up betwee
 
 ### Split and metric
 
-- **Chronological split** — train (2024-01-15) -> val (2024-02-15) -> test (2024-03-15). A random split would put a user's future activity into training and their past into test — silent leakage, and eliminating it is the whole reason the project exists.
+- **Chronological split** — train (2024-01-15) -> val (14.02.2024) -> test (2024-03-15). A random split would put a user's future activity into training and their past into test — silent leakage, and eliminating it is the whole reason the project exists.
 - **Business metric first** — ROC-AUC and PR-AUC are reported, but the decision metric is **recall@top-decile** and **lift@top-decile**: if retention acts on the top 10% riskiest users, how many actual churners do we catch.
 
 ### Model and tests
 
 - **SHAP** — LightGBM's native `predict_proba(pred_contrib=True)` (TreeSHAP without the `shap` package). `recency_days` dominates.
 - **Baseline** — a fairly-fitted logistic regression (no `class_weight="balanced"`, which distorted its probabilities).
-- **Tests** — 21 pytest: leakage properties (deleting post-snapshot activity leaves features unchanged), config integrity, metrics and plots.
+- **Tests** — 39 pytest: leakage properties (deleting post-snapshot activity leaves features unchanged), config integrity, metrics and plots.
 
 | Metric (test snapshot) | LightGBM | LogReg |
 |---|---|---|

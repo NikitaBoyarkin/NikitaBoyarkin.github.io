@@ -150,13 +150,13 @@ export const QA_CORPUS: QAPair[] = [
     ru: {
       question: "Насколько силён твой SQL?",
       answer:
-        "10 end-to-end SQL-кейсов на синтетическом датасете (~183k событий, 20k signups), запускаются на DuckDB одной командой: funnel, N-day retention, stickiness, gaps-and-islands, A/B-конверсия, revenue attribution. Regression-тесты защищают каждый кейс.",
+        "26 end-to-end SQL-кейсов — 25 на синтетическом датасете (~183k событий, 20k signups) и один на реальных данных UCI Online Retail II, запускаются на DuckDB одной командой: funnel, N-day retention, stickiness, gaps-and-islands, A/B-конверсия, revenue attribution. Regression-тесты защищают каждый кейс.",
       links: [{ label: "SQL Case Study", href: "projects/sql/" }],
     },
     en: {
       question: "How strong is your SQL?",
       answer:
-        "10 end-to-end SQL cases on a synthetic dataset (~183k events, 20k signups), runnable on DuckDB with one command: funnel, N-day retention, stickiness, gaps-and-islands, A/B conversion, revenue attribution. Regression tests guard every case.",
+        "26 end-to-end SQL cases — 25 on a synthetic dataset (~183k events, 20k signups) and one on real UCI Online Retail II data, runnable on DuckDB with one command: funnel, N-day retention, stickiness, gaps-and-islands, A/B conversion, revenue attribution. Regression tests guard every case.",
       links: [{ label: "SQL Case Study", href: "en/projects/sql/" }],
     },
   },

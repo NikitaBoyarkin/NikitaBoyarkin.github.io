@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T19:11:57.837Z",
+  "generated_at": "2026-10-25T19:55:24.776Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -79,6 +79,28 @@
       "demo": "https://github.com/NikitaBoyarkin/crm-experiment-lab/blob/main/reports/readout/crm-experiment-lab-readout.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/crm-experiment-lab/"
+    },
+    {
+      "slug": "bot",
+      "track": "experiments",
+      "title": "Data Analyst Telegram Bot",
+      "title_en": "Data Analyst Telegram Bot",
+      "description": "Telegram-бот для аналитика без BI: CSV из выгрузки превращается в p-value, лифт и 95% CI за 30 секунд — 12 команд, история анализов и экспорт в HTML.",
+      "description_en": "A Telegram bot for the analyst without BI: a raw CSV export becomes p-value, lift and 95% CI in 30 seconds — 12 commands, history and HTML export.",
+      "tools": [
+        "Python",
+        "aiogram",
+        "pandas",
+        "SciPy / statsmodels",
+        "matplotlib",
+        "SQLite",
+        "pytest / ruff / mypy",
+        "Docker / Fly.io"
+      ],
+      "github": null,
+      "demo": "demos/telegram/index.html",
+      "private": true,
+      "href": "https://nikitaboyarkin.github.io/projects/bot/"
     },
     {
       "slug": "volta",
@@ -197,12 +219,33 @@
       "href": "https://nikitaboyarkin.github.io/projects/ml/"
     },
     {
+      "slug": "product-ab-funnel",
+      "track": "analytics",
+      "title": "Product A/B & Funnel Analytics — конверсия против удержания",
+      "title_en": "Product A/B & Funnel Analytics — Conversion versus Retention",
+      "description": "Воронка 12 000 → 9 623 → 3 384 и A/B на 2 552 пользователях: онбординг поднимает activation → paid на 19.59% (p=0.000946), вердикт SHIP; при равном шаге конверсия даёт +10.00% к LTV, удержание +8.65%",
+      "description_en": "A 12 000 → 9 623 → 3 384 funnel and A/B on 2 552 users: onboarding lifts activation → paid by 19.59% (p=0.000946), verdict SHIP; at an equal step, conversion adds 10.00% to LTV, retention 8.65%.",
+      "tools": [
+        "Python",
+        "pandas / NumPy",
+        "DuckDB",
+        "SciPy",
+        "matplotlib",
+        "pytest",
+        "uv"
+      ],
+      "github": "https://github.com/NikitaBoyarkin/product-ab-funnel-analytics",
+      "demo": null,
+      "private": false,
+      "href": "https://nikitaboyarkin.github.io/projects/product-ab-funnel/"
+    },
+    {
       "slug": "promo",
       "track": "analytics",
       "title": "Promo Margin Lab — цена промо в рублях",
       "title_en": "Promo Margin Lab — what a promo rouble actually earns",
-      "description": "Промо даёт +70.5 млн ₽ выручки и −17.6 млн ₽ прибыли: 95.3% волн убыточны, breakeven-глубина 2.0–20.5%, а оптимизатор берёт ту же прибыль за 487 тыс ₽ вместо 1.27 млн ₽ у top-15%.",
-      "description_en": "Promo returns +70.5 m RUB of revenue and −17.6 m RUB of profit: 95.3% of waves lose money, breakeven depth is 2.0–20.5%, and the optimiser earns it for 487 k RUB, not 1.27 m.",
+      "description": "Промо даёт +68.5 млн ₽ выручки и −24.4 млн ₽ прибыли: 97.9% волн убыточны, breakeven-глубина 1.0–19.5%, а оптимизатор зарабатывает +267 850 ₽ за 841 тыс ₽ против +191 502 ₽ у top-15% за 1.07 млн ₽.",
+      "description_en": "Promo returns +68.5 m RUB of revenue and −24.4 m RUB of profit: 97.9% of waves lose money, breakeven depth is 1.0–19.5%, and the optimiser earns +267 850 ₽ for 841 k RUB against +191 502 ₽ for top-15% at 1.07 m.",
       "tools": [
         "Python",
         "pandas",
@@ -425,25 +468,6 @@
       "demo": "demos/garden/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/garden/"
-    },
-    {
-      "slug": "bot",
-      "track": "engineering",
-      "title": "Reporting Automation Telegram Bot",
-      "title_en": "Reporting Automation Telegram Bot",
-      "description": "Telegram-бот заменил ручную подготовку недельного отчёта на cron: 1–2 часа работы вручную превратились в отчёт по расписанию с KPI-таблицей и спарклайнами.",
-      "description_en": "A Telegram bot replaced manual weekly reporting with a cron job: 1–2 hours of prep became a scheduled report with a KPI table and sparklines.",
-      "tools": [
-        "Python",
-        "aiogram / telegram-bot",
-        "SQL",
-        "cron scheduler",
-        "Tableau"
-      ],
-      "github": null,
-      "demo": "demos/telegram/index.html",
-      "private": true,
-      "href": "https://nikitaboyarkin.github.io/projects/bot/"
     },
     {
       "slug": "scrolly",

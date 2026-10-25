@@ -5,7 +5,7 @@ star:
   situation: "Ручной отчёт из Postgres в Google Sheets давал задержки, ошибки копирования и полное отсутствие воспроизводимости"
   task: "Заменить ручную выгрузку воспроизводимым идемпотентным пайплайном с DQ-валидацией, алертами и метриками запусков"
   action: "Платформа на Airflow 3: DAG-шаблон fetch → validate → write → record_metrics и shared-модули config, dq, alerts, metrics, output, windows"
-  result: "Два DAG-а по общему шаблону, 64 теста без Airflow-сервисов и БД, CI из четырёх гейтов: ruff, format, mypy, pytest"
+  result: "Три DAG-а по общему шаблону, 69 тестов без Airflow-сервисов и БД, CI из четырёх гейтов: ruff, format, mypy, pytest"
 track: engineering
 hero: images/airflow.svg
 ogImage: /images/og/airflow.png
@@ -62,6 +62,7 @@ faq:
 |-----|-----------|------------|----------|
 | `daily_sales_report` | `@daily` | Агрегат продаж за сутки (`sale_date`, `product_id`, `revenue`, `orders`) | Google Sheets (или CSV-фолбэк) |
 | `weekly_sales_summary` | `@weekly` | Сводка за неделю по `category` (`category`, `revenue`, `orders`) | CSV (Sheets опционально) |
+| `delivery_control_tower` | вручную (`schedule=None`) | 8 задач: CSV → staging → DQ-гейт → витрины DuckDB → 5 анализов параллельно | файлы проекта `delivery-control-tower` |
 
 Каждый DAG строится по шаблону `fetch → validate → write → record_metrics` на `@task`-декораторах Airflow 3 SDK. Окно — полуинтервал `[logical_date − N, logical_date)`; `catchup=False`, backfill — явной командой.
 
@@ -83,7 +84,7 @@ dags/shared/
 uv sync
 uv run pytest                                 # тесты без Airflow runtime
 uv run python scripts/generate_sales_data.py --days 7 --rows-per-day 10000
-export AIRFLOW_HOME=$(pwd) && uv run airflow standalone   # UI :8080, admin/admin
+export AIRFLOW_HOME=$(pwd) && uv run airflow standalone   # UI :8082, логин admin, пароль генерируется при первом запуске
 uv run python scripts/metrics_report.py --days 7
 ```
 
@@ -93,12 +94,12 @@ uv run python scripts/metrics_report.py --days 7
 uv run ruff check .          # линт: E,W,F,I,B,C4,UP
 uv run ruff format --check .
 uv run mypy                  # dags/, scripts/, tests/
-uv run pytest                # 64 теста, хуки замоканы
+uv run pytest                # 69 тестов, хуки замоканы
 ```
 
 ## Результат
 
-Платформа доводит два отчёта до приёмника по расписанию, каждый — отдельный версионируемый DAG. Качество держится на четырёх гейтах CI: `ruff check`, `ruff format --check`, `mypy` и `pytest` проходят на 64 тестах, которым не нужны ни Airflow-сервисы, ни живая БД (хуки замоканы). Конфигурация целиком вынесена в Airflow Variables с префиксом `AIRFLOW_CFG_`, а dev-режим `output="file"` работает без внешних API.
+Платформа доводит три отчёта до приёмника по расписанию, каждый — отдельный версионируемый DAG. Качество держится на четырёх гейтах CI: `ruff check`, `ruff format --check`, `mypy` и `pytest` проходят на 69 тестах, которым не нужны ни Airflow-сервисы, ни живая БД (хуки замоканы). Конфигурация целиком вынесена в Airflow Variables с префиксом `AIRFLOW_CFG_`, а dev-режим `output="file"` работает без внешних API.
 
 ## Ограничения
 

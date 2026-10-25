@@ -5,7 +5,7 @@ star:
   situation: "A hand-run report from Postgres into Google Sheets produced delays, copy errors and no reproducibility at all"
   task: "Replace the manual export with a reproducible, idempotent pipeline with DQ validation, failure alerts and run metrics"
   action: "A platform on Airflow 3: the DAG template fetch → validate → write → record_metrics and the shared modules config, dq, alerts, metrics, output, windows"
-  result: "Two DAGs on one shared template, 64 tests without Airflow services or a DB, and a CI of four gates: ruff, format, mypy, pytest"
+  result: "Three DAGs on one shared template, 69 tests without Airflow services or a DB, and a CI of four gates: ruff, format, mypy, pytest"
 track: engineering
 hero: images/airflow.svg
 ogImage: /images/og/airflow.png
@@ -62,6 +62,7 @@ I needed to replace the manual export with a reproducible, idempotent pipeline: 
 |-----|----------|--------------|------|
 | `daily_sales_report` | `@daily` | Daily sales aggregate (`sale_date`, `product_id`, `revenue`, `orders`) | Google Sheets (or a CSV fallback) |
 | `weekly_sales_summary` | `@weekly` | Weekly summary by `category` (`category`, `revenue`, `orders`) | CSV (Sheets optional) |
+| `delivery_control_tower` | manual (`schedule=None`) | 8 tasks: CSV → staging → DQ gate → DuckDB marts → 5 analyses in parallel | files of the `delivery-control-tower` project |
 
 Each DAG follows the `fetch → validate → write → record_metrics` template on Airflow 3 SDK `@task` decorators. The window is the half-open interval `[logical_date − N, logical_date)`; `catchup=False`, with backfill as an explicit command.
 
@@ -83,7 +84,7 @@ dags/shared/
 uv sync
 uv run pytest                                 # tests without an Airflow runtime
 uv run python scripts/generate_sales_data.py --days 7 --rows-per-day 10000
-export AIRFLOW_HOME=$(pwd) && uv run airflow standalone   # UI :8080, admin/admin
+export AIRFLOW_HOME=$(pwd) && uv run airflow standalone   # UI :8082, login admin, password generated on first run
 uv run python scripts/metrics_report.py --days 7
 ```
 
@@ -93,12 +94,12 @@ uv run python scripts/metrics_report.py --days 7
 uv run ruff check .          # lint: E,W,F,I,B,C4,UP
 uv run ruff format --check .
 uv run mypy                  # dags/, scripts/, tests/
-uv run pytest                # 64 tests, hooks mocked
+uv run pytest                # 69 tests, hooks mocked
 ```
 
 ## Result
 
-The platform drives two reports to their sink on schedule, each a versioned DAG of its own. Quality rests on four CI gates: `ruff check`, `ruff format --check`, `mypy` and `pytest` all pass across 64 tests that need neither Airflow services nor a live database (hooks are mocked). Configuration is fully externalised into Airflow Variables under the `AIRFLOW_CFG_` prefix, and the dev mode `output="file"` runs without any external API.
+The platform drives three reports to their sink on schedule, each a versioned DAG of its own. Quality rests on four CI gates: `ruff check`, `ruff format --check`, `mypy` and `pytest` all pass across 69 tests that need neither Airflow services nor a live database (hooks are mocked). Configuration is fully externalised into Airflow Variables under the `AIRFLOW_CFG_` prefix, and the dev mode `output="file"` runs without any external API.
 
 ## Limitations
 

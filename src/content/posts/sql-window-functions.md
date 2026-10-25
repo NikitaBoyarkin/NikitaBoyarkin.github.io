@@ -126,7 +126,7 @@ DAU/MAU — частота визитов, а не ценность. Кальк�
 
 ## На практике
 
-В проекте [SQL Analytics Case Study](/projects/sql/) собраны 10 самодостаточных кейсов на DuckDB — от воронки до revenue attribution.
+В проекте [SQL Analytics Case Study](/projects/sql/) собраны 26 самодостаточных кейсов на DuckDB — от воронки до revenue attribution.
 
 Каждый кейс — один `.sql`-файл с вопросом и подходом в leading-комментарии: gaps-and-islands для стриков, partitioned Top-N для топ-товаров, range-join для stickiness, `LAG`-приросты, DAU/MAU. Данные синтетические (seed = 42, ~183k событий) и детерминированные, а к кейсам привязаны regression-тесты: pytest проверяет, что SQL продолжает выдавать ожидаемые метрики после любого изменения генератора.
 
@@ -150,5 +150,5 @@ Gaps-and-islands — задача найти непрерывные серии �
 
 ## Ссылки
 
-- [SQL Analytics Case Study](/projects/sql/) — 10 кейсов на DuckDB с regression-тестами
+- [SQL Analytics Case Study](/projects/sql/) — 26 кейсов на DuckDB с regression-тестами
 - [Почему агрегат врёт: когортные треугольники](/posts/cohort-triangles-retention/) — stickiness читается в паре с retention

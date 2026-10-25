@@ -1,66 +1,107 @@
 ---
-title: Reporting Automation Telegram Bot
-description: "A Telegram bot replaced manual weekly reporting with a cron job: 1–2 hours of prep became a scheduled report with a KPI table and sparklines."
+title: Data Analyst Telegram Bot
+description: "A Telegram bot for the analyst without BI: a raw CSV export becomes p-value, lift and 95% CI in 30 seconds — 12 commands, history and HTML export."
 star:
-  situation: "Every week an analyst hand-assembled metrics from several sources, refreshed a dashboard and posted screenshots to the chat"
-  task: "Take the weekly report off one person so it arrives on time with no manual steps"
-  action: "SQL against the data mart, KPI aggregation, a report template with a table and sparklines, Telegram Bot API delivery, fallbacks"
-  result: "Manual 1–2h of prep became a cron job; the report arrives on schedule and the analyst interprets instead of copying numbers"
-track: engineering
+  situation: "PMs and analysts often have no BI access: checking an A/B hypothesis waits for a dashboard, and the exported CSV sits there without statistics"
+  task: "Check a hypothesis right in Telegram — get a correct result with guardrails from a CSV, without BI and without a notebook"
+  action: "Bot on aiogram, pandas, scipy and statsmodels: 12 commands, Welch t-test or chi-square, SRM and power guardrails, analytics as pure modules, pytest + ruff + mypy in CI"
+  result: "From a CSV — p-value, lift and 95% CI in under 30 seconds, plus a power note and a chart; /export returns a standalone HTML report"
+track: experiments
 hero: images/bot.svg
 ogImage: /images/og/bot.png
 impact:
-  - Cut weekly report prep from 1–2h to automated cron
-  - KPI table + sparklines delivered on schedule
-  - Fallback notifications on source failures
-  - Single consolidated pipeline replacing fragmented sources
+  - "A/B from a CSV in Telegram: Welch t-test or chi-square, p-value, lift, 95% CI, SRM and power guardrails, chart"
+  - "12 commands: data description, funnel, A/B, cohorts, RFM, trend, correlations, history, export"
+  - "Guardrails warn instead of staying silent: SRM violations and missing power are visible in the reply"
+  - "Analytics lives in src/analytics/ as pure modules covered by pytest; CI runs pytest + ruff + mypy"
+  - "Uploads are capped before parsing: 10 MB / 100k rows, free tier 5 MB and 10 analyses a day"
 tools:
   - Python
-  - aiogram / telegram-bot
-  - SQL
-  - cron scheduler
-  - Tableau
+  - aiogram
+  - pandas
+  - SciPy / statsmodels
+  - matplotlib
+  - SQLite
+  - pytest / ruff / mypy
+  - Docker / Fly.io
 private: true
 date: 2025-06-19
-updated: 2025-06-19
+updated: 2026-10-25
 demo: demos/telegram/index.html
 related:
   - /posts/telegram-reporting-bot/
+faq:
+  - question: "Which commands does the bot have?"
+    answer: "12 commands: /start, /help, /describe, /funnel, /abtest, /cohort, /rfm, /trend, /correlate, /history, /export, /cancel."
+  - question: "What do I send for /abtest?"
+    answer: "A CSV with group and metric columns; metric is numeric or binary 0/1."
+  - question: "What does the bot compute besides p-value?"
+    answer: "Welch t-test for a numeric metric or chi-square for a binary one, then lift, 95% CI, SRM and power guardrails, and a chart."
+  - question: "Where is the data stored?"
+    answer: "Locally only: the last 10 analyses in SQLite. The token is read from the BOT_TOKEN environment variable, .env is gitignored."
+  - question: "How is it deployed?"
+    answer: "Long polling needs an always-on process: a Fly.io worker built from the Dockerfile or a local docker run. CI runs pytest + ruff + mypy."
 ---
 
-# Reporting Automation Telegram Bot
+# Data Analyst Telegram Bot
 
-**▶ [Process diagram](/diagrams/telegram-bot.html)** — self-contained HTML, opens in a browser — no install, no build
+**▶ [Diagram: A/B test from a CSV](/diagrams/telegram-bot.html)** — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 
-Every week an analyst manually gathered metrics from several sources, refreshed a dashboard, exported screenshots, and posted them to the team chat. The process took 1–2 hours, was often delayed, and depended on a single person. The task is to move report assembly into a bot that fetches data and sends it on a schedule, so the team gets metrics regularly and in one format.
+PMs and analysts often have no BI access: checking an A/B hypothesis waits for a dashboard, and the exported CSV sits there without statistics. The hypothesis is written and the data is exported — yet p-value, lift and an SRM check still demand a notebook, an environment and someone who remembers the formula.
 
 ## Task
 
-I needed to take the weekly report off a single person's hands, so I owned the bot that fetches the numbers on a schedule and posts them to the team in one consistent format.
+I needed to bring hypothesis checking into Telegram: get a correct result with guardrails from a CSV — no BI, no notebook, no manual statistics.
 
 ## Actions
 
-**Data:** product metrics from a database (SQL), external APIs, and ready-made Tableau dashboards.
+### Stack
 
-**Bot architecture:**
+aiogram 3 + pandas, scipy, statsmodels. The UI follows the Telegram locale (EN/RU); analytics output stays English.
 
-1. **Scheduler** — cron-triggered at a set time.
-2. **Data collection** — SQL queries to the data mart, aggregation of key KPIs (DAU, ARPU, conversion, retention).
-3. **Report assembly** — a template with a KPI table, sparklines, and week-over-week comparison (delta in % and pp).
-4. **Delivery** — Telegram Bot API to a chat or via the `/report` command.
-5. **Reliability** — error handling, logging, fallback notifications on source failures.
+### Commands
 
-**Tools:** Python (aiogram/telegram-bot), SQL, cron, Tableau for visualization.
+| Command | What it does |
+|---|---|
+| `/start`, `/help` | Show commands |
+| `/describe` | Shape, dtypes, missing %, numeric describe, top categoricals, datetime range |
+| `/funnel` | Step-to-step and overall conversion (warns on non-monotonic steps) + chart |
+| `/abtest` | Welch t-test (numeric) or chi-square (binary), p-value, lift, 95% CI, SRM and power guardrails + chart |
+| `/cohort` | Weekly cohort retention per first-activity week + heatmap |
+| `/rfm` | RFM segmentation (recency/frequency/monetary) per user + chart |
+| `/trend` | Time-series trend (daily/weekly/monthly) + chart |
+| `/correlate` | Top pairwise Pearson correlations + heatmap |
+| `/history` | Your last 10 analyses |
+| `/export` | Last analysis as a standalone HTML report with a chart |
+| `/cancel` | Reset waiting state |
+
+### Input data
+
+| Command | Columns |
+|---|---|
+| `/funnel` | `step,users` — rows ordered top to bottom of the funnel |
+| `/abtest` | `group,metric` — metric numeric or binary `0/1` |
+| `/cohort` | `user_id,date` — one row per activity; `date` is also accepted as `dt`, `day`, `ts`, `timestamp`, `created`, `updated`, `дата` |
+| `/trend` | `date,metric` — one row per observation |
+| `/rfm` | `user_id,date,amount` — one row per transaction |
+| `/correlate` | any CSV with two or more numeric columns |
+| `/describe` | any CSV |
+
+Sample datasets live in `data/samples/`.
+
+### Engineering
+
+Analytics lives in `src/analytics/` as pure, tested modules; CI runs pytest, ruff and mypy. Uploads are capped before parsing — 10 MB / 100k rows (free tier: 5 MB, 10 analyses a day). History is SQLite, the last 10 analyses.
 
 ## Result
 
-Manual report assembly turned out to be less complex than fragmented: metrics had to be pulled from different places. After consolidation into one pipeline, most of the work moved to the machine — manual 1–2h became a cron job, and the analyst became responsible for interpretation rather than copying numbers.
+From a CSV — p-value, lift and 95% CI in under 30 seconds, plus a power note and a chart. `/export` returns the last analysis as a standalone HTML report you can attach to a hypothesis discussion.
 
 ## Limitations
 
-Delivery stability matters more than report polish here: if the bot fails silently, trust in metrics drops faster than the time savings grow. Fallback notifications on source failure are therefore built into the architecture rather than added "later." The repository is private — there is no public code, and the card does not link an empty repository.
+The bot computes but does not design an experiment: observation independence, novelty and multiple comparisons stay with the analyst. Data arrives only as a CSV — there is no warehouse connection. The free tier is capped at 5 MB and 10 analyses a day. The repository is private — there is no public code, and the card does not link an empty repository.
 
 ## Documentation
 
