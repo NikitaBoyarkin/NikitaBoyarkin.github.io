@@ -1,6 +1,6 @@
 ---
 title: RAG Evaluation Harness — retrieval and generation metrics
-description: "RAG pipeline with a real offline harness: recall@5 and MRR = 1.00 on 20 questions, correctness 0.37 — and 0.00 on an 11-question control set of retrieval misses (MRR@all 0.12), so the metric is shown falling. TF-IDF retrieval, no API keys; faithfulness ≡1.00 — an extractive invariant, not a measurement."
+description: "RAG pipeline with an offline harness: recall@5 and MRR = 1.00 on 20 questions, correctness 0.37, 0.00 on retrieval-miss control set. TF-IDF, no API keys; faithfulness ≡1.00 — an extractive invariant."
 star:
   situation: "A RAG demo is easy to show and hard to measure: you cannot tell whether the retrieval or the generation is failing, or whether the result reproduces at all"
   task: "Build a pipeline with an offline eval harness that separates retrieval from generation metrics and runs without API keys"
