@@ -1,4 +1,7 @@
 ---
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import '../styles/global.css';
 import '../styles/blog.css';
 // Prose layer last, so equal-specificity rules resolve to it.
@@ -85,7 +88,18 @@ const {
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
 const pageUrl = canonical ? `${siteUrl}${canonical}` : Astro.url.toString();
-const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${withBase(ogImage)}`;
+/* Telegram, LinkedIn and the rest cache the preview by `og:image` URL, so a
+   redrawn banner behind the same path would never reach them. The content hash
+   makes every revision a new URL, which is the only signal those caches honour. */
+const ogImageVersion = ogImage.startsWith('http')
+  ? ''
+  : createHash('sha1')
+      .update(readFileSync(path.join(process.cwd(), 'public', ogImage)))
+      .digest('hex')
+      .slice(0, 8);
+const fullOgImage = ogImage.startsWith('http')
+  ? ogImage
+  : `${siteUrl}${withBase(ogImage)}?v=${ogImageVersion}`;
 const faviconUrl = withBase('favicon.svg');
 
 // Search-result snippet: clamped to ~160 characters on a word boundary. The
