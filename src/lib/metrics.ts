@@ -32,11 +32,11 @@ export const METRICS = {
   portfolio: {
     // Count of .md files in src/content/projects/. Keep this number in sync
     // with the actual project cards; update the rendercv CV when the count
-    // changes rather than letting the two drift. Verified 24 via
-    // `ls src/content/projects/*.md | wc -l` (2026-10-25, after the `delivery`
-    // card landed); prd-v5's "15" is stale but out of scope for this repo's
-    // source of truth.
-    projects: 24,
+    // changes rather than letting the two drift. Verified 25 via
+    // `ls src/content/projects/*.md | wc -l` (2026-10-25, after the
+    // `crm-experiment-lab` card landed); prd-v5's "15" is stale but out of scope
+    // for this repo's source of truth.
+    projects: 25,
     // Count of self-contained .sql case files in the sql-analytics-case-study
     // repo (cases/01..26_*.sql). Verified 26 against the repo on 2026-09-19;
     // must equal the "26 SQL-кейсов (25 synthetic + 1 real-data)" claim in

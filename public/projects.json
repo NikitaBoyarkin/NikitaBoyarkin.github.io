@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-24T21:46:11.018Z",
+  "generated_at": "2026-10-25T14:54:08.604Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -58,6 +58,27 @@
       "demo": "demos/causal/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/causal/"
+    },
+    {
+      "slug": "crm-experiment-lab",
+      "track": "experiments",
+      "title": "CRM Experiment Lab — сегментная рандомизация, GCG и нетто-эффект",
+      "title_en": "CRM Experiment Lab — Segment-Stage Randomization, GCG and Net Effect",
+      "description": "CRM-эксперимент: рандомизация на этапе сегмента держит SRM p=0.266, GCG-аплифт +0.9968 покупки на пользователя, а нетто-эффект +50.5 на 1 000 отправок с учётом отписок.",
+      "description_en": "CRM experiment: segment-stage randomization holds SRM at p=0.266, GCG uplift reaches +0.9968 purchases per user, and the net effect is +50.5 per 1,000 sends once unsubscribes are priced in.",
+      "tools": [
+        "Python",
+        "pandas / NumPy",
+        "SciPy",
+        "statsmodels",
+        "matplotlib",
+        "pytest",
+        "uv"
+      ],
+      "github": "https://github.com/NikitaBoyarkin/crm-experiment-lab",
+      "demo": null,
+      "private": false,
+      "href": "https://nikitaboyarkin.github.io/projects/crm-experiment-lab/"
     },
     {
       "slug": "volta",
