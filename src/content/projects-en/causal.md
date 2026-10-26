@@ -12,7 +12,7 @@ ogImage: /images/og/causal.png
 impact:
   - CUPED keeps the ATE (0.270 → 0.276) and cuts the standard error ~26%
   - Same power with ~5.5k users/arm instead of 10k (95% CI narrows 1.35x)
-  - Uplift models recover that new users respond ~8x more than returning users
+  - Uplift models recover the segment order: new users respond 6–7x more than returning users against a ~8x reference gap
   - Implemented from scratch on LightGBM — no causalml/econml dependency
   - "Pre-registered ship rule: break-even threshold 0.05 — the campaign ships to new users only and not to returning"
 tools:
@@ -69,7 +69,7 @@ Synthetic, deterministic data (seed = 42), 20,000 users in a randomized experime
 |---|---|---|---|---|
 | T-learner | 0.0043 | 0.0014 | 0.072 | 0.50 |
 | S-learner | 0.0057 | 0.0029 | 0.041 | 0.66 |
-| Random | 0.0077 | 0.0048 | 0.059 | 0.011 |
+| Random | 0.0037 | 0.0008 | 0.022 | −0.007 |
 
 ### Run
 
@@ -85,7 +85,7 @@ Outputs: `reports/metrics.json` + `reports/uplift.png` (QINI curves + segment up
 
 CUPED buys power for free: no new experiment design is needed, only a better estimator on data you already collected — provided a pre-period covariate exists. The point estimate is unchanged (0.270 → 0.276, within noise), the standard error shrinks by ~26%, and the CI narrows 1.35x — an experiment that needed 10k users per arm now needs ~5.5k.
 
-Uplift answers a different question than A/B testing: not "does the treatment work on average" but "who does it work on". At n = 6000 the curve metrics are noise-dominated: the T-learner sits 0.81σ from the null baseline (AUUC +0.00293 ± 0.00164), the S-learner 1.72σ, and even the oracle ranking by the known true τ reaches only 2.25σ; a single seeded random scorer lands on 2.90σ by chance, above both real models. What is clean is not AUUC or QINI but the segment recovery and corr(τ) = 0.50–0.66 against 0.011 for randomness. The model recovered the shape of the effect: "new" users respond ~8x more than "returning" users — the targeting signal a discount campaign would act on.
+Uplift answers a different question than A/B testing: not "does the treatment work on average" but "who does it work on". At n = 6000 the curve metrics are noise-dominated: the T-learner sits 0.81σ from the null baseline (AUUC +0.00293 ± 0.00164), the S-learner 1.72σ, and even the oracle ranking by the known true τ reaches only 2.25σ, while the random scorer sits at 0.46σ — where an independent baseline belongs, which leaves the oracle as the ceiling. What is clean is not AUUC or QINI but the segment recovery and corr(τ) = 0.50–0.66 against −0.01 for randomness. The models recovered the shape of the effect: "new" users respond 6.3–6.8x more than "returning" users (the reference gap is 8.4x) — the targeting signal a discount campaign would act on.
 
 - **Ship rule (pre-registered):** a break-even threshold of 0.05 — the campaign ships to `new` users only and is not shipped to `returning`.
 
