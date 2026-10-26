@@ -8,8 +8,11 @@
 // external tools (analytics, feeds, agents).
 //
 // The registry is bilingual and symmetric: every text field carries both the RU
-// value (`title` / `description`) and its EN twin (`title_en` / `description_en`,
-// each falling back to the RU value when the twin is absent). The RU/EN split
+// value (`title` / `description` / `result`) and its EN twin (`title_en` /
+// `description_en` / `result_en`, each falling back to the RU value when the twin
+// is absent). `result` is the project's `star.result` — the measured outcome —
+// kept apart from `description` (scope) so a consumer can render either or both.
+// The RU/EN split
 // mirrors the site's own collections — an EN twin is authored independently for
 // meaning parity, not a literal translation — so a consumer can render either
 // language without a second fetch.
@@ -94,6 +97,11 @@ async function buildProjects() {
       description: oneLine(fm.description),
       description_en:
         enFm && oneLine(enFm.description) !== '' ? oneLine(enFm.description) : oneLine(fm.description),
+      result: oneLine(fm.star?.result),
+      result_en:
+        enFm && oneLine(enFm.star?.result) !== ''
+          ? oneLine(enFm.star?.result)
+          : oneLine(fm.star?.result),
       tools: asStringList(fm.tools),
       github: asUrlOrNull(fm.github),
       demo: asUrlOrNull(fm.demo),
@@ -135,6 +143,11 @@ async function buildVoltaCases() {
       description: oneLine(fm.description),
       description_en:
         enFm && oneLine(enFm.description) !== '' ? oneLine(enFm.description) : oneLine(fm.description),
+      result: oneLine(fm.star?.result),
+      result_en:
+        enFm && oneLine(enFm.star?.result) !== ''
+          ? oneLine(enFm.star?.result)
+          : oneLine(fm.star?.result),
       github: asUrlOrNull(fm.github),
       href: `${SITE_URL}/projects/volta/${part}/`,
     });
