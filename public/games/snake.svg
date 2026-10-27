@@ -1,21 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 400 440" preserveAspectRatio="xMidYMid meet" style="background:#0a0a12;touch-action:none" font-family="'Fira Code','SF Mono',Menlo,monospace">
-  <rect width="400" height="440" fill="#0a0a12"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 400 440" preserveAspectRatio="xMidYMid meet" style="background:#f8f2da;touch-action:none" font-family="'Fira Code','SF Mono',Menlo,monospace">
+  <rect width="400" height="440" fill="#f8f2da"/>
   <a href="index.html" aria-label="Back to arcade" style="cursor:pointer">
-    <text x="12" y="28" fill="#8a8aa8" font-size="11">← Arcade</text>
+    <text x="12" y="28" fill="#1400c3" fill-opacity="0.62" font-size="11">← Arcade</text>
   </a>
-  <text x="200" y="28" text-anchor="middle" fill="#ff6643" font-size="16" font-weight="bold" letter-spacing="3">SNAKE</text>
-  <text id="score" x="200" y="52" text-anchor="middle" fill="#f4f4f5" font-size="12">Score: 0</text>
+  <text x="200" y="28" text-anchor="middle" fill="#1400c3" font-size="16" font-weight="bold" letter-spacing="3">SNAKE</text>
+  <text id="score" x="200" y="52" text-anchor="middle" fill="#1400c3" font-size="12">Score: 0</text>
   <g transform="translate(30,70)">
-    <rect width="340" height="340" fill="#12121c" stroke="#ff6643" stroke-width="2" rx="6"/>
+    <rect width="340" height="340" fill="#0c0078" stroke="#fe4e02" stroke-width="2" rx="6"/>
     <g id="snake"></g>
     <g id="food"></g>
   </g>
-  <text id="overlay" x="200" y="250" text-anchor="middle" fill="#f4f4f5" font-size="15">Swipe or arrow keys to start</text>
+  <text id="overlay" x="200" y="250" text-anchor="middle" fill="#f8f2da" font-size="15">Swipe or arrow keys to start</text>
   <g id="cta" style="display:none">
-    <rect x="50" y="278" width="300" height="58" rx="8" fill="#12121c" stroke="#ff6643" stroke-width="1"/>
-    <text x="200" y="296" text-anchor="middle" fill="#f4f4f5" font-size="11">🎉 New best! Want games/analytics like this?</text>
-    <a href="https://www.linkedin.com/in/nikita-boyarkin" target="_blank" rel="noopener noreferrer"><rect x="80" y="304" width="105" height="22" rx="5" fill="#ff6643"/><text x="132" y="319" text-anchor="middle" fill="#0a0a12" font-size="10" font-weight="bold">LinkedIn</text></a>
-    <a href="https://t.me/lofinibo" target="_blank" rel="noopener noreferrer"><rect x="215" y="304" width="105" height="22" rx="5" fill="#ff6643"/><text x="267" y="319" text-anchor="middle" fill="#0a0a12" font-size="10" font-weight="bold">Telegram</text></a>
+    <rect x="50" y="278" width="300" height="58" rx="8" fill="#0c0078" stroke="#fe4e02" stroke-width="1"/>
+    <text x="200" y="296" text-anchor="middle" fill="#f8f2da" font-size="11">🎉 New best! Want games/analytics like this?</text>
+    <a href="https://www.linkedin.com/in/nikita-boyarkin" target="_blank" rel="noopener noreferrer"><rect x="80" y="304" width="105" height="22" rx="5" fill="#fe4e02"/><text x="132" y="319" text-anchor="middle" fill="#0c0078" font-size="10" font-weight="bold">LinkedIn</text></a>
+    <a href="https://t.me/lofinibo" target="_blank" rel="noopener noreferrer"><rect x="215" y="304" width="105" height="22" rx="5" fill="#fe4e02"/><text x="267" y="319" text-anchor="middle" fill="#0c0078" font-size="10" font-weight="bold">Telegram</text></a>
   </g>
   <script type="text/javascript"><![CDATA[
     (function () {
@@ -38,7 +38,7 @@
           var phs = document.createElementNS('http://www.w3.org/2000/svg', 'script');
           phs.setAttribute('href', 'https://us-assets.i.posthog.com/static/array.js');
           phs.setAttribute('type', 'text/javascript');
-          phs.onload = function () { try { window.posthog.init(PH_KEY, { defaults: '2026-05-30', persistence: 'localStorage+cookie', api_host: 'https://us.i.posthog.com', capture_pageview: true, capture_pageleave: true, autocapture: true, capture_exceptions: true, session_recording: { maskAllInputs: true } }); } catch (e) {} };
+          phs.onload = function () { try { window.posthog.init(PH_KEY, { api_host: 'https://us.i.posthog.com' }); } catch (e) {} };
           document.documentElement.appendChild(phs);
         } catch (e) {}
       }
@@ -52,7 +52,9 @@
         var t = todayStr();
         var y = new Date(); y.setDate(y.getDate() - 1);
         var yst = y.getFullYear() + '-' + ('0' + (y.getMonth() + 1)).slice(-2) + '-' + ('0' + y.getDate()).slice(-2);
-        var streak = lsGet('arcade_daily_date', '') === yst ? (parseInt(lsGet('arcade_streak', '0'), 10) || 0) + 1 : 1;
+        var prev = lsGet('arcade_daily_date', '');
+        var cur = parseInt(lsGet('arcade_streak', '0'), 10) || 0;
+        var streak = prev === t ? (cur || 1) : (prev === yst ? cur + 1 : 1);
         lsSet('arcade_daily_date', t); lsSet('arcade_daily_done', '1'); lsSet('arcade_streak', String(streak));
         ph('daily_completed', { game: GAME, streak: streak });
       }
@@ -89,14 +91,18 @@
         draw();
         scoreT.textContent = 'Score: 0 · Best: ' + bestOf();
         overlay.textContent = 'Press any arrow key to start';
-        overlay.setAttribute('fill', '#f4f4f5');
+        overlay.setAttribute('fill', '#f8f2da');
         showCTA(false);
       }
 
       function placeFood() {
-        do {
-          food = {x: Math.floor(Math.random()*COLS), y: Math.floor(Math.random()*ROWS)};
-        } while (snake.some(function (s) { return s.x === food.x && s.y === food.y; }));
+        var free = [], occupied = {};
+        for (var i = 0; i < snake.length; i++) occupied[snake[i].x + ',' + snake[i].y] = true;
+        for (var x = 0; x < COLS; x++) for (var y = 0; y < ROWS; y++) {
+          if (!occupied[x + ',' + y]) free.push({x: x, y: y});
+        }
+        if (!free.length) { endGame(); return; }
+        food = free[Math.floor(Math.random() * free.length)];
       }
 
       function draw() {
@@ -109,7 +115,7 @@
           r.setAttribute('width', CELL - 2);
           r.setAttribute('height', CELL - 2);
           r.setAttribute('rx', 3);
-          r.setAttribute('fill', i === 0 ? '#ff6643' : '#8a2e15');
+          r.setAttribute('fill', i === 0 ? '#fe4e02' : '#8a2301');
           snakeG.appendChild(r);
         }
         var f = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
