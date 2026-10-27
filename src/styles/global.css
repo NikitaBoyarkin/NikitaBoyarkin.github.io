@@ -3366,10 +3366,17 @@ textarea::placeholder {
 
    `overflow-x: auto` promotes the block axis to `auto` as well (CSS pairs a
    `visible` axis with a scrollable sibling), which would clip the card's hover
-   lift (`translateY(-6px)`) and its `outline-offset: -2px` ring at the
-   scrollport edge. The `padding-block` gives both room *inside* the
-   scrollport instead of shrinking the cards. The horizontal scrollbar is
-   hidden on purpose — the peeking card is the affordance, and the carousel nav
+   lift (`translateY(-6px)`) and its shadow at the scrollport edge. The
+   `padding-block` gives both room *inside* the scrollport instead of shrinking
+   the cards. The bottom value is the shadow's reach, not a gutter: `0 20px
+   40px` puts the silhouette 20px down and spreads it half a blur (20px)
+   further, so anything under 40px shaves the shadow flat along a hard line
+   under the row; the top clears the 6px lift. The focus ring is *not* part of
+   this: `.project:focus-visible` only ever matches the focusable `<article>`,
+   which nothing renders any more, so the rings on these cards are the global
+   `a:focus-visible` at +2px — drawn inside the card's own padding and never
+   flush with the scrollport edge. The horizontal scrollbar is hidden on
+   purpose — the peeking card is the affordance, and the carousel nav
    (CarouselNav.astro) covers the pointer-less path. */
 #project-list.project-board-cover {
   display: flex;
@@ -3377,7 +3384,7 @@ textarea::placeholder {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   gap: var(--space-5);
-  padding-block: var(--space-3) var(--space-2);
+  padding-block: var(--space-3) calc(var(--space-8) + var(--space-2));
   scrollbar-width: none;
 }
 
@@ -3421,7 +3428,8 @@ textarea::placeholder {
      above wrapped — so two cards in the same row ended at different heights
      (468px vs 430px measured). A full-basis link group forces its own line and
      makes every card in the grid identical, which is the point of a board. */
-  #project-list.project-track-grid .project.compact .project-action-links {
+  #project-list.project-track-grid .project.compact .project-action-links,
+  #project-list.project-board-cover .project.compact .project-action-links {
     flex-basis: 100%;
   }
 }

@@ -88,23 +88,30 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
     <ProjectFilter lang={lang}>
       <span class="board-controls">
         {
+          /* Ordering is the catalogue's alone. A role landing renders a curated
+             reading sequence (`ordered`), so it has neither the select nor its
+             undo: a control that cannot change anything is worse than no
+             control, and `?sort=new` on such a board used to scramble the
+             interleaved order the page exists to show. */
           !ordered && (
-            <span class="board-sort">
-              <label class="visually-hidden" for="board-sort">
-                {lang === 'en' ? 'Project order' : 'Порядок проектов'}
-              </label>
-              <select id="board-sort" class="board-sort-select">
-                <option value="curated">
-                  {lang === 'en' ? 'Curated order' : 'Кураторский порядок'}
-                </option>
-                <option value="new">{lang === 'en' ? 'Newest first' : 'Сначала новые'}</option>
-              </select>
-            </span>
+            <>
+              <span class="board-sort">
+                <label class="visually-hidden" for="board-sort">
+                  {lang === 'en' ? 'Project order' : 'Порядок проектов'}
+                </label>
+                <select id="board-sort" class="board-sort-select">
+                  <option value="curated">
+                    {lang === 'en' ? 'Curated order' : 'Кураторский порядок'}
+                  </option>
+                  <option value="new">{lang === 'en' ? 'Newest first' : 'Сначала новые'}</option>
+                </select>
+              </span>
+              <button class="filter-tag" id="board-reset" data-analytics="projects_reset" type="button">
+                {lang === 'en' ? 'Reset order' : 'Сбросить порядок'}
+              </button>
+            </>
           )
         }
-        <button class="filter-tag" id="board-reset" data-analytics="projects_reset" type="button">
-          {lang === 'en' ? 'Reset order' : 'Сбросить порядок'}
-        </button>
         <span
           id="board-hint"
           class="board-hint"
@@ -308,7 +315,9 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
         ? sphere
         : ALL_SPHERES;
 
-      activeSort = params.get('sort') === NEWEST ? NEWEST : CURATED;
+      // No select means a role landing: its order is curated, and `?sort=` in a
+      // shared URL must not override it.
+      activeSort = sortSelect && params.get('sort') === NEWEST ? NEWEST : CURATED;
       if (sortSelect) sortSelect.value = activeSort;
 
       const hash = location.hash.replace(/^#/, '');
@@ -373,6 +382,11 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
     sortSelect?.addEventListener('change', () => {
       activeSort = sortSelect.value === NEWEST ? NEWEST : CURATED;
       applySort();
+      // Reordering moves the cards under a stationary viewport, so from the
+      // third screenful the reader lands on the tail of the new order and the
+      // change looks like it did nothing. The row is a sequence: go back to its
+      // first card.
+      root.scrollTo({ left: 0, behavior: 'auto' });
       history.replaceState(null, '', urlFor(activeTrack, activeTool, activeSphere));
     });
 
@@ -435,6 +449,8 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
     // puts the curated order back. Nothing hand-picked survives, so there is no
     // stored order to prefer over `canonicalOrder`.
     function applySort(): void {
+      // A role landing has no sort control and a fixed reading order.
+      if (!sortSelect) return;
       if (activeSort !== NEWEST) {
         for (const key of trackKeys()) reorderTrackTo(key, canonicalOrder[key] || []);
         return;
@@ -469,6 +485,7 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
       activeSort = CURATED;
       if (sortSelect) sortSelect.value = CURATED;
       for (const key of trackKeys()) reorderTrackTo(key, canonicalOrder[key] || []);
+      root.scrollTo({ left: 0, behavior: 'auto' });
       showHint(hintEl?.dataset.reset || 'Reset');
       history.replaceState(null, '', urlFor(activeTrack, activeTool, activeSphere));
     });

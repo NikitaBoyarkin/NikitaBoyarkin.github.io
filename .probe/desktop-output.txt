@@ -1,0 +1,128 @@
+
+=== URLS ===
+1 RU post      http://localhost:4399/posts/github-actions-automation/
+2 RU project   http://localhost:4399/projects/volta/
+3 EN post      http://localhost:4399/en/posts/cohort-triangles-retention/
+4 EN project   http://localhost:4399/en/projects/volta/
+
+=== GEOMETRY ===
+page          slides  trackW   trackSW  overflow  slideW   delta   display     overflow-x  scroll-snap-type
+RU post       11      699      7890     true      699.08   0.08    flex        auto        x mandatory
+RU project    14      699      10047    true      699.08   0.08    flex        auto        x mandatory
+EN post       8       699      5733     true      699.08   0.08    flex        auto        x mandatory
+EN project    14      699      10047    true      699.08   0.08    flex        auto        x mandatory
+
+=== SLIDE 0 COMPUTED ===
+page          flex                  flex-basis    snap-align  min-width
+RU post       0 0 100%              100%          start       0px
+RU project    0 0 100%              100%          start       0px
+EN post       0 0 100%              100%          start       0px
+EN project    0 0 100%              100%          start       0px
+
+=== data-slide ORDER ===
+RU post        [1,2,3,4,5,6,7,8,9,10,11]  ascending=true contiguous=true
+RU project     [0,1,2,3,4,5,6,7,8,9,10,11,12,13]  ascending=true contiguous=true
+EN post        [1,2,3,4,5,6,7,8]  ascending=true contiguous=true
+EN project     [0,1,2,3,4,5,6,7,8,9,10,11,12,13]  ascending=true contiguous=true
+
+=== H1 IN SLIDE 0 ===
+RU post        NO-H1
+RU project     size=33.6px weight=700 lh=50.4px ls=normal src=slide0 text="Volta Neobank — Product Analytics"
+EN post        NO-H1
+EN project     size=33.6px weight=700 lh=50.4px ls=normal src=slide0 text="Volta Neobank — Product Analytics"
+root font-size=16px  browser-baseline h1={"fontSize":"32px","fontWeight":"700","lineHeight":"48px","letterSpacing":"normal"}
+
+=== SLIDE 0 CONTENT OVERFLOW (child right > slide0 right, >1px) ===
+RU post        none
+RU project     none
+EN post        none
+EN project     none
+
+=== SLIDE WIDTHS DEVIATING FROM clientWidth BY >1px ===
+RU post        none (all slides == clientWidth)
+RU project     none (all slides == clientWidth)
+EN post        none (all slides == clientWidth)
+EN project     none (all slides == clientWidth)
+
+=== OVERFLOWING DESCENDANTS (>1px past track right edge) ===
+RU post        11 unique:
+   section.reader-slide right=8374.3 over=+7190.8px
+   h2. right=8350.3 over=+7166.8px
+   p. right=8350.3 over=+7166.8px
+   ul. right=7631.2 over=+6447.7px
+   li. right=7631.2 over=+6447.7px
+   strong. right=7403.7 over=+6220.2px
+   code. right=8350.3 over=+7166.8px
+   pre.astro-code github-dark right=5474 over=+4290.5px
+   span.line right=5373.6 over=+4190.1px
+   span. right=5373.6 over=+4190.1px
+   a. right=6912.2 over=+5728.6px
+RU project     19 unique:
+   section.reader-slide right=10531.5 over=+9348px
+   h2. right=10507.5 over=+9324px
+   ul. right=10507.5 over=+9324px
+   li. right=10507.5 over=+9324px
+   strong. right=8350.3 over=+7166.8px
+   em. right=1722.3 over=+538.7px
+   p. right=9788.5 over=+8604.9px
+   code. right=9003.2 over=+7819.7px
+   ol. right=4035.8 over=+2852.3px
+   h3. right=5474 over=+4290.5px
+   a. right=10045 over=+8861.5px
+   blockquote. right=5474 over=+4290.5px
+EN post        14 unique:
+   section.reader-slide right=6217.1 over=+5033.5px
+   h2. right=6193.1 over=+5009.5px
+   p. right=5457 over=+4273.5px
+   pre.astro-code github-dark right=1878.6 over=+695.1px
+   code. right=4667 over=+3483.5px
+   span.line right=2031.7 over=+848.1px
+   span. right=2031.7 over=+848.1px
+   ol. right=2597.7 over=+1414.2px
+   li. right=6193.1 over=+5009.5px
+   h3. right=3316.8 over=+2133.2px
+   ul. right=6193.1 over=+5009.5px
+   a. right=5758.8 over=+4575.2px
+EN project     18 unique:
+   section.reader-slide right=10531.5 over=+9348px
+   h2. right=10507.5 over=+9324px
+   ul. right=10507.5 over=+9324px
+   li. right=10507.5 over=+9324px
+   strong. right=8350.3 over=+7166.8px
+   em. right=1602.3 over=+418.8px
+   p. right=9788.5 over=+8604.9px
+   code. right=8859.8 over=+7676.3px
+   ol. right=4035.8 over=+2852.3px
+   h3. right=5474 over=+4290.5px
+   a. right=10045 over=+8861.5px
+   table. right=6912.2 over=+5728.6px
+
+=== DOCUMENT HORIZONTAL SCROLL ===
+RU post        scrollsX=false (scrollWidth=1440 clientWidth=1440)
+RU project     scrollsX=false (scrollWidth=1440 clientWidth=1440)
+EN post        scrollsX=false (scrollWidth=1440 clientWidth=1440)
+EN project     scrollsX=false (scrollWidth=1440 clientWidth=1440)
+
+=== SCROLL TO SLIDE 1 ===
+RU post        scrollLeft=719/7191 clientWidth=699 tracksOnPage=1 windowScrollY=328
+               trackRect={"x":484.5,"y":0.2,"w":699.1,"h":1861.6,"right":1183.5,"bottom":1861.8}
+               slide0Rect={"x":-234.5,"y":8.2,"w":699.1,"h":1829.6,"right":464.5,"bottom":1837.8}
+               slide1Rect={"x":484.5,"y":8.2,"w":699.1,"h":1829.6,"right":1183.6,"bottom":1837.8} h2="Почему именно GitHub Actions"
+RU project     scrollLeft=719/9348 clientWidth=699 tracksOnPage=1 windowScrollY=1648
+               trackRect={"x":484.5,"y":0.4,"w":699.1,"h":2328.1,"right":1183.5,"bottom":2328.5}
+               slide0Rect={"x":-234.5,"y":8.4,"w":699.1,"h":2296.1,"right":464.5,"bottom":2304.5}
+               slide1Rect={"x":484.5,"y":8.4,"w":699.1,"h":2296.1,"right":1183.6,"bottom":2304.5} h2="Итог в 30 секунд"
+EN post        scrollLeft=719/5034 clientWidth=699 tracksOnPage=1 windowScrollY=266
+               trackRect={"x":484.5,"y":-0.2,"w":699.1,"h":746,"right":1183.5,"bottom":745.8}
+               slide0Rect={"x":-234.5,"y":7.8,"w":699.1,"h":714,"right":464.5,"bottom":721.8}
+               slide1Rect={"x":484.5,"y":7.8,"w":699.1,"h":714,"right":1183.6,"bottom":721.8} h2="Example"
+EN project     scrollLeft=719/9348 clientWidth=699 tracksOnPage=1 windowScrollY=1648
+               trackRect={"x":484.5,"y":0.4,"w":699.1,"h":2227.4,"right":1183.5,"bottom":2227.8}
+               slide0Rect={"x":-234.5,"y":8.4,"w":699.1,"h":2195.4,"right":464.5,"bottom":2203.8}
+               slide1Rect={"x":484.5,"y":8.4,"w":699.1,"h":2195.4,"right":1183.6,"bottom":2203.8} h2="The 30-second version"
+
+=== VERDICT ===
+RU post        PASS
+RU project     PASS
+EN post        PASS
+EN project     PASS

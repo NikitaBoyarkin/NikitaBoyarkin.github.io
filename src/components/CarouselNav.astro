@@ -59,6 +59,7 @@ const nextLabel = isEn ? 'Scroll forward' : 'Вперёд';
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
     gap: var(--space-3);
     margin-top: var(--space-4);
   }
@@ -103,30 +104,54 @@ const nextLabel = isEn ? 'Scroll forward' : 'Вперёд';
     outline-offset: 2px;
   }
 
+  /* The dots carry up to twelve targets. At 24px apart they no longer fit on one
+     line beside the two 36px arrows on a 390px phone, so they wrap instead of
+     pushing the row out of the viewport. */
   .carousel-dots {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--space-1);
   }
 
   /* The dots are built in `carousel.ts`, not rendered here, so Astro's scoping
      attribute never lands on them and a plain `.carousel-dot` selector would
      match nothing — the UA's grey button showed through instead. `:global()` is
      the supported escape inside a scoped component `<style>`; it must not be
-     used in `global.css`, where the browser drops the rule. */
+     used in `global.css`, where the browser drops the rule.
+
+     The visible mark stays an 8px dot, the *target* is 24x24 (WCAG 2.5.8 —
+     8px dots 8px apart fail the spacing exception too, since the circles a
+     scorer draws around them overlap). `box-sizing: content-box` is explicit
+     because the global reset is `border-box`, which would collapse the 8px
+     content box to nothing; `background-clip: content-box` paints the colour
+     into that box only, and a 4px corner radius on an 8px square is a circle. */
+  /* `background-color`, never the `background` shorthand: the shorthand resets
+     `background-clip` to `border-box`, which painted the active dot at the full
+     24px while the inactive ones stayed 8px. */
   :global(.carousel-dot) {
+    box-sizing: content-box;
     width: 8px;
     height: 8px;
-    padding: 0;
+    padding: 8px;
     border: none;
     border-radius: 50%;
-    background: var(--text-muted);
+    background-color: var(--text-muted);
+    background-clip: content-box;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background-color 0.2s ease;
   }
 
+  /* Not colour alone (WCAG 1.4.1): `--text-muted` and `--text-accent` sit
+     1.14:1 apart in luminance, so a low-vision or monochrome reader sees eight
+     identical dots. The active mark is 12px against the others' 8px, and the
+     padding absorbs the difference so every target stays 24x24. */
   :global(.carousel-dot[aria-current='true']) {
-    background: var(--text-accent);
+    width: 12px;
+    height: 12px;
+    padding: 6px;
+    background-color: var(--text-accent);
   }
 
   :global(.carousel-dot:focus-visible) {

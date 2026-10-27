@@ -8,6 +8,7 @@ import githubDark from "shiki/themes/github-dark.mjs";
 import { parse as parseYaml } from "yaml";
 import { glossaryLinker } from "./src/lib/glossary-linker.ts";
 import { katexMath } from "./src/lib/katex-math.ts";
+import { readerSlides } from "./src/lib/reader-slides.ts";
 
 // github-dark paints comments `#6a737d` — 3.05:1 on the theme's own `#24292e`
 // code block, under WCAG AA; axe flags 5 color-contrast nodes on
@@ -113,7 +114,12 @@ export default defineConfig({
     // every file outside `src/content/glossary{, -en}`.
     // Order matters: math runs first so a term name inside `\text{…}` never gets
     // a markdown link injected into its LaTeX.
-    processor: satteri({ mdastPlugins: [katexMath(), glossaryLinker()] }),
+    // reader-slides goes last: it only inserts `html` markers between root
+    // siblings, so no other plugin in the list has to see those nodes. It is a
+    // no-op outside the four paged content collections.
+    processor: satteri({
+      mdastPlugins: [katexMath(), glossaryLinker(), readerSlides()],
+    }),
   },
   // Keep the OneWorks 3D hero out of the default page load.
   //

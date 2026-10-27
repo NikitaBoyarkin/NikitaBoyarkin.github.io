@@ -6,6 +6,7 @@ import InlineTOC from '../../components/InlineTOC.astro';
 import StarBlock from '../../components/StarBlock.astro';
 import DecisionBlock from '../../components/DecisionBlock.astro';
 import ProjectDemo from '../../components/ProjectDemo.astro';
+import CarouselNav from '../../components/CarouselNav.astro';
 
 import ProjectGraph from '../../components/ProjectGraph.astro';
 import ChartsSection from '../../components/charts/ChartsSection.astro';
@@ -282,7 +283,17 @@ const pageJsonLd = {
         <InlineTOC lang="ru" headings={tocHeadings} />
 
         <article id="project-content" class="prose">
-          <Content />
+          {/* Carousel track. The build plugin wraps each top-level block of the
+              rendered Markdown in `.reader-slide`, and CarouselNav pages over
+              this element. A new inner div rather than a class on
+              `#project-content`: the id is load-bearing (InnerTOC selector,
+              reading progress, deep anchors). The FAQ block stays outside the
+              track on purpose — it is rendered next to `<Content />` here and
+              would otherwise become a slide with no body styles. */}
+          <div class="reader-track" data-carousel-track="reader">
+            <Content />
+          </div>
+          <CarouselNav track="reader" lang="ru" label="Разделы кейса" />
 
           {
             project.data.faq.length > 0 && (

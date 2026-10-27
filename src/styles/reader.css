@@ -1,0 +1,126 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Reader carousel — the horizontal snap track that turns an article or project
+   body into slides. This sheet styles only the markup the mdast/hast plugin
+   already emits (`.reader-track > .reader-slide`); it adds no classes and
+   expects no other hook.
+
+   Two failure modes this file exists to prevent:
+
+   1. A body with no `##` gets no `.reader-slide` children at all — the plugin
+      still emits `.reader-track`, but its children are ordinary prose nodes.
+      A bare `.reader-track` flex rule would lay that article out as a
+      single row of squeezed columns. Hence every rule is guarded by
+      `:has(> .reader-slide)`; the child combinator also keeps the guard from
+      firing on a nested track several levels down. `:has()` is already in the
+      project's browser baseline (`#intro:has(.hero-editorial)` and
+      `body:has(main > #inner-toc…)` in global.css).
+
+   2. Wide content inside a slide (`pre`, a table, an un-wrapped formula) is a
+      flex item's content: without `min-width: 0` it forces the item wider than
+      the snap width and every subsequent snap position drifts.
+
+   Geometry is deliberately the same recipe as `.blog-list` (blog.css) and
+   `#project-list.project-board-cover` (global.css) — same gap scale, same
+   hidden scrollbar, same `padding-block` reasoning — so the three horizontal
+   surfaces feel like one component family rather than three interpretations.
+
+   Colour is untouched: slides inherit prose's text colour and the per-theme
+   tokens. Nothing here needs a palette value, and a hex would take colour off
+   `.claude/hooks/contrast-gate.js`'s inputs the way prose.css's header warns.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* `overflow-x: auto` promotes the block axis to `auto` too (CSS pairs a
+   `visible` axis with a scrollable sibling), so the scrollport clips at the
+   padding edge. `padding-block` therefore gives the first heading's focus ring
+   and the leading line room *inside* the scrollport instead of shrinking the
+   slide. The split keeps the top gap small — the slide's own first heading
+   already carries prose's section rhythm — and the bottom gap open for the
+   trailing control ring. */
+.reader-track:has(> .reader-slide) {
+  display: flex;
+  gap: var(--space-5);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  /* Start padding stays 0 so a snapped slide sits flush with the scrollport;
+     only the end edge needs slack, for the case where an anchor or a focus
+     jump targets the last element in the last slide. */
+  scroll-padding-inline: 0 var(--space-4);
+  padding-block: var(--space-2) var(--space-6);
+  /* The track is scrolled by arrows, dots, touch and trackpad — a native
+     scrollbar would be a fourth, uglier control, and it steals height from
+     the slide. */
+  scrollbar-width: none;
+}
+
+/* Same reasoning as `.blog-list::-webkit-scrollbar` in blog.css. */
+.reader-track:has(> .reader-slide)::-webkit-scrollbar {
+  display: none;
+}
+
+/* `flex: 0 0 100%` — a slide is exactly one viewport of the track: never grows
+   to swallow the gap, never shrinks (a shrink would make every snap position
+   fractional and the snap would drift). `min-width: 0` lets a too-wide `pre`
+   or table overflow *inside* the slide, where prose already gives it its own
+   horizontal scroll, instead of pushing the slide past 100%.
+
+   `padding-inline-end` is the read gutter: at `scroll-snap-align: start` the
+   text starts at the scrollport edge, so without it the last characters of a
+   justified line would sit flush against the clip. */
+.reader-track:has(> .reader-slide) > .reader-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
+  padding-inline-end: var(--space-6);
+}
+
+/* The prose sheet's leading-element resets are child-combinator rules
+   (`.prose > :first-child`, `.prose > p:first-child`), so the section wrapper
+   hides the real first element from them: every slide would open with prose's
+   section-sized top margin, and the intro paragraph would carry the «красная
+   строка» indent that prose removes at the start of a body. Restated one level
+   down, in the slide's own terms: the first node of a slide *is* the start of
+   a body. */
+.reader-track:has(> .reader-slide) > .reader-slide > :first-child {
+  margin-block-start: 0;
+}
+
+.reader-track:has(> .reader-slide) > .reader-slide > p:first-child {
+  text-indent: 0;
+}
+
+/* TOC links resolve to a heading inside a slide. Prose already sets
+   `scroll-margin-top` on headings, but it is declared against `.prose`, which
+   does not know about the track's padding box; the block margin here keeps the
+   target off the scrollport edge, while the track's `scroll-padding-inline`
+   covers the inline axis. */
+.reader-track:has(> .reader-slide) > .reader-slide :is(h2, h3, h4) {
+  scroll-margin-block-start: var(--space-6);
+}
+
+/* Paper has no scrollport: a snap track would print as the single visible
+   slide and clip every other one. Unfold it back into the vertical flow the
+   rest of the document uses — no gap, no snap, no scroll. */
+@media print {
+  .reader-track:has(> .reader-slide) {
+    display: block;
+    overflow: visible;
+    scroll-snap-type: none;
+    padding-block: 0;
+  }
+
+  .reader-track:has(> .reader-slide) > .reader-slide {
+    flex: none;
+    padding-inline-end: 0;
+    scroll-snap-align: none;
+  }
+}
+
+/* Snapping and any programmatic `scrollTo` still position the track correctly
+   under reduced motion — they just must not animate. `scroll-behavior: auto`
+   is the only lever CSS owns here: it overrides a future smooth default on the
+   track, while the carousel script's own `behavior` option stays its concern. */
+@media (prefers-reduced-motion: reduce) {
+  .reader-track:has(> .reader-slide) {
+    scroll-behavior: auto;
+  }
+}

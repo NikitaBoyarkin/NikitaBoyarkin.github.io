@@ -2,6 +2,7 @@
 import Base from './Base.astro';
 import InnerTOC from '../components/InnerTOC.astro';
 import InlineTOC from '../components/InlineTOC.astro';
+import CarouselNav from '../components/CarouselNav.astro';
 import { formatDate, estimateReadTime } from '../lib/date';
 import { withBase } from '../lib/path';
 import { categoryLabel } from '../lib/categories';
@@ -101,7 +102,21 @@ const articleJsonLdGraph = { '@context': 'https://schema.org', '@graph': [articl
     <InlineTOC lang={lang} html={rendered} />
 
     <div class="post-body prose" id="post-content">
-      <slot />
+      {/* Carousel track. The build plugin wraps each top-level block of the
+          rendered Markdown in `.reader-slide`, and CarouselNav pages over this
+          element. The wrapper is a new inner div, not a class on `#post-content`,
+          because the id is load-bearing: InnerTOC's selector, the reading
+          progress bar and deep anchors all target it. `related`, `prev-next` and
+          `post-back` stay outside — they are page furniture, not article
+          sections, and would each become a slide without body styles. */}
+      <div class="reader-track" data-carousel-track="reader">
+        <slot />
+      </div>
+      <CarouselNav
+        track="reader"
+        lang={lang}
+        label={lang === 'en' ? 'Article sections' : 'Разделы статьи'}
+      />
     </div>
 
     {related.length > 0 && (

@@ -6,6 +6,9 @@ import '../styles/global.css';
 import '../styles/blog.css';
 // Prose layer last, so equal-specificity rules resolve to it.
 import '../styles/prose.css';
+// Reader carousel sits with the prose family: its track selectors must outrank
+// prose's element rules at equal specificity, which only holds below prose.css.
+import '../styles/reader.css';
 import 'katex/dist/katex.min.css';
 // Dashboard last: its opening block lifts global.css's one-screen lock for the
 // homepage that renders the dashboard, and at equal specificity the later file

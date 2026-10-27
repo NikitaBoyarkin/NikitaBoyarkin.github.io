@@ -43,9 +43,27 @@ function createNav(nav: HTMLElement): Controller {
   const prev = nav.querySelector<HTMLButtonElement>('[data-carousel-prev]');
   const next = nav.querySelector<HTMLButtonElement>('[data-carousel-next]');
   const dotsEl = nav.querySelector<HTMLElement>('[data-carousel-dots]');
+  // Past `MAX_DOTS` the dots are dropped, and with them the only visual answer
+  // to "where am I in the row" — so the position is announced instead. Built
+  // here rather than in the component so the markup stays identical for the
+  // tracks that never need it.
+  const statusEl = document.createElement('span');
+  statusEl.className = 'visually-hidden';
+  statusEl.setAttribute('role', 'status');
+  statusEl.setAttribute('aria-live', 'polite');
+  nav.append(statusEl);
   let track: HTMLElement | null = null;
   let resizeObserver: ResizeObserver | null = null;
   let frame = 0;
+  /** Page count the dots were last built for. Reading `childElementCount`
+   *  instead was wrong the moment the dots were hidden: `renderDots` leaves
+   *  zero children in that case, so the comparison never matched and every
+   *  scroll frame rebuilt the whole ladder. */
+  let renderedPages = 0;
+  /** A live region that speaks on page load is noise: the reader asked for
+   *  nothing yet. Position is announced only after the reader has moved the
+   *  row themselves — the same reason a resize must not announce. */
+  let userMoved = false;
 
   function behaviour(): ScrollBehavior {
     return window.matchMedia(REDUCED_MOTION).matches ? 'auto' : 'smooth';
@@ -57,6 +75,7 @@ function createNav(nav: HTMLElement): Controller {
   }
 
   function renderDots(pages: number): void {
+    renderedPages = pages;
     if (!dotsEl) return;
     dotsEl.textContent = '';
     dotsEl.hidden = pages > MAX_DOTS;
@@ -68,6 +87,7 @@ function createNav(nav: HTMLElement): Controller {
       dot.dataset.page = String(i);
       dot.setAttribute('aria-label', label(i + 1, pages));
       dot.addEventListener('click', () => {
+        userMoved = true;
         track?.scrollTo({ left: i * (track.clientWidth || 0), behavior: behaviour() });
       });
       dotsEl.append(dot);
@@ -81,18 +101,31 @@ function createNav(nav: HTMLElement): Controller {
     nav.hidden = !scrollable;
     if (!scrollable) return;
 
-    const pages = Math.max(1, Math.ceil(track.scrollWidth / track.clientWidth));
-    if (dotsEl && dotsEl.childElementCount !== pages) renderDots(pages);
+    // Count the positions the row can actually snap to, not the page the
+    // content would fill: the last scroll offset is `scrollWidth - clientWidth`,
+    // so a 24.5-screen row reaches page 23 of 25 and the terminal position
+    // would announce "Страница 24 из 25" while Вперёд is already disabled.
+    const pages = Math.max(1, Math.round(overflow / track.clientWidth) + 1);
+    if (dotsEl && renderedPages !== pages) renderDots(pages);
 
     const page = currentPage();
     if (prev) prev.disabled = track.scrollLeft <= 1;
     if (next) next.disabled = track.scrollLeft >= overflow - 1;
     if (dotsEl && !dotsEl.hidden) {
+      // The dots are back (window widened past MAX_DOTS): a leftover
+      // "Страница 12 из 27" would stay in the accessibility tree as text.
+      if (statusEl.textContent) statusEl.textContent = '';
       for (const dot of dotsEl.children) {
         const el = dot as HTMLElement;
         if (Number(el.dataset.page) === page) el.setAttribute('aria-current', 'true');
         else el.removeAttribute('aria-current');
       }
+    } else {
+      // No dots to read, so the page number is spoken. Written only on change:
+      // `sync` runs once per scroll frame and `aria-live` re-announces every
+      // mutation, which would read the same sentence dozens of times.
+      const text = label(page + 1, pages);
+      if (userMoved && statusEl.textContent !== text) statusEl.textContent = text;
     }
   }
 
@@ -106,6 +139,7 @@ function createNav(nav: HTMLElement): Controller {
 
   function step(direction: 1 | -1): void {
     if (!track) return;
+    userMoved = true;
     // A hair less than a full screenful so a card never lands exactly on the
     // edge of two pages and snap has an unambiguous nearest target.
     track.scrollBy({ left: direction * track.clientWidth * 0.9, behavior: behaviour() });

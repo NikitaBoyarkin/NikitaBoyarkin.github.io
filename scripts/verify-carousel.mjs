@@ -90,6 +90,13 @@ try {
 
     const dots = await page.locator('[data-carousel="articles"] .carousel-dot').count();
     check(`[${label}] dots rendered`, dots > 0, `${dots} dots`);
+    // WCAG 2.5.8 — the mark is 8px, the target must still be 24x24.
+    const dotBox = await page.locator('[data-carousel="articles"] .carousel-dot').first().boundingBox();
+    check(
+      `[${label}] dot target is at least 24x24`,
+      !!dotBox && dotBox.width >= 24 && dotBox.height >= 24,
+      dotBox ? `${Math.round(dotBox.width)}x${Math.round(dotBox.height)}` : 'no box',
+    );
 
     const before = track.scrollLeft;
     await page.locator('[data-carousel="articles"] [data-carousel-next]').click();
@@ -170,6 +177,11 @@ try {
     );
     check(`${tag} nav is visible`, await page.locator('[data-carousel="projects"]').isVisible());
 
+    // `0 20px 40px` reaches 40px below the card; less padding than that clips
+    // the shadow along a hard line under the row.
+    const padBottom = await page.$eval('#project-list', (el) => parseFloat(getComputedStyle(el).paddingBottom));
+    check(`${tag} row leaves room for the hover shadow`, padBottom >= 40, `${padBottom}px`);
+
     const before = track.scrollLeft;
     await page.locator('[data-carousel="projects"] [data-carousel-next]').click();
     await page.waitForTimeout(700);
@@ -223,6 +235,61 @@ try {
     await page.click('#board-reset');
     await page.waitForTimeout(300);
     check('[projects sort] reset restores the curated order', (await order()).join() === curated.join());
+    await page.close();
+  }
+
+  // ---- Projects phone: the dots retire, the position is spoken ----------
+  // `/projects/` is 27 cards — far more than 12 pages at 390px. The dots
+  // disappear there, and without the live region a screen-reader user has no
+  // way to learn where in the row the arrows put them.
+  {
+    const page = await open(390);
+    await page.goto(`${baseUrl}projects/`, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(400);
+    const state = await page.$eval('[data-carousel="projects"]', (nav) => {
+      const dotsEl = nav.querySelector('[data-carousel-dots]');
+      const live = nav.querySelector('[role="status"][aria-live]');
+      return {
+        hasDots: !!dotsEl,
+        dotsHidden: dotsEl ? dotsEl.hidden : false,
+        text: live ? live.textContent || '' : '',
+      };
+    });
+    check('[projects 390] the dots container exists', state.hasDots);
+    check('[projects 390] dots retire past twelve pages', state.dotsHidden);
+    // Nothing the reader asked for has happened yet, so nothing is announced.
+    check('[projects 390] no announcement on load', state.text === '', state.text || 'silent');
+    await page.locator('[data-carousel="projects"] [data-carousel-next]').click();
+    await page.waitForTimeout(700);
+    const after = await page.$eval('[data-carousel="projects"] [role="status"]', (el) => el.textContent || '');
+    check(
+      '[projects 390] the page number is announced instead',
+      /(Страница \d+ из \d+|Page \d+ of \d+)/.test(after),
+      after || 'empty live region',
+    );
+    check('[projects 390] the announcement follows the scroll', after !== state.text, `${state.text} → ${after}`);
+    await page.close();
+  }
+
+  // ---- Role landing: a curated order has no sort control -----------------
+  // `/manager/` renders 27 cards in a hand-picked sequence. The catalogue's
+  // `?sort=` used to re-sort it track by track, scrambling the interleaving the
+  // page exists to show, while "Reset order" sat there announcing a no-op.
+  {
+    const page = await open(1440);
+    const order = () => page.$$eval('#project-list .project', (els) => els.map((el) => el.dataset.slug));
+    await page.goto(`${baseUrl}manager/?sort=new`, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(300);
+    const sorted = await order();
+    // Without this the three checks below pass on a 404: `[]` has no select, no
+    // reset button, and compares equal to itself.
+    check('[manager] the curated board rendered its cards', sorted.length > 0, `${sorted.length} cards`);
+    check('[manager] no sort select on a curated board', (await page.locator('#board-sort').count()) === 0);
+    check('[manager] no reset button on a curated board', (await page.locator('#board-reset').count()) === 0);
+
+    await page.goto(`${baseUrl}manager/`, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(300);
+    check('[manager] ?sort=new does not reorder the board', (await order()).join() === sorted.join());
     await page.close();
   }
 
