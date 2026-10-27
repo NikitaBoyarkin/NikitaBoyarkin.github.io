@@ -90,6 +90,8 @@ const counterpartHref = page === 1 ? withBase('en/writing/') : undefined;
 
   <BlogFilter lang="ru" tags={tags} />
 
+  <CarouselNav track="articles" label="Статьи" />
+
   <div class="blog-list reveal reveal-delay-2" id="blog-list" data-carousel-track="articles">
     {
       pagePosts.map((post) => (
@@ -106,8 +108,6 @@ const counterpartHref = page === 1 ? withBase('en/writing/') : undefined;
       ))
     }
   </div>
-
-  <CarouselNav track="articles" label="Статьи" />
 
   {
     totalPages > 1 && (

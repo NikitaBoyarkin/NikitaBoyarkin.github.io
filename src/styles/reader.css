@@ -41,10 +41,13 @@
   gap: var(--space-5);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  /* Start padding stays 0 so a snapped slide sits flush with the scrollport;
-     only the end edge needs slack, for the case where an anchor or a focus
-     jump targets the last element in the last slide. */
-  scroll-padding-inline: 0 var(--space-4);
+  /* Both edges stay 0. An end `scroll-padding` shifts every snap position by
+     its own width: with `0 var(--space-4)` measured here, the track rested at
+     `scrollLeft = 16` after one "back" click — a slide nudged off the scrollport
+     edge, and a prev arrow that could never disable (`carousel.ts` tests
+     `scrollLeft <= 1`). The last slide already carries `--space-6` of its own
+     `padding-inline-end`, which is the slack the end padding was added for. */
+  scroll-padding-inline: 0;
   padding-block: var(--space-2) var(--space-6);
   /* The track is scrolled by arrows, dots, touch and trackpad — a native
      scrollbar would be a fourth, uglier control, and it steals height from
@@ -97,10 +100,30 @@
   scroll-margin-block-start: var(--space-6);
 }
 
+/* A flex row is as tall as its tallest slide — measured 2328px on a 14-slide
+   project page — so a nav rendered after the track is several screens below the
+   fold and unreachable while reading. Sticky pulls it up to the viewport edge
+   for the whole length of the track, then releases it at the parent's bottom.
+   Scoped to the reader: the blog and board carousels keep their static nav.
+   `@media screen` because paper has no viewport to stick to (the print block
+   below also hides the nav through `carousel.ts`'s `overflow` check). */
+@media screen {
+  .carousel-nav[data-carousel='reader'] {
+    position: sticky;
+    bottom: var(--space-4);
+    z-index: 2;
+    width: fit-content;
+    margin-inline: auto;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--background-primary);
+  }
+}
+
 /* Paper has no scrollport: a snap track would print as the single visible
    slide and clip every other one. Unfold it back into the vertical flow the
-   rest of the document uses — no gap, no snap, no scroll. */
-@media print {
+   rest of the document uses — no gap, no snap, no scroll. */@media print {
   .reader-track:has(> .reader-slide) {
     display: block;
     overflow: visible;

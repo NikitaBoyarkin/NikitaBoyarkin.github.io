@@ -52,6 +52,8 @@ const canonical = isGuides ? withBase('notes/guides/') : withBase('notes/');
     {intro}
   </p>
 
+  <CarouselNav track="articles" label="Заметки" />
+
   <div class="blog-list reveal reveal-delay-1" data-carousel-track="articles">
     {
       posts.length === 0 ? (
@@ -71,8 +73,6 @@ const canonical = isGuides ? withBase('notes/guides/') : withBase('notes/');
       )
     }
   </div>
-
-  <CarouselNav track="articles" label="Заметки" />
 
   <p style="margin-top: var(--space-8);">
     {isGuides ? (

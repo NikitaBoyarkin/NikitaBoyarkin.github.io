@@ -89,12 +89,14 @@ const nextLabel = isEn ? 'Scroll forward' : 'Вперёд';
       border-color 0.2s ease;
   }
 
-  .carousel-arrow:hover:not(:disabled) {
+  .carousel-arrow:hover:not([aria-disabled='true']) {
     color: var(--text-accent);
     border-color: var(--text-accent);
   }
 
-  .carousel-arrow:disabled {
+  /* `aria-disabled`, not `disabled`: the arrow must stay focusable at either
+     end of the row (WCAG 2.4.3 — see `setDisabled` in carousel.ts). */
+  .carousel-arrow[aria-disabled='true'] {
     opacity: 0.4;
     cursor: default;
   }

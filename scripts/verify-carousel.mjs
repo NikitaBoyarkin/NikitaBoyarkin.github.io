@@ -58,6 +58,7 @@ try {
     ['ru desktop', 'writing/', 1440],
     ['ru phone', 'writing/', 390],
     ['en desktop', 'en/writing/', 1440],
+    ['en phone', 'en/writing/', 390],
   ]) {
     const page = await open(width);
     await page.goto(`${baseUrl}${url}`, { waitUntil: 'networkidle', timeout: 30000 });
@@ -85,8 +86,19 @@ try {
     }
 
     check(`[${label}] nav is visible`, await nav.isVisible());
-    const prevDisabled = await page.locator('[data-carousel="articles"] [data-carousel-prev]').isDisabled();
-    check(`[${label}] prev disabled at the start`, prevDisabled);
+    // WCAG 2.4.3 — the arrow must stay in the tab order at the start of the row.
+    // A `disabled` button cannot take focus at all, so focus falls to <body> and
+    // the reader is thrown to the top of the document.
+    const prev = page.locator('[data-carousel="articles"] [data-carousel-prev]');
+    check(
+      `[${label}] prev is aria-disabled at the start`,
+      (await prev.getAttribute('aria-disabled')) === 'true',
+    );
+    await prev.focus();
+    check(
+      `[${label}] prev keeps focus while aria-disabled`,
+      await prev.evaluate((el) => document.activeElement === el),
+    );
 
     const dots = await page.locator('[data-carousel="articles"] .carousel-dot').count();
     check(`[${label}] dots rendered`, dots > 0, `${dots} dots`);
@@ -177,6 +189,51 @@ try {
     );
     check(`${tag} nav is visible`, await page.locator('[data-carousel="projects"]').isVisible());
 
+    // Tab order: the controls must come before 27 cards, not after them.
+    const navFirst = await page.$eval('#project-list', (track) => {
+      const nav = document.querySelector('[data-carousel="projects"]');
+      return !!nav && (track.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_PRECEDING) !== 0;
+    });
+    check(`${tag} nav precedes the board in tab order`, navFirst);
+
+    // WCAG 2.4.7 — a focused card must stay inside the scrollport. Mandatory
+    // snap used to pull the row back after the browser scrolled focus into view.
+    // Driven by real Tab presses: the handler is gated on `:focus-visible`, so a
+    // scripted `focus()` after a mouse click is deliberately a no-op.
+    await page.locator('[data-carousel="projects"] [data-carousel-next]').click();
+    await page.waitForTimeout(700);
+    const peekIndex = await page.evaluate(() => {
+      const track = document.getElementById('project-list');
+      const box = track.getBoundingClientRect();
+      return Array.from(track.children).findIndex((card) => {
+        const b = card.getBoundingClientRect();
+        return b.left < box.right - 2 && b.right > box.right + 2;
+      });
+    });
+    await page.locator('[data-carousel="projects"] [data-carousel-next]').focus();
+    let landed = false;
+    for (let i = 0; i < 20 && !landed; i += 1) {
+      await page.keyboard.press('Tab');
+      landed = await page.evaluate(
+        (index) => !!document.getElementById('project-list').children[index]?.contains(document.activeElement),
+        peekIndex,
+      );
+    }
+    await page.waitForTimeout(500);
+    const focusCheck = await page.evaluate((index) => {
+      const track = document.getElementById('project-list');
+      const card = track.children[index];
+      if (!card) return { visible: false };
+      const box = track.getBoundingClientRect();
+      const b = card.getBoundingClientRect();
+      return { visible: b.left >= box.left - 2 && b.right <= box.right + 2 };
+    }, peekIndex);
+    check(
+      `${tag} tabbing into a peeking card pulls it into view`,
+      peekIndex > 0 && landed && focusCheck.visible,
+      JSON.stringify({ peekIndex, landed, ...focusCheck }),
+    );
+
     // `0 20px 40px` reaches 40px below the card; less padding than that clips
     // the shadow along a hard line under the row.
     const padBottom = await page.$eval('#project-list', (el) => parseFloat(getComputedStyle(el).paddingBottom));
@@ -253,21 +310,36 @@ try {
         hasDots: !!dotsEl,
         dotsHidden: dotsEl ? dotsEl.hidden : false,
         text: live ? live.textContent || '' : '',
+        live: live ? live.getAttribute('aria-live') : null,
       };
     });
     check('[projects 390] the dots container exists', state.hasDots);
     check('[projects 390] dots retire past twelve pages', state.dotsHidden);
-    // Nothing the reader asked for has happened yet, so nothing is announced.
-    check('[projects 390] no announcement on load', state.text === '', state.text || 'silent');
+    // WCAG 1.3.1 — the position is readable without moving the row first.
+    check(
+      '[projects 390] the position is readable on load',
+      /(Страница 1 из \d+|Page 1 of \d+)/.test(state.text),
+      state.text || 'empty',
+    );
+    // …but silent: `role=status` implies polite, and the explicit `off` keeps
+    // the initial value out of the announcement queue.
+    check('[projects 390] the live region is silent on load', state.live === 'off', String(state.live));
     await page.locator('[data-carousel="projects"] [data-carousel-next]').click();
     await page.waitForTimeout(700);
-    const after = await page.$eval('[data-carousel="projects"] [role="status"]', (el) => el.textContent || '');
+    const after = await page.$eval('[data-carousel="projects"] [role="status"]', (el) => ({
+      text: el.textContent || '',
+      live: el.getAttribute('aria-live'),
+    }));
+    // The text alone proves nothing: it is present on load. The announcement is
+    // the pair — a new page number *and* a region armed to speak it.
     check(
-      '[projects 390] the page number is announced instead',
-      /(Страница \d+ из \d+|Page \d+ of \d+)/.test(after),
-      after || 'empty live region',
+      '[projects 390] moving the row announces the new position',
+      after.live === 'polite' &&
+        after.text !== state.text &&
+        /(Страница 2 из \d+|Page 2 of \d+)/.test(after.text),
+      `${state.text} → ${after.text} (aria-live=${after.live})`,
     );
-    check('[projects 390] the announcement follows the scroll', after !== state.text, `${state.text} → ${after}`);
+    check('[projects 390] moving the row arms the live region', after.live === 'polite', String(after.live));
     await page.close();
   }
 
@@ -286,6 +358,10 @@ try {
     check('[manager] the curated board rendered its cards', sorted.length > 0, `${sorted.length} cards`);
     check('[manager] no sort select on a curated board', (await page.locator('#board-sort').count()) === 0);
     check('[manager] no reset button on a curated board', (await page.locator('#board-reset').count()) === 0);
+    // Ignoring `?sort=` is not enough: leaving it in the address bar promises a
+    // control that is not on the page, and it survives a copy-paste.
+    const search = await page.evaluate(() => location.search);
+    check('[manager] the ignored ?sort= is stripped from the address', !/[?&]sort=/.test(search), search || 'no query');
 
     await page.goto(`${baseUrl}manager/`, { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForTimeout(300);

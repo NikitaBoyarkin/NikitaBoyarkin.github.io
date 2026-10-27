@@ -74,6 +74,8 @@ const nextUrl = page < totalPages ? `${siteUrl}${withBase(pageHref(page + 1))}` 
 
   <BlogFilter lang="en" tags={tags} />
 
+  <CarouselNav track="articles" label="Articles" lang="en" />
+
   <div class="blog-list reveal reveal-delay-2" id="blog-list" data-carousel-track="articles">
     {
       pagePosts.length === 0 ? (
@@ -95,8 +97,6 @@ const nextUrl = page < totalPages ? `${siteUrl}${withBase(pageHref(page + 1))}` 
       )
     }
   </div>
-
-  <CarouselNav track="articles" label="Articles" lang="en" />
 
   {
     totalPages > 1 && (

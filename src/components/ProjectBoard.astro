@@ -131,6 +131,13 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
     </button>
   </p>
 
+  {/* The board is a snap row at every width (`global.css`, keyed on
+      `.project-board-cover`), so the arrows are the pointer-less path through
+      it. A short row that fits needs no nav: the module measures the overflow
+      and keeps itself `hidden`. Rendered *before* the list, or the controls sit
+      behind every card's tab stops — 27 of them on this board. */}
+  <CarouselNav track="projects" label={lang === 'en' ? 'Projects' : 'Проекты'} lang={lang} />
+
   <div
     id="project-list"
     data-carousel-track="projects"
@@ -161,12 +168,6 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
       ))
     }
   </div>
-
-  {/* The board is a snap row at every width (`global.css`, keyed on
-      `.project-board-cover`), so the arrows are the pointer-less path through
-      it. A short row that fits needs no nav: the module measures the overflow
-      and keeps itself `hidden`. */}
-  <CarouselNav track="projects" label={lang === 'en' ? 'Projects' : 'Проекты'} lang={lang} />
 </section>
 
 <script>
@@ -491,6 +492,21 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
     });
 
     readUrl();
+    // A curated board has no sort control, so a `?sort=` left in the address bar
+    // from a shared or stale link promises a control that is not there. Once, at
+    // init — not inside `readUrl`, which `popstate` calls to restore an entry.
+    if (!sortSelect) {
+      const params = new URLSearchParams(location.search);
+      if (params.has('sort')) {
+        params.delete('sort');
+        const query = params.toString();
+        history.replaceState(
+          null,
+          '',
+          `${location.pathname}${query ? `?${query}` : ''}${location.hash}`,
+        );
+      }
+    }
     apply();
     applySort();
   }

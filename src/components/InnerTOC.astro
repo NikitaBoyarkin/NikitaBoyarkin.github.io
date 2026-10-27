@@ -80,12 +80,43 @@ const isEn = lang === 'en';
       });
     }
 
+    /** The reader carousel, when this body is one. Slides are flex items in a
+     *  single row, so every heading shares one `offsetTop` and only the track's
+     *  own scroll offset says which one the reader is looking at. Re-resolved on
+     *  every call rather than cached: the same markup is a plain column at the
+     *  widths where it does not overflow, and `carousel.ts` swaps the track on
+     *  filter refreshes. */
+    function slideTrack() {
+      // Resolve from a heading that is actually inside a slide: some bodies keep
+      // an h2/h3 above the track, and `headers[0]` then has no track ancestor.
+      const holder = headers.find((h) => h.closest('.reader-slide')) ?? headers[0];
+      const track = holder.closest('[data-carousel-track]');
+      if (!track) return null;
+      return track.scrollWidth - track.clientWidth > 1 ? track : null;
+    }
+
     function updateActive() {
+      const track = slideTrack();
       const pos = window.scrollY + 160;
       let current = '';
-      for (let i = 0; i < headers.length; i++) {
-        const h = headers[i];
-        if (h.offsetTop <= pos) current = h.id;
+      if (track) {
+        // Position, not `data-slide`: the intro block is slide 0 but sits at
+        // offset 0, so slide numbering and physical order drift apart — on a
+        // post whose intro is `data-slide="0"` a "slide 2" lives at 719px.
+        const edge = track.scrollLeft + track.clientWidth / 2;
+        const base = track.getBoundingClientRect().left - track.scrollLeft;
+        for (const h of headers) {
+          const slide = h.closest('.reader-slide');
+          if (slide) {
+            if (slide.getBoundingClientRect().left - base <= edge) current = h.id;
+          } else if (h.offsetTop <= pos) {
+            // A heading outside the track (the FAQ block below it) still follows
+            // the page's vertical scroll.
+            current = h.id;
+          }
+        }
+      } else {
+        for (const h of headers) if (h.offsetTop <= pos) current = h.id;
       }
       document.querySelectorAll('#inner-toc a').forEach((a) => {
         const isActive = a.dataset.id === current;
@@ -97,7 +128,9 @@ const isEn = lang === 'en';
     }
 
     updateActive();
-    window.addEventListener('scroll', updateActive, { passive: true });
+    // Capture phase: a horizontal track's `scroll` does not bubble to `window`,
+    // so the old window listener never saw the reader move between slides.
+    document.addEventListener('scroll', updateActive, { passive: true, capture: true });
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -108,13 +141,37 @@ const isEn = lang === 'en';
       if (!id) return;
       const target = document.getElementById(id);
       if (!target) return;
-      e.preventDefault();
-      const offset = 110;
-      const top = window.scrollY + target.getBoundingClientRect().top - offset;
-      window.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });
-      // The default anchor jump was prevented, so move focus to the target
-      // heading — otherwise keyboard/SR users stay "at" the TOC link while
-      // visually at the section (WCAG 2.4.3).
+      // In the carousel the horizontal axis is the one that matters, and the
+      // browser's own alignment is not usable here: `scrollIntoView` scrolls
+      // only far enough to make the heading *visible* (measured: a heading
+      // 405px into slide 2 left the track at 719, still showing slide 1), and
+      // the native hash does the same. Drive the track to the slide's own
+      // offset — that is its snap position — and let the page follow.
+      const track = slideTrack();
+      if (track) {
+        e.preventDefault();
+        const behaviour = reduceMotion ? 'auto' : 'smooth';
+        const slide = target.closest('.reader-slide');
+        if (slide) {
+          // Offset from the track, not `offsetLeft`: the slide's offsetParent is
+          // `body`, so `offsetLeft` also carries the track's own x position
+          // (measured 1124 here where the track-relative offset is 719).
+          const left =
+            slide.getBoundingClientRect().left - track.getBoundingClientRect().left + track.scrollLeft;
+          track.scrollTo({ left, behavior: behaviour });
+        }
+        const top = window.scrollY + track.getBoundingClientRect().top - 110;
+        window.scrollTo({ top: Math.max(0, top), behavior: behaviour });
+        history.replaceState(null, '', `#${id}`);
+      } else {
+        e.preventDefault();
+        const offset = 110;
+        const top = window.scrollY + target.getBoundingClientRect().top - offset;
+        window.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });
+      }
+      // Focus moves either way: keyboard/SR users must land on the section, not
+      // stay "at" the TOC link (WCAG 2.4.3). `preventScroll` leaves the scroll
+      // to the hash, which already knows about the track.
       target.tabIndex = -1;
       target.focus({ preventScroll: true });
 
