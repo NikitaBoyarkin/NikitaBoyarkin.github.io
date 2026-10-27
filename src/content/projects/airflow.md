@@ -5,7 +5,7 @@ star:
   situation: "Ручной отчёт из Postgres в Google Sheets давал задержки, ошибки копирования и полное отсутствие воспроизводимости"
   task: "Заменить ручную выгрузку воспроизводимым идемпотентным пайплайном с DQ-валидацией, алертами и метриками запусков"
   action: "Платформа на Airflow 3: DAG-шаблон fetch → validate → write → record_metrics и shared-модули config, dq, alerts, metrics, output, windows"
-  result: "Три DAG-а по общему шаблону, 69 тестов без Airflow-сервисов и БД; полный прогон DAG занимает 440 с, из них задача forecast — 413 с"
+  result: "Три DAG-а по общему шаблону, 72 теста без Airflow-сервисов и БД; полный прогон DAG занимает 440 с, из них задача forecast — 413 с"
 track: engineering
 hero: images/airflow.svg
 ogImage: /images/og/airflow.png
@@ -97,12 +97,12 @@ uv run python scripts/metrics_report.py --days 7
 uv run ruff check .          # линт: E,W,F,I,B,C4,UP
 uv run ruff format --check .
 uv run mypy                  # dags/, scripts/, tests/
-uv run pytest                # 69 тестов, хуки замоканы
+uv run pytest                # 72 теста, хуки замоканы
 ```
 
 ## Результат
 
-Платформа доводит три отчёта до приёмника по расписанию, каждый — отдельный версионируемый DAG. Качество держится на четырёх гейтах CI: `ruff check`, `ruff format --check`, `mypy` и `pytest` проходят на 69 тестах, которым не нужны ни Airflow-сервисы, ни живая БД (хуки замоканы). Конфигурация целиком вынесена в Airflow Variables с префиксом `AIRFLOW_CFG_`, а dev-режим `output="file"` работает без внешних API.
+Платформа доводит три отчёта до приёмника по расписанию, каждый — отдельный версионируемый DAG. Качество держится на четырёх гейтах CI: `ruff check`, `ruff format --check`, `mypy` и `pytest` проходят на 72 тестах, которым не нужны ни Airflow-сервисы, ни живая БД (хуки замоканы). Конфигурация целиком вынесена в Airflow Variables с префиксом `AIRFLOW_CFG_`, а dev-режим `output="file"` работает без внешних API.
 
 - **Замер прогона:** полный DAG проходит за 440 с, из них задача `forecast` — 413 с.
 

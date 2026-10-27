@@ -15,7 +15,7 @@ impact:
   - "AOV £538.79 → £326.14 (−39.5%) — the signature of the injection: the largest invoices were removed, not the average ones"
   - "Guest addend +£232,018.44: guests are 33.4% of November GMV and are never hidden inside AOV"
   - "Factor tree on the named population: users +£58,313.86, orders/user +£24,719.26, AOV −£430,402.20, symmetric midpoint residual −£202.43 (0.06%)"
-  - "8 tests: factor reconciliation, verdict inside the injected ground-truth tier, regression against a guest-polluted tree"
+  - "9 tests: factor reconciliation, verdict inside the injected ground-truth tier, regression against a guest-polluted tree"
 tools:
   - Python
   - pandas
@@ -54,7 +54,7 @@ I needed to decompose the drop down to a concrete segment and prove the attribut
 
 **Dashboard.** An executive report with findings: reconciliation, tree, top segments and the population caveats.
 
-**Checks.** Eight tests: `Σ factors + residual == ΔGMV_named`, `GMV_named + GMV_guest == GMV_total`, headline numbers pinned with tolerances, the verdict inside the injected tier, and a regression that fails if the tree's base GMV is ever guest-polluted again.
+**Checks.** Nine tests: `Σ factors + residual == ΔGMV_named`, `GMV_named + GMV_guest == GMV_total`, headline numbers pinned with tolerances, the verdict inside the injected tier, and a regression that fails if the tree's base GMV is ever guest-polluted again.
 
 ## Result
 
@@ -80,4 +80,4 @@ The tree's midpoint residual of −£202.43 (0.06%) is a property of a point dec
 
 - `PRD.md` — problem statement and acceptance criteria (kept at the project root).
 - Quick start: `uv sync` → `uv run python scripts/inject_drop.py` → `uv run python scripts/rca.py` → `uv run python scripts/build_dashboard.py`.
-- `uv run pytest` — 8 tests, including reconciliation and the ground-truth tier check.
+- `uv run pytest` — 9 tests, including reconciliation and the ground-truth tier check.

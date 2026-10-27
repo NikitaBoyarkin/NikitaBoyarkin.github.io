@@ -79,7 +79,7 @@ A campaign pays off only when incremental purchases outweigh incremental unsubsc
 
 ### Exposure window and guardrails
 
-The `Is Exposed = True` metric anchors both arms at the first exposure day. On a persistent effect that is a horizon anchor, not a standard-error cut; on a transient effect the effect-to-SE ratio rises from 7.55 to 12.28. The metric hierarchy — OEC (revenue), drivers, proxies, debug metrics and guardrails — is explicit so no single metric is optimized alone.
+The `Is Exposed = True` metric anchors both arms at the first exposure day. On a persistent effect that is a horizon anchor, not a standard-error cut; on a transient effect the effect-to-SE ratio rises from 7.62 to 12.42. The metric hierarchy — OEC (revenue), drivers, proxies, debug metrics and guardrails — is explicit so no single metric is optimized alone.
 
 ### A/B readout
 

@@ -5,7 +5,7 @@ star:
   situation: "A hand-run report from Postgres into Google Sheets produced delays, copy errors and no reproducibility at all"
   task: "Replace the manual export with a reproducible, idempotent pipeline with DQ validation, failure alerts and run metrics"
   action: "A platform on Airflow 3: the DAG template fetch → validate → write → record_metrics and the shared modules config, dq, alerts, metrics, output, windows"
-  result: "Three DAGs on one shared template and 69 tests without Airflow services or a DB; the full DAG runs in 440 s, 413 s of it in the forecast task"
+  result: "Three DAGs on one shared template and 72 tests without Airflow services or a DB; the full DAG runs in 440 s, 413 s of it in the forecast task"
 track: engineering
 hero: images/airflow.svg
 ogImage: /images/og/airflow.png
@@ -97,12 +97,12 @@ uv run python scripts/metrics_report.py --days 7
 uv run ruff check .          # lint: E,W,F,I,B,C4,UP
 uv run ruff format --check .
 uv run mypy                  # dags/, scripts/, tests/
-uv run pytest                # 69 tests, hooks mocked
+uv run pytest                # 72 tests, hooks mocked
 ```
 
 ## Result
 
-The platform drives three reports to their sink on schedule, each a versioned DAG of its own. Quality rests on four CI gates: `ruff check`, `ruff format --check`, `mypy` and `pytest` all pass across 69 tests that need neither Airflow services nor a live database (hooks are mocked). Configuration is fully externalised into Airflow Variables under the `AIRFLOW_CFG_` prefix, and the dev mode `output="file"` runs without any external API.
+The platform drives three reports to their sink on schedule, each a versioned DAG of its own. Quality rests on four CI gates: `ruff check`, `ruff format --check`, `mypy` and `pytest` all pass across 72 tests that need neither Airflow services nor a live database (hooks are mocked). Configuration is fully externalised into Airflow Variables under the `AIRFLOW_CFG_` prefix, and the dev mode `output="file"` runs without any external API.
 
 - **Measured run:** the full DAG takes 440 s, with the `forecast` task alone at 413 s.
 

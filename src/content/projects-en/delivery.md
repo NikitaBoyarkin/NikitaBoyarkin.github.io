@@ -14,7 +14,7 @@ impact:
   - "Delivery time does not grow with volume: rho = −0.092, the gap between extreme load deciles is 0.64 min."
   - "Category matters more than channel: snacks ≈40.0 min against pizza ≈26.5 min — a +13.4 min (+50%) gap."
   - "The mp share inside the mp+web pair grew from 81.9% to 87.6% (+5.7 pp, p = 2.1e-11)."
-  - "14 window SQL queries; best optimization 5.66× on 130,079 rows (62.3 → 11.0 ms)."
+  - "14 window SQL queries; best optimization 4–6× on 130,079 rows (62–71 → 11–17 ms)."
   - "Weekends are not slower: −0.93%, p = 1.1e-41 — a significant effect in the opposite direction, so the hypothesis was rejected, not dressed up as a weak effect."
 tools:
   - python
@@ -79,7 +79,7 @@ Three views on one question. The channel × category decomposition: snacks ≈40
 
 ### SQL and presentation
 
-`sql/windows.sql` holds 14 named window queries: moving averages, weekly growth, ranks, Pareto, 3×MA7 anomalies, gaps between a client's orders. Three slow/fast pairs under `EXPLAIN ANALYZE`: 5.66×, 3.23× and 1.27×; the best is a running order count over 130,079 rows (62.3 → 11.0 ms).
+`sql/windows.sql` holds 14 named window queries: moving averages, weekly growth, ranks, Pareto, 3×MA7 anomalies, gaps between a client's orders. Three slow/fast pairs under `EXPLAIN ANALYZE`: the best is 4–6× on a running order count over 130,079 rows (62–71 → 11–17 ms), the other two are 1.3–3.2×. Run-to-run variance is up to ±30%, so the speedups are an order of magnitude, not an exact figure.
 
 The dashboard is a single offline HTML file of ≈81 KB with no CDN and no client-side requests, split into three role blocks: operations, commerce, leadership. The Superset recipe in `superset/` is written but was never started: Docker is unavailable on the build machine, and the README says so instead of hiding it.
 
