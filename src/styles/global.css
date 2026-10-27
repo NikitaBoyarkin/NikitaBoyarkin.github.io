@@ -514,18 +514,11 @@ p {
    secondary-neutral surfaces visible right under the hero. The kanban columns
    also switch to translucent secondary so the gaps/headers add 30% bucket area,
    while cards keep their dominant surface role. */
-.home-board {
-  background: var(--surface-secondary);
-  padding-block: var(--space-6);
-}
 
 :root {
   --home-board-bg: var(--surface-secondary);
 }
 
-.home-board {
-  background: var(--home-board-bg);
-}
 
 /* Role switcher — the strip above the hero on the three role landings
    (/hr/, /manager/, /colleague/ and their EN mirrors), per
@@ -581,41 +574,17 @@ p {
   font-size: 0.9375rem;
 }
 
-@media (max-width: 767px) {
-  /* Mobile: narrow the audience bar and shrink the home-board band so less
-     30% surface area competes with the text bucket on small screens. */
-  .home-board {
-    padding-block: 0;
-  }
-}
 
-@media (min-width: 768px) and (max-width: 1099px) {
-  /* Tablet: a large secondary band above the board pushes the dominant
-     snap-scroll column out of the initial viewport so the 60% bucket
-     stays within budget. */
-  .home-board {
-    padding-block: 2.5rem;
-  }
-}
 
 @media (min-width: 1100px) {
-  .home-board {
-    padding-block: 3rem;
-  }
   #page-board {
     padding-top: var(--space-8);
-  }
-  #page-board .kanban-column {
-    background: color-mix(in srgb, var(--surface-secondary) 70%, transparent);
   }
   /* Cyberpunk desktop: the board is already mostly secondary cards/gaps, so
      shrink the top/bottom secondary band just enough to drop the 30% bucket
      under 35 without pushing 60% over 65. The hiring-order note is also
      stretched a little to add a mid-tone 60% strip between the audience bar
      and the board, diluting the 30% share. */
-  [data-theme="cyberpunk"] .home-board {
-    padding-block: 6.4rem;
-  }
   [data-theme="cyberpunk"] .audience-bar + .audience-note {
     padding-block: var(--space-3);
     margin-bottom: var(--space-6);
@@ -1128,27 +1097,7 @@ nav ul.links a[aria-current="page"] {
   opacity: 0.8;
 }
 
-.photo-placeholder {
-  width: 280px;
-  height: 280px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 3px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  background: var(--background-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 10px 40px var(--shadow-color);
-}
 
-.photo-placeholder:hover {
-  transform: scale(1.03);
-  border-color: color-mix(in srgb, var(--text-accent) 50%, transparent);
-  box-shadow: 0 20px 50px
-    color-mix(in srgb, var(--text-accent) 12%, transparent);
-}
 
 .profile-image {
   width: 100%;
@@ -2448,31 +2397,12 @@ footer p {
     justify-content: center;
   }
 
-  .photo-placeholder {
-    width: 250px;
-    height: 250px;
-  }
 
   #toc {
     display: none;
   }
 
   /* Compact hero on tablet so more of the secondary home-board shows. */
-  #intro:has(.intro-container-slim) {
-    padding-block: var(--space-4);
-    margin-bottom: var(--space-4);
-  }
-  .intro-container-slim .intro-content .tagline {
-    font-size: 1rem;
-    margin-bottom: var(--space-1);
-  }
-  .intro-container-slim .intro-content .subtitle {
-    font-size: 0.9rem;
-    margin-bottom: var(--space-1);
-  }
-  .intro-container-slim .cta-row {
-    margin-top: var(--space-1);
-  }
   #intro .hero-metrics {
     margin-top: var(--space-1);
   }
@@ -2541,10 +2471,6 @@ footer p {
     font-size: 1rem;
   }
 
-  .photo-placeholder {
-    width: 200px;
-    height: 200px;
-  }
 
   .skill-badge {
     font-size: 0.8rem;
@@ -2591,42 +2517,11 @@ footer p {
   }
 }
 
-.skeleton-card {
-  background: var(--background-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
-  min-height: 320px;
-}
 
-.skeleton-img {
-  width: 100%;
-  height: 200px;
-  border-radius: var(--radius-lg);
-  margin-bottom: var(--space-4);
-}
 
-.skeleton-title {
-  width: 60%;
-  height: 1.5rem;
-  margin-bottom: var(--space-3);
-}
 
-.skeleton-text {
-  width: 100%;
-  height: 0.875rem;
-  margin-bottom: var(--space-2);
-}
 
-.skeleton-text.short {
-  width: 80%;
-}
 
-.skeleton-btn {
-  width: 120px;
-  height: 2.5rem;
-  margin-top: var(--space-4);
-}
 
 /* Prefers reduced motion */
 @media (prefers-reduced-motion: reduce) {
@@ -3017,7 +2912,7 @@ button:focus-visible {
 }
 
 /* ============================================================
-   Additions: site-wide search, material strip, taxonomy levels
+   Additions: site-wide search, taxonomy levels
    (podbiratel-inspired). No palette changes; reuses theme vars.
    ============================================================ */
 
@@ -3314,92 +3209,6 @@ textarea::placeholder {
 }
 
 /* ---------- Material strip ---------- */
-.material-strip {
-  display: flex;
-  gap: var(--space-4);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding-bottom: var(--space-3);
-  margin-bottom: var(--space-4);
-  scrollbar-width: thin;
-}
-.material-strip::-webkit-scrollbar {
-  height: 6px;
-}
-.material-strip::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
-}
-.strip-card {
-  scroll-snap-align: start;
-  flex: 0 0 280px;
-  display: flex;
-  flex-direction: column;
-  background: var(--background-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  text-decoration: none;
-  color: var(--text-normal);
-  transition:
-    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
-}
-.strip-card:hover {
-  transform: translateY(-4px);
-  border-color: color-mix(in srgb, var(--text-accent) 40%, transparent);
-  box-shadow: 0 14px 30px var(--shadow-color);
-}
-.strip-card img {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-  background: var(--background-tertiary);
-}
-.strip-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: var(--space-4);
-}
-.strip-title {
-  font-weight: 600;
-  font-size: 1rem;
-  line-height: 1.4;
-}
-.strip-meta {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-}
-.strip-badge {
-  align-self: flex-start;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 0.12rem 0.5rem;
-  border-radius: var(--radius-full);
-  color: var(--text-accent);
-  background: color-mix(in srgb, var(--text-accent) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--text-accent) 22%, transparent);
-}
-.strip-badge-project {
-  color: var(--accent-ink);
-  background: var(--text-accent);
-  border-color: var(--text-accent);
-}
-.strip-card-featured {
-  flex: 0 0 340px;
-}
-.strip-foot {
-  margin-top: var(--space-2);
-}
-.strip-foot a {
-  color: var(--text-accent);
-  text-decoration: none;
-  font-weight: 500;
-}
 
 /* ---------- Taxonomy level headings ---------- */
 .level-heading {
@@ -3424,14 +3233,6 @@ textarea::placeholder {
   color: var(--text-muted);
 }
 
-@media (max-width: 480px) {
-  .strip-card {
-    flex-basis: 240px;
-  }
-  .strip-card-featured {
-    flex-basis: 280px;
-  }
-}
 
 /* ============================================================
    Projects board — category (track) + tool filters.
@@ -3738,222 +3539,12 @@ textarea::placeholder {
   display: none;
 }
 
-#page-board .kanban-column {
-  flex: 0 0 85vw;
-  min-width: 85vw;
-  max-width: 85vw;
-  scroll-snap-align: start;
-}
 
-@media (min-width: 640px) {
-  #page-board .kanban-column {
-    flex: 0 0 60vw;
-    min-width: 60vw;
-    max-width: 60vw;
-  }
-}
 
 @media (min-width: 1100px) {
   #page-board {
     overflow-x: visible;
   }
-  #page-board .kanban-column {
-    flex: 1 1 0;
-    min-width: 0;
-    max-width: none;
-    scroll-snap-align: none;
-  }
-  #page-board .kanban-column-sticky {
-    flex: 0 0 320px;
-    min-width: 320px;
-    max-width: 320px;
-  }
-}
-
-.kanban-project-body {
-  display: flex;
-  flex-direction: column;
-  padding-top: 0;
-  flex: 1 1 0;
-  min-height: 0;
-}
-
-/* Spotlight fills the Проекты column: the featured card stretches to the
-   full column width and height (the board stretches columns to equal height),
-   with the actions pinned to the bottom. */
-.kanban-column-projects {
-  display: flex;
-  flex-direction: column;
-}
-.project-spotlight {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0;
-  min-height: 0;
-}
-.spotlight-stage {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0;
-  min-height: 0;
-}
-.spotlight-slide {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0;
-  min-height: 0;
-}
-.spotlight-slide .project {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0;
-  min-height: 0;
-  width: 100%;
-  max-width: 860px;
-  margin-inline: auto;
-  justify-content: space-between;
-}
-.spotlight-slide .project .project-actions {
-  margin-top: 0;
-  padding-top: var(--space-5);
-}
-
-/* ============================================================
-   Project spotlight — single full-width project card inside the
-   Проекты column, switched by category tabs with prev/next cycling.
-   Scoped overrides undo the compact .kanban-column card look so the
-   one visible card renders as a large featured card.
-   ============================================================ */
-
-.spotlight-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-}
-
-.spotlight-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-color);
-  background: var(--background-secondary);
-  color: var(--text-normal);
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.2;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.spotlight-tab:hover {
-  border-color: color-mix(in srgb, var(--text-accent) 40%, transparent);
-}
-
-.spotlight-tab.active {
-  background: color-mix(in srgb, var(--text-accent) 12%, transparent);
-  border-color: color-mix(in srgb, var(--text-accent) 45%, transparent);
-  color: var(--text-accent);
-}
-
-.spotlight-tab-count {
-  font-size: 0.72rem;
-  font-weight: 600;
-  line-height: 1;
-  /* Count pill on --background-tertiary: --text-muted is 4.34:1 in dark. */
-  color: var(--text-normal);
-  background: var(--background-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
-  padding: 2px 6px;
-}
-
-.spotlight-tab.active .spotlight-tab-count {
-  color: var(--text-accent);
-  border-color: color-mix(in srgb, var(--text-accent) 30%, transparent);
-}
-
-.spotlight-slide[hidden] {
-  display: none;
-}
-
-/* Featured card: undo the compact kanban-column project styles. */
-.spotlight-slide .project {
-  padding: var(--space-6);
-  border-radius: var(--radius-xl);
-}
-
-.spotlight-slide .project img {
-  height: clamp(180px, 26vh, 300px);
-  border-radius: var(--radius-lg);
-  margin-bottom: var(--space-4);
-}
-
-.spotlight-slide .project h3 {
-  font-size: 1.25rem;
-  margin-bottom: var(--space-3);
-}
-
-.spotlight-slide .project p {
-  font-size: 0.95rem;
-  margin-bottom: var(--space-4);
-}
-
-.spotlight-slide .project .Impact {
-  font-size: 0.875rem;
-  margin-bottom: var(--space-5);
-}
-
-.spotlight-slide .project-tool {
-  font-size: 0.8rem;
-}
-
-.spotlight-slide .project .project-grip {
-  display: none;
-}
-
-.spotlight-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin-top: var(--space-4);
-}
-
-.spotlight-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-color);
-  background: var(--background-secondary);
-  color: var(--text-normal);
-  font-size: 1rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.spotlight-nav-btn:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--text-accent) 45%, transparent);
-  color: var(--text-accent);
-  transform: translateY(-2px);
-}
-
-.spotlight-nav-btn:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.spotlight-progress {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
 }
 
 /* Board cards — sticky-note cards inside the Profile / Now columns. */
@@ -3970,142 +3561,18 @@ textarea::placeholder {
   box-shadow: 0 8px 20px var(--shadow-color);
 }
 
-.board-card-photo {
-  padding: 0;
-  overflow: hidden;
-}
-.board-card-photo img {
-  width: 100%;
-  height: 260px;
-  object-fit: cover;
-  display: block;
-}
 
-.board-card-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-normal);
-  margin-bottom: var(--space-3);
-  letter-spacing: -0.01em;
-}
 
-.board-card-text {
-  color: var(--text-normal);
-  font-size: var(--text-body);
-  line-height: 1.5;
-  margin-bottom: var(--space-3);
-}
 
-.board-card-experience {
-  margin-bottom: var(--space-3);
-}
 
-.board-card-open-to {
-  color: var(--text-accent) !important;
-  font-weight: 600;
-  font-size: 0.9rem;
-  margin-bottom: var(--space-3);
-}
 
-.board-card-link {
-  color: var(--text-accent);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.92rem;
-}
-.board-card-link:hover {
-  color: var(--text-accent-hover);
-  text-decoration: underline;
-}
 
-.board-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-.board-chip {
-  background: color-mix(in srgb, var(--text-accent) 8%, transparent);
-  color: var(--text-accent);
-  border: 1px solid color-mix(in srgb, var(--text-accent) 20%, transparent);
-  border-radius: var(--radius-full);
-  padding: 0.25rem 0.7rem;
-  font-size: 0.78rem;
-  font-weight: 500;
-}
 
-.board-metrics {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-}
-.board-metric-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-accent);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-.board-metric-label {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  margin-top: 0.25rem;
-}
 
-.board-links {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-.board-links a {
-  color: var(--text-accent);
-  text-decoration: none;
-  font-size: 0.92rem;
-}
-.board-links a:hover {
-  color: var(--text-accent-hover);
-  text-decoration: underline;
-}
 
 /* Slim homepage hero (photo + long text moved into the kanban Profile column). */
-.intro-container-slim {
-  display: block;
-  max-width: 900px;
-  margin: 0 auto;
-  text-align: center;
-}
-.intro-container-slim .intro-content {
-  text-align: center;
-}
-.intro-container-slim .cta-row {
-  justify-content: center;
-}
-#intro:has(.intro-container-slim) {
-  padding: var(--space-8) 0;
-  margin-bottom: var(--space-8);
-}
 
 @media (max-width: 480px) {
-  .intro-container-slim .intro-content .tagline {
-    font-size: 0.95rem;
-    margin-bottom: var(--space-1);
-  }
-  .intro-container-slim .intro-content .subtitle {
-    font-size: 0.85rem;
-    margin-bottom: var(--space-1);
-  }
-  #intro:has(.intro-container-slim) {
-    padding-block: var(--space-1);
-    margin-bottom: var(--space-1);
-    max-height: 47vh;
-  }
-  .intro-container-slim .cta-row {
-    margin-top: var(--space-1);
-    gap: var(--space-2);
-  }
   #intro .hero-metrics {
     margin-top: var(--space-1);
     gap: var(--space-2);
