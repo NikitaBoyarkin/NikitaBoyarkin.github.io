@@ -205,9 +205,20 @@ try {
     await page.waitForTimeout(300);
     const byDate = await order();
     check('[projects sort] newest-first reorders the board', byDate.join() !== curated.join());
-    const dates = await page.$$eval('#project-list .project', (els) => els.map((el) => el.dataset.date));
-    const descending = dates.every((d, i) => i === 0 || dates[i - 1] >= d);
-    check('[projects sort] dates descend inside the board', descending);
+    // Per track, not across the board: the sort re-sorts inside each track and
+    // the boards stay grouped, so a global descending check would fail by design.
+    const outOfOrder = await page.$$eval('#project-list .project', (els) => {
+      const byTrack = new Map();
+      for (const el of els) {
+        const key = el.dataset.track || '';
+        if (!byTrack.has(key)) byTrack.set(key, []);
+        byTrack.get(key).push(el.dataset.date || '');
+      }
+      return [...byTrack.values()].filter((dates) =>
+        dates.some((d, i) => i > 0 && dates[i - 1] < d),
+      ).length;
+    });
+    check('[projects sort] dates descend inside every track', outOfOrder === 0, `${outOfOrder} tracks out`);
 
     await page.click('#board-reset');
     await page.waitForTimeout(300);
