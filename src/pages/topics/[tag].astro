@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import BlogCard from '../../components/BlogCard.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
+import CarouselNav from '../../components/CarouselNav.astro';
 import { getCollection } from 'astro:content';
 import { withBase } from '../../lib/path';
 import { TOPICS, postMatchesTopic, projectMatchesTopic } from '../../lib/topics';
@@ -107,7 +108,7 @@ const topicJsonLd = {
       posts.length > 0 && (
         <>
           <h2 class="topic-section-title">Записи</h2>
-          <div class="blog-list">
+          <div class="blog-list" data-carousel-track="articles">
             {posts.map((post) => (
 <BlogCard
                 slug={post.id.replace(/\.md$/, '')}
@@ -119,6 +120,8 @@ const topicJsonLd = {
               />
             ))}
           </div>
+
+          <CarouselNav track="articles" label="Записи" />
         </>
       )
     }

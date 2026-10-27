@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import CarouselNav from './CarouselNav.astro';
 import ProjectCard from './ProjectCard.astro';
 import ProjectFilter from './ProjectFilter.astro';
 import ProjectSphereFilter from './ProjectSphereFilter.astro';
@@ -123,7 +124,11 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
     </button>
   </p>
 
-  <div id="project-list" class:list={['project-track-grid', cover && 'project-board-cover']}>
+  <div
+    id="project-list"
+    data-carousel-track="projects"
+    class:list={['project-track-grid', cover && 'project-board-cover']}
+  >
     {
       entries.map(({ project, trackLabel }) => (
         <ProjectCard
@@ -143,18 +148,22 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
           trackLabel={trackLabel}
           sphere={projectSphere(project.id)}
           date={(project.data.date ?? project.data.updated)?.toISOString().slice(0, 10)}
-          draggable={!ordered}
           compact
           starPreview={starPreview}
         />
       ))
     }
   </div>
+
+  {/* The board is a snap row at every width (`global.css`, keyed on
+      `.project-board-cover`), so the arrows are the pointer-less path through
+      it. A short row that fits needs no nav: the module measures the overflow
+      and keeps itself `hidden`. */}
+  <CarouselNav track="projects" label={lang === 'en' ? 'Projects' : 'Проекты'} lang={lang} />
 </section>
 
 <script>
   import { track } from '../lib/analytics';
-  import { columnCount, insertionAfter } from '../lib/board-reorder';
   import {
     ALL_SPHERES,
     ALL_TOOLS,
@@ -167,8 +176,10 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
 
   // One controller for the whole board: category tabs, sphere chips and tool
   // chips share the same state, so they filter, sync the URL and toggle
-  // empty/disabled states together. Reorder (drag / keyboard / reset) is layered
-  // on top — and is confined to a card's own track, since the grid is flat.
+  // empty/disabled states together. Ordering is the sort select's alone: the
+  // board is a horizontal row, and a hand-picked order cannot live in it —
+  // `board-reorder` reads a row as one column and picks the drop side by
+  // vertical midpoint, which here names the wrong neighbour every time.
   // No analytics event for the sphere or tool facet: `docs/analytics-dead-events.md`
   // rules out new events at this traffic, and `$autocapture` already shows the
   // chip clicks.
@@ -180,7 +191,6 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
       lang === 'en'
         ? 'No projects use this tool in this category'
         : 'Нет проектов с этим инструментом в этой категории';
-    const storageKey = `project-order-${lang}`;
     const hintEl = document.getElementById('board-hint');
     const resetBtn = document.getElementById('board-reset');
     const emptyEl = document.getElementById('project-empty');
@@ -271,6 +281,10 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
 
       if (emptyEl) emptyEl.hidden = visible > 0;
       if (statusEl) statusEl.textContent = statusText(visible);
+      // Filtering changes `scrollWidth` without resizing the track, so the
+      // carousel's ResizeObserver never fires and its arrows keep a stale
+      // disabled state. `carousel:refresh` is the module's own re-measure hook.
+      document.dispatchEvent(new CustomEvent('carousel:refresh'));
       return visible;
     }
 
@@ -382,37 +396,9 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
       trackBtns[0]?.focus();
     });
 
-    // --- Reorder: drag, keyboard (ArrowUp/Down) and reset, within one track ---
-    function readOrder(): Record<string, string[]> {
-      try {
-        const raw = localStorage.getItem(storageKey);
-        if (!raw) return {};
-        const parsed = JSON.parse(raw);
-        return parsed && typeof parsed === 'object' ? (parsed as Record<string, string[]>) : {};
-      } catch {
-        return {};
-      }
-    }
+    // --- Order: newest-first re-sort, and the reset back to the curated one ---
 
-    function writeOrder(order: Record<string, string[]>): void {
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(order));
-      } catch {
-        /* storage unavailable */
-      }
-    }
-
-    function currentOrder(): Record<string, string[]> {
-      const order: Record<string, string[]> = {};
-      for (const key of trackKeys()) {
-        order[key] = cardsOfTrack(key)
-          .map((card) => card.dataset.slug || '')
-          .filter(Boolean);
-      }
-      return order;
-    }
-
-    // Put one track's cards back in `slugs` order without leaving the grid.
+    // Put one track's cards back in `slugs` order without leaving the row.
     // `ref` walks the block: a card already sitting where it belongs advances
     // the cursor, any other card is moved in front of it. Never moves a node
     // out of the tree, so `ref` is always still attached.
@@ -436,51 +422,34 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
       }
     }
 
-    // Capture the Astro-rendered order before applying any saved order, so
-    // "Reset" can restore it without a page reload.
-    const canonicalOrder = currentOrder();
-    const savedOrder = readOrder();
+    // Capture the Astro-rendered order, so "Reset order" can restore it without
+    // a page reload.
+    const canonicalOrder: Record<string, string[]> = {};
     for (const key of trackKeys()) {
-      const slugs = savedOrder[key];
-      if (slugs && slugs.length) reorderTrackTo(key, slugs);
+      canonicalOrder[key] = cardsOfTrack(key)
+        .map((card) => card.dataset.slug || '')
+        .filter(Boolean);
     }
 
-    // Newest-first is a view mode, not a saved order: it re-sorts inside each
-    // track and takes the drag away, because a hand-picked sequence and a date
-    // sort cannot both own the same grid. Curated mode hands back whatever the
-    // user last dragged, or the Astro-rendered order if they never dragged.
-    function setReorderable(on: boolean): void {
-      // The grip is the visual promise of a drag; newest-first has to drop it,
-      // or the card advertises a gesture its handlers now refuse.
-      root.classList.toggle('is-date-sorted', !on);
-      for (const card of cards()) {
-        card.dataset.reorder = on ? 'true' : 'false';
-        card.draggable = on && !coarse;
-        if (on) card.setAttribute('tabindex', '0');
-        else card.removeAttribute('tabindex');
-      }
-    }
-
+    // Newest-first is a view mode: it re-sorts inside each track, and the reset
+    // puts the curated order back. Nothing hand-picked survives, so there is no
+    // stored order to prefer over `canonicalOrder`.
     function applySort(): void {
-      if (activeSort === NEWEST) {
-        for (const key of trackKeys()) {
-          reorderTrackTo(
-            key,
-            sortSlugsByNewest(
-              cardsOfTrack(key).map((card) => ({
-                slug: card.dataset.slug || '',
-                date: card.dataset.date,
-              })),
-            ),
-          );
-        }
-      } else {
-        const order = readOrder();
-        for (const key of trackKeys()) {
-          reorderTrackTo(key, order[key] || canonicalOrder[key] || []);
-        }
+      if (activeSort !== NEWEST) {
+        for (const key of trackKeys()) reorderTrackTo(key, canonicalOrder[key] || []);
+        return;
       }
-      setReorderable(activeSort !== NEWEST);
+      for (const key of trackKeys()) {
+        reorderTrackTo(
+          key,
+          sortSlugsByNewest(
+            cardsOfTrack(key).map((card) => ({
+              slug: card.dataset.slug || '',
+              date: card.dataset.date,
+            })),
+          ),
+        );
+      }
     }
 
     let hintTimer: ReturnType<typeof setTimeout> | undefined;
@@ -494,290 +463,11 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
       }, 1600);
     }
 
-    let dragEl: HTMLElement | null = null;
-    let dragTrack = '';
-
-    const sameTrack = (card: HTMLElement): boolean => card.dataset.track === dragTrack;
-
-    function clearDrag(): void {
-      if (dragEl) dragEl.classList.remove('dragging');
-      root.querySelectorAll('.project.drag-over').forEach((card) => card.classList.remove('drag-over'));
-      dragEl = null;
-      dragTrack = '';
-    }
-
-    root.addEventListener('dragstart', (e) => {
-      const card = (e.target as HTMLElement).closest<HTMLElement>('.project');
-      if (!card || !root.contains(card)) return;
-      // Newest-first owns the order: a drag would silently fight the sort.
-      if (card.dataset.reorder !== 'true') return;
-      // Don't hijack clicks on links/buttons.
-      if ((e.target as HTMLElement).closest('a, button')) {
-        e.preventDefault();
-        return;
-      }
-      dragEl = card;
-      dragTrack = card.dataset.track || '';
-      try {
-        if (e.dataTransfer) {
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/plain', dragTrack);
-        }
-      } catch {
-        /* dataTransfer unavailable */
-      }
-      card.classList.add('dragging');
-    });
-
-    root.addEventListener('dragover', (e) => {
-      if (!dragEl) return;
-      e.preventDefault();
-      const card = (e.target as HTMLElement).closest<HTMLElement>('.project');
-      if (card && card !== dragEl && sameTrack(card)) {
-        card.classList.add('drag-over');
-      }
-    });
-
-    root.addEventListener('dragleave', (e) => {
-      (e.target as HTMLElement).closest<HTMLElement>('.project')?.classList.remove('drag-over');
-    });
-
-    root.addEventListener('drop', (e) => {
-      if (!dragEl) return;
-      e.preventDefault();
-      const target = (e.target as HTMLElement).closest<HTMLElement>('.project');
-      if (target && target !== dragEl && sameTrack(target)) {
-        const rect = target.getBoundingClientRect();
-        const after = e.clientY > rect.top + rect.height / 2;
-        root.insertBefore(dragEl, after ? target.nextSibling : target);
-        writeOrder(currentOrder());
-        showHint(hintEl?.dataset.saved || 'Saved');
-      }
-      clearDrag();
-    });
-
-    root.addEventListener('dragend', clearDrag);
-
-    // --- Touch reorder: hold, then drag with pointer events ---
-    // HTML5 `dragstart` never fires from a touch pointer, so coarse pointers get
-    // a second path: hold a card ~0.4s, then move it. Reorder, persistence and
-    // the hint are shared with the drag path; only the gesture differs. Arrow
-    // keys stay the third path.
-    const LONG_PRESS_MS = 400;
-    const MOVE_TOLERANCE_PX = 10;
-    const coarse = window.matchMedia('(pointer: coarse)').matches;
-
-    // Native drag for fine pointers only. Left on for touch it races the hold:
-    // iOS starts its own HTML5 drag from the same long press.
-    if (!coarse) {
-      for (const card of root.querySelectorAll<HTMLElement>('.project[data-reorder="true"]')) {
-        card.draggable = true;
-      }
-    }
-
-    let pressTimer: ReturnType<typeof setTimeout> | undefined;
-    let pressCard: HTMLElement | null = null;
-    let pressPointer = -1;
-    let pressX = 0;
-    let pressY = 0;
-    let touchCard: HTMLElement | null = null;
-    let touchTrack = '';
-    let touchOver: HTMLElement | null = null;
-    let swallowClick = false;
-    let dragX = 0;
-    let dragY = 0;
-    let autoScroll = 0;
-
-    function cancelPress(): void {
-      if (pressTimer) clearTimeout(pressTimer);
-      pressTimer = undefined;
-      pressCard = null;
-      pressPointer = -1;
-    }
-
-    function markOver(card: HTMLElement | null): void {
-      if (touchOver === card) return;
-      touchOver?.classList.remove('drag-over');
-      touchOver = card;
-      touchOver?.classList.add('drag-over');
-    }
-
-    // Hit-testing, not `e.target`: pointer capture retargets the events to the
-    // board, so the card under the finger has to be looked up by position.
-    function cardUnder(x: number, y: number): HTMLElement | null {
-      const hit = document.elementFromPoint(x, y) as HTMLElement | null;
-      const card = hit?.closest<HTMLElement>('.project') ?? null;
-      return card && card !== touchCard && card.dataset.track === touchTrack ? card : null;
-    }
-
-    function endTouchDrag(): void {
-      touchCard?.classList.remove('dragging');
-      markOver(null);
-      if (autoScroll) cancelAnimationFrame(autoScroll);
-      autoScroll = 0;
-      touchCard = null;
-      touchTrack = '';
-    }
-
-    // A board card is taller than half a phone screen, so the next card's
-    // midpoint — where the insertion flips — is off-screen at the start of a
-    // drag. Holding the finger near an edge walks the page under it, which is
-    // the only way to reach that midpoint without a second gesture.
-    function edgeScrollStep(): void {
-      if (!touchCard) {
-        autoScroll = 0;
-        return;
-      }
-      const EDGE = 96;
-      const STEP = 14;
-      const height = window.innerHeight;
-      let dy = 0;
-      if (dragY < EDGE) dy = -(1 - dragY / EDGE) * STEP;
-      else if (dragY > height - EDGE) dy = Math.min(1, (dragY - (height - EDGE)) / EDGE) * STEP;
-      if (dy) {
-        window.scrollBy(0, dy);
-        markOver(cardUnder(dragX, dragY));
-      }
-      autoScroll = requestAnimationFrame(edgeScrollStep);
-    }
-
-    root.addEventListener('pointerdown', (e) => {
-      if (e.pointerType !== 'touch' || touchCard) return;
-      const target = e.target as HTMLElement;
-      // A hold on a link or a button is the user's own gesture, not a drag.
-      if (target.closest('a, button')) return;
-      const card = target.closest<HTMLElement>('.project');
-      if (!card || !root.contains(card) || card.dataset.reorder !== 'true') return;
-      cancelPress();
-      pressCard = card;
-      pressPointer = e.pointerId;
-      pressX = e.clientX;
-      pressY = e.clientY;
-      pressTimer = setTimeout(() => {
-        const held = pressCard;
-        const pointerId = pressPointer;
-        cancelPress();
-        if (!held) return;
-        try {
-          root.setPointerCapture(pointerId);
-        } catch {
-          /* the pointer was released before the hold completed */
-        }
-        touchCard = held;
-        touchTrack = held.dataset.track || '';
-        dragX = pressX;
-        dragY = pressY;
-        held.classList.add('dragging');
-        navigator.vibrate?.(10);
-        if (!autoScroll) autoScroll = requestAnimationFrame(edgeScrollStep);
-      }, LONG_PRESS_MS);
-    });
-
-    root.addEventListener('pointermove', (e) => {
-      if (e.pointerType !== 'touch') return;
-      if (touchCard) {
-        dragX = e.clientX;
-        dragY = e.clientY;
-        markOver(cardUnder(dragX, dragY));
-        return;
-      }
-      // Moving before the hold completes means the user is scrolling.
-      if (pressCard && Math.hypot(e.clientX - pressX, e.clientY - pressY) > MOVE_TOLERANCE_PX) {
-        cancelPress();
-      }
-    });
-
-    // A pointer handler cannot cancel a scroll, and `touch-action` cannot change
-    // mid-gesture — so the move itself has to be eaten. Idle unless a drag runs.
-    root.addEventListener(
-      'touchmove',
-      (e) => {
-        if (touchCard) e.preventDefault();
-      },
-      { passive: false },
-    );
-
-    root.addEventListener('pointerup', (e) => {
-      if (e.pointerType !== 'touch') return;
-      cancelPress();
-      if (!touchCard) return;
-      const card = touchCard;
-      const target = touchOver;
-      endTouchDrag();
-      // A hold that became a drag must not also open the card's link.
-      swallowClick = true;
-      setTimeout(() => {
-        swallowClick = false;
-      }, 400);
-      if (!target) return;
-      const after = insertionAfter(
-        columnCount(getComputedStyle(root).gridTemplateColumns),
-        { x: e.clientX, y: e.clientY },
-        target.getBoundingClientRect(),
-      );
-      const ref = after ? target.nextSibling : target;
-      // A hold released without crossing the target's midpoint leaves the card
-      // where it was: don't persist an unchanged order or claim it was saved.
-      if (card === ref || card.nextSibling === ref) return;
-      root.insertBefore(card, ref);
-      writeOrder(currentOrder());
-      showHint(hintEl?.dataset.saved || 'Saved');
-    });
-
-    root.addEventListener('pointercancel', () => {
-      cancelPress();
-      endTouchDrag();
-    });
-
-    root.addEventListener(
-      'click',
-      (e) => {
-        if (!swallowClick) return;
-        swallowClick = false;
-        e.preventDefault();
-        e.stopPropagation();
-      },
-      true,
-    );
-
-    // The long-press menu and Android's text selection would otherwise open in
-    // the middle of a drag.
-    root.addEventListener('contextmenu', (e) => {
-      if (touchCard) e.preventDefault();
-    });
-
-    window.addEventListener('scroll', cancelPress, { passive: true });
-
-    // Keyboard reorder (WCAG 2.1.1 / 2.5.7): ArrowUp/ArrowDown moves the focused
-    // card one slot within its own track. Drag stays the pointer enhancement.
-    root.addEventListener('keydown', (e) => {
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-      const target = e.target as HTMLElement;
-      const card = target.closest<HTMLElement>('.project');
-      if (!card || !root.contains(card) || target !== card) return;
-      if (card.dataset.reorder !== 'true') return;
-      const peers = cardsOfTrack(card.dataset.track || '');
-      const idx = peers.indexOf(card);
-      if (idx < 0) return;
-      const next = peers[idx + (e.key === 'ArrowDown' ? 1 : -1)];
-      if (!next) return;
-      e.preventDefault();
-      root.insertBefore(card, e.key === 'ArrowDown' ? next.nextSibling : next);
-      writeOrder(currentOrder());
-      showHint(hintEl?.dataset.saved || 'Saved');
-      card.focus(); // stay on the card so repeated moves work
-    });
 
     resetBtn?.addEventListener('click', () => {
-      try {
-        localStorage.removeItem(storageKey);
-      } catch {
-        /* ignore */
-      }
-      // "Reset order" resets the whole ordering story: back to curated, drag on.
+      // "Reset order" is the sort control's undo: back to the curated sequence.
       activeSort = CURATED;
       if (sortSelect) sortSelect.value = CURATED;
-      setReorderable(true);
       for (const key of trackKeys()) reorderTrackTo(key, canonicalOrder[key] || []);
       showHint(hintEl?.dataset.reset || 'Reset');
       history.replaceState(null, '', urlFor(activeTrack, activeTool, activeSphere));

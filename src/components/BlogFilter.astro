@@ -177,20 +177,32 @@ const hiddenTags = tags.filter((t) => t.count < 2);
       if (paginationEl) paginationEl.hidden = isFiltered;
 
       let results = document.getElementById('blog-filter-results');
+      let listChanged = false;
       if (isFiltered) {
         if (!results) {
           results = document.createElement('div');
           results.id = 'blog-filter-results';
           results.className = 'blog-list';
+          // The carousel controller resolves its track by attribute, because
+          // this element replaces `#blog-list` on the first filter click.
+          results.dataset.carouselTrack = 'articles';
           listEl?.insertAdjacentElement('afterend', results);
         }
         results.innerHTML = filtered.map(cardHtml).join('');
         if (statusEl) statusEl.textContent = statusText(filtered.length, activeTag ?? activeCategory);
+        listChanged = true;
       } else {
-        results?.remove();
+        if (results) {
+          results.remove();
+          listChanged = true;
+        }
         const n = listEl ? listEl.querySelectorAll('.blog-card').length : 0;
         if (statusEl) statusEl.textContent = statusText(n, 'all');
       }
+
+      // The track the arrows were bound to is now a different element — or gone
+      // — so re-resolve it after the new cards exist. Fired once per real swap.
+      if (listChanged) document.dispatchEvent(new CustomEvent('carousel:refresh'));
 
       if (isFiltered) {
         track('filter_applied', {

@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import BlogCard from '../../components/BlogCard.astro';
+import CarouselNav from '../../components/CarouselNav.astro';
 import { getCollection } from 'astro:content';
 import { withBase } from '../../lib/path';
 import { estimateReadTime } from '../../lib/date';
@@ -51,7 +52,7 @@ const canonical = isGuides ? withBase('notes/guides/') : withBase('notes/');
     {intro}
   </p>
 
-  <div class="blog-list reveal reveal-delay-1">
+  <div class="blog-list reveal reveal-delay-1" data-carousel-track="articles">
     {
       posts.length === 0 ? (
         <p style="color: var(--text-muted);">{emptyText}</p>
@@ -70,6 +71,8 @@ const canonical = isGuides ? withBase('notes/guides/') : withBase('notes/');
       )
     }
   </div>
+
+  <CarouselNav track="articles" label="Заметки" />
 
   <p style="margin-top: var(--space-8);">
     {isGuides ? (

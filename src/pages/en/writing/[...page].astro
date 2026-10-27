@@ -4,6 +4,7 @@
 import Base from '../../../layouts/Base.astro';
 import BlogCard from '../../../components/BlogCard.astro';
 import BlogFilter from '../../../components/BlogFilter.astro';
+import CarouselNav from '../../../components/CarouselNav.astro';
 import { estimateReadTime, formatDate } from '../../../lib/date';
 import { categoryLabel } from '../../../lib/categories';
 import { withBase } from '../../../lib/path';
@@ -73,7 +74,7 @@ const nextUrl = page < totalPages ? `${siteUrl}${withBase(pageHref(page + 1))}` 
 
   <BlogFilter lang="en" tags={tags} />
 
-  <div class="blog-list reveal reveal-delay-2" id="blog-list">
+  <div class="blog-list reveal reveal-delay-2" id="blog-list" data-carousel-track="articles">
     {
       pagePosts.length === 0 ? (
         <p style="color: var(--text-muted);">No English posts yet.</p>
@@ -94,6 +95,8 @@ const nextUrl = page < totalPages ? `${siteUrl}${withBase(pageHref(page + 1))}` 
       )
     }
   </div>
+
+  <CarouselNav track="articles" label="Articles" lang="en" />
 
   {
     totalPages > 1 && (

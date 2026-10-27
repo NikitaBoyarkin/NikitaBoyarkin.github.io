@@ -3350,6 +3350,52 @@ textarea::placeholder {
   gap: var(--space-5);
 }
 
+/* The catalogue board is one horizontal snap row at every width. A grid of
+   540px columns only fits one card per line under 1100px, so the catalogue
+   read as a 19-card vertical scroll — a shelf that peeks the next card says the
+   same thing in one screenful and makes the arrows obvious.
+
+   Scoped to `project-board-cover`, which only `/projects/` sets: a role landing
+   is a short curated sequence and keeps the grid above. There is no breakpoint
+   and no gesture contract to keep in sync — `ProjectBoard` used to gate drag
+   reorder on a matching `859px` media query, and that drag is gone, so the
+   layout is the stylesheet's alone.
+
+   `flex-direction: row` is load-bearing: the base `#project-list` rule above is
+   a column, and without it `display: flex` here would inherit that direction.
+
+   `overflow-x: auto` promotes the block axis to `auto` as well (CSS pairs a
+   `visible` axis with a scrollable sibling), which would clip the card's hover
+   lift (`translateY(-6px)`) and its `outline-offset: -2px` ring at the
+   scrollport edge. The `padding-block` gives both room *inside* the
+   scrollport instead of shrinking the cards. The horizontal scrollbar is
+   hidden on purpose — the peeking card is the affordance, and the carousel nav
+   (CarouselNav.astro) covers the pointer-less path. */
+#project-list.project-board-cover {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: var(--space-5);
+  padding-block: var(--space-3) var(--space-2);
+  scrollbar-width: none;
+}
+
+#project-list.project-board-cover::-webkit-scrollbar {
+  display: none;
+}
+
+/* `flex: 0 0` — cards must neither grow to fill the row nor shrink below the
+   snap width; only the flex longhands are set, so the `flex-direction: column`
+   the ≤768px block gives `.project.compact` (that is the card's own internal
+   flow, not its place in the row) stays untouched. `min(420px, 86%)` is the
+   widest the compact card's cover clamp allows, and 86% leaves the next card
+   visibly peeking. */
+#project-list.project-board-cover > .project {
+  flex: 0 0 min(420px, 86%);
+  scroll-snap-align: start;
+}
+
 /* Two columns: the board card drops its cover and the body takes the whole
    column. The cover is 2:1, so at half width it either shrinks to a legible-less
    87px thumbnail or, if it keeps its 260px floor, pushes the body onto a second

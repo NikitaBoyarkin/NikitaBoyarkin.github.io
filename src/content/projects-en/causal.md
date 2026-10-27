@@ -12,7 +12,7 @@ ogImage: /images/og/causal.png
 impact:
   - CUPED keeps the ATE (0.270 → 0.276) and cuts the standard error ~26%
   - Same power with ~5.5k users/arm instead of 10k (95% CI narrows 1.35x)
-  - Uplift models recover the segment order: new users respond 6–7x more than returning users against a ~8x reference gap
+  - "Uplift models recover the segment order: new users respond 6–7x more than returning users against a ~8x reference gap"
   - Implemented from scratch on LightGBM — no causalml/econml dependency
   - "Pre-registered ship rule: break-even threshold 0.05 — the campaign ships to new users only and not to returning"
 tools:

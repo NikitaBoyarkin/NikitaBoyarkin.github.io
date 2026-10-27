@@ -7,6 +7,7 @@
 import Base from '../../layouts/Base.astro';
 import BlogCard from '../../components/BlogCard.astro';
 import BlogFilter from '../../components/BlogFilter.astro';
+import CarouselNav from '../../components/CarouselNav.astro';
 import { estimateReadTime, formatDate } from '../../lib/date';
 import { categoryLabel } from '../../lib/categories';
 import { withBase } from '../../lib/path';
@@ -89,7 +90,7 @@ const counterpartHref = page === 1 ? withBase('en/writing/') : undefined;
 
   <BlogFilter lang="ru" tags={tags} />
 
-  <div class="blog-list reveal reveal-delay-2" id="blog-list">
+  <div class="blog-list reveal reveal-delay-2" id="blog-list" data-carousel-track="articles">
     {
       pagePosts.map((post) => (
         <BlogCard
@@ -105,6 +106,8 @@ const counterpartHref = page === 1 ? withBase('en/writing/') : undefined;
       ))
     }
   </div>
+
+  <CarouselNav track="articles" label="Статьи" />
 
   {
     totalPages > 1 && (
