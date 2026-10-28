@@ -48,6 +48,26 @@ function setDisabled(button: HTMLButtonElement | null, off: boolean): void {
   else button.removeAttribute('aria-disabled');
 }
 
+/** Distance between two consecutive snap positions, or `null` when the track
+ *  pages by screenful rather than by item.
+ *
+ *  A slide track packs slides at `flex: 0 0 100%`, so consecutive positions are
+ *  one slide *plus* one gap apart. Dividing by `clientWidth` undershoots by
+ *  `gap` per page, and stops rounding to the right index once `i * gap` passes
+ *  half a slide: measured on a 390px phone, 11 slides produced 12 dots and the
+ *  last dot could not reach the last slide. Card tracks are deliberately one
+ *  page per screenful — a 27-card board must stay 3 dots, not 27 — so they
+ *  return `null` and keep `clientWidth`. */
+function snapStride(track: HTMLElement): number | null {
+  const kids = track.children;
+  if (kids.length < 2) return null;
+  const first = kids[0] as HTMLElement;
+  // A card is narrower than the scrollport; a slide is exactly as wide as it.
+  if (first.offsetWidth < track.clientWidth - 2) return null;
+  const stride = (kids[1] as HTMLElement).offsetLeft - first.offsetLeft;
+  return stride > 0 ? stride : null;
+}
+
 function createNav(nav: HTMLElement): Controller {
   const name = nav.dataset.carousel ?? '';
   const prev = nav.querySelector<HTMLButtonElement>('[data-carousel-prev]');
@@ -88,9 +108,26 @@ function createNav(nav: HTMLElement): Controller {
     return window.matchMedia(REDUCED_MOTION).matches ? 'auto' : 'smooth';
   }
 
+  /** Index of the slide the reader is looking at. Reading each child's own
+   *  offset instead of dividing by `clientWidth`: at `scrollLeft = i * stride`
+   *  the naive ratio is `i + i * gap / clientWidth`, which crosses the rounding
+   *  boundary at `i ≥ clientWidth / (2 * gap)` — measured on a 390px phone,
+   *  slide 9 was reported as page 10. */
   function currentPage(): number {
     if (!track || track.clientWidth === 0) return 0;
-    return Math.round(track.scrollLeft / track.clientWidth);
+    if (snapStride(track) === null) return Math.round(track.scrollLeft / track.clientWidth);
+    const base = track.getBoundingClientRect().left - track.scrollLeft;
+    let best = 0;
+    let bestDelta = Infinity;
+    Array.from(track.children).forEach((child, i) => {
+      const offset = (child as HTMLElement).getBoundingClientRect().left - base;
+      const delta = Math.abs(offset - track!.scrollLeft);
+      if (delta < bestDelta) {
+        bestDelta = delta;
+        best = i;
+      }
+    });
+    return best;
   }
 
   function renderDots(pages: number): void {
@@ -107,7 +144,18 @@ function createNav(nav: HTMLElement): Controller {
       dot.setAttribute('aria-label', label(i + 1, pages));
       dot.addEventListener('click', () => {
         announceOnMove();
-        track?.scrollTo({ left: i * (track.clientWidth || 0), behavior: behaviour() });
+        if (!track) return;
+        const index = Math.min(i, track.children.length - 1);
+        const slide = track.children[index] as HTMLElement | undefined;
+        // Aim at the slide's own offset. `i * clientWidth` lands `i * gap`
+        // short of the snap position, so once that shortfall passes half a
+        // stride snap picks the previous slide — measured: the last dot of an
+        // 11-slide phone page never reached slide 11.
+        const left =
+          slide && snapStride(track) !== null
+            ? slide.getBoundingClientRect().left - track.getBoundingClientRect().left + track.scrollLeft
+            : index * (track.clientWidth || 0);
+        track.scrollTo({ left, behavior: behaviour() });
       });
       dotsEl.append(dot);
     }
@@ -117,11 +165,24 @@ function createNav(nav: HTMLElement): Controller {
     if (!track) return;
     const overflow = track.scrollWidth - track.clientWidth;
     const scrollable = overflow > 1;
-    nav.hidden = !scrollable;
+    // Hiding an ancestor of the focused control drops focus to `<body>` and
+    // restarts the reader at the top of the document (2.4.3) — the failure
+    // `setDisabled` exists to avoid, reintroduced through the container. Keep
+    // the nav present (and honestly disabled) while it holds focus.
+    nav.hidden = !scrollable && !nav.contains(document.activeElement);
     if (!scrollable) {
       // The row stopped overflowing (window widened, or a filtered list shrank).
       // The controls are hidden, but a stale position would be read as the
       // current one the moment another track is picked up.
+      setDisabled(prev, true);
+      setDisabled(next, true);
+      if (dotsEl) {
+        dotsEl.textContent = '';
+        dotsEl.hidden = true;
+      }
+      // Forces a rebuild if the row starts overflowing again; the rail above is
+      // gone, so a stale count would leave the ladder empty.
+      renderedPages = 0;
       statusEl.textContent = '';
       statusEl.setAttribute('aria-live', 'off');
       return;
@@ -131,7 +192,13 @@ function createNav(nav: HTMLElement): Controller {
     // content would fill: the last scroll offset is `scrollWidth - clientWidth`,
     // so a 24.5-screen row reaches page 23 of 25 and the terminal position
     // would announce "Страница 24 из 25" while Вперёд is already disabled.
-    const pages = Math.max(1, Math.round(overflow / track.clientWidth) + 1);
+    // A slide track snaps once per slide, so counting screens invented a
+    // phantom dot (measured: 12 dots for 11 slides on a 390px phone).
+    const stride = snapStride(track);
+    const pages =
+      stride !== null
+        ? track.children.length
+        : Math.max(1, Math.round(overflow / track.clientWidth) + 1);
     if (dotsEl && renderedPages !== pages) renderDots(pages);
 
     const page = currentPage();
@@ -200,6 +267,15 @@ function createNav(nav: HTMLElement): Controller {
 
   prev?.addEventListener('click', () => step(-1));
   next?.addEventListener('click', () => step(1));
+
+  // `hidden` is recomputed only when `sync` runs, and a nav kept on screen for
+  // focus would otherwise outlive the focus: a resized window that no longer
+  // scrolls left two dead arrows and a stale dot ladder sitting there.
+  nav.addEventListener('focusout', () => {
+    requestAnimationFrame(() => {
+      if (!nav.contains(document.activeElement)) sync();
+    });
+  });
 
   function attach(): void {
     const found = pickTrack(name);

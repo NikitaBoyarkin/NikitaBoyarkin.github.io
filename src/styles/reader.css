@@ -136,6 +136,16 @@
     padding-inline-end: 0;
     scroll-snap-align: none;
   }
+
+  /* `carousel.ts` hides the nav on paper too, but only once its overflow check
+     runs — before that ResizeObserver callback, or with JS blocked, the arrows
+     and dot ladder would still be laid out for print. The `body` prefix is a
+     specificity bump: the component's own scoped `.carousel-nav[data-astro-cid…]`
+     rule is (0,2,0) and loads later, so a plain `.carousel-nav[data-carousel]`
+     here loses (measured: `display: flex` in the print emulation). */
+  body .carousel-nav[data-carousel='reader'] {
+    display: none;
+  }
 }
 
 /* Snapping and any programmatic `scrollTo` still position the track correctly

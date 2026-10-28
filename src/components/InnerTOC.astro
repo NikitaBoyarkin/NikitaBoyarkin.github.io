@@ -42,17 +42,30 @@ const isEn = lang === 'en';
     }
 
     const used = new Map();
+    // Seed with the build ids first: a generated slug must not claim an id a
+    // later heading already owns, or the document ends up with two headings on
+    // one anchor and both rail entries jump to the first.
+    headers.forEach((h) => {
+      if (h.id) used.set(h.id, true);
+    });
     headers.forEach((h) => {
       const text = h.textContent || '';
-      let idBase = slugify(text) || 'section';
-      let id = idBase;
-      let count = 1;
-      while (used.has(id)) {
-        id = `${idBase}-${count++}`;
+      // The build's own id wins. Its slugger and `slugify` disagree on em
+      // dashes and on author-set ids, and `InlineTOC` renders its anchors
+      // against the build id — deriving a fresh slug here left rail entries
+      // pointing at nothing (measured: 11 of 23 on /projects/volta/, 1 of 10 on
+      // /projects/ab/).
+      let id = h.id;
+      if (!id) {
+        const idBase = slugify(text) || 'section';
+        id = idBase;
+        let count = 1;
+        while (used.has(id)) {
+          id = `${idBase}-${count++}`;
+        }
+        h.id = id;
       }
       used.set(id, true);
-      // Keep a build-time id: `InlineTOC` renders its anchors against it.
-      if (!h.id) h.id = id;
 
       const li = document.createElement('li');
       li.className = h.tagName.toLowerCase() === 'h3' ? 'toc-h3' : 'toc-h2';
