@@ -44,8 +44,8 @@ function emit(children: Node[]): string[] {
   plugin.before(
     { type: 'root', children },
     {
-      insertBefore: (node, newNode) => insert(node as Node, newNode.value, false),
-      insertAfter: (node, newNode) => insert(node as Node, newNode.value, true),
+      insertBefore: (node: Node, newNode: { value: string }) => insert(node, newNode.value, false),
+      insertAfter: (node: Node, newNode: { value: string }) => insert(node, newNode.value, true),
     } as never,
   );
   return seq.map((item) => (typeof item === 'string' ? item : item.type));

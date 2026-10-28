@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-26T20:57:15.931Z",
+  "generated_at": "2026-10-28T00:01:32.137Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -506,8 +506,8 @@
       "title_en": "Airflow DAG Platform",
       "description": "Платформа отчётов на Airflow 3: полный DAG проходит за 440 с, задача forecast — за 413 с; каждый отчёт — версионируемый DAG с DQ-валидацией, алертами и метриками запусков.",
       "description_en": "A report platform on Airflow 3: the full DAG runs in 440 s and the forecast task alone takes 413 s; every report is a versioned DAG with DQ validation, alerts and run metrics.",
-      "result": "Три DAG-а по общему шаблону, 69 тестов без Airflow-сервисов и БД; полный прогон DAG занимает 440 с, из них задача forecast — 413 с",
-      "result_en": "Three DAGs on one shared template and 69 tests without Airflow services or a DB; the full DAG runs in 440 s, 413 s of it in the forecast task",
+      "result": "Три DAG-а по общему шаблону, 72 теста без Airflow-сервисов и БД; полный прогон DAG занимает 440 с, из них задача forecast — 413 с",
+      "result_en": "Three DAGs on one shared template and 72 tests without Airflow services or a DB; the full DAG runs in 440 s, 413 s of it in the forecast task",
       "tools": [
         "Python",
         "Apache Airflow 3",
