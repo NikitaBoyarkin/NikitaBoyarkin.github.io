@@ -251,7 +251,10 @@ const tracks = projectTracks(lang).map((track) => ({
             for (const btn of trackButtons) {
               const isActive = (btn.dataset.trackFilter || ALL_TRACKS) === activeTrack;
               btn.classList.toggle('active', isActive);
-              btn.setAttribute('aria-pressed', String(isActive));
+              // These chips are `role="radio"` in ProjectTrackFilter.astro, so the
+              // state they expose is `aria-checked`; writing `aria-pressed` here
+              // left the announced selection pinned to the first chip.
+              btn.setAttribute('aria-checked', String(isActive));
             }
             for (const btn of toolButtons) {
               const isActive = (btn.dataset.toolFilter || ALL_TOOLS) === activeTool;

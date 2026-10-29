@@ -163,13 +163,6 @@ describe('audience storage (AC2)', () => {
 // nothing else fails if the component stops tracking.
 // ---------------------------------------------------------------------------
 describe('wiring (PRD §6, §9, §10)', () => {
-  it('the live gate tracks the gate view and gate-sourced selection', () => {
-    const s = src('src/components/HeroGate.astro');
-    expect(s).toContain("track('persona_gate_view'");
-    expect(s).toContain("track('persona_selected'");
-    expect(s).toMatch(/source:\s*'gate'/);
-  });
-
   it('RoleSwitch tracks a switch-sourced selection', () => {
     const s = src('src/components/RoleSwitch.astro');
     expect(s).toContain("track('persona_selected'");
@@ -209,8 +202,7 @@ describe('wiring (PRD §6, §9, §10)', () => {
     for (const file of [
       'src/lib/analytics.ts',
       'src/lib/projects.ts',
-      'src/components/PersonaCanvas.astro',
-      'src/components/HeroGate.astro',
+      'src/components/HomeNewTab.astro',
     ]) {
       const s = src(file);
       for (const stale of ['recruiter', 'learner']) {
@@ -231,10 +223,10 @@ describe('wiring (PRD §6, §9, §10)', () => {
 // test here goes quietly green.
 // ---------------------------------------------------------------------------
 describe('homepage primary CTA (docs/cta-inventory.md)', () => {
-  // The live gate. `PersonaCanvas.astro` stays on disk as the retired canvas
-  // implementation, but the homepage mounts `HeroGate`, so these guards follow
-  // the surface that actually ships.
-  const gate = () => src('src/components/HeroGate.astro');
+  // The live surface. The gate card and the canvas were deleted on 2026-10-29
+  // after the audit confirmed nothing imported them, so these guards follow the
+  // surface that actually ships — `HomeNewTab` mounted by `/` and `/en/`.
+  const gate = () => src('src/components/HomeNewTab.astro');
 
   it('leaves the hero CTA row off the board, and does not grow it back', () => {
     const s = gate();

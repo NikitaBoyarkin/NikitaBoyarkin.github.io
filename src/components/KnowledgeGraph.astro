@@ -1256,10 +1256,14 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     });
   });
 
-  // Wheel zoom around the cursor.
+  // Wheel zoom around the cursor. Plain wheel belongs to the page: the canvas
+  // is 74svh tall on /graph/, so taking every wheel event made the rest of the
+  // document unreachable with a trackpad. Ctrl/Cmd + wheel is the browser-wide
+  // zoom gesture, so hijacking it costs nothing.
   svg.addEventListener(
     'wheel',
     (e) => {
+      if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
       hideTooltip();
       const p = toWorld(e.clientX, e.clientY);

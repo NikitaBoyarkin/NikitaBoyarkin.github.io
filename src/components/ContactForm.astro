@@ -262,7 +262,8 @@ const clientI18n = {
     margin-top: var(--space-5);
   }
 
-  .contact-submit:disabled {
+  .contact-submit:disabled,
+  .contact-submit[aria-disabled='true'] {
     opacity: 0.6;
     cursor: progress;
     transform: none;
@@ -378,7 +379,11 @@ const clientI18n = {
 
     function setBusy(busy: boolean): void {
       if (submit) {
-        submit.disabled = busy;
+        // `disabled` would blur the button if it holds focus (Tab → Enter),
+        // dropping the visitor to <body> with no way back. `aria-disabled` keeps
+        // the control focusable, keeps the hint, and the submit guard below
+        // still blocks a second send.
+        submit.setAttribute('aria-disabled', busy ? 'true' : 'false');
         submit.textContent = busy ? i18n.sending : i18n.submit;
       }
       form.setAttribute('aria-busy', busy ? 'true' : 'false');
@@ -455,7 +460,7 @@ const clientI18n = {
 
     form.addEventListener('submit', (event) => {
       event.preventDefault();
-      if (submit?.disabled) return;
+      if (submit?.getAttribute('aria-disabled') === 'true') return;
 
       const data = new FormData(form);
       const result = validateContact({

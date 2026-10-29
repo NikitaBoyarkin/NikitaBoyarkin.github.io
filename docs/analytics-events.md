@@ -27,8 +27,7 @@ Canonical event taxonomy for the portfolio, per
 | `contact_submit` | `{ locale }` | the contact form was submitted and the Edge Function accepted it | `ContactForm.astro` (only on `res.ok`). **Inert in production** until `PROJECT_REF` in `src/lib/contact.ts` is replaced (`CONTACT_FORM_ENABLED=false`, so the form is not rendered at all) |
 | `contact_form_error` | `{ locale, reason }` | a contact-form submission failed (`reason ∈ {validation, rate_limited, server, network}`) | `ContactForm.astro`. **Inert in production** — same reason as `contact_submit` |
 | `booking_click` | `{ path }` | the 30-minute booking CTA (`cal.com/lofinibo/30min`) is clicked | `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
-| `persona_gate_view` | `{ lang, has_stored_choice }` | the persona gate card is rendered | `HeroGate.astro` (homepage) |
-| `persona_selected` | `{ persona, lang, source }` | a persona is chosen (`source ∈ {gate, switch, header, menu}` — `header`/`menu` are `NavRoles`'s bar/drawer variants) | `NavRoles.astro`, `RoleSwitch.astro`, `HeroGate.astro` |
+| `persona_selected` | `{ persona, lang, source }` | a persona is chosen (`source ∈ {gate, switch, header, menu}` — `header`/`menu` are `NavRoles`'s bar/drawer variants) | `NavRoles.astro`, `RoleSwitch.astro` |
 | `library_tile` | `{ path }` | a library tile is clicked | `ReadingBlock.astro`, via `[data-analytics]` |
 | `source_external` | `{ path }` | the "source ↗" link of a library entry is clicked. Currently **inert**: no library entry carries `url:`, so the link never renders | `ReadingBlock.astro`, `library/[slug].astro` (RU + EN), via `[data-analytics]` |
 | `linkedin_contact` | `{ path }` | the LinkedIn CTA on the contact page is clicked (the contact page's LinkedIn channel, separate from `linkedin_footer`) | `contact.astro` / `en/contact.astro`, via `[data-analytics]` |
@@ -69,7 +68,6 @@ These keep their historical names (they are the slider for the "hard naming" cas
 | `value_github` | `ValueOffers.astro` on `/about#value` |
 | `search_open` | `SearchBox.astro` |
 | `ask_me_open` | `AskMe.astro` |
-| `linkedin_badge_load` | `LinkedInBadge.astro` |
 | `hero_avatar_3d` | `HeroAvatar.astro` (hero avatar interaction) |
 | `project_demo_<slug>`, `project_github_<slug>` | `ProjectCard.astro` |
 | `projects_reset` | `ProjectBoard.astro` |

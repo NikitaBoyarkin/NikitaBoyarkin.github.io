@@ -1121,13 +1121,6 @@ nav ul.links a[aria-current="page"] {
   color: var(--text-normal);
 }
 
-.hero-role {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-accent);
-  line-height: 1.3;
-}
-
 .hero-pitch {
   font-size: 1.05rem;
   color: var(--text-normal);
@@ -1149,10 +1142,6 @@ nav ul.links a[aria-current="page"] {
    the intra-block gap in .hero-body so the blocks separate visually. */
 .hero-editorial .hero-pitch {
   margin-top: var(--space-4);
-}
-
-.hero-editorial .hero-metrics {
-  margin-top: var(--space-5);
 }
 
 .hero-editorial .cta-row {
@@ -1192,9 +1181,6 @@ nav ul.links a[aria-current="page"] {
 }
 
 @media (max-width: 480px) {
-  .hero-role {
-    font-size: 1rem;
-  }
   .hero-visual {
     min-height: 220px;
   }
@@ -1552,56 +1538,6 @@ nav ul.links a[aria-current="page"] {
   .stack-groups {
     flex-direction: column;
     gap: var(--space-3);
-  }
-}
-
-/* Proof strip — concrete metrics right after hero */
-#proof {
-  margin-bottom: var(--space-16);
-  padding: var(--space-8) 0;
-  border-top: 1px solid var(--border-color);
-  border-bottom: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--background-secondary) 50%, transparent);
-}
-
-.proof-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-6);
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.proof-item {
-  text-align: center;
-  padding: var(--space-4);
-}
-
-.proof-value {
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: var(--text-accent);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  margin-bottom: var(--space-2);
-}
-
-.proof-label {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-
-@media (max-width: 768px) {
-  .proof-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-4);
-  }
-}
-
-@media (max-width: 480px) {
-  .proof-grid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -2328,15 +2264,6 @@ footer p {
   }
 
 
-  #toc {
-    display: none;
-  }
-
-  /* Compact hero on tablet so more of the secondary home-board shows. */
-  #intro .hero-metrics {
-    margin-top: var(--space-1);
-  }
-
   nav {
     flex-direction: column;
     gap: 1rem;
@@ -2483,7 +2410,6 @@ footer p {
 /* Print styles */
 @media print {
   #theme-toggle,
-  #toc,
   #inner-toc,
   .inline-toc {
     display: none !important;
@@ -3555,13 +3481,6 @@ textarea::placeholder {
 
 /* Slim homepage hero (photo + long text moved into the kanban Profile column). */
 
-@media (max-width: 480px) {
-  #intro .hero-metrics {
-    margin-top: var(--space-1);
-    gap: var(--space-2);
-  }
-}
-
 /* ============================================================
    Project board — drag & drop reorder tools
    ============================================================ */
@@ -3744,9 +3663,9 @@ html.bleed .nav-mobile {
   margin-inline: 0;
 }
 
-/* The board itself carries the dot texture (shared with `.canvas-grid` above)
-   and the vertical rhythm; the heading and the generator line keep the site's
-   reading measure and gutter, so prose does not start at the window edge. */
+/* The board itself carries the dot texture and the vertical rhythm; the
+   heading and the generator line keep the site's reading measure and gutter,
+   so prose does not start at the window edge. */
 .graph-board {
   padding-block: var(--space-6) var(--space-8);
 }
@@ -3762,234 +3681,9 @@ html.bleed .nav-mobile {
   font-size: 0.9rem;
 }
 
-/* Canvas homepage — the rules that cannot live in CanvasStage.astro's scoped
-   <style>: the stacked fallback, which has to reach the slotted node elements
-   that Astro scopes to PersonaCanvas.astro.
-
-   The canvas is progressive enhancement, so the stack applies when EITHER
-   trigger fires:
-
-     1. the viewport is below the fit threshold (`max-width: 899px`), or
-     2. the canvas is not live — `html.canvas-static`, the marker the SSR HTML
-        ships and CanvasStage's pre-paint script removes only once it has fitted
-        the board. Trigger 2 is therefore what covers JavaScript off, and a
-        throw inside the module script (which puts the marker back).
-
-   CSS cannot OR a media query with a class selector, so the two triggers are
-   two rule sets with identical declarations. They sit adjacent on purpose —
-   edit them together. */
-@media (max-width: 899px) {
-  .canvas-viewport {
-    block-size: auto;
-    overflow: visible;
-  }
-  .canvas-world,
-  .canvas-grid {
-    position: static;
-    inline-size: auto;
-    block-size: auto;
-    transform: none;
-    transition: none;
-  }
-  .canvas-grid {
-    display: none;
-  }
-  .canvas-nodes {
-    position: static;
-  }
-  .canvas-controls {
-    display: none;
-  }
-}
-
-/* Trigger 2 — the canvas is not live. Same declarations as the media block
-   above; the decorative `aria-hidden` grid is hidden here too, so nothing
-   decorative survives into the stacked state. */
-html.canvas-static .canvas-viewport {
-  block-size: auto;
-  overflow: visible;
-}
-html.canvas-static .canvas-world,
-html.canvas-static .canvas-grid {
-  position: static;
-  inline-size: auto;
-  block-size: auto;
-  transform: none;
-  transition: none;
-}
-html.canvas-static .canvas-grid {
-  display: none;
-}
-html.canvas-static .canvas-nodes {
-  position: static;
-}
-html.canvas-static .canvas-controls {
-  display: none;
-}
-
-/* The nodes themselves. PersonaCanvas.astro states these inside its own
-   `max-width: 899px` query, which a not-live canvas at a *wide* viewport never
-   reaches — without them the viewport collapses to zero height and the
-   absolutely-positioned nodes spill out of it. Same declarations, same values;
-   the two lists have to stay in step (tests/built/canvas.test.ts compares them).
-
-   These win without `!important` because the node's size arrives as the
-   `--box-w`/`--box-h` custom properties, not as inline `width`/`min-height`
-   declarations: `html.canvas-static .canvas-node` is 0,2,1 against the scoped
-   0,2,0 base rule that reads the variable. An inline `width` would out-rank
-   both and leave `/` 635px wide on a 375px phone (PRD §14.1). */
-html.canvas-static .canvas-node {
-  position: static;
-  inset: auto;
-  inline-size: auto;
-  min-block-size: 0;
-}
-html.canvas-static .persona-card {
-  margin-block-start: var(--space-4);
-}
-
-/* Canvas layer. Deliberately token-only: the dot grid reuses --wallpaper-line,
-   so the canvas introduces no second texture colour and no raw hex. Selectors
-   here are plain: this file is imported directly, not scoped to a component, so
-   `[data-theme='…']` ancestors match as written. (`:global()` is only needed
-   inside a scoped component's <style> — see reference-astro-pitfalls.)
-
-   The theme override below is anchored on `html[data-theme='…']` (specificity
-   0,2,1) instead of `[data-theme='…']` (0,2,0). The rule it has to beat lives in
-   PersonaCanvas.astro's scoped <style> and is emitted as
-   `.persona-card[data-astro-cid-…]` (0,2,0) from a stylesheet that loads *after*
-   this one, so a plain 0,2,0 selector loses the cascade to source order. The
-   extra type selector makes the override win on specificity, whatever the
-   emission order. Bound by tests/built/canvas.test.ts → the theme override
-   assertion. */
-.canvas-grid,
 .graph-board {
   background-image: radial-gradient(circle at 1px 1px, var(--wallpaper-line) 1px, transparent 0);
   background-size: 32px 32px;
-}
-
-/* The light theme filled the cards with `--surface-secondary` (#d4d4d8), a cool
-   grey that read as a dirty patch on the cream page. `--card-background`
-   (#f8f2da) is the warm token the palette already carries for exactly this —
-   "cards read one step lighter than the page" — and the gradient fades it back
-   toward the page over the card's height so the panel has an edge without a hard
-   seam. Written at 0,2,1 to out-rank the scoped `.persona-card[data-astro-cid-…]`
-   (0,2,0) that ships from a later stylesheet, the same fight documented above.
-   (The index graph panel is a `.bento-cell`, which already carries the site's
-   own card surface — it needs no override here.) */
-html[data-theme="light"] .persona-card {
-  background: linear-gradient(
-    180deg,
-    var(--card-background),
-    color-mix(in srgb, var(--card-background) 86%, var(--background-primary))
-  );
-}
-
-/* Interactive frames never sit on a decorative token: --border-active is the
-   only stroke that clears the 3:1 non-text floor in all three themes. */
-.canvas-node[data-node^='role-']:focus-visible {
-  outline: 2px solid var(--border-active);
-  outline-offset: 3px;
-}
-
-/* The resting border of the role cards takes the same token, for the same
-   reason: WCAG 1.4.11 puts a 3:1 floor under the boundary that identifies a
-   control, and --border-active is the only border token that clears it in all
-   three themes (6.36 / 5.72 / 8.27) where the decorative --border-color hairline
-   does not (1.45 / 1.09 / 1.44). The card's resting border is set by
-   `.persona-card` inside PersonaCanvas.astro's scoped <style> —
-   `.persona-card[data-astro-cid-…]`, specificity 0,2,0, emitted later — so this
-   selector is written at 0,3,0 to win regardless of emission order.
-   Bound by tests/built/canvas.test.ts → the resting-border assertion. */
-.canvas-viewport .canvas-node[data-node^='role-'] {
-  border-color: var(--border-active);
-}
-
-/* Full-bleed homepage — `/` and `/en/` only (Base.astro prop `canvasFullBleed`,
-   which puts `canvas-fullbleed` on <html>).
-
-   The board is a 1440x900 world fitted to `.canvas-viewport`, and that element
-   used to be a 1180px box centred in the reading column: 130px of dead page on
-   either side, plus a sticky bar and a full-height footer that pushed the
-   document to 1172px on a 900px window. The board sat in a column narrower than
-   its own composition, and the page scrolled.
-
-   Gated on `min-width: 900px` AND `html:not(.canvas-static)` — the two stacked-
-   fallback triggers of the canvas block above, inverted. The lock therefore
-   applies only while the canvas is genuinely live: a phone, or a desktop with
-   JavaScript off, keeps the ordinary scrolling document. `min-height` is the
-   third gate — below ~700px the bar, the board and the strip cannot share a
-   window without the fit clamping at MIN_ZOOM, and a board that overflows a
-   non-scrolling page is clipped rather than scrollable. */
-@media (min-width: 900px) and (min-height: 700px) {
-  html.canvas-fullbleed:not(.canvas-static) body {
-    /* One screen, no scroll: bar, board and strip are sized to fill it. */
-    block-size: 100dvh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    /* The 20px page gutter would hold the board off both edges. `.nav-mobile`
-       cancels that gutter with an equal negative margin, so an explicit `0`
-       here would have left the bar 20px wide of the viewport — the bar's own
-       margins are zeroed below, not just the padding here. */
-    padding: 0;
-    max-width: none;
-    margin: 0;
-  }
-
-  /* Zeroed, not left alone: the bar's negative inline margins existed only to
-     undo the body gutter they no longer sit in. Its 16px block-end margin
-     stays — that is the gap between the bar and the board, and the band the fit
-     script measures starts below it. */
-  html.canvas-fullbleed:not(.canvas-static) .nav-mobile {
-    flex: none;
-    margin-block-start: 0;
-    margin-inline: 0;
-  }
-
-  /* The board takes the space the bar and the strip leave. `min-block-size: 0`
-     is load-bearing: a flex item defaults to `min-height: auto`, which refuses
-     to shrink below its content, so the 100vh viewport inside would push the
-     footer past the bottom of the 100dvh body — and clip it, since the body no
-     longer scrolls. */
-  html.canvas-fullbleed:not(.canvas-static) main {
-    flex: 1 1 auto;
-    min-block-size: 0;
-    max-width: none;
-    margin-inline: 0;
-  }
-
-  /* CanvasStage.astro scopes the viewport to `block-size: 100vh` (0,2,0) from a
-     later stylesheet; 0,3,0 here out-ranks it whatever the emission order, the
-     same fight the theme override above documents. `100%` of a flex item of
-     definite height, not `100vh`: the viewport is now exactly the band between
-     the bar and the strip, and that band is what the fit measures. */
-  html.canvas-fullbleed:not(.canvas-static) .canvas-viewport {
-    block-size: 100%;
-  }
-
-  /* The footer becomes the strip: one centred row, ~36px instead of ~170px, so
-     the links survive the lock instead of being cut off by it. */
-  html.canvas-fullbleed:not(.canvas-static) footer {
-    flex: none;
-    max-width: none;
-    /* `margin-inline: auto` too, not just `margin-top`. A flex item with an
-       auto cross-axis margin is excluded from `align-items: stretch`, so the
-       strip kept its fit-content width and its hairline stopped a third of the
-       way across the page. */
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: center;
-    gap: 0 var(--space-2);
-    padding: var(--space-2) 0;
-    font-size: 0.8rem;
-  }
-  /* The copyright moves up to sit on the strip's single line. */
-  html.canvas-fullbleed:not(.canvas-static) footer p {
-    margin: 0;
-  }
 }
 
 /* ============================================================

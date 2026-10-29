@@ -248,6 +248,12 @@ const hiddenTags = tags.filter((t) => t.count < 2);
       activeCategory = category;
       activeTag = null;
       applyFilter();
+      // The badge lives inside the list `applyFilter()` hides, so the clicked
+      // control is gone by now and focus fell to <body>. Hand it to the chip
+      // that carries the filter the visitor just applied.
+      document
+        .querySelector<HTMLElement>(`.filter-tag[data-filter="${category}"]`)
+        ?.focus();
       const hash = `#${category}`;
       if (location.hash !== hash) {
         history.replaceState(null, '', `${location.pathname}${location.search}${hash}`);

@@ -135,13 +135,21 @@ const labels = isEn
     }
 
     function remove(tab: Tab, wasActive: boolean) {
+      const index = tabs.indexOf(tab);
       tabs = tabs.filter((t) => t !== tab);
       write(tabs);
       render();
       if (wasActive) {
         const next = tabs[tabs.length - 1];
         location.href = next ? next.href : home;
+        return;
       }
+      // `render()` rebuilds the strip, so the close button the visitor just
+      // pressed no longer exists and focus fell to <body>. Put it back on the
+      // nearest surviving tab — same index where possible.
+      const closers = Array.from(track!.querySelectorAll<HTMLButtonElement>('.site-tab-close'));
+      const target = closers[Math.min(Math.max(index, 0), closers.length - 1)];
+      (target ?? track!.querySelector<HTMLElement>('.site-tab-link'))?.focus();
     }
 
     function remember(href: string, label: string, overwrite = true) {

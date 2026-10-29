@@ -25,8 +25,6 @@ const stripComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 const UNITS: Array<[name: string, file: string, selector: string]> = [
   ['project card', 'src/styles/global.css', '.project {'],
   ['blog card', 'src/styles/blog.css', '.blog-card {'],
-  ['dashboard card', 'src/styles/dashboard.css', '.dash-card {'],
-  ['gate card', 'src/components/HeroGate.astro', '.gate-card {'],
 ];
 
 /** The body of the first `selector { … }` block, comments removed. */

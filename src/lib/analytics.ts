@@ -65,9 +65,6 @@ export interface AnalyticsEventMap {
   // a type map that lies about what ships. Locale is still recoverable in PostHog
   // from the event's URL (/en/contact/ vs /contact/).
   booking_click: { path: string };
-  // Persona gate (`docs/prd-persona-landing.md` §11). `source` distinguishes the
-  // gate card from the role switcher so the two paths stay separable in funnels.
-  persona_gate_view: { lang: Locale; has_stored_choice: boolean };
   // `source` is the surface the choice came from. `header`/`menu` are
   // `NavRoles.astro`'s two variants (bar vs drawer) — they were shipped before
   // this union existed, so declaring only `gate | switch` made the map lie
