@@ -272,6 +272,10 @@ const labels = isEn
   :global(.site-tab-close:focus-visible) {
     background-color: color-mix(in srgb, var(--text-normal) 14%, transparent);
     color: var(--text-normal);
-    outline: none;
+  }
+
+  :global(.site-tab-close:focus-visible) {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
   }
 </style>

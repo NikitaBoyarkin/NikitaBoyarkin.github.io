@@ -102,7 +102,6 @@
 .prose p {
   margin-block: 0;
   text-align: justify;
-  text-justify: inter-word;
   text-indent: var(--prose-indent);
   hyphens: auto;
   -webkit-hyphens: auto;
@@ -219,7 +218,6 @@
   overflow-x: auto;
   font-size: 0.88rem;
   line-height: 1.55;
-  -webkit-overflow-scrolling: touch;
 }
 
 .prose pre code {
@@ -301,7 +299,6 @@
   width: 100%;
   margin-block: var(--space-6);
   border-collapse: collapse;
-  border-spacing: 0;
   font-size: 0.9rem;
   line-height: 1.5;
 }
@@ -346,7 +343,6 @@
   .prose table {
     display: block;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
     max-width: 100%;
     background:
       linear-gradient(to right, var(--background-primary) 30%, transparent) left center / 40px 100% no-repeat local,

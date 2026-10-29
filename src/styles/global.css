@@ -444,7 +444,7 @@ p {
   margin: -1px;
   padding: 0;
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
 }
@@ -835,44 +835,6 @@ nav ul.links a[aria-current="page"] {
   color: var(--text-normal);
 }
 
-/* Table of Contents */
-#toc {
-  position: fixed;
-  right: max(2rem, env(safe-area-inset-right));
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--background-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1rem;
-  width: 200px;
-  z-index: var(--z-float);
-}
-
-#toc .toc-title {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--text-accent);
-}
-
-#toc ul {
-  list-style: none;
-}
-
-#toc li {
-  margin-bottom: 0.3rem;
-}
-
-#toc a {
-  color: var(--text-muted);
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-#toc a:hover {
-  color: var(--text-accent);
-}
-
 /* Intro Section */
 #intro {
   margin-bottom: var(--space-8);
@@ -1073,37 +1035,6 @@ nav ul.links a[aria-current="page"] {
 
 .intro-content a.button::after {
   display: none;
-}
-
-/* Photo Section */
-.intro-photo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-
-.intro-photo::before {
-  content: "";
-  position: absolute;
-  width: 340px;
-  height: 340px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--text-accent) 14%, transparent) 0%,
-    transparent 62%
-  );
-  opacity: 0.8;
-}
-
-
-
-.profile-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
 }
 
 /* Hero tagline — transformation line (PostHog-style: outcome, not role) */
@@ -2121,10 +2052,10 @@ nav ul.links a[aria-current="page"] {
 
 /* About Section */
 #about {
-  margin-bottom: 4rem;
-  padding: 2.5rem;
+  margin-bottom: var(--space-16);
+  padding: var(--space-10);
   background: var(--background-secondary);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
   transition: box-shadow 0.2s ease;
 }
@@ -2248,7 +2179,6 @@ footer p {
   padding-left: 12px;
   border-left: 1px solid var(--border-color);
   font-size: 0.9rem;
-  max-height: 70vh;
   max-height: 70dvh;
   overflow-y: auto;
   scrollbar-width: none;
@@ -2435,7 +2365,6 @@ footer p {
   main table {
     display: block;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
     max-width: 100%;
 
     /* Scroll affordance. A clipped third column otherwise reads as "the table

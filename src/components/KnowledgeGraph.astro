@@ -2089,6 +2089,10 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     background: color-mix(in srgb, var(--text-accent) 12%, transparent);
     outline: none;
   }
+  .kg-search-item:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: -2px;
+  }
   .kg-search-empty {
     padding: 0.5rem 0.6rem;
     color: var(--text-muted);

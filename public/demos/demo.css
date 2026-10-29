@@ -370,13 +370,9 @@ body::before {
   z-index: var(--z-decor);
   pointer-events: none;
   background-color: var(--wallpaper-line);
-  -webkit-mask-image: var(--wallpaper-tile);
   mask-image: var(--wallpaper-tile);
-  -webkit-mask-size: 42px 24px;
   mask-size: 42px 24px;
-  -webkit-mask-repeat: repeat;
   mask-repeat: repeat;
-  -webkit-mask-position: center;
   mask-position: center;
 }
 
