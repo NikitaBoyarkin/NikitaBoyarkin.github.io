@@ -1,13 +1,13 @@
 {
   "slug": "github",
-  "source": "GitHub API · updated 2026-10-28",
-  "updatedAt": "2026-10-28T10:51:19.128Z",
+  "source": "GitHub API · updated 2026-10-29",
+  "updatedAt": "2026-10-29T11:07:57.299Z",
   "stats": {
-    "contributions": 25296,
+    "contributions": 25298,
     "publicRepos": 53,
     "followers": 433,
-    "currentStreak": 91,
-    "longestStreak": 91,
+    "currentStreak": 92,
+    "longestStreak": 92,
     "activeSince": 2019
   },
   "charts": [
@@ -32,7 +32,6 @@
       },
       "data": {
         "categories": [
-          "29.09",
           "30.09",
           "01.10",
           "02.10",
@@ -61,13 +60,13 @@
           "25.10",
           "26.10",
           "27.10",
-          "28.10"
+          "28.10",
+          "29.10"
         ],
         "series": [
           {
             "name": "Contributions",
             "values": [
-              5,
               4,
               15,
               36,
@@ -96,7 +95,8 @@
               129,
               56,
               33,
-              32
+              33,
+              1
             ]
           }
         ]
@@ -104,8 +104,8 @@
       "labelEvery": 5,
       "conclusions": [
         {
-          "ru": "За последние 30 дней — 1299 вкладов, в среднем 43.3 в день.",
-          "en": "Over the last 30 days: 1299 contributions, averaging 43.3 per day."
+          "ru": "За последние 30 дней — 1296 вкладов, в среднем 43.2 в день.",
+          "en": "Over the last 30 days: 1296 contributions, averaging 43.2 per day."
         },
         {
           "ru": "Пик активности — 160 вкладов за один день.",
@@ -162,15 +162,15 @@
               171,
               2010,
               1201,
-              1290
+              1292
             ]
           }
         ]
       },
       "conclusions": [
         {
-          "ru": "За 12 месяцев — 25005 вкладов.",
-          "en": "Over 12 months: 25005 contributions."
+          "ru": "За 12 месяцев — 25007 вкладов.",
+          "en": "Over 12 months: 25007 contributions."
         },
         {
           "ru": "Сильнейший месяц — Apr с 3873 вкладами (15.5% годового объёма).",
@@ -309,7 +309,7 @@
               323,
               406,
               315,
-              121
+              123
             ]
           }
         ]
@@ -356,7 +356,7 @@
           {
             "name": "Contributions",
             "values": [
-              25227,
+              25229,
               2,
               10,
               2
@@ -366,12 +366,12 @@
       },
       "conclusions": [
         {
-          "ru": "Всего 25241 вкладов за год.",
-          "en": "25241 contributions in total over the year."
+          "ru": "Всего 25243 вкладов за год.",
+          "en": "25243 contributions in total over the year."
         },
         {
-          "ru": "Основной тип — Commits (25227, 99.9% вкладов).",
-          "en": "The dominant type is Commits (25227, 99.9% of contributions)."
+          "ru": "Основной тип — Commits (25229, 99.9% вкладов).",
+          "en": "The dominant type is Commits (25229, 99.9% of contributions)."
         }
       ]
     },
