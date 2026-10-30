@@ -48,21 +48,27 @@ const t = isEn
 
 const roleCopy = ROLE_COPY[isEn ? 'en' : 'ru'];
 
+// One vocabulary for the three audiences: `label` repeats the header's
+// `NavRoles` wording verbatim, so the bar and this band name the same three
+// things. `task` is the second, quieter line the header has no room for.
 // Equal weight by construction: same markup, same width, no numbering.
 const PERSONAS = [
   {
     href: withBase(isEn ? 'en/hr/' : 'hr/'),
-    label: isEn ? 'Hiring' : 'Найм',
+    label: 'HR',
+    task: isEn ? 'Hiring' : 'Найм',
     line: roleCopy.hr.lead,
   },
   {
     href: withBase(isEn ? 'en/manager/' : 'manager/'),
-    label: isEn ? 'Impact' : 'Результат',
+    label: isEn ? 'Manager' : 'Менеджер',
+    task: isEn ? 'Impact' : 'Результат',
     line: roleCopy.manager.lead,
   },
   {
     href: withBase(isEn ? 'en/colleague/' : 'colleague/'),
-    label: isEn ? 'How it is made' : 'Как сделано',
+    label: isEn ? 'Colleague' : 'Коллега',
+    task: isEn ? 'How it is made' : 'Как сделано',
     line: roleCopy.colleague.lead,
   },
 ];
@@ -73,8 +79,8 @@ const FLAGSHIP = {
   href: withBase(isEn ? 'en/projects/volta/' : 'projects/volta/'),
   title: 'Volta Neobank — Product Analytics',
   metric: isEn
-    ? '+5.72 pp KYC conversion · €208.5K in 12 mo · 13.9× ROI'
-    : '+5,72 п.п. KYC-конверсии · €208,5K за 12 мес · 13,9× ROI',
+    ? ['+5.72 pp KYC conversion', '€208.5K in 12 mo', '13.9× ROI']
+    : ['+5,72 п.п. KYC-конверсии', '€208,5K за 12 мес', '13,9× ROI'],
 };
 
 const SHORTCUTS = [
@@ -167,7 +173,10 @@ const SHORTCUTS = [
             PERSONAS.map((p) => (
               <li>
                 <a class="nt-persona" href={p.href}>
-                  <span class="nt-persona-label">{p.label}</span>
+                  <span class="nt-persona-head">
+                    <span class="nt-persona-label">{p.label}</span>
+                    <span class="nt-persona-task">{p.task}</span>
+                  </span>
                   <span class="nt-persona-line">{p.line}</span>
                 </a>
               </li>
@@ -178,7 +187,9 @@ const SHORTCUTS = [
 
       <a class="nt-flagship" href={FLAGSHIP.href}>
         <span class="nt-flagship-title">{FLAGSHIP.title}</span>
-        <span class="nt-flagship-metric">{FLAGSHIP.metric}</span>
+        <span class="nt-flagship-metric">
+          {FLAGSHIP.metric.map((m) => <span>{m}</span>)}
+        </span>
       </a>
     </div>
 
@@ -517,34 +528,62 @@ const SHORTCUTS = [
     flex-wrap: wrap;
     justify-content: center;
     gap: var(--space-2);
-    margin: var(--space-4) 0 0;
+    margin: var(--space-5) 0 0;
     padding: 0;
     list-style: none;
   }
 
   /* Content band: aligned to the search island so the eye reads one column.
-     No card boxes — the surface is a new tab, not a grid of tiles. */
+     Personas and the flagship are outlined tiles, not bare text: on a phone
+     there is no hover to reveal that they are links, so the border and the
+     fill have to carry it. The shortcut pills below are demoted to plain
+     links in exchange — the content outranks the secondary navigation. */
   .nt-content {
     inline-size: min(38rem, 100%);
-    margin-block-start: var(--space-4);
-    padding-block-start: var(--space-4);
-    border-top: 1px solid var(--border-color);
+    margin-block-start: var(--space-5);
     text-align: start;
   }
 
   .nt-personas {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-4);
+    gap: var(--space-3);
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .nt-persona {
+  .nt-persona,
+  .nt-flagship {
     display: grid;
-    gap: var(--space-1);
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: color-mix(in srgb, var(--card-background) 72%, transparent);
     text-decoration: none;
+    transition: border-color 0.18s ease, background-color 0.18s ease;
+  }
+
+  .nt-persona {
+    align-content: start;
+    block-size: 100%;
+  }
+
+  .nt-persona:hover,
+  .nt-persona:focus-visible,
+  .nt-flagship:hover,
+  .nt-flagship:focus-visible {
+    border-color: var(--border-active);
+    background-color: color-mix(in srgb, var(--card-background) 100%, transparent);
+  }
+
+  .nt-persona-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--space-2);
+    row-gap: 0;
   }
 
   .nt-persona-label {
@@ -552,76 +591,85 @@ const SHORTCUTS = [
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+    color: var(--text-normal);
+  }
+
+  /* The task word is the same three audiences in a second phrasing — never a
+     fourth thing to choose between. */
+  .nt-persona-task {
+    font-size: 0.75rem;
+    font-weight: 400;
     color: var(--text-muted);
-    transition: color 0.18s ease;
   }
 
   .nt-persona-line {
     font-size: 0.8125rem;
     line-height: 1.45;
-    color: var(--text-normal);
+    color: var(--text-muted);
     text-wrap: pretty;
   }
 
-  .nt-persona:hover .nt-persona-label,
-  .nt-persona:focus-visible .nt-persona-label {
-    color: var(--text-accent);
-  }
-
+  /* The focus ring is the tile's own edge, so it hugs the rounded corner
+     instead of drawing a second rectangle inside it. */
   .nt-persona:focus-visible,
   .nt-flagship:focus-visible {
     outline: 2px solid var(--text-accent);
-    outline-offset: 3px;
-    border-radius: var(--radius-sm);
+    outline-offset: 2px;
   }
 
   .nt-flagship {
-    display: grid;
-    gap: var(--space-1);
-    margin-block-start: var(--space-4);
-    padding-block-start: var(--space-3);
-    border-top: 1px solid var(--border-color);
-    text-decoration: none;
+    margin-block-start: var(--space-3);
   }
 
   .nt-flagship-title {
     font-size: 0.9375rem;
     font-weight: 500;
     color: var(--text-normal);
-    transition: color 0.18s ease;
   }
 
+  /* Items, not one string: a separator is drawn *after* each item but the last,
+     so a wrapped line can never begin with one. */
   .nt-flagship-metric {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
     font-size: 0.8125rem;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
-    text-wrap: balance;
   }
 
-  .nt-flagship:hover .nt-flagship-title {
-    color: var(--text-accent);
+  .nt-flagship-metric span:not(:last-child)::after {
+    content: '·';
+    margin-inline: var(--space-2);
+    color: var(--text-muted);
   }
 
   .nt-shortcut {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--border-color);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid transparent;
     border-radius: var(--radius-full);
-    background-color: color-mix(in srgb, var(--card-background) 70%, transparent);
-    color: var(--text-normal);
+    background-color: transparent;
+    color: var(--text-muted);
     font-size: 0.8125rem;
     font-weight: 500;
     text-decoration: none;
-    transition: border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    transition: color 0.18s ease, border-color 0.18s ease;
   }
 
   .nt-shortcut:hover,
   .nt-shortcut:focus-visible {
-    border-color: var(--border-active);
+    border-color: var(--border-color);
     color: var(--text-accent);
-    transform: translateY(-1px);
+  }
+
+  /* A thumb needs the 44px floor even though the pill itself is now small. */
+  @media (pointer: coarse) {
+    .nt-shortcut {
+      min-height: 44px;
+    }
   }
 
   .nt-shortcut:focus-visible {
@@ -647,26 +695,46 @@ const SHORTCUTS = [
   }
 
   @media (max-width: 599px) {
+    /* The band stacks into three full-width tiles on phones, which is ~200px
+       taller than the bare text it replaced. The padding here is paid back so
+       the shortcut row does not straddle the fold. */
+    .newtab {
+      padding-block: var(--space-4);
+    }
+
     .nt-form {
       padding: var(--space-3) var(--space-4);
     }
 
+    .nt-content {
+      margin-block-start: var(--space-4);
+    }
+
+    .nt-personas {
+      gap: var(--space-2);
+    }
+
+    .nt-persona,
+    .nt-flagship {
+      padding: var(--space-2) var(--space-3);
+    }
+
+    .nt-flagship {
+      margin-block-start: var(--space-2);
+    }
+
     .nt-shortcuts {
       gap: var(--space-1);
+      margin-block-start: var(--space-4);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .nt-form,
     .nt-shortcut,
-    .nt-persona-label,
-    .nt-flagship-title {
+    .nt-persona,
+    .nt-flagship {
       transition: none;
-    }
-
-    .nt-shortcut:hover,
-    .nt-shortcut:focus-visible {
-      transform: none;
     }
   }
 

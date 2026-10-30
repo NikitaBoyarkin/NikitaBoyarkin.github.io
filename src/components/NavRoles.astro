@@ -217,5 +217,20 @@ const href = (target: Audience): string => withBase(isEn ? `en/${target}/` : `${
       clip-path: none;
       white-space: nowrap;
     }
+
+    /* Drawer copy: three labelled chips came to 284px inside a 280px content
+       box, so the group overflowed the drawer's right padding by ~15px and read
+       as flush-right. Auto widths let them hug their labels and sit inside the
+       padding; equal shares were tried first and squeezed "Менеджер" past its
+       1/3, which put the three back out of balance by another route. */
+    .nav-roles--menu {
+      flex-wrap: wrap;
+      row-gap: var(--space-1);
+    }
+
+    .nav-roles--menu .nav-role {
+      padding: var(--space-1) var(--space-2);
+      font-size: 0.75rem;
+    }
   }
 </style>

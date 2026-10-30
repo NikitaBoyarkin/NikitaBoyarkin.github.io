@@ -145,6 +145,13 @@ const urlActiveNav = /^\/(?:en\/)?explorer\/?$/.test(Astro.url.pathname)
     : null;
 const isNavCurrent = (key: string) => activeNav === key || urlActiveNav === key;
 
+// The new-tab homepage prints the owner's name and role as its own `<h1>`, so
+// the top bar drops the role there rather than repeating it 350px away. The
+// `<h1>` sits in the first screen at every width the site ships (measured at
+// 390×844 and 1440×900), so no width-dependent branch is needed; the drawer
+// keeps its copy because it covers the page when open.
+const isHome = /^\/(?:en\/)?$/.test(Astro.url.pathname);
+
 // i18n: header / footer chrome labels.
 const t = {
   skip: isEn ? 'Skip to content' : 'Перейти к содержимому',
@@ -444,7 +451,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <BeaconMetrics />
   </head>
 
-  <body>
+  <body class:list={[isHome && 'is-home']}>
     <a href="#main" class="skip-link">{t.skip}</a>
 
     {
@@ -1013,6 +1020,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       }
 
       .nav-brand-role {
+        flex: none;
         min-width: 0;
         font-size: 0.72rem;
         line-height: 1.15;
@@ -1021,6 +1029,20 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         overflow: hidden;
         text-overflow: ellipsis;
       }
+
+      /* On `/` the role is already the page's `<h1>`; repeating it in the bar
+         put two identical lines on one phone screen. The name stays, so the
+         bar still identifies the site. */
+      .is-home .nav-mobile .nav-brand-role {
+        display: none;
+      }
+
+      /* The drawer covers 320 of the 390px, and the bar sits above the scrim so
+         the ☰ stays hittable — which left the bar's persona row peeking out
+         beside the open drawer while the drawer showed its own copy. The bar's
+         copy is the one that steps aside. Lives in the global block below
+         because `.nav-roles--bar` belongs to NavRoles, so a scoped selector
+         would carry Base's attribute and never match. */
 
       /* Wide bar: name and role share one baseline instead of stacking, so the
          two-line identity does not make the bar taller than the 65px token every
@@ -1130,6 +1152,12 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     </style>
 
     <style is:global>
+      /* While the drawer is open the bar's persona row is redundant — the drawer
+         carries its own copy — and it peeked out beside the 320px panel. */
+      body.nav-open .nav-mobile .nav-roles--bar {
+        visibility: hidden;
+      }
+
       /* The phone bar carries two rows (identity, then the persona row), so it is
          taller than the 65/77px token global.css pins the drawer, filter bar and
          graph overlay to. Those offsets are read from this token, so it has to
