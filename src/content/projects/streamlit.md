@@ -26,6 +26,7 @@ private: true
 demo: demos/streamlit/index.html
 related:
   - /projects/supabase/
+  - /posts/streamlit-dashboard-prototype/
 ---
 
 # Product Analytics Dashboard (Streamlit)

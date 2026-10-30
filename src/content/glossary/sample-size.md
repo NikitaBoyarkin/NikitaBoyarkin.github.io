@@ -4,7 +4,7 @@ description: "Размер выборки — число наблюдений, �
 aka: ["размер выборки", "объём выборки", "sample size"]
 category: statistics
 tags: ["statistics", "ab-testing"]
-related: ["/glossary/statistical-power/", "/glossary/mde/", "/glossary/ab-test/", "/glossary/bootstrap/"]
+related: ["/glossary/statistical-power/", "/glossary/mde/", "/glossary/ab-test/", "/glossary/bootstrap/", "/projects/ab/"]
 keywords: ["размер выборки", "выборка", "планирование"]
 updated: 2026-10-03
 ---

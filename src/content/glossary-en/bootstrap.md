@@ -4,7 +4,7 @@ description: "The bootstrap estimates a statistic's distribution by resampling w
 aka: ["bootstrap", "resampling"]
 category: statistics
 tags: ["statistics", "bayesian"]
-related: ["/glossary/p-value/", "/glossary/uplift/", "/projects/causal/"]
+related: ["/glossary/p-value/", "/glossary/uplift/", "/projects/causal/", "/projects/linkedin/"]
 keywords: ["bootstrap", "resampling", "confidence interval"]
 updated: 2026-10-01
 ---

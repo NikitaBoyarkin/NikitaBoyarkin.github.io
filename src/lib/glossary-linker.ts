@@ -1,17 +1,17 @@
 /**
  * Glossary term linker — a Sätteri mdast plugin that turns the first mention of
- * a glossary term in a glossary note's body into a link to that term's page.
+ * a glossary term in a note body into a link to that term's page.
  *
- * Scope is intentionally narrow: the factory returns `false` for every file
- * whose path is not under `src/content/glossary`, so no existing page can be
- * touched. The term index is read inside the factory (at compile time, per
- * document) rather than at config-eval time, so a newly added note is picked up
- * without restarting Vite.
+ * Scope is deliberate: the factory returns `false` for every file outside
+ * `src/content/glossary{, -en}`, `src/content/posts{, -en}` and
+ * `src/content/projects{, -en}`. The term index is read inside the factory (at
+ * compile time, per document) rather than at config-eval time, so a newly added
+ * note is picked up without restarting Vite.
  *
  * Deliberate simplifications, per the build plan:
- * - At most one link per text node (the plan's "first occurrence" rule is
- *   implemented per node, which also guarantees no double-linking within a
- *   paragraph's runs of text).
+ * - At most one link per term per document: the factory runs once per document,
+ *   so a `linkedTerms` set held in its closure gives document-wide scope. A
+ *   second occurrence of the same term stays plain text.
  * - A term is never linked on its own page (title or aliases).
  * - Headings and existing links are skipped.
  */
@@ -47,8 +47,19 @@ export const DEFAULT_GLOSSARY_DIRS: GlossaryDirs = {
   en: path.resolve(HERE, "..", "content", "glossary-en"),
 };
 
-const GLOSSARY_PATH_MARKER = "/src/content/glossary";
-const EN_PATH_MARKER = "glossary-en";
+const SCOPE_MARKERS = [
+  "/src/content/glossary/",
+  "/src/content/glossary-en/",
+  "/src/content/posts/",
+  "/src/content/posts-en/",
+  "/src/content/projects/",
+  "/src/content/projects-en/",
+];
+const EN_MARKER = /\/(?:glossary|posts|projects)-en\//;
+
+function inScope(normalized: string): boolean {
+  return SCOPE_MARKERS.some((marker) => normalized.includes(marker));
+}
 
 /** All-caps terms (Latin or Cyrillic) are abbreviations and match case-sensitively. */
 function isAllCaps(term: string): boolean {
@@ -192,9 +203,9 @@ export function glossaryLinker(options: GlossaryLinkerOptions = {}): GlossaryPlu
       return false;
     }
     const normalized = filePath.split("\\").join("/");
-    if (!normalized.includes(GLOSSARY_PATH_MARKER)) return false;
+    if (!inScope(normalized)) return false;
 
-    const isEn = normalized.includes(EN_PATH_MARKER);
+    const isEn = EN_MARKER.test(normalized);
     const fileSlug = path.basename(normalized).replace(/\.mdx?$/, "");
     const basePrefix = isEn ? "/en/glossary" : "/glossary";
 
@@ -202,6 +213,8 @@ export function glossaryLinker(options: GlossaryLinkerOptions = {}): GlossaryPlu
     // without a Vite restart.
     const index = options.index ?? buildGlossaryIndex(options.dirs);
     const matchers = isEn ? index.en : index.ru;
+    // Document scope: one link per term, no matter how many text nodes mention it.
+    const linkedTerms = new Set<string>();
 
     return {
       name: "glossary-linker",
@@ -218,6 +231,7 @@ export function glossaryLinker(options: GlossaryLinkerOptions = {}): GlossaryPlu
         let bestIndex = -1;
         for (const matcher of matchers) {
           if (matcher.slug === fileSlug) continue;
+          if (linkedTerms.has(matcher.slug)) continue;
           const hit = findTermOccurrence(value, matcher.term, matcher.caseSensitive);
           if (hit === -1) continue;
           if (
@@ -230,6 +244,7 @@ export function glossaryLinker(options: GlossaryLinkerOptions = {}): GlossaryPlu
           }
         }
         if (best === null) return;
+        linkedTerms.add(best.slug);
 
         const matchedText = value.slice(bestIndex, bestIndex + best.term.length);
         const replacements: GlossaryReplacement[] = [];

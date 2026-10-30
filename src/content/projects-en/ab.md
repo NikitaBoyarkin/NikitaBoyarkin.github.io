@@ -28,6 +28,12 @@ updated: 2026-10-25
 demo: demos/ab/index.html
 related:
   - /projects/volta/
+  - /projects/crm-experiment-lab/
+  - /projects/linkedin/
+  - /projects/product-ab-funnel/
+  - /projects/serp-rank/
+  - /glossary/confidence-interval/
+  - /glossary/sample-size/
 faq:
   - question: "How is a method's correctness verified?"
     answer: "By simulation calibration: an A/A run holds Type I error at α and bootstrap CI coverage sits near 95% — the property is backed by a run, not by a citation."
@@ -39,6 +45,8 @@ faq:
     answer: "The delta method gives the correct SE for CTR and RPC — the naive per-unit t-test is biased on a ratio metric."
   - question: "What does the end-to-end pipeline contain?"
     answer: "SRM → CUPED → delta-method CTR → per-segment ATE with a BH correction → novelty check."
+sources:
+  - trustworthy-online-controlled-experiments
 ---
 
 # A/B Testing Methodology Toolkit

@@ -27,6 +27,9 @@ demo: demos/python/index.html
 related:
   - /posts/eda-python-template/
   - /posts/reproducible-data-pipelines/
+  - /projects/ml/
+  - /projects/rag/
+  - /projects/bot/
 ---
 
 # Python Analytics Playground

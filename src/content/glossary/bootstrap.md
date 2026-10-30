@@ -4,7 +4,7 @@ description: "Бутстрап оценивает распределение с�
 aka: ["бутстрап", "bootstrap"]
 category: statistics
 tags: ["statistics", "bayesian"]
-related: ["/glossary/p-value/", "/glossary/uplift/", "/projects/causal/"]
+related: ["/glossary/p-value/", "/glossary/uplift/", "/projects/causal/", "/projects/linkedin/"]
 keywords: ["бутстрап", "ресэмплирование", "доверительный интервал"]
 updated: 2026-10-01
 ---

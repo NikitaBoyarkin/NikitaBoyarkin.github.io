@@ -4,7 +4,7 @@ description: "North Star Metric — метрика, отражающая цен�
 aka: ["North Star", "NSM", "North Star Metric"]
 category: product
 tags: []
-related: ["/glossary/funnel/", "/glossary/retention/", "/glossary/dau-mau/", "/glossary/arpu/", "/projects/posthog/"]
+related: ["/glossary/funnel/", "/glossary/retention/", "/glossary/dau-mau/", "/glossary/arpu/", "/projects/posthog/", "/posts/north-star-metric-conflicts/"]
 keywords: ["North Star", "метрика", "дерево метрик"]
 updated: 2026-10-01
 ---

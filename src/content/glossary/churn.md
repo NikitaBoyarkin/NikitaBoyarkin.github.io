@@ -4,7 +4,7 @@ description: "Отток — доля пользователей, переста
 aka: ["churn", "отток"]
 category: product
 tags: ["retention", "customer-analytics"]
-related: ["/glossary/retention/", "/glossary/ltv/", "/glossary/uplift/", "/glossary/rfm/", "/projects/churn/"]
+related: ["/glossary/retention/", "/glossary/ltv/", "/glossary/uplift/", "/glossary/rfm/", "/projects/churn/", "/posts/payment-failures-revenue/"]
 keywords: ["churn", "отток", "потери"]
 updated: 2026-10-01
 ---

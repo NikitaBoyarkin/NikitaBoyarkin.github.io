@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Post from '../../layouts/Post.astro';
 import { withBase } from '../../lib/path';
+import { getBacklinks } from '../../lib/link-index-data';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', (p) => !p.data.draft);
@@ -44,6 +45,8 @@ const related = (post.data.related ?? [])
     return found ? { href: withBase(`${found.kind}/${slug}/`), title: found.title, external: false } : null;
   })
   .filter((x): x is { href: string; title: string; external: boolean } => x !== null);
+
+const backlinks = await getBacklinks('ru', 'post', post.id.replace(/\.md$/, ''));
 ---
 
 <Post
@@ -54,6 +57,7 @@ const related = (post.data.related ?? [])
   excerpt={post.data.excerpt}
   image={post.data.image}
   related={related}
+  backlinks={backlinks}
   keywords={post.data.keywords ?? []}
   slug={post.id.replace(/\.md$/, '')}
   prev={prev}

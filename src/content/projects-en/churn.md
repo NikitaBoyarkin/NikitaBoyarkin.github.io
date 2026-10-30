@@ -29,6 +29,8 @@ date: 2026-09-18
 demo: demos/churn/index.html
 related:
   - /posts/churn-uplift-discount/
+  - /projects/ml/
+  - /posts/payment-failures-revenue/
 faq:
   - question: "Why a chronological split instead of a random one?"
     answer: "A random split leaks future activity into training: offline quality becomes an artifact of the leak rather than of signal."
@@ -40,6 +42,8 @@ faq:
     answer: "A retention campaign works the top of the risk list, so the decision follows recall@top-10% and lift."
   - question: "Why look at Brier?"
     answer: "Brier is sensitive to probability calibration: 0.063 for LightGBM versus 0.062 for a fairly-fitted logistic baseline — a tie. The earlier 0.099 Brier was an artifact of an unbalanced baseline."
+sources:
+  - designing-machine-learning-systems
 ---
 
 # Churn Prediction — Leakage-Free Retention Model

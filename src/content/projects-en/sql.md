@@ -35,6 +35,11 @@ faq:
     answer: "Retention falls from ~19.5% on D1 to ~4% on D30 and only 3.5% repeat; on the real dataset 72.4% return."
   - question: "What does the dbt layer add?"
     answer: "A staging → marts model layer on DuckDB, 18 dbt tests, and a regression test with deterministic invariants per case."
+related:
+  - /projects/airflow/
+  - /projects/delivery/
+  - /projects/gmv-drop-rca/
+  - /posts/sql-window-functions/
 ---
 
 # SQL Analytics Case Study

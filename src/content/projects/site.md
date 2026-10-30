@@ -27,6 +27,7 @@ related:
   - /projects/garden/
   - /projects/scrolly/
   - /posts/data-analyst-portfolio-checklist/
+  - /projects/games/
 ---
 
 # This Portfolio Site

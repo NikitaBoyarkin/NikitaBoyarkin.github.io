@@ -4,7 +4,7 @@ description: "Sample size is the number of observations needed to detect an effe
 aka: ["sample size", "sample sizing", "required sample"]
 category: statistics
 tags: ["statistics", "ab-testing"]
-related: ["/glossary/statistical-power/", "/glossary/mde/", "/glossary/ab-test/", "/glossary/bootstrap/"]
+related: ["/glossary/statistical-power/", "/glossary/mde/", "/glossary/ab-test/", "/glossary/bootstrap/", "/projects/ab/"]
 keywords: ["sample size", "planning", "power"]
 updated: 2026-10-03
 ---

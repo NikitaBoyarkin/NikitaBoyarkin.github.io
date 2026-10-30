@@ -27,6 +27,7 @@ demo: demos/scrolly/index.html
 related:
   - /projects/site/
   - /projects/garden/
+  - /projects/games/
 ---
 
 # Scrolly English Speaking

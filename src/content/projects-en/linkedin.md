@@ -32,6 +32,7 @@ demo: demos/linkedin/index.html
 related:
   - /projects/posthog/
   - /projects/streamlit/
+  - /glossary/bootstrap/
 ---
 
 # LinkedIn Content Analytics

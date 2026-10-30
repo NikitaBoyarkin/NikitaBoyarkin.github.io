@@ -1,0 +1,162 @@
+---
+/**
+ * Visual breadcrumb trail: home → section hub → current page.
+ *
+ * Deliberately derived from `Astro.url.pathname` and nothing else — no
+ * `getCollection`, no page props, no content frontmatter. A trail that read
+ * titles from content files would be a second source of truth next to the
+ * route table, and would silently disagree with the URL a visitor is on.
+ *
+ * Visual only: post, project and term pages already emit a JSON-LD
+ * `BreadcrumbList`, and a second one here would duplicate the node.
+ *
+ * Unknown paths render nothing — a wrong trail is worse than no trail.
+ */
+import { withBase } from '../lib/path';
+import { TOPICS } from '../lib/topics';
+
+interface Props {
+  lang?: 'ru' | 'en';
+  pathname: string;
+}
+
+interface Crumb {
+  label: string;
+  /** Absent on the current page (and on intermediate segments that have no
+   *  route of their own, e.g. a nested path with no hub page). */
+  href?: string;
+}
+
+const { lang = 'ru', pathname } = Astro.props;
+
+// Strip the deploy base, then the locale prefix, leaving route segments only.
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+let route = pathname.split('?')[0].split('#')[0];
+if (base !== '/' && route.startsWith(base)) route = `/${route.slice(base.length)}`;
+const segments = route.split('/').filter(Boolean);
+
+const isEnPath = segments[0] === 'en';
+const isEnUi = lang === 'en' || isEnPath;
+const rest = isEnPath ? segments.slice(1) : segments;
+
+const t = {
+  home: isEnUi ? 'Home' : 'Главная',
+  projects: isEnUi ? 'Projects' : 'Проекты',
+  writing: isEnUi ? 'Writing' : 'Статьи',
+  glossary: isEnUi ? 'Glossary' : 'Словарь',
+  library: isEnUi ? 'Library' : 'Библиотека',
+  topics: isEnUi ? 'Topics' : 'Темы',
+  explorer: isEnUi ? 'Explorer' : 'Обозреватель',
+  graph: isEnUi ? 'Graph' : 'Граф',
+  about: isEnUi ? 'About' : 'Обо мне',
+  contact: isEnUi ? 'Contact' : 'Контакты',
+  page: isEnUi ? 'Page' : 'Страница',
+  nav: isEnUi ? 'Breadcrumb' : 'Хлебные крошки',
+};
+
+const href = (p: string) => withBase(`${isEnPath ? 'en/' : ''}${p}`);
+const home: Crumb = { label: t.home, href: withBase(isEnPath ? 'en/' : '') };
+
+/** `/01-funnel/` → `Funnel`: separators read as spaces, a leading ordinal is
+ *  dropped, the first letter is capitalised. */
+function humanize(slug: string): string {
+  const words = slug
+    .replace(/[-_]+/g, ' ')
+    .replace(/^\d+\s+/, '')
+    .trim();
+  if (!words) return slug;
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+const [section, second, third] = rest;
+let crumbs: Crumb[] = [];
+
+switch (section) {
+  case 'projects': {
+    const hub: Crumb = { label: t.projects, href: href('projects/') };
+    if (!second) crumbs = [home, { label: t.projects }];
+    else if (second === 'volta' && third) {
+      crumbs = [
+        home,
+        hub,
+        // The project hubs exist as their own pages (`projects/volta.md`).
+        { label: 'Volta', href: href('projects/volta/') },
+        { label: humanize(third) },
+      ];
+    } else if (third) {
+      // No route for an intermediate segment: keep it as plain text rather
+      // than linking somewhere the visitor did not ask for.
+      crumbs = [home, hub, { label: humanize(second) }, { label: humanize(third) }];
+    } else crumbs = [home, hub, { label: humanize(second) }];
+    break;
+  }
+  case 'posts': {
+    const hub: Crumb = { label: t.writing, href: href('writing/') };
+    crumbs = second ? [home, hub, { label: humanize(second) }] : [home, hub];
+    break;
+  }
+  case 'writing': {
+    if (!second) crumbs = [home, { label: t.writing }];
+    else if (/^\d+$/.test(second)) {
+      crumbs = [home, { label: t.writing, href: href('writing/') }, { label: `${t.page} ${second}` }];
+    }
+    break;
+  }
+  case 'glossary': {
+    const hub: Crumb = { label: t.glossary, href: href('glossary/') };
+    crumbs = second ? [home, hub, { label: humanize(second) }] : [home, hub];
+    break;
+  }
+  case 'library': {
+    const hub: Crumb = { label: t.library, href: href('library/') };
+    crumbs = second ? [home, hub, { label: humanize(second) }] : [home, hub];
+    break;
+  }
+  case 'topics': {
+    // Topic pages exist in RU only — there is no `/en/topics/`, so an EN
+    // visitor gets no trail instead of a link that leaves the locale.
+    if (isEnPath) break;
+    const hub: Crumb = { label: t.topics, href: href('topics/') };
+    if (!second) crumbs = [home, { label: t.topics }];
+    else {
+      const topic = TOPICS.find((x) => x.key === second);
+      crumbs = [home, hub, { label: topic ? (isEnUi ? topic.labelEn : topic.label) : humanize(second) }];
+    }
+    break;
+  }
+  case 'explorer':
+  case 'graph':
+  case 'about':
+  case 'contact': {
+    if (second) break;
+    crumbs = [home, { label: t[section] }];
+    break;
+  }
+  default:
+    break;
+}
+
+// A one-crumb trail ("Главная") says nothing the header does not; and `/` and
+// `/en/` produce an empty trail, so both cases render nothing.
+const show = crumbs.length > 1;
+---
+
+{
+  show && (
+    <nav class="breadcrumbs" aria-label={t.nav}>
+      <ol>
+        {crumbs.map((crumb, i) => (
+          <li>
+            {crumb.href && i < crumbs.length - 1 ? (
+              <a href={crumb.href}>{crumb.label}</a>
+            ) : (
+              <span aria-current={i === crumbs.length - 1 ? 'page' : undefined}>{crumb.label}</span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}

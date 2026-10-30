@@ -1,0 +1,22 @@
+---
+// Renders the incoming-link list for a note. Reuses the global `.post-related`
+// block from `src/styles/blog.css`; renders nothing when there is no backlink.
+interface Props {
+  items: { path: string; title: string; kind: string }[];
+  label: string;
+  lang?: 'ru' | 'en';
+}
+
+const { items, label } = Astro.props;
+---
+
+{items.length > 0 && (
+  <section class="post-related" aria-label={label}>
+    <h2>{label}</h2>
+    <ul>
+      {items.map((item) => (
+        <li><a href={item.path}>{item.title}</a></li>
+      ))}
+    </ul>
+  </section>
+)}

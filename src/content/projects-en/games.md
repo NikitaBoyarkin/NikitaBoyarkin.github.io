@@ -29,6 +29,8 @@ related:
   - /projects/cohort/
   - /projects/sql/
   - /posts/cohort-triangles-retention/
+  - /projects/site/
+  - /projects/scrolly/
 ---
 
 # Browser Mini-Games — Analytics Arcade

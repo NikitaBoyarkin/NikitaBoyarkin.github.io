@@ -11,6 +11,7 @@ excerpt: "Три паттерна оконных функций, которые 
 related:
   - /projects/sql/
   - /posts/cohort-triangles-retention/
+  - /projects/delivery/
 keywords:
   - gaps and islands sql
   - оконные функции duckdb

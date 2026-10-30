@@ -35,6 +35,11 @@ faq:
     answer: "Retention падает с ~19.5% на D1 до ~4% на D30, повторных покупок — 3.5%; на real data возвращаются 72.4%."
   - question: "Что даёт dbt-слой?"
     answer: "Модели staging → marts на DuckDB, 18 dbt-тестов и regression-тест с детерминированными инвариантами на каждый кейс."
+related:
+  - /projects/airflow/
+  - /projects/delivery/
+  - /projects/gmv-drop-rca/
+  - /posts/sql-window-functions/
 ---
 
 # SQL Analytics Case Study

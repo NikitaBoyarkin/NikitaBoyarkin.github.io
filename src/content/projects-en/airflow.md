@@ -31,6 +31,8 @@ demo: demos/airflow/index.html
 related:
   - /projects/volta/
   - /projects/sql/
+  - /posts/reproducible-data-pipelines/
+  - /posts/github-actions-automation/
 faq:
   - question: "Why is a report a DAG and not a script?"
     answer: "A DAG gives versioning, scheduling, retries and run metrics out of the box; a manual SQL client → copy into Sheets leaves none of those traces."

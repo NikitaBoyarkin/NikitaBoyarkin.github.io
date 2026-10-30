@@ -41,6 +41,7 @@ related:
   - /projects/volta/
   - /projects/ab/
   - /projects/cohort/
+  - /projects/promo/
 faq:
   - question: "Почему не катим, если в офлайне выручка выше?"
     answer: "Офлайн-разрыв +34.45% посчитан на модели, а раскатка по user_id даёт −14.26% (p = 0.11) при пробитых guardrail'ах: CTR −13.06%, конверсия в бронь −16.05%. Правило остановки срабатывает на guardrail, а не на выручке."

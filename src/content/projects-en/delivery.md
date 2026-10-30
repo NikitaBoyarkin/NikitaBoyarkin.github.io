@@ -28,6 +28,7 @@ related:
   - /projects/sql/
   - /projects/cohort/
   - /projects/ab/
+  - /posts/sql-window-functions/
 faq:
   - question: "Why does delivery time not depend on load?"
     answer: "On the day × city × channel × category aggregate the Spearman correlation between volume and time is rho = −0.092, and mean time moves from 31.88 to 31.24 min across extreme deciles. The spread is explained by category, not by order count."

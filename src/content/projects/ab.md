@@ -28,6 +28,12 @@ updated: 2026-10-25
 demo: demos/ab/index.html
 related:
   - /projects/volta/
+  - /projects/crm-experiment-lab/
+  - /projects/linkedin/
+  - /projects/product-ab-funnel/
+  - /projects/serp-rank/
+  - /glossary/confidence-interval/
+  - /glossary/sample-size/
 faq:
   - question: "Как проверяется, что метод корректен?"
     answer: "Калибровкой симуляцией: A/A-прогон держит Type I error на уровне α, покрытие CI для bootstrap ≈ 95% — свойство подкреплено прогоном, а не ссылкой на литературу."
@@ -39,6 +45,8 @@ faq:
     answer: "Delta-method даёт корректный SE для CTR и RPC — наивный per-unit t-test на ratio-метрике смещён."
   - question: "Из чего состоит pipeline?"
     answer: "SRM → CUPED → delta-method CTR → сегментные ATE с BH-поправкой → novelty check."
+sources:
+  - trustworthy-online-controlled-experiments
 ---
 
 # A/B Testing Methodology Toolkit

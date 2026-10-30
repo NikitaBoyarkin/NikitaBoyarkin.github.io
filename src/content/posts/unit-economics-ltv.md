@@ -13,6 +13,9 @@ related:
   - /posts/cohort-retention-guide/
   - /posts/rfm-segmentation-practical/
   - /projects/volta/
+  - /projects/product-ab-funnel/
+  - /glossary/ltv/
+  - /glossary/cac/
 keywords:
   - юнит-экономика
   - LTV

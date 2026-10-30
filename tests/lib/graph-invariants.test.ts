@@ -59,17 +59,52 @@ beforeAll(() => {
   };
 });
 
+/** Hub meta-edges: `graph.ts` links every project/post/term to its type hub
+ *  (`core`) and every tagged node to its topic hub (`topic`). They touch every
+ *  node by construction, so counting them made the orphan invariant unable to
+ *  fail — the "no orphan" test asserted a tautology. */
+const META_EDGE_TYPES = new Set(['core', 'topic']);
+
+/** Root, type hubs and topic hubs own only meta edges; they are structure, not
+ *  content, and are excluded from the content-connectivity invariant. */
+const isStructural = (id: string) => id.startsWith('core:') || id.startsWith('topic:');
+
+/** Content nodes with no content edge (related / children / shared). */
+function orphanIds(nodes: GraphData['nodes'], links: GraphData['links']): string[] {
+  const connected = new Set<string>();
+  for (const l of links) {
+    if (META_EDGE_TYPES.has(l.type)) continue;
+    connected.add(l.source);
+    connected.add(l.target);
+  }
+  return nodes.filter((n) => !isStructural(n.id) && !connected.has(n.id)).map((n) => n.id);
+}
+
 function invariants(name: string, getGraph: () => GraphData) {
   describe(`invariants — ${name} graph`, () => {
-    it('has no orphan (disconnected) nodes', () => {
+    it('has no orphan (disconnected) content node', () => {
       const g = getGraph();
-      const connected = new Set<string>();
-      for (const l of g.links) {
-        connected.add(l.source);
-        connected.add(l.target);
-      }
-      const orphans = g.nodes.filter((n) => !connected.has(n.id)).map((n) => n.id);
-      expect(orphans).toEqual([]);
+      expect(orphanIds(g.nodes, g.links)).toEqual([]);
+    });
+
+    it('the orphan gate can fail (mutation control)', () => {
+      // Without the mutation the test above would still pass if `orphanIds`
+      // silently stopped filtering — prove it reports a node whose only
+      // content edges are removed, while its meta edges stay.
+      const g = getGraph();
+      const target = g.nodes.find(
+        (n) =>
+          !isStructural(n.id) &&
+          g.links.some(
+            (l) => !META_EDGE_TYPES.has(l.type) && (l.source === n.id || l.target === n.id),
+          ),
+      );
+      expect(target).toBeDefined();
+      const kept = g.links.filter(
+        (l) =>
+          META_EDGE_TYPES.has(l.type) || (l.source !== target!.id && l.target !== target!.id),
+      );
+      expect(orphanIds(g.nodes, kept)).toContain(target!.id);
     });
 
     it('gives every node a non-empty url', () => {

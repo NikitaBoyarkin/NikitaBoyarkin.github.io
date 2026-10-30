@@ -12,6 +12,7 @@ related:
   - /projects/streamlit/
   - /posts/dashboards-that-dont-lie/
   - /posts/reproducible-data-pipelines/
+  - /projects/sales-calls/
 keywords:
   - streamlit дашборд
   - прототип дашборда

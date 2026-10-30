@@ -13,6 +13,7 @@ related:
   - /posts/data-analyst-portfolio-checklist/
   - /posts/product-analyst-collaboration/
   - /posts/analyst-proactivity/
+  - /projects/gmv-drop-rca/
 keywords:
   - кейсы собеседование аналитик
   - диагностика просадки метрики

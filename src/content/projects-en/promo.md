@@ -40,6 +40,8 @@ related:
   - /projects/ab/
   - /projects/causal/
   - /projects/sql/
+  - /posts/churn-uplift-discount/
+  - /projects/serp-rank/
 faq:
   - question: "Why does promo lose money if revenue grows?"
     answer: "The discount is paid on units that would have sold at full price too. At an average depth of 25.4% and margins of 12–35%, incremental profit is negative in 97.9% of waves even though revenue grows by 68.5 m RUB."

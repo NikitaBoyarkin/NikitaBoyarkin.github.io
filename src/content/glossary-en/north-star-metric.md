@@ -4,7 +4,7 @@ description: "A North Star metric reflects the value the product delivers to use
 aka: ["North Star", "NSM", "North Star metric"]
 category: product
 tags: []
-related: ["/glossary/funnel/", "/glossary/retention/", "/glossary/dau-mau/", "/glossary/arpu/", "/projects/posthog/"]
+related: ["/glossary/funnel/", "/glossary/retention/", "/glossary/dau-mau/", "/glossary/arpu/", "/projects/posthog/", "/posts/north-star-metric-conflicts/"]
 keywords: ["North Star", "metric", "metric tree"]
 updated: 2026-10-01
 ---

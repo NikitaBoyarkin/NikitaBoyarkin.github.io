@@ -4,7 +4,7 @@ description: "Churn is the share of users who stop being active over a period. I
 aka: ["churn", "attrition"]
 category: product
 tags: ["retention", "customer-analytics"]
-related: ["/glossary/retention/", "/glossary/ltv/", "/glossary/uplift/", "/glossary/rfm/", "/projects/churn/"]
+related: ["/glossary/retention/", "/glossary/ltv/", "/glossary/uplift/", "/glossary/rfm/", "/projects/churn/", "/posts/payment-failures-revenue/"]
 keywords: ["churn", "attrition", "loss"]
 updated: 2026-10-01
 ---

@@ -13,6 +13,7 @@ related:
   - /posts/cohort-retention-guide/
   - /projects/volta/
   - /posts/feature-impact-analysis/
+  - /projects/promo/
 keywords:
   - churn analysis
   - uplift-модель

@@ -4,7 +4,7 @@ description: "Корреляция показывает совместное и�
 aka: ["корреляция и причинность", "корреляция не причинность", "correlation causation"]
 category: statistics
 tags: ["statistics", "causal-inference"]
-related: ["/glossary/uplift/", "/glossary/cuped/", "/glossary/bootstrap/", "/glossary/ab-test/"]
+related: ["/glossary/uplift/", "/glossary/cuped/", "/glossary/bootstrap/", "/glossary/ab-test/", "/projects/causal/"]
 keywords: ["корреляция", "причинность", "конфаундер"]
 updated: 2026-10-03
 ---

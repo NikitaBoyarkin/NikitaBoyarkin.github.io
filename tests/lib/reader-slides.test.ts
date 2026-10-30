@@ -130,8 +130,8 @@ describe('wiring', () => {
     'src/pages/en/projects/[slug].astro',
   ];
 
-  it('registers the plugin after the two existing mdast plugins', () => {
-    expect(CONFIG).toMatch(/mdastPlugins:\s*\[[^\]]*glossaryLinker\(\),\s*readerSlides\(\)/);
+  it('registers the plugin after the existing mdast plugins', () => {
+    expect(CONFIG).toMatch(/mdastPlugins:\s*\[[^\]]*glossaryLinker\(\),\s*wikilinks\(\),\s*readerSlides\(\)/);
   });
 
   it('imports the reader sheet after the prose layer', () => {

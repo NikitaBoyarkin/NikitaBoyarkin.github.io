@@ -13,6 +13,8 @@ related:
   - /posts/dashboards-that-dont-lie/
   - /posts/cohort-retention-guide/
   - /projects/posthog/
+  - /glossary/north-star-metric/
+  - /glossary/guardrail-metric/
 keywords:
   - north star metric
   - дерево метрик

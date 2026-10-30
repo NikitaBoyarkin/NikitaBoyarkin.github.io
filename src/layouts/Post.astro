@@ -3,6 +3,7 @@ import Base from './Base.astro';
 import InnerTOC from '../components/InnerTOC.astro';
 import InlineTOC from '../components/InlineTOC.astro';
 import CarouselNav from '../components/CarouselNav.astro';
+import Backlinks from '../components/Backlinks.astro';
 import { formatDate, estimateReadTime } from '../lib/date';
 import { withBase } from '../lib/path';
 import { categoryLabel } from '../lib/categories';
@@ -16,6 +17,7 @@ interface Props {
   slug: string;
   image?: string;
   related?: { href: string; title: string; external?: boolean }[];
+  backlinks?: { path: string; title: string; kind: string }[];
   keywords?: string[];
   prev?: { href: string; title: string } | null;
   next?: { href: string; title: string } | null;
@@ -23,7 +25,7 @@ interface Props {
   counterpartHref?: string;
 }
 
-const { title, date, updated, category, excerpt, slug, image, related = [], keywords = [], prev = null, next = null, lang = 'ru', counterpartHref } = Astro.props;
+const { title, date, updated, category, excerpt, slug, image, related = [], backlinks = [], keywords = [], prev = null, next = null, lang = 'ru', counterpartHref } = Astro.props;
 const rendered = await Astro.slots.render('default');
 const readTime = estimateReadTime(rendered.replace(/<[^>]*>/g, ' '));
 const categoryDisplay = categoryLabel(category, lang);
@@ -137,6 +139,12 @@ const articleJsonLdGraph = { '@context': 'https://schema.org', '@graph': [articl
         </ul>
       </section>
     )}
+
+    <Backlinks
+      items={backlinks}
+      label={lang === 'en' ? 'Linked from' : 'Ссылаются сюда'}
+      lang={lang}
+    />
 
     {(prev || next) && (
       <nav class="prev-next" aria-label={prevNextLabel}>

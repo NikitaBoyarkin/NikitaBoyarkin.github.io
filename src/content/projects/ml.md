@@ -29,6 +29,10 @@ demo: demos/ml/index.html
 related:
   - /projects/python/
   - /projects/ab/
+  - /projects/churn/
+  - /projects/rag/
+sources:
+  - designing-machine-learning-systems
 ---
 
 # ML Fundamentals — scikit-learn Pipeline

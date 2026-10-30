@@ -4,7 +4,7 @@ description: "LTV — суммарная ценность пользовател
 aka: ["LTV", "lifetime value"]
 category: business
 tags: ["customer-analytics"]
-related: ["/glossary/arpu/", "/glossary/churn/", "/glossary/retention/", "/glossary/segmentation/", "/projects/rfm/"]
+related: ["/glossary/arpu/", "/glossary/churn/", "/glossary/retention/", "/glossary/segmentation/", "/projects/rfm/", "/posts/unit-economics-ltv/"]
 keywords: ["LTV", "ценность", "маржа"]
 updated: 2026-10-01
 ---

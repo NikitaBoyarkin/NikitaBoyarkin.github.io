@@ -4,7 +4,7 @@ description: "Доверительный интервал задаёт диап�
 aka: ["доверительный интервал", "confidence interval"]
 category: statistics
 tags: ["statistics", "ab-testing"]
-related: ["/glossary/p-value/", "/glossary/bootstrap/", "/glossary/mde/", "/glossary/ab-test/"]
+related: ["/glossary/p-value/", "/glossary/bootstrap/", "/glossary/mde/", "/glossary/ab-test/", "/projects/ab/"]
 keywords: ["доверительный интервал", "оценка", "неопределённость"]
 updated: 2026-10-03
 ---

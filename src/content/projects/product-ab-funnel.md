@@ -31,6 +31,7 @@ related:
   - /projects/volta/
   - /projects/ab/
   - /projects/rfm/
+  - /posts/unit-economics-ltv/
 faq:
   - question: "Почему вердикт SHIP, если активация в варианте ниже?"
     answer: "Падение активации незначимо (−2.66%, p=0.147), а эффект на оплату значим и подкреплён ITT-проверкой paid per signup (+16.41%, p=0.007967). Падение не заложено в генератор и трактуется как шум."

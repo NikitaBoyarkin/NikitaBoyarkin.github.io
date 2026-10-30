@@ -4,7 +4,7 @@ description: "A confidence interval is the range that would contain the true eff
 aka: ["confidence interval", "interval estimate"]
 category: statistics
 tags: ["statistics", "ab-testing"]
-related: ["/glossary/p-value/", "/glossary/bootstrap/", "/glossary/mde/", "/glossary/ab-test/"]
+related: ["/glossary/p-value/", "/glossary/bootstrap/", "/glossary/mde/", "/glossary/ab-test/", "/projects/ab/"]
 keywords: ["confidence interval", "estimate", "uncertainty"]
 updated: 2026-10-03
 ---

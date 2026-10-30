@@ -4,7 +4,7 @@ description: "Correlation shows that two quantities move together; causation mea
 aka: ["correlation and causation", "correlation is not causation", "correlation vs causation"]
 category: statistics
 tags: ["statistics", "causal-inference"]
-related: ["/glossary/uplift/", "/glossary/cuped/", "/glossary/bootstrap/", "/glossary/ab-test/"]
+related: ["/glossary/uplift/", "/glossary/cuped/", "/glossary/bootstrap/", "/glossary/ab-test/", "/projects/causal/"]
 keywords: ["correlation", "causation", "confounder"]
 updated: 2026-10-03
 ---

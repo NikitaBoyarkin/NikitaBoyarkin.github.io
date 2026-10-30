@@ -29,6 +29,8 @@ date: 2026-10-10
 demo: demos/rag/index.html
 related:
   - /projects/causal/
+  - /projects/ml/
+  - /projects/python/
 ---
 
 # RAG Evaluation Harness — retrieval and generation metrics

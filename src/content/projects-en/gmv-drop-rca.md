@@ -30,6 +30,9 @@ updated: 2026-10-25
 bet: "The drop was created by concentration in one segment, not by a broad decline: a shared cause would have produced a flat decile contribution."
 failureBar: "The attribution must reconcile to £0.00 with explicit addends, and the segment verdict must land inside the injected ground-truth tier; otherwise the RCA is rejected."
 retro: "The hypothesis held: UK decile-1 produced 56.2% of the named drop. Two earlier failures — population mixing in the tree and the «169% of the drop» headline — became regression tests instead of a footnote."
+related:
+  - /projects/sql/
+  - /posts/analyst-interview-cases/
 ---
 
 # GMV Drop RCA — root cause on real data

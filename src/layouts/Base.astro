@@ -13,6 +13,7 @@ import 'katex/dist/katex.min.css';
 import { BRAND_ICON, ICON } from '../lib/icons';
 import { withBase } from '../lib/path';
 import Analytics from '../components/Analytics.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import LangSwitch from '../components/LangSwitch.astro';
 import NavRoles from '../components/NavRoles.astro';
 import SearchBox from '../components/SearchBox.astro';
@@ -182,7 +183,7 @@ const t = {
 // instead of hand-rolled copies that could drift apart. The glyphs themselves
 // come from `src/lib/icons.ts` — a component references a NAME, never a path —
 // so `set:html` only ever receives a module literal, nothing a visitor controls.
-const navLinks = [
+const allNavLinks = [
   {
     key: 'home',
     href: homeHref,
@@ -244,6 +245,13 @@ const navLinks = [
     icon: ICON['repo-audit'],
   },
 ] as const;
+
+// Both locales carry every destination, `/topics/` and `/repo-audit/` included.
+// Those two are RU-only route pairs with no `/en/` twin, so an EN visitor
+// crosses to the one page that exists instead of landing on a 404. That choice
+// is the pinned header contract in `tests/built/homepage-gate.test.ts`, which
+// reflects this array in the built output.
+const navLinks = allNavLinks;
 
 // The destination rendered inline in the top bar. It used to be a measured
 // cutover over six links; the bar now surfaces exactly one — the way home — and
@@ -531,6 +539,25 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       <button id="nav-toggle" class="nav-toggle" type="button" aria-label={t.navOpen} aria-expanded="false" aria-controls="nav-links" data-label-open={t.navOpen} data-label-close={t.navClose} data-icon-menu={NAV_MENU} data-icon-close={NAV_CLOSE}>
         <MorphIcon id="nav-icon" icon={NAV_MENU} spring="snappy" reducedMotion="user" size={20} />
       </button>
+
+      {/* With scripting off the drawer never slides in (`body.nav-open` is set
+          by the script below), so this row is the only route to nine of the
+          ten destinations. It lists the same `navLinks` the drawer does —
+          labels and hrefs cannot drift, and the RU-only rows are already
+          filtered out for EN above. */}
+      <noscript>
+        <nav class="nav-noscript" aria-label={isEn ? 'Site sections' : 'Разделы сайта'}>
+          <ul>
+            {navLinks.map((item) => (
+              <li>
+                <a href={item.href} aria-current={isNavCurrent(item.key) ? 'page' : undefined}>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </noscript>
     </header>
 
     {/* Browser-style strip of the pages opened this session. In flow, not
@@ -632,6 +659,10 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <div class="nav-scrim" id="nav-scrim"></div>
 
     <main id="main" tabindex="-1">
+      {/* Trail from the pathname, rendered for both locales before the page's
+          own markup — outside every article container. The homepage renders
+          none (see Breadcrumbs.astro). */}
+      <Breadcrumbs lang={lang} pathname={Astro.url.pathname} />
       <slot />
     </main>
 

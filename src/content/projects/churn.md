@@ -29,6 +29,8 @@ date: 2026-09-18
 demo: demos/churn/index.html
 related:
   - /posts/churn-uplift-discount/
+  - /projects/ml/
+  - /posts/payment-failures-revenue/
 faq:
   - question: "Почему сплит хронологический, а не случайный?"
     answer: "Случайный сплит подкладывает будущую активность в обучение: качество на тесте становится следствием утечки, а не сигнала."
@@ -40,6 +42,8 @@ faq:
     answer: "Кампания удержания бьёт по верхушке списка риска, поэтому решение принимается по recall@top-10% и lift."
   - question: "Зачем смотреть Brier?"
     answer: "Brier чувствителен к калибровке вероятностей: 0.063 у LightGBM против 0.062 у честно обученной логистики — это ничья. Прежний Brier 0.099 был артефактом unbalanced-бейзлайна."
+sources:
+  - designing-machine-learning-systems
 ---
 
 # Churn Prediction — Leakage-Free Retention Model

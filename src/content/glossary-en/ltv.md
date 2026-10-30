@@ -4,7 +4,7 @@ description: "LTV is the total value of a user over their entire lifetime. It is
 aka: ["LTV", "lifetime value"]
 category: business
 tags: ["customer-analytics"]
-related: ["/glossary/arpu/", "/glossary/churn/", "/glossary/retention/", "/glossary/segmentation/", "/projects/rfm/"]
+related: ["/glossary/arpu/", "/glossary/churn/", "/glossary/retention/", "/glossary/segmentation/", "/projects/rfm/", "/posts/unit-economics-ltv/"]
 keywords: ["LTV", "value", "margin"]
 updated: 2026-10-01
 ---

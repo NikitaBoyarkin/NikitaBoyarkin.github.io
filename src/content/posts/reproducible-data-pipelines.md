@@ -12,6 +12,7 @@ related:
   - /projects/posthog/
   - /projects/supabase/
   - /projects/sql/
+  - /projects/airflow/
 keywords:
   - воспроизводимый пайплайн данных
   - типизированный каталог событий

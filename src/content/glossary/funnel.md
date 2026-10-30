@@ -4,7 +4,7 @@ description: "Воронка — последовательность шагов
 aka: ["воронка", "funnel"]
 category: product
 tags: []
-related: ["/glossary/north-star-metric/", "/glossary/retention/", "/glossary/time-to-convert/", "/projects/sales-calls/"]
+related: ["/glossary/north-star-metric/", "/glossary/retention/", "/glossary/time-to-convert/", "/projects/sales-calls/", "/posts/user-journey-path-analysis/"]
 keywords: ["воронка", "конверсия", "шаги"]
 updated: 2026-10-01
 ---

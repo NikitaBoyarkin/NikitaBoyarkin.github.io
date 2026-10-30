@@ -11,7 +11,9 @@ import ProjectGraph from '../../../components/ProjectGraph.astro';
 import ChartsSection from '../../../components/charts/ChartsSection.astro';
 import SectionTabs from '../../../components/SectionTabs.astro';
 import SectionPanel from '../../../components/SectionPanel.astro';
+import Backlinks from '../../../components/Backlinks.astro';
 import { withBase } from '../../../lib/path';
+import { getBacklinks } from '../../../lib/link-index-data';
 import { loadChartFile } from '../../../lib/charts';
 import { formatDate } from '../../../lib/date';
 import { buildGraph, mergePostsForLocale, subgraphAround } from '../../../lib/graph';
@@ -54,27 +56,47 @@ const HUB_CHART_IDS = [
   'segmentation-pareto-cumulative',
 ];
 
-// Resolve related paths like /posts/<slug>/ and /projects/<slug>/ into { href, title }.
-// Posts stay RU-only (root); project links are EN-prefixed.
-const lookup = new Map<string, { kind: string; title: string }>();
-[...allPosts, ...allProjects].forEach((x) => {
-  const s = x.id.replace(/\.md$/, '');
-  const kind = x.collection === 'projects-en' ? 'projects' : 'posts';
-  lookup.set(s, { kind, title: x.data.title });
-});
+// Resolve related paths like /posts/<slug>/, /projects/<slug>/, /glossary/<slug>/
+// and /library/<slug>/ into { href, title }. Posts stay RU-only (root); project,
+// glossary and library links carry the EN prefix. Keyed by kind so a term and a
+// post sharing a slug cannot shadow each other.
+const allGlossary = await getCollection('glossary-en', (g) => !g.data.draft);
+const allLibrary = await getCollection('library-en', (l) => !l.data.draft);
+
+const SEGMENT = {
+  projects: 'en/projects',
+  posts: 'posts',
+  glossary: 'en/glossary',
+  library: 'en/library',
+} as const;
+type Relatable = keyof typeof SEGMENT;
+
+const lookup = new Map<string, { kind: Relatable; title: string }>();
+const register = (items: { id: string; data: { title: string } }[], kind: Relatable) => {
+  for (const x of items) {
+    lookup.set(`${kind}:${x.id.replace(/\.mdx?$/, '')}`, { kind, title: x.data.title });
+  }
+};
+register(allProjects, 'projects');
+register(allPosts, 'posts');
+register(allGlossary, 'glossary');
+register(allLibrary, 'library');
 
 const related = (project.data.related ?? [])
   .map((p) => {
-    const s = p.replace(/^\//, '').replace(/\/$/, '').replace(/^(posts|projects)\//, '');
-    const found = lookup.get(s);
-    if (!found) return null;
-    const href =
-      found.kind === 'projects'
-        ? withBase(`en/projects/${s}/`)
-        : withBase(`posts/${s}/`);
-    return { href, title: found.title };
+    const cleaned = p.replace(/^\//, '').replace(/\/$/, '');
+    const match = /^(projects|posts|glossary|library)\/(.+)$/.exec(cleaned);
+    const slugPart = match ? match[2] : cleaned;
+    const kind = match
+      ? (match[1] as Relatable)
+      : (Object.keys(SEGMENT) as Relatable[]).find((k) => lookup.has(`${k}:${slugPart}`));
+    if (!kind) return null;
+    const found = lookup.get(`${kind}:${slugPart}`);
+    return found ? { href: withBase(`${SEGMENT[kind]}/${slugPart}/`), title: found.title } : null;
   })
   .filter((x): x is { href: string; title: string } => x !== null);
+
+const backlinks = await getBacklinks('en', 'project', slug);
 
 // Mini-graph: the 1-hop neighborhood of this project in the full EN graph.
 // Posts are merged with a RU fallback so untranslated posts still appear
@@ -94,7 +116,7 @@ const hasCharts = Boolean(
     chartPayload.charts.length > 0 &&
     (chartIds ? chartIds.some((id) => chartPayload.charts.some((c) => c.id === id)) : true),
 );
-const hasConnections = related.length > 0 || sub.nodes.length > 1;
+const hasConnections = related.length > 0 || sub.nodes.length > 1 || backlinks.length > 0;
 
 // `demo:` is either an in-repo board path or an absolute third-party URL. Only
 // the former earns a panel: an external page would not follow the site's three
@@ -345,6 +367,8 @@ const pageJsonLd = {
                 </ul>
               </section>
             )}
+
+            <Backlinks items={backlinks} label="Linked from" lang="en" />
 
             {sub.nodes.length > 1 && (
               <section class="post-related reveal reveal-delay-3" aria-label="Connection map">

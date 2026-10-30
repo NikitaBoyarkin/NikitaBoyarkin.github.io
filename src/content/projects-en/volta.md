@@ -44,6 +44,8 @@ faq:
     answer: "4 segments (Power 12% / Growth 24% / Casual 32% / Dormant 32%) with per-segment strategy; migration worth up to +€310K/yr."
 related:
   - /posts/bayesian-ab-testing/
+  - /posts/user-journey-path-analysis/
+  - /projects/product-ab-funnel/
 children:
   - funnel
   - ab
@@ -68,6 +70,8 @@ children:
   - anchor-cac
   - dormant-winback
   - causal-kyc
+sources:
+  - trustworthy-online-controlled-experiments
 ---
 
 # Volta Neobank — Product Analytics

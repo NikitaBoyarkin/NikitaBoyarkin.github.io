@@ -25,6 +25,7 @@ updated: 2026-06-16
 demo: demos/sales-calls/index.html
 related:
   - /projects/streamlit/
+  - /posts/streamlit-dashboard-prototype/
 ---
 
 # Sales Calls Analytics Dashboard

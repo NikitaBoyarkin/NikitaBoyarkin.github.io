@@ -12,6 +12,7 @@ related:
   - /posts/first-value-moment-activation/
   - /projects/volta/
   - /posts/cohort-triangles-retention/
+  - /glossary/funnel/
 keywords:
   - user journey analysis
   - path analysis

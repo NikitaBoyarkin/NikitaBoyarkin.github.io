@@ -30,6 +30,9 @@ demo: demos/causal/index.html
 related:
   - /projects/ab/
   - /posts/churn-uplift-discount/
+  - /projects/crm-experiment-lab/
+  - /projects/promo/
+  - /glossary/correlation-causation/
 ---
 
 # Causal / Uplift — CUPED and Individual Treatment Effects

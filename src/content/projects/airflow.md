@@ -31,6 +31,8 @@ demo: demos/airflow/index.html
 related:
   - /projects/volta/
   - /projects/sql/
+  - /posts/reproducible-data-pipelines/
+  - /posts/github-actions-automation/
 faq:
   - question: "Почему отчёт — это DAG, а не скрипт?"
     answer: "DAG даёт версионирование, расписание, ретраи и метрики запусков из коробки; ручная выгрузка SQL-клиентом → копирование в Sheets не оставляет ни одного из этих следов."

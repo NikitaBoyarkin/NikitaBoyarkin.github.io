@@ -12,7 +12,9 @@ import ProjectGraph from '../../components/ProjectGraph.astro';
 import ChartsSection from '../../components/charts/ChartsSection.astro';
 import SectionTabs from '../../components/SectionTabs.astro';
 import SectionPanel from '../../components/SectionPanel.astro';
+import Backlinks from '../../components/Backlinks.astro';
 import { withBase } from '../../lib/path';
+import { getBacklinks } from '../../lib/link-index-data';
 import { loadChartFile } from '../../lib/charts';
 import { formatDate } from '../../lib/date';
 import { buildGraph, subgraphAround } from '../../lib/graph';
@@ -56,21 +58,37 @@ const HUB_CHART_IDS = [
   'segmentation-pareto-cumulative',
 ];
 
-// Резолвим related-пути вида /posts/<slug>/ и /projects/<slug>/ в { href, title }
+// Резолвим related-пути вида /posts/<slug>/, /projects/<slug>/, /glossary/<slug>/
+// и /library/<slug>/ в { href, title }. Ключ включает вид, чтобы термин и пост с
+// одинаковым slug не перекрывали друг друга.
+const allGlossary = await getCollection('glossary', (g) => !g.data.draft);
+const allLibrary = await getCollection('library', (l) => !l.data.draft);
+
+const RELATABLE = ['projects', 'posts', 'glossary', 'library'] as const;
 const lookup = new Map<string, { kind: string; title: string }>();
-[...allPosts, ...allProjects].forEach((x) => {
-  const s = x.id.replace(/\.md$/, '');
-  const kind = x.collection === 'projects' ? 'projects' : 'posts';
-  lookup.set(s, { kind, title: x.data.title });
-});
+const register = (items: { id: string; data: { title: string } }[], kind: string) => {
+  for (const x of items) {
+    lookup.set(`${kind}:${x.id.replace(/\.mdx?$/, '')}`, { kind, title: x.data.title });
+  }
+};
+register(allProjects, 'projects');
+register(allPosts, 'posts');
+register(allGlossary, 'glossary');
+register(allLibrary, 'library');
 
 const related = (project.data.related ?? [])
   .map((p) => {
-    const s = p.replace(/^\//, '').replace(/\/$/, '').replace(/^(posts|projects)\//, '');
-    const found = lookup.get(s);
-    return found ? { href: withBase(`${found.kind}/${s}/`), title: found.title } : null;
+    const cleaned = p.replace(/^\//, '').replace(/\/$/, '');
+    const match = /^(projects|posts|glossary|library)\/(.+)$/.exec(cleaned);
+    const slugPart = match ? match[2] : cleaned;
+    const kind = match ? match[1] : RELATABLE.find((k) => lookup.has(`${k}:${slugPart}`));
+    if (!kind) return null;
+    const found = lookup.get(`${kind}:${slugPart}`);
+    return found ? { href: withBase(`${kind}/${slugPart}/`), title: found.title } : null;
   })
   .filter((x): x is { href: string; title: string } => x !== null);
+
+const backlinks = await getBacklinks('ru', 'project', slug);
 
 // Mini-graph: the 1-hop neighborhood of this project in the full knowledge graph.
 const graph = buildGraph({ projects: allProjects, posts: allPosts, parts: allParts, topics: TOPICS, lang: 'ru' });
@@ -87,7 +105,7 @@ const hasCharts = Boolean(
     chartPayload.charts.length > 0 &&
     (chartIds ? chartIds.some((id) => chartPayload.charts.some((c) => c.id === id)) : true),
 );
-const hasConnections = related.length > 0 || sub.nodes.length > 1;
+const hasConnections = related.length > 0 || sub.nodes.length > 1 || backlinks.length > 0;
 
 // `demo:` is either an in-repo board path or an absolute third-party URL. Only
 // the former earns a panel: an external page would not follow the site's three
@@ -340,6 +358,8 @@ const pageJsonLd = {
                 </ul>
               </section>
             )}
+
+            <Backlinks items={backlinks} label="Ссылаются сюда" lang="ru" />
 
             {sub.nodes.length > 1 && (
               <section class="post-related reveal reveal-delay-3" aria-label="Карта связей">

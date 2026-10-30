@@ -12,6 +12,8 @@ related:
   - /posts/cohort-retention-guide/
   - /projects/volta/
   - /posts/telegram-reporting-bot/
+  - /projects/churn/
+  - /glossary/churn/
 keywords:
   - платёжные отказы
   - involuntary churn

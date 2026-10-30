@@ -3938,3 +3938,137 @@ html.bleed .nav-mobile {
     min-width: 44px;
   }
 }
+
+/* ============================================================
+   Breadcrumb trail
+   ------------------------------------------------------------
+   Rendered by Breadcrumbs.astro from the pathname, placed inside <main>
+   ahead of the page's own markup — never inside an article container, so
+   the TOC heading count (h1–h6) is untouched. Visual only: the JSON-LD
+   BreadcrumbList on post/project/term pages stays the machine-readable copy.
+   ============================================================ */
+.breadcrumbs {
+  margin-block-end: var(--space-4);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.breadcrumbs li {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* Separator is decoration: it carries no information and no accessible name. */
+.breadcrumbs li + li::before {
+  content: "/";
+  color: var(--text-muted);
+}
+
+.breadcrumbs a {
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.breadcrumbs a:hover,
+.breadcrumbs a:focus-visible {
+  color: var(--text-accent);
+  border-bottom-color: currentColor;
+}
+
+.breadcrumbs a:focus-visible {
+  outline: 2px solid var(--border-active);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* The current page is not a link and is carried by `aria-current` in the
+   markup; it stays in normal ink so the trail reads as a position, not a menu. */
+.breadcrumbs [aria-current="page"] {
+  color: var(--text-normal);
+  font-weight: 500;
+}
+
+/* ============================================================
+   No-JavaScript navigation
+   ------------------------------------------------------------
+   The drawer at `#site-nav` only slides in when JS adds `body.nav-open`,
+   which left every destination but the inline "home" link unreachable with
+   scripting off. Base.astro renders this <noscript> row inside the header,
+   from the same `navLinks` array the drawer uses, so labels and hrefs cannot
+   drift. It is a horizontal scroller rather than a wrapping block: the bar
+   sits above the fold and a tall menu would eat the first screen on phones.
+   ============================================================ */
+.nav-noscript {
+  order: 99;
+  flex: 1 0 100%;
+  min-width: 0;
+}
+
+/* Only present when scripting is off, so the bar may wrap for it without
+   touching the JS path's single-row layout. */
+.nav-mobile:has(.nav-noscript) {
+  flex-wrap: wrap;
+}
+
+.nav-noscript ul {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-1) 0 0;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.nav-noscript a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: var(--space-1) var(--space-2);
+  color: var(--text-normal);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-noscript a:hover,
+.nav-noscript a:focus-visible {
+  color: var(--text-accent);
+  border-bottom-color: currentColor;
+}
+
+.nav-noscript a:focus-visible {
+  outline: 2px solid var(--border-active);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.nav-noscript a[aria-current="page"] {
+  color: var(--text-accent);
+  border-bottom-color: currentColor;
+}
+
+@media (pointer: coarse) {
+  .nav-noscript a {
+    min-height: 44px;
+  }
+}

@@ -355,16 +355,53 @@ describe('glossaryLinker — locale routing and scope', () => {
     expect(pluginFor(undefined, { ru: [], en: [] })).toBe(false);
   });
 
-  it('returns false outside the glossary directories', () => {
+  it('returns false outside the linked content directories', () => {
     const empty = { ru: [], en: [] };
     expect(pluginFor(new URL('file:///project/src/pages/index.astro'), empty)).toBe(false);
-    expect(pluginFor(new URL('file:///project/src/content/posts/x.md'), empty)).toBe(false);
+    expect(pluginFor(new URL('file:///project/src/content/glossary-old/x.md'), empty)).toBe(false);
+  });
+
+  it('returns a plugin for posts and projects as well as glossary notes', () => {
+    const empty = { ru: [], en: [] };
+    for (const file of ['posts/x.md', 'posts-en/x.md', 'projects/x.md', 'projects-en/x.md']) {
+      const url = new URL(`file:///project/src/content/${file}`);
+      expect(pluginFor(url, empty), file).not.toBe(false);
+    }
   });
 
   it('returns a plugin inside the glossary directories', () => {
     const plugin = pluginFor(pageURL('srm'), { ru: [], en: [] });
     expect(plugin).not.toBe(false);
     if (plugin !== false) expect(plugin.name).toBe('glossary-linker');
+  });
+});
+
+describe('glossaryLinker — document scope', () => {
+  it('links a term once per document, leaving a second occurrence plain', () => {
+    const index = ruIndex(matcher('CUPED', 'cuped', true));
+    const url = new URL('file:///project/src/content/posts/experiment.md');
+    const plugin = pluginFor(url, index);
+    if (plugin === false) return;
+    const { ctx, replaced } = spyCtx(url);
+
+    plugin.text!({ type: 'text', value: 'CUPED is the method' }, ctx);
+    plugin.text!({ type: 'text', value: 'we run CUPED often' }, ctx);
+
+    expect(replaced).toHaveLength(1);
+    const links = replaced[0].filter((p): p is GlossaryLinkNode => p.type === 'link');
+    expect(links).toHaveLength(1);
+    expect(links[0].url).toBe('/glossary/cuped/');
+  });
+
+  it('routes EN post mentions to /en/glossary/<slug>/', () => {
+    const index: GlossaryIndex = { ru: [], en: [matcher('CUPED', 'cuped', true)] };
+    const url = new URL('file:///project/src/content/posts-en/x.md');
+    const plugin = pluginFor(url, index);
+    if (plugin === false) return;
+    const { ctx, replaced } = spyCtx(url);
+    plugin.text!({ type: 'text', value: 'CUPED' }, ctx);
+    const links = replaced[0].filter((p): p is GlossaryLinkNode => p.type === 'link');
+    expect(links[0].url).toBe('/en/glossary/cuped/');
   });
 });
 

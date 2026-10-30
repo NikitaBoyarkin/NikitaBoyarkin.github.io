@@ -42,7 +42,12 @@ export const TOPICS: Topic[] = [
     "A/B testing",
     "middle",
     "Методология экспериментов: дизайн, AA-тесты, поправки на множественные сравнения, байесовский вывод.",
-    ["ab-testing", "bayesian", "statistics"],
+    // `A/B-тест` and `A/B тест` normalise to the same key as the tag does, so a
+    // project titled "A/B-тест" matches even though "ab-testing" never appears
+    // as a literal substring of its title. `A/B Testing` covers the English
+    // title the flagship project actually ships ("A/B Testing Methodology
+    // Toolkit"), which the slug `ab` is too short to match on its own.
+    ["ab-testing", "bayesian", "statistics", "A/B-тест", "A/B тест", "A/B Testing"],
   ),
   topic("retention", "Retention / когорты", "Retention / cohorts", "middle", "Когортный анализ, кривые retention, отток.", [
     "retention",
@@ -110,23 +115,45 @@ export function postMatchesTopic(topic: Topic, tags: string[] | undefined): bool
 }
 
 /**
+ * Fold a value into the one spelling both sides of project matching compare.
+ *
+ * Topic aliases are written with hyphens (`ab-testing`), titles with slashes
+ * (`A/B-тест`), descriptions with prose spacing (`A/B testing`). Lowercasing
+ * and collapsing `/`, the three dash variants and runs of whitespace into a
+ * single space makes all of them the same string, so a project titled
+ * "A/B-тест" matches the `ab-testing` topic instead of listing zero projects.
+ */
+export function normalizeTopicKey(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[/\-–—]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Normalised aliases shorter than this are ignored: a two-character needle
+ *  would match unrelated prose (e.g. "ab" inside "абсолютный"). */
+const MIN_ALIAS_LENGTH = 3;
+
+/**
  * True iff a project belongs to this topic.
  *
  * The signal is the project's slug/title/tools/description scanned for the
- * topic's canonical tags (hyphens read as spaces, so `ab-testing` also matches
- * prose "A/B testing") plus the topic key itself. Exported because the topic
- * page renders its cards with this same predicate — the hub count and the page
- * list must never be computed by two different rules.
+ * topic's canonical tags plus the topic key itself, both sides normalised with
+ * `normalizeTopicKey` (hyphens, slashes and whitespace read as one separator).
+ * Exported because the topic page renders its cards with this same predicate —
+ * the hub count and the page list must never be computed by two different
+ * rules.
  */
 export function projectMatchesTopic(topic: Topic, project: Countable): boolean {
   const slug = project.id.replace(/\.mdx?$/, "");
-  const hay = `${slug} ${project.data.title} ${(project.data.tools ?? []).join(" ")} ${project.data.description ?? ""}`
-    .toLowerCase()
-    .replace(/-/g, " ");
-  return (
-    topic.tags.some((tag) => hay.includes(tag.toLowerCase().replace(/-/g, " "))) ||
-    hay.includes(topic.key.replace(/-/g, " "))
+  const hay = normalizeTopicKey(
+    `${slug} ${project.data.title} ${(project.data.tools ?? []).join(" ")} ${project.data.description ?? ""}`,
   );
+  const needles = [...topic.tags, topic.key]
+    .map(normalizeTopicKey)
+    .filter((needle) => needle.length >= MIN_ALIAS_LENGTH);
+  return needles.some((needle) => hay.includes(needle));
 }
 
 /**

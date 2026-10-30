@@ -31,6 +31,7 @@ related:
   - /projects/volta/
   - /projects/ab/
   - /projects/rfm/
+  - /posts/unit-economics-ltv/
 faq:
   - question: "Why is the verdict SHIP if activation is lower in the treatment?"
     answer: "The activation drop is not significant (−2.66%, p=0.147), while the effect on paid conversion is significant and backed by the ITT check paid per signup (+16.41%, p=0.007967). The drop was not built into the generator and is read as noise."

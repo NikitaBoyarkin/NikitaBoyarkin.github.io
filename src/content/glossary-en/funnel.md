@@ -4,7 +4,7 @@ description: "A funnel is a sequence of steps from entry to a target action with
 aka: ["funnel", "conversion funnel"]
 category: product
 tags: []
-related: ["/glossary/north-star-metric/", "/glossary/retention/", "/glossary/time-to-convert/", "/projects/sales-calls/"]
+related: ["/glossary/north-star-metric/", "/glossary/retention/", "/glossary/time-to-convert/", "/projects/sales-calls/", "/posts/user-journey-path-analysis/"]
 keywords: ["funnel", "conversion", "steps"]
 updated: 2026-10-01
 ---

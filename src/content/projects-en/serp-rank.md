@@ -41,6 +41,7 @@ related:
   - /projects/volta/
   - /projects/ab/
   - /projects/cohort/
+  - /projects/promo/
 faq:
   - question: "Why not ship it if offline revenue is higher?"
     answer: "The +34.45% offline gap is a model number, while the user_id rollout returns −14.26% (p = 0.11) with breached guardrails: CTR −13.06%, booking conversion −16.05%. The stopping rule fires on a guardrail, not on revenue."
