@@ -148,6 +148,7 @@ const isNavCurrent = (key: string) => activeNav === key || urlActiveNav === key;
 // i18n: header / footer chrome labels.
 const t = {
   skip: isEn ? 'Skip to content' : 'Перейти к содержимому',
+  roleTitle: isEn ? 'Product Analyst' : 'Продуктовый аналитик',
   navHome: isEn ? 'Home' : 'Главная',
   navProjects: isEn ? 'Projects' : 'Проекты',
   navAbout: isEn ? 'About' : 'Обо мне',
@@ -456,7 +457,10 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <header class="nav-mobile">
       <a href={aboutHref} class="nav-brand">
         <svg class="nav-brand-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICON.about} />
-        <b>Nikita Boyarkin</b>
+        <span class="nav-brand-text">
+          <b>Nikita Boyarkin</b>
+          <span class="nav-brand-role">{t.roleTitle}</span>
+        </span>
       </a>
       {/* The three audience landings, one tap from the top bar. They read as a
           left-hand cluster with the brand ("who" + "viewing as"); the outbound
@@ -531,7 +535,10 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <nav id="site-nav" aria-label={isEn ? 'Main navigation' : 'Основная навигация'}>
       <a href={aboutHref} class="nav-brand">
         <svg class="nav-brand-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICON.about} />
-        <b>Nikita Boyarkin</b>
+        <span class="nav-brand-text">
+          <b>Nikita Boyarkin</b>
+          <span class="nav-brand-role">{t.roleTitle}</span>
+        </span>
       </a>
       {/* On phones the top bar yields the persona buttons to this copy (see
           NavRoles.astro) — inside the drawer there is room for the full labels. */}
@@ -562,6 +569,26 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           />
           {t.navContact}
         </a>
+      </div>
+
+      {/* Phones only: the top bar spends its first row on the identity block and
+          its second on the persona row, so the outbound chips move here, where
+          the drawer has room for the full labels. Same `data-analytics` names on
+          purpose — one PostHog series, and only the copy currently on screen is
+          focusable. From 768px up the bar keeps the group and this one is hidden. */}
+      <div class="nav-social">
+        <a class="nav-chip" href="https://github.com/NikitaBoyarkin" data-analytics="github_footer">
+          <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.github} />
+          <span class="nav-chip-label">GitHub</span></a
+        >
+        <a class="nav-chip" href="https://www.linkedin.com/in/nikita-boyarkin" data-analytics="linkedin_footer">
+          <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.linkedin} />
+          <span class="nav-chip-label">LinkedIn</span></a
+        >
+        <a class="nav-chip" href="https://t.me/lofinibo" data-analytics="telegram_footer">
+          <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.telegram} />
+          <span class="nav-chip-label">Telegram</span></a
+        >
       </div>
 
       <ul class="links" id="nav-links">
@@ -965,20 +992,99 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         }
       }
 
-      /* Below the canvas breakpoint the wordmark goes visually hidden — NOT
-         `display: none`, which would strip the brand anchor of its accessible
-         name, since the logo beside it is `aria-hidden`. */
-      @media (max-width: 899px) {
+      /* Identity in the bar: the name sits over the role on phones and beside it
+         from 768px up, so a visitor who lands on any page reads who this is and
+         what they do without opening the drawer. `min-width: 0` on both levels
+         is what lets the name truncate with an ellipsis instead of pushing the
+         controls off the row. */
+      .nav-brand-text {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+        line-height: 1.1;
+      }
+
+      .nav-brand-text b {
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .nav-brand-role {
+        min-width: 0;
+        font-size: 0.72rem;
+        line-height: 1.15;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Wide bar: name and role share one baseline instead of stacking, so the
+         two-line identity does not make the bar taller than the 65px token every
+         sticky offset below it reads. */
+      @media (min-width: 768px) {
+        .nav-brand-text {
+          flex-direction: row;
+          align-items: baseline;
+          gap: var(--space-2);
+        }
+      }
+
+      /* Drawer social group: phones only, because that is where the bar hands
+         its outbound chips over. The global `max-width: 1023px` rule strips the
+         chip labels to keep the bar short; inside the drawer there is room, so
+         they come back. */
+      .nav-social {
+        display: none;
+      }
+
+      /* Below 768px the wordmark stacks and shrinks: the glyph alone identified
+         no one, so the name and the role stay readable at 390px and truncate
+         with an ellipsis rather than wrapping or cutting mid-word. */
+      @media (max-width: 767px) {
+        .nav-mobile .nav-brand {
+          padding: var(--space-1) var(--space-2);
+          min-width: 0;
+        }
         .nav-mobile .nav-brand b {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          margin: -1px;
+          font-size: 0.9rem;
+        }
+        .nav-mobile .nav-brand-text,
+        .nav-mobile .nav-brand-role {
+          max-width: 38vw;
+        }
+      }
+
+      /* Phone bar: two rows. Identity + theme toggle + drawer trigger cannot
+         share a line with three labelled persona chips at 390px, and the row
+         that holds the personas needs the full viewport to keep them equal.
+         The outbound chips move into the drawer (`.nav-social`) to pay for it. */
+      @media (max-width: 767px) {
+        .nav-mobile {
+          flex-wrap: wrap;
+          row-gap: var(--space-2);
+        }
+        .nav-mobile .nav-chips {
+          display: none;
+        }
+        .nav-social {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: var(--space-2);
+        }
+        .nav-social .nav-chip-label {
+          position: static;
+          width: auto;
+          height: auto;
+          margin: 0;
           padding: 0;
-          overflow: hidden;
-          clip-path: inset(50%);
+          overflow: visible;
+          clip-path: none;
           white-space: nowrap;
-          border: 0;
         }
       }
 
@@ -1020,6 +1126,23 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       .footer-actions .button {
         font-size: 0.85rem;
         padding: var(--space-2) var(--space-4);
+      }
+    </style>
+
+    <style is:global>
+      /* The phone bar carries two rows (identity, then the persona row), so it is
+         taller than the 65/77px token global.css pins the drawer, filter bar and
+         graph overlay to. Those offsets are read from this token, so it has to
+         track the measured bar height or the drawer slides under the bar. */
+      @media (max-width: 767px) {
+        :root {
+          --nav-mobile-h: calc(107px + env(safe-area-inset-top));
+        }
+      }
+      @media (max-width: 767px) and (pointer: coarse) {
+        :root {
+          --nav-mobile-h: calc(129px + env(safe-area-inset-top));
+        }
       }
     </style>
   </body>

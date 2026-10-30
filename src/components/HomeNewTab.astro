@@ -11,6 +11,9 @@
 // query off to the Explorer surface, which already accepts `?q=`.
 import { ICON } from '../lib/icons';
 import { withBase } from '../lib/path';
+// Persona promise lines come from ROLE_COPY so the homepage cannot drift from
+// the landings it points at.
+import { ROLE_COPY } from '../lib/projects';
 
 interface Props {
   lang?: 'ru' | 'en';
@@ -29,6 +32,7 @@ const t = isEn
       all: 'All results',
       searchLabel: 'Site search',
       shortcutsLabel: 'Shortcuts',
+      personasLabel: 'Three ways in',
       id: 'Nikita Boyarkin — Product Analyst',
     }
   : {
@@ -38,8 +42,40 @@ const t = isEn
       all: 'Все результаты',
       searchLabel: 'Поиск по сайту',
       shortcutsLabel: 'Быстрые ссылки',
+      personasLabel: 'Три способа читать сайт',
       id: 'Никита Бояркин — Продуктовый аналитик',
     };
+
+const roleCopy = ROLE_COPY[isEn ? 'en' : 'ru'];
+
+// Equal weight by construction: same markup, same width, no numbering.
+const PERSONAS = [
+  {
+    href: withBase(isEn ? 'en/hr/' : 'hr/'),
+    label: isEn ? 'Hiring' : 'Найм',
+    line: roleCopy.hr.lead,
+  },
+  {
+    href: withBase(isEn ? 'en/manager/' : 'manager/'),
+    label: isEn ? 'Impact' : 'Результат',
+    line: roleCopy.manager.lead,
+  },
+  {
+    href: withBase(isEn ? 'en/colleague/' : 'colleague/'),
+    label: isEn ? 'How it is made' : 'Как сделано',
+    line: roleCopy.colleague.lead,
+  },
+];
+
+// Figures below are copied verbatim from src/content/projects(-en)/volta.md;
+// `bun run audit:content` is the guard that keeps them honest.
+const FLAGSHIP = {
+  href: withBase(isEn ? 'en/projects/volta/' : 'projects/volta/'),
+  title: 'Volta Neobank — Product Analytics',
+  metric: isEn
+    ? '+5.72 pp KYC conversion · €208.5K in 12 mo · 13.9× ROI'
+    : '+5,72 п.п. KYC-конверсии · €208,5K за 12 мес · 13,9× ROI',
+};
 
 const SHORTCUTS = [
   {
@@ -123,6 +159,28 @@ const SHORTCUTS = [
       />
     </form>
     <ul class="nt-results" id="nt-results" role="listbox" aria-label={t.searchLabel} hidden></ul>
+
+    <div class="nt-content">
+      <nav class="nt-personas-wrap" aria-label={t.personasLabel}>
+        <ul class="nt-personas">
+          {
+            PERSONAS.map((p) => (
+              <li>
+                <a class="nt-persona" href={p.href}>
+                  <span class="nt-persona-label">{p.label}</span>
+                  <span class="nt-persona-line">{p.line}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <a class="nt-flagship" href={FLAGSHIP.href}>
+        <span class="nt-flagship-title">{FLAGSHIP.title}</span>
+        <span class="nt-flagship-metric">{FLAGSHIP.metric}</span>
+      </a>
+    </div>
 
     <ul class="nt-shortcuts" aria-label={t.shortcutsLabel}>
       {
@@ -464,6 +522,86 @@ const SHORTCUTS = [
     list-style: none;
   }
 
+  /* Content band: aligned to the search island so the eye reads one column.
+     No card boxes — the surface is a new tab, not a grid of tiles. */
+  .nt-content {
+    inline-size: min(38rem, 100%);
+    margin-block-start: var(--space-4);
+    padding-block-start: var(--space-4);
+    border-top: 1px solid var(--border-color);
+    text-align: start;
+  }
+
+  .nt-personas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nt-persona {
+    display: grid;
+    gap: var(--space-1);
+    text-decoration: none;
+  }
+
+  .nt-persona-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    transition: color 0.18s ease;
+  }
+
+  .nt-persona-line {
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--text-normal);
+    text-wrap: pretty;
+  }
+
+  .nt-persona:hover .nt-persona-label,
+  .nt-persona:focus-visible .nt-persona-label {
+    color: var(--text-accent);
+  }
+
+  .nt-persona:focus-visible,
+  .nt-flagship:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+  }
+
+  .nt-flagship {
+    display: grid;
+    gap: var(--space-1);
+    margin-block-start: var(--space-4);
+    padding-block-start: var(--space-3);
+    border-top: 1px solid var(--border-color);
+    text-decoration: none;
+  }
+
+  .nt-flagship-title {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--text-normal);
+    transition: color 0.18s ease;
+  }
+
+  .nt-flagship-metric {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    text-wrap: balance;
+  }
+
+  .nt-flagship:hover .nt-flagship-title {
+    color: var(--text-accent);
+  }
+
   .nt-shortcut {
     display: inline-flex;
     align-items: center;
@@ -501,6 +639,13 @@ const SHORTCUTS = [
     color: var(--text-accent);
   }
 
+  @media (max-width: 860px) {
+    .nt-personas {
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+  }
+
   @media (max-width: 599px) {
     .nt-form {
       padding: var(--space-3) var(--space-4);
@@ -513,7 +658,9 @@ const SHORTCUTS = [
 
   @media (prefers-reduced-motion: reduce) {
     .nt-form,
-    .nt-shortcut {
+    .nt-shortcut,
+    .nt-persona-label,
+    .nt-flagship-title {
       transition: none;
     }
 

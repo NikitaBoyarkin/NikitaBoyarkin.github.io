@@ -150,17 +150,15 @@ const href = (target: Audience): string => withBase(isEn ? `en/${target}/` : `${
   @media (pointer: coarse) {
     .nav-role {
       min-height: 44px;
+      /* Icon-only widths (26–34px) are narrower than the 44px thumb floor once
+         the labels are hidden between 768 and 1199px. */
+      min-width: 44px;
     }
   }
 
-  /* One copy at a time. Below 768px the top bar has no room for a fourth group,
-     so the bar copy yields to the drawer copy; from 768px up the drawer copy
-     steps aside and the bar owns the control. */
-  @media (max-width: 767px) {
-    .nav-roles--bar {
-      display: none;
-    }
-  }
+  /* One drawer copy at a time: from 768px up the bar owns the control, so the
+     drawer's copy steps aside. The bar copy is never hidden — below 768px it
+     moves to its own full-width row in the top bar (see the rule below). */
   @media (min-width: 768px) {
     .nav-roles--menu {
       display: none;
@@ -187,6 +185,37 @@ const href = (target: Audience): string => withBase(isEn ? `en/${target}/` : `${
 
     .nav-roles--bar .nav-role {
       padding: var(--space-1) var(--space-2);
+    }
+  }
+
+  /* Phones: the bar gives the group a full-width second row, which is the room
+     the 1199px rule was rationing. Equal `flex: 1 1 0` on all three keeps them
+     the same size — the personas are peers, and a wider first chip would read as
+     a ranking. Labels come back here because the row now spans the viewport. */
+  @media (max-width: 767px) {
+    .nav-roles--bar {
+      flex: 1 0 100%;
+      order: 10;
+      justify-content: space-between;
+      gap: var(--space-1);
+    }
+
+    .nav-roles--bar .nav-role {
+      flex: 1 1 0;
+      gap: var(--space-1);
+      padding: var(--space-1) var(--space-2);
+      font-size: 0.75rem;
+    }
+
+    .nav-roles--bar .nav-role-label {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0;
+      padding: 0;
+      overflow: visible;
+      clip-path: none;
+      white-space: nowrap;
     }
   }
 </style>
