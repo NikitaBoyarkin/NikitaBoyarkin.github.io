@@ -126,27 +126,29 @@ All CV entry points collapsed to a single "CV" button that downloads the PDF
 The `CV-Nikita-Boyarkin.pdf` `Disallow` in `robots.txt` is unchanged. Historical
 rows for the removed events stay in PostHog.
 
-## CV removed from the site (2026-10-24) — reversed 2026-11-01
+## CV removed from the site (2026-10-24) — re-added and removed again 2026-11-01
 
-Owner's call on 2026-10-24: no CV download anywhere. On 2026-11-01 the site audit
-reversed it — a portfolio with no forwardable document gives an HR reader only a
-chat window — so the CV download is back as `public/cv/nikita-boyarkin.pdf`,
-linked from the hero, the header bar and the drawer.
+Owner's call on 2026-10-24: no CV download anywhere. The 2026-11-01 site audit
+reversed it (a portfolio with no forwardable document gives an HR reader only a
+chat window), shipped `public/cv/nikita-boyarkin.pdf` with links from the hero
+and the drawer, and the owner reversed it again within the hour.
 
-What came back: the PDF (RU rendering copied from `../cv/rendercv_output/`), the
-three links, and the events `cv_download` + `telegram_hero` + `telegram_header`.
-What did NOT come back, and why:
+**Current state: no CV button anywhere.** The PDF remains at
+`public/cv/nikita-boyarkin.pdf` — nothing links it, and `check_site.py` does not
+require it, so it is inert until either a link returns or the file is deleted.
 
-| Not restored | Why |
+What must NOT come back without a deliberate decision:
+
+| Keep absent | Why |
 |---|---|
-| `cv_download_pdf`, `cta_exposure` | the new button is measured by `cv_download`; reviving the old names would splice two unrelated series in PostHog, and an exposure rate still has no second CTA to normalise against |
-| Sticky action rail (`cta-rail`, ≥1860px) | its only action was the CV; the header bar now carries that action at every width it fits |
-| `/cv/` HTML page and `/cv/` → PDF redirect | the PDF at a stable path is the whole job; a second route is another thing to keep in sync |
-| `cv:pdf` npm script and `scripts/sync-cv-pdf.mjs` | the rendercv source lives outside this repo, so the copy is deliberate rather than automated. Regenerate there, copy here |
+| `cv_download`, `cta_exposure` | `cv_download` was declared and retired the same day and never emitted in production, so reviving it starts a fresh series; an exposure rate still has no second CTA to normalise against |
+| Sticky action rail (`cta-rail`, ≥1860px) | its only action was the CV |
+| `/cv/` HTML page and `/cv/` → PDF redirect | the PDF at a stable path was the whole job |
+| `cv:pdf` npm script and `scripts/sync-cv-pdf.mjs` | the rendercv source lives outside this repo; regenerate there, copy here |
 
-Still removed on 2026-10-24 and still absent: the header **chip** (the bar's
-Telegram button is the filled action now), the `CareerSnapshot` / `ValueOffers`
-«CV →» entries, and the dashboard tile.
+Also still absent from 2026-10-24: the header **chip** (the bar's Telegram button
+is the filled action now), the `CareerSnapshot` / `ValueOffers` «CV →» entries, and
+the dashboard tile.
 
 ## Форма связи + запись звонка (2026-09-26)
 

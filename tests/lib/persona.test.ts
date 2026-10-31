@@ -217,12 +217,11 @@ describe('wiring (PRD §6, §9, §10)', () => {
 // inverted. Each of those shipped as a bug once: a dead href, a primary action
 // with no exposure event, a CTA pointing at a placeholder. (The "show all
 // projects" link was removed from the hero on 2026-10-10.) The CV and Contact
-// The CV came BACK on 2026-11-01 (site audit, wave 1): the portfolio shipped no
-// downloadable CV at all, so an HR reader had only a Telegram chat as a route to
-// a document they could forward. The 2026-10-24 removal guards were therefore
-// re-pointed, not deleted — the page must carry the download, from the hero and
-// from the header, and must still not grow the retired booking button or an
-// exposure event with no denominator.
+// The CV came back on 2026-11-01 (site audit, wave 1) and went again the same
+// day on the owner's call, so the 2026-10-24 removal guards are back in their
+// original shape: the page must not offer a download, and the retired event
+// names must stay dead. What changed permanently is the hero itself — it now
+// carries a Telegram CTA above the fold, which this file also pins.
 // ---------------------------------------------------------------------------
 describe('homepage primary CTA (docs/cta-inventory.md)', () => {
   // The live surface. The gate card and the canvas were deleted on 2026-10-29
@@ -231,22 +230,24 @@ describe('homepage primary CTA (docs/cta-inventory.md)', () => {
   const gate = () => src('src/components/HomeNewTab.astro');
   const bar = () => src('src/layouts/Base.astro');
 
-  it('carries the CV download in the hero and in the header', () => {
-    // Both surfaces, because they answer different readers: the hero is the one
-    // recruiters read top-down, the header is the one they reach for after they
-    // have scrolled somewhere else on the site.
+  it('offers no CV download, in the hero or in the drawer', () => {
     for (const [name, source] of [
       ['HomeNewTab', gate()],
       ['Base', bar()],
     ] as const) {
-      expect(source, `${name} lost the CV download`).toContain('cv/nikita-boyarkin.pdf');
+      // The PDF still sits in `public/cv/` on disk; nothing links it. A link here
+      // is what makes it an offer, so the link is what this asserts against.
+      expect(source, `${name} links the CV again`).not.toContain('cv/nikita-boyarkin.pdf');
+      expect(source, `${name} emits the retired CV event`).not.toContain('cv_download');
     }
-    // The event is declared in `src/lib/analytics.ts` (the analytics-contract
-    // test enforces that), and fires from the hero button, not from a dead name.
-    expect(gate()).toContain('data-analytics="cv_download"');
-    // The old filename must not come back: the shipped asset is `nikita-boyarkin.pdf`.
-    expect(gate()).not.toContain('CV-Nikita-Boyarkin.pdf');
-    expect(bar()).not.toContain('CV-Nikita-Boyarkin.pdf');
+  });
+
+  it('carries the Telegram action in the hero and in the top bar', () => {
+    // The replacement for the CV button, and the reason the hero still has a
+    // primary action at all: a page whose only CTA is a footer link is the
+    // finding this whole wave was built to fix.
+    expect(gate()).toContain('data-analytics="telegram_hero"');
+    expect(bar()).toContain('data-analytics="telegram_header"');
     // The retired booking button stays retired, and the booking URL still belongs
     // to the contact pages even though the homepage no longer links it.
     expect(gate(), 'the booking button must not be back on the homepage').not.toContain('booking_click');
@@ -256,8 +257,7 @@ describe('homepage primary CTA (docs/cta-inventory.md)', () => {
 
   it('fires no cta_exposure — the board carries no exposed CTA to have a rate for', () => {
     // Kept as a NEGATIVE assertion rather than deleted: a rate whose denominator
-    // counts a button that is not on the page is worse than no rate. The CV
-    // button is measured by its own `cv_download` count instead.
+    // counts a button that is not on the page is worse than no rate.
     expect(gate()).not.toContain("track('cta_exposure'");
   });
 });

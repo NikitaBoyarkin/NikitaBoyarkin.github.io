@@ -123,11 +123,8 @@ const homeHref = isEn ? withBase('en/') : withBase('/');
 const aboutHref = isEn ? withBase('en/about/') : withBase('about/');
 const projectsHref = isEn ? withBase('en/projects/') : withBase('projects/');
 const contactHref = isEn ? withBase('en/contact/') : withBase('contact/');
-// The rendered CV. Only the RU rendering exists today (the source lives outside
-// this repo at `../cv/Boyarkin_Nikita_Product_Analyst_CV.yaml`), so both locales
-// link the same file and the EN surface says so in its label instead of claiming
-// a translation. See `HomeNewTab.astro` for the early return on the homepage.
-const cvHref = withBase('cv/nikita-boyarkin.pdf');
+// The CV download and its `navCv` label were removed on the owner's call
+// (2026-11-01): the PDF stays in `public/cv/` but nothing on the site offers it.
 const glossaryHref = isEn ? withBase('en/glossary/') : withBase('glossary/');
 const graphHref = isEn ? withBase('en/graph/') : withBase('graph/');
 const libraryHref = isEn ? withBase('en/library/') : withBase('library/');
@@ -182,7 +179,6 @@ const t = {
   navTelegram: isEn ? 'Message me' : 'Написать',
   // The drawer's second action. Honest about the language: the only rendering
   // is Russian, so the EN label carries the marker rather than a promise.
-  navCv: isEn ? 'Download CV (PDF, RU)' : 'Скачать резюме',
   // The footer's own label. «Связаться» reads as an action and matches the
   // /contact/ heading, while the drawer button stays the noun «Контакты».
   footerContact: isEn ? 'Get in touch' : 'Связаться',
@@ -653,36 +649,9 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           />
           {t.navContact}
         </a>
-        {/* The CV beside the contact CTA: whoever opened the drawer gets the
-            artifact and the ask in one block. Secondary styling so the drawer
-            still carries exactly one filled action. The download glyph is
-            inlined rather than added to `ICON` because this change does not own
-            `src/lib/icons.ts`; it is lucide's `download`, verbatim. */}
-        <a
-          class="button button-secondary nav-cta"
-          href={cvHref}
-          data-analytics="cv_download"
-          data-analytics-surface="drawer"
-        >
-          <svg
-            class="btn-icon"
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          {t.navCv}
-        </a>
+        {/* The CV download that used to sit beside this button was removed on the
+            owner's call (2026-11-01), so the drawer carries the contact CTA
+            alone. */}
       </div>
 
       {/* Phones only: the top bar spends its first row on the identity block and

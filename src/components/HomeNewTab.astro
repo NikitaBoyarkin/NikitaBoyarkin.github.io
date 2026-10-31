@@ -47,7 +47,6 @@ const t = isEn
       // One line, the work rather than the job title: what a recruiter scans
       // for in the first three seconds is the method, not the noun.
       value: 'I test hypotheses with experiments: A/B tests, retention, segmentation',
-      cv: 'Download CV (PDF, RU)',
       cases: 'See the cases',
     }
   : {
@@ -61,16 +60,11 @@ const t = isEn
       name: 'Никита Бояркин',
       role: 'Продуктовый аналитик',
       value: 'Проверяю гипотезы экспериментами: A/B-тесты, retention, сегментация',
-      cv: 'Скачать резюме (PDF)',
       cases: 'Смотреть кейсы',
     };
 
-// The rendered CV is built outside this repo
-// (`../cv/Boyarkin_Nikita_Product_Analyst_CV.yaml` → rendercv → the PDF copied
-// into `public/cv/`). Only the RU rendering exists, so the EN page points at the
-// same file and says so in the label rather than pretending to a translation;
-// an EN rendering is a follow-up, not a second copy fabricated here.
-const CV_URL = withBase('cv/nikita-boyarkin.pdf');
+// The CV download button was removed on the owner's call (2026-11-01) — the PDF
+// is no longer offered from the site, so there is nothing here to point at.
 const TELEGRAM_URL = 'https://t.me/lofinibo';
 const casesUrl = withBase(isEn ? 'en/projects/' : 'projects/');
 
@@ -215,12 +209,7 @@ const SHORTCUTS = [
     </a>
 
     <div class="nt-ctas">
-      <a class="button" href={CV_URL} data-analytics="cv_download" data-analytics-surface="hero">
-        {t.cv}
-      </a>
-      <a class="button button-secondary" href={TELEGRAM_URL} data-analytics="telegram_hero">
-        Telegram
-      </a>
+      <a class="button" href={TELEGRAM_URL} data-analytics="telegram_hero"> Telegram </a>
       <a class="nt-cases" href={casesUrl}>
         {t.cases} <span class="nt-cases-arrow" aria-hidden="true">→</span>
       </a>

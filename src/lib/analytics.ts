@@ -89,10 +89,10 @@ export interface AnalyticsEventMap {
   // `telegram_header` is the bar's labelled CTA — deliberately not
   // `telegram_footer` (the chip beside it) because the two surfaces answer
   // different questions: "the button I can read" vs "the icon I recognise".
-  // `cv_download` is the CV PDF; `surface` separates the hero from the drawer.
+  // `cv_download` was declared here for a day and then removed with the CV
+  // button: an event nothing emits is a dashboard view with no numerator.
   telegram_header: { path: string };
   telegram_hero: { path: string };
-  cv_download: { path: string; surface?: string };
   flagship_case: { path: string };
 }
 
