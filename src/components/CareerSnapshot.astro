@@ -55,6 +55,15 @@ const I18N = {
   eduItems: [
     { degree: isEn ? "BSc · Business informatics" : "BSc · Бизнес-информатика", years: "2016–2020", place: isEn ? "UMC" : "UMC" },
     { degree: isEn ? "MSc · Work psychology" : "MSc · Психология труда", years: "2020–2022", place: isEn ? "UMC" : "UMC" },
+    // The doctoral programme, named as the programme — never as a degree. The
+    // dissertation is not defended, so "PhD · Психология труда" would be a claim
+    // a recruiter can check and falsify; «Аспирантура» is the years actually
+    // completed and needs no qualifier to be true. The owner removed the old
+    // wording on 2026-10-31 for exactly this reason and then asked for the
+    // doctoral work to be visible again on 2026-11-01; this line is both.
+    // `PRODUCT.md` ("Учёная степень не заявляется") is the rule this obeys, and
+    // `tests/built/about.test.ts` fails if a degree claim comes back.
+    { degree: isEn ? "Doctoral programme · Work psychology" : "Аспирантура · Психология труда", years: "2022–2025", place: isEn ? "UMC" : "UMC" },
   ],
 };
 ---

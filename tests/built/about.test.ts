@@ -75,6 +75,17 @@ describe.each(PAGES)('about page contract ($label)', ({ path }) => {
     expect(html).toContain('id="career"');
   });
 
+  it('shows the doctoral programme, and claims no degree from it', () => {
+    // PRODUCT.md, «Учёная степень не заявляется»: the dissertation is not
+    // defended, so the site names the programme and never the degree. This is
+    // the mechanism — the rule was prose twice already (written, then reversed
+    // by hand on 2026-10-31), and prose with no failing test is how a claim
+    // comes back unnoticed.
+    expect(html).toMatch(/Аспирантура|Doctoral programme/);
+    expect(html, 'a PhD degree claim is back on /about').not.toMatch(/PhD\s*·/);
+    expect(html, 'a PhD degree claim is back in the JSON-LD').not.toMatch(/'?PhD, Work psychology/);
+  });
+
   it('keeps the section_viewed anchors', () => {
     for (const section of ANALYTICS_SECTIONS) {
       expect(html).toContain(`data-analytics-section="${section}"`);
