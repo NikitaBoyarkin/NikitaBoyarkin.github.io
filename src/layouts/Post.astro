@@ -4,6 +4,7 @@ import InnerTOC from '../components/InnerTOC.astro';
 import InlineTOC from '../components/InlineTOC.astro';
 import CarouselNav from '../components/CarouselNav.astro';
 import Backlinks from '../components/Backlinks.astro';
+import NextStep from '../components/NextStep.astro';
 import { formatDate, estimateReadTime } from '../lib/date';
 import { withBase } from '../lib/path';
 import { categoryLabel } from '../lib/categories';
@@ -164,6 +165,8 @@ const articleJsonLdGraph = { '@context': 'https://schema.org', '@graph': [articl
     )}
 
     <a href={withBase(`${lang === 'en' ? 'en/' : ''}writing/`)} class="post-back">{backLabel}</a>
+
+    <NextStep lang={lang} surface="post_next_step" />
   </article>
 
   <script is:inline>

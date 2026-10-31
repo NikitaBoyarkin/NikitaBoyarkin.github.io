@@ -9,6 +9,7 @@ import SectionTabs from '../../../components/SectionTabs.astro';
 import SectionPanel from '../../../components/SectionPanel.astro';
 import { withBase } from '../../../lib/path';
 import { loadChartFile } from '../../../lib/charts';
+import NextStep from '../../../components/NextStep.astro';
 
 export async function getStaticPaths() {
   const parts = await getCollection('volta-parts', (p) => !p.data.draft);
@@ -223,6 +224,8 @@ const partJsonLd = {
         </nav>
       )
     }
+
+    <NextStep lang="ru" surface="volta_part_next_step" />
   </div>
 </Base>
 

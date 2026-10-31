@@ -9,6 +9,7 @@ import InlineTOC from '../../../../components/InlineTOC.astro';
 import StarBlock from '../../../../components/StarBlock.astro';
 import { withBase } from '../../../../lib/path';
 import { loadChartFile } from '../../../../lib/charts';
+import NextStep from '../../../../components/NextStep.astro';
 
 export async function getStaticPaths() {
   const parts = await getCollection('volta-parts-en', (p) => !p.data.draft);
@@ -201,6 +202,8 @@ const partJsonLd = {
         </nav>
       )
     }
+
+    <NextStep lang="en" surface="volta_part_next_step" />
   </div>
 </Base>
 

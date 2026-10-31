@@ -32,7 +32,10 @@ const TABLE_HEADER = '| date | source | company | segment | stage | evidence | n
 const PLACEHOLDER = '_no rows yet — awaiting first inbound contact_';
 
 // Values the log's own schema allows; anything else is a bug upstream.
-const SOURCES = new Set(['linkedin', 'hh', 'telegram', 'github', 'referral', 'direct', 'other']);
+// `booking` is hand-entered (a cal.com slot), never synced: this script reads
+// `contact_messages` only, and the form writes `source='direct'`. The value is
+// listed so a hand-written row is not reported as a schema violation.
+const SOURCES = new Set(['linkedin', 'hh', 'telegram', 'github', 'referral', 'booking', 'direct', 'other']);
 
 const APPLY = process.argv.includes('--apply');
 const SUPABASE_URL = process.env.SUPABASE_URL;

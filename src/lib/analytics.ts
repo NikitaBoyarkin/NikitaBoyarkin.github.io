@@ -65,6 +65,12 @@ export interface AnalyticsEventMap {
   // a type map that lies about what ships. Locale is still recoverable in PostHog
   // from the event's URL (/en/contact/ vs /contact/).
   booking_click: { path: string };
+  // Any anchor that opens the contact page, not the booking page. `surface`
+  // names the placement (`nav`, `footer`, `case_next_step`,
+  // `post_next_step`) so "read a case, then wrote" stays separable from a
+  // header click. Added 2026-10-31: before it, 262 `/contact/` anchors shipped
+  // with exactly one instrumented (a lang switch).
+  contact_page_click: { path: string; surface?: string };
   // `source` is the surface the choice came from. `header`/`menu` are
   // `NavRoles.astro`'s two variants (bar vs drawer) — they were shipped before
   // this union existed, so declaring only `gate | switch` made the map lie

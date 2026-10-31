@@ -26,7 +26,8 @@ Canonical event taxonomy for the portfolio, per
 | `projects_track_filter` | `{ track, results_count, locale }` | a project category tab is selected (`track` is the taxonomy key or `all`) | `ProjectBoard.astro` and `ProjectList.astro` (the list carries the same tabs on `/colleague/`; the two never render together — one category means one series in PostHog) |
 | `contact_submit` | `{ locale }` | the contact form was submitted and the Edge Function accepted it | `ContactForm.astro` (only on `res.ok`). **Inert in production** until `PROJECT_REF` in `src/lib/contact.ts` is replaced (`CONTACT_FORM_ENABLED=false`, so the form is not rendered at all) |
 | `contact_form_error` | `{ locale, reason }` | a contact-form submission failed (`reason ∈ {validation, rate_limited, server, network}`) | `ContactForm.astro`. **Inert in production** — same reason as `contact_submit` |
-| `booking_click` | `{ path }` | the 30-minute booking CTA (`cal.com/lofinibo/30min`) is clicked | `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
+| `booking_click` | `{ path }` | the booking CTA (`cal.com/lofinibo/bored-call-me`) is clicked | `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
+| `contact_page_click` | `{ path, surface? }` | a link that opens the **contact page** (not the booking page) is clicked. `surface` names the placement: `nav` (the drawer's contact button — the only non-footer entry on a closed drawer), `footer`, `about_links` (the link row under `/about`), `case_next_step` (end of a project case), `volta_part_next_step` (end of a Volta chapter), `post_next_step` (end of a post) | `Base.astro` (drawer CTA + footer button), `content/about/{ru,en}.mdx` (link row), `NextStep.astro` (mounted by `projects/[slug].astro`, `projects/volta/[part].astro`, their EN twins and `Post.astro`), via `[data-analytics]` |
 | `persona_selected` | `{ persona, lang, source }` | a persona is chosen (`source ∈ {gate, switch, header, menu}` — `header`/`menu` are `NavRoles`'s bar/drawer variants) | `NavRoles.astro`, `RoleSwitch.astro` |
 | `library_tile` | `{ path }` | a library tile is clicked | `ReadingBlock.astro`, via `[data-analytics]` |
 | `source_external` | `{ path }` | the "source ↗" link of a library entry is clicked. Currently **inert**: no library entry carries `url:`, so the link never renders | `ReadingBlock.astro`, `library/[slug].astro` (RU + EN), via `[data-analytics]` |
@@ -38,8 +39,10 @@ Canonical event taxonomy for the portfolio, per
 
 > **Placements.** Any `[data-analytics]` element may also carry
 > `data-analytics-surface="<placement>"`; the delegated handler then adds
-> `surface` to the event props. No placement uses it today — the only one was the
-> desktop CTA rail (`surface:'home_rail'`), retired with the CV on 2026-10-24.
+> `surface` to the event props. `contact_page_click` is the event that uses it
+> today: `nav`, `footer`, `case_next_step`, `post_next_step`. The mechanism was
+> introduced for the desktop CTA rail (`surface:'home_rail'`), retired with the
+> CV on 2026-10-24, and sat unused until 2026-10-31.
 > Add the attribute to any new CTA whose exposure you intend to count.
 
 ### Super properties (registered once per load, PRD §4.2)

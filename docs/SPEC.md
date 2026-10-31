@@ -11,7 +11,7 @@
 ## Objective
 
 A **bilingual (RU/EN) static portfolio site** for Nikita Boyarkin, a Data / Product
-Analyst (career change from work psychology, PhD). Published as a user GitHub Pages site
+Analyst (career change from work psychology). Published as a user GitHub Pages site
 at `https://nikitaboyarkin.github.io/` — served from the domain root, no `base` path.
 
 **Primary purpose:** convert recruiters and hiring managers into **contact initiations**,

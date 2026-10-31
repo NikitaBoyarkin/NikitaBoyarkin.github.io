@@ -55,7 +55,7 @@ web
 - `description:` проектов — 120–200 символов, обеспечено Zod-схемой; `bun run build` падает вне диапазона.
 - Ветка `impact:` (кейс без `star`) — живой код, но спящий: у всех текущих файлов есть `star`.
 - Контентные коллекции: `projects`, `projects-en`, `volta-parts`, `volta-parts-en`, `posts`, `posts-en`, `glossary`, `glossary-en`, `library`, `library-en`.
-- **Статус учёной степени подтверждён.** «PhD · Психология труда, 2022–2025, UMC» (`src/components/CareerSnapshot.astro:53`, `src/content/about/ru.mdx:37`, `src/content/about/en.mdx:37`, JSON-LD в `src/pages/about.astro`) — верно по подтверждению владельца от 2026-10-30. Формулировку можно уточнять по смыслу, но нельзя усиливать за пределы подтверждённого (никаких «PhD, University Medical Center, summa cum laude» и подобного).
+- **Учёная степень не заявляется.** Сайт говорит только об образовании: BSc (бизнес-информатика, 2016–2020) и MSc (психология труда, 2020–2022). Строка «PhD · Психология труда, 2022–2025» удалена 2026-10-31 из `src/components/CareerSnapshot.astro`, `src/content/about/{ru,en}.mdx` и JSON-LD `alumniOf` в `src/pages/{en/}about.astro` по решению владельца (диссертация не защищена). Не возвращать её и не выводить из «аспирантура» никакую степень.
 
 ## Brand Commitments
 

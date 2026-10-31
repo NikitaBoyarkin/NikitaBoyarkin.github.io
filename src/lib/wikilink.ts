@@ -106,7 +106,11 @@ export function resolveWikilink(
   return { target: candidates.find((c) => c.path.startsWith(wantedPrefix)) ?? candidates[0] };
 }
 
-const WIKILINK = /\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]/;
+// Global so one text node can carry several links: `[[a]]` and `[[b|c]]` are
+// resolved in a single pass. Relying on the visitor to re-visit the re-inserted
+// tail worked only by accident (nothing asserted it), and a paragraph with two
+// links was the untested case — see tests/lib/wikilink.test.ts.
+const WIKILINK = /\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]/g;
 
 export interface WikilinkPlugin {
   name: string;
@@ -150,27 +154,33 @@ export function wikilinks(options: WikilinkOptions = {}): WikilinkPluginFactory 
         const value = node.value;
         if (!value || !value.includes("[[")) return;
 
-        const match = WIKILINK.exec(value);
-        if (!match) return;
-
-        const slug = match[1].trim();
-        const label = (match[2] ?? match[1]).trim();
-        const resolution = resolveWikilink(registry, slug, { enSource });
-        if (resolution.error || !resolution.target) {
-          throw new Error(`${file}: ${resolution.error ?? `[[${slug}]] — no target`}`);
-        }
-        const target = resolution.target;
-
-        const start = match.index;
         const replacements: GlossaryReplacement[] = [];
-        if (start > 0) replacements.push({ type: "text", value: value.slice(0, start) });
-        replacements.push({
-          type: "link",
-          url: target.path,
-          children: [{ type: "text", value: label }],
-        });
-        const tail = value.slice(start + match[0].length);
-        if (tail) replacements.push({ type: "text", value: tail });
+        let cursor = 0;
+        // Reset `lastIndex` per node: the regex is module-level and stateful.
+        WIKILINK.lastIndex = 0;
+        for (const match of value.matchAll(WIKILINK)) {
+          const start = match.index ?? 0;
+          const slug = match[1].trim();
+          const label = (match[2] ?? match[1]).trim();
+          const resolution = resolveWikilink(registry, slug, { enSource });
+          if (resolution.error || !resolution.target) {
+            throw new Error(`${file}: ${resolution.error ?? `[[${slug}]] — no target`}`);
+          }
+          if (start > cursor) {
+            replacements.push({ type: "text", value: value.slice(cursor, start) });
+          }
+          replacements.push({
+            type: "link",
+            url: resolution.target.path,
+            children: [{ type: "text", value: label }],
+          });
+          cursor = start + match[0].length;
+        }
+
+        if (replacements.length === 0) return;
+        if (cursor < value.length) {
+          replacements.push({ type: "text", value: value.slice(cursor) });
+        }
 
         context.replaceNode(node, replacements);
       },

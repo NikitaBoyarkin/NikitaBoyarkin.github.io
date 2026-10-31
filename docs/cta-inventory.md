@@ -29,6 +29,9 @@
 | 21 | contact.astro (под формой, RU+EN) | «Записаться на 30 минут» / «Book 30 minutes» | `booking_click` | `CAL_BOOKING_URL` (Cal.com) |
 | 22 | ~~Header nav (Base.astro, RU+EN)~~ — **удалён 2026-10-10** | — | `booking_click` — остаётся только строка 21 (`/contact`) | — |
 | 23 | Боковая навигация (drawer `nav ul.links`, Base.astro, RU+EN) | Главная · Проекты · Обо мне · Словарь · Граф · Библиотека · **Статьи** · **Обозреватель** · **Темы** · Аудит репозиториев (2026-10-18) | — (без `data-analytics`, как у остальных ссылок drawer'а) | внутренние |
+| 24 | Drawer CTA + футер (Base.astro, RU+EN) | «Контакты» / «Contact» — кнопка в `nav .nav-aux` и кнопка `footer-contact` | `contact_page_click` {`surface`: `nav` \| `footer`} | `/contact/`, `/en/contact/` (2026-10-31) |
+| 25 | Конец кейса, конца главы Volta и конца статьи (`NextStep.astro`) | «Обсудить задачу →» / «Discuss a task →» | `contact_page_click` {`surface`: `case_next_step` \| `volta_part_next_step` \| `post_next_step`} | `/contact/`, `/en/contact/` (2026-10-31) |
+| 26 | `/about`, блок ссылок под дашбордом (`about/{ru,en}.mdx`) | «Контакты» / «Contact» в строке ссылок | `contact_page_click` {`surface`: `about_links`} | `/contact/`, `/en/contact/` (2026-10-31) |
 
 > **Поправка, 2026-10-18 (важно).** Инлайн-бар больше не несёт шесть ссылок: `Проекты`,
 > `Обо мне`, `Статьи`, `Словарь`, `Обозреватель` и `Темы` ушли из бара в drawer. Бар показывает
@@ -153,7 +156,7 @@ Telegram, LinkedIn и GitHub остались как вторичные опци
 | Что | Где | Значение |
 |---|---|---|
 | Endpoint формы | `src/lib/contact.ts` | `CONTACT_ENDPOINT` — **placeholder `PROJECT_REF`**, заменить в Phase 0 |
-| Ссылка на звонок | `src/lib/contact.ts` | `CAL_BOOKING_URL` = `https://cal.com/lofinibo/30min` (заполнено 2026-09-26, был placeholder `USERNAME/15min`) |
+| Ссылка на звонок | `src/lib/contact.ts` | `CAL_BOOKING_URL` = `https://cal.com/lofinibo/bored-call-me` (обновлено 2026-10-31; запись 2026-09-26 со значением `…/30min` устарела, в коде её уже нет) |
 | Лимиты полей | `src/lib/contact.ts` | `CONTACT_LIMITS` — зеркало CHECK-констрейнтов `contact_messages` |
 | Honeypot | `src/components/ContactForm.astro` | поле `website`, off-screen (`position: absolute; left: -9999px`), `tabindex="-1"` |
 

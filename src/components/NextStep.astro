@@ -1,0 +1,86 @@
+---
+// The one conversion surface *inside* `<main>`.
+//
+// Before this block a reader who finished a case or a post had no next step at
+// all: the only `/contact/` anchor on the page was the footer, and the drawer
+// button is `inert` while the drawer is closed. The audit of 2026-10-25 measured
+// it: 262 `/contact/` anchors site-wide, exactly one carrying `data-analytics`.
+//
+// It links to `/contact/`, not to cal.com. That is the owner's decision of
+// 2026-10-24, frozen by `tests/lib/persona.test.ts`: the direct booking link
+// fires only from the contact page. Keeping it that way means one instrumented
+// hop (`contact_page_click`, attributable to the page it was clicked on) and
+// then one booking event, instead of two competing entry points.
+//
+// `surface` is what makes the event readable: «дочитал кейс и ушёл в контакт»
+// must stay separable from a click in the header or the footer.
+import { withBase } from '../lib/path';
+
+export interface Props {
+  lang: 'ru' | 'en';
+  surface: 'case_next_step' | 'post_next_step' | 'volta_part_next_step';
+}
+
+const { lang, surface } = Astro.props;
+const isEn = lang === 'en';
+const href = withBase(isEn ? 'en/contact/' : 'contact/');
+const title = isEn
+  ? 'Need this reasoning applied to your data?'
+  : 'Нужен такой же разбор на ваших данных?';
+---
+
+<section class="next-step reveal" aria-label={title}>
+  <h2 class="next-step-title">
+    {title}
+  </h2>
+  <p class="next-step-text">
+    {
+      isEn
+        ? "Tell me the task — I'll come back with a plan: what data it needs, what we test, and how long it takes. I reply within a day."
+        : 'Расскажите задачу — вернусь с планом: какие данные нужны, что проверяем и за какой срок. Отвечаю в течение дня.'
+    }
+  </p>
+  <a
+    class="button next-step-cta"
+    href={href}
+    data-analytics="contact_page_click"
+    data-analytics-surface={surface}
+  >
+    {isEn ? 'Discuss a task →' : 'Обсудить задачу →'}
+  </a>
+</section>
+
+<style>
+  /* The canonical card recipe (`--radius-xl`, the same radius `.project` and
+     `.blog-card` carry through `--card-radius`), so this block is not a fourth
+     card shape. */
+  .next-step {
+    margin-top: var(--space-10);
+    padding: var(--space-6);
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+  }
+
+  .next-step-title {
+    margin: 0 0 var(--space-3);
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text-normal);
+  }
+
+  .next-step-text {
+    margin: 0 0 var(--space-5);
+    max-width: 60ch;
+    font-size: var(--text-body);
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .next-step-cta {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+</style>

@@ -416,7 +416,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
          so restore the revealed state here. `@media (scripting: none)` in
          global.css covers the same case for engines that honour it. */
     }
-    <noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+    <noscript><style>.reveal.reveal{opacity:1;transform:none}</style></noscript>
 
     <script is:inline>
       // Prevent theme flash: apply saved or preferred theme before first paint.
@@ -586,7 +586,12 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           {counterpartHref && <LangSwitch locale={lang} counterpartHref={counterpartHref} />}
           <SearchBox lang={lang} />
         </div>
-        <a class="button nav-cta" href={contactHref}>
+        <a
+          class="button nav-cta"
+          href={contactHref}
+          data-analytics="contact_page_click"
+          data-analytics-surface="nav"
+        >
           <svg
             class="btn-icon"
             viewBox="0 0 24 24"
@@ -674,7 +679,12 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         fires only from /contact; see the note next to `footer p` in global.css. */}
     <footer id="contact">
       <div class="footer-actions">
-        <a class="button button-secondary footer-contact" href={contactHref}>
+        <a
+          class="button button-secondary footer-contact"
+          href={contactHref}
+          data-analytics="contact_page_click"
+          data-analytics-surface="footer"
+        >
           <svg
             class="btn-icon"
             viewBox="0 0 24 24"

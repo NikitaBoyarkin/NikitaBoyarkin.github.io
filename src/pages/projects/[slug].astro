@@ -13,6 +13,7 @@ import ChartsSection from '../../components/charts/ChartsSection.astro';
 import SectionTabs from '../../components/SectionTabs.astro';
 import SectionPanel from '../../components/SectionPanel.astro';
 import Backlinks from '../../components/Backlinks.astro';
+import NextStep from '../../components/NextStep.astro';
 import { withBase } from '../../lib/path';
 import { getBacklinks } from '../../lib/link-index-data';
 import { loadChartFile } from '../../lib/charts';
@@ -390,5 +391,7 @@ const pageJsonLd = {
         </nav>
       )
     }
+
+    <NextStep lang="ru" surface="case_next_step" />
   </div>
 </Base>

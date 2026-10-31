@@ -394,14 +394,14 @@ Pushing to `master` (or `main`) triggers `.github/workflows/deploy.yml`, which:
 
 Do **not** push directly to `master` without confirming the workflow is enabled in the repository settings (`Settings → Pages → Build and deployment → GitHub Actions`).
 
-### Lighthouse assertions and the /repo-audit/ exception
+### Lighthouse assertions and the URL matrices
 
-`.lighthouserc.json` gates every URL listed in `collect.url`. `public/repo-audit/` is not an ordinary page, so the gate is split with `assertMatrix` into two mutually exclusive patterns:
+`.lighthouserc.json` gates every URL listed in `collect.url`. `assertMatrix` is a **union**: every entry is re-tested against every URL, so the patterns must be mutually exclusive — a `.*` catch-all silently layers its assertions on top of a specific entry's.
 
-- `^(?!.*repo-audit).*$` — the default set (accessibility ≥ 0.95, best-practices ≥ 0.95, seo ≥ 0.95, `color-contrast` = 1).
-- `/repo-audit/` — same, but `categories:seo` and `valid-source-maps` are `off`. Those two pages are deliberately `noindex, nofollow` working documents, so `is-crawlable` can never pass, and ~560 KB of inline `window.DATA` can never carry a source map. Accessibility and contrast stay enforced — that is the part that actually regresses (the portfolio theme port fixed a real `aria-sort`-on-`role="button"` violation there).
-
-**The two patterns must not overlap.** `assertMatrix` is a *union*: `getAllAssertionResults` re-tests every entry against every URL, so a `.*` catch-all silently layers its assertions on top of a specific entry's and overrides them. That is why the default pattern is a negative lookahead rather than `.*`.
+- `^(?!.*(repo-audit|projects/volta|colleague|404)).*$` — the default set: `categories:performance` ≥ 0.85, accessibility ≥ 0.95, best-practices ≥ 0.95, seo ≥ 0.95, CLS ≤ 0.1 (`error`), LCP ≤ 2.5 s (`warn`), TBT ≤ 300 ms (`warn`).
+- `/repo-audit/` — same, but `categories:seo` and `valid-source-maps` are `off`: those pages are deliberately `noindex, nofollow` working documents, so `is-crawlable` can never pass, and ~560 KB of inline `window.DATA` can never carry a source map. Accessibility and contrast stay enforced.
+- `(404)` — `categories:seo` is `off` for the same reason: a 404 page is `noindex` by definition. Until 2026-10-31 this page was in the default set, so `seo` 0.63 failed **every** master run of the workflow — a gate that had been red and ignored for days.
+- `(/projects/volta/|/colleague/)` — `categories:performance` ≥ 0.75 instead of 0.85. These two are the measured deficit (0.80 / 0.85 on the mobile preset, LCP 5.3 s / 3.8 s, 2026-10-31); the floor is a ratchet, not an endorsement — raise it to 0.90 when the LCP work lands (`docs/backlog.md` B-6).
 
 CLS on `/repo-audit/` was 0.51–0.61; it is now 0. The cause was **not** the fonts. The KPI grid, both charts, the cluster list and the 1,500-row table were all injected by JS, and under CPU throttling the browser paints the header before that layout finishes — so every section below moved (4× CPU + slow 4G measured 0.687, against 0.01 unthrottled). The fix reserves the space at build time:
 
