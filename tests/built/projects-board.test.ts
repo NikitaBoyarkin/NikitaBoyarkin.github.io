@@ -34,6 +34,34 @@ describe('/projects/ board — built pages', () => {
       // The body falls back to the description.
       expect(source).toContain('class="project-track-badge"');
     });
+
+    it(`${page} marks exactly the two real-data cases, and nothing else`, () => {
+      // The provenance badge claims "this number is not synthetic". If it ever
+      // renders on every card the claim dies silently, and if it renders on none
+      // the two strongest cases go back to being invisible — so the built page,
+      // not the component source, is what this pins.
+      const source = html.get(page)!;
+      const badge = /class="project-dataset-badge">([^<]+)</g;
+      const labels = [...source.matchAll(badge)].map((m) => m[1]);
+      expect(labels).toHaveLength(2);
+      expect(labels).toContain(page.startsWith('en/') ? 'Real data' : 'Реальные данные');
+      expect(labels).toContain(page.startsWith('en/') ? 'Real + synthetic' : 'Реальные + синтетика');
+
+      // …and they sit on the cards whose frontmatter says so. Parsed per
+      // `<article>` rather than by regex-adjacency: a lazy span across the
+      // document happily attributes one card's badge to the previous card.
+      const cards = source
+        .split('<article')
+        .slice(1)
+        .map((chunk) => ({
+          slug: /data-slug="([^"]+)"/.exec(chunk)?.[1],
+          marked: chunk.includes('class="project-dataset-badge"'),
+        }));
+      expect(cards.filter((c) => c.marked).map((c) => c.slug).sort()).toEqual([
+        'gmv-drop-rca',
+        'sql',
+      ]);
+    });
   }
 
   it('both catalogues carry the sphere facet and tag every card for it', () => {

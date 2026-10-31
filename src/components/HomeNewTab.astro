@@ -1,8 +1,15 @@
 ---
-// The homepage as a new-tab surface: a clock, a search field and a row of
-// shortcuts. It replaces `HeroGate` (three persona cards) on `/` and `/en/` by
-// the owner's call — the persona landings stay reachable from the header's
-// `NavRoles` group and from the drawer.
+// The homepage: who → what is proven → what to do, then the new-tab surface
+// below it (search + shortcuts). It replaces `HeroGate` (three persona cards) on
+// `/` and `/en/` by the owner's call — the persona landings stay reachable from
+// the header's `NavRoles` group, from the drawer and from the tiles in this band.
+//
+// History, because the shape reads arbitrary otherwise: an earlier pass made the
+// page a literal new-tab — an 8rem clock, a search field and nothing else. A
+// recruiter landing there got no answer to "who is this", "what did they prove"
+// and "what do I do next", so the clock was demoted to a status line and the
+// identity, the flagship figure and two CTAs took the fold. The search and the
+// shortcuts are kept: they serve the second visitor, the one already convinced.
 //
 // The search is deliberately its own small island rather than a second mount of
 // `SearchBox`: that component owns the drawer's panel and keys off fixed ids
@@ -10,6 +17,8 @@
 // would collide. This one reads the same `search-index.json` and hands a longer
 // query off to the Explorer surface, which already accepts `?q=`.
 import { ICON } from '../lib/icons';
+import { formatNumber } from '../lib/format';
+import { METRICS } from '../lib/metrics';
 import { withBase } from '../lib/path';
 // Persona promise lines come from ROLE_COPY so the homepage cannot drift from
 // the landings it points at.
@@ -33,7 +42,13 @@ const t = isEn
       searchLabel: 'Site search',
       shortcutsLabel: 'Shortcuts',
       personasLabel: 'Three ways in',
-      id: 'Nikita Boyarkin — Product Analyst',
+      name: 'Nikita Boyarkin',
+      role: 'Product Analyst',
+      // One line, the work rather than the job title: what a recruiter scans
+      // for in the first three seconds is the method, not the noun.
+      value: 'I test hypotheses with experiments: A/B tests, retention, segmentation',
+      cv: 'Download CV (PDF, RU)',
+      cases: 'See the cases',
     }
   : {
       clockLabel: 'Текущее время',
@@ -43,8 +58,21 @@ const t = isEn
       searchLabel: 'Поиск по сайту',
       shortcutsLabel: 'Быстрые ссылки',
       personasLabel: 'Три способа читать сайт',
-      id: 'Никита Бояркин — Продуктовый аналитик',
+      name: 'Никита Бояркин',
+      role: 'Продуктовый аналитик',
+      value: 'Проверяю гипотезы экспериментами: A/B-тесты, retention, сегментация',
+      cv: 'Скачать резюме (PDF)',
+      cases: 'Смотреть кейсы',
     };
+
+// The rendered CV is built outside this repo
+// (`../cv/Boyarkin_Nikita_Product_Analyst_CV.yaml` → rendercv → the PDF copied
+// into `public/cv/`). Only the RU rendering exists, so the EN page points at the
+// same file and says so in the label rather than pretending to a translation;
+// an EN rendering is a follow-up, not a second copy fabricated here.
+const CV_URL = withBase('cv/nikita-boyarkin.pdf');
+const TELEGRAM_URL = 'https://t.me/lofinibo';
+const casesUrl = withBase(isEn ? 'en/projects/' : 'projects/');
 
 const roleCopy = ROLE_COPY[isEn ? 'en' : 'ru'];
 
@@ -73,14 +101,24 @@ const PERSONAS = [
   },
 ];
 
-// Figures below are copied verbatim from src/content/projects(-en)/volta.md;
-// `bun run audit:content` is the guard that keeps them honest.
+// The hero's proof line reads from `METRICS`, not from a copy: the whole point
+// of `src/lib/metrics.ts` is that a headline number has one home, and this block
+// was the last place that still restated one (it said €208,5K correctly by hand,
+// which is why nothing caught the €656K drift next door for a release).
 const FLAGSHIP = {
   href: withBase(isEn ? 'en/projects/volta/' : 'projects/volta/'),
   title: 'Volta Neobank — Product Analytics',
-  metric: isEn
-    ? ['+5.72 pp KYC conversion', '€208.5K in 12 mo', '13.9× ROI']
-    : ['+5,72 п.п. KYC-конверсии', '€208,5K за 12 мес', '13,9× ROI'],
+  metric: [
+    isEn
+      ? `+${formatNumber(METRICS.abKyc.deltaPp, undefined, 'en')} pp KYC conversion`
+      : `+${formatNumber(METRICS.abKyc.deltaPp, undefined, 'ru')} п.п. KYC-конверсии`,
+    isEn
+      ? `€${formatNumber(METRICS.abKyc.annualEurK, undefined, 'en')}K in 12 mo`
+      : `€${formatNumber(METRICS.abKyc.annualEurK, undefined, 'ru')}K за 12 мес`,
+    isEn
+      ? `${formatNumber(METRICS.abKyc.roiX, undefined, 'en')}× ROI`
+      : `${formatNumber(METRICS.abKyc.roiX, undefined, 'ru')}× ROI`,
+  ],
 };
 
 const SHORTCUTS = [
@@ -132,9 +170,61 @@ const SHORTCUTS = [
   data-type-topic={isEn ? 'Topic' : 'Тема'}
 >
   <div class="nt-center">
-    <time class="nt-clock" id="nt-clock" aria-label={t.clockLabel}>--:--</time>
-    <p class="nt-date" id="nt-date"></p>
-    <h1 class="nt-id">{t.id}</h1>
+    {/* The clock kept its `id` (the built gate reads it) but lost its scale: it
+        is a status line now, saying "this page is live" above the identity
+        instead of owning the first screen. The date rode along with it — a
+        new-tab page needs no calendar when the reason to be here is a CV. */}
+    <p class="nt-now">
+      <time class="nt-clock" id="nt-clock" aria-label={t.clockLabel}>--:--</time>
+      <span class="nt-now-sep" aria-hidden="true">·</span>
+      <span class="nt-date" id="nt-date"></span>
+    </p>
+
+    {/* who → what is proven → what to do. The portrait is a plain 64px <img>:
+        `HeroAvatar` next door mounts a ~960 KB 3D bundle on demand, which has no
+        business on the page a recruiter lands on first. */}
+    <div class="nt-intro">
+      {/* `alt=""`: the name is the `<h1>` right beside this image, so a described
+          alt would make a screen reader announce the same identity twice. The
+          portrait is decoration that builds recognition, not information. */}
+      <img
+        class="nt-portrait"
+        src={withBase('images/00_profile.webp')}
+        alt=""
+        width="64"
+        height="64"
+        loading="eager"
+        decoding="async"
+      />
+      <h1 class="nt-id">
+        <span class="nt-name">{t.name}</span>
+        <span class="nt-role">{t.role}</span>
+      </h1>
+    </div>
+
+    <p class="nt-value">{t.value}</p>
+
+    {/* The proof line: the flagship figure set, reused verbatim from FLAGSHIP
+        (and therefore from volta.md) rather than re-typed here. It is also the
+        link to the case it comes from. */}
+    <a class="nt-flagship" href={FLAGSHIP.href} data-analytics="flagship_case">
+      <span class="nt-flagship-title">{FLAGSHIP.title}</span>
+      <span class="nt-flagship-metric">
+        {FLAGSHIP.metric.map((m) => <span>{m}</span>)}
+      </span>
+    </a>
+
+    <div class="nt-ctas">
+      <a class="button" href={CV_URL} data-analytics="cv_download" data-analytics-surface="hero">
+        {t.cv}
+      </a>
+      <a class="button button-secondary" href={TELEGRAM_URL} data-analytics="telegram_hero">
+        Telegram
+      </a>
+      <a class="nt-cases" href={casesUrl}>
+        {t.cases} <span class="nt-cases-arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
 
     <form class="nt-form" id="nt-form" role="search" aria-label={t.searchLabel} autocomplete="off">
       <svg
@@ -184,13 +274,6 @@ const SHORTCUTS = [
           }
         </ul>
       </nav>
-
-      <a class="nt-flagship" href={FLAGSHIP.href}>
-        <span class="nt-flagship-title">{FLAGSHIP.title}</span>
-        <span class="nt-flagship-metric">
-          {FLAGSHIP.metric.map((m) => <span>{m}</span>)}
-        </span>
-      </a>
     </div>
 
     <ul class="nt-shortcuts" aria-label={t.shortcutsLabel}>
@@ -443,30 +526,122 @@ const SHORTCUTS = [
     inline-size: 100%;
   }
 
-  .nt-clock {
-    font-family: var(--font-display);
-    font-size: clamp(3.5rem, 14vw, 8rem);
-    font-weight: 500;
-    line-height: 1;
-    letter-spacing: -0.03em;
+  /* Status line, not a display number: the clock used to be the largest thing
+     on the page (clamp 3.5–8rem) and answered a question nobody asked. At 0.875rem
+     it still says the page is live without spending the fold. */
+  .nt-now {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
     font-variant-numeric: tabular-nums;
-    color: var(--text-normal);
   }
 
-  .nt-date {
-    margin: 0;
-    font-size: 0.95rem;
+  .nt-clock {
+    font: inherit;
+    letter-spacing: 0.02em;
+  }
+
+  .nt-now-sep {
     color: var(--text-muted);
+  }
+
+  /* A <span>, not a <p>: it shares the status line with the clock. */
+  .nt-date {
+    font: inherit;
+    color: var(--text-muted);
+  }
+
+  .nt-intro {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    margin-block-start: var(--space-2);
+    text-align: start;
+  }
+
+  /* 64px on purpose: big enough to read as a face, small enough that the
+     portrait never becomes the LCP element the <head> does not preload. */
+  .nt-portrait {
+    flex: none;
+    inline-size: 64px;
+    block-size: 64px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    background-color: var(--background-secondary);
+    object-fit: cover;
   }
 
   .nt-id {
-    margin: var(--space-2) 0 var(--space-5);
-    font-size: 0.875rem;
+    display: grid;
+    gap: var(--space-1);
+    min-inline-size: 0;
+    margin: 0;
+  }
+
+  .nt-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4.5vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text-normal);
+    text-wrap: balance;
+  }
+
+  /* The role is the one line the built gate greps for — kept as real text in
+     the <h1>, in accent ink, at a size that reads as a subtitle. */
+  .nt-role {
+    font-size: 1rem;
     font-weight: 500;
-    letter-spacing: 0.02em;
-    color: var(--text-muted);
+    color: var(--text-accent);
+  }
+
+  .nt-value {
+    /* 40rem, so the sentence holds on one line at desktop width instead of
+       breaking on the colon; it still wraps to two below ~700px. */
+    max-inline-size: 40rem;
+    margin: var(--space-3) 0 0;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    color: var(--text-normal);
     text-align: center;
     text-wrap: balance;
+  }
+
+  .nt-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2) var(--space-3);
+    margin-block-start: var(--space-1);
+  }
+
+  /* Tertiary: a text link beside the two buttons, never a third filled shape —
+     three buttons in a row read as three equal asks. */
+  .nt-cases {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--text-accent);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .nt-cases:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .nt-cases:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
   }
 
   .nt-form {
@@ -534,10 +709,10 @@ const SHORTCUTS = [
   }
 
   /* Content band: aligned to the search island so the eye reads one column.
-     Personas and the flagship are outlined tiles, not bare text: on a phone
-     there is no hover to reveal that they are links, so the border and the
-     fill have to carry it. The shortcut pills below are demoted to plain
-     links in exchange — the content outranks the secondary navigation. */
+     The persona tiles are outlined cards, not bare text: on a phone there is no
+     hover to reveal that they are links, so the border and the fill have to
+     carry it. The shortcut pills below are demoted to plain links in exchange —
+     the content outranks the secondary navigation. */
   .nt-content {
     inline-size: min(38rem, 100%);
     margin-block-start: var(--space-5);
@@ -618,7 +793,11 @@ const SHORTCUTS = [
   }
 
   .nt-flagship {
-    margin-block-start: var(--space-3);
+    /* A direct child of `.nt-center` now (the proof step of who → proven → do),
+       so it carries the search island's measure instead of inheriting it from
+       `.nt-content`. */
+    inline-size: min(38rem, 100%);
+    margin-block-start: var(--space-1);
   }
 
   .nt-flagship-title {
@@ -702,6 +881,21 @@ const SHORTCUTS = [
       padding-block: var(--space-4);
     }
 
+    /* The portrait and the name stay on one row — stacking them would cost a
+       whole line of the fold for a 56px face. */
+    .nt-intro {
+      gap: var(--space-3);
+    }
+
+    .nt-portrait {
+      inline-size: 56px;
+      block-size: 56px;
+    }
+
+    .nt-value {
+      font-size: 1rem;
+    }
+
     .nt-form {
       padding: var(--space-3) var(--space-4);
     }
@@ -717,10 +911,6 @@ const SHORTCUTS = [
     .nt-persona,
     .nt-flagship {
       padding: var(--space-2) var(--space-3);
-    }
-
-    .nt-flagship {
-      margin-block-start: var(--space-2);
     }
 
     .nt-shortcuts {

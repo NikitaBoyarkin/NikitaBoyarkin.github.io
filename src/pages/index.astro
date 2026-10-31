@@ -6,6 +6,7 @@
 // top of the fold.
 import Base from '../layouts/Base.astro';
 import HomeNewTab from '../components/HomeNewTab.astro';
+import KeyFigures from '../components/KeyFigures.astro';
 import { withBase } from '../lib/path';
 
 // Person only: the `ItemList` of all projects would no longer describe this
@@ -56,4 +57,6 @@ const jsonLd = {
   jsonLd={jsonLd}
 >
   <HomeNewTab lang="ru" />
+  {/* The closing strip: the five proven figures, each linking to its case. */}
+  <KeyFigures lang="ru" />
 </Base>

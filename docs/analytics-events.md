@@ -32,6 +32,10 @@ Canonical event taxonomy for the portfolio, per
 | `library_tile` | `{ path }` | a library tile is clicked | `ReadingBlock.astro`, via `[data-analytics]` |
 | `source_external` | `{ path }` | the "source ↗" link of a library entry is clicked. Currently **inert**: no library entry carries `url:`, so the link never renders | `ReadingBlock.astro`, `library/[slug].astro` (RU + EN), via `[data-analytics]` |
 | `linkedin_contact` | `{ path }` | the LinkedIn CTA on the contact page is clicked (the contact page's LinkedIn channel, separate from `linkedin_footer`) | `contact.astro` / `en/contact.astro`, via `[data-analytics]` |
+| `telegram_header` | `{ path }` | the labelled Telegram button in the top bar is clicked — separate from `telegram_footer` on the icon chip beside it, so the readable action and the recognisable one stay two series | `Base.astro` (top bar), via `[data-analytics]` |
+| `telegram_hero` | `{ path }` | the homepage hero's Telegram CTA is clicked | `HomeNewTab.astro` (hero, `/` and `/en/`), via `[data-analytics]` |
+| `cv_download` | `{ path, surface? }` | the CV PDF is opened (`surface` names the placement: `hero`, `drawer`) | `HomeNewTab.astro` (`surface:'hero'`), `Base.astro` drawer (`surface:'drawer'`), via `[data-analytics]` |
+| `flagship_case` | `{ path }` | the hero's flagship result line (the Volta figure set) is clicked | `HomeNewTab.astro`, via `[data-analytics]` |
 
 > `booking_click` carries `{ path }`, not `{ locale }`: the delegated handler owns
 > every `[data-analytics]` CTA and attaches the same props to all of them. The
@@ -123,7 +127,8 @@ The SDK is lazy: it loads on the first `pointerdown` / `keydown` / `scroll` /
 | `hero_cta_click`, `hero_cta_exposure` | doc-only removal | A/B flag deactivated 2026-09-15; code already gone (PRD §4.6) |
 | `hero_projects`, `hero_contact` | removed | never wired; `HeroCta.astro` deleted with the A/B test (2026-09-27). Live hero CTAs: `featured_project`, `featured_demo`, `featured_github` |
 | `hero_cv`, `cv_footer`, `cv_pdf_footer`, `cv_source_github` | removed | CV unified into one "CV" download button → `cv_download_pdf` (2026-09-19); `/cv/` page deleted |
-| `cv_download_pdf`, `cta_exposure` | removed | the CV was removed from the site on 2026-10-24 (every link, the rail that carried it, the `/cv/` redirect and the robots `Disallow`). Historical rows stay in PostHog; re-adding a CV needs both events back |
+| `cv_download_pdf`, `cta_exposure` | removed | the CV was removed from the site on 2026-10-24 (every link, the rail that carried it, the `/cv/` redirect and the robots `Disallow`). Historical rows stay in PostHog |
+| `cv_download`, `telegram_hero`, `telegram_header`, `flagship_case` | added | the CV came back on 2026-11-01 (site audit, wave 1): `public/cv/nikita-boyarkin.pdf`, linked from the hero, the header bar and the drawer. `cv_download_pdf` stays retired, so its old PostHog series is not mixed with the new one. `cta_exposure` stays retired too — the CV button has its own denominator |
 | `projects_shuffle` | removed | "Shuffle" button deleted with the category-view rewrite (2026-09-21); random order fought `PROJECT_ORDER` |
 | `writing_footer` | removed | the "Статьи" header chip was deleted 2026-10-11 on the owner's call. `/writing/` moved into the drawer's link list (no event, like the other five nav links) and stays reachable from the homepage bento (`bento_writing`) and from post pages |
 

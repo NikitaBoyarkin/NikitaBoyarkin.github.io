@@ -1,8 +1,24 @@
 ---
-// Tool chips for the projects board. Markup only — ProjectBoard's controller
-// script owns the filtering, the empty-state handling and the disabled chips.
-// The default slot carries board-level controls (the reorder reset + its hint)
-// so they sit in the same row as the chips instead of on a third line.
+// Tool chips, and the board's one-row disclosure that holds everything the
+// visible row does not: the tool chips, the facets the caller owns (the sphere
+// chips, catalogue-only, hence a slot) and the board-level controls (sort +
+// its reset). Markup plus the disclosure controller — ProjectBoard's script
+// still owns the filtering, the empty-state handling and the disabled chips.
+//
+// Why a panel instead of a fourth `.filter-row`: the bar stacked three rows of
+// chips — track, sphere, tools — so a reader parsed ~20 chips before the first
+// case. One row plus "Ещё" keeps the taxonomy in reach at one click. Every chip
+// is still server-rendered, so the built-HTML contract (`data-track-filter`,
+// `data-sphere-filter`, `data-tool-filter`) is unchanged; only the row a chip
+// renders in moved.
+//
+// With scripting off the panel does NOT reveal, so those chips are unreachable
+// there. That is accepted rather than papered over: the same chips are inert
+// without a controller anyway (the filtering is ProjectBoard's / ProjectList's
+// script), so a visible-but-dead control would be the worse outcome.
+//
+// Both slots are optional: `ProjectList` renders this component bare and gets
+// the tool chips alone in the panel.
 import { projectToolFilters } from '../lib/projects';
 import Icon from './Icon.astro';
 
@@ -11,27 +27,97 @@ interface Props {
 }
 const { lang = 'ru' } = Astro.props;
 const tools = projectToolFilters(lang);
+const moreLabel = lang === 'en' ? 'More' : 'Ещё';
 ---
 
-<div class="filter-row project-filter-row reveal reveal-delay-1">
-  <div
-    class="project-filter"
-    role="group"
-    aria-label={lang === 'en' ? 'Filter by tool' : 'Фильтр по инструменту'}
+<div class="filter-row project-filter-row">
+  {
+    /* A real button, not `<details>`: the panel also carries the sort control
+       and the "Reset order" undo, and a `<summary>` cannot drop its native
+       marker consistently while keeping `.filter-tag`'s padding. `hidden` keeps
+       everything inside out of the tab order and the a11y tree while closed —
+       `aria-expanded` is the state, published on the control that owns it. */
+  }
+  <button
+    class="filter-tag filter-more"
+    id="project-more-toggle"
+    type="button"
+    aria-expanded="false"
+    aria-controls="project-more-filters"
   >
-    {
-      tools.map((tool) => (
-        <button
-          class={`filter-tag ${tool.key === 'all' ? 'active' : ''}`}
-          data-tool-filter={tool.key}
-          aria-pressed={tool.key === 'all' ? 'true' : 'false'}
-          type="button"
-        >
-          <Icon name={tool.key === 'all' ? 'filter' : 'tag'} size={14} class="pill-icon" />
-          {tool.label}
-        </button>
-      ))
-    }
+    <span class="filter-more-label">{moreLabel}</span>
+    <Icon name="chevron-down" size={14} class="pill-icon filter-more-icon" />
+  </button>
+
+  <div class="project-more-panel" id="project-more-filters" hidden>
+    <slot name="facets" />
+
+    <div
+      class="project-filter"
+      role="group"
+      aria-label={lang === 'en' ? 'Filter by tool' : 'Фильтр по инструменту'}
+    >
+      {
+        tools.map((tool) => (
+          <button
+            class={`filter-tag ${tool.key === 'all' ? 'active' : ''}`}
+            data-tool-filter={tool.key}
+            aria-pressed={tool.key === 'all' ? 'true' : 'false'}
+            type="button"
+          >
+            <Icon name={tool.key === 'all' ? 'filter' : 'tag'} size={14} class="pill-icon" />
+            {tool.label}
+          </button>
+        ))
+      }
+    </div>
+
+    <slot name="controls" />
   </div>
-  <slot />
 </div>
+
+<script>
+  // The disclosure. State is `aria-expanded` on the button plus the panel's
+  // `hidden` attribute — no framework, no dependency, one source of truth.
+  // A JS-off reader gets no reveal; see the header note on why that is accepted.
+  const toggleEl = document.getElementById('project-more-toggle');
+  const panelEl = document.getElementById('project-more-filters');
+  if (toggleEl && panelEl) {
+    // Bound once: the hoisted helpers below cannot rely on the narrowing at the
+    // guard (`getElementById` returns `HTMLElement | null`).
+    const toggle: HTMLElement = toggleEl;
+    const panel: HTMLElement = panelEl;
+
+    const setOpen = (open: boolean): void => {
+      toggle.setAttribute('aria-expanded', String(open));
+      panel.hidden = !open;
+    };
+
+    toggle.addEventListener('click', () => {
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    // Escape closes and hands focus back. The panel is a popover in all but
+    // name, and a keyboard reader who opened it expects Escape to undo that.
+    // Bound to the *document*, not to the panel: focus stays on the toggle after
+    // a click (the button is never inside the panel), so a listener on the panel
+    // would never see the key it is supposed to handle.
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      if (toggle.getAttribute('aria-expanded') !== 'true') return;
+      setOpen(false);
+      toggle.focus();
+    });
+
+    // A shared or stale link carries the facet in `?sphere=` / `?tool=` /
+    // `?sort=`; the chip naming that filter would then sit in a closed panel and
+    // the board would look filtered for no visible reason, with the way to undo
+    // it hidden. Open once, at load, and only when a facet inside is really set.
+    const params = new URLSearchParams(location.search);
+    const isSet = (key: string): boolean => {
+      const value = params.get(key);
+      return value !== null && value !== 'all';
+    };
+    if (isSet('sphere') || isSet('tool') || params.get('sort') === 'new') setOpen(true);
+  }
+</script>

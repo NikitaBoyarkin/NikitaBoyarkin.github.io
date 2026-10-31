@@ -48,6 +48,14 @@ const stats = data
         ))}
       </dl>
 
+      {/* The 25k contributions figure is real, but ~all of it is CI. An
+          unexplained 25k reads as fraud, not as engineering culture. */}
+      <p class="gh-note">
+        {isEn
+          ? 'Some of these are automated: daily data generation, site builds and checks, snapshot syncs. Code, analysis and writing are manual.'
+          : 'Часть вкладов — автоматизация: ежедневная генерация данных, сборки и проверки сайта, синхронизация снапшотов. Вручную — код, анализ и тексты.'}
+      </p>
+
       <div class="gh-charts">
         {data.charts.map((chart, i) => (
           <details class="gh-chart" open={i === 0}>
@@ -70,11 +78,21 @@ const stats = data
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-3);
-    margin: 0 0 var(--space-6);
+    /* No bottom margin: .gh-note follows immediately and carries the gap to
+       the charts itself. */
+    margin: 0;
     padding: var(--space-4);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     background: var(--background-secondary);
+  }
+  /* Sits directly under the stat grid, so it borrows .gh-source's muted
+     register and owns the block's bottom margin. */
+  .gh-note {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: var(--space-3) 0 var(--space-6);
   }
   @media (min-width: 640px) {
     .gh-stats {

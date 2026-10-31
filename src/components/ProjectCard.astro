@@ -30,6 +30,15 @@ interface Props {
   /** Localized track name, printed as the card's eyebrow badge. */
   trackLabel?: string;
   /**
+   * Where the numbers come from (`synthetic` | `real` | `mixed`), from the
+   * project's frontmatter. Only the non-synthetic values print a badge: the two
+   * cases on real UCI rows are the strongest evidence on the site, and they used
+   * to be visually identical to the twenty-five synthetic ones. Absent means
+   * synthetic, and no synthetic card gets a badge — labelling the default is
+   * noise, labelling the exception is information.
+   */
+  dataset?: 'synthetic' | 'real' | 'mixed';
+  /**
    * Above-the-fold card: its cover is the LCP candidate on `/projects/`.
    * Without this every cover shipped `loading="lazy"`, including card 1, so the
    * browser deferred the one image the page is measured on.
@@ -53,7 +62,7 @@ interface Props {
   starPreview?: StarPreview;
 }
 
-const { slug, title, description, image, star, impact, tools, github, demo, private: isPrivate = false, linkPrefix = '', lang = 'ru', track, trackLabel, sphere, date, draggable = false, compact = false, priority = false, starPreview = 'result' } = Astro.props;
+const { slug, title, description, image, star, impact, tools, github, demo, private: isPrivate = false, linkPrefix = '', lang = 'ru', track, trackLabel, sphere, date, draggable = false, compact = false, priority = false, starPreview = 'result', dataset = 'synthetic' } = Astro.props;
 const isEn = lang === 'en';
 const impactText = impact?.join(', ');
 // The compact (board) card shows the first few tools and counts the rest, so
@@ -71,7 +80,13 @@ const i18n = {
   // behaviour is a visual-only cue (WCAG 3.2.5).
   newTab: isEn ? 'opens in a new tab' : 'открывается в новой вкладке',
   privateNote: isEn ? 'Repo is private — available on request' : 'Репозиторий приватный — доступ по запросу',
+  // The badge answers the question a hiring manager asks about every number on
+  // this site, before they ask it: is this real or made up? «Real data» is the
+  // claim; the full provenance is one click away on the case page.
+  datasetReal: isEn ? 'Real data' : 'Реальные данные',
+  datasetMixed: isEn ? 'Real + synthetic' : 'Реальные + синтетика',
 };
+const datasetLabel = dataset === 'real' ? i18n.datasetReal : dataset === 'mixed' ? i18n.datasetMixed : null;
 ---
 
 <article class={`project reveal${compact ? ' compact' : ''}`} data-tools={(tools ?? []).join(',').toLowerCase()} data-track={track} data-sphere={sphere} data-date={date} data-slug={slug} data-reorder={draggable ? 'true' : undefined} tabindex={draggable ? '0' : undefined}>
@@ -93,7 +108,12 @@ const i18n = {
     />
   )}
   <div class="project-body">
-  {trackLabel && <p class="project-track-badge">{trackLabel}</p>}
+  {trackLabel || datasetLabel ? (
+    <p class="project-track-badge">
+      {trackLabel}
+      {datasetLabel && <span class="project-dataset-badge">{datasetLabel}</span>}
+    </p>
+  ) : null}
   <h3>{title}</h3>
 
   {star && starPreview !== 'none' ? (

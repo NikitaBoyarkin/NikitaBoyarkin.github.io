@@ -1,0 +1,73 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GMV drop RCA: metric tree, decomposition by segment and a verdict on real Online Retail II data">
+  <rect width="1200" height="600" fill="#f8f2d8"/>
+  <rect x="0.5" y="0.5" width="1199" height="599" fill="none" stroke="#d8c9a0"/>
+
+  <text x="80" y="92" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="700" letter-spacing="2" fill="#0f2a2b">GMV DROP RCA</text>
+  <text x="80" y="136" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69">real UCI Online Retail II · metric tree · Shapley decomposition</text>
+
+  <g>
+    <rect x="80" y="172" width="245" height="100" rx="10" fill="#fdf8e6" stroke="#d8c9a0"/>
+    <text x="102" y="208" font-family="Inter, system-ui, sans-serif" font-size="25" font-weight="600" fill="#0f2a2b">Data</text>
+    <text x="102" y="244" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69">Online Retail II</text>
+
+    <path d="M330 216 L338 222 L330 228" fill="none" stroke="#8a7a50" stroke-width="2"/>
+
+    <rect x="345" y="172" width="245" height="100" rx="10" fill="#fdf8e6" stroke="#d8c9a0"/>
+    <text x="367" y="208" font-family="Inter, system-ui, sans-serif" font-size="25" font-weight="600" fill="#0f2a2b">Tree</text>
+    <text x="367" y="244" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69">users × orders × AOV</text>
+
+    <path d="M595 216 L603 222 L595 228" fill="none" stroke="#8a7a50" stroke-width="2"/>
+
+    <rect x="610" y="172" width="245" height="100" rx="10" fill="#fdf8e6" stroke="#d8c9a0"/>
+    <text x="632" y="208" font-family="Inter, system-ui, sans-serif" font-size="25" font-weight="600" fill="#0f2a2b">Segments</text>
+    <text x="632" y="244" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69">country × decile</text>
+
+    <path d="M860 216 L868 222 L860 228" fill="none" stroke="#8a7a50" stroke-width="2"/>
+
+    <rect x="875" y="172" width="245" height="100" rx="10" fill="#fdf8e6" stroke="#d8c9a0"/>
+    <text x="897" y="208" font-family="Inter, system-ui, sans-serif" font-size="25" font-weight="600" fill="#0f2a2b">Verdict</text>
+    <text x="897" y="244" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#4a6b69">residual £0.00</text>
+  </g>
+
+  <g>
+    <rect x="80" y="302" width="500" height="240" rx="12" fill="#fdf8e6" stroke="#d8c9a0"/>
+    <text x="104" y="340" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#0f2a2b">Reconciliation, November − October</text>
+
+    <rect x="300" y="378" width="120" height="22" rx="4" fill="#a8331a"/>
+    <rect x="300" y="424" width="80" height="22" rx="4" fill="#4a6b69"/>
+    <rect x="300" y="470" width="40" height="22" rx="4" fill="#0f2a2b"/>
+
+    <text x="104" y="396" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#0f2a2b">named</text>
+    <text x="104" y="442" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#0f2a2b">guests</text>
+    <text x="104" y="488" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#0f2a2b">total</text>
+
+    <text x="556" y="396" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" text-anchor="end" fill="#0f2a2b">−£347,571.51</text>
+    <text x="556" y="442" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" text-anchor="end" fill="#0f2a2b">+£232,018.44</text>
+    <text x="556" y="488" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" text-anchor="end" fill="#0f2a2b">−£115,553.07</text>
+  </g>
+
+  <g>
+    <rect x="620" y="302" width="500" height="240" rx="12" fill="#fdf8e6" stroke="#d8c9a0"/>
+    <!-- Denominator matters on this case: these two shares are of the NAMED
+         drop, not of the decile universe (where UK decile-1 is 36,9%). The
+         title says which one, because a bar chart that silently swaps the base
+         is the exact failure the case is about. -->
+    <text x="644" y="340" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#0f2a2b">Segment contribution, named drop</text>
+
+    <!-- The two shares are parts of one whole (56,2 + 43,8 = 100), so they are
+         drawn as one stacked bar split in proportion. Colours live on the rects,
+         never on the text: the cream regime's ink allowlist has no light ink, so
+         a value printed inside the dark-red segment would be unreadable. -->
+    <rect x="644" y="390" width="254" height="56" fill="#a8331a"/>
+    <rect x="898" y="390" width="198" height="56" fill="#c9b98a"/>
+
+    <text x="771" y="382" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" text-anchor="middle" fill="#0f2a2b">56.2%</text>
+    <text x="997" y="382" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" text-anchor="middle" fill="#0f2a2b">43.8%</text>
+
+    <rect x="644" y="472" width="14" height="14" rx="3" fill="#a8331a"/>
+    <text x="668" y="485" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#0f2a2b">UK decile-1</text>
+
+    <rect x="644" y="504" width="14" height="14" rx="3" fill="#c9b98a"/>
+    <text x="668" y="517" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#0f2a2b">other segments</text>
+  </g>
+</svg>

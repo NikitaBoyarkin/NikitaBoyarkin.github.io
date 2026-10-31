@@ -27,6 +27,22 @@ const projectSchema = z.object({
   impact: z.array(z.string()).default([]),
   star: starSchema,
   tools: z.array(z.string()).default([]),
+  /**
+   * Provenance of the numbers on the page, as a closed set rather than prose.
+   *
+   * Almost every case runs on a synthetic dataset the card declares openly, but
+   * two of them are built on real UCI Online Retail II rows — `gmv-drop-rca`
+   * entirely, `sql` for one case out of its twenty-six — and both were
+   * indistinguishable from the synthetic ones in the catalogue, so the strongest
+   * evidence in the portfolio read as the weakest. Hence three values, not a
+   * boolean: `mixed` exists because `sql` is honestly neither.
+   *
+   * A closed set is what makes the badge renderable on the card and checkable in
+   * a test; a free-text "based on real data" note would drift the moment a case
+   * was rewritten. `synthetic` is the default because it is the honest default:
+   * a case that says nothing is synthetic until it proves otherwise.
+   */
+  dataset: z.enum(['synthetic', 'real', 'mixed']).default('synthetic'),
   github: z.url().optional(),
   demo: z.string().optional(),
   track: z.enum(['experiments', 'analytics', 'product', 'engineering']).default('analytics'),

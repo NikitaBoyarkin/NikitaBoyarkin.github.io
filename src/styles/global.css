@@ -3096,12 +3096,15 @@ textarea::placeholder {
    Reuses existing theme tokens only, so the contrast-gate stays green.
    ============================================================ */
 
-/* Tabs, tool chips and the reorder reset, stacked in one bar that sticks
-   under the site nav on desktop. */
+/* One bar that sticks under the site nav on desktop, holding one visible line of
+   chips plus the "Ещё" panel below it. A wrapping row rather than a column: the
+   category tabs and the disclosure control are its first line, and the panel
+   claims a line of its own with `flex-basis: 100%`. */
 .project-filter-bar {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-4);
   margin-bottom: var(--space-6);
 }
 
@@ -3109,12 +3112,13 @@ textarea::placeholder {
   margin-bottom: 0;
 }
 
-/* Tool chips on the left, the reorder reset pushed to the right. */
-.project-filter-row {
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-3);
+/* The chip row's wrapper dissolves (`display: contents`), so the "Ещё" control
+   and the panel it owns become items of the bar itself: the control then ends
+   the category tabs' line instead of opening a line of its own, and the panel
+   drops below both. Only this plain `<div>` loses a box — the groups inside keep
+   their `role="radiogroup"` / `role="group"`. */
+.project-filter-bar > .project-filter-row {
+  display: contents;
 }
 
 .project-filter {
@@ -3123,9 +3127,66 @@ textarea::placeholder {
   gap: var(--space-2);
 }
 
-/* Board controls (sort + reset) share the tools row, so adding a sort does not
-   cost a fourth chip row — `docs/analytics-dead-events.md` already shows the
-   category tabs go clickless, and the bar is the tallest thing on the page. */
+/* The disclosure control reads as one more chip — same ink, same hover — with a
+   caret as its cue. `margin-left: auto` ends the line with it, so the visible row
+   is chips … [Ещё ▾] and the reader always knows where the rest went. */
+.filter-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: auto;
+}
+
+/* The 180° turn is the open state, not decoration, so reduced motion flips it
+   without the easing rather than dropping the cue. */
+.filter-more-icon {
+  transition: transform 0.18s ease;
+}
+
+.filter-more[aria-expanded='true'] .filter-more-icon {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-more-icon {
+    transition: none;
+  }
+}
+
+/* The "Ещё" panel — the facets the visible row could not hold: sphere chips, tool
+   chips, and the sort control with its reset, in one band under the chips.
+   `flex: 1 0 100%` claims a whole line of the wrapping bar, so the panel never
+   squeezes in beside the chips; the sphere group takes a line of its own because
+   a sphere name is two words and would wrap unpredictably next to the tool chips. */
+.project-more-panel {
+  flex: 1 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding-top: var(--space-2);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 45%, transparent);
+}
+
+/* `display: flex` above beats the UA `[hidden] { display: none }` rule — the same
+   cascade trap as `.glossary-alpha[hidden]` in blog.css. Without this the panel
+   renders open and the disclosure does nothing. */
+.project-more-panel[hidden] {
+  display: none;
+}
+
+.project-more-panel > .project-sphere-filter {
+  flex: 1 0 100%;
+}
+
+/* The sort/reset pair keeps to the right of the tool chips it shares a line with,
+   as it did when it was a direct child of the chip row. */
+.project-more-panel .board-controls {
+  margin-left: auto;
+}
+
+/* Board controls (sort + reset) live in the disclosure panel with the tool
+   chips: the bar's visible line is the category taxonomy alone. */
 .board-controls {
   display: inline-flex;
   align-items: center;
@@ -3342,6 +3403,21 @@ textarea::placeholder {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+/* Provenance badge, riding the same eyebrow line as the track. Only the two
+   real-data cases carry it (see the `dataset` field in content.config.ts), so it
+   has to read as an earned marker rather than a second category label: accent
+   colour and a hairline pill. Printed after the track name, never instead of it;
+   the inline-start margin and the hairline are what separate the two labels. */
+.project .project-dataset-badge {
+  display: inline-block;
+  margin-inline-start: var(--space-2);
+  padding: 0.05rem var(--space-2);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-full);
+  color: var(--text-accent);
+  letter-spacing: 0.06em;
 }
 
 .project-empty {

@@ -7,7 +7,8 @@ star:
   action: "Metric tree GMV = users × orders_per_user × AOV on the named population, country × decile decomposition, a separate guest addend, Shapley contributions, an executive dashboard"
   result: "UK decile-1 explains 56.2% of the named drop (−£195,218.25); the full attribution reconciles to £0.00 against an overall −10.0% decline"
 track: analytics
-hero: images/gmv-drop-rca.svg
+dataset: real
+hero: images/gmv-drop-rca-en.svg
 ogImage: /images/og/gmv-drop-rca.png
 impact:
   - "Reconciliation: GMV_named + GMV_guest == GMV_total and Δ on both addends == ΔGMV_total, with a £0.00 residual"

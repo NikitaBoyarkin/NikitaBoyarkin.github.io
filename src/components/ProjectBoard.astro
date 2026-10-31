@@ -82,11 +82,16 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
       jumps h1 (page title) -> h3 and the Lighthouse heading-order audit fails. */}
   <h2 id="projects-heading" class="visually-hidden">{lang === 'en' ? 'All projects' : 'Все проекты'}</h2>
 
+  {/* One row, one disclosure. The category tabs are the taxonomy a reader
+      browses by, so they stay inline; every other facet — the sphere chips, the
+      tool chips and the sort control with its reset — renders inside the "Ещё"
+      panel `ProjectFilter` owns (`facets` / `controls` slots). Three chip rows
+      above the catalogue put ~20 chips between the reader and the first case. */}
   <div class="project-filter-bar">
     <ProjectTrackFilter lang={lang} tracks={tracks} total={projects.length} />
-    {sphereFilter && <ProjectSphereFilter lang={lang} spheres={sphereChips} />}
     <ProjectFilter lang={lang}>
-      <span class="board-controls">
+      {sphereFilter && <ProjectSphereFilter slot="facets" lang={lang} spheres={sphereChips} />}
+      <span slot="controls" class="board-controls">
         {
           /* Ordering is the catalogue's alone. A role landing renders a curated
              reading sequence (`ordered`), so it has neither the select nor its
@@ -161,6 +166,7 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
           lang={lang}
           track={project.data.track}
           trackLabel={trackLabel}
+          dataset={project.data.dataset}
           sphere={projectSphere(project.id)}
           date={(project.data.date ?? project.data.updated)?.toISOString().slice(0, 10)}
           compact

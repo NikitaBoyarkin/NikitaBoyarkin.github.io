@@ -7,6 +7,7 @@ star:
   action: "Самодостаточный .sql на кейс, генератор данных на DuckDB, dbt-слой staging → marts, regression-тесты, живой отчёт на Pages"
   result: "Воронка теряет 78% на add-to-cart → checkout (54% — это шаг view→cart); retention с ~19.5% (D1) до ~4% (D30); повторных покупок 3.5%; на real data возвращаются 72.4%"
 track: analytics
+dataset: mixed
 hero: images/sql.svg
 ogImage: /images/og/sql.png
 impact:

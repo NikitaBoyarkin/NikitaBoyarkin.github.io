@@ -126,26 +126,27 @@ All CV entry points collapsed to a single "CV" button that downloads the PDF
 The `CV-Nikita-Boyarkin.pdf` `Disallow` in `robots.txt` is unchanged. Historical
 rows for the removed events stay in PostHog.
 
-## CV removed from the site (2026-10-24)
+## CV removed from the site (2026-10-24) — reversed 2026-11-01
 
-Owner's call: no CV download anywhere. Removed, with no replacement CTA:
+Owner's call on 2026-10-24: no CV download anywhere. On 2026-11-01 the site audit
+reversed it — a portfolio with no forwardable document gives an HR reader only a
+chat window — so the CV download is back as `public/cv/nikita-boyarkin.pdf`,
+linked from the hero, the header bar and the drawer.
 
-| Removed | Was |
+What came back: the PDF (RU rendering copied from `../cv/rendercv_output/`), the
+three links, and the events `cv_download` + `telegram_hero` + `telegram_header`.
+What did NOT come back, and why:
+
+| Not restored | Why |
 |---|---|
-| Header nav chip «Скачать CV (PDF)» / «Download CV (PDF)» | the one filled chip beside GitHub · LinkedIn · Telegram |
-| Sticky action rail (`cta-rail`, ≥1860px, `showCtaRail`) | a second CV button in the right gutter — the rail's only action, so the rail went with it |
-| `CareerSnapshot` «CV →», `ValueOffers` «CV →», `about/{ru,en}.mdx` CV link | in-page CV entries |
-| Dashboard tile «CV (PDF)» (`dashboard.ts`) | the About section's third child |
-| `cv_download_pdf`, `cta_exposure` events | emitter, `AnalyticsEventMap` rows, `docs/analytics-events.md` rows |
-| `/cv/` → PDF redirect (`astro.config.mjs`) | legacy route |
-| `Disallow: /CV-Nikita-Boyarkin.pdf` in every `robots.txt` group | the crawl exception |
-| `cv:pdf` npm script | CV sync from the rendercv project. `scripts/sync-cv-pdf.mjs` and `scripts/generate-cv-*.mjs` deleted on 2026-10-25 with the PDF |
+| `cv_download_pdf`, `cta_exposure` | the new button is measured by `cv_download`; reviving the old names would splice two unrelated series in PostHog, and an exposure rate still has no second CTA to normalise against |
+| Sticky action rail (`cta-rail`, ≥1860px) | its only action was the CV; the header bar now carries that action at every width it fits |
+| `/cv/` HTML page and `/cv/` → PDF redirect | the PDF at a stable path is the whole job; a second route is another thing to keep in sync |
+| `cv:pdf` npm script and `scripts/sync-cv-pdf.mjs` | the rendercv source lives outside this repo, so the copy is deliberate rather than automated. Regenerate there, copy here |
 
-The CV PDF and its generator scripts are gone from the repository.
-Re-adding a CV means restoring the assets, the scripts and the emitter
-events too, not just a link.
-PostHog dashboards under `monitoring/dashboards/` still reference
-`cv_download_pdf` / `cta_exposure` — those views now have no numerator.
+Still removed on 2026-10-24 and still absent: the header **chip** (the bar's
+Telegram button is the filled action now), the `CareerSnapshot` / `ValueOffers`
+«CV →» entries, and the dashboard tile.
 
 ## Форма связи + запись звонка (2026-09-26)
 

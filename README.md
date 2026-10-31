@@ -62,7 +62,7 @@
 Сайт работает по адресу https://nikitaboyarkin.github.io, у него есть
 английское зеркало, самопроверяющаяся сборка (`make check` смотрит
 готовый `dist/`) и пороги Lighthouse. Показатели заморожены. Флагманский
-кейс Volta: +5.72 п. п. конверсии в KYC и €656K в год.
+кейс Volta: +5.72 п. п. конверсии в KYC и €208,5K за 12 мес.
 
 ## Содержание
 
@@ -121,7 +121,7 @@
 
 | Проект | Что показывает | Ссылки |
 |---|---|---|
-| **Volta Neobank** | Нашёл узкое место в онбординге и закрыл его A/B-тестом: **+5.72 п. п.** конверсии в KYC, **€656K в год**. 23 связанные части: воронка → A/B → retention → сегментация | [страница](https://nikitaboyarkin.github.io/projects/volta/) · [репозиторий](https://github.com/NikitaBoyarkin/volta-banking) · [демо](https://nikitaboyarkin.github.io/demos/volta/index.html) |
+| **Volta Neobank** | Нашёл узкое место в онбординге и закрыл его A/B-тестом: **+5.72 п. п.** конверсии в KYC, **€208,5K за 12 мес**. 23 связанные части: воронка → A/B → retention → сегментация | [страница](https://nikitaboyarkin.github.io/projects/volta/) · [репозиторий](https://github.com/NikitaBoyarkin/volta-banking) · [демо](https://nikitaboyarkin.github.io/demos/volta/index.html) |
 | **A/B Testing Toolkit** | 18 методических модулей, каждый откалиброван симуляцией: A/A держит ошибку первого рода на уровне α, кривые мощности показывают достижимые размеры эффекта | [страница](https://nikitaboyarkin.github.io/projects/ab/) · [репозиторий](https://github.com/NikitaBoyarkin/ab_test) |
 | **Browser Mini-Games** | 10 играбельных мини-игр на голом SVG: 7 учат аналитике (A/B до p < 0.05, провалы воронки, ловля когорт, день удержания), 3 — аркады | [страница](https://nikitaboyarkin.github.io/projects/games/) · [репозиторий](https://github.com/NikitaBoyarkin/browser-mini-games) · [демо](https://nikitaboyarkin.github.io/games/) |
 | **Causal / Uplift** | CUPED сократил стандартную ошибку на **26%**: та же мощность на 5.5k пользователей в плече вместо 10k. Uplift-модели восстанавливают неоднородные эффекты | [страница](https://nikitaboyarkin.github.io/projects/causal/) · [репозиторий](https://github.com/NikitaBoyarkin/causal-uplift) |

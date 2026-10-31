@@ -1,0 +1,238 @@
+---
+// «Что подтверждено» — the closing strip of numbers on the homepage.
+//
+// Why it exists: the new-tab surface above ends on a search field and a row of
+// shortcut pills, so the page used to run out of content a third of a screen
+// before the footer, and a reader could leave without ever meeting the
+// portfolio's strongest evidence. One strip carries the five figures, each
+// linking to the case that proves it — the claim and its receipt in one tap.
+//
+// Every number is imported from `src/lib/metrics.ts`, never restated: a copy in
+// this file would silently keep an old value when a metric is corrected against
+// the Volta case, which is the source of truth.
+import { METRICS } from '../lib/metrics';
+import { formatNumber } from '../lib/format';
+import { withBase } from '../lib/path';
+
+interface Props {
+  lang?: 'ru' | 'en';
+}
+const { lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+// The ROI multiple comes from `METRICS` like every other figure here. It used to
+// be a local constant with a note saying it had no home in metrics.ts — true at
+// the time, but it meant the hero block carried a second copy of `13.9`.
+const ROI_X = METRICS.abKyc.roiX;
+
+const caseHref = withBase(isEn ? 'en/projects/volta/' : 'projects/volta/');
+const allHref = withBase(isEn ? 'en/projects/' : 'projects/');
+
+const t = {
+  heading: isEn ? 'What the cases proved' : 'Что подтверждено',
+  lead: isEn
+    ? 'Five numbers, each with a published case behind it — method, data and result.'
+    : 'Пять чисел, за каждым — разбор с методологией, данными и результатом.',
+  unitPp: isEn ? 'pp' : 'п.п.',
+  labels: {
+    kyc: isEn ? 'KYC conversion' : 'конверсии KYC',
+    eur: isEn ? 'incremental revenue in 12 months' : 'дополнительной выручки за 12 мес',
+    roi: isEn ? 'return on the work' : 'окупаемость работы',
+    retention: isEn ? 'retention by month 3' : 'удержания к месяцу 3',
+    projects: isEn ? 'cases in the portfolio' : 'кейсов в портфолио',
+  },
+  cueCase: isEn ? '→ case' : '→ кейс',
+  cueAll: isEn ? '→ all cases' : '→ все кейсы',
+};
+
+// `formatNumber` without a precision argument keeps the authored precision
+// (`9.2` stays "9,2", not "9,20") and flips the decimal separator per locale.
+const FIGURES = [
+  {
+    value: `+${formatNumber(METRICS.abKyc.deltaPp, undefined, lang)} ${t.unitPp}`,
+    label: t.labels.kyc,
+    href: caseHref,
+    cue: t.cueCase,
+  },
+  {
+    value: `€${formatNumber(METRICS.abKyc.annualEurK, undefined, lang)}K`,
+    label: t.labels.eur,
+    href: caseHref,
+    cue: t.cueCase,
+  },
+  {
+    value: `${formatNumber(ROI_X, undefined, lang)}×`,
+    label: t.labels.roi,
+    href: caseHref,
+    cue: t.cueCase,
+  },
+  {
+    value: `+${formatNumber(METRICS.retention.deltaPp, undefined, lang)} ${t.unitPp}`,
+    label: t.labels.retention,
+    href: caseHref,
+    cue: t.cueCase,
+  },
+  {
+    value: formatNumber(METRICS.portfolio.projects, undefined, lang),
+    label: t.labels.projects,
+    href: allHref,
+    cue: t.cueAll,
+  },
+];
+---
+
+<section class="key-figures" id="key-figures" aria-labelledby="key-figures-title">
+  <h2 class="kf-title" id="key-figures-title">{t.heading}</h2>
+  <p class="kf-lead">{t.lead}</p>
+
+  <ul class="kf-grid" role="list">
+    {
+      FIGURES.map((f) => (
+        <li class="kf-item">
+          <a class="kf-card" href={f.href}>
+            <span class="kf-value">{f.value}</span>
+            <span class="kf-label">{f.label}</span>
+            <span class="kf-cue">{f.cue}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  /* Sits after the new-tab surface and before the footer, so it owns the gap
+     between them rather than inheriting the page's trailing whitespace. */
+  .key-figures {
+    margin-block: var(--space-10) var(--space-12);
+  }
+
+  .kf-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 1.2rem + 1vw, 1.9rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text-normal);
+    margin: 0 0 var(--space-2);
+  }
+
+  .kf-lead {
+    font-size: var(--text-body);
+    line-height: 1.5;
+    color: var(--text-muted);
+    max-width: 56ch;
+    margin: 0 0 var(--space-6);
+  }
+
+  /* Five across on desktop, three on tablet, two on phones. `minmax(0, 1fr)`
+     (not `1fr`) is what keeps a long value from widening its own track and
+     pushing the strip past the 390px viewport. */
+  .kf-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--space-3);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .kf-item {
+    min-inline-size: 0;
+    display: flex;
+  }
+
+  /* Each tile is one link: the whole card is the target, so a thumb cannot miss
+     it and the accessible name is the figure plus its label. */
+  .kf-card {
+    display: grid;
+    gap: var(--space-1);
+    align-content: start;
+    inline-size: 100%;
+    min-block-size: 44px;
+    padding: var(--space-3) var(--space-4) var(--space-4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--card-background);
+    color: var(--text-normal);
+    text-decoration: none;
+    transition:
+      border-color 0.18s ease,
+      background-color 0.18s ease;
+  }
+
+  .kf-card:hover {
+    border-color: var(--text-accent);
+  }
+
+  .kf-card:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+
+  .kf-value {
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 1.1rem + 0.9vw, 1.8rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-normal);
+    /* A 4-character value in a 137px content box is the worst case at 390px;
+       breaking is the fallback that guarantees no horizontal overflow. */
+    overflow-wrap: break-word;
+  }
+
+  .kf-label {
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+
+  /* The cue is the quiet affordance: muted until hover/focus, then it takes
+     the accent so the whole tile reads as one interactive unit. */
+  .kf-cue {
+    margin-block-start: var(--space-2);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: color 0.18s ease;
+  }
+
+  .kf-card:hover .kf-cue,
+  .kf-card:focus-visible .kf-cue {
+    color: var(--text-accent);
+  }
+
+  @media (max-width: 1023px) {
+    .kf-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 599px) {
+    .kf-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-2);
+    }
+
+    .kf-card {
+      padding: var(--space-3);
+    }
+
+    .kf-lead {
+      margin-block-end: var(--space-5);
+    }
+  }
+
+  /* A dot-and-comma flip is not motion, but the colour/edge easing on five
+     tiles is still an animation on a page a reduced-motion reader asked to
+     keep still. */
+  @media (prefers-reduced-motion: reduce) {
+    .kf-card,
+    .kf-cue {
+      transition: none;
+    }
+  }
+</style>

@@ -41,7 +41,12 @@ const I18N = {
     ? "Portfolio of reproducible analytics projects — experimentation, retention, segmentation — with full methodology and code. Built from project work, not from employment."
     : "Портфолио воспроизводимых аналитических проектов — эксперименты, retention, сегментация — с полной методологией и кодом. Создано из проектной работы, а не из найма.",
   bullets: [
-    isEn ? `A/B KYC: +${formatNumber(abKyc.deltaPp, undefined, lang)}pp conversion → €${abKyc.annualEurK}K/yr` : `A/B KYC: +${formatNumber(abKyc.deltaPp, undefined, lang)}pp конверсии → €${abKyc.annualEurK}K в год`,
+    // The impact is a 12-month figure, not an annualised run-rate, so the bullet
+    // says "12 mo"/"12 мес" rather than "per year"; the wording matches the Volta
+    // case page description, which the metrics drift guard reads back verbatim.
+    isEn
+      ? `A/B KYC: +${formatNumber(abKyc.deltaPp, undefined, lang)}pp conversion → €${formatNumber(abKyc.annualEurK, undefined, lang)}K in 12 mo`
+      : `A/B KYC: +${formatNumber(abKyc.deltaPp, undefined, lang)}pp конверсии → €${formatNumber(abKyc.annualEurK, undefined, lang)}K за 12 мес`,
     isEn ? `Retention: +${formatNumber(retention.deltaPp, undefined, lang)}pp → €${retention.ltvEurK}K LTV` : `Retention: +${formatNumber(retention.deltaPp, undefined, lang)}pp → €${retention.ltvEurK}K LTV`,
     isEn ? `RFM: 4 segments concentrate ${rfm.revenueBeforePct}% → ${rfm.revenueAfterPct}% of revenue` : `RFM: 4 сегмента концентрируют ${rfm.revenueBeforePct}% → ${rfm.revenueAfterPct}% выручки`,
     isEn ? `Telegram bot: weekly report ${bot.hoursBefore}h → ${bot.minutesAfter} min` : `Telegram-бот: еженедельный отчёт ${bot.hoursBefore}ч → ${bot.minutesAfter} мин`,

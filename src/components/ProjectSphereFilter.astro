@@ -4,6 +4,13 @@
 // controller script, which owns all three facets so their state stays in one
 // place. Rendered on the catalogue board only (`sphereFilter` in ProjectBoard):
 // the role landings are curated reading sequences, not a browse surface.
+//
+// These chips render inside the board's "Ещё" panel (ProjectBoard passes the
+// component into `ProjectFilter`'s `facets` slot), which is why the group
+// carries no `reveal`: `Base.astro`'s IntersectionObserver cannot see an element
+// inside `[hidden]`, so the group would fade in 0.35 s after every first expand
+// — a delay with nothing to explain it. The chips themselves are unchanged, so
+// the built-HTML contract (7 `data-sphere-filter` chips, `all` first) holds.
 import { ALL_SPHERES } from '../lib/projects';
 import Icon from './Icon.astro';
 
@@ -22,7 +29,7 @@ const { lang = 'ru', spheres } = Astro.props;
 ---
 
 <div
-  class="filter-row project-sphere-filter reveal reveal-delay-1"
+  class="filter-row project-sphere-filter"
   role="radiogroup"
   aria-label={lang === 'en' ? 'Project sphere' : 'Сфера проектов'}
 >

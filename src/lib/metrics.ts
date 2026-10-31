@@ -1,7 +1,9 @@
 // Signature results — single source of truth for the headline numbers shown
 // on the homepage and the personal layer (hero metrics, career snapshot,
 // ValueOffers on /about#value).
-// Authoritative figures come from the CV (rendercv YAML); before 1.3 they were
+// Authoritative figures come from the CV (rendercv YAML) — except the KYC
+// impact, which is the Volta case page's claim (`src/content/projects/volta.md`)
+// and is bound to it by tests/lib/metrics.test.ts. Before 1.3 the numbers were
 // duplicated in 4+ places and drifted (e.g. the bot automation card said
 // "1–2ч" while the CV says "2ч → 5 мин"). Change a number here, not in each
 // component. Language-neutral: components build their own display strings.
@@ -10,8 +12,21 @@ export const METRICS = {
   abKyc: {
     /** A/B on KYC step: conversion lift in percentage points. */
     deltaPp: 5.72,
-    /** Annualized incremental impact, EUR K. */
-    annualEurK: 656,
+    /**
+     * 12-month incremental impact of that one KYC A/B test, EUR K, at 13,9×
+     * ROI on a €15K dev-cost. It is the single experiment's modelled effect,
+     * not a sum over the portfolio's layers. Source of truth is the Volta case
+     * page (`src/content/projects/volta.md`, «Результат»); before 1.4 this held
+     * an aggregate no page on the site ever defended.
+     */
+    annualEurK: 208.5,
+    /**
+     * Return on the €15K of development work — the same experiment, expressed as
+     * a multiple. It lives here, next to the money it divides, so the hero, the
+     * career snapshot and the key-figures band cannot print three different ROI
+     * multiples: before 2026-11 each of them carried its own copy of `13.9`.
+     */
+    roiX: 13.9,
   },
   retention: {
     /** M3 retention lift, percentage points. */

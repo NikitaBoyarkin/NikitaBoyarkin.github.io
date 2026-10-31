@@ -7,6 +7,7 @@ star:
   action: "Дерево метрик GMV = users × orders_per_user × AOV на именованной базе, декомпозиция country × дециль, гостевой адденд отдельно, Shapley-вклады, executive-дашборд"
   result: "UK дециль-1 объясняет 56,2% именованного падения (−£195 218,25); полная атрибуция сходится в £0,00 при общем спаде −10,0%"
 track: analytics
+dataset: real
 hero: images/gmv-drop-rca.svg
 ogImage: /images/og/gmv-drop-rca.png
 impact:

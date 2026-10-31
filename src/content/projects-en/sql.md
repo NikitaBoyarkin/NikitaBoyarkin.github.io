@@ -7,6 +7,7 @@ star:
   action: "One self-contained .sql per case, data generator on DuckDB, dbt staging → marts layer, regression tests, live report on Pages"
   result: "The funnel drops 78% at add-to-cart → checkout (54% is the view→cart step); retention falls from ~19.5% (D1) to ~4% (D30); only 3.5% repeat; on real data 72.4% return"
 track: analytics
+dataset: mixed
 hero: images/sql.svg
 ogImage: /images/og/sql.png
 impact:

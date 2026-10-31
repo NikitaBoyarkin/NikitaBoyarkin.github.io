@@ -48,19 +48,29 @@
 
   <g>
     <rect x="620" y="302" width="500" height="240" rx="12" fill="#fdf8e6" stroke="#d8c9a0"/>
-    <text x="644" y="340" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#0f2a2b">Вклад сегментов, дециль-вселенная</text>
+    <text x="644" y="340" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#0f2a2b">Вклад сегментов, именованное падение</text>
 
-    <g stroke="#e3d9bb" stroke-width="1">
-      <path d="M644 404 H1096"/><path d="M644 460 H1096"/>
-    </g>
+    <!-- The two shares are parts of one whole (56,2 + 43,8 = 100), so they are
+         drawn as one stacked bar split in proportion. The earlier version used
+         two separate blocks of different thickness and different left edges,
+         which reads as two unrelated bars — and the thickness contradicted the
+         numbers it labelled. Width is the encoded quantity here, and only one
+         bar has a width that can be compared to anything.
+         Colours live on the rects, never on the text: the cream regime's ink
+         allowlist (tests/lib/illustration-palette.test.ts) has no light ink, so
+         a value printed inside the dark-red segment would be unreadable to the
+         test and only nominally readable to a person. Values sit above their
+         segments instead, in the primary ink. -->
+    <rect x="644" y="390" width="254" height="56" fill="#a8331a"/>
+    <rect x="898" y="390" width="198" height="56" fill="#c9b98a"/>
 
-    <rect x="660" y="356" width="200" height="96" rx="4" fill="#a8331a"/>
-    <rect x="880" y="404" width="156" height="48" rx="4" fill="#c9b98a"/>
+    <text x="771" y="382" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" text-anchor="middle" fill="#0f2a2b">56,2%</text>
+    <text x="997" y="382" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" text-anchor="middle" fill="#0f2a2b">43,8%</text>
 
-    <text x="760" y="348" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" text-anchor="middle" fill="#0f2a2b">56,2%</text>
-    <text x="958" y="396" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" text-anchor="middle" fill="#0f2a2b">43,8%</text>
+    <rect x="644" y="472" width="14" height="14" rx="3" fill="#a8331a"/>
+    <text x="668" y="485" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#0f2a2b">UK дециль-1</text>
 
-    <text x="760" y="522" font-family="Inter, system-ui, sans-serif" font-size="22" text-anchor="middle" fill="#4a6b69">UK дециль-1</text>
-    <text x="958" y="522" font-family="Inter, system-ui, sans-serif" font-size="22" text-anchor="middle" fill="#4a6b69">остальные сегменты</text>
+    <rect x="644" y="504" width="14" height="14" rx="3" fill="#c9b98a"/>
+    <text x="668" y="517" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#0f2a2b">остальные сегменты</text>
   </g>
 </svg>

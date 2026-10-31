@@ -2,6 +2,7 @@
 // `/en/` — the gate, see `src/pages/index.astro`.
 import Base from '../../layouts/Base.astro';
 import HomeNewTab from '../../components/HomeNewTab.astro';
+import KeyFigures from '../../components/KeyFigures.astro';
 import { withBase } from '../../lib/path';
 
 // Person only: the `ItemList` of all projects would no longer describe this
@@ -46,4 +47,6 @@ const jsonLd = {
   jsonLd={jsonLd}
 >
   <HomeNewTab lang="en" />
+  {/* See `src/pages/index.astro` — same closing strip, EN figures and hrefs. */}
+  <KeyFigures lang="en" />
 </Base>

@@ -198,6 +198,10 @@ export default defineConfig({
     "/en/value/": "/en/about/#value",
     // S1.3 (PRD v6): /guides/ merged into the parameterised /notes/ route.
     "/guides/": "/notes/guides/",
+    // 2026-11-01: there is no /posts/ index — the list of posts lives at
+    // /writing/. The bare prefix is what a visitor types after trimming a slug.
+    "/posts/": "/writing/",
+    "/en/posts/": "/en/writing/",
   },
   integrations: [
     // MDX inherits `markdown.processor` (satteri) by default — the /about body

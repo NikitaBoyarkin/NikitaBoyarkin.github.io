@@ -231,7 +231,12 @@ const pageJsonLd = {
   <InnerTOC lang="ru" />
 
   <div class="container reveal">
-    <a class="back back--portfolio" href={withBase('/')}>← К портфолио</a>
+    {
+      /* No "← К портфолио" link: the breadcrumb directly above already names
+         both hops (`Главная / Проекты / <case>`), so a second way back sat in
+         the middle of the first screen and read as a leftover from a layout
+         that had no breadcrumbs. One route back, at the top, is the rule. */
+    }
 
     {
       project.data.hero && (

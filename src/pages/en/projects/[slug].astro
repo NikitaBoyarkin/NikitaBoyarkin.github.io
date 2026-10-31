@@ -240,7 +240,9 @@ const pageJsonLd = {
   <InnerTOC lang="en" />
 
   <div class="container reveal">
-    <a class="back back--portfolio" href={withBase('en/')}>← Back to portfolio</a>
+    {
+      /* Mirrors the RU page: the breadcrumb is the only route back. */
+    }
 
     {
       project.data.hero && (

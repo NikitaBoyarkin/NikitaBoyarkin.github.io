@@ -123,6 +123,11 @@ const homeHref = isEn ? withBase('en/') : withBase('/');
 const aboutHref = isEn ? withBase('en/about/') : withBase('about/');
 const projectsHref = isEn ? withBase('en/projects/') : withBase('projects/');
 const contactHref = isEn ? withBase('en/contact/') : withBase('contact/');
+// The rendered CV. Only the RU rendering exists today (the source lives outside
+// this repo at `../cv/Boyarkin_Nikita_Product_Analyst_CV.yaml`), so both locales
+// link the same file and the EN surface says so in its label instead of claiming
+// a translation. See `HomeNewTab.astro` for the early return on the homepage.
+const cvHref = withBase('cv/nikita-boyarkin.pdf');
 const glossaryHref = isEn ? withBase('en/glossary/') : withBase('glossary/');
 const graphHref = isEn ? withBase('en/graph/') : withBase('graph/');
 const libraryHref = isEn ? withBase('en/library/') : withBase('library/');
@@ -171,6 +176,13 @@ const t = {
   navExplorer: isEn ? 'Explorer' : 'Обозреватель',
   navTopics: isEn ? 'Topics' : 'Темы',
   navContact: isEn ? 'Contact' : 'Контакты',
+  // The bar's visible action. «Написать» / «Message me» names the *act* the
+  // button performs, not the destination shape: the chip next to it already
+  // says "Telegram", and two labels for one link would read as two actions.
+  navTelegram: isEn ? 'Message me' : 'Написать',
+  // The drawer's second action. Honest about the language: the only rendering
+  // is Russian, so the EN label carries the marker rather than a promise.
+  navCv: isEn ? 'Download CV (PDF, RU)' : 'Скачать резюме',
   // The footer's own label. «Связаться» reads as an action and matches the
   // /contact/ heading, while the drawer button stays the noun «Контакты».
   footerContact: isEn ? 'Get in touch' : 'Связаться',
@@ -543,6 +555,18 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         >
       </div>
 
+      {/* The bar's one labelled action, beside the identity chips: the same ask
+          as the drawer's Telegram button, but readable without opening the menu.
+          Below 1024px the bar has no width left for it — brand + role group +
+          labelled chips + two toggles already fill the row — so the drawer keeps
+          the only copy there and the button is dropped rather than allowed to
+          wrap the bar. Its own event name: the chip keeps `telegram_footer` so
+          the existing PostHog series stays comparable. */}
+      <a class="button nav-cta nav-bar-cta" href="https://t.me/lofinibo" data-analytics="telegram_header">
+        <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.telegram} />
+        {t.navTelegram}
+      </a>
+
       {/* Theme toggle — moved to the always-visible top bar. It is a global
           preference, and the drawer it used to live in is closed by default. */}
       {/* Three glyphs, one visible per theme. These used to be `morphicons`:
@@ -628,6 +652,36 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
             set:html={ICON.contact}
           />
           {t.navContact}
+        </a>
+        {/* The CV beside the contact CTA: whoever opened the drawer gets the
+            artifact and the ask in one block. Secondary styling so the drawer
+            still carries exactly one filled action. The download glyph is
+            inlined rather than added to `ICON` because this change does not own
+            `src/lib/icons.ts`; it is lucide's `download`, verbatim. */}
+        <a
+          class="button button-secondary nav-cta"
+          href={cvHref}
+          data-analytics="cv_download"
+          data-analytics-surface="drawer"
+        >
+          <svg
+            class="btn-icon"
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          {t.navCv}
         </a>
       </div>
 
@@ -1027,10 +1081,33 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         border-color: var(--text-accent);
       }
 
-      /* A leading glyph on the two `.button` CTAs (drawer contact, footer
-         contact). Same reason as `.nav-chip svg`: `display: block` kills the
-         inline descender gap, `flex: none` holds the 16px box while the label
-         wraps or the button is squeezed. */
+      /* The bar's labelled action. Hidden until the row can hold it — `display:
+         none` rather than a clipped label keeps it out of the tab order and the
+         a11y tree, the same contract `.nav-inline` uses below its cutover.
+         1024px is the bar's own gutter breakpoint (the gap tightens below it to
+         buy width); above it the personas are icon-only and the chips are the
+         only labelled group, so there is room for one filled button. */
+      .nav-bar-cta {
+        display: none;
+      }
+
+      @media (min-width: 1024px) {
+        .nav-bar-cta {
+          display: inline-flex;
+          /* The bar's own height is a token (`--nav-mobile-h: 65px`) that the
+             drawer, the projects filter bar and the graph overlay all pin
+             themselves to, so this button may not push the row 2px taller. The
+             standard `.nav-cta` padding lands at 34px against a 32px content box;
+             4px block padding puts it at ~26px — still above the 24px WCAG 2.5.8
+             floor, and it sits on a desktop-only row. */
+          padding-block: var(--space-1);
+        }
+      }
+
+      /* A leading glyph on the three `.button` CTAs (drawer contact, drawer CV,
+         footer contact). Same reason as `.nav-chip svg`: `display: block` kills
+         the inline descender gap, `flex: none` holds the 16px box while the
+         label wraps or the button is squeezed. */
       .btn-icon {
         display: block;
         flex: none;
@@ -1192,9 +1269,10 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
 
       /* Footer: one route to contact plus the copyright. Centred like the
          copyright beneath it, and a `.button-secondary` rather than `.button`
-         because the sticky bar above already carries the page's single filled
-         action (the CV) — two primaries on one screen is the accent budget
-         DESIGN.md forbids. */
+         because the sticky bar above carries the page's filled action — now the
+         Telegram button, not the CV it used to be — and DESIGN.md's accent
+         budget allows one primary per screen. The hero's own CV button is below
+         the fold from every route except `/`, so it is not a third competitor. */
       .footer-actions {
         display: flex;
         justify-content: center;

@@ -217,37 +217,47 @@ describe('wiring (PRD §6, §9, §10)', () => {
 // inverted. Each of those shipped as a bug once: a dead href, a primary action
 // with no exposure event, a CTA pointing at a placeholder. (The "show all
 // projects" link was removed from the hero on 2026-10-10.) The CV and Contact
-// buttons left the board on 2026-10-10 as well (PRD §13, second wave), and the
-// CV was removed from the site entirely on 2026-10-24, so these assertions now
-// guard the REMOVAL: the page must not grow the row back, and if it does, no
-// test here goes quietly green.
+// The CV came BACK on 2026-11-01 (site audit, wave 1): the portfolio shipped no
+// downloadable CV at all, so an HR reader had only a Telegram chat as a route to
+// a document they could forward. The 2026-10-24 removal guards were therefore
+// re-pointed, not deleted — the page must carry the download, from the hero and
+// from the header, and must still not grow the retired booking button or an
+// exposure event with no denominator.
 // ---------------------------------------------------------------------------
 describe('homepage primary CTA (docs/cta-inventory.md)', () => {
   // The live surface. The gate card and the canvas were deleted on 2026-10-29
   // after the audit confirmed nothing imported them, so these guards follow the
   // surface that actually ships — `HomeNewTab` mounted by `/` and `/en/`.
   const gate = () => src('src/components/HomeNewTab.astro');
+  const bar = () => src('src/layouts/Base.astro');
 
-  it('leaves the hero CTA row off the board, and does not grow it back', () => {
-    const s = gate();
-    // The row used to be CV download (primary) + Contact (secondary). Both left
-    // the body on the owner's call; the contact routes and the CV file are still
-    // reachable from the nav, rail and footer, so nothing is orphaned.
-    expect(s, 'the retired CV download is back on the board').not.toContain(
-      'data-analytics="cv_download_pdf"',
-    );
-    expect(s, 'the retired CV link is back on the board').not.toContain('CV-Nikita-Boyarkin.pdf');
-    expect(s, 'the retired contact link is back on the board').not.toContain(
-      "href={withBase(isEn ? 'en/contact/' : 'contact/')}",
-    );
-    expect(s, 'the booking button must not be back on the homepage').not.toContain('booking_click');
-    expect(s, 'the hero must not reference the booking URL').not.toContain('CAL_BOOKING_URL');
+  it('carries the CV download in the hero and in the header', () => {
+    // Both surfaces, because they answer different readers: the hero is the one
+    // recruiters read top-down, the header is the one they reach for after they
+    // have scrolled somewhere else on the site.
+    for (const [name, source] of [
+      ['HomeNewTab', gate()],
+      ['Base', bar()],
+    ] as const) {
+      expect(source, `${name} lost the CV download`).toContain('cv/nikita-boyarkin.pdf');
+    }
+    // The event is declared in `src/lib/analytics.ts` (the analytics-contract
+    // test enforces that), and fires from the hero button, not from a dead name.
+    expect(gate()).toContain('data-analytics="cv_download"');
+    // The old filename must not come back: the shipped asset is `nikita-boyarkin.pdf`.
+    expect(gate()).not.toContain('CV-Nikita-Boyarkin.pdf');
+    expect(bar()).not.toContain('CV-Nikita-Boyarkin.pdf');
+    // The retired booking button stays retired, and the booking URL still belongs
+    // to the contact pages even though the homepage no longer links it.
+    expect(gate(), 'the booking button must not be back on the homepage').not.toContain('booking_click');
+    expect(gate(), 'the hero must not reference the booking URL').not.toContain('CAL_BOOKING_URL');
     expect(CAL_BOOKING_URL, 'the contact pages still depend on it').toMatch(/^https:\/\/cal\.com\//);
   });
 
   it('fires no cta_exposure — the board carries no exposed CTA to have a rate for', () => {
     // Kept as a NEGATIVE assertion rather than deleted: a rate whose denominator
-    // counts a button that is not on the page is worse than no rate.
+    // counts a button that is not on the page is worse than no rate. The CV
+    // button is measured by its own `cv_download` count instead.
     expect(gate()).not.toContain("track('cta_exposure'");
   });
 });
