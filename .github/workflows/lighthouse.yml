@@ -62,7 +62,11 @@ jobs:
         run: bunx @lhci/cli autorun
 
       # Flatten the fresh reports into the board's read surface, then assert the
-      # board still matches the dct schema. Fails the run rather than letting a
+      # board still matches the dct schema. `dbt-charts` is pinned: unpinned it
+      # resolves the newest release on every run, and 0.9.2+ reports
+      # WARN-SCHEMA-MIGRATED for a board that `dct migrate` considers current —
+      # which `--strict` turns into a failed workflow. The board is validated
+      # against 0.9.1 (the same pin deploy.yml uses to render it). Fails the run rather than letting a
       # silently-stale charts/web-vitals.yml outlive the data it describes.
       # pipx ships with the ubuntu runner image; swap for `uvx --from dbt-charts`
       # if that ever stops being true.
@@ -70,7 +74,7 @@ jobs:
         if: always()
         run: |
           bun run scripts/build-lh-table.mjs
-          pipx run --spec dbt-charts dct validate charts/web-vitals.yml --strict
+          pipx run --spec dbt-charts==0.9.1 dct validate charts/web-vitals.yml --strict
 
       - name: Upload Lighthouse reports
         if: always()
