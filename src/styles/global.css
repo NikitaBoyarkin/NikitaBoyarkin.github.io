@@ -4072,3 +4072,32 @@ html.bleed .nav-mobile {
     min-height: 44px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Icon swaps that used to be `morphicons` elements.
+
+   The theme toggle (3 glyphs), the drawer toggle (menu ↔ close) and the search
+   toggle (magnifier ↔ close) each pulled the library's SVG-path parser into the
+   page — 20 KB raw, executed at module evaluation, on every page, twice
+   (`Base.astro` + `SearchBox.astro`). The state each of them needs is already in
+   the DOM: `data-theme` on `<html>` is written by the pre-paint boot script, and
+   both toggles already flip their own `aria-expanded`. So the swap is three
+   attribute selectors and no JavaScript at all.
+
+   The morph animation is gone on purpose; the arrows on project cards and the
+   AskMe bubble keep theirs (`ArrowMorph.astro`, `AskMe.astro`), where the icon
+   is the interaction rather than chrome.
+   --------------------------------------------------------------------------- */
+.glyph {
+  display: none;
+}
+
+html:not([data-theme="light"]):not([data-theme="cyberpunk"]) .theme-toggle .glyph-moon,
+html[data-theme="light"] .theme-toggle .glyph-sun,
+html[data-theme="cyberpunk"] .theme-toggle .glyph-cyber,
+#nav-toggle[aria-expanded="false"] .glyph-menu,
+#nav-toggle[aria-expanded="true"] .glyph-close,
+#search-toggle[aria-expanded="false"] .glyph-search,
+#search-toggle[aria-expanded="true"] .glyph-x {
+  display: block;
+}

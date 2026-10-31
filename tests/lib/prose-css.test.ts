@@ -98,14 +98,31 @@ describe('prose layer', () => {
     expect(css).toMatch(/background-attachment|no-repeat local/);
   });
 
-  it('is imported last, so equal-specificity rules resolve to it', () => {
+  it('is scoped to the article layouts, after blog.css and before reader.css', () => {
+    // The sheet used to be imported by `Base.astro`, which put 436 lines of
+    // article CSS on all 223 pages (100 render `.prose`). It now lives in the
+    // templates that produce prose — and the order still matters: `prose.css`
+    // must land after `blog.css` and before `reader.css`, which has to outrank
+    // prose's element rules at equal specificity.
     const base = read('src/layouts/Base.astro');
-    const global = base.indexOf("styles/global.css");
-    const blog = base.indexOf("styles/blog.css");
-    const prose = base.indexOf("styles/prose.css");
-    expect(global).toBeGreaterThan(-1);
-    expect(blog).toBeGreaterThan(global);
+    expect(base, 'prose.css is back in the every-page bundle').not.toContain('styles/prose.css');
+
+    const post = read('src/layouts/Post.astro');
+    const blog = post.indexOf('styles/blog.css');
+    const prose = post.indexOf('styles/prose.css');
+    const reader = post.indexOf('styles/reader.css');
+    expect(blog).toBeGreaterThan(-1);
     expect(prose).toBeGreaterThan(blog);
+    expect(reader).toBeGreaterThan(prose);
+
+    for (const rel of [
+      'src/pages/projects/[slug].astro',
+      'src/pages/en/projects/[slug].astro',
+      'src/pages/projects/volta/[part].astro',
+      'src/pages/en/projects/volta/[part].astro',
+    ]) {
+      expect(read(rel), `${rel} lost prose.css`).toContain('styles/prose.css');
+    }
   });
 });
 

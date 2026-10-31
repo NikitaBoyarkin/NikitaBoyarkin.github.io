@@ -15,6 +15,21 @@ const OUT = join(root, "data", "lhci-table.csv");
 const PERF_MIN = 0.85;
 const STRICT_MIN = 0.95;
 
+// Per-page exceptions, mirroring the assert matrices in .lighthouserc.json.
+// `/repo-audit/` and `/404.html` are `noindex` by design, so their `seo`
+// category can never reach 0.95 and their matrices switch it off. Until
+// 2026-10-31 this table applied one blanket gate to every row, so the board
+// reported `strict_fails=2` on every run — and `dct validate --strict` failed
+// the Lighthouse workflow for days on a discrepancy CI was not actually
+// failing on. Same two pages, same reason, now expressed once.
+const SEO_OFF = new Set(["/repo-audit/", "/404.html"]);
+const PERF_FLOORS = new Map([
+  ["/projects/volta/", 0.75],
+  ["/colleague/", 0.75],
+  ["/repo-audit/", 0.75],
+  ["/404.html", 0.75],
+]);
+
 const COLUMNS = [
   "run_id",
   "fetch_time",
@@ -57,7 +72,7 @@ function runIdFromFile(name) {
   return `${y}-${mo}-${d}T${h}:${mi}:${s}`;
 }
 
-function rowsFromReport(file, report) {
+export function rowsFromReport(file, report) {
   const url = report.finalUrl || report.requestedUrl || "";
   let path = "/";
   try {
@@ -80,6 +95,9 @@ function rowsFromReport(file, report) {
   const seo = cats.seo?.score;
   const contrast = audits["color-contrast"]?.score;
 
+  const perfFloor = PERF_FLOORS.get(path) ?? PERF_MIN;
+  const seoOk = SEO_OFF.has(path) || (seo != null && seo >= STRICT_MIN);
+
   return {
     run_id: runIdFromFile(file),
     fetch_time: report.fetchTime || "",
@@ -96,11 +114,11 @@ function rowsFromReport(file, report) {
     speed_index_ms: metric("speed_index_ms"),
     total_bytes: metric("total_bytes"),
     contrast_score: num(contrast),
-    perf_pass: perf === undefined || perf === null ? "" : perf >= PERF_MIN ? 1 : 0,
+    perf_pass: perf === undefined || perf === null ? "" : perf >= perfFloor ? 1 : 0,
     strict_pass:
       a11y == null || bp == null || seo == null
         ? ""
-        : a11y >= STRICT_MIN && bp >= STRICT_MIN && seo >= STRICT_MIN && contrast === 1
+        : a11y >= STRICT_MIN && bp >= STRICT_MIN && seoOk && contrast === 1
           ? 1
           : 0,
   };
@@ -146,4 +164,4 @@ function main() {
   console.log(`  rows=${rows.length} runs=${runs.size} pages=${pages.size} skipped=${skipped} strict_fails=${fails}`);
 }
 
-main();
+if (import.meta.main) main();

@@ -6,6 +6,9 @@ import CarouselNav from '../components/CarouselNav.astro';
 import Backlinks from '../components/Backlinks.astro';
 import NextStep from '../components/NextStep.astro';
 import { formatDate, estimateReadTime } from '../lib/date';
+import '../styles/blog.css';
+import '../styles/prose.css';
+import '../styles/reader.css';
 import { withBase } from '../lib/path';
 import { categoryLabel } from '../lib/categories';
 
@@ -54,11 +57,18 @@ const articleJsonLd = {
   image: image ? `${siteUrl}${withBase(image)}` : undefined,
   author: { '@type': 'Person', name: 'Nikita Boyarkin', url: `${siteUrl}${withBase('/')}` },
   // Organization + logo, not Person: Google's Article rich-result eligibility
-  // requires an Organization publisher carrying a logo.
+  // requires an Organization publisher carrying a logo — and specifically a
+  // raster one at least 112×112, which the 707-byte `favicon.svg` is not. The
+  // apple-touch-icon is that same mark rendered at 180×180.
   publisher: {
     '@type': 'Organization',
     name: 'Nikita Boyarkin',
-    logo: { '@type': 'ImageObject', url: `${siteUrl}${withBase('favicon.svg')}` },
+    logo: {
+      '@type': 'ImageObject',
+      url: `${siteUrl}${withBase('apple-touch-icon.png')}`,
+      width: 180,
+      height: 180,
+    },
   },
   mainEntityOfPage: `${siteUrl}${withBase(`${langPrefix}posts/${slug}/`)}`,
 };

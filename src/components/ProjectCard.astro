@@ -29,6 +29,12 @@ interface Props {
   track?: string;
   /** Localized track name, printed as the card's eyebrow badge. */
   trackLabel?: string;
+  /**
+   * Above-the-fold card: its cover is the LCP candidate on `/projects/`.
+   * Without this every cover shipped `loading="lazy"`, including card 1, so the
+   * browser deferred the one image the page is measured on.
+   */
+  priority?: boolean;
   /** Sphere key (business domain) — the board's third matcher. Not printed:
    *  the filter chip already names the group, and the badge line stays short. */
   sphere?: string;
@@ -47,7 +53,7 @@ interface Props {
   starPreview?: StarPreview;
 }
 
-const { slug, title, description, image, star, impact, tools, github, demo, private: isPrivate = false, linkPrefix = '', lang = 'ru', track, trackLabel, sphere, date, draggable = false, compact = false, starPreview = 'result' } = Astro.props;
+const { slug, title, description, image, star, impact, tools, github, demo, private: isPrivate = false, linkPrefix = '', lang = 'ru', track, trackLabel, sphere, date, draggable = false, compact = false, priority = false, starPreview = 'result' } = Astro.props;
 const isEn = lang === 'en';
 const impactText = impact?.join(', ');
 // The compact (board) card shows the first few tools and counts the rest, so
@@ -75,7 +81,17 @@ const i18n = {
       {isEn ? ' — reorder with Arrow Up/Down' : ' — перемещение стрелками ↑/↓'}
     </span>
   )}
-  {image && <img src={withBase(image)} alt="" width={1200} height={600} loading="lazy" />}
+  {image && (
+    <img
+      src={withBase(image)}
+      alt=""
+      width={1200}
+      height={600}
+      loading={priority ? 'eager' : 'lazy'}
+      decoding={priority ? 'sync' : 'async'}
+      fetchpriority={priority ? 'high' : undefined}
+    />
+  )}
   <div class="project-body">
   {trackLabel && <p class="project-track-badge">{trackLabel}</p>}
   <h3>{title}</h3>

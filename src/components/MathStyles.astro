@@ -1,0 +1,15 @@
+---
+// KaTeX's stylesheet, mounted per page instead of imported by `Base.astro`.
+//
+// It is not small: 28 `@font-face` rules carrying 20 base64 woff2 fonts (about
+// 12 KB of CSS before they are even used) plus 230 `.katex*` rules — measured at
+// 27.4 % of Base.css, shipped to 223 pages of which 30 contain a formula
+// (2026-10-31). Astro emits a component's CSS only into the pages that render
+// it, so importing it here keeps the other ~190 pages free of it.
+//
+// Mounted by `glossary/[slug].astro` when the term body contains a math span.
+// A future post or case with a formula must mount it too — `tests/built/katex-
+// coverage.test.ts` fails the build's HTML if a page carries `.katex` markup
+// without a stylesheet that defines it.
+import 'katex/dist/katex.min.css';
+---

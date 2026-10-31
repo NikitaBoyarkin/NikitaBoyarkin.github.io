@@ -6,9 +6,44 @@ import { withBase } from "./path";
 
 const slugOf = (id: string) => id.replace(/\.md$/, "");
 
+const BLURB_LIMIT = 200;
+
+/** Marks a blurb may be cut on. A full stop may shed more tail than a comma:
+ *  ending a thought reads better than ending a phrase, and both beat a word. */
+const SENTENCE_END = [". ", "! ", "? "] as const;
+const CLAUSE_END = ["; ", ": ", ", ", " — "] as const;
+
+/**
+ * Truncate to `limit` characters on a boundary, never mid-word.
+ *
+ * `.slice(0, 200)` used to cut wherever the budget ran out, so library blurbs
+ * shipped fragments like "множественн", "produc" and "+8.65%" — a half word
+ * reads as a typo to both a human and a citation-extracting crawler. A break
+ * is taken, in order of preference, at the last sentence stop (up to a quarter
+ * of the budget is dropped for it), the last clause mark (an eighth), or the
+ * last space. Every truncated blurb ends in exactly one ellipsis.
+ */
+const truncate = (text: string, limit = BLURB_LIMIT): string => {
+  if (text.length <= limit) return text;
+  // One character is held back so the ellipsis can never overflow `limit`.
+  const head = text.slice(0, limit - 1);
+  const sentence = Math.max(...SENTENCE_END.map((mark) => head.lastIndexOf(mark)));
+  const clause = Math.max(...CLAUSE_END.map((mark) => head.lastIndexOf(mark)));
+  const space = head.lastIndexOf(" ");
+  const cut =
+    sentence >= limit * 0.75
+      ? sentence
+      : clause >= limit * 0.875
+        ? clause
+        : space > 0
+          ? space
+          : head.length;
+  return `${head.slice(0, cut).trimEnd()}…`;
+};
+
 /** Shelf notes carry no `description` — the body is the citable text. */
 const blurb = (entry: { body?: string }): string =>
-  (entry.body ?? "").replace(/\s+/g, " ").trim().slice(0, 200);
+  truncate((entry.body ?? "").replace(/\s+/g, " ").trim());
 
 export async function buildLlmsTxt(site: string): Promise<string> {
   const abs = (path: string) => `${site}${withBase(path)}`;
@@ -72,15 +107,35 @@ export async function buildLlmsTxt(site: string): Promise<string> {
   );
   add();
 
+  // Every route that carries content, not just the ones a sitemap would list.
+  // Bilingual pages get one line per locale; `/topics/`, `/notes*` and
+  // `/games/` are RU-only (no `/en/` twin is built), so they carry a `(RU)`
+  // marker and no invented EN URL.
   add("## Core pages");
   add(`- [Home (RU)](${abs("")}): intro, featured project (${featuredProject?.data.title ?? "Product analytics"}), skill taxonomy.`);
   add(`- [Home (EN)](${abs("en/")}): English mirror.`);
-  add(`- [About](${abs("about/")}): background and focus — who I am, how I work, what I enjoy, collaboration format, and the offers (hiring + collaboration) with quantified proof — A/B, retention, RFM, automation.`);
-  add(`- [Writing](${abs("writing/")}): articles on SQL, A/B testing, retention, segmentation, automation.`);
-  add(`- [Skill taxonomy](${abs("topics/")}): Junior/Middle/Senior topics with case studies per topic.`);
-  add(`- [Glossary](${abs("glossary/")}): definitions of core analytics terms — p-value, MDE, SRM, cohort, LTV, RFM.`);
-  add(`- [Knowledge graph](${abs("graph/")}): product-analytics domain map.`);
-  add(`- [Games](${abs("games/")}): playable analytics arcade — 10 zero-dependency SVG mini-games (A/B test, funnel drop, cohort catch, SQL, retention, metric match) + arcade (snake, pong, 2048). Phone + desktop.`);
+  add(`- [About (RU)](${abs("about/")}): background and focus — who I am, how I work, what I enjoy, collaboration format, and the offers (hiring + collaboration) with quantified proof — A/B, retention, RFM, automation.`);
+  add(`- [About (EN)](${abs("en/about/")}): English mirror of the background and focus page.`);
+  add(`- [Notes (RU)](${abs("notes/")}): short notes and decision logs — why a decision was made and what came of it.`);
+  add(`- [Guides (RU)](${abs("notes/guides/")}): evergreen guides on product analytics — cohort analysis, RFM segmentation, SQL, experiment statistics.`);
+  add(`- [Writing (RU)](${abs("writing/")}): articles on SQL, A/B testing, retention, segmentation, automation.`);
+  add(`- [Writing (EN)](${abs("en/writing/")}): the same articles in English.`);
+  add(`- [Skill taxonomy (RU)](${abs("topics/")}): Junior/Middle/Senior topics with case studies per topic.`);
+  add(`- [Glossary (RU)](${abs("glossary/")}): definitions of core analytics terms — p-value, MDE, SRM, cohort, LTV, RFM.`);
+  add(`- [Glossary (EN)](${abs("en/glossary/")}): the same terms defined in English.`);
+  add(`- [Knowledge graph (RU)](${abs("graph/")}): product-analytics domain map.`);
+  add(`- [Knowledge graph (EN)](${abs("en/graph/")}): English domain map.`);
+  add(`- [Explorer (RU)](${abs("explorer/")}): every project, article, glossary term, library source, Volta module and topic in one filterable list — with addressable filters and a relation panel.`);
+  add(`- [Explorer (EN)](${abs("en/explorer/")}): the English content explorer.`);
+  add(`- [For hiring (RU)](${abs("hr/")}): role, stack and metrics — for screening against a vacancy.`);
+  add(`- [For hiring (EN)](${abs("en/hr/")}): English hiring page.`);
+  add(`- [For managers (RU)](${abs("manager/")}): cases with the decision and the result — what changed and why.`);
+  add(`- [For managers (EN)](${abs("en/manager/")}): English impact page.`);
+  add(`- [For colleagues (RU)](${abs("colleague/")}): how it was made — code, data, method and knowledge graph.`);
+  add(`- [For colleagues (EN)](${abs("en/colleague/")}): English deep-dive version.`);
+  add(`- [Contact (RU)](${abs("contact/")}): how to reach me.`);
+  add(`- [Contact (EN)](${abs("en/contact/")}): English contact page.`);
+  add(`- [Games (RU)](${abs("games/")}): playable analytics arcade — 10 zero-dependency SVG mini-games (A/B test, funnel drop, cohort catch, SQL, retention, metric match) + arcade (snake, pong, 2048). Phone + desktop.`);
   add();
 
   add("## Featured project");
@@ -159,6 +214,18 @@ export async function buildLlmsTxt(site: string): Promise<string> {
     }
     add();
   }
+
+  // The JSON/XML surfaces a crawler can fetch directly instead of scraping
+  // HTML. Only files the build actually emits — nothing aspirational here.
+  add("## Machine-readable data");
+  add(`- [RSS (RU)](${abs("rss.xml")}): Russian posts feed — title, date, excerpt, link per item.`);
+  add(`- [RSS (EN)](${abs("en/rss.xml")}): English posts feed, same shape.`);
+  add(`- [Search index](${abs("search-index.json")}): one record per page — type, locale, title, description, tags, tools, href, date.`);
+  add(`- [Explorer index](${abs("explorer-index.json")}): the full catalog behind /explorer/ — records, facets and the relations between them.`);
+  add(`- [Knowledge graph (RU)](${abs("graph.json")}): the Russian content graph as {nodes, links} — pages as nodes, wikilinks and cross-references as edges.`);
+  add(`- [Knowledge graph (EN)](${abs("graph-en.json")}): the English content graph, same shape.`);
+  add(`- [Projects registry](${abs("projects.json")}): project metadata — slug, track, RU/EN title and description, result, tools, repo, demo, href — plus the Volta case list.`);
+  add();
 
   add("## Contact");
   add("- GitHub: https://github.com/NikitaBoyarkin");

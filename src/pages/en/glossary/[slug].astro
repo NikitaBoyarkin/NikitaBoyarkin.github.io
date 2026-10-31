@@ -5,6 +5,8 @@
 import { getCollection, render } from 'astro:content';
 import Term from '../../../layouts/Term.astro';
 import ProjectGraph from '../../../components/ProjectGraph.astro';
+import MathStyles from '../../../components/MathStyles.astro';
+import { hasMath } from '../../../lib/math';
 import { withBase } from '../../../lib/path';
 import {
   computeBacklinks,
@@ -30,6 +32,8 @@ const { entry, allTerms, ruSlugs } = Astro.props;
 const slug = entry.id.replace(/\.md$/, '');
 const lang = 'en' as const;
 const { Content } = await render(entry);
+// KaTeX's sheet is page-scoped: only the 30 term pages with a formula carry it.
+const math = hasMath(entry.body);
 const slugOf = (id: string) => id.replace(/\.md$/, '');
 
 const [postsEn, projectsEn, partsEn, postsRu, glossaryEn] = await Promise.all([
@@ -111,6 +115,7 @@ const sub = subgraphAround(graph, `g:${slug}`, 1);
   lang={lang}
   counterpartHref={ruSlugs.has(slug) ? withBase(`glossary/${slug}/`) : undefined}
 >
+  {math && <MathStyles />}
   <Content />
   {
     sub.nodes.length > 1 && (

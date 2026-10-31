@@ -3,13 +3,11 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import '../styles/global.css';
-import '../styles/blog.css';
-// Prose layer last, so equal-specificity rules resolve to it.
-import '../styles/prose.css';
-// Reader carousel sits with the prose family: its track selectors must outrank
-// prose's element rules at equal specificity, which only holds below prose.css.
-import '../styles/reader.css';
-import 'katex/dist/katex.min.css';
+// `blog.css`, `prose.css`, `reader.css` and KaTeX are NOT imported here: they
+// are page-scoped and now live in the templates that use them (Post.astro, the
+// project/volta routes, BlogCard/BlogFilter, MathStyles.astro). Base.css used to
+// carry 1 200 lines of article CSS plus 28 KB of KaTeX into all 223 pages, of
+// which 15 render blog cards, 100 render `.prose` and 30 contain a formula.
 import { BRAND_ICON, ICON } from '../lib/icons';
 import { withBase } from '../lib/path';
 import Analytics from '../components/Analytics.astro';
@@ -18,7 +16,6 @@ import LangSwitch from '../components/LangSwitch.astro';
 import NavRoles from '../components/NavRoles.astro';
 import SearchBox from '../components/SearchBox.astro';
 import SiteTabs from '../components/SiteTabs.astro';
-import MorphIcon from 'morphicons/astro';
 import BeaconMetrics from '../components/BeaconMetrics.astro';
 
 interface Props {
@@ -116,6 +113,12 @@ const metaDescription = (() => {
 
 // i18n: locale-aware nav hrefs + hreflang alternates.
 const isEn = lang === 'en';
+
+// RU/EN twins ship the same content title: every one of the 27 project and 27
+// glossary pairs emitted a byte-identical `<title>` (32 duplicate groups,
+// measured 2026-10-31). Only the EN copy carries the marker — the RU page is
+// the canonical default and keeps its SERP text unchanged.
+const displayTitle = isEn && counterpartHref ? `${title} · EN` : title;
 const homeHref = isEn ? withBase('en/') : withBase('/');
 const aboutHref = isEn ? withBase('en/about/') : withBase('about/');
 const projectsHref = isEn ? withBase('en/projects/') : withBase('projects/');
@@ -332,7 +335,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>{title}</title>
+    <title>{displayTitle}</title>
     <meta name="description" content={metaDescription} />
     {noindex && <meta name="robots" content="noindex, follow" />}
     {keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
@@ -388,17 +391,27 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <meta id="theme-color" name="theme-color" content="#1400c3" />
 
     <meta property="og:site_name" content="Nikita Boyarkin" />
-    <meta property="og:title" content={title} />
+    <meta property="og:title" content={displayTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={pageUrl} />
+    {/* `og:locale` was absent from all 258 built pages until 2026-10-31, while
+        `hreflang` was already correct. Facebook/LinkedIn/Telegram use
+        `og:locale` to pick the preview language, so an EN page was served to
+        social crawlers with no locale signal at all. */}
+    <meta property="og:locale" content={isEn ? 'en_US' : 'ru_RU'} />
+    {
+      counterpartHref && (
+        <meta property="og:locale:alternate" content={isEn ? 'ru_RU' : 'en_US'} />
+      )
+    }
     <meta property="og:image" content={fullOgImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={ogImageAlt} />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
+    <meta name="twitter:title" content={displayTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={fullOgImage} />
 
@@ -532,12 +545,20 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
 
       {/* Theme toggle — moved to the always-visible top bar. It is a global
           preference, and the drawer it used to live in is closed by default. */}
-      <button id="theme-toggle" class="theme-toggle" aria-label={`${t.themeLabel}dark${t.themeCycle}`} data-theme-label={t.themeLabel} data-theme-cycle={t.themeCycle} type="button" title={t.themeTitle} data-icon-dark={THEME_MOON} data-icon-light={THEME_SUN} data-icon-cyber={THEME_CYBER}>
-        <MorphIcon id="theme-icon" icon={THEME_MOON} spring="snappy" reducedMotion="user" size={18} />
+      {/* Three glyphs, one visible per theme. These used to be `morphicons`:
+          a 20 KB SVG-path parser executed on every page to animate a 18×18
+          icon, and `SearchBox` pulled the same chunk in again. CSS on the
+          `data-theme` attribute the boot script already sets does the whole
+          job with zero JavaScript (see `.glyph` rules in global.css). */}
+      <button id="theme-toggle" class="theme-toggle" aria-label={`${t.themeLabel}dark${t.themeCycle}`} data-theme-label={t.themeLabel} data-theme-cycle={t.themeCycle} type="button" title={t.themeTitle}>
+        <svg class="glyph glyph-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d={THEME_MOON} /></svg>
+        <svg class="glyph glyph-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d={THEME_SUN} /></svg>
+        <svg class="glyph glyph-cyber" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d={THEME_CYBER} /></svg>
       </button>
 
-      <button id="nav-toggle" class="nav-toggle" type="button" aria-label={t.navOpen} aria-expanded="false" aria-controls="nav-links" data-label-open={t.navOpen} data-label-close={t.navClose} data-icon-menu={NAV_MENU} data-icon-close={NAV_CLOSE}>
-        <MorphIcon id="nav-icon" icon={NAV_MENU} spring="snappy" reducedMotion="user" size={20} />
+      <button id="nav-toggle" class="nav-toggle" type="button" aria-label={t.navOpen} aria-expanded="false" aria-controls="nav-links" data-label-open={t.navOpen} data-label-close={t.navClose}>
+        <svg class="glyph glyph-menu" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d={NAV_MENU} /></svg>
+        <svg class="glyph glyph-close" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d={NAV_CLOSE} /></svg>
       </button>
 
       {/* With scripting off the drawer never slides in (`body.nav-open` is set
@@ -632,12 +653,17 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
 
       <ul class="links" id="nav-links">
         {
+          /* `prefetchAll` is off (astro.config.mjs): a hover used to pull the
+             whole page for every anchor, including 566 KB of noindex
+             `/repo-audit/`. The drawer's destinations opt in explicitly; the
+             audit page opts out. */
           navLinks.map((item) => (
             <li>
               <a
                 href={item.href}
                 class={isNavCurrent(item.key) ? 'active' : ''}
                 aria-current={isNavCurrent(item.key) ? 'page' : undefined}
+                data-astro-prefetch={item.key === 'repo-audit' ? 'false' : 'hover'}
               >
                 <svg
                   class="link-icon"
@@ -711,20 +737,12 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         const html = document.documentElement;
         const toggle = document.getElementById('theme-toggle');
 
-        const ICON_PATHS = {
-          dark: toggle?.dataset.iconDark,
-          light: toggle?.dataset.iconLight,
-          cyberpunk: toggle?.dataset.iconCyber,
-        };
-
         const themeColorMeta = document.querySelector('meta[name="theme-color"]');
         const THEME_COLORS = { dark: '#1400c3', light: '#f4efca', cyberpunk: '#171717' };
         const ORDER = ['dark', 'light', 'cyberpunk'];
 
         function applyTheme(theme) {
           html.setAttribute('data-theme', theme);
-          const themeIcon = document.getElementById('theme-icon');
-          if (themeIcon && ICON_PATHS[theme]) themeIcon.icon = ICON_PATHS[theme];
           if (themeColorMeta) themeColorMeta.setAttribute('content', THEME_COLORS[theme] || THEME_COLORS.dark);
           if (toggle) {
             const label = (toggle.dataset.themeLabel || 'Theme: ') + theme + (toggle.dataset.themeCycle || '. Click to cycle.');
@@ -803,9 +821,6 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         const nav = document.getElementById('site-nav');
         const scrim = document.getElementById('nav-scrim');
         if (!toggle || !links || !nav) return;
-        const icon = document.getElementById('nav-icon');
-        const MENU = toggle.dataset.iconMenu;
-        const CLOSE = toggle.dataset.iconClose;
         const LABEL_OPEN = toggle.dataset.labelOpen || 'Menu';
         const LABEL_CLOSE = toggle.dataset.labelClose || 'Close';
 
@@ -829,7 +844,6 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           links.classList.toggle('open', open);
           toggle.setAttribute('aria-expanded', String(open));
           toggle.setAttribute('aria-label', open ? LABEL_CLOSE : LABEL_OPEN);
-          if (icon && (open ? CLOSE : MENU)) icon.icon = open ? CLOSE : MENU;
           syncInert();
           // Move focus into the revealed drawer: the links precede the trigger in
           // the DOM, so without this a keyboard user tabs straight past the menu

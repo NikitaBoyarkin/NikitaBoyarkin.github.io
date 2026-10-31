@@ -90,7 +90,7 @@ function page(path: string): string {
   return readFileSync(file, "utf8");
 }
 
-/** A page carrying all three Base.astro toggles (every page has them). */
+/** Chrome pages: the icons here are CSS-swapped, not morphed (2026-11-01). */
 const PAGES = [
   { label: "RU home", path: "/index.html", lang: "ru" },
   { label: "EN home", path: "/en/index.html", lang: "en" },
@@ -115,102 +115,68 @@ const SHELL_CHUNK = /_astro\/MorphIcon\.astro_astro_type_script_index_0_lang\.[\
 const ARROW_CHUNK = /_astro\/ArrowMorph\.astro_astro_type_script_index_0_lang\.[\w-]+\.js/;
 const ASKME_CHUNK = /_astro\/AskMe\.astro_astro_type_script_index_0_lang\.[\w-]+\.js/;
 
-describe("morph-icon contract (built HTML)", () => {
-  beforeAll(() => {
-    if (!existsSync(resolve(DIST, "index.html"))) {
-      throw new Error("dist/ missing — run `bun run build` before this test");
-    }
-  });
+/** Concatenated CSS of every stylesheet a page links. */
+function pageCss(html: string): string {
+  const urls = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((m) => m[1]);
+  return urls
+    .map((u) => {
+      const file = resolve(DIST, `.${u}`);
+      return existsSync(file) ? readFileSync(file, "utf8") : "";
+    })
+    .join("\n");
+}
 
-  describe.each(PAGES)("every morph icon ($label)", ({ path }) => {
-    let icons: MorphElement[] = [];
-    let html = "";
+// ---------------------------------------------------------------------------
+// The theme, drawer and search toggles used to be `morphicons` elements: the
+// library's SVG-path parser (20 KB raw) executed at module evaluation on every
+// page — twice, because `Base.astro` and `SearchBox.astro` both imported it.
+// They are now plain SVGs plus three attribute selectors on state the DOM
+// already carries (`data-theme` from the pre-paint boot script, `aria-expanded`
+// flipped by each toggle). The morph stays where it is the interaction, not
+// chrome: the arrows on project cards and the AskMe bubble.
+// ---------------------------------------------------------------------------
+describe("chrome icons are CSS-driven (no morph parser)", () => {
+  describe.each(PAGES)("$label", ({ path }) => {
+    const html = page(path);
 
-    beforeAll(() => {
-      html = page(path);
-      icons = parseMorphIcons(html);
-    });
-
-    it("renders at least the three Base.astro toggles", () => {
-      expect(icons.length).toBeGreaterThanOrEqual(3);
-    });
-
-    it("server-renders the resting path so nothing flashes before upgrade", () => {
-      // The Astro shell exists to paint the final SVG on the server; the custom
-      // element adopts it verbatim. A missing inner <path> = empty icon until JS.
-      for (const icon of icons) {
-        expect(icon.ssrD).not.toBeNull();
+    it("ships every state glyph and no <morph-icon>", () => {
+      for (const cls of [
+        "glyph-moon",
+        "glyph-sun",
+        "glyph-cyber",
+        "glyph-menu",
+        "glyph-close",
+        "glyph-search",
+        "glyph-x",
+      ]) {
+        expect(html, `missing .${cls}`).toContain(cls);
       }
+      expect(html).not.toContain("<morph-icon");
     });
 
-    it("keeps the SSR path identical to the element's resting icon", () => {
-      // A drift between the two means the icon visibly snaps on hydration.
-      for (const icon of icons) {
-        expect(icon.ssrD).toBe(icon.attrs.icon);
-      }
+    it("keeps the morph parser out of the page bundle", () => {
+      expect(html).not.toMatch(SHELL_CHUNK);
     });
 
-    it("opts into the OS reduce-motion preference on every instance", () => {
-      // The library default is "never" (ignores the setting). Omitting the prop
-      // is the easy mistake and leaves the icons morphing for everyone.
-      for (const icon of icons) {
-        expect(icon.attrs["reduced-motion"]).toBe("user");
-      }
-    });
-
-    it("declares a spring preset, not the implicit default", () => {
-      for (const icon of icons) {
-        expect(icon.attrs.spring).toBe("snappy");
-      }
-    });
-
-    it("is either hidden from AT or explicitly labelled as an image", () => {
-      // The wrapper is `display: contents`, so the inner <svg> is the node AT
-      // sees: without `label` the shell must mark it aria-hidden, with `label`
-      // it must become role="img" + <title>. Neither = an unnamed graphic.
-      for (const icon of icons) {
-        if (icon.attrs.label !== undefined) {
-          expect(icon.ssrRole).toBe("img");
-          expect(icon.ssrTitled).toBe(true);
-          expect(icon.ssrAriaHidden).toBe(false);
-        } else {
-          // ArrowMorph also passes aria-hidden onto the wrapper; either node works.
-          const hidden = icon.ssrAriaHidden || icon.attrs["aria-hidden"] === "true";
-          expect(hidden).toBe(true);
-        }
-      }
-    });
-
-    it("ships the chunk that defines the custom element", () => {
-      // Without defineMorphIcon() the markup stays valid and nothing throws —
-      // the icons just never move. That is the whole failure mode.
-      expect(html).toMatch(SHELL_CHUNK);
-    });
-
-    it("morphs from its drawn state, not into it", () => {
-      // Each toggle paints its rest icon and animates to the alternate. If the
-      // rendered `icon` no longer matches the button's rest-state attribute, the
-      // first hover snaps instead of morphing.
-      const nav = icons.find((i) => i.attrs.id === "nav-icon");
-      const theme = icons.find((i) => i.attrs.id === "theme-icon");
-      expect(nav?.attrs.icon).toBe(attrBefore(html, "nav-icon", "data-icon-menu"));
-      expect(theme?.attrs.icon).toBe(attrBefore(html, "theme-icon", "data-icon-dark"));
-
-      const search = icons.find((i) => i.attrs.id === "search-icon");
-      expect(search?.attrs.icon).toBe(attrBefore(html, "search-icon", "data-icon-search"));
-    });
-
-    it("has a distinct target endpoint for every toggle", () => {
-      // Both endpoints equal = a morph of zero distance, i.e. no animation.
-      expect(attrBefore(html, "nav-icon", "data-icon-close")).not.toBe(
-        attrBefore(html, "nav-icon", "data-icon-menu"),
+    it("shows exactly one glyph per toggle state, and the rules are in the CSS", () => {
+      const css = pageCss(html);
+      // Default state: moon (dark is the default theme), menu, magnifier.
+      expect(css).toMatch(/\.glyph\s*\{\s*display:\s*none/);
+      expect(css).toMatch(/html\[data-theme=["']?light["']?\][^{]*\.glyph-sun[^{]*\{\s*display:\s*block/);
+      expect(css).toMatch(
+        /html\[data-theme=["']?cyberpunk["']?\][^{]*\.glyph-cyber[^{]*\{\s*display:\s*block/,
       );
-      expect(attrBefore(html, "theme-icon", "data-icon-light")).not.toBe(
-        attrBefore(html, "theme-icon", "data-icon-dark"),
+      expect(css).toMatch(/#nav-toggle\[aria-expanded=["']?true["']?\][^{]*\.glyph-close[^{]*\{\s*display:\s*block/);
+      expect(css).toMatch(
+        /#search-toggle\[aria-expanded=["']?true["']?\][^{]*\.glyph-x[^{]*\{\s*display:\s*block/,
       );
-      expect(attrBefore(html, "theme-icon", "data-icon-cyber")).not.toBe(
-        attrBefore(html, "theme-icon", "data-icon-dark"),
-      );
+    });
+
+    it("keeps the drawer and search toggles accessible", () => {
+      // The swap is visual; the control still needs a name and a state.
+      expect(html).toMatch(/id="nav-toggle"[^>]*aria-expanded="false"/);
+      expect(html).toMatch(/id="search-toggle"[^>]*aria-expanded="false"/);
+      expect(html).toMatch(/id="theme-toggle"[^>]*aria-label="[^"]+"/);
     });
   });
 
@@ -319,6 +285,14 @@ describe("morph-icon contract (built HTML)", () => {
 
     it("keeps the ask-me widget off pages with no panel", () => {
       expect(page("/index.html")).not.toMatch(ASKME_CHUNK);
+    });
+
+    it("keeps the morph parser off every page without an arrow or bubble", () => {
+      // The homepage carries no morph-icon at all, so it must not ship the
+      // parser; a future component importing `morphicons/astro` into Base or
+      // SearchBox puts it back on 223 pages and fails here.
+      expect(page("/index.html")).not.toMatch(SHELL_CHUNK);
+      expect(page("/contact/index.html")).not.toMatch(SHELL_CHUNK);
     });
   });
 });

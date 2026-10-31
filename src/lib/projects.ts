@@ -193,7 +193,7 @@ export const ROLE_COPY: Record<'ru' | 'en', Record<Audience, RoleCopy>> = {
       lead: 'Cases with the decision and the result: what changed, and why.',
     },
     colleague: {
-      title: 'Nikita Boyarkin | Product Analyst',
+      title: 'Nikita Boyarkin — Product Analyst, how it is made',
       description:
         'Portfolio of Nikita Boyarkin — product analyst. A/B testing and retention: SQL, Python, reproducible methodology.',
       h1: 'Product Analyst — how it is made',

@@ -9,15 +9,17 @@ const entry = await getEntry('about', 'en');
 if (!entry) throw new Error('missing src/content/about/en.mdx');
 
 // Mirrors the RU ProfilePage; see src/pages/about.astro for the rationale.
+// `image` and `jobTitle` repeat Base's Person node (`images/00_profile.jpg`,
+// `Product Analyst`) so the two declarations describe one person, not two.
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ProfilePage',
   mainEntity: {
     '@type': 'Person',
     name: 'Nikita Boyarkin',
-    jobTitle: 'Data Analyst / Product Analyst',
+    jobTitle: 'Product Analyst',
     url: 'https://nikitaboyarkin.github.io/en/about/',
-    image: 'https://nikitaboyarkin.github.io/images/00_profile.webp',
+    image: 'https://nikitaboyarkin.github.io/images/00_profile.jpg',
     description:
       'Data and product analyst. Experiments, retention, segmentation — with code, SQL and a reproducible methodology.',
     address: {

@@ -131,12 +131,29 @@ describe('wiring', () => {
   ];
 
   it('registers the plugin after the existing mdast plugins', () => {
-    expect(CONFIG).toMatch(/mdastPlugins:\s*\[[^\]]*glossaryLinker\(\),\s*wikilinks\(\),\s*readerSlides\(\)/);
+    // Order is load-bearing: `wikilinks` must run before `glossaryLinker`.
+    // Both rewrite the same text node, and the glossary linker splits it around
+    // the term it links — a wikilink sharing that node used to ship as literal
+    // brackets (measured on the live Volta link, 2026-10-31). `reader-slides`
+    // stays last: it only inserts html markers between root siblings.
+    expect(CONFIG).toMatch(
+      /mdastPlugins:\s*\[[^\]]*katexMath\(\),\s*wikilinks\(\),\s*glossaryLinker\(\),\s*readerSlides\(\)/,
+    );
+    expect(CONFIG.indexOf('wikilinks()')).toBeLessThan(CONFIG.indexOf('glossaryLinker()'));
   });
 
-  it('imports the reader sheet after the prose layer', () => {
-    expect(BASE.indexOf("styles/prose.css")).toBeGreaterThan(-1);
-    expect(BASE.indexOf("styles/reader.css")).toBeGreaterThan(BASE.indexOf("styles/prose.css"));
+  it('imports the reader sheet after the prose layer, and only there', () => {
+    // Both sheets left `Base.astro` on 2026-11-01 (they used to ride along on
+    // all 223 pages; 80 render a reader track). The order invariant survives in
+    // the templates that ship them.
+    expect(BASE, 'reader.css is back in the every-page bundle').not.toContain('styles/reader.css');
+    const post = read('src/layouts/Post.astro');
+    expect(post.indexOf("styles/prose.css")).toBeGreaterThan(-1);
+    expect(post.indexOf("styles/reader.css")).toBeGreaterThan(post.indexOf("styles/prose.css"));
+    for (const rel of ['src/pages/projects/[slug].astro', 'src/pages/en/projects/[slug].astro']) {
+      const file = read(rel);
+      expect(file.indexOf("styles/reader.css")).toBeGreaterThan(file.indexOf("styles/prose.css"));
+    }
   });
 
   it('guards the track so a body without slides stays a column', () => {

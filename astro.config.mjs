@@ -91,10 +91,12 @@ export default defineConfig({
   site: "https://nikitaboyarkin.github.io",
   output: "static",
   trailingSlash: "ignore",
-  // Prefetch linked pages so the next navigation is instant. `hover` keeps the
-  // initial load free of extra requests; switch to `viewport` to also cover
-  // touch devices at the cost of prefetching every link above the fold.
-  prefetch: { prefetchAll: true, defaultStrategy: "hover" },
+  // Prefetch linked pages so the next navigation is instant. `prefetchAll` is
+  // OFF: with it on, a pointer sweep over the drawer pulled every anchor's page
+  // (566 KB for the noindex `/repo-audit/`, 615 KB for `/colleague/`). Links opt
+  // in with `data-astro-prefetch` — the drawer's destinations in `Base.astro`
+  // do, and `/repo-audit/` carries `data-astro-prefetch="false"`.
+  prefetch: { prefetchAll: false, defaultStrategy: "hover" },
   // v7 default is 'jsx', which strips whitespace between inline elements;
   // keep the v5/v6 boolean behaviour to avoid layout regressions.
   compressHTML: true,
@@ -113,14 +115,21 @@ export default defineConfig({
     // Sätteri runs the mdast pipeline; @astrojs/markdown-remark is not installed,
     // so `markdown.remarkPlugins` would throw. The glossary linker is a no-op on
     // every file outside `src/content/{glossary,glossary-en,posts,posts-en,projects,projects-en}`.
-    // Order matters: math runs first so a term name inside `\text{…}` never gets
-    // a markdown link injected into its LaTeX; wikilinks run after the glossary
-    // linker so the term links it generates are never re-scanned for `[[…]]`.
-    // reader-slides goes last: it only inserts `html` markers between root
-    // siblings, so no other plugin in the list has to see those nodes. It is a
-    // no-op outside the four paged content collections.
+    // Order matters, and it is load-bearing in one direction only:
+    // 1. math runs first so a term name inside `\text{…}` never gets a markdown
+    //    link injected into its LaTeX;
+    // 2. wikilinks run BEFORE the glossary linker. Both rewrite the same `text`
+    //    node, and the glossary linker splits it around the term it links. A
+    //    `[[slug|label]]` whose label contains a glossary term therefore used to
+    //    survive as literal brackets: the node was cut before the wikilink regex
+    //    could see it (measured 2026-10-31 on the live Volta wikilink). Running
+    //    wikilinks first makes the label a `link` child, which the glossary
+    //    linker skips — which is also what prevents a nested `<a>`;
+    // 3. reader-slides goes last: it only inserts `html` markers between root
+    //    siblings, so no other plugin in the list has to see those nodes. It is
+    //    a no-op outside the four paged content collections.
     processor: satteri({
-      mdastPlugins: [katexMath(), glossaryLinker(), wikilinks(), readerSlides()],
+      mdastPlugins: [katexMath(), wikilinks(), glossaryLinker(), readerSlides()],
     }),
   },
   // Keep the OneWorks 3D hero out of the default page load.

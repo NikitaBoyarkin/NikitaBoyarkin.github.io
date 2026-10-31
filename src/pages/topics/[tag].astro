@@ -29,6 +29,26 @@ const projects = (await getCollection('projects', (p) => !p.data.draft)).filter(
   projectMatchesTopic(topic, p),
 );
 
+// Russian plural form for a count: 1 запись / 2 записи / 5 записей. Both the
+// visible counter and the meta description render a number, so the noun has to
+// agree with it — "1 записей" was shipping on the thin tags.
+const pluralRu = (n: number, one: string, few: string, many: string): string => {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+  return many;
+};
+
+const postCount = `${posts.length} ${pluralRu(posts.length, 'запись', 'записи', 'записей')}`;
+const projectCount = `${projects.length} ${pluralRu(projects.length, 'проект', 'проекта', 'проектов')}`;
+
+// `<title>` used to be `«Сегментация» | Nikita Boyarkin`, byte-identical to
+// `/glossary/segmentation/`, so the two pages competed for one SERP slot and
+// neither said what kind of page it was. `— тема` marks the hub; the glossary
+// keeps the bare term.
+const pageTitle = `${topic.label} — тема | Nikita Boyarkin`;
+
 // CollectionPage + ItemList over exactly what the page renders — the same
 // projects/posts arrays, in the same order, so the markup can never list an
 // item the hub does not show. Previously the hub emitted no page-level node at
@@ -40,11 +60,21 @@ const topicItems = [
   ...projects.map((p) => ({ name: p.data.title, path: `projects/${p.id.replace(/\.md$/, '')}/` })),
   ...posts.map((p) => ({ name: p.data.title, path: `posts/${p.id.replace(/\.md$/, '')}/` })),
 ];
+
+// Derived from the collections, never per-tag copy: interpolating the label
+// alone left «SQL» (42), «Python» (45) and «Карьера» (46) under the 50-char
+// floor, because the label is the only thing that varied. The counts are what
+// the page actually shows, and they differ page to page.
+const topicDescription =
+  topicItems.length > 0
+    ? `Материалы по теме «${topic.label}»: ${postCount} и ${projectCount} в одном списке — с описанием и ссылками.`
+    : `Тема «${topic.label}»: материалы пока собираются — записи и проекты появятся позже.`;
+
 const topicJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
-  name: `${topic.label} | Nikita Boyarkin`,
-  description: `Материалы по теме «${topic.label}»: записи и проекты.`,
+  name: pageTitle,
+  description: topicDescription,
   url: topicUrl,
   inLanguage: 'ru',
   // Reference, not redeclaration: the WebSite `@id` is published by Base.astro
@@ -68,8 +98,8 @@ const topicJsonLd = {
 ---
 
 <Base
-  title={`${topic.label} | Nikita Boyarkin`}
-  description={`Материалы по теме «${topic.label}»: записи и проекты.`}
+  title={pageTitle}
+  description={topicDescription}
   canonical={withBase(`topics/${tag}/`)}
   activeNav="home"
   lang="ru"
@@ -79,7 +109,7 @@ const topicJsonLd = {
     <a class="back" href={withBase('topics/')}>← Все темы</a>
     <h1 class="page-title">{topic.label}</h1>
     <p style="color: var(--text-muted); margin-bottom: var(--space-8);">
-      {posts.length} записей · {projects.length} проектов
+      {postCount} · {projectCount}
     </p>
 
     {

@@ -221,14 +221,15 @@ const clientData = {
   // Parallel to `nodes`: the community-mode build-time positions, so the
   // client can swap layouts without running any simulation.
   communityPos: communityNodes.map((n) => ({ x: n.x, y: n.y })),
-  // Parallel tooltip lines (node / edge), aligned by index.
-  nodeT: tooltips.node,
-  edgeT: tooltips.edge,
+  // Tooltip lines are NOT serialised: `buildGraphTooltips(nodes, links, lang)`
+  // is pure and both inputs already ship, so the client rebuilds them at init
+  // instead of receiving them twice. Dropped 57 KB raw (≈7 KB gzip) of
+  // duplicate text from the HTML of every page that mounts this graph.
 };
 const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
 ---
 
-<div id="kg-root" class:list={['kg-root', { 'kg-bare': bare }]} style={`--kg-label-halo:${LABEL_HALO}px`} data-search-empty={isEn ? 'No matches' : 'Ничего не найдено'} data-search-reset={isEn ? 'Clear search' : 'Очистить поиск'}>
+<div id="kg-root" class:list={['kg-root', { 'kg-bare': bare }]} style={`--kg-label-halo:${LABEL_HALO}px`} data-lang={lang} data-search-empty={isEn ? 'No matches' : 'Ничего не найдено'} data-search-reset={isEn ? 'Clear search' : 'Очистить поиск'}>
   <!-- The whole control bar is one bento block: the site's `.bento-cell`
        recipe (a bordered, rounded surface) around the search, the legend and
        the view controls, with the quick-filter chips under them. It is
@@ -414,7 +415,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   import { clampZoom, viewBoxOf, zoomAt, panBy, centerOn, readableZoom } from '../lib/graph-zoom';
   import { decodeGraphState, encodeGraphState } from '../lib/graph-url';
   import { easeTo, physicsParams, stepSim, type Point, type SimLink, type SimNode } from '../lib/graph-physics';
-  import { nodeKindOf } from '../lib/graph-tooltip';
+  import { buildGraphTooltips, nodeKindOf } from '../lib/graph-tooltip';
   import { placeLabels } from '../lib/graph-labels';
 
   const rootEl = document.getElementById('kg-root');
@@ -484,6 +485,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
 
   const nodes: any[] = data.nodes;
   const links: any[] = data.links;
+  // One source of truth for tooltip copy: the same pure builder the server uses
+  // for the SVG <title> lines, re-run here on data that is already in memory.
+  const tips = buildGraphTooltips(nodes, links, root.dataset.lang === 'en' ? 'en' : 'ru');
   const nodeById = new Map(nodes.map((n: any) => [n.id, n]));
   const nodeEls = Array.from(svg.querySelectorAll<SVGGElement>('g[tabindex]'));
   const edgeEls = Array.from(svg.querySelectorAll<SVGLineElement>('.kg-edge'));
@@ -1016,7 +1020,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     const ctm = svg.getScreenCTM();
     if (idx < 0 || !ctm) return;
     const p = new DOMPoint(nodes[idx].x, nodes[idx].y).matrixTransform(ctm);
-    showTooltip(data.nodeT[idx], p.x, p.y);
+    showTooltip(tips.node[idx], p.x, p.y);
   }
 
   /** The single writer for "which node is focused": lights its 1-hop
@@ -1034,7 +1038,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     syncURL();
   }
 
-  // --- Tooltip: content lines come precomputed (data.nodeT / data.edgeT) so
+  // --- Tooltip: content lines are rebuilt from `nodes`/`links` at init, so
   // the client only positions and renders them. Hover-only; keyboard users get
   // the native SVG <title>. ---
   const tooltipEl = document.getElementById('kg-tooltip') as HTMLDivElement | null;
@@ -1217,7 +1221,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   svg.addEventListener('pointerover', (e) => {
     const hitIdx = edgeHitEls.indexOf(e.target as unknown as SVGLineElement);
     if (hitIdx >= 0) {
-      showTooltip(data.edgeT[hitIdx], e.clientX, e.clientY);
+      showTooltip(tips.edge[hitIdx], e.clientX, e.clientY);
       return;
     }
     const target = nodeEls.find((g) => g.contains(e.target as Node));
@@ -1230,7 +1234,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     const n = nodes[idx];
     hoveredId = n.id;
     highlight(n.id);
-    showTooltip(data.nodeT[idx], e.clientX, e.clientY);
+    showTooltip(tips.node[idx], e.clientX, e.clientY);
   });
   svg.addEventListener('pointerout', (e) => {
     const stillIn = (e.relatedTarget as Node | null) && svg.contains(e.relatedTarget as Node);

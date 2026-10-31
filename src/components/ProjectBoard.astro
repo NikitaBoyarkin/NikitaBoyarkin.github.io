@@ -144,9 +144,10 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
     class:list={['project-track-grid', cover && 'project-board-cover']}
   >
     {
-      entries.map(({ project, trackLabel }) => (
+      entries.map(({ project, trackLabel }, index) => (
         <ProjectCard
           slug={project.id.replace(/\.md$/, '')}
+          priority={index === 0}
           title={project.data.title}
           description={project.data.description}
           image={project.data.hero}

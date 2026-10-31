@@ -10,16 +10,19 @@ if (!entry) throw new Error('missing src/content/about/ru.mdx');
 
 // ProfilePage rather than a bare Person: the page is the profile. `knowsAbout`
 // and `alumniOf` are what turn it into something a knowledge panel can use —
-// the same claims the visible page makes (see AboutPage.astro).
+// the same claims the visible page makes (see AboutPage.astro). `image` and
+// `jobTitle` repeat what Base's Person node already says (`images/00_profile.jpg`,
+// `Product Analyst`): a second declaration that disagrees splits the entity
+// instead of reinforcing it. Base still owns the `@id`, so none is set here.
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ProfilePage',
   mainEntity: {
     '@type': 'Person',
     name: 'Nikita Boyarkin',
-    jobTitle: 'Data Analyst / Product Analyst',
+    jobTitle: 'Product Analyst',
     url: 'https://nikitaboyarkin.github.io/about/',
-    image: 'https://nikitaboyarkin.github.io/images/00_profile.webp',
+    image: 'https://nikitaboyarkin.github.io/images/00_profile.jpg',
     description:
       'Аналитик данных и продуктовый аналитик. Эксперименты, retention, сегментация — с кодом, SQL и воспроизводимой методологией.',
     address: {

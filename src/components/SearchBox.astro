@@ -5,7 +5,6 @@
 // import.meta.env. Styles live in global.css (.search-*).
 import { withBase } from "../lib/path";
 import { TOPICS } from "../lib/topics";
-import MorphIcon from "morphicons/astro";
 import Icon from "./Icon.astro";
 
 interface Props {
@@ -50,8 +49,6 @@ const X_D = "M6 6l12 12M6 18L18 6";
   data-explorer-url={explorerUrl}
   data-topics={JSON.stringify(topicLinks)}
   data-i18n={JSON.stringify(i18n)}
-  data-icon-search={SEARCH_D}
-  data-icon-close={X_D}
 >
   <button
     id="search-toggle"
@@ -62,7 +59,11 @@ const X_D = "M6 6l12 12M6 18L18 6";
     aria-expanded="false"
     aria-controls="search-panel"
   >
-    <MorphIcon id="search-icon" icon={SEARCH_D} spring="snappy" reducedMotion="user" size={16} />
+    {/* Magnifier ↔ close, swapped by CSS on the button's own `aria-expanded`
+        (see `.glyph` rules in global.css). Was a `morphicons` element, which
+        pulled a 20 KB path parser into every page for a 16×16 icon. */}
+    <svg class="glyph glyph-search" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d={SEARCH_D} /></svg>
+    <svg class="glyph glyph-x" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d={X_D} /></svg>
   </button>
 
   <div id="search-panel" class="search-panel" hidden>
@@ -103,31 +104,15 @@ const X_D = "M6 6l12 12M6 18L18 6";
 </div>
 
 <script>
-  import { defineMorphIcon, type MorphIconElement } from "morphicons/element";
   import { ldWithin } from "../lib/fuzzy";
   import { track } from "../lib/analytics";
   import { ICON } from "../lib/icons";
-
-  // Same stroke paths as the SSR render (see frontmatter). Morphing the
-  // toggle magnifier ↔ close is a pure animation on the custom element.
-  defineMorphIcon();
-  let searchIcon: MorphIconElement | null = null;
-  async function morphSearch(to: string) {
-    if (!searchIcon) {
-      await customElements.whenDefined("morph-icon");
-      searchIcon = document.getElementById("search-icon") as MorphIconElement | null;
-      if (!searchIcon) return;
-    }
-    searchIcon.morphTo(to);
-  }
 
   // Wrap in init() — ES module top-level `return` is illegal, so all early
   // bail-outs live inside a function.
   function init() {
     const root = document.querySelector<HTMLElement>(".search");
     if (!root) return;
-    const searchD = root.dataset.iconSearch!;
-    const closeD = root.dataset.iconClose!;
     const indexUrl = root.dataset.indexUrl!;
     const explorerUrl = root.dataset.explorerUrl!;
     const topics: { l: string; h: string }[] = JSON.parse(root.dataset.topics || "[]");
@@ -219,7 +204,6 @@ const X_D = "M6 6l12 12M6 18L18 6";
       toggle.setAttribute("aria-expanded", "true");
       toggle.setAttribute("aria-label", t.closeLabel);
       input.focus();
-      morphSearch(closeD);
     }
 
     function close() {
@@ -241,7 +225,6 @@ const X_D = "M6 6l12 12M6 18L18 6";
       // Return focus to the trigger so keyboard users aren't dropped to <body> —
       // but only if focus was inside this widget (don't steal it from a sibling).
       if (hadFocus) toggle.focus();
-      morphSearch(searchD);
     }
 
     function setFacet(next: string) {

@@ -1,4 +1,7 @@
 ---
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import InnerTOC from '../../components/InnerTOC.astro';
@@ -14,6 +17,8 @@ import SectionTabs from '../../components/SectionTabs.astro';
 import SectionPanel from '../../components/SectionPanel.astro';
 import Backlinks from '../../components/Backlinks.astro';
 import NextStep from '../../components/NextStep.astro';
+import '../../styles/prose.css';
+import '../../styles/reader.css';
 import { withBase } from '../../lib/path';
 import { getBacklinks } from '../../lib/link-index-data';
 import { loadChartFile } from '../../lib/charts';
@@ -146,19 +151,42 @@ const pageUrl = `${siteUrl}${withBase(`projects/${slug}/`)}`;
 // (guarded — `undefined.toISOString()` would throw at build time).
 const publishedDate = project.data.date ?? project.data.updated;
 const modifiedDate = project.data.updated ?? project.data.date;
+// `Article.image` must be the absolute URL `<meta property="og:image">` already
+// advertises. Base builds that URL from this same frontmatter and appends a
+// content-hash query so a redrawn banner gets a fresh social-cache key; the hash
+// is recomputed here because Base does not export it. A remote `ogImage` skips
+// both the local read and the query, and a project without one emits no `image`
+// (`ogImage` is optional in the schema, though all 27 entries set it).
+const ogImageRaw = project.data.ogImage;
+const ogImageUrl = !ogImageRaw
+  ? undefined
+  : ogImageRaw.startsWith('http')
+    ? ogImageRaw
+    : `${siteUrl}${withBase(ogImageRaw)}?v=${createHash('sha1')
+        .update(readFileSync(path.join(process.cwd(), 'public', ogImageRaw)))
+        .digest('hex')
+        .slice(0, 8)}`;
 const projectJsonLd = {
   '@type': 'Article',
   headline: project.data.title,
   description: project.data.description,
+  image: ogImageUrl,
   ...(publishedDate ? { datePublished: publishedDate.toISOString() } : {}),
   ...(modifiedDate ? { dateModified: modifiedDate.toISOString() } : {}),
   author: { '@type': 'Person', name: 'Nikita Boyarkin', url: `${siteUrl}${withBase('/')}` },
   // Organization + logo, not Person: Google's Article rich-result eligibility
-  // requires an Organization publisher carrying a logo.
+  // requires an Organization publisher carrying a logo — and specifically a
+  // raster one at least 112×112, which the 707-byte `favicon.svg` is not. The
+  // apple-touch-icon is that same mark rendered at 180×180.
   publisher: {
     '@type': 'Organization',
     name: 'Nikita Boyarkin',
-    logo: { '@type': 'ImageObject', url: `${siteUrl}${withBase('favicon.svg')}` },
+    logo: {
+      '@type': 'ImageObject',
+      url: `${siteUrl}${withBase('apple-touch-icon.png')}`,
+      width: 180,
+      height: 180,
+    },
   },
   mainEntityOfPage: pageUrl,
   url: pageUrl,
