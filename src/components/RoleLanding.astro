@@ -8,6 +8,7 @@ import { getCollection } from 'astro:content';
 import HeroAvatar from './HeroAvatar.astro';
 import GithubActivity from './GithubActivity.astro';
 import KnowledgeGraph from './KnowledgeGraph.astro';
+import NowCard from './NowCard.astro';
 import ProjectBoard from './ProjectBoard.astro';
 import ProjectList from './ProjectList.astro';
 import ReadingBlock from './ReadingBlock.astro';
@@ -186,6 +187,10 @@ const t = {
             )}
           </p>
         </div>
+        {/* The same "now" cell the homepage carries: on this page the reader is
+            a colleague, and "what is in progress" is the one signal a portfolio
+            usually omits. Content comes from `src/lib/now.ts`. */}
+        <NowCard lang={lang} variant="cell" />
       </div>
     </section>
   </>

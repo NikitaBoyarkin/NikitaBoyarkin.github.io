@@ -1,0 +1,89 @@
+---
+// «Сейчас» — the in-progress list, in two shapes from one array.
+//
+// `variant="panel"` is the body of the "Сейчас"/"Now" tab on `/about/`, where the
+// MDX owns the `<h2 id="now">` and the tab chrome, so this renders the date and
+// the list and nothing else.
+//
+// `variant="cell"` is a bento card: it brings its own eyebrow heading and a link
+// back to the full tab. Two mount points (`/` and the colleague landing) share
+// that variant — the same cell in both grids, so the reader who meets "now" on
+// the homepage and the one who meets it on `/colleague/` cannot be told two
+// different things.
+//
+// The list itself comes from `src/lib/now.ts`, never from props: a caller that
+// passed its own items would be a second source of truth for the one list whose
+// whole value is being current.
+import { NOW } from '../lib/now';
+import type { Lang } from '../lib/now';
+import { withBase } from '../lib/path';
+
+interface Props {
+  lang?: Lang;
+  /** `panel` = the /about/ tab body; `cell` = a bento card. */
+  variant?: 'panel' | 'cell';
+}
+const { lang = 'ru', variant = 'panel' } = Astro.props;
+const isEn = lang === 'en';
+const now = NOW[lang];
+const aboutHref = withBase(isEn ? 'en/about/#now' : 'about/#now');
+---
+
+{
+  variant === 'cell' ? (
+    <div class="bento-cell bento-cell-wide now-cell">
+      <h2 class="bento-cell-title">{now.title}</h2>
+      <ul class="now-list">
+        {now.items.map((item) => (
+          <li>{item}</li>
+        ))}
+      </ul>
+      {/* The date is the card's honesty marker: it says how current the list is
+          instead of implying "live". It sits under the list, not over it, so the
+          first thing read is the work and not the timestamp. */}
+      <p class="now-updated">{isEn ? 'Updated' : 'Обновлено'} · {now.updated}</p>
+      <a class="bento-cell-link" href={aboutHref} data-analytics="bento_now">
+        {now.more}
+      </a>
+    </div>
+  ) : (
+    <>
+      <p class="now-updated">
+        {isEn ? 'Updated' : 'Обновлено'} · {now.updated}
+      </p>
+      <ul class="now-list">
+        {now.items.map((item) => (
+          <li>{item}</li>
+        ))}
+      </ul>
+    </>
+  )
+}
+
+<style>
+  /* A card earns its height by being scannable, so the list is tighter than the
+     /about/ prose list it shares content with: same words, less leading. */
+  .now-list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding-inline-start: var(--space-4);
+    color: var(--text-normal);
+    font-size: var(--text-body);
+    line-height: 1.5;
+    max-width: 68ch;
+  }
+
+  .now-cell .now-list {
+    font-size: 0.95rem;
+    line-height: 1.45;
+    gap: var(--space-1);
+  }
+
+  .now-updated {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+  }
+</style>

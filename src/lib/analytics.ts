@@ -94,6 +94,11 @@ export interface AnalyticsEventMap {
   telegram_header: { path: string };
   telegram_hero: { path: string };
   flagship_case: { path: string };
+  // The "now" bento cell on `/`, `/en/` and the colleague landings. Separate
+  // from the other `bento_*` names because it answers a different question
+  // ("what is in progress?"), and the old homepage `bento_graph` series cannot
+  // be reused — that surface no longer exists.
+  bento_now: { path: string };
 }
 
 export type KnownEventName = keyof AnalyticsEventMap;

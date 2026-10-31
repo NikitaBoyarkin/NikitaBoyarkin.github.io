@@ -3,6 +3,7 @@
 import Base from '../../layouts/Base.astro';
 import HomeNewTab from '../../components/HomeNewTab.astro';
 import KeyFigures from '../../components/KeyFigures.astro';
+import NowCard from '../../components/NowCard.astro';
 import { withBase } from '../../lib/path';
 
 // Person only: the `ItemList` of all projects would no longer describe this
@@ -49,4 +50,10 @@ const jsonLd = {
   <HomeNewTab lang="en" />
   {/* See `src/pages/index.astro` — same closing strip, EN figures and hrefs. */}
   <KeyFigures lang="en" />
+  {/* Same "now" cell as the RU homepage; the list itself is `src/lib/now.ts`. */}
+  <section class="home-now reveal" aria-label="Now">
+    <div class="bento-grid bento-spaced">
+      <NowCard lang="en" variant="cell" />
+    </div>
+  </section>
 </Base>
