@@ -20,6 +20,7 @@ import { ICON } from '../lib/icons';
 import { formatNumber } from '../lib/format';
 import { METRICS } from '../lib/metrics';
 import { withBase } from '../lib/path';
+import FigureText from './FigureText.astro';
 // Persona promise lines come from ROLE_COPY so the homepage cannot drift from
 // the landings it points at.
 import { ROLE_COPY } from '../lib/projects';
@@ -204,7 +205,11 @@ const SHORTCUTS = [
     <a class="nt-flagship" href={FLAGSHIP.href} data-analytics="flagship_case">
       <span class="nt-flagship-title">{FLAGSHIP.title}</span>
       <span class="nt-flagship-metric">
-        {FLAGSHIP.metric.map((m) => <span>{m}</span>)}
+        {FLAGSHIP.metric.map((m) => (
+          <span>
+            <FigureText text={m} />
+          </span>
+        ))}
       </span>
     </a>
 
@@ -802,6 +807,11 @@ const SHORTCUTS = [
     flex-wrap: wrap;
     align-items: baseline;
     font-size: 0.8125rem;
+    /* Muted prose, orange *figures*: each item runs through `FigureText`, so
+       only the measurement takes the figure ink and the words around it
+       («п.п. KYC-конверсии») stay quiet. Colouring the whole line orange was the
+       first attempt and it failed two ways — it made a sentence orange, and at
+       13px/400 the ink is below the 4.5:1 normal-text floor on the light card. */
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
   }

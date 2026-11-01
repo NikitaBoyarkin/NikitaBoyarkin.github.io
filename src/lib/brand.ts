@@ -40,6 +40,33 @@ export const BRAND_BLUE: BrandHex = '#1400c3';
 export const ACCENT_ON_BLUE: BrandHex = '#fe4e02';
 
 /**
+ * Ink for the portfolio's display *figures* and for the figures a case or an
+ * article states inside a sentence — the «Что подтверждено» numbers, the hero
+ * proof line, the GitHub counters, the About metrics, and every `+5,72` /
+ * `€208,5K` / `95%` in running text. Same value as `ACCENT_ON_BLUE`, but a
+ * different role: this one is text, on the site, not a picture accent. It is
+ * deliberately not `ACCENT_ON_TEAL`: the coral means "interactive", the orange
+ * means "this is a measured result", so a reader can tell a link from a number
+ * at a glance.
+ *
+ * Contrast, measured: 3.47:1 on the indigo page, 5.18:1 on a card, 2.86:1 on the
+ * cream light page. 3.47 clears the *large-text* floor (3:1) only, which is why
+ * every surface that applies this ink sets its figures bold at ≥18.75px — see the
+ * single `.figure` rule in `src/styles/global.css`. The light theme uses
+ * `FIGURE_INK_LIGHT` instead, because 2.86 is under even that floor.
+ */
+export const FIGURE_INK: BrandHex = ACCENT_ON_BLUE;
+
+/**
+ * The figure ink for the light theme: the nearest orange in the brand family
+ * that clears the 3:1 large-text floor on cream (2.86:1 for #fe4e02 — no amount
+ * of weight can rescue a colour below the floor). Measures 3.14:1 on the cream
+ * page, 3.25:1 on a card, 3.17:1 on the indigo page. Same role, adapted the way
+ * the coral adapts to sienna — not a second accent.
+ */
+export const FIGURE_INK_LIGHT: BrandHex = '#f24a00';
+
+/**
  * The CTA fill (`--button-bg`, dark + light themes) — a near-black neutral,
  * deliberately not a brand hue. The button is the one control that must read
  * as *action* rather than as accent colour, so it left the 10% coral/orange

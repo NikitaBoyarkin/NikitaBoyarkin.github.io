@@ -2,6 +2,7 @@
 // One chart card on a project page. Structure is fixed:
 //   title → description (ABOVE the chart) → SVG chart → conclusions (BELOW).
 import type { ChartObject } from '../../lib/charts';
+import FigureText from '../FigureText.astro';
 import ChartBar from './ChartBar.astro';
 import ChartLine from './ChartLine.astro';
 import ChartCohort from './ChartCohort.astro';
@@ -41,7 +42,7 @@ const isViz = variant === 'viz';
         <span class="chart-conclusions-label">{isEn ? 'Key takeaways' : 'Выводы'}</span>
         <ul>
           {chart.conclusions.map((c) => (
-            <li>{c[lang]}</li>
+            <li><FigureText text={c[lang]} /></li>
           ))}
         </ul>
       </div>

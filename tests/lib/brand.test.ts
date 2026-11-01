@@ -13,6 +13,8 @@ import {
   SURFACE_BLUE_DEEP,
   ACCENT_ON_TEAL,
   ACCENT_ON_TEAL_LIGHT,
+  FIGURE_INK,
+  FIGURE_INK_LIGHT,
   type BrandHex,
 } from '../../src/lib/brand';
 import { HONEYCOMB } from '../../scripts/lib/og-render.mjs';
@@ -41,6 +43,11 @@ const EXPECTED: Expected = {
     'button-bg-hover': BUTTON_FILL_HOVER,
     'button-ink': BUTTON_INK,
     'text-accent': ACCENT_ON_TEAL,
+    // Display-figure ink — the same orange as the old blue-surface accent, but
+    // a text role now. Bound here so a "cleanup" that folds it back into the
+    // coral action accent goes red instead of silently deleting the distinction
+    // between "a measured result" and "a link".
+    'text-accent-figure': FIGURE_INK,
     // The "back to portfolio" plate: the banner's picture surface with its
     // deep-blue ink, so the link matches the OG banner on every theme.
     'cream-surface': CREAM_SURFACE,
@@ -52,6 +59,9 @@ const EXPECTED: Expected = {
     'button-bg-hover': BUTTON_FILL_HOVER,
     'button-ink': BUTTON_INK,
     'text-accent': ACCENT_ON_TEAL_LIGHT,
+    // Same role, adapted to the cream ground: #fe4e02 is 2.86:1 there, under the
+    // large-text floor, so the light theme takes FIGURE_INK_LIGHT.
+    'text-accent-figure': FIGURE_INK_LIGHT,
     // The project/article card surface — its own token so the light theme can
     // repaint cards without moving the forms, nav rail and charts that share
     // --background-secondary.

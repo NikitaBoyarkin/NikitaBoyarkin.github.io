@@ -10,6 +10,7 @@ colors:
   text-muted: "#b3b3ba"
   text-accent: "#ff8569"
   text-accent-hover: "#ffa68a"
+  text-accent-figure: "#fe4e02"
   button-bg: "#171717"
   button-bg-hover: "#2e2e2e"
   button-ink: "#f8f2da"
@@ -152,8 +153,13 @@ The palette is formalized against the **60-30-10** rule (`docs/prd-palette-60-30
 | | `--button-ink` | `#f8f2da` | `#f8f2da` | `#1a1a1a` |
 | | `--accent-ink` | `#1a1a1a` | `#ffffff` | `#1a1a1a` |
 | | `--border-active` | `#ff8569` | `#a8331a` | `#ff8569` |
+| **Figure ink** (numbers stated as results) | `--text-accent-figure` | `#fe4e02` | `#f24a00` | `#fe4e02` |
 
 Application budget: dominant 55–65% of any screen, secondary 25–35%, accent ≤15%. The accent is reserved for links, active nav, focus rings, `border-active`, accent bars, and badge pills — never as the fill of a content block. The primary button fill is the one element that **leaves** the accent bucket: it takes the neutral `#171717` (magenta `#ff2bd6` in cyberpunk), a deliberate move to the achromatic family so the button reads as *action* rather than as the 10% accent. It carries the cream ink at 15.97:1. On the light cream page the near-black fill clears the 3:1 graphical floor easily (15.41:1); on the dark indigo page it measures **1.55:1**, so there the button relies on its shape and label rather than on fill contrast (see the contrast table below). The orange `#fe4e02` that filled the button until 2026-10-18 was the banner accent until 2026-10-20; on the cream picture surface it is retired (2.96:1), replaced by `BANNER_ACCENT` `#b8431f`.
+
+`--text-accent-figure` is the one addition to the single-accent rule (2026-11-01, owner request), and it is not a second *action* accent: no interactive element takes it as its own colour — a card-level anchor (`a.nt-flagship` on the home hero) may *contain* a figure span, but the link's own ink stays the coral rule; what the markdown plugin refuses is a figure inside a link **label**, where the reader is looking at link text. Its job is to separate "this is a measured result" from "this is clickable" — the coral stays the only thing a click can land on. It is applied to display figures («Что подтверждено», the hero proof line, the GitHub counters, the About metrics) and, since the same date, to the figures a case or an article states inside a sentence — `figures-mdast.ts` wraps them at compile time, `FigureText.astro` does the same for frontmatter strings. A bare count, a year, a date or an identifier (`23 проекта`, `2025`, `12.10.2025`, `M3`) never takes it; the single rule lives in `src/lib/figures.ts`.
+
+Contrast, measured: `#fe4e02` is 3.47:1 on the indigo page and 5.18:1 on a card — the *large-text* floor (3:1), not the body floor (4.5:1). Two consequences are load-bearing. First, every surface that applies the ink sets its figures bold at ≥18.75px (the single `.figure` rule in `src/styles/global.css`), which is what puts them above WCAG's large-text threshold; the digits therefore read a touch larger than the sentence around them. Second, the light theme cannot use the exact hex at all — `#fe4e02` measures 2.86:1 on cream, under even the 3:1 floor — so it adapts to `#f24a00` (3.14:1 cream, 3.25:1 on a card, 3.17:1 on indigo), the same role-adaptation the coral already makes to sienna. The contrast gate enforces all three values at the large-text floor; there is no recorded exception.
 
 **Scoped exceptions** (raw hex outside the token system, by technical necessity — not palette drift):
 - `Base.astro` `theme-color` meta + `THEME_COLORS` JS map — meta content cannot be a CSS variable; values mirror the dominant 60% per theme.

@@ -1,0 +1,25 @@
+---
+/**
+ * FigureText — one sentence from frontmatter or a data file, with its figures
+ * in the figure ink.
+ *
+ * Why a component and not CSS: the numbers sit inside a text node, so there is
+ * nothing to select. `splitFigures` cuts the sentence and this renders the
+ * result, which keeps the markup honest — the text stays escaped by Astro, no
+ * `set:html`, no regex over HTML.
+ *
+ * The `.figure` rule is global (`src/styles/global.css`), not scoped here: the
+ * markdown pipeline emits the same class with no scope hash, so one declaration
+ * serves both surfaces.
+ */
+import { splitFigures } from '../lib/figures';
+
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+const spans = splitFigures(text);
+---
+
+{spans.map((span) => (span.figure ? <span class="figure">{span.text}</span> : span.text))}

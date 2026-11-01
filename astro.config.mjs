@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import githubDark from "shiki/themes/github-dark.mjs";
 import { parse as parseYaml } from "yaml";
+import { figures } from "./src/lib/figures-mdast.ts";
 import { glossaryLinker } from "./src/lib/glossary-linker.ts";
 import { katexMath } from "./src/lib/katex-math.ts";
 import { readerSlides } from "./src/lib/reader-slides.ts";
@@ -125,11 +126,16 @@ export default defineConfig({
     //    could see it (measured 2026-10-31 on the live Volta wikilink). Running
     //    wikilinks first makes the label a `link` child, which the glossary
     //    linker skips — which is also what prevents a nested `<a>`;
-    // 3. reader-slides goes last: it only inserts `html` markers between root
+    // 3. figures runs after both link producers: by then a wikilink or glossary
+    //    label is a `link` child, and the figure span skips anything inside a
+    //    link — a link must never turn orange. It runs before reader-slides
+    //    because that one only brackets root siblings with `html` markers and
+    //    must be the last plugin to touch the tree.
+    // 4. reader-slides goes last: it only inserts `html` markers between root
     //    siblings, so no other plugin in the list has to see those nodes. It is
     //    a no-op outside the four paged content collections.
     processor: satteri({
-      mdastPlugins: [katexMath(), wikilinks(), glossaryLinker(), readerSlides()],
+      mdastPlugins: [katexMath(), wikilinks(), glossaryLinker(), figures(), readerSlides()],
     }),
   },
   // Keep the OneWorks 3D hero out of the default page load.

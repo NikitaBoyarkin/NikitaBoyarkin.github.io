@@ -14,6 +14,7 @@
  * the outside.
  */
 import type { StarPreview } from '../lib/projects';
+import FigureText from './FigureText.astro';
 
 interface Star {
   situation: string;
@@ -62,7 +63,9 @@ const keys = compact && preview !== 'none' ? PREVIEW_KEYS[preview] : KEYS;
       {keys.map((key) => (
         <div class="star-row" data-star={key}>
           <dt class="star-label">{labels[key]}</dt>
-          <dd class="star-value" title={star[key]}>{star[key]}</dd>
+          {/* `title` keeps the plain sentence: the tooltip is a fallback for a
+              clamped value, and a coloured span would only ship markup into it. */}
+          <dd class="star-value" title={star[key]}><FigureText text={star[key]} /></dd>
         </div>
       ))}
     </dl>

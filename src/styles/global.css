@@ -165,6 +165,23 @@
      read as information, not as interactive calls-to-action. */
   --text-accent-dataviz: #4ecdc4;
 
+  /* Figure ink — the marketing orange (#fe4e02, the same value as
+     `ACCENT_ON_BLUE` / `FIGURE_INK` in src/lib/brand.ts) for every number the
+     site states as a *result*: the «Что подтверждено» strip, the hero proof
+     line, the GitHub counters, the About metrics, and — since 2026-11-01 — the
+     figures inside case and article prose (wrapped by `figures-mdast.ts` /
+     `FigureText.astro`). Not a second interactive accent: nothing clickable
+     takes it, so the coral stays the only action colour.
+
+     Measured, and the reason for the size rule (`.figure` is bold at ≥18.75px):
+     #fe4e02 is 3.47:1 on the indigo page — the large-text floor (3:1), not the
+     body floor (4.5:1). On the cream light page it is 2.86:1, under even the
+     large-text floor, so the light theme adapts the ink to #f24a00 (3.14:1
+     cream, 3.25:1 on a card, 3.17:1 on indigo) the way it already adapts the
+     coral to sienna. Exact hex on the two dark themes, nearest passing orange
+     on cream — see FIGURE_INK_LIGHT. */
+  --text-accent-figure: #fe4e02;
+
   /* Graph core «Статьи». #1400c3 is the page ground now, so the exact hex
      disappears into it (2.52:1 on the page, 3.77 on a card); the dark theme
      carries the lightened #8d82ff (4.41:1 on the #16009f graph panel, 3.72 on
@@ -339,6 +356,13 @@
   --accent-ink: #ffffff;
   --border-active: #a8331a;
   --text-accent-dataviz: #0d7377;
+
+  /* The figure ink, light-theme adaptation. The brand orange #fe4e02 measures
+     2.86:1 on the cream page — under the 3:1 large-text floor — so the light
+     theme takes the nearest orange that clears it: #f24a00 (3.14:1 on cream,
+     3.25:1 on a card, 3.17:1 on the indigo page). Same pattern as the coral →
+     sienna shift above: the role survives, the hex adapts to the surface. */
+  --text-accent-figure: #f24a00;
 
   /* Graph core «Статьи» — the owner's exact #1400c3, which clears AA on the
      cream page (10.9:1). */
@@ -1908,14 +1932,38 @@ nav ul.links a[aria-current="page"] {
   color: var(--text-normal);
 }
 
+/* ── Figure ink ────────────────────────────────────────────────────────── */
+
+/* One rule for every measurement the site states in text: `FigureText.astro`
+   uses it on copy/frontmatter strings, `figures-mdast.ts` on authored markdown.
+   It lives in the global sheet because mdast output carries no Astro scope hash,
+   so a scoped rule could never reach it — and because a second copy in
+   `prose.css` had already started to drift. Anything that wants figures is a
+   `.figure`, nothing else.
+
+   Bold at ≥18.75px is load-bearing, not decoration: it puts the span above
+   WCAG's large-text threshold (14pt bold = 18.66px), the only floor the figure
+   ink can clear — 3.47:1 on the indigo page (dark), 3.14:1 on cream (light).
+   Shrinking this rule is the same as dropping the contrast claim, which is why
+   `tests/lib/figure-ink.test.ts` binds the declaration count and the size floor. */
+.figure {
+  color: var(--text-accent-figure);
+  font-weight: 700;
+  font-size: max(1em, 18.75px);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Result is the point of the block — same emphasis as GithubActivity's .gh-stat.
    Not mono: these values are sentences, and a monospaced face on running prose
    removes the word-shape cue exactly where the reader hunts for the number.
-   `tabular-nums` keeps the digits aligned without it. */
+   `tabular-nums` keeps the digits aligned without it. The colour no longer comes
+   from here: the emphasis is the weight, and the figures inside the sentence
+   carry the orange via `FigureText`. Painting the whole row coral put the same
+   ink on the claim and on the measurement inside it. */
 .star-row[data-star='result'] .star-value {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--text-accent);
+  color: var(--text-normal);
 }
 
 /* Full-row hoist inside the .project-meta grid; Стек / Исходники wrap below. */
@@ -1941,7 +1989,8 @@ nav ul.links a[aria-current="page"] {
 /* The card teaser carries one row (`result`, the default) or two (`task-result`,
    the manager landing). It is not clamped: showing one sentence and then cutting
    it is the worst of both worlds, and at 15px the longest Result is ~7 lines on
-   a 324px card. The full skeleton lives on the project page. The added Task row
+   a 324px card (a little more since figures inside it are set at 18.75px — see
+   `.figure`). The full skeleton lives on the project page. The added Task row
    rides the same grid, so it needs no rules of its own — only the Result row is
    emphasised (`.star-row[data-star='result']` above), which keeps the task
    reading as context rather than a second claim. */

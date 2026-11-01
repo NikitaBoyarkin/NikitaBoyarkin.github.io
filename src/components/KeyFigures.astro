@@ -177,7 +177,10 @@ const FIGURES = [
     line-height: 1.05;
     letter-spacing: -0.01em;
     font-variant-numeric: tabular-nums;
-    color: var(--text-normal);
+    /* The figure ink, not the coral: a number is evidence, a link is an action.
+       3.47:1 on the page clears the large-text floor; at this size and weight
+       the AA threshold that applies is 3:1, not 4.5:1. */
+    color: var(--text-accent-figure);
     /* A 4-character value in a 137px content box is the worst case at 390px;
        breaking is the fallback that guarantees no horizontal overflow. */
     overflow-wrap: break-word;

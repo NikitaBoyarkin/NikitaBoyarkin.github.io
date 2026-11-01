@@ -130,16 +130,28 @@ describe('wiring', () => {
     'src/pages/en/projects/[slug].astro',
   ];
 
-  it('registers the plugin after the existing mdast plugins', () => {
-    // Order is load-bearing: `wikilinks` must run before `glossaryLinker`.
-    // Both rewrite the same text node, and the glossary linker splits it around
-    // the term it links — a wikilink sharing that node used to ship as literal
-    // brackets (measured on the live Volta link, 2026-10-31). `reader-slides`
-    // stays last: it only inserts html markers between root siblings.
-    expect(CONFIG).toMatch(
-      /mdastPlugins:\s*\[[^\]]*katexMath\(\),\s*wikilinks\(\),\s*glossaryLinker\(\),\s*readerSlides\(\)/,
-    );
-    expect(CONFIG.indexOf('wikilinks()')).toBeLessThan(CONFIG.indexOf('glossaryLinker()'));
+  it('registers the plugins in the one order that is load-bearing', () => {
+    // The array itself is what must be asserted — an index over the whole file
+    // is satisfied by a plugin named in a comment (and this file is mostly
+    // comments). Order: both link producers cut their labels out of the text
+    // node first (a wikilink sharing a node with a glossary term used to ship
+    // as literal brackets, measured 2026-10-31); `figures()` runs after them so
+    // a link label is already a `link` child and never turns orange; and
+    // `reader-slides()` stays last because it only inserts html markers between
+    // root siblings.
+    const listed = /mdastPlugins:\s*\[([^\]]*)\]/.exec(CONFIG);
+    expect(listed, 'no mdastPlugins array in astro.config.mjs').not.toBeNull();
+    const order = listed![1]
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+    expect(order).toEqual([
+      'katexMath()',
+      'wikilinks()',
+      'glossaryLinker()',
+      'figures()',
+      'readerSlides()',
+    ]);
   });
 
   it('imports the reader sheet after the prose layer, and only there', () => {

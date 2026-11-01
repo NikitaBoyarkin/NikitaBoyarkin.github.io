@@ -10,6 +10,7 @@ import StarBlock from '../../../components/StarBlock.astro';
 import DecisionBlock from '../../../components/DecisionBlock.astro';
 import ProjectDemo from '../../../components/ProjectDemo.astro';
 import CarouselNav from '../../../components/CarouselNav.astro';
+import FigureText from '../../../components/FigureText.astro';
 import ProjectGraph from '../../../components/ProjectGraph.astro';
 import ChartsSection from '../../../components/charts/ChartsSection.astro';
 import SectionTabs from '../../../components/SectionTabs.astro';
@@ -290,7 +291,7 @@ const pageJsonLd = {
             <span class="project-meta-label">Impact</span>
             <ul class="project-meta-list">
               {project.data.impact.map((item) => (
-                <li>{item}</li>
+                <li><FigureText text={item} /></li>
               ))}
             </ul>
           </div>

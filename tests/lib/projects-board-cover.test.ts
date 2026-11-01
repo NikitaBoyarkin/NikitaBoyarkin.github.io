@@ -49,6 +49,10 @@ describe('/projects/ board — cover on, Result off', () => {
 
   it('renders the description when the preview is `none`', () => {
     expect(CARD).toMatch(/starPreview !== 'none' \? \(/);
+    // The description stays plain: the card is a clamped three-line teaser, and
+    // a figure span (bold, ≥18.75px) would push every line carrying one taller
+    // than its neighbours and eat a line of copy. Figures in card prose were
+    // tried on 2026-11-01 and reverted for exactly that reason.
     expect(CARD).toMatch(/\) : \(\s*<p title=\{description\}>\{description\}<\/p>/);
     expect(STAR).toMatch(/star && preview !== 'none' && \(/);
     expect(read('src/lib/projects.ts')).toMatch(
