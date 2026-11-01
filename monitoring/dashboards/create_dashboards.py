@@ -228,6 +228,53 @@ def hogql_table(sql: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# UTM campaign tiles (dashboard 06)
+# ---------------------------------------------------------------------------
+# Both SQL builders read CONTACT_EVENTS instead of a typed list, so the
+# conversion table and the dashboard-02 funnel cannot drift apart when a
+# contact channel is added or renamed. Both tiles are `dynamic=True`: --apply
+# re-syncs the stored query when this text changes.
+
+
+def _utm_conversion_sql() -> str:
+    contact_list = ", ".join(f"'{e}'" for e in CONTACT_EVENTS)
+    return f"""
+        SELECT
+            if(empty(toString(properties.visit_utm_campaign)), '(без кампании)',
+               toString(properties.visit_utm_campaign)) AS campaign,
+            uniq(distinct_id) AS visitors,
+            countIf(event = 'project_viewed') AS project_views,
+            countIf(event IN ({contact_list})) AS contacts
+        FROM events
+        WHERE timestamp >= now() - INTERVAL 90 DAY
+        GROUP BY campaign
+        ORDER BY visitors DESC
+        LIMIT 25
+    """
+
+
+def _utm_coverage_sql() -> str:
+    # `uniq(if(cond, distinct_id, NULL))` rather than `uniqIf`: the conditional
+    # form is accepted on every ClickHouse-compatible backend HogQL runs on.
+    return """
+        SELECT
+            toStartOfWeek(timestamp) AS week,
+            uniq(distinct_id) AS visitors,
+            uniq(if(notEmpty(toString(properties.visit_utm_source)), distinct_id, NULL))
+                AS visitors_tagged,
+            round(100 * uniq(if(notEmpty(toString(properties.visit_utm_source)),
+                                 distinct_id, NULL)) / uniq(distinct_id), 1)
+                AS pct_tagged
+        FROM events
+        WHERE event = '$pageview'
+          AND timestamp >= now() - INTERVAL 90 DAY
+        GROUP BY week
+        ORDER BY week DESC
+        LIMIT 20
+    """
+
+
+# ---------------------------------------------------------------------------
 # Dashboard definitions
 # ---------------------------------------------------------------------------
 
@@ -1021,6 +1068,88 @@ DASHBOARDS_V2: list[dict] = [
                     ],
                     interval="week",
                 ),
+            ),
+        ],
+    },
+    # (6) UTM campaigns -------------------------------------------------------
+    {
+        "name": "06 · UTM-кампании",
+        "description": (
+            "Разметка ссылок: какая кампания привела визит, что именно кликнули "
+            "(utm_content), откуда узнали впервые (first-touch) и какая доля "
+            "визитов вообще размечена. Отвечает на «работает ли UTM-схема», а не "
+            "на «сколько трафика». Все тайлы — 90 дней, если не сказано иное."
+        ),
+        "tiles": [
+            tile(
+                "Кампании текущего визита",
+                "visit_utm_campaign — super property визита: пишется один раз за вкладку "
+                "и переживает переходы между страницами, поэтому есть на любом событии, "
+                "а не только на $pageview. Пустая строка = визит без UTM.",
+                trends(
+                    [node("$pageview", math="dau")],
+                    breakdowns=["visit_utm_campaign"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Источник × канал",
+                "visit_utm_source × visit_utm_medium — пара, которой различаются "
+                "github/profile_readme, linkedin/social и подобные. Второй breakdown "
+                "превращает кашу из одного source в читаемую матрицу.",
+                trends(
+                    [node("$pageview", math="total")],
+                    breakdowns=["visit_utm_source", "visit_utm_medium"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Содержимое ссылки (utm_content)",
+                "visit_utm_content — какой именно элемент кликнули: проект, баннер, "
+                "слайд. Единственный ключ, по которому видно «что зашло», не заглядывая "
+                "в рекламный кабинет.",
+                trends(
+                    [node("$pageview", math="total")],
+                    breakdowns=["visit_utm_content"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Первый источник посетителя (first-touch)",
+                "first_utm_campaign — кампания самого первого захода. Отвечает на «откуда "
+                "узнали впервые»; текущую кампанию смотреть в тайле «Кампании текущего "
+                "визита». Сумма здесь не равна трафику: считаются только новые посетители.",
+                trends(
+                    [node("$pageview", math="dau")],
+                    breakdowns=["first_utm_campaign"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Кампания × страница входа",
+                "visit_utm_campaign × $pathname — куда именно ведёт каждая ссылка. Ловит "
+                "случай, когда utm_content обещает один кейс, а лендинг открывает другой.",
+                trends(
+                    [node("$pageview", math="total")],
+                    breakdowns=["visit_utm_campaign", "$pathname"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Конверсия по кампаниям (90д)",
+                "HogQL: по каждой кампании — посетители, просмотры проектов и контакты. "
+                "Список контактных событий берётся из CONTACT_EVENTS, поэтому таблица не "
+                "разъезжается с воронкой дашборда 02.",
+                hogql_table(_utm_conversion_sql()),
+                dynamic=True,
+            ),
+            tile(
+                "Покрытие UTM (доля размеченных визитов)",
+                "HogQL: сколько визитов пришло с utm_source и сколько без, по неделям. "
+                "Если доля падает при росте трафика — часть внешних ссылок публикуется "
+                "без разметки.",
+                hogql_table(_utm_coverage_sql()),
+                dynamic=True,
             ),
         ],
     },

@@ -7,7 +7,7 @@ Two sets live in the script:
 | Set | Flag | Created | What it is |
 |---|---|---|---|
 | v1 | `--only v1` | 2026-09-28 | «Контент и вовлечение», «RU vs EN», «Контакт-конверсия 30д», «Games». Kept for reference; **partly dead** (below). |
-| **v2** (default) | `--only v2` | 2026-10-18 | «01 · Трафик и источники», «02 · Воронка: визит → проект → контакт», «03 · Проекты и контент», «04 · Персоны и CTA», «05 · Здоровье аналитики». Every tile verified to return data. |
+| **v2** (default) | `--only v2` | 2026-10-18 | «01 · Трафик и источники», «02 · Воронка: визит → проект → контакт», «03 · Проекты и контент», «04 · Персоны и CTA», «05 · Здоровье аналитики», «06 · UTM-кампании» (создан 2026-11-01 через PostHog MCP). |
 
 ## v2 dashboards (created 2026-10-18)
 
@@ -18,6 +18,12 @@ Two sets live in the script:
 | [03 · Проекты и контент](https://us.posthog.com/project/451732/dashboard/2226420) | 2226420 | top projects; `project_viewed` by surface; top posts; `read_depth` by depth and by content type; `/about` sections; filters by surface; search by surface (see note); library tiles |
 | [04 · Персоны и CTA](https://us.posthog.com/project/451732/dashboard/2226421) | 2226421 | gate views vs unique visitors; persona choice; gate→choice funnel; choice by source; RU/EN pageviews; language switches; theme |
 | [05 · Здоровье аналитики](https://us.posthog.com/project/451732/dashboard/2226422) | 2226422 | per-event volume + last-seen (HogQL); **expected-but-dead events (HogQL, re-synced from the repo)**; all-events daily; junk events from own pipelines; Web Vitals p75 by path; rageclicks by path; JS exceptions; games funnel |
+| [06 · UTM-кампании](https://us.posthog.com/project/451732/dashboard/2287142) | 2287142 | campaigns of the current visit; `visit_utm_source` × `visit_utm_medium`; `visit_utm_content`; first-touch campaign; campaign × landing path; **conversion per campaign (HogQL, contact events from `CONTACT_EVENTS`)**; **UTM coverage per week (HogQL, falls back to `$session_entry_utm_source`)** |
+
+Dashboard 06 was created **through the PostHog MCP server**, not by `create_dashboards.py`: five trend tiles and two HogQL tiles, all keyed on the `visit_utm_*` / `first_utm_*` super properties. Two consequences:
+
+- **The script and the live dashboard differ in one detail.** The script's HogQL tiles use a fixed `now() - INTERVAL 90 DAY`; the MCP-created ones use the `{filters}` placeholder with `source.filters.dateRange = -90d`, so the dashboard date picker actually moves them. Re-running `--apply` will not duplicate anything (it skips tiles by name), but it will not rewrite the stored SQL either.
+- **The `visit_utm_*` keys only start filling from the first visit after the `8abdf5e` deploy (2026-11-01 04:43 MSK).** Before that, the project had **zero** rows carrying `visit_utm_*` or `first_utm_*` in 90 days — the auto-captured `utm_*` reached only 176 of 2 891 `$pageview` rows and `$session_entry_utm_*` 898. Expect the five trend tiles to read «(без кампании)» until traffic arrives, and read the coverage tile for the honest baseline: **2–6 % of weekly visitors carried a UTM in October 2026**, down from 40–83 % in August.
 
 Design rules the v2 set follows:
 
