@@ -143,7 +143,7 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-const WORD_CHAR = /[A-Za-z0-9_]/;
+const WORD_CHAR = /[\p{L}\p{N}_]/u;
 
 function isWordChar(ch: string | undefined): boolean {
   return ch !== undefined && ch !== '' && WORD_CHAR.test(ch);
@@ -153,7 +153,9 @@ function isWordChar(ch: string | undefined): boolean {
  * Case-insensitive, word-boundary substring test. `\b` is unusable here: it
  * keys off `\w`, so it mis-fires on `p-value`, `DAU/MAU`, `north star`. Instead
  * we scan every occurrence and accept it only when the characters immediately
- * before and after the match are not `[A-Za-z0-9_]`.
+ * before and after the match are not a letter, digit or underscore. The class is
+ * Unicode-aware: an ASCII-only `\w` treats Cyrillic «и», «я», «ь» as boundaries,
+ * so «тестированием» would link to the term «тест».
  */
 function mentions(haystack: string, needle: string): boolean {
   if (!needle) return false;

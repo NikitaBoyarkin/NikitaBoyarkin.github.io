@@ -39,8 +39,8 @@ const minLabel = lang === 'en' ? 'min' : 'мин';
 const postHref = lang === 'en' ? withBase(`en/posts/${slug}/`) : withBase(`posts/${slug}/`);
 const updatedText = updated
   ? lang === 'en'
-    ? `updated ${formatDate(updated)}`
-    : `обновлено ${formatDate(updated)}`
+    ? `updated ${formatDate(updated, lang)}`
+    : `обновлено ${formatDate(updated, lang)}`
   : null;
 const tagLabel = categoryLabel(category, lang);
 ---
@@ -62,7 +62,7 @@ const tagLabel = categoryLabel(category, lang);
     }
     <a class="blog-card-link blog-card-title" href={postHref}>{title}</a>
     <div class="blog-card-meta">
-      {formatDate(date)}{readTime ? ` · ${readTime} ${minLabel}` : ''}
+      {formatDate(date, lang)}{readTime ? ` · ${readTime} ${minLabel}` : ''}
     </div>
     {
       updatedText && (

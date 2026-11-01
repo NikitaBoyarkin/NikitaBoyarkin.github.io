@@ -106,8 +106,8 @@ const articleJsonLdGraph = { '@context': 'https://schema.org', '@graph': [articl
       <span class="post-tag">{categoryDisplay}</span>
       <h1 class="post-title">{title}</h1>
       <div class="post-meta">
-        {formatDate(date)}
-        {updated ? ` · ${lang === 'en' ? 'updated' : 'обновлено'} ${formatDate(updated)}` : ''}
+        {formatDate(date, lang)}
+        {updated ? ` · ${lang === 'en' ? 'updated' : 'обновлено'} ${formatDate(updated, lang)}` : ''}
         {' · '}{readTime} {minLabel} · Nikita Boyarkin
       </div>
     </header>

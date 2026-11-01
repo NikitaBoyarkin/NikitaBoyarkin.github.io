@@ -2,12 +2,16 @@ import { describe, it, expect } from "bun:test";
 import { formatDate, estimateReadTime } from '../../src/lib/date';
 
 describe('formatDate', () => {
-  it('formats a Date as en-US medium', () => {
-    expect(formatDate(new Date('2026-08-05T00:00:00Z'))).toBe('Aug 5, 2026');
+  it('formats a Date as en-US medium for lang="en"', () => {
+    expect(formatDate(new Date('2026-08-05T00:00:00Z'), 'en')).toBe('Aug 5, 2026');
   });
 
   it('accepts an ISO string', () => {
-    expect(formatDate('2026-08-05')).toBe('Aug 5, 2026');
+    expect(formatDate('2026-08-05', 'en')).toBe('Aug 5, 2026');
+  });
+
+  it('formats Russian dates by default', () => {
+    expect(formatDate('2026-08-05')).toBe('5 авг. 2026 г.');
   });
 
   it('is independent of the reader timezone (date-only = calendar date)', () => {
@@ -17,10 +21,10 @@ describe('formatDate', () => {
     const original = process.env.TZ;
     try {
       process.env.TZ = 'America/Los_Angeles';
-      expect(formatDate('2026-08-05')).toBe('Aug 5, 2026');
-      expect(formatDate(new Date('2026-08-05T00:00:00Z'))).toBe('Aug 5, 2026');
+      expect(formatDate('2026-08-05', 'en')).toBe('Aug 5, 2026');
+      expect(formatDate(new Date('2026-08-05T00:00:00Z'), 'en')).toBe('Aug 5, 2026');
       process.env.TZ = 'Pacific/Kiritimati'; // UTC+14
-      expect(formatDate('2026-08-05')).toBe('Aug 5, 2026');
+      expect(formatDate('2026-08-05', 'en')).toBe('Aug 5, 2026');
     } finally {
       if (original === undefined) delete process.env.TZ;
       else process.env.TZ = original;

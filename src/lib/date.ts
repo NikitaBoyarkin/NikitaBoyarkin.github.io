@@ -1,6 +1,6 @@
-export function formatDate(date: Date | string): string {
+export function formatDate(date: Date | string, lang: "ru" | "en" = "ru"): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-US", {
+  return d.toLocaleDateString(lang === "en" ? "en-US" : "ru-RU", {
     year: "numeric",
     month: "short",
     day: "numeric",

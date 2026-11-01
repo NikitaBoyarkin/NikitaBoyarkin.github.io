@@ -442,6 +442,15 @@ describe('computeBacklinks', () => {
     expect(links['north-star-metric']).toEqual([]);
   });
 
+  it('treats Cyrillic letters as word characters', () => {
+    const ruTerm = { slug: 'test', title: 'Тест', aka: [] as string[] };
+    const links = computeBacklinks([ruTerm], [
+      source({ slug: 'ru-embedded', body: 'провели тестированием гипотезы' }),
+      source({ slug: 'ru-exact', body: 'это тест гипотезы' }),
+    ]);
+    expect(links['test'].map((s) => s.slug)).toEqual(['ru-exact']);
+  });
+
   it('returns an entry for every term, even with no sources', () => {
     const links = computeBacklinks([term, { slug: 'cuped', title: 'CUPED', aka: [] }], []);
     expect(Object.keys(links).sort()).toEqual(['cuped', 'north-star-metric']);

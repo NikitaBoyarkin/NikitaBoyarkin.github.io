@@ -42,7 +42,7 @@ const postsJson = allPosts.map((post) => {
     title: post.data.title,
     category: post.data.category,
     categoryLabel: categoryLabel(post.data.category, 'en'),
-    dateLabel: formatDate(post.data.date),
+    dateLabel: formatDate(post.data.date, 'en'),
     readTimeLabel: readTime ? ` · ${readTime} min` : '',
     excerpt: post.data.excerpt,
     tags: post.data.tags ?? [],

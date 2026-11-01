@@ -338,7 +338,10 @@
   /* 30% — SECONDARY: neutral text + hairlines (zinc) */
   --text-normal: #18181b;
   --text-muted: #52525b;
-  --border-color: #e4e4e7;
+  /* #e4e4e7 measured 1.09:1 on the cream page, so control edges had no
+     boundary (WCAG 1.4.11 wants 3:1). Lightest zinc step clearing 3:1 on page,
+     card, white and tertiary surfaces: 3.19–3.71:1. */
+  --border-color: #84848b;
   --blockquote-border: #e4e4e7;
   --table-border: #e4e4e7;
   --surface-secondary: #d4d4d8;        /* large secondary surfaces (30% bucket) */
