@@ -14,6 +14,8 @@
 чужих чисел** — всё, что он утверждает о других членах, обязано совпадать с их источником истины.
 
 Источник истины процедуры — `/Users/nikitaboarkin/Desktop/00 ide/00 portfolio/LOOP.md`. Инвариант:
+пути вида `scripts/preflight.sh`, `scripts/check_claims.py` и `reports/loop/BACKLOG.md` лежат **вне
+этого репозитория** — от корня портфолио, а не от корня сайта; в сайте их нет.
 **правда → глубина → нарратив**. Реестр: `registry.yaml` (`id: site`, `kind: member`, `visibility: public`,
 `on_site: true`).
 

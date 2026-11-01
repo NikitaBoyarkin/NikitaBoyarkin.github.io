@@ -270,6 +270,12 @@ try {
     const order = () => page.$$eval('#project-list .project', (els) => els.map((el) => el.dataset.slug));
 
     const curated = await order();
+    // The sort control lives in the collapsed "more filters" panel (ProjectFilter.astro),
+    // so open it first — otherwise selectOption fails on an invisible element.
+    if ((await page.locator('#project-more-filters').getAttribute('hidden')) !== null) {
+      await page.click('[aria-controls="project-more-filters"]');
+      await page.waitForTimeout(150);
+    }
     await page.selectOption('#board-sort', 'new');
     await page.waitForTimeout(300);
     const byDate = await order();
