@@ -270,7 +270,7 @@ source in the repo — `eng_analytics_test_census` and `analysis_completed` `[V]
 `object_action`, `snake_case`. No identifier in the event name — the entity goes in a property
 (this is what retires `project_view_<slug>`). Properties are `snake_case` and typed.
 
-### 4.2 Super properties (registered once, attached to every event)
+### 4.2 Super properties (registered once per page load, attached to every event)
 
 | Property | Source | Values |
 |---|---|---|
@@ -280,10 +280,23 @@ source in the repo — `eng_analytics_test_census` and `analysis_completed` `[V]
 | `prefers_reduced_motion` | `matchMedia` | boolean |
 | `initial_referrer_class` | first-touch, normalized | `linkedin` \| `github` \| `google` \| `direct` \| `other` |
 | `landing_path` | first-touch pathname | string |
+| `first_utm_{source,medium,campaign,content,term}` | first-touch `?utm_*` (sessionStorage, fallback localStorage; written once) | string \| `null` |
+| `visit_utm_{source,medium,campaign,content,term}` | current visit's `?utm_*` (sessionStorage, first tagged page of the tab) | string \| `null` |
 
-`posthog.register()` registers these and persists them. `initial_utm_*` is **not** re-implemented —
-PostHog already captures UTM on `$pageview` (`analytics-review.md:31`) `[V]`. The genuine additions
-are the normalized `initial_referrer_class` and the first-touch `landing_path`.
+`posthog.register()` registers these and persists them. The ten UTM keys are ours, not the SDK's:
+`$initial_utm_*` and `$session_entry_utm_*` only ever landed on `$pageview`, and plain `utm_source`
+reached 801 of 949 pageview rows in 90 days, so `booking_click` / `contact_submit` carried no campaign
+at all. As super properties they ride every event. `first_utm_*` answers "how did they hear about me
+ever", `visit_utm_*` answers "which campaign is live now" — campaign reports read the second, cohort
+stories the first. Values are captured verbatim: normalization happens once, where the link is built
+(`/utm-tags`), because re-normalizing here would disagree with the ad cabinet's report.
+
+**The games hub is outside UTM coverage.** `public/games/index.html` initialises its own PostHog
+client — it is a static page, not an Astro component — and registers no super properties, so a
+campaign landing directly on `/games/` carries no UTM. We do not duplicate `parseUtm()` / `visitUtm()`
+there: the static file would have to read the storage keys owned by `src/lib/analytics.ts`, no test
+covers that coupling, and a rename would break it silently. Revisit if the hub's share of entry
+traffic justifies extracting a shared ES module.
 
 ### 4.3 Events — preserved unchanged
 
@@ -345,13 +358,15 @@ asserts `track()` before init does not throw and does not dispatch.
 
 ### 5.3 REQ-A03 — Super properties registered once
 
-On init, `registerSuperProperties()` sets every property in §4.2 exactly once per session, reading
+On init, `registerSuperProperties()` sets every property in §4.2 once per page load, reading
 `locale`, `audience`, `theme`, `prefers_reduced_motion` from the DOM/localStorage and first-touch
 attribution from `sessionStorage` (fallback `localStorage`), computed once.
 
 **Acceptance:** unit tests cover the attribution classifier
-(`linkedin.com`→`linkedin`, `github.com`→`github`, `google.*`→`google`, empty→`direct`, other→`other`)
-and first-touch persistence (second call does not overwrite the stored value).
+(`linkedin.com`→`linkedin`, `github.com`→`github`, `google.*`→`google`, empty→`direct`, other→`other`),
+first-touch persistence (second call does not overwrite the stored value), `parseUtm()` / `visitUtm()`
+(repeated keys, empty values, macro values), and that `registerSuperProperties()` registers all sixteen
+keys — six base plus the ten `first_utm_*` / `visit_utm_*`.
 
 ### 5.4 REQ-A04 — Taxonomy documented
 

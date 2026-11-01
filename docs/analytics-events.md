@@ -59,6 +59,10 @@ Canonical event taxonomy for the portfolio, per
 | `prefers_reduced_motion` | boolean |
 | `initial_referrer_class` | `linkedin` \| `github` \| `google` \| `direct` \| `other` |
 | `landing_path` | string |
+| `first_utm_{source,medium,campaign,content,term}` | string \| `null` (first-touch `?utm_*`; sessionStorage, fallback localStorage, written once) |
+| `visit_utm_{source,medium,campaign,content,term}` | string \| `null` (this tab's `?utm_*`; sessionStorage, first tagged page of the visit) |
+
+Values are captured verbatim — normalization belongs to link building, not to the client.
 
 ## 2. Preserved CTA events (`data-analytics`, frozen names)
 

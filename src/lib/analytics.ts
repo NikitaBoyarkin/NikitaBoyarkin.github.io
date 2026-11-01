@@ -274,9 +274,67 @@ export function writeAudience(audience: Audience): void {
   return 'other';
 }
 
+/** UTM parameters carried by the landing URL (PRD §4.2, `docs/linkedin-campaign-spec.md`). */
+export type UtmKey = 'source' | 'medium' | 'campaign' | 'content' | 'term';
+export type UtmParams = Partial<Record<UtmKey, string>>;
+
+const UTM_KEYS: readonly UtmKey[] = ['source', 'medium', 'campaign', 'content', 'term'];
+
+// Long enough for a real campaign slug, short enough that a pasted essay or a
+// runaway ad macro cannot spawn a thousand near-identical breakdown rows.
+const UTM_MAX = 100;
+
+/**
+ * Read the five UTM parameters out of a query string.
+ *
+ * Case and separators are preserved on purpose: the link was already normalized
+ * where it was built (`/utm-tags` feeds the ad cabinet), and normalizing again
+ * here would make the site's value disagree with the platform's report.
+ */
+export function parseUtm(search: string): UtmParams {
+  const out: UtmParams = {};
+  if (!search) return out;
+  const params = new URLSearchParams(search);
+  for (const key of UTM_KEYS) {
+    const raw = params.get(`utm_${key}`);
+    if (!raw) continue;
+    const value = raw
+      .replace(/[\u0000-\u001f\u007f]/g, '')
+      .trim()
+      .slice(0, UTM_MAX);
+    if (value) out[key] = value;
+  }
+  return out;
+}
+
+/** Narrow an unknown stored value back to the five whitelisted keys. */
+function readUtm(value: unknown): UtmParams {
+  const out: UtmParams = {};
+  if (!value || typeof value !== 'object') return out;
+  for (const key of UTM_KEYS) {
+    const stored = (value as Record<string, unknown>)[key];
+    if (typeof stored === 'string' && stored) out[key] = stored;
+  }
+  return out;
+}
+
+/**
+ * `{ first_utm_source: 'linkedin', … }` — all five keys every time, `null` when
+ * the visit carries nothing, so the property schema stays stable in PostHog.
+ */
+function utmSuperProperties(
+  prefix: 'first_utm' | 'visit_utm',
+  utm: UtmParams,
+): Record<string, string | null> {
+  const out: Record<string, string | null> = {};
+  for (const key of UTM_KEYS) out[`${prefix}_${key}`] = utm[key] ?? null;
+  return out;
+}
+
 export interface FirstTouch {
   referrer_class: ReferrerClass;
   landing_path: string;
+  utm: UtmParams;
 }
 
 const FIRST_TOUCH_KEY = 'dswo_ph_first_touch';
@@ -317,6 +375,7 @@ function readFirstTouch(s: Storage | null): FirstTouch | null {
         ? parsed.referrer_class
         : 'other',
       landing_path: parsed.landing_path,
+      utm: readUtm(parsed.utm),
     };
   } catch {
     return null;
@@ -333,7 +392,11 @@ function writeFirstTouch(s: Storage | null, value: FirstTouch): void {
 }
 
 /** Compute first-touch attribution from a raw referrer URL and landing path. */
-export function computeFirstTouch(referrer: string, pathname: string): FirstTouch {
+export function computeFirstTouch(
+  referrer: string,
+  pathname: string,
+  search = '',
+): FirstTouch {
   let domain = '';
   if (referrer) {
     try {
@@ -342,7 +405,11 @@ export function computeFirstTouch(referrer: string, pathname: string): FirstTouc
       domain = '';
     }
   }
-  return { referrer_class: classifyReferrer(domain), landing_path: pathname };
+  return {
+    referrer_class: classifyReferrer(domain),
+    landing_path: pathname,
+    utm: parseUtm(search),
+  };
 }
 
 /**
@@ -355,10 +422,53 @@ export function firstTouch(): FirstTouch {
   const existing = readFirstTouch(session) ?? readFirstTouch(local);
   if (existing) return existing;
 
-  const value = computeFirstTouch(document.referrer || '', window.location.pathname);
+  const value = computeFirstTouch(
+    document.referrer || '',
+    window.location.pathname,
+    window.location.search,
+  );
   writeFirstTouch(session, value);
   writeFirstTouch(local, value);
   return value;
+}
+
+const VISIT_UTM_KEY = 'dswo_ph_visit_utm';
+
+function readVisitUtm(s: Storage | null): UtmParams | null {
+  if (!s) return null;
+  try {
+    const raw = s.getItem(VISIT_UTM_KEY);
+    if (!raw) return null;
+    const parsed = readUtm(JSON.parse(raw));
+    return Object.keys(parsed).length ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * UTM of the current visit, persisted in sessionStorage.
+ *
+ * Written the first time this visit carries any UTM and never overwritten
+ * afterwards: navigating deeper, or landing on an untagged page, must not erase
+ * the campaign that brought the visitor in. A new tab starts empty — first touch
+ * answers "how did they hear about me at all", this answers "which campaign is
+ * live right now", and a campaign report that spans months needs the second.
+ */
+export function visitUtm(): UtmParams {
+  const session = store('session');
+  const stored = readVisitUtm(session);
+  if (stored) return stored;
+
+  const fresh = parseUtm(window.location.search);
+  if (session && Object.keys(fresh).length) {
+    try {
+      session.setItem(VISIT_UTM_KEY, JSON.stringify(fresh));
+    } catch {
+      // Storage may be unavailable (private mode, quota).
+    }
+  }
+  return fresh;
 }
 
 /**
@@ -379,6 +489,7 @@ export function registerSuperProperties(): void {
       : false;
 
   const touch = firstTouch();
+  const visit = visitUtm();
 
   try {
     ph.register({
@@ -388,6 +499,13 @@ export function registerSuperProperties(): void {
       prefers_reduced_motion: reducedMotion,
       initial_referrer_class: touch.referrer_class,
       landing_path: touch.landing_path,
+      // Super properties, not per-event props: `booking_click`, `contact_submit`
+      // and `telegram_*` have to carry the campaign too. PostHog's own
+      // auto-capture only puts UTM on `$pageview` — plain `utm_source` reached
+      // 801 of 949 pageview rows in 90 days, which is why the dashboards used to
+      // fall back to `$session_entry_utm_source`.
+      ...utmSuperProperties('first_utm', touch.utm),
+      ...utmSuperProperties('visit_utm', visit),
     });
   } catch {
     // Never break init.

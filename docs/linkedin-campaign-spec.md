@@ -72,7 +72,7 @@ utm_source=linkedin&utm_medium=paid&utm_campaign={hr-screening|manager-impact|co
 
 | Что | Факт | Следствие |
 |---|---|---|
-| Сайт читает UTM | `grep -rn utm_source src` → 0 | UTM живут только в отчётах LinkedIn/Cal.com |
+| Сайт читает UTM | `grep -rn "visit_utm_" src/` → непусто (`src/lib/analytics.ts`); super properties `visit_utm_*` / `first_utm_*` на каждом событии | кампанию видно на `booking_click` и `contact_submit`, а не только на `$pageview` |
 | `cal_click` | нет | клики по Cal.com не считаются — PENDING |
 | Insight Tag | нет (`platform.linkedin.com` встречается только в `LinkedInBadge.astro`) | conversion tracking в LinkedIn выключен |
 | `contact_submit` | есть код, форма инертна | до Phase 0 не сработает |

@@ -13,7 +13,7 @@ Two sets live in the script:
 
 | Dashboard | id | Tiles |
 |---|---|---|
-| [01 · Трафик и источники](https://us.posthog.com/project/451732/dashboard/2226427) | 2226427 | pageviews/visitors weekly; top paths; referring domains; first-touch class; `$session_entry_utm_source`; devices; browsers |
+| [01 · Трафик и источники](https://us.posthog.com/project/451732/dashboard/2226427) | 2226427 | pageviews/visitors weekly; top paths; referring domains; first-touch class; `visit_utm_source`; `first_utm_source`; devices; browsers |
 | [02 · Воронка: визит → проект → контакт](https://us.posthog.com/project/451732/dashboard/2226417) | 2226417 | visit→project→contact funnel; **home(/, /en/, legacy base)**→project→contact funnel; time-to-convert; home→/projects/; contact CTAs weekly; outbound domains |
 | [03 · Проекты и контент](https://us.posthog.com/project/451732/dashboard/2226420) | 2226420 | top projects; `project_viewed` by surface; top posts; `read_depth` by depth and by content type; `/about` sections; filters by surface; search by surface (see note); library tiles |
 | [04 · Персоны и CTA](https://us.posthog.com/project/451732/dashboard/2226421) | 2226421 | gate views vs unique visitors; persona choice; gate→choice funnel; choice by source; RU/EN pageviews; language switches; theme |
@@ -23,7 +23,7 @@ Design rules the v2 set follows:
 
 - **Every tile is verified against live data before it ships.** `verify_tiles.py` runs each tile's query through `POST /api/projects/{id}/query/`; `verify_dashboards.py` re-runs the queries *as stored on the dashboards* after creation. Both are read-only.
 - **One layer per metric.** A click on an external CTA emits a frozen `[data-analytics]` event **and** `outbound_click` **and** `$autocapture` — counting two layers double-counts.
-- **`$session_entry_utm_source`, not `utm_source`.** The plain property is present on only a fraction of `$pageview` rows (801 vs 148 in 90 days); the session-entry property is the complete one.
+- **`visit_utm_source` / `first_utm_source`, not `utm_source`.** The plain auto-captured property reached only 801 of 949 `$pageview` rows in 90 days, and never reached a conversion event. Both site keys are super properties registered from `src/lib/analytics.ts`, so they are on every event: `visit_utm_*` is the campaign of the current tab, `first_utm_*` is the first visit ever. `$session_entry_utm_source` remains as the SDK's own duplicate and is no longer the reporting key.
 - **The homepage has three identities.** `/` (current), `/en/` (English), `/Personal_Projects.github.io/` (legacy base, still the top path in the data). Any home-scoped funnel must OR all three — the v1 funnel scope of `$pathname = "/"` silently dropped them.
 
 ### Known-empty tile (by design)
@@ -49,7 +49,7 @@ Read it before trusting any other tile: a zero here means the dashboard that dep
 | «Games» dashboard (2142405) | **all 4 tiles dead** | `game_selected` had 1 row in 90 days; the games bundle used `persistence: 'memory'`, so each game screen minted a fresh anonymous `distinct_id` and its events never joined the site session. Fixed in code 2026-10-18 (`localStorage+cookie` + a pre-init buffer); dashboard 05 tile «Игровой хаб» is the replacement to watch. |
 | «Контент и вовлечение» (2142402) | **4 of 6 tiles dead** | `search_used`, `search_no_results`, `ask_me_used`, `random_post_click` all have zero rows in 90 days. `post_read` and `read_depth` tiles are alive. |
 | «RU vs EN» (2142403) | alive, partly redundant | 2 of its 4 tiles restate «Портфолио — аналитика» (2024833) and the contact dashboard (2142404). |
-| «Контакт-конверсия 30д» (2142404) | alive, thin; 1 wrong key | `$pageview` by plain `utm_source` should be `$session_entry_utm_source`; the funnel scoped home to `/` only. Both corrected in dashboard 02. |
+| «Контакт-конверсия 30д» (2142404) | alive, thin; 1 wrong key | `$pageview` counted by plain `utm_source`. Dashboard 01 now reports `visit_utm_source`; `$session_entry_utm_source` is an SDK duplicate, not the reporting key. The funnel scoped home to `/` only. Key corrected in dashboard 01, funnel scope in dashboard 02. |
 | «Рекрутер» (1994322) | alive, thin | Its funnel (11015002) has the same `/`-only home scope; kept because the weekly ritual links to it. |
 
 Nothing here deletes or edits a v1 object — the script only creates, so the historical dashboards stay as they are.

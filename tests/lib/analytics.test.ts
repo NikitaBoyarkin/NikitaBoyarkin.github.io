@@ -5,8 +5,10 @@ import {
   computeFirstTouch,
   firstTouch,
   localeFromPath,
+  parseUtm,
   registerSuperProperties,
   resetAnalyticsForTests,
+  visitUtm,
   whenAnalyticsReady,
 } from '../../src/lib/analytics';
 
@@ -66,6 +68,7 @@ describe('computeFirstTouch', () => {
     expect(computeFirstTouch('https://www.linkedin.com/feed/', '/projects/')).toEqual({
       referrer_class: 'linkedin',
       landing_path: '/projects/',
+      utm: {},
     });
   });
 
@@ -73,6 +76,17 @@ describe('computeFirstTouch', () => {
     expect(computeFirstTouch('not a url', '/about/')).toEqual({
       referrer_class: 'direct',
       landing_path: '/about/',
+      utm: {},
+    });
+  });
+
+  it('captures the campaign UTM of the landing URL', () => {
+    expect(
+      computeFirstTouch('https://www.linkedin.com/feed/', '/', '?utm_source=linkedin&utm_campaign=hr-screening'),
+    ).toEqual({
+      referrer_class: 'linkedin',
+      landing_path: '/',
+      utm: { source: 'linkedin', campaign: 'hr-screening' },
     });
   });
 });
@@ -84,7 +98,11 @@ describe('firstTouch persistence', () => {
   });
 
   it('returns the stored value on a second call instead of recomputing it', () => {
-    const stored = { referrer_class: 'linkedin' as const, landing_path: '/from-linkedin/' };
+    const stored = {
+      referrer_class: 'linkedin' as const,
+      landing_path: '/from-linkedin/',
+      utm: { source: 'linkedin', campaign: 'hr-screening' },
+    };
     window.localStorage.setItem(FIRST_TOUCH_KEY, JSON.stringify(stored));
 
     // Regression guard: the stored value is already a *class*, not a hostname.
@@ -109,6 +127,59 @@ describe('firstTouch persistence', () => {
   });
 });
 
+describe('parseUtm (PRD §4.2)', () => {
+  it('reads the five campaign parameters', () => {
+    expect(
+      parseUtm(
+        '?utm_source=linkedin&utm_medium=paid&utm_campaign=hr-screening&utm_content=2-proof&utm_term=ru',
+      ),
+    ).toEqual({
+      source: 'linkedin',
+      medium: 'paid',
+      campaign: 'hr-screening',
+      content: '2-proof',
+      term: 'ru',
+    });
+  });
+
+  it('ignores query parameters that are not UTM', () => {
+    expect(parseUtm('?mode=group&utm_source=github')).toEqual({ source: 'github' });
+    expect(parseUtm('?mode=group&hideGroups=topic')).toEqual({});
+  });
+
+  it('preserves case and separators — normalization belongs to the link builder', () => {
+    expect(parseUtm('?utm_campaign=Sale_Spring-2026')).toEqual({ campaign: 'Sale_Spring-2026' });
+  });
+
+  it('caps a value a runaway macro made enormous', () => {
+    expect(parseUtm(`?utm_term=${'x'.repeat(300)}`).term).toHaveLength(100);
+  });
+
+  it('drops empty values instead of storing blank keys', () => {
+    expect(parseUtm('?utm_source=&utm_medium=paid')).toEqual({ medium: 'paid' });
+  });
+});
+
+describe('visitUtm persistence', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+  });
+
+  it('returns the stored visit UTM instead of re-reading the current URL', () => {
+    window.sessionStorage.setItem(
+      'dswo_ph_visit_utm',
+      JSON.stringify({ source: 'linkedin', campaign: 'hr-screening' }),
+    );
+    expect(visitUtm()).toEqual({ source: 'linkedin', campaign: 'hr-screening' });
+  });
+
+  it('returns an empty object when the visit carries no UTM', () => {
+    expect(visitUtm()).toEqual({});
+    expect(window.sessionStorage.getItem('dswo_ph_visit_utm')).toBeNull();
+  });
+});
+
 describe('registerSuperProperties (PRD §4.2)', () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -116,7 +187,7 @@ describe('registerSuperProperties (PRD §4.2)', () => {
     document.documentElement.setAttribute('data-theme', 'cyberpunk');
   });
 
-  it('registers all six super properties', () => {
+  it('registers all sixteen super properties', () => {
     resetAnalyticsForTests();
     const ph = makePh();
     attachPosthog(ph);
@@ -132,6 +203,10 @@ describe('registerSuperProperties (PRD §4.2)', () => {
         'locale',
         'prefers_reduced_motion',
         'theme',
+        ...['source', 'medium', 'campaign', 'content', 'term'].flatMap((key) => [
+          `first_utm_${key}`,
+          `visit_utm_${key}`,
+        ]),
       ].sort(),
     );
     expect(props.locale).toBe('ru');
@@ -139,6 +214,12 @@ describe('registerSuperProperties (PRD §4.2)', () => {
     expect(props.audience).toBeNull();
     expect(typeof props.prefers_reduced_motion).toBe('boolean');
     expect(typeof props.landing_path).toBe('string');
+    // All ten UTM keys are present and null on an untagged visit, so the
+    // property schema in PostHog does not appear mid-history.
+    for (const key of ['source', 'medium', 'campaign', 'content', 'term']) {
+      expect(props[`first_utm_${key}`]).toBeNull();
+      expect(props[`visit_utm_${key}`]).toBeNull();
+    }
   });
 
   it('never throws when the SDK register() blows up', () => {

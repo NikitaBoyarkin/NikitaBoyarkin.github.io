@@ -384,11 +384,13 @@ DASHBOARDS: list[dict] = [
                 ),
             ),
             tile(
-                "$pageview по utm_source",
-                "Трафик по источникам: utm_source автозахватывается на $pageview "
-                "(без $-префикса), event-свойство.",
+                "Трафик по UTM-источникам",
+                "visit_utm_source — super property текущего визита. Plain `utm_source` "
+                "автозахвата доезжал лишь до части $pageview (801 из 949 строк за 90 дней), "
+                "а super property есть на каждом событии.",
                 trends_query(
-                    [events_node("$pageview", math="total")], breakdown=["utm_source"]
+                    [events_node("$pageview", math="total")],
+                    breakdown=["visit_utm_source"],
                 ),
             ),
         ],
@@ -563,7 +565,7 @@ DASHBOARDS_V2: list[dict] = [
         "name": "01 · Трафик и источники",
         "description": (
             "Откуда приходят и что смотрят: недельная динамика, топ страниц, "
-            "классифицированный первый реферрер, UTM из session entry, "
+            "классифицированный первый реферрер, UTM текущего визита, "
             "устройства. Все тайлы — 90 дней, если не сказано иное."
         ),
         "tiles": [
@@ -607,12 +609,24 @@ DASHBOARDS_V2: list[dict] = [
                 ),
             ),
             tile(
-                "UTM-кампании",
-                "$session_entry_utm_source — UTM входа в сессию. Это правильный ключ: "
-                "plain `utm_source` есть лишь на части событий, а session-entry — на всех.",
+                "UTM-кампании (визит)",
+                "visit_utm_source — UTM текущего визита из sessionStorage: пишется один раз "
+                "за вкладку и переживает переходы между страницами, поэтому есть на каждом "
+                "событии, а не только на $pageview.",
                 trends(
                     [node("$pageview", math="total")],
-                    breakdowns=["$session_entry_utm_source"],
+                    breakdowns=["visit_utm_source"],
+                    display="ActionsTable",
+                ),
+            ),
+            tile(
+                "Первый UTM (first-touch)",
+                "first_utm_source — UTM самого первого захода посетителя (sessionStorage, "
+                "fallback localStorage, пишется один раз). "
+                "Отвечает на «откуда узнал впервые»; текущую кампанию смотреть в visit_utm_*.",
+                trends(
+                    [node("$pageview", math="total")],
+                    breakdowns=["first_utm_source"],
                     display="ActionsTable",
                 ),
             ),
