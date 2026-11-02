@@ -28,6 +28,7 @@ related:
   - /projects/scrolly/
   - /posts/data-analyst-portfolio-checklist/
   - /projects/games/
+  - /projects/mm-program-page/
 ---
 
 # This Portfolio Site

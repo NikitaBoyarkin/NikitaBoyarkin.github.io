@@ -51,7 +51,7 @@ export const METRICS = {
     // `ls src/content/projects/*.md | wc -l` (2026-10-25, after the
     // `gmv-drop-rca` card landed); prd-v5's "15" is stale but out of scope
     // for this repo's source of truth.
-    projects: 27,
+    projects: 28,
     // Count of self-contained .sql case files in the sql-analytics-case-study
     // repo (cases/01..26_*.sql). Verified 26 against the repo on 2026-09-19;
     // must equal the "26 SQL-кейсов (25 synthetic + 1 real-data)" claim in

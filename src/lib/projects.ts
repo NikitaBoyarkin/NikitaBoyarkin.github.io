@@ -2,7 +2,7 @@
 // Single source of truth for the display order and the track (category) taxonomy
 // used by ProjectBoard and ProjectSpotlight.
 
-export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'streamlit', 'sales-calls', 'sql', 'delivery', 'gmv-drop-rca', 'rfm', 'cohort', 'churn', 'causal', 'crm-experiment-lab', 'rag', 'python', 'bot', 'scrolly', 'garden', 'serp-rank', 'airflow', 'ml', 'linkedin', 'promo', 'product-ab-funnel', 'site'];
+export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'streamlit', 'sales-calls', 'sql', 'delivery', 'gmv-drop-rca', 'rfm', 'cohort', 'churn', 'causal', 'crm-experiment-lab', 'rag', 'python', 'bot', 'scrolly', 'garden', 'serp-rank', 'airflow', 'ml', 'linkedin', 'promo', 'product-ab-funnel', 'mm-program-page', 'site'];
 
 // PRD v6 S2.6 — three headline case studies on the home page, each a distinct
 // proof with at least one reachable public artifact:
@@ -75,6 +75,7 @@ const RESULT_FIRST: readonly string[] = [
   'linkedin',
   'promo',
   'product-ab-funnel',
+  'mm-program-page',
   'site',
 ];
 
@@ -105,6 +106,7 @@ const METHOD_FIRST: readonly string[] = [
   'promo',
   'bot',
   'product-ab-funnel',
+  'mm-program-page',
   'site',
 ];
 
@@ -455,6 +457,7 @@ export const PROJECT_SPHERES: Record<string, SphereKey> = {
   ab: 'tooling',
   python: 'tooling',
   rag: 'tooling',
+  'mm-program-page': 'tooling',
   site: 'meta',
 };
 

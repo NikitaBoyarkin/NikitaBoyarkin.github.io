@@ -60,7 +60,7 @@ describe('hero illustrations hold the cream regime', () => {
     // that chart carries 14 labels and the EN case page was shipping the RU
     // one; a second file is the honest fix, and this count is the ratchet that
     // notices a new cover arriving outside the palette.
-    expect(svgs.length).toBe(27);
+    expect(svgs.length).toBe(28);
   });
 
   for (const file of svgs) {
