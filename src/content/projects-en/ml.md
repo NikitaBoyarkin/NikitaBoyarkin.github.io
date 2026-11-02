@@ -24,7 +24,7 @@ tools:
   - pytest
 github: https://github.com/NikitaBoyarkin/ml
 date: 2026-08-22
-updated: 2026-10-24
+updated: 2026-11-01
 demo: demos/ml/index.html
 related:
   - /projects/python/
