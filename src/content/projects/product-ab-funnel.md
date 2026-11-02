@@ -26,7 +26,7 @@ tools:
   - uv
 github: https://github.com/NikitaBoyarkin/product-ab-funnel-analytics
 date: 2026-10-14
-updated: 2026-10-14
+updated: 2026-11-01
 related:
   - /projects/volta/
   - /projects/ab/

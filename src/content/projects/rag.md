@@ -24,7 +24,7 @@ tools:
   - pytest
   - uv
 github: https://github.com/NikitaBoyarkin/rag-eval-harness
-updated: 2026-10-17
+updated: 2026-11-01
 date: 2026-10-10
 demo: demos/rag/index.html
 related:
