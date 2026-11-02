@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-28T00:01:32.137Z",
+  "generated_at": "2026-11-02T22:35:24.401Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -582,6 +582,26 @@
       "demo": "demos/site/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/site/"
+    },
+    {
+      "slug": "mm-program-page",
+      "track": "engineering",
+      "title": "Программа Матемаркетинг 2026 — статическая копия",
+      "title_en": "Matemarketing 2026 Programme — a static replica",
+      "description": "Воспроизвёл страницу программы конференции: сетка время × залы на 91 доклад, фильтр треков, модалка и .ics. Сверил с оригиналом замерами, а не на глаз.",
+      "description_en": "Rebuilt a conference programme page: a time × hall grid over 91 talks, track filters, a modal and .ics export — then checked the copy against the original with measurements, not eyeballing.",
+      "result": "Сетка совпадает с оригиналом до пикселя: колонка времени 99 px, зал 420 px, карточка 391 px, строка 550 px, верх сетки y = 414; тесты ловят расхождение данных и вёрстки",
+      "result_en": "The grid matches the original to the pixel: 99 px time column, 420 px hall column, 391 px card, 550 px row, grid top at y = 414; tests catch data and layout drift",
+      "tools": [
+        "HTML",
+        "CSS",
+        "JavaScript",
+        "Python"
+      ],
+      "github": "https://github.com/NikitaBoyarkin/mm-program-page",
+      "demo": "https://nikitaboyarkin.github.io/mm-program-page/",
+      "private": false,
+      "href": "https://nikitaboyarkin.github.io/projects/mm-program-page/"
     }
   ],
   "volta_cases": [
