@@ -1,0 +1,3 @@
+# CI workflows carry repository secrets (SUPABASE_SERVICE_ROLE_KEY, STREAK_PAT,
+# CONTACT_LOG_TOKEN). Route every workflow change to a human owner.
+/.github/workflows/ @NikitaBoyarkin
