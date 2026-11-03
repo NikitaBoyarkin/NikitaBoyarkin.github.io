@@ -1,18 +1,18 @@
 ---
 title: "Volta — Retention & Cohorts"
-description: "Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€227K/yr LTV. Premium LTV is 4.3× Free."
+description: "Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€282K/yr LTV. Premium LTV is 2.7× Free."
 star:
   situation: "Shipping is not the end: the KYC-fix effect was checked on retention with cohort triangles instead of one flat average"
   task: "Own the retention check and a method that does not blur the effect into one average"
   action: "Cohort curves and a retention matrix, pre/post Welch t-test with Cohen's d, bootstrap CIs, plan-specific LTV on ARPU × retention"
-  result: "Post-fix cohorts hold 61–67% at M1 vs 51–53% pre-fix; M3 +9.2pp, Premium LTV 4.3× Free, +€227K/yr"
+  result: "Post-fix cohorts hold 61–67% at M1 vs 51–53% pre-fix; M3 +9.2pp, Premium LTV 2.7× Free, +€282K/yr"
 part: retention
 order: 3
 layer: core
 impact:
   - "M1 retention +11.8pp step-change"
   - "M3 retention +9.2pp"
-  - "+€227K/yr incremental LTV; Premium LTV 4.3× Free"
+  - "+€282K/yr incremental LTV; Premium LTV 2.7× Free"
 tools:
   - "Python"
   - "pandas / NumPy"
@@ -52,8 +52,8 @@ I read the retention effect through cohort triangles rather than a flat base ave
 
 - Step-change: post-fix cohorts (2024-09+) hold M1 ≈ **61–67%** vs **51–53%** pre-fix.
 - **M3 +9.2pp**; the effect does not fade — the gap persists at M6.
-- **Premium LTV = 4.3× Free** (ARPU 2.66× × retention 1.62×).
-- Portfolio effect: **+€227K/yr** incremental LTV.
+- **Premium LTV = 2.7× Free** (ARPU 2.66× × retention 1.62×).
+- Portfolio effect: **+€282K/yr** incremental LTV.
 
 ## Recommendations
 

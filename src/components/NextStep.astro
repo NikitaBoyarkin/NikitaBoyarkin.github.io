@@ -18,15 +18,67 @@ import { withBase } from '../lib/path';
 
 export interface Props {
   lang: 'ru' | 'en';
-  surface: 'case_next_step' | 'post_next_step' | 'volta_part_next_step';
+  surface:
+    | 'case_next_step'
+    | 'post_next_step'
+    | 'volta_part_next_step'
+    | 'projects_index'
+    | 'writing_index'
+    | 'role_hr_contact'
+    | 'role_manager_contact'
+    | 'role_colleague_contact';
+  /** `case` is the consultancy ask after a case; `catalog` is the softer ask
+      after a list of cases; `writing` is the same ask after a list of posts,
+      where «кейс» would name the wrong thing. */
+  variant?: 'case' | 'catalog' | 'writing';
+  /** Role landings override the copy: the same block asks HR for a vacancy and
+      a colleague for a conversation, and that is a difference in the ask, not
+      in the layout. */
+  title?: string;
+  text?: string;
+  cta?: string;
 }
 
-const { lang, surface } = Astro.props;
+const {
+  lang,
+  surface,
+  variant = 'case',
+  title: titleProp,
+  text: textProp,
+  cta: ctaProp,
+} = Astro.props;
 const isEn = lang === 'en';
 const href = withBase(isEn ? 'en/contact/' : 'contact/');
-const title = isEn
-  ? 'Need this reasoning applied to your data?'
-  : 'Нужен такой же разбор на ваших данных?';
+
+const copy = {
+  case: {
+    title: isEn
+      ? 'Need this reasoning applied to your data?'
+      : 'Нужен такой же разбор на ваших данных?',
+    text: isEn
+      ? "Tell me the task — I'll come back with a plan: what data it needs, what we test, and how long it takes. I reply within a day."
+      : 'Расскажите задачу — вернусь с планом: какие данные нужны, что проверяем и за какой срок. Отвечаю в течение дня.',
+    cta: isEn ? 'Discuss a task →' : 'Обсудить задачу →',
+  },
+  catalog: {
+    title: isEn ? 'No case matches your task?' : 'Не нашли подходящий кейс?',
+    text: isEn
+      ? "Tell me the task — I'll point to the closest case and come back with a plan: what data it needs, what we test, and how long it takes."
+      : 'Расскажите задачу — подскажу, какой разбор ближе, и вернусь с планом: какие данные нужны, что проверяем и за какой срок.',
+    cta: isEn ? 'Discuss a task →' : 'Обсудить задачу →',
+  },
+  writing: {
+    title: isEn ? "Your question isn't covered here?" : 'Не нашли нужный разбор?',
+    text: isEn
+      ? "Tell me what you're working through — I'll say whether there is a write-up on it, and answer the question itself either way."
+      : 'Скажите, какой вопрос разбираете, — отвечу, есть ли разбор по нему, и в любом случае отвечу по существу.',
+    cta: isEn ? 'Ask a question →' : 'Задать вопрос →',
+  },
+}[variant];
+
+const title = titleProp ?? copy.title;
+const text = textProp ?? copy.text;
+const cta = ctaProp ?? copy.cta;
 ---
 
 <section class="next-step reveal" aria-label={title}>
@@ -34,11 +86,7 @@ const title = isEn
     {title}
   </h2>
   <p class="next-step-text">
-    {
-      isEn
-        ? "Tell me the task — I'll come back with a plan: what data it needs, what we test, and how long it takes. I reply within a day."
-        : 'Расскажите задачу — вернусь с планом: какие данные нужны, что проверяем и за какой срок. Отвечаю в течение дня.'
-    }
+    {text}
   </p>
   <a
     class="button next-step-cta"
@@ -46,7 +94,7 @@ const title = isEn
     data-analytics="contact_page_click"
     data-analytics-surface={surface}
   >
-    {isEn ? 'Discuss a task →' : 'Обсудить задачу →'}
+    {cta}
   </a>
 </section>
 

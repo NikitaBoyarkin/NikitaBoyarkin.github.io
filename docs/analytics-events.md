@@ -27,7 +27,7 @@ Canonical event taxonomy for the portfolio, per
 | `contact_submit` | `{ locale }` | the contact form was submitted and the Edge Function accepted it | `ContactForm.astro` (only on `res.ok`). **Inert in production** until `PROJECT_REF` in `src/lib/contact.ts` is replaced (`CONTACT_FORM_ENABLED=false`, so the form is not rendered at all) |
 | `contact_form_error` | `{ locale, reason }` | a contact-form submission failed (`reason ∈ {validation, rate_limited, server, network}`) | `ContactForm.astro`. **Inert in production** — same reason as `contact_submit` |
 | `booking_click` | `{ path, surface? }` | the booking CTA (`cal.com/lofinibo/bored-call-me`) is clicked. The contact page passes `surface:'contact_cta'` | `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
-| `contact_page_click` | `{ path, surface? }` | a link that opens the **contact page** (not the booking page) is clicked. `surface` names the placement: `nav` (the drawer's contact button — the only non-footer entry on a closed drawer), `footer`, `about_links` (the link row under `/about`), `case_next_step` (end of a project case), `volta_part_next_step` (end of a Volta chapter), `post_next_step` (end of a post) | `Base.astro` (drawer CTA + footer button), `content/about/{ru,en}.mdx` (link row), `NextStep.astro` (mounted by `projects/[slug].astro`, `projects/volta/[part].astro`, their EN twins and `Post.astro`), via `[data-analytics]` |
+| `contact_page_click` | `{ path, surface? }` | a link that opens the **contact page** (not the booking page) is clicked. `surface` names the placement: `nav` (the drawer's contact button — the only non-footer entry on a closed drawer), `footer`, `about_links` (the link row under `/about`), `home_hero` (the tertiary link under the first-screen CTAs), `case_next_step` (end of a project case), `volta_part_next_step` (end of a Volta chapter), `post_next_step` (end of a post), `projects_index` / `writing_index` (end of a catalog page), `role_hr_contact` / `role_manager_contact` / `role_colleague_contact` (end of a role landing) | `Base.astro` (drawer CTA + footer button), `content/about/{ru,en}.mdx` (link row), `HomeNewTab.astro` (first screen), `NextStep.astro` (mounted by `projects/[slug].astro`, `projects/volta/[part].astro`, `projects/index.astro`, `writing/[...page].astro`, `RoleLanding.astro`, their EN twins and `Post.astro`), via `[data-analytics]` |
 | `persona_selected` | `{ persona, lang, source }` | a persona is chosen (`source ∈ {gate, switch, header, menu}` — `header`/`menu` are `NavRoles`'s bar/drawer variants) | `NavRoles.astro`, `RoleSwitch.astro` |
 | `library_tile` | `{ path }` | a library tile is clicked | `ReadingBlock.astro`, via `[data-analytics]` |
 | `source_external` | `{ path }` | the "source ↗" link of a library entry is clicked. Currently **inert**: no library entry carries `url:`, so the link never renders | `ReadingBlock.astro`, `library/[slug].astro` (RU + EN), via `[data-analytics]` |
@@ -45,8 +45,10 @@ Canonical event taxonomy for the portfolio, per
 > **Placements.** Any `[data-analytics]` element may also carry
 > `data-analytics-surface="<placement>"`; the delegated handler then adds
 > `surface` to the event props. `contact_page_click` is the event that uses it
-> most: `nav`, `footer`, `about_links`, `case_next_step`,
-> `volta_part_next_step`, `post_next_step`. The three contact-page CTAs
+> most: `nav`, `footer`, `about_links`, `home_hero`, `case_next_step`,
+> `volta_part_next_step`, `post_next_step`, `projects_index`, `writing_index`,
+> `role_hr_contact`, `role_manager_contact`, `role_colleague_contact`. The three
+> contact-page CTAs
 > (`booking_click`, `telegram_deeplink`, `linkedin_contact`) carry
 > `surface:'contact_cta'`. The mechanism was introduced for the desktop CTA rail
 > (`surface:'home_rail'`), retired with the CV on 2026-10-24, and sat unused until

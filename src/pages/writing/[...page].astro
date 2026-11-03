@@ -8,6 +8,7 @@ import Base from '../../layouts/Base.astro';
 import BlogCard from '../../components/BlogCard.astro';
 import BlogFilter from '../../components/BlogFilter.astro';
 import CarouselNav from '../../components/CarouselNav.astro';
+import NextStep from '../../components/NextStep.astro';
 import { estimateReadTime, formatDate } from '../../lib/date';
 import { categoryLabel } from '../../lib/categories';
 import { withBase } from '../../lib/path';
@@ -118,6 +119,8 @@ const counterpartHref = page === 1 ? withBase('en/writing/') : undefined;
       </nav>
     )
   }
+
+  <NextStep lang="ru" surface="writing_index" variant="writing" />
 
   <script is:inline type="application/json" id="writing-posts-data" set:html={JSON.stringify(postsJson).replace(/</g, '\\u003c')} />
 </Base>

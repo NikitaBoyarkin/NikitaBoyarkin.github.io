@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import ProjectBoard from '../../../components/ProjectBoard.astro';
+import NextStep from '../../../components/NextStep.astro';
 import { withBase } from '../../../lib/path';
 import { HEADLINE_PROJECTS, sortByProjectOrder, stripExt } from '../../../lib/projects';
 
@@ -78,6 +79,8 @@ const collectionJsonLd = {
     </nav>
 
     <ProjectBoard collection="projects-en" linkPrefix="en/" starPreview="none" cover sphereFilter />
+
+    <NextStep lang="en" surface="projects_index" variant="catalog" />
   </div>
 </Base>
 

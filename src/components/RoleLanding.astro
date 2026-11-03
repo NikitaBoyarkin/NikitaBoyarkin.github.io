@@ -8,6 +8,7 @@ import { getCollection } from 'astro:content';
 import HeroAvatar from './HeroAvatar.astro';
 import GithubActivity from './GithubActivity.astro';
 import KnowledgeGraph from './KnowledgeGraph.astro';
+import NextStep from './NextStep.astro';
 import NowCard from './NowCard.astro';
 import ProjectBoard from './ProjectBoard.astro';
 import ProjectList from './ProjectList.astro';
@@ -48,6 +49,39 @@ const t = {
   caseStudy: isEn ? 'Read the case →' : 'Разбор проекта →',
   demo: isEn ? 'Demo' : 'Демо',
 };
+
+// The closing ask. Same block, three audiences: HR is asked for a vacancy, the
+// manager for a task, the colleague for a conversation. The copy is the only
+// difference, so it lives here instead of three separate sections.
+const nextStep = {
+  hr: {
+    title: isEn ? 'Send the vacancy' : 'Пришлите вакансию',
+    text: isEn
+      ? "I'll match the requirements against the cases and say plainly where the experience is backed by numbers and where it needs an interview."
+      : 'Сверю требования с кейсами и скажу прямо: где опыт подтверждается цифрами, а где его нужно проверять на интервью.',
+    cta: isEn ? 'Open contacts →' : 'Открыть контакты →',
+  },
+  manager: {
+    title: isEn ? 'Send the task' : 'Пришлите задачу',
+    text: isEn
+      ? "Describe the product and the question — I'll come back with an analysis plan: which metrics to look at, what data it needs, and how long it takes."
+      : 'Опишите продукт и вопрос — вернусь с планом разбора: какие метрики смотреть, какие данные нужны и за какой срок.',
+    cta: isEn ? 'Discuss a task →' : 'Обсудить задачу →',
+  },
+  colleague: {
+    title: isEn ? 'Working through a similar problem?' : 'Разбираете похожую задачу?',
+    text: isEn
+      ? "Tell me what you're looking at — I'll swap approach and take a look at your data, no pitch."
+      : 'Напишите, что смотрите, — обменяюсь подходом и посмотрю на ваши данные, без питча.',
+    cta: isEn ? 'Get in touch →' : 'Написать →',
+  },
+}[role];
+
+const nextStepSurface = {
+  hr: 'role_hr_contact',
+  manager: 'role_manager_contact',
+  colleague: 'role_colleague_contact',
+} as const;
 ---
 
 <RoleSwitch role={role} lang={lang} />
@@ -196,8 +230,14 @@ const t = {
   </>
 )}
 
-{/* PRD §8 listed ContactForm on all three versions; no role page carries one
-    now. Every reader — the screening HR, the hiring manager, the colleague —
-    leaves through the footer, which owns `id="contact"` and a route to the
-    contact page, so a page-level copy would only duplicate that id and stack a
-    second form under the board. The form itself is untouched on `/contact/`. */}
+{/* The closing ask. Before 2026-11-04 all three lanes ended on the project list
+    and left the reader to find `/contact/` in the footer; the block links to
+    the contact page rather than duplicating the form, so the click stays one
+    instrumented hop (`contact_page_click`, surface names the lane). */}
+<NextStep
+  lang={lang}
+  surface={nextStepSurface[role]}
+  title={nextStep.title}
+  text={nextStep.text}
+  cta={nextStep.cta}
+/>

@@ -11,7 +11,7 @@ hero: images/volta.svg
 ogImage: /images/og/volta-neobank-case-study.png
 impact:
   - +5.72pp KYC conversion (Z=5.82, p<0.0001), €208.5K over 12 months (13.9× ROI, 5.6-month payback)
-  - +9.2pp M3 retention, +€227K/yr incremental LTV
+  - +9.2pp M3 retention, +€282K/yr incremental LTV
   - 4 data-driven user segments with per-segment monetization strategy
   - CUPED variance reduction + AA-test (type-I = 0.050) + Bonferroni correction
   - "DiD check: the KYC fix causally lifted M3 retention by +9.09pp (95% CI [+6.21, +11.96])"
@@ -39,7 +39,7 @@ faq:
   - question: "Does the progress bar fix the KYC problem?"
     answer: "Yes: +5.72pp lift (p<0.0001), 95% CI [+3.78%, +7.66%], above the +5pp MDE → ship."
   - question: "Did the effect hold?"
-    answer: "Yes: +9.2pp M3 retention, +€227K/yr incremental LTV. A DiD check confirms causality: ATT +9.09pp (95% CI [+6.21, +11.96])."
+    answer: "Yes: +9.2pp M3 retention, +€282K/yr incremental LTV. A DiD check confirms causality: ATT +9.09pp (95% CI [+6.21, +11.96])."
   - question: "Who are the users, how to monetize?"
     answer: "4 segments (Power 12% / Growth 24% / Casual 32% / Dormant 32%) with per-segment strategy; migration worth up to +€310K/yr."
 related:
@@ -83,7 +83,7 @@ sources:
 - **Problem:** KYC was the onboarding bottleneck — the largest relative drop-off (56.6% step conversion).
 - **Fix:** a KYC progress bar lifted conversion **+5.72pp** (p < 0.0001), above the +5pp MDE.
 - **Money:** modelled business impact **€208.5K over 12 months** at 13.9× ROI (5.6-month payback).
-- **Retention:** the effect held — **+9.2pp** M3 retention, **+€227K/yr** incremental LTV.
+- **Retention:** the effect held — **+9.2pp** M3 retention, **+€282K/yr** incremental LTV.
 - **Causality:** a DiD check confirms the fix *caused* the shift: M3 retention **+9.09pp** (95% CI [+6.21, +11.96]).
 
 ## Situation
@@ -127,7 +127,7 @@ A randomized A/B of segment offers with Holm correction and a segment × arm (Di
 
 - [Funnel Analysis](funnel/) — The neobank onboarding funnel: KYC is the bottleneck at 56.6% step conversion, registration loses the most in absolute terms (2,682). Broken down by channel and platform.
 - [KYC Progress-Bar A/B Test](ab/) — A KYC progress bar lifted conversion +5.72pp (Z=5.82, p<0.0001) against a +5pp MDE. CUPED, AA-test and Bonferroni protect the conclusion; +€208.5K over 12 months at 13.9× ROI.
-- [Retention & Cohorts](retention/) — Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€227K/yr LTV. Premium LTV is 4.3× Free.
+- [Retention & Cohorts](retention/) — Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€282K/yr LTV. Premium LTV is 2.7× Free.
 - [User Segmentation](segmentation/) — KMeans with data-driven K=4: Power 12% drive 41% of revenue, 68% drive 92%. Cross-segment migration is worth up to +€310K/yr.
 
 ### Extended — expanded portfolio
@@ -189,7 +189,7 @@ Verdict: control 55.8% → treatment 61.5%, **+5.72pp**, p < 0.0001, 95% CI [+3.
 
 ### Evidence #3 — Retention: does the effect hold
 
-Shipping is not the end: we checked the effect on retention with cohort triangles (signup month × age) instead of "the average across everyone". Along the diagonal: cohorts with the new onboarding hold **M3 retention at +9.2pp** over older cohorts → **+€227K/yr incremental LTV**. The new onboarding improves both the first week (faster time-to-value) and month 3 (less churn after the "honeymoon"). Without triangles, this conclusion would hide behind the average.
+Shipping is not the end: we checked the effect on retention with cohort triangles (signup month × age) instead of "the average across everyone". Along the diagonal: cohorts with the new onboarding hold **M3 retention at +9.2pp** over older cohorts → **+€282K/yr incremental LTV**. The new onboarding improves both the first week (faster time-to-value) and month 3 (less churn after the "honeymoon"). Without triangles, this conclusion would hide behind the average.
 
 A separate **DiD check** separated the causal effect from background trends: M3 retention **+9.09pp** (95% CI [+6.21, +11.96]), flat pre-trends (p = 0.29–0.70), placebo ≈ 0, max |SMD| 0.157.
 
@@ -241,7 +241,7 @@ A summary of decisions across all 23 projects: what to do, on what evidence, und
 
 - Light-touch win-back only at 30–90 days (Project 22: ROI 2.54 / 1.26); human is an escalation for high-value.
 - Prevent churn through reliability: the top driver is device-error rate (Project 5).
-- Premium LTV is 4.3× Free (Project 3) — target high-intent Free in the first 1–2 months.
+- Premium LTV is 2.7× Free (Project 3) — target high-intent Free in the first 1–2 months.
 
 **5. Trust & channels — don't copy the anchor playbook**
 

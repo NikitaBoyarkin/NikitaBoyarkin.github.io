@@ -12,7 +12,7 @@ ogImage: /images/og/delivery.png
 impact:
   - "Forecast WAPE: seasonal_naive 6.01% at h=7 and 6.25% at h=14; holt_winters wins only at h=1 (3.91%)."
   - "Delivery time does not grow with volume: rho = −0.092, the gap between extreme load deciles is 0.64 min."
-  - "Category matters more than channel: snacks ≈40.0 min against pizza ≈26.5 min — a +13.4 min (+50%) gap."
+  - "Category matters more than channel: snacks ≈40.0 min against pizza ≈26.6 min — a +13.4 min (+50%) gap."
   - "The mp share inside the mp+web pair grew from 81.9% to 87.6% (+5.7 pp, p = 2.1e-11)."
   - "14 window SQL queries; best optimization 4–6× on 130,079 rows (62–71 → 11–17 ms)."
   - "Weekends are not slower: −0.93%, p = 1.1e-41 — a significant effect in the opposite direction, so the hypothesis was rejected, not dressed up as a weak effect."
@@ -70,7 +70,7 @@ Rolling-origin backtest: a 28-day test window, four folds, refit every 7 days. F
 
 ### Bottlenecks
 
-Three views on one question. The channel × category decomposition: snacks ≈40.0 min, pizza ≈26.5 min, drinks ≈30.0 min, desserts ≈25.0 min; the channel moves time by tenths of a minute. The load curve: mean time per volume decile falls from 31.88 to 31.24 min, rho = −0.092. City ranking by the `avg_time ~ qty` slope: the top is Усолье-Сибирское (index 2.02), Грозный (1.63), Магадан (1.18), but slope R² is 0.0004–0.0185 — a prioritization aid, not a proven trend.
+Three views on one question. The channel × category decomposition: snacks ≈40.0 min, pizza ≈26.6 min, drinks ≈30.0 min, desserts ≈25.0 min; the channel moves time by tenths of a minute. The load curve: mean time per volume decile falls from 31.88 to 31.24 min, rho = −0.092. City ranking by the `avg_time ~ qty` slope: the top is Усолье-Сибирское (index 2.02), Грозный (1.63), Магадан (1.18), but slope R² is 0.0004–0.0185 — a prioritization aid, not a proven trend.
 
 ### Hypotheses
 

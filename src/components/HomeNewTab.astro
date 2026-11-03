@@ -49,6 +49,7 @@ const t = isEn
       // for in the first three seconds is the method, not the noun.
       value: 'I test hypotheses with experiments: A/B tests, retention, segmentation',
       cases: 'See the cases',
+      contact: 'Send a request',
     }
   : {
       clockLabel: 'Текущее время',
@@ -62,12 +63,14 @@ const t = isEn
       role: 'Продуктовый аналитик',
       value: 'Проверяю гипотезы экспериментами: A/B-тесты, retention, сегментация',
       cases: 'Смотреть кейсы',
+      contact: 'Оставить запрос',
     };
 
 // The CV download button was removed on the owner's call (2026-11-01) — the PDF
 // is no longer offered from the site, so there is nothing here to point at.
 const TELEGRAM_URL = 'https://t.me/lofinibo';
 const casesUrl = withBase(isEn ? 'en/projects/' : 'projects/');
+const contactUrl = withBase(isEn ? 'en/contact/' : 'contact/');
 
 const roleCopy = ROLE_COPY[isEn ? 'en' : 'ru'];
 
@@ -217,6 +220,15 @@ const SHORTCUTS = [
       <a class="button" href={TELEGRAM_URL} data-analytics="telegram_hero"> Telegram </a>
       <a class="nt-cases" href={casesUrl}>
         {t.cases} <span class="nt-cases-arrow" aria-hidden="true">→</span>
+      </a>
+      <span class="nt-sep" aria-hidden="true">·</span>
+      <a
+        class="nt-contact"
+        href={contactUrl}
+        data-analytics="contact_page_click"
+        data-analytics-surface="home_hero"
+      >
+        {t.contact}
       </a>
     </div>
 
@@ -619,7 +631,8 @@ const SHORTCUTS = [
 
   /* Tertiary: a text link beside the two buttons, never a third filled shape —
      three buttons in a row read as three equal asks. */
-  .nt-cases {
+  .nt-cases,
+  .nt-contact {
     font-size: 0.9375rem;
     font-weight: 500;
     color: var(--text-accent);
@@ -627,15 +640,29 @@ const SHORTCUTS = [
     white-space: nowrap;
   }
 
-  .nt-cases:hover {
+  .nt-cases:hover,
+  .nt-contact:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
   }
 
-  .nt-cases:focus-visible {
+  .nt-cases:focus-visible,
+  .nt-contact:focus-visible {
     outline: 2px solid var(--text-accent);
     outline-offset: 3px;
     border-radius: var(--radius-sm);
+  }
+
+  /* A middot between the two secondary links. Hidden when the row wraps to a
+     second line on phones, where a lone separator would open the line. */
+  .nt-sep {
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 600px) {
+    .nt-sep {
+      display: none;
+    }
   }
 
   .nt-form {
