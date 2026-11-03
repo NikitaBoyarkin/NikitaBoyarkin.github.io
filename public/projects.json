@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-02T22:35:24.401Z",
+  "generated_at": "2026-11-03T06:35:15.512Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -193,7 +193,7 @@
         "duckdb",
         "superset"
       ],
-      "github": null,
+      "github": "https://github.com/NikitaBoyarkin/delivery-control-tower",
       "demo": null,
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/delivery/"
@@ -437,6 +437,29 @@
       "href": "https://nikitaboyarkin.github.io/projects/sql/"
     },
     {
+      "slug": "marketplace-liquidity",
+      "track": "analytics",
+      "title": "Ликвидность классифайда — аудит измеримости",
+      "title_en": "Classifieds liquidity — a measurability audit",
+      "description": "Синтетический классифайд с посаженной истиной: прокси-метрика завышает sell-through на 21,4%, EM-поправка возвращает все категории в 3 п.п., а платная видимость не проходит холдаут.",
+      "description_en": "A synthetic classifieds marketplace with a planted answer key: the sell-through proxy misses by 21.4%, an EM correction brings every category inside 3 pp, and paid visibility fails its holdout.",
+      "result": "Прокси 0,2413 против истины 0,3070: ошибка −0,0657 (−21,4%); после поправки худшая категория ошибается на 1,61 п.п., а платная видимость даёт −2,47% контактов на сессию при p = 0,308",
+      "result_en": "The proxy reads 0.2413 against a truth of 0.3070, an error of −0.0657 (−21.4%); after correction the worst category misses by 1.61 pp, and paid visibility yields −2.47% contacts per session at p = 0.308",
+      "tools": [
+        "Python",
+        "pandas",
+        "DuckDB",
+        "SciPy",
+        "SQL",
+        "pytest",
+        "uv + ruff"
+      ],
+      "github": "https://github.com/NikitaBoyarkin/marketplace-liquidity-lab",
+      "demo": null,
+      "private": false,
+      "href": "https://nikitaboyarkin.github.io/projects/marketplace-liquidity/"
+    },
+    {
       "slug": "supabase",
       "track": "product",
       "title": "Product Analytics + A/B on Supabase",
@@ -523,6 +546,29 @@
       "href": "https://nikitaboyarkin.github.io/projects/airflow/"
     },
     {
+      "slug": "clickhouse",
+      "track": "engineering",
+      "title": "ClickHouse — десять SQL-кейсов на 50 млн строк",
+      "title_en": "ClickHouse — ten SQL cases on 50M rows",
+      "description": "Девять SQL-кейсов на 50 млн событий плюс оптимизация, где текст запроса не меняется: проекция читает диапазон ключа вместо полного скана, а семь DuckDB-двойников ловят расхождения движков.",
+      "description_en": "Nine SQL cases on 50 million events plus an optimisation that leaves the query text untouched: a projection reads a key range instead of a full scan, and seven DuckDB twins cross-check every case.",
+      "result": "Снапшот и семь DuckDB-двойников сходятся, идентичность slow и fast SQL закреплена тестом, а проекция проходит заложенный в тест порог ускорения ≥10× на полном скане",
+      "result_en": "The snapshot and seven DuckDB twins agree, slow and fast SQL are pinned as identical by a test, and the projection clears the ≥10× speed-up threshold the suite asserts on a full scan",
+      "tools": [
+        "ClickHouse",
+        "DuckDB",
+        "SQL",
+        "Python",
+        "Docker Compose",
+        "pytest",
+        "uv + ruff"
+      ],
+      "github": "https://github.com/NikitaBoyarkin/clickhouse-analytics",
+      "demo": null,
+      "private": false,
+      "href": "https://nikitaboyarkin.github.io/projects/clickhouse/"
+    },
+    {
       "slug": "garden",
       "track": "engineering",
       "title": "Digital Garden — EQ in IT",
@@ -541,6 +587,29 @@
       "demo": "demos/garden/index.html",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/garden/"
+    },
+    {
+      "slug": "oss-catalog",
+      "track": "engineering",
+      "title": "OSS-каталог — 47 проектов из одного источника",
+      "title_en": "OSS catalog — 47 projects from one source",
+      "description": "Статический каталог 47 открытых репозиториев: метаданные GitHub синхронизируются скриптом во frontmatter, а сборка читает только его — 15 полей на проект, 26 тестов и идемпотентный рендер.",
+      "description_en": "A static catalog of 47 open repositories: GitHub metadata is synced by a script into frontmatter and the build reads only that — 15 fields per project, 26 tests and an idempotent render.",
+      "result": "47 страниц проектов и 15 полей метаданных собираются из одного TOML; повторный рендер идемпотентен, а 26 тестов покрывают три ветки сопоставления записей",
+      "result_en": "47 project pages and 15 metadata fields are built from one TOML file; a repeated render is idempotent, and 26 tests cover all three record-matching branches",
+      "tools": [
+        "Astro",
+        "TypeScript",
+        "Bun",
+        "Python",
+        "GitHub API",
+        "Pagefind",
+        "uv"
+      ],
+      "github": "https://github.com/NikitaBoyarkin/oss-catalog",
+      "demo": null,
+      "private": false,
+      "href": "https://nikitaboyarkin.github.io/projects/oss-catalog/"
     },
     {
       "slug": "scrolly",
