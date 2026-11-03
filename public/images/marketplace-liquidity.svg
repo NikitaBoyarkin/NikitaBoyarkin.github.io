@@ -1,0 +1,36 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Liquidity measurement audit: the platform proxy understates sell-through against a planted answer key, and the per-category corrected error stays inside three percentage points">
+  <defs>
+    <linearGradient id="liq-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d2573a"/>
+      <stop offset="1" stop-color="#a8331a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="600" fill="#f8f2d8"/>
+
+  <text x="80" y="120" font-family="Inter, system-ui, sans-serif" font-size="58" font-weight="700" letter-spacing="1" fill="#0f2a2b">LIQUIDITY</text>
+  <text x="80" y="162" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="500" fill="#4a6b69">the platform never sees the sale</text>
+
+  <text x="80" y="252" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#4a6b69">PROXY</text>
+  <rect x="200" y="228" width="360" height="34" rx="4" fill="#4a6b69" fill-opacity="0.25"/>
+  <rect x="200" y="228" width="290" height="34" rx="4" fill="#4a6b69"/>
+  <text x="590" y="253" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="700" fill="#4a6b69">0.2413</text>
+
+  <text x="80" y="322" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#0f2a2b">ANSWER KEY</text>
+  <rect x="200" y="298" width="360" height="34" rx="4" fill="#0f2a2b" fill-opacity="0.12"/>
+  <rect x="200" y="298" width="368" height="34" rx="4" fill="url(#liq-accent)"/>
+  <text x="590" y="323" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="700" fill="#a8331a">0.3070</text>
+
+  <line x1="490" y1="228" x2="490" y2="332" stroke="#a8331a" stroke-width="3" stroke-dasharray="9 7"/>
+  <text x="520" y="364" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="600" fill="#a8331a">−21.4%</text>
+
+  <g transform="translate(700 210)">
+    <rect x="0" y="0" width="420" height="250" rx="12" fill="#fdf8e7"/>
+    <text x="28" y="46" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#4a6b69">AFTER THE CORRECTION</text>
+    <text x="28" y="108" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="700" fill="#0f2a2b">1.61 pp</text>
+    <text x="28" y="144" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="500" fill="#4a6b69">worst category error</text>
+    <text x="28" y="206" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#a8331a">all five below 3 pp</text>
+  </g>
+
+  <text x="80" y="530" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="500" fill="#4a6b69">6,000 listings · 40,000 sessions · 90 days · planted truth</text>
+</svg>

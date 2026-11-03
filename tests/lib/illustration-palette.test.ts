@@ -56,11 +56,11 @@ const attr = (tag: string, name: string): string | null => {
 
 describe('hero illustrations hold the cream regime', () => {
   it('covers every hero SVG in public/images', () => {
-    // 26 cases + the EN twin of `gmv-drop-rca`. The RU/EN pair exists because
-    // that chart carries 14 labels and the EN case page was shipping the RU
-    // one; a second file is the honest fix, and this count is the ratchet that
-    // notices a new cover arriving outside the palette.
-    expect(svgs.length).toBe(28);
+    // One cover per case plus the EN twin of `gmv-drop-rca` (whose chart carries
+    // 14 labels, so the EN page gets its own file). This count is the ratchet
+    // that notices a new cover arriving outside the palette: bump it together
+    // with a new case, never on its own.
+    expect(svgs.length).toBe(31);
   });
 
   for (const file of svgs) {

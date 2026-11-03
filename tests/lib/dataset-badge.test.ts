@@ -28,7 +28,16 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const read = (rel: string) => readFileSync(join(ROOT, rel), 'utf8');
 
 /** The complete set of cases allowed to carry a non-synthetic badge. */
-const REAL_DATA_CASES = ['gmv-drop-rca', 'sql'] as const;
+const REAL_DATA_CASES = ['gmv-drop-rca', 'oss-catalog', 'sql'] as const;
+
+/** Per-case evidence the badge must be able to point at: a real dataset by name,
+ *  not just a `dataset:` field. `oss-catalog` reads the GitHub API; the other two
+ *  run on UCI Online Retail II rows. */
+const REAL_DATA_EVIDENCE: Record<(typeof REAL_DATA_CASES)[number], RegExp> = {
+  'gmv-drop-rca': /UCI Online Retail II/,
+  'oss-catalog': /GitHub API/,
+  sql: /UCI Online Retail II/,
+};
 
 describe('project dataset provenance', () => {
   it('is a closed set with `synthetic` as the default', () => {
@@ -38,7 +47,7 @@ describe('project dataset provenance', () => {
     );
   });
 
-  it('marks exactly the two real-data cases, in both locales', () => {
+  it('marks exactly the real-data cases, in both locales', () => {
     for (const collection of ['projects', 'projects-en']) {
       const dir = join(ROOT, 'src', 'content', collection);
       const marked: string[] = [];
@@ -59,7 +68,7 @@ describe('project dataset provenance', () => {
     for (const slug of REAL_DATA_CASES) {
       for (const rel of [`src/content/projects/${slug}.md`, `src/content/projects-en/${slug}.md`]) {
         expect(read(rel), `${rel} claims real data without naming it`).toMatch(
-          /UCI Online Retail II/,
+          REAL_DATA_EVIDENCE[slug],
         );
       }
     }

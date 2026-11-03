@@ -22,7 +22,8 @@ tools:
   - duckdb
   - superset
 date: 2026-10-25
-updated: 2026-10-25
+updated: 2026-11-01
+github: https://github.com/NikitaBoyarkin/delivery-control-tower
 sources: []
 related:
   - /projects/sql/

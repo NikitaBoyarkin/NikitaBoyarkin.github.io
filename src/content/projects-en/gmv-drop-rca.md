@@ -33,6 +33,7 @@ failureBar: "The attribution must reconcile to £0.00 with explicit addends, and
 retro: "The hypothesis held: UK decile-1 produced 56.2% of the named drop. Two earlier failures — population mixing in the tree and the «169% of the drop» headline — became regression tests instead of a footnote."
 related:
   - /projects/sql/
+  - /projects/marketplace-liquidity/
   - /posts/analyst-interview-cases/
 ---
 

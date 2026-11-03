@@ -25,7 +25,7 @@ tools:
   - pytest
 github: https://github.com/NikitaBoyarkin/sql-analytics-case-study
 date: 2026-08-11
-updated: 2026-10-25
+updated: 2026-11-01
 demo: demos/sql/index.html
 faq:
   - question: "Какие данные лежат в основе кейсов?"
@@ -38,6 +38,7 @@ faq:
     answer: "Модели staging → marts на DuckDB, 18 dbt-тестов и regression-тест с детерминированными инвариантами на каждый кейс."
 related:
   - /projects/airflow/
+  - /projects/clickhouse/
   - /projects/delivery/
   - /projects/gmv-drop-rca/
   - /posts/sql-window-functions/

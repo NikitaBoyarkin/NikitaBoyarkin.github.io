@@ -1,0 +1,54 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ClickHouse lab: the same query on a projection reads a key range instead of a full scan, while DuckDB twins cross-check every case snapshot">
+  <defs>
+    <linearGradient id="ch-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d2573a"/>
+      <stop offset="1" stop-color="#a8331a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="600" fill="#f8f2d8"/>
+
+  <text x="80" y="120" font-family="Inter, system-ui, sans-serif" font-size="58" font-weight="700" letter-spacing="1" fill="#0f2a2b">CLICKHOUSE</text>
+  <text x="80" y="162" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="500" fill="#4a6b69">same query, different storage layout</text>
+
+  <!-- slow scan -->
+  <text x="80" y="252" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#4a6b69">FULL SCAN</text>
+  <rect x="80" y="272" width="760" height="46" rx="4" fill="#4a6b69" opacity="0.22"/>
+  <g fill="#4a6b69" opacity="0.55">
+    <rect x="84" y="276" width="6" height="38"/><rect x="96" y="276" width="6" height="38"/>
+    <rect x="108" y="276" width="6" height="38"/><rect x="120" y="276" width="6" height="38"/>
+    <rect x="132" y="276" width="6" height="38"/><rect x="144" y="276" width="6" height="38"/>
+    <rect x="156" y="276" width="6" height="38"/><rect x="168" y="276" width="6" height="38"/>
+    <rect x="180" y="276" width="6" height="38"/><rect x="192" y="276" width="6" height="38"/>
+    <rect x="204" y="276" width="6" height="38"/><rect x="216" y="276" width="6" height="38"/>
+    <rect x="228" y="276" width="6" height="38"/><rect x="240" y="276" width="6" height="38"/>
+    <rect x="252" y="276" width="6" height="38"/><rect x="264" y="276" width="6" height="38"/>
+    <rect x="276" y="276" width="6" height="38"/><rect x="288" y="276" width="6" height="38"/>
+    <rect x="300" y="276" width="6" height="38"/><rect x="316" y="276" width="6" height="38"/>
+    <rect x="336" y="276" width="6" height="38"/><rect x="360" y="276" width="6" height="38"/>
+    <rect x="388" y="276" width="6" height="38"/><rect x="420" y="276" width="6" height="38"/>
+    <rect x="456" y="276" width="6" height="38"/><rect x="496" y="276" width="6" height="38"/>
+    <rect x="540" y="276" width="6" height="38"/><rect x="588" y="276" width="6" height="38"/>
+    <rect x="640" y="276" width="6" height="38"/><rect x="696" y="276" width="6" height="38"/>
+    <rect x="756" y="276" width="6" height="38"/>
+  </g>
+
+  <!-- projection -->
+  <line x1="150" y1="250" x2="150" y2="176" stroke="#0f2a2b" stroke-width="3"/>
+  <line x1="150" y1="176" x2="880" y2="176" stroke="#0f2a2b" stroke-width="3"/>
+  <line x1="880" y1="176" x2="880" y2="250" stroke="#0f2a2b" stroke-width="3"/>
+  <text x="430" y="164" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#0f2a2b">PROJECTION BY product_id</text>
+
+  <!-- key range read -->
+  <text x="80" y="382" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#a8331a">KEY RANGE</text>
+  <rect x="80" y="402" width="760" height="46" rx="4" fill="#d2573a" opacity="0.12"/>
+  <rect x="300" y="406" width="120" height="38" rx="4" fill="url(#ch-accent)"/>
+  <text x="880" y="432" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="700" fill="#a8331a">≥ 10×</text>
+
+  <!-- dataset -->
+  <g transform="translate(80 490)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="600" fill="#0f2a2b">50,000,000 events</text>
+    <text x="330" y="0" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="500" fill="#4a6b69">10 SQL cases</text>
+    <text x="580" y="0" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="500" fill="#4a6b69">7 DuckDB twins</text>
+  </g>
+</svg>

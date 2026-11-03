@@ -25,7 +25,7 @@ tools:
   - pytest
 github: https://github.com/NikitaBoyarkin/sql-analytics-case-study
 date: 2026-08-11
-updated: 2026-10-25
+updated: 2026-11-01
 demo: demos/sql/index.html
 faq:
   - question: "What data do the cases run on?"
@@ -38,6 +38,7 @@ faq:
     answer: "A staging → marts model layer on DuckDB, 18 dbt tests, and a regression test with deterministic invariants per case."
 related:
   - /projects/airflow/
+  - /projects/clickhouse/
   - /projects/delivery/
   - /projects/gmv-drop-rca/
   - /posts/sql-window-functions/

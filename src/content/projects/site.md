@@ -21,7 +21,7 @@ tools:
   - CSS custom properties
 github: https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io
 date: 2026-08-11
-updated: 2026-10-25
+updated: 2026-11-03
 demo: demos/site/index.html
 related:
   - /projects/garden/
@@ -29,6 +29,7 @@ related:
   - /posts/data-analyst-portfolio-checklist/
   - /projects/games/
   - /projects/mm-program-page/
+  - /projects/oss-catalog/
 ---
 
 # This Portfolio Site

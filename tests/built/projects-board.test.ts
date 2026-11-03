@@ -25,9 +25,9 @@ describe('/projects/ board — built pages', () => {
     it(`${page} renders a cover per card and no STAR rows`, () => {
       const source = html.get(page)!;
       expect(source).toContain('project-board-cover');
-      expect(source.match(/class="project reveal compact"/g) ?? []).toHaveLength(28);
+      expect(source.match(/class="project reveal compact"/g) ?? []).toHaveLength(31);
       // One cover image per card — the preview the catalogue is for.
-      expect(source.match(/<img src="[^"]*images\/[^"]*"/g) ?? []).toHaveLength(28);
+      expect(source.match(/<img src="[^"]*images\/[^"]*"/g) ?? []).toHaveLength(31);
       // No Result / Task rows on this board; the case owns them.
       expect(source).not.toMatch(/data-star=/);
       expect(source).not.toContain('class="star star-compact"');
@@ -35,7 +35,7 @@ describe('/projects/ board — built pages', () => {
       expect(source).toContain('class="project-track-badge"');
     });
 
-    it(`${page} marks exactly the two real-data cases, and nothing else`, () => {
+    it(`${page} marks exactly the real-data cases, and nothing else`, () => {
       // The provenance badge claims "this number is not synthetic". If it ever
       // renders on every card the claim dies silently, and if it renders on none
       // the two strongest cases go back to being invisible — so the built page,
@@ -43,9 +43,10 @@ describe('/projects/ board — built pages', () => {
       const source = html.get(page)!;
       const badge = /class="project-dataset-badge">([^<]+)</g;
       const labels = [...source.matchAll(badge)].map((m) => m[1]);
-      expect(labels).toHaveLength(2);
+      expect(labels).toHaveLength(3);
       expect(labels).toContain(page.startsWith('en/') ? 'Real data' : 'Реальные данные');
       expect(labels).toContain(page.startsWith('en/') ? 'Real + synthetic' : 'Реальные + синтетика');
+      expect(labels.filter((l) => l === (page.startsWith('en/') ? 'Real data' : 'Реальные данные'))).toHaveLength(2);
 
       // …and they sit on the cards whose frontmatter says so. Parsed per
       // `<article>` rather than by regex-adjacency: a lazy span across the
@@ -59,6 +60,7 @@ describe('/projects/ board — built pages', () => {
         }));
       expect(cards.filter((c) => c.marked).map((c) => c.slug).sort()).toEqual([
         'gmv-drop-rca',
+        'oss-catalog',
         'sql',
       ]);
     });
@@ -71,7 +73,7 @@ describe('/projects/ board — built pages', () => {
       const chips = source.match(/data-sphere-filter="[a-z-]+"/g) ?? [];
       expect(chips).toHaveLength(7);
       expect(chips[0]).toContain('all');
-      expect(source.match(/data-sphere="[a-z-]+"/g) ?? []).toHaveLength(28);
+      expect(source.match(/data-sphere="[a-z-]+"/g) ?? []).toHaveLength(31);
     }
   });
 
@@ -82,7 +84,7 @@ describe('/projects/ board — built pages', () => {
       expect(source).toMatch(/<option value="curated"/);
       expect(source).toMatch(/<option value="new"/);
       // The sort key is the rendered date, one per card.
-      expect(source.match(/data-date="\d{4}-\d{2}-\d{2}"/g) ?? []).toHaveLength(28);
+      expect(source.match(/data-date="\d{4}-\d{2}-\d{2}"/g) ?? []).toHaveLength(31);
     }
     // A role landing is a curated reading sequence — it must not offer a sort.
     const manager = readFileSync(resolve(DIST, 'manager/index.html'), 'utf8');
@@ -99,7 +101,7 @@ describe('/projects/ board — built pages', () => {
   it('the manager board keeps its Task → Result cards and buys their width', () => {
     const source = readFileSync(resolve(DIST, 'manager/index.html'), 'utf8');
     expect(source).not.toContain('project-board-cover');
-    expect(source.match(/data-star="result"/g) ?? []).toHaveLength(28);
-    expect(source.match(/data-star="task"/g) ?? []).toHaveLength(28);
+    expect(source.match(/data-star="result"/g) ?? []).toHaveLength(31);
+    expect(source.match(/data-star="task"/g) ?? []).toHaveLength(31);
   });
 });
