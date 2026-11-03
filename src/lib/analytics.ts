@@ -61,10 +61,13 @@ export interface AnalyticsEventMap {
     reason: 'validation' | 'rate_limited' | 'server' | 'network';
   };
   // Props mirror the delegated [data-analytics] handler in Analytics.astro, which
-  // attaches `{ path }` to every named CTA — declaring `{ locale }` here would be
-  // a type map that lies about what ships. Locale is still recoverable in PostHog
+  // attaches `{ path }` to every named CTA and adds `surface` when the element
+  // carries `data-analytics-surface` — declaring `{ locale }` here would be a
+  // type map that lies about what ships. Locale is still recoverable in PostHog
   // from the event's URL (/en/contact/ vs /contact/).
-  booking_click: { path: string };
+  // `surface` is optional because it follows the attribute, but both contact
+  // pages always pass `contact_cta` (contact.astro / en/contact.astro).
+  booking_click: { path: string; surface?: string };
   // Any anchor that opens the contact page, not the booking page. `surface`
   // names the placement (`nav`, `footer`, `case_next_step`,
   // `post_next_step`) so "read a case, then wrote" stays separable from a

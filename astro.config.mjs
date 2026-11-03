@@ -208,6 +208,13 @@ export default defineConfig({
     // /writing/. The bare prefix is what a visitor types after trimming a slug.
     "/posts/": "/writing/",
     "/en/posts/": "/en/writing/",
+    // 2026-11-03: legacy base path from before the repo rename (S1.1). Every
+    // URL the old project site ever served sat under this prefix; nothing is
+    // published there now, so GitHub Pages answers with the 404 page
+    // (634 views / 65 people over 90 days in PostHog). Static output cannot
+    // emit a wildcard page per nested path, so this exact rule covers the
+    // prefix root and `src/pages/404.astro` strips the prefix for deep paths.
+    "/Personal_Projects.github.io/": "/",
   },
   integrations: [
     // MDX inherits `markdown.processor` (satteri) by default — the /about body

@@ -180,6 +180,18 @@ def group(nodes: list, name: str | None = None) -> dict:
     return g
 
 
+# Events written by our own tooling, not by the site: LLM analytics ($ai_*),
+# scout reports ($scout_*), and the analytics census job. They are ~70% of all
+# rows (12 882 of 18 507 / 90d as of 2026-11-03), so an unfiltered "all events"
+# tile reads ~3x too high. Filtered at query time, not deleted: the
+# «Мусорные события» tile still counts them.
+NOISE_EVENT_FILTER = (
+    "event NOT LIKE '$ai_%' "
+    "AND event NOT LIKE '$scout_%' "
+    "AND event != 'eng_analytics_test_census'"
+)
+
+
 def trends(
     series: list,
     breakdowns: list[str] | None = None,
@@ -187,8 +199,13 @@ def trends(
     interval: str = "day",
     display: str = "ActionsLineGraph",
     limit: int = 25,
+    properties: list[dict] | None = None,
 ) -> dict:
-    """TrendsQuery with an explicit display and one or more event breakdowns."""
+    """TrendsQuery with an explicit display and one or more event breakdowns.
+
+    `properties` are query-level filters (ANDed across every series), e.g.
+    `[{"type": "hogql", "key": NOISE_EVENT_FILTER}]` — verified live 2026-11-03.
+    """
     query: dict = {
         "kind": "TrendsQuery",
         "series": series,
@@ -197,6 +214,8 @@ def trends(
         "trendsFilter": {"display": display, "showLegend": display != "ActionsTable"},
         "filterTestAccounts": False,
     }
+    if properties:
+        query["properties"] = properties
     if breakdowns:
         query["breakdownFilter"] = {
             "breakdowns": [{"type": "event", "property": p} for p in breakdowns],
@@ -372,12 +391,19 @@ DASHBOARDS: list[dict] = [
                     [events_node("project_viewed", math="total")], breakdown=["locale"]
                 ),
             ),
+            # `telegram_contact` was a phantom aggregate — no emitter ever fired
+            # it. The real Telegram surfaces are the four named below; each one
+            # is an entry of CONTACT_EVENTS (defined later in this module).
             tile(
                 "Контактные события по locale",
-                "telegram_contact, booking_click с разбивкой по locale.",
+                "Telegram-CTA по поверхностям (header / hero / footer / deeplink) "
+                "и booking_click, разбивка по locale.",
                 trends_query(
                     [
-                        events_node("telegram_contact", math="total"),
+                        events_node("telegram_header", math="total"),
+                        events_node("telegram_hero", math="total"),
+                        events_node("telegram_footer", math="total"),
+                        events_node("telegram_deeplink", math="total"),
                         events_node("booking_click", math="total"),
                     ],
                     breakdown=["locale"],
@@ -394,8 +420,8 @@ DASHBOARDS: list[dict] = [
             "Воронка закодирована одиночными событиями на шаг: "
             "$pageview '/' → project_viewed → booking_click. "
             "OR-наборы на шаг (project_viewed ИЛИ $pageview /projects/; "
-            "booking_click ИЛИ telegram_contact ИЛИ "
-            "contact_submit) базовым FunnelsQuery не выражаются — см. README."
+            "booking_click ИЛИ любое событие из CONTACT_EVENTS) базовым "
+            "FunnelsQuery не выражаются — см. README."
         ),
         "tiles": [
             tile(
@@ -411,15 +437,20 @@ DASHBOARDS: list[dict] = [
                     ]
                 ),
             ),
+            # Same real Telegram surfaces as CONTACT_EVENTS. `contact_submit` is
+            # not an entry there (it only exists when the contact form is
+            # enabled), so v1 does not count it as a contact channel.
             tile(
                 "Тренды контактных CTA",
-                "telegram_contact, booking_click, contact_submit — "
-                "по одной серии на событие, 30 дней.",
+                "Telegram-поверхности (header / hero / footer / deeplink) и "
+                "booking_click — по одной серии на событие, 30 дней.",
                 trends_query(
                     [
-                        events_node("telegram_contact", math="total"),
+                        events_node("telegram_header", math="total"),
+                        events_node("telegram_hero", math="total"),
+                        events_node("telegram_footer", math="total"),
+                        events_node("telegram_deeplink", math="total"),
                         events_node("booking_click", math="total"),
-                        events_node("contact_submit", math="total"),
                     ]
                 ),
             ),
@@ -573,14 +604,23 @@ def dead_events_query() -> str:
 
 
 # Every channel that counts as "the visitor contacted me".
+# Names must match emitters in `src/`: a name here that no component fires
+# silently contributes nothing to the OR-step (the funnel is not empty, it is
+# just narrower than it claims). `cv_download_pdf` was dropped from the site
+# in 253de7a, so it is not a channel any more.
 CONTACT_EVENTS = [
     "booking_click",
-    "telegram_contact",
-    "telegram_deeplink",
+    # Telegram — several surfaces, one channel
     "telegram_footer",
-    "linkedin_contact",
+    "telegram_deeplink",
+    "telegram_header",
+    "telegram_hero",
+    # LinkedIn
     "linkedin_footer",
+    "linkedin_contact",
+    # GitHub
     "github_footer",
+    "value_github",
 ]
 
 # The homepage has been served from two base paths over the site's life
@@ -999,9 +1039,15 @@ DASHBOARDS_V2: list[dict] = [
             ),
             tile(
                 "События в день (все типы)",
-                "Все события по дням, включая $autocapture и SDK-события. Даёт базовый "
-                "объём: резкий рост без роста точек входа = мусор, падение = сломанный capture.",
-                trends([node(None, math="total")], interval="day"),
+                "Все события по дням, включая $autocapture и SDK-события, но БЕЗ своих "
+                "пайплайнов ($ai_*, $scout_*, eng_analytics_test_census): они давали ~70% "
+                "объёма и завышали тайл втрое. Даёт базовый объём сайта: резкий рост без "
+                "роста точек входа = мусор, падение = сломанный capture.",
+                trends(
+                    [node(None, math="total")],
+                    interval="day",
+                    properties=[{"type": "hogql", "key": NOISE_EVENT_FILTER}],
+                ),
             ),
             tile(
                 "Мусорные события (свои пайплайны)",

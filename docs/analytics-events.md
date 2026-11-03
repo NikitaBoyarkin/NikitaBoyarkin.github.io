@@ -26,7 +26,7 @@ Canonical event taxonomy for the portfolio, per
 | `projects_track_filter` | `{ track, results_count, locale }` | a project category tab is selected (`track` is the taxonomy key or `all`) | `ProjectBoard.astro` and `ProjectList.astro` (the list carries the same tabs on `/colleague/`; the two never render together — one category means one series in PostHog) |
 | `contact_submit` | `{ locale }` | the contact form was submitted and the Edge Function accepted it | `ContactForm.astro` (only on `res.ok`). **Inert in production** until `PROJECT_REF` in `src/lib/contact.ts` is replaced (`CONTACT_FORM_ENABLED=false`, so the form is not rendered at all) |
 | `contact_form_error` | `{ locale, reason }` | a contact-form submission failed (`reason ∈ {validation, rate_limited, server, network}`) | `ContactForm.astro`. **Inert in production** — same reason as `contact_submit` |
-| `booking_click` | `{ path }` | the booking CTA (`cal.com/lofinibo/bored-call-me`) is clicked | `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
+| `booking_click` | `{ path, surface? }` | the booking CTA (`cal.com/lofinibo/bored-call-me`) is clicked. The contact page passes `surface:'contact_cta'` | `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
 | `contact_page_click` | `{ path, surface? }` | a link that opens the **contact page** (not the booking page) is clicked. `surface` names the placement: `nav` (the drawer's contact button — the only non-footer entry on a closed drawer), `footer`, `about_links` (the link row under `/about`), `case_next_step` (end of a project case), `volta_part_next_step` (end of a Volta chapter), `post_next_step` (end of a post) | `Base.astro` (drawer CTA + footer button), `content/about/{ru,en}.mdx` (link row), `NextStep.astro` (mounted by `projects/[slug].astro`, `projects/volta/[part].astro`, their EN twins and `Post.astro`), via `[data-analytics]` |
 | `persona_selected` | `{ persona, lang, source }` | a persona is chosen (`source ∈ {gate, switch, header, menu}` — `header`/`menu` are `NavRoles`'s bar/drawer variants) | `NavRoles.astro`, `RoleSwitch.astro` |
 | `library_tile` | `{ path }` | a library tile is clicked | `ReadingBlock.astro`, via `[data-analytics]` |
@@ -37,17 +37,21 @@ Canonical event taxonomy for the portfolio, per
 | `flagship_case` | `{ path }` | the hero's flagship result line (the Volta figure set) is clicked | `HomeNewTab.astro`, via `[data-analytics]` |
 | `bento_now` | `{ path }` | the «Сейчас»/«Now» bento cell's link to `/about/#now` is clicked — on `/`, `/en/` and the colleague landings | `NowCard.astro` (`variant="cell"`), via `[data-analytics]` |
 
-> `booking_click` carries `{ path }`, not `{ locale }`: the delegated handler owns
-> every `[data-analytics]` CTA and attaches the same props to all of them. The
-> locale is recoverable from the event's URL (`/en/contact/` vs `/contact/`).
+> `booking_click` carries `{ path, surface? }`, not `{ locale }`: the delegated
+> handler owns every `[data-analytics]` CTA and attaches the same props to all of
+> them (the contact page's `surface` is `contact_cta`). The locale is recoverable
+> from the event's URL (`/en/contact/` vs `/contact/`).
 
 > **Placements.** Any `[data-analytics]` element may also carry
 > `data-analytics-surface="<placement>"`; the delegated handler then adds
 > `surface` to the event props. `contact_page_click` is the event that uses it
-> today: `nav`, `footer`, `case_next_step`, `post_next_step`. The mechanism was
-> introduced for the desktop CTA rail (`surface:'home_rail'`), retired with the
-> CV on 2026-10-24, and sat unused until 2026-10-31.
-> Add the attribute to any new CTA whose exposure you intend to count.
+> most: `nav`, `footer`, `about_links`, `case_next_step`,
+> `volta_part_next_step`, `post_next_step`. The three contact-page CTAs
+> (`booking_click`, `telegram_deeplink`, `linkedin_contact`) carry
+> `surface:'contact_cta'`. The mechanism was introduced for the desktop CTA rail
+> (`surface:'home_rail'`), retired with the CV on 2026-10-24, and sat unused until
+> 2026-10-31. Add the attribute to any new CTA whose exposure you intend to
+> count.
 
 ### Super properties (registered once per load, PRD §4.2)
 
@@ -71,11 +75,12 @@ These keep their historical names (they are the slider for the "hard naming" cas
 | Event | Where |
 |---|---|
 | `featured_project`, `featured_demo`, `featured_github` | `RoleLanding.astro` — **colleague role pages only** (`/colleague/`, `/en/colleague/`). The homepage hero does not render them |
-| `bento_stack` | `StackCard.astro` (via `RoleLanding`) — all six role pages |
+| `bento_stack` | `StackCard.astro` (via `RoleLanding`) — every role landing **except `manager`** (`hr` + `colleague`, RU + EN); `RoleLanding.astro` gates it with `role !== 'manager'` |
 | `bento_notes`, `bento_shelf`, `bento_writing` | `RoleLanding.astro` — colleague role pages (`bento_notes` RU only) |
-| `telegram_contact`, `telegram_deeplink`, `telegram_footer` | `contact.astro`, `Base.astro` nav chips |
+| `telegram_deeplink`, `telegram_footer`, `telegram_header`, `telegram_hero` | `contact.astro`, `Base.astro` nav chips, `HomeNewTab.astro` hero. There is **no** `telegram_contact` event — dashboards must OR these four |
+| `linkedin_contact`, `linkedin_footer` | `contact.astro`, `Base.astro` nav chips |
 | `github_footer`, `linkedin_footer` | `Base.astro` nav chips (moved out of the footer 2026-10-10; the `_footer` suffix is kept so the PostHog series does not split) |
-| `value_cta`, `work_with_me_cta`, `whois_cta` | `about/{ru,en}.mdx` via `TelegramCta.astro` on `/about#value` |
+| `value_cta`, `work_with_me_cta`, `whois_cta` | `about/{ru,en}.mdx` via `TelegramCta.astro`, in the `/about` tab panels — `value_cta` → `#value`, `work_with_me_cta` → `#work`, `whois_cta` → `#stack` |
 | `value_github` | `ValueOffers.astro` on `/about#value` |
 | `search_open` | `SearchBox.astro` |
 | `ask_me_open` | `AskMe.astro` |

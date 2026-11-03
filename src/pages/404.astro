@@ -23,6 +23,22 @@ const index = [...projects, ...posts];
   lang="ru"
   noindex
 >
+  <script is:inline>
+    // Legacy base path from before the repo rename (PRD v6 S1.1). GitHub Pages
+    // serves this 404 page for every unknown path, so one prefix test covers
+    // the whole old tree — Astro's static `redirects` can only name exact
+    // routes, and a `[...slug]` wildcard is rejected at build time. Cost: the
+    // hop is a client redirect off a 404 (no 301), which GitHub Pages cannot
+    // issue for a static site. Remove once the prefix stops appearing in
+    // PostHog `$pathname`.
+    (function () {
+      var prefix = '/Personal_Projects.github.io';
+      var path = location.pathname;
+      if (path !== prefix && path.indexOf(prefix + '/') !== 0) return;
+      location.replace((path.slice(prefix.length) || '/') + location.search + location.hash);
+    })();
+  </script>
+
   <section class="container reveal" style="text-align: center; padding-top: 4rem;">
     <h1 style="font-size: clamp(3rem, 2rem + 8vw, 6rem); margin: 0; line-height: 1; letter-spacing: -0.03em;">
       404
