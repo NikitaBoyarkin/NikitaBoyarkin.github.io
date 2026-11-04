@@ -27,9 +27,16 @@ export interface Props {
     | 'role_hr_contact'
     | 'role_manager_contact'
     | 'role_colleague_contact';
-  /** `case` is the consultancy ask after a case; `catalog` is the softer ask
-      after a list of cases; `writing` is the same ask after a list of posts,
-      where «кейс» would name the wrong thing. */
+  /** The shape of the ask, not the layout. After a case the owner is looking
+      for a role (PRD v7: the junior+ / middle− band), and the analysis offer is
+      the second thing, not the first. Until 2026-11-04 every one of the 31
+      cases ended on «Нужен такой же разбор на ваших данных?» — a freelancer's
+      ask, which reframed the reader's decision from "I want this person on the
+      team" to "I could buy a briefing".
+      `case` asks for the conversation about a role and names the service
+      second; `catalog` is the softer ask after a list of cases; `writing` is
+      the same ask after a list of posts, where «кейс» would name the wrong
+      thing. */
   variant?: 'case' | 'catalog' | 'writing';
   /** Role landings override the copy: the same block asks HR for a vacancy and
       a colleague for a conversation, and that is a difference in the ask, not
@@ -52,13 +59,11 @@ const href = withBase(isEn ? 'en/contact/' : 'contact/');
 
 const copy = {
   case: {
-    title: isEn
-      ? 'Need this reasoning applied to your data?'
-      : 'Нужен такой же разбор на ваших данных?',
+    title: isEn ? 'Want an analyst who works like this?' : 'Нужен аналитик, который так работает?',
     text: isEn
-      ? "Tell me the task — I'll come back with a plan: what data it needs, what we test, and how long it takes. I reply within a day."
-      : 'Расскажите задачу — вернусь с планом: какие данные нужны, что проверяем и за какой срок. Отвечаю в течение дня.',
-    cta: isEn ? 'Discuss a task →' : 'Обсудить задачу →',
+      ? 'Tell me the role and the problems in it — I reply within a day. Need this reasoning applied to your data rather than a hire? That works too.'
+      : 'Напишите, что за роль и какие в ней задачи — отвечу в течение дня. Нужен разбор на ваших данных, а не найм? Это тоже сюда.',
+    cta: isEn ? 'Send a request →' : 'Оставить запрос →',
   },
   catalog: {
     title: isEn ? 'No case matches your task?' : 'Не нашли подходящий кейс?',

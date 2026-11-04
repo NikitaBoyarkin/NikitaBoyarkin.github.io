@@ -30,7 +30,7 @@
 | 22 | ~~Header nav (Base.astro, RU+EN)~~ — **удалён 2026-10-10** | — | `booking_click` — остаётся только строка 21 (`/contact`) | — |
 | 23 | Боковая навигация (drawer `nav ul.links`, Base.astro, RU+EN) | Главная · Проекты · Обо мне · Словарь · Граф · Библиотека · **Статьи** · **Обозреватель** · **Темы** · Аудит репозиториев (2026-10-18) | — (без `data-analytics`, как у остальных ссылок drawer'а) | внутренние |
 | 24 | Drawer CTA + футер (Base.astro, RU+EN) | «Контакты» / «Contact» — кнопка в `nav .nav-aux` и кнопка `footer-contact` | `contact_page_click` {`surface`: `nav` \| `footer`} | `/contact/`, `/en/contact/` (2026-10-31) |
-| 25 | Конец кейса, конца главы Volta и конца статьи (`NextStep.astro`) | «Обсудить задачу →» / «Discuss a task →» | `contact_page_click` {`surface`: `case_next_step` \| `volta_part_next_step` \| `post_next_step`} | `/contact/`, `/en/contact/` (2026-10-31) |
+| 25 | Конец кейса, конца главы Volta и конца статьи (`NextStep.astro`) | «Оставить запрос →» / «Send a request →» (кейс и глава Volta — «Нужен аналитик, который так работает?»; статья — «Не нашли нужный разбор?») | `contact_page_click` {`surface`: `case_next_step` \| `volta_part_next_step` \| `post_next_step`} | `/contact/`, `/en/contact/` (2026-10-31; формулировка кейса — 2026-11-04) |
 | 26 | `/about`, блок ссылок под дашбордом (`about/{ru,en}.mdx`) | «Контакты» / «Contact» в строке ссылок | `contact_page_click` {`surface`: `about_links`} | `/contact/`, `/en/contact/` (2026-10-31) |
 
 > **Поправка, 2026-10-18 (важно).** Инлайн-бар больше не несёт шесть ссылок: `Проекты`,

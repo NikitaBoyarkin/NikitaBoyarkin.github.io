@@ -163,11 +163,14 @@ const nextStepSurface = {
 </section>
 
 {/* Two readers, two shapes:
-      - HR reads a list grouped by year — a screening reader wants the timeline
-        — and each row carries the full STAR skeleton (Situation → Task →
-        Actions → Result), because that reader is judging the reasoning. The
-        category + tool filters let that reader narrow the timeline to a vacancy:
-        the stack is the screening signal, the category is the follow-up.
+      - HR reads a flat list in the declared `ROLE_CURATION.hr` order — strength
+        order, flagship first. Until 2026-11-04 this branch passed no `order`, so
+        the declared curation was dead code and the list fell back to chronology:
+        the first card a recruiter met was whichever case had the newest date,
+        which happened to be a CSS pixel-clone of a conference programme. Each
+        row still carries the full STAR skeleton (Situation → Task → Actions →
+        Result), because that reader is judging the reasoning; the category and
+        tool filters let that reader narrow the list to a vacancy.
       - The colleague reads a flat list in the curated method-first order, each
         row one `description` line, with the same filter bar over it.
       - The manager reads the board, each card previewing Task → Result.
@@ -185,6 +188,7 @@ const nextStepSurface = {
   <ProjectList
     collection={collection as 'projects' | 'projects-en'}
     linkPrefix={linkPrefix}
+    order={ROLE_CURATION.hr}
     filterable
   />
 ) : (

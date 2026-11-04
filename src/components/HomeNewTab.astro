@@ -50,6 +50,9 @@ const t = isEn
       value: 'I test hypotheses with experiments: A/B tests, retention, segmentation',
       cases: 'See the cases',
       contact: 'Send a request',
+      grade: 'band: junior+ / middle−',
+      openTo: 'open to offers',
+      synthetic: 'Synthetic data',
     }
   : {
       clockLabel: 'Текущее время',
@@ -64,6 +67,9 @@ const t = isEn
       value: 'Проверяю гипотезы экспериментами: A/B-тесты, retention, сегментация',
       cases: 'Смотреть кейсы',
       contact: 'Оставить запрос',
+      grade: 'грейд junior+ / middle−',
+      openTo: 'открыт к предложениям',
+      synthetic: 'Данные синтетические',
     };
 
 // The CV download button was removed on the owner's call (2026-11-01) — the PDF
@@ -202,6 +208,18 @@ const SHORTCUTS = [
 
     <p class="nt-value">{t.value}</p>
 
+    {/* Grade and availability, stated rather than implied. The audit of
+        2026-10-25 found the band only at the bottom of the page, inside the
+        `now` card, so a recruiter could not screen for level above the fold;
+        the band itself is PRD v7's `junior+ / middle−`, written there as the
+        deliberate step down. Availability belongs next to it because "is this
+        person on the market" is the other half of the same question. */}
+    <p class="nt-status">
+      <span class="nt-status-grade">{t.grade}</span>
+      <span class="nt-status-sep" aria-hidden="true">·</span>
+      <span class="nt-status-open">{t.openTo}</span>
+    </p>
+
     {/* The proof line: the flagship figure set, reused verbatim from FLAGSHIP
         (and therefore from volta.md) rather than re-typed here. It is also the
         link to the case it comes from. */}
@@ -215,6 +233,14 @@ const SHORTCUTS = [
         ))}
       </span>
     </a>
+
+    {/* The flagship figures come from a fictional bank, and until now the only
+        disclosure lived inside the case page. `PRODUCT.md` says synthetic data
+        is always marked as synthetic — a reader who has to open the case to
+        learn that the site's largest number is modelled discounts the rest of
+        it. Scoped to the figure it belongs to, not to the whole page: the SQL
+        case, for one, carries a real-data table. */}
+    <p class="nt-synthetic">{t.synthetic}</p>
 
     <div class="nt-ctas">
       <a class="button" href={TELEGRAM_URL} data-analytics="telegram_hero"> Telegram </a>
@@ -618,6 +644,34 @@ const SHORTCUTS = [
     color: var(--text-normal);
     text-align: center;
     text-wrap: balance;
+  }
+
+  /* Grade + availability. Quiet on purpose: they answer two screening questions
+     (what level, is this person on the market) without competing with the value
+     line above them. */
+  .nt-status {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    column-gap: var(--space-2);
+    margin: var(--space-2) 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+  }
+
+  .nt-status-open {
+    color: var(--text-accent);
+  }
+
+  /* The synthetic-data caveat, scoped to the flagship figures it belongs to. */
+  .nt-synthetic {
+    margin: var(--space-1) 0 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+    text-align: center;
   }
 
   .nt-ctas {

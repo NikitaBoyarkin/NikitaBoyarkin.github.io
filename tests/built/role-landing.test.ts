@@ -79,9 +79,18 @@ describe('role landings — project section shape', () => {
     }
   });
 
-  it('HR keeps the year groups and the full skeleton', () => {
+  // The HR lane reads the declared `ROLE_CURATION.hr` — strength order — not the
+  // timeline. Until 2026-11-04 this branch passed no `order`, so the declared
+  // curation was dead code and the list silently fell back to chronology, which
+  // put a CSS pixel-clone of a conference programme in front of a recruiter
+  // screening for an analyst (audit 2026-10-25, P1). The trade is deliberate:
+  // this lane loses the year headings and gains the flagship case first.
+  it('HR reads the curated strength order, flagship first', () => {
     const source = html.get('hr/index.html')!;
-    expect(source).toContain('class="project-year-heading"');
+    const firstHref = source.match(/class="project-row-title"[^>]*>\s*<a href="([^"]+)"/)?.[1];
+    expect(firstHref).toBe('/projects/volta/');
+    expect(source).not.toContain('class="project-year-heading"');
+    // The four-row skeleton still belongs to this lane.
     expect(source).toMatch(/data-star="situation"/);
   });
 
