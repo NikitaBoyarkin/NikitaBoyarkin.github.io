@@ -370,20 +370,34 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     />
 
     {
-      /* LCP: preload the font subsets used above the fold so the hero heading
-         renders in the final font as early as possible.
+      /* LCP: preload only the body face (Inter) — it is the face the LCP
+         element is set in (the hero value paragraph on `/`), so it is the one
+         that must not queue behind anything.
+         Cormorant (display headings) is deliberately NOT preloaded any more.
+         It used to be, "so the hero heading renders in the final font as early
+         as possible", and that cost more than it bought: 58 KB of preload
+         competing with the document on a throttled link delayed first paint by
+         ~260 ms — median of 3 runs, mobile 4G + 4× CPU, FCP/LCP 1 756 ms with
+         the Cormorant preloads vs 1 492 ms without. CLS stayed 0.000, and the
+         display face still resolved before first paint: the h1 sits early
+         enough in the document that the browser requests it on its own.
+         On case pages the trim also drops a subset outright — `cormorant-
+         cyrillic` (22 KB) is never fetched once nothing forces it.
          Inter and Cormorant are variable fonts — one woff2 per subset covers
          all weights. Latin is always needed ("Nikita Boyarkin"); add the
          script subset for the active language. crossorigin is required for
          font preloads. */
-      [
-        'inter-latin.woff2',
-        ...(isEn ? ['inter-latin-ext.woff2'] : ['inter-cyrillic.woff2']),
-        'cormorant-latin.woff2',
-        ...(isEn ? ['cormorant-latin-ext.woff2'] : ['cormorant-cyrillic.woff2']),
-      ].map((f) => (
-        <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href={withBase(`fonts/${f}`)} />
-      ))
+      ['inter-latin.woff2', ...(isEn ? ['inter-latin-ext.woff2'] : ['inter-cyrillic.woff2'])].map(
+        (f) => (
+          <link
+            rel="preload"
+            as="font"
+            type="font/woff2"
+            crossorigin="anonymous"
+            href={withBase(`fonts/${f}`)}
+          />
+        )
+      )
     }
     {
       /* LCP: the hero image is the largest-contentful element on `/` and `/en/`,
@@ -806,24 +820,47 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           });
       })();
 
-      // Reveal on scroll
+      // Reveal on scroll.
+      //
+      // The hidden state is applied HERE, not in the stylesheet. A `.reveal`
+      // element that is already on screen must never wait for this script: it
+      // runs after document parse, and until it does the element is invisible
+      // to the LCP observer. On `/projects/volta/` that was the whole LCP —
+      // FCP 1 820 ms, element visible 2 972 ms, LCP 2 984 ms — because the
+      // hero image sits inside `<div class="container reveal">`.
+      //
+      // So: anything intersecting the viewport is marked visible immediately
+      // and never animated; only elements still below the fold are hidden and
+      // handed to the observer. With scripting off nothing is hidden at all.
       (function () {
+        const reveals = document.querySelectorAll('.reveal');
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          document.querySelectorAll('.reveal').forEach((el) => el.classList.add('visible'));
+          reveals.forEach((el) => el.classList.add('visible'));
           return;
         }
+        const viewport = window.innerHeight;
         const observer = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                observer.unobserve(entry.target);
-              }
+              if (!entry.isIntersecting) return;
+              entry.target.classList.add('visible');
+              entry.target.removeAttribute('data-reveal');
+              observer.unobserve(entry.target);
             });
           },
           { threshold: 0 }
         );
-        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+        reveals.forEach((el) => {
+          // `top < viewport` covers both "in view now" and "already scrolled
+          // past" (a restored scroll position), and elements inside a
+          // `display: none` panel report 0 — visible is the safe answer there.
+          if (el.getBoundingClientRect().top < viewport) {
+            el.classList.add('visible');
+            return;
+          }
+          el.setAttribute('data-reveal', 'below');
+          observer.observe(el);
+        });
       })();
 
       // Navbar scroll shadow

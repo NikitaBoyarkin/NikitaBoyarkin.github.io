@@ -368,6 +368,7 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 - Hover lift is translateY plus a shadow derived from the shadow token — never scale or opacity alone.
 - Cards lift more than buttons; buttons get an accent-tinted shadow.
 - Reveal animations use the shared easing with a downward translate; stagger via the delay classes.
+- A reveal never gates content that is already on screen. The hidden state is applied by script, per element, only to what is still below the fold — a stylesheet-level `opacity: 0` makes the LCP element invisible until the reveal script runs. Content in the viewport is marked visible and does not animate; a scroll reveal belongs to content you scroll to.
 
 ## Gradients
 

@@ -227,6 +227,7 @@ const pageJsonLd = {
   lang="ru"
   counterpartHref={withBase(`en/projects/${slug}/`)}
   ogImage={project.data.ogImage}
+  preloadImage={project.data.hero ? withBase(project.data.hero) : undefined}
   jsonLd={pageJsonLd}
 >
   <InnerTOC lang="ru" />
@@ -248,6 +249,7 @@ const pageJsonLd = {
           alt={`${project.data.title} preview`}
           width="1200"
           height="600"
+          fetchpriority="high"
         />
       )
     }
