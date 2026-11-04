@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-03T23:40:16.401Z",
+  "generated_at": "2026-11-04T02:58:34.500Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -441,7 +441,7 @@
       "track": "analytics",
       "title": "Ликвидность классифайда — аудит измеримости",
       "title_en": "Classifieds liquidity — a measurability audit",
-      "description": "Синтетический классифайд с посаженной истиной: прокси-метрика завышает sell-through на 21,4%, EM-поправка возвращает все категории в 3 п.п., а платная видимость не проходит холдаут.",
+      "description": "Синтетический классифайд с посаженной истиной: прокси-метрика занижает sell-through на 21,4%, EM-поправка возвращает все категории в 3 п.п., а платная видимость не проходит холдаут.",
       "description_en": "A synthetic classifieds marketplace with a planted answer key: the sell-through proxy misses by 21.4%, an EM correction brings every category inside 3 pp, and paid visibility fails its holdout.",
       "result": "Прокси 0,2413 против истины 0,3070: ошибка −0,0657 (−21,4%); после поправки худшая категория ошибается на 1,61 п.п., а платная видимость даёт −2,47% контактов на сессию при p = 0,308",
       "result_en": "The proxy reads 0.2413 against a truth of 0.3070, an error of −0.0657 (−21.4%); after correction the worst category misses by 1.61 pp, and paid visibility yields −2.47% contacts per session at p = 0.308",
