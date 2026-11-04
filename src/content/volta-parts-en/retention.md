@@ -52,7 +52,7 @@ I read the retention effect through cohort triangles rather than a flat base ave
 
 - Step-change: post-fix cohorts (2024-09+) hold M1 ≈ **61–67%** vs **51–53%** pre-fix.
 - **M3 +9.2pp**; the effect does not fade — the gap persists at M6.
-- **Premium LTV = 2.7× Free** (ARPU 2.66× × retention 1.62×).
+- **Premium LTV = 2.7× Free** — the gap is almost entirely ARPU, not retention: the cohort matrix has no plan split.
 - Portfolio effect: **+€282K/yr** incremental LTV.
 
 ## Recommendations

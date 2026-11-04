@@ -747,8 +747,8 @@
           "en": "The KYC fix lifts both curves: Free +10 pp at M6, Premium +5 pp."
         },
         {
-          "ru": "LTV Premium в 4.3× выше Free — за счёт и ARPU, и удержания.",
-          "en": "Premium LTV is 4.3× Free — driven by both ARPU and retention."
+          "ru": "LTV Premium в 2.7× выше Free — разница почти целиком в ARPU, а не в удержании.",
+          "en": "Premium LTV is 2.7× Free — the gap is almost entirely ARPU, not retention."
         }
       ]
     },

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-03T06:35:15.512Z",
+  "generated_at": "2026-11-03T23:40:16.401Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -706,10 +706,10 @@
       "layer": "core",
       "title": "Volta — Retention и когорты",
       "title_en": "Volta — Retention & Cohorts",
-      "description": "Когортные треугольники показали ступенчатый сдвиг после KYC-фикса: M1 +11,8 п.п., M3 +9,2 п.п. и +€227K/год LTV. LTV Premium в 4,3× выше Free.",
-      "description_en": "Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€227K/yr LTV. Premium LTV is 4.3× Free.",
-      "result": "Пост-фикс когорты держат 61–67% на M1 против 51–53%; M3 +9,2 п.п., LTV Premium 4,3× Free, +€227K/год",
-      "result_en": "Post-fix cohorts hold 61–67% at M1 vs 51–53% pre-fix; M3 +9.2pp, Premium LTV 4.3× Free, +€227K/yr",
+      "description": "Когортные треугольники показали ступенчатый сдвиг после KYC-фикса: M1 +11,8 п.п., M3 +9,2 п.п. и +€282K/год LTV. LTV Premium в 2,7× выше Free.",
+      "description_en": "Cohort triangles showed a step-change after the KYC fix: M1 +11.8pp, M3 +9.2pp and +€282K/yr LTV. Premium LTV is 2.7× Free.",
+      "result": "Пост-фикс когорты держат 61–67% на M1 против 51–53%; M3 +9,2 п.п., LTV Premium 2,7× Free, +€282K/год",
+      "result_en": "Post-fix cohorts hold 61–67% at M1 vs 51–53% pre-fix; M3 +9.2pp, Premium LTV 2.7× Free, +€282K/yr",
       "github": "https://github.com/NikitaBoyarkin/case-retention",
       "href": "https://nikitaboyarkin.github.io/projects/volta/retention/"
     },

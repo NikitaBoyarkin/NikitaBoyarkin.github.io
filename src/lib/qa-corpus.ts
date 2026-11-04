@@ -118,13 +118,13 @@ export const QA_CORPUS: QAPair[] = [
     ru: {
       question: "Расскажи про retention-анализ.",
       answer:
-        "Когортная матрица с треугольным затуханием, ARPU/LTV по когортам с честным caveat по возрасту наблюдения, кривые оттока. В Volta — +9.2pp M3-retention и +€227K/yr инкрементального LTV.",
+        "Когортная матрица с треугольным затуханием, ARPU/LTV по когортам с честным caveat по возрасту наблюдения, кривые оттока. В Volta — +9.2pp M3-retention и +€282K/yr инкрементального LTV.",
       links: [{ label: "Cohort Dashboard", href: "projects/cohort/" }],
     },
     en: {
       question: "Tell me about retention analysis.",
       answer:
-        "Cohort retention matrix with triangular decay, ARPU/LTV by cohort with an honest observation-age caveat, churn curves. In Volta — +9.2pp M3 retention and +€227K/yr incremental LTV.",
+        "Cohort retention matrix with triangular decay, ARPU/LTV by cohort with an honest observation-age caveat, churn curves. In Volta — +9.2pp M3 retention and +€282K/yr incremental LTV.",
       links: [{ label: "Cohort Dashboard", href: "en/projects/cohort/" }],
     },
   },
