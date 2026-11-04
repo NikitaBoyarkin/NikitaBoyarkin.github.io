@@ -31,8 +31,19 @@ export const METRICS = {
   retention: {
     /** M3 retention lift, percentage points. */
     deltaPp: 9.2,
-    /** Incremental LTV, EUR K. */
-    ltvEurK: 227,
+    /**
+     * Incremental LTV from the retention uplift, EUR K. Source of truth is the
+     * Volta retention part (`src/content/volta-parts/retention.md`, «+€282K/год
+     * инкрементального LTV»), not this file — same binding as `abKyc.annualEurK`.
+     *
+     * This held 227 long after the case page was corrected to 282, so `/about`
+     * printed `227K LTV` while `/projects/volta/` printed `€282K` five times.
+     * The correction in `f04a332` touched content only, and the guard that
+     * existed for this shape (`metrics.test.ts`, abKyc) did not cover retention,
+     * so every gate stayed green. Both halves of that gap are closed now: the
+     * value moves here, and the drift guard covers `retention` too.
+     */
+    ltvEurK: 282,
   },
   rfm: {
     /** Share of revenue concentrated in the 4 key segments, before/after. */

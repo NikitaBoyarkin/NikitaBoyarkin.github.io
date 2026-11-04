@@ -11,6 +11,7 @@ preview:
 
 check: build
 	bun run check
+	bun run audit:content
 	bun run test
 	bun run test:monitoring
 	bun run test:built

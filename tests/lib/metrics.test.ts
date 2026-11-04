@@ -10,7 +10,7 @@ import { METRICS } from '../../src/lib/metrics';
 describe('METRICS (CV-authoritative)', () => {
   it('matches the rendercv YAML figures', () => {
     expect(METRICS.abKyc).toEqual({ deltaPp: 5.72, annualEurK: 208.5, roiX: 13.9 });
-    expect(METRICS.retention).toEqual({ deltaPp: 9.2, ltvEurK: 227 });
+    expect(METRICS.retention).toEqual({ deltaPp: 9.2, ltvEurK: 282 });
     expect(METRICS.rfm).toEqual({ revenueBeforePct: 12, revenueAfterPct: 41 });
     expect(METRICS.bot).toEqual({ hoursBefore: 2, minutesAfter: 5 });
     // `projects` is not a CV figure (the CV lists 26 SQL cases, not a card count);
@@ -69,5 +69,24 @@ describe('METRICS drift guard (S1.8)', () => {
     const caseRu = readFileSync(join(siteRoot, 'src', 'content', 'projects', 'volta.md'), 'utf8');
     const printed = String(METRICS.abKyc.roiX).replace('.', ',');
     expect(caseRu).toContain(`${printed}× ROI`);
+  });
+
+  // The retention LTV is the second claim of the same shape, and it is the one
+  // that actually drifted: the case page was corrected 227 → 282 while
+  // metrics.ts kept 227, so `/about` and `/projects/volta/` printed different
+  // money for one number and no gate noticed. `abKyc` got a guard when the
+  // single-source-of-truth claim was written; `retention` did not. This closes
+  // that asymmetry — edit the part page alone and the suite goes red.
+  it('retention.ltvEurK matches the claim on the Volta retention part', () => {
+    const partRu = readFileSync(
+      join(siteRoot, 'src', 'content', 'volta-parts', 'retention.md'),
+      'utf8'
+    );
+    // The claim itself, verbatim. If the part re-words it, update this test
+    // deliberately — do not work around it.
+    expect(partRu).toContain('€282K/год');
+    // And the metric, printed the RU way, must be the number inside that claim.
+    const printed = String(METRICS.retention.ltvEurK);
+    expect(partRu).toContain(`€${printed}K/год`);
   });
 });
