@@ -35,7 +35,7 @@ Canonical event taxonomy for the portfolio, per
 | `telegram_header` | `{ path }` | the labelled Telegram button in the top bar is clicked — separate from `telegram_footer` on the icon chip beside it, so the readable action and the recognisable one stay two series | `Base.astro` (top bar), via `[data-analytics]` |
 | `telegram_hero` | `{ path }` | the homepage hero's Telegram CTA is clicked | `HomeNewTab.astro` (hero, `/` and `/en/`), via `[data-analytics]` |
 | `flagship_case` | `{ path }` | the hero's flagship result line (the Volta figure set) is clicked | `HomeNewTab.astro`, via `[data-analytics]` |
-| `bento_now` | `{ path }` | the «Сейчас»/«Now» bento cell's link to `/about/#now` is clicked — on `/`, `/en/` and the colleague landings | `NowCard.astro` (`variant="cell"`), via `[data-analytics]` |
+| `bento_now` | `{ path }` | the «Сейчас»/«Now» bento cell's link to `/about/#now` is clicked — on the colleague landing (the homepage cell was removed 2026-11-04) | `NowCard.astro` (`variant="cell"`), via `[data-analytics]` |
 
 > `booking_click` carries `{ path, surface? }`, not `{ locale }`: the delegated
 > handler owns every `[data-analytics]` CTA and attaches the same props to all of

@@ -6,8 +6,6 @@
 // top of the fold.
 import Base from '../layouts/Base.astro';
 import HomeNewTab from '../components/HomeNewTab.astro';
-import KeyFigures from '../components/KeyFigures.astro';
-import NowCard from '../components/NowCard.astro';
 import { withBase } from '../lib/path';
 
 // Person only: the `ItemList` of all projects would no longer describe this
@@ -43,6 +41,11 @@ const jsonLd = {
  * landings (`/hr/`, `/manager/`, `/colleague/`) stay one tap away in the header's
  * `NavRoles` group and in the drawer; the dashboard summary left `/` with the
  * gate — the Explorer surface (`/explorer/`) is the browsable replacement.
+ *
+ * The closing strip («Что подтверждено») and the «Сейчас» cell were removed on
+ * 2026-11-04 at the owner's request: `/` is the new-tab surface and nothing else.
+ * The role landings carry the narrative; `/about/` keeps the «Сейчас» tab. Do not
+ * re-add them here without a decision to reverse that.
  */
 ---
 
@@ -58,15 +61,4 @@ const jsonLd = {
   jsonLd={jsonLd}
 >
   <HomeNewTab lang="ru" />
-  {/* The closing strip: the five proven figures, each linking to its case. */}
-  <KeyFigures lang="ru" />
-
-  {/* What is actually in progress, in the bento idiom the role pages already
-      use. It closes the page on a person rather than on a metric — the figures
-      above say what was proven, this says what is being worked on. */}
-  <section class="home-now reveal" aria-label="Сейчас">
-    <div class="bento-grid bento-spaced">
-      <NowCard lang="ru" variant="cell" />
-    </div>
-  </section>
 </Base>

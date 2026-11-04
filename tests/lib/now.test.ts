@@ -5,8 +5,9 @@ import { fileURLToPath } from 'node:url';
 
 import { NOW } from '../../src/lib/now';
 
-// «Сейчас» is one list, rendered in three places: the /about/ tab, the homepage
-// bento card, and the same card inside the colleague landing's grid.
+// «Сейчас» is one list, rendered in two places: the /about/ tab and the same
+// card inside the colleague landing's grid. (The homepage cell was removed on
+// 2026-11-04 — `/` is the new-tab surface now.)
 //
 // Why this file exists: the five lines used to live as bullets in
 // `src/content/about/{ru,en}.mdx`. The moment a card repeats them, the site has
@@ -24,7 +25,7 @@ import { NOW } from '../../src/lib/now';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const read = (rel: string) => readFileSync(join(ROOT, rel), 'utf8');
 
-describe('«Сейчас» — one list, three surfaces', () => {
+describe('«Сейчас» — one list, two surfaces', () => {
   it('carries both locales with the same number of items', () => {
     expect(NOW.ru.items.length).toBeGreaterThanOrEqual(3);
     expect(NOW.en.items.length).toBe(NOW.ru.items.length);
@@ -59,18 +60,15 @@ describe('«Сейчас» — one list, three surfaces', () => {
     expect(card).toMatch(/from '\.\.\/lib\/now'/);
   });
 
-  it('is mounted on the homepage, its EN twin, and the colleague landing', () => {
-    for (const [file, lang] of [
-      ['src/pages/index.astro', 'ru'],
-      ['src/pages/en/index.astro', 'en'],
-    ] as const) {
-      const body = read(file);
-      expect(body, `${file} lost the now card`).toContain('<NowCard');
-      expect(body, `${file} passes the wrong locale`).toContain(`lang="${lang}"`);
-    }
+  it('is mounted on the colleague landing, and no longer on either homepage', () => {
     // The colleague grid only — the HR and manager boards are catalogues, and a
     // "what I am working on" cell there would compete with the screening path.
     const landing = read('src/components/RoleLanding.astro');
     expect(landing).toContain('<NowCard lang={lang} variant="cell" />');
+    // The cell left `/` and `/en/` on 2026-11-04: the homepage is the new-tab
+    // surface. Guard the removal so it cannot quietly return there.
+    for (const file of ['src/pages/index.astro', 'src/pages/en/index.astro']) {
+      expect(read(file), `${file} carries the now cell again`).not.toContain('<NowCard');
+    }
   });
 });
