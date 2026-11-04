@@ -103,6 +103,23 @@ describe.each(PAGES)('about page contract ($label)', ({ path }) => {
     expect(html).toContain('AskMe.astro_astro_type_script_index_0_lang');
   });
 
+  // Accessibility invariant that fails silently: `aria-modal="true"` hides the
+  // page behind the dialog from assistive tech, and the floating toggle is a
+  // SIBLING of the dialog — so without a close control inside the panel a
+  // screen-reader user has no announced way out, and the focus trap cannot
+  // reach one either.
+  it('carries a close control inside the AskMe dialog', () => {
+    const start = html.indexOf('id="askme-panel"');
+    expect(start, 'AskMe panel missing from /about').toBeGreaterThan(-1);
+    const end = html.indexOf('id="askme-backdrop"', start);
+    const panel = html.slice(start, end === -1 ? undefined : end);
+    expect(panel, 'no close button inside the dialog').toContain('id="askme-close"');
+    expect(panel).toContain('aria-describedby="askme-hint"');
+    // The toggle itself must stay outside the panel — that is the structural
+    // reason the trap cannot reach it.
+    expect(panel).not.toContain('id="askme-toggle"');
+  });
+
   it('emits a ProfilePage Person with knowsAbout and alumniOf', () => {
     const profile = jsonLdNodes(html).find((n) => n['@type'] === 'ProfilePage');
     expect(profile).toBeDefined();

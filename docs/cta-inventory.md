@@ -21,7 +21,7 @@
 | 13 | about.astro (links footer) | «Написать в Telegram →» | `whois_cta` | tg deep-link |
 | 14 | ~~about.astro / ValueOffers.astro / CareerSnapshot — «CV»~~ — **удалено 2026-10-24** | — | — | — |
 | 15 | games (`/games/`) | LinkedIn / Telegram (contact-секция) | `contact_click` (channel) | внешние |
-| 16 | AskMe (главная) | «Спросить» (открывает панель) | `ask_me_open` | — (панель) |
+| 16 | AskMe (`/about/`, `/en/about/`) | «Спроси меня» / «Ask me» (открывает панель; ≥640px — подпись, ниже — иконка) | `ask_me_open` | — (панель) |
 | 17 | SearchBox (header) | «Поиск» (открывает панель) | `search_open` | — (панель) |
 | 18 | ProjectCard | «Смотреть» / «Demo» / «GitHub» | `project_viewed` {`slug`, `surface: "card"`} (через `data-analytics-project`) / `project_demo_<slug>` / `project_github_<slug>` | внутренние + внешние |
 | 19 | HeadlineCases (главная, PRD v6 S2.6) | 3 кейса + сжатый список 14 | `headline_demo_<slug>` / `headline_github_<slug>` / `headline_all_projects` / `more_project_<slug>` | внутренние проекты + внешние артефакты |

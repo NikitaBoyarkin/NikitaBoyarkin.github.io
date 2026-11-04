@@ -15,7 +15,7 @@ Canonical event taxonomy for the portfolio, per
 | `post_read` | `{ slug, locale }` | a blog post page loads | `Analytics.astro` |
 | `lang_switched` | `{ from, to, path }` | the RU/EN switch is clicked | `Analytics.astro` (special-cases `data-analytics="lang_switch_*"`) |
 | `theme_change` | `{ theme }` | the theme toggle is clicked | `Base.astro` (bundled script) |
-| `ask_me_used` | `{ question (≤100 chars), answer_matched, locale }` | a question is submitted in the Ask-me widget | `AskMe.astro` |
+| `ask_me_used` | `{ matched_id, answer_matched, locale, question_source }` | a question is submitted in the Ask-me widget. `matched_id` is the corpus pair id or `null`; `question_source` is `typed` or `chip`. **No free text is sent** — the typed question stays in the browser | `AskMe.astro` |
 | `random_post_click` | `{ slug, path }` | the random-post button is clicked | `BlogFilter.astro` |
 | `section_viewed` | `{ section, path }` | an `/about` section enters the viewport at 50% (once per section), or is already above the mid-viewport when the lazy SDK init finishes (lazy-init credit). On `/about` the section now enters the viewport when its **tab becomes active** — including via a `#anchor` deep link — and sections inside inactive tabs are **not** emitted at page load | `Analytics.astro`, via `[data-analytics-section]` |
 | `outbound_click` | `{ domain, url, surface, path }` | a link leaving the site is clicked | `Analytics.astro` (delegated) |

@@ -29,10 +29,41 @@ describe('QA_CORPUS', () => {
     }
   });
 
+  it('keeps every EN link inside the EN locale', () => {
+    // `/en/topics/` does not exist — Topics is a RU-only route — and the site
+    // policy (`src/components/Breadcrumbs.astro`) is that an EN link never
+    // leaves the locale. `games/` is a locale-neutral page served from
+    // `public/games/` and is the one allowed exception.
+    for (const p of QA_CORPUS) {
+      for (const link of p.en.links ?? []) {
+        if (link.href === 'games/') continue;
+        expect(link.href.startsWith('en/'), `${p.id} EN link leaves the locale: ${link.href}`).toBe(
+          true,
+        );
+      }
+    }
+  });
+
   it('covers the core recruiter topics', () => {
     const ids = QA_CORPUS.map((p) => p.id);
     for (const id of ['who', 'role', 'experience', 'stack', 'ab-testing', 'retention', 'segmentation', 'sql', 'automation', 'volta', 'contact', 'differentiate']) {
       expect(ids).toContain(id);
+    }
+  });
+
+  // The strongest cheap invariant in this corpus: the suggestion chips render
+  // `pair.question` and submit it, so a pair whose own question lands on a
+  // different pair is a chip that answers the wrong thing. It caught five
+  // misroutes (both Volta questions, the EN A/B chip, both games questions)
+  // that every paraphrase-level assertion above had missed.
+  it('routes every pair’s own question back to that pair', () => {
+    for (const p of QA_CORPUS) {
+      for (const locale of ['ru', 'en'] as const) {
+        expect(
+          bestMatch(p[locale].question)?.id,
+          `${p.id} (${locale}) self-routes to another pair: "${p[locale].question}"`,
+        ).toBe(p.id);
+      }
     }
   });
 });
@@ -81,6 +112,55 @@ describe('bestMatch', () => {
   it('returns null for an empty or unmatched query', () => {
     expect(bestMatch('')).toBeNull();
     expect(bestMatch('zzzqqq')).toBeNull();
+  });
+
+  // A blank submit must not be a "query": the widget used to wipe the visible
+  // answer and log an empty question on a stray Enter.
+  it('treats whitespace and punctuation as no query', () => {
+    expect(bestMatch('   ')).toBeNull();
+    expect(bestMatch('\t\n')).toBeNull();
+    expect(bestMatch('!!!')).toBeNull();
+    expect(bestMatch('??? — …')).toBeNull();
+  });
+
+  // P2 pass: phrasings a recruiter actually types, all of which used to fall
+  // through to the fallback or route to the wrong pair (measured, not guessed).
+  it('routes the project / resume / hiring / English / metrics family', () => {
+    expect(bestMatch('какие у тебя проекты')?.id).toBe('portfolio');
+    expect(bestMatch('what are your projects')?.id).toBe('portfolio');
+    expect(bestMatch('what have you built')?.id).toBe('portfolio');
+    expect(bestMatch('резюме')?.id).toBe('contact');
+    expect(bestMatch('cv')?.id).toBe('contact');
+    expect(bestMatch('почему тебя стоит нанять')?.id).toBe('differentiate');
+    expect(bestMatch('why should we hire you')?.id).toBe('differentiate');
+    expect(bestMatch('уровень английского')?.id).toBe('who');
+    expect(bestMatch('english level')?.id).toBe('who');
+    expect(bestMatch('какие метрики')?.id).toBe('retention');
+  });
+
+  it('does not let a preposition or a short stem hijack a question', () => {
+    // `про` prefix-matched `прогноз`, so "расскажи про проекты" answered ML.
+    expect(bestMatch('расскажи про проекты')?.id).toBe('portfolio');
+    // `граф`/`график` overlap used to send "строишь графики" to the graph.
+    expect(bestMatch('строишь графики')?.id).toBe('stack');
+    // `know` prefix-matched `knowledge`.
+    expect(bestMatch('do you know dbt')?.id).toBe('stack');
+  });
+
+  it('sends a bare messenger mention to contact, in both locales', () => {
+    expect(bestMatch('telegram')?.id).toBe('contact');
+    expect(bestMatch('телеграм')?.id).toBe('contact');
+  });
+
+  it('folds ё so a yo-less spelling still matches', () => {
+    expect(bestMatch('отчет')?.id).toBe('automation');
+    expect(bestMatch('отчёт')?.id).toBe('automation');
+    expect(bestMatch('удаленка')?.id).toBe('conditions');
+  });
+
+  it('routes start-date phrasing to conditions, not the portfolio guide', () => {
+    expect(bestMatch('when can you start')?.id).toBe('conditions');
+    expect(bestMatch('когда старт')?.id).toBe('conditions');
   });
 
   // Regression cases from the P0 review (recruiter queries that misrouted).
@@ -160,8 +240,20 @@ describe('client script stays in sync with the shared matcher', () => {
   const askme = readFileSync(resolve(__dirname, '../../src/components/AskMe.astro'), 'utf8');
 
   it('imports the shared matcher instead of re-implementing scoring', () => {
-    expect(askme).toContain('from "../lib/qa-corpus"');
+    // Assert on the module and the API, not on the literal import line — a
+    // quote-style pass must not turn this guard red with no drift.
+    expect(askme).toContain('qa-corpus');
+    expect(askme).toContain('bestPair');
+    expect(askme).not.toMatch(/bestScore/); // local scoring loop is back
     expect(askme).not.toMatch(/kw\.includes\(tk\)/); // old drift-prone substring logic
     expect(askme).not.toMatch(/function score\(/);
+  });
+
+  it('never ships the visitor’s typed question to analytics', () => {
+    // `docs/analytics-events.md` says the payload carries no free text; the
+    // typed string is the only place a visitor can put an email or a name.
+    const askBlock = askme.slice(askme.indexOf('function ask('));
+    expect(askBlock).not.toMatch(/question: q/);
+    expect(askme).not.toContain('question.slice(0, 100)');
   });
 });

@@ -162,7 +162,7 @@ Explicit `posthog.capture()` calls:
 | `lang_switched` | `{from, to, path}` | `Analytics.astro:115` |
 | `<data-analytics value>` (delegated) | `{path}` | `Analytics.astro:124` |
 | `theme_change` | `{theme}` | `Base.astro:276` |
-| `ask_me_used` | `{question, answer_matched, locale}` | `AskMe.astro:187` |
+| `ask_me_used` | `{matched_id, answer_matched, locale, question_source}` | `AskMe.astro:298` |
 | `random_post_click` | `{slug, path}` | `BlogFilter.astro:262` |
 
 Delegated `data-analytics` names (~30 static + 7 dynamic templates) are catalogued in

@@ -29,7 +29,7 @@ export interface QAPair {
 export const QA_CORPUS: QAPair[] = [
   {
     id: "who",
-    keywords: ["кто", "ты", "who", "about", "никита", "boyarkin", "nikita", "имя", "name", "представься"],
+    keywords: ["кто", "ты", "who", "about", "никита", "boyarkin", "nikita", "имя", "name", "представься", "английск", "english"],
     ru: {
       question: "Кто ты?",
       answer:
@@ -65,18 +65,20 @@ export const QA_CORPUS: QAPair[] = [
     ru: {
       question: "Сколько у тебя опыта?",
       answer:
-        "Портфолио воспроизводимых аналитических проектов — эксперименты, retention, сегментация — с полной методологией и кодом. Создано из проектной работы, а не из найма. Данные в портфолио синтетические, но методология боевая: каждый кейс воспроизводим и откалиброван симуляцией.",
+        "Не измеряю опыт годами найма — портфолио собрано из проектной работы. По объёму: 26 end-to-end SQL-кейсов на DuckDB, Volta (23 мини-проекта: funnel → A/B → retention → сегментация), RFM на 1 983 клиентах, churn-модель без утечек и causal/uplift-кейс. Данные синтетические, методология боевая: каждый кейс воспроизводится одной командой.",
+      links: [{ label: "Проекты", href: "projects/" }],
     },
     en: {
       question: "How much experience do you have?",
       answer:
-        "Portfolio of reproducible analytics projects — experimentation, retention, segmentation — with full methodology and code. Built from project work, not from employment. The portfolio data is synthetic, but the methodology is production-grade: every case is reproducible and calibrated by simulation.",
+        "I don't count experience in years of employment — the portfolio is built from project work. By volume: 26 end-to-end SQL cases on DuckDB, Volta (23 sub-projects: funnel → A/B → retention → segmentation), RFM on 1,983 clients, a leakage-free churn model and a causal/uplift case. The data is synthetic, the methodology is production-grade: every case reproduces with one command.",
+      links: [{ label: "Projects", href: "en/projects/" }],
     },
   },
   {
     id: "stack",
     // "sql"/"duckdb" intentionally NOT here — they route to the SQL case study.
-    keywords: ["стек", "stack", "технологии", "tech", "tools", "инструменты", "python", "питон", "tableau", "pandas", "навыки", "skills", "дашборд", "дашборды", "dashboard", "dashboards", "визуализ", "visualiz", "chart", "charts", "диаграмм", "excel"],
+    keywords: ["стек", "stack", "технологии", "tech", "tools", "инструменты", "python", "питон", "tableau", "pandas", "навыки", "skills", "дашборд", "дашборды", "dashboard", "dashboards", "визуализ", "visualiz", "chart", "charts", "диаграмм", "excel", "dbt", "строю", "строишь", "строить"],
     ru: {
       question: "Какой у тебя стек?",
       answer:
@@ -87,12 +89,15 @@ export const QA_CORPUS: QAPair[] = [
       question: "What's your stack?",
       answer:
         "SQL (DuckDB), Python (pandas, NumPy, SciPy, scikit-learn), A/B testing, retention analysis, segmentation (RFM), Tableau, automation (Telegram bots, cron). Visualization — Matplotlib / Seaborn / Streamlit.",
-      links: [{ label: "Topics", href: "topics/" }],
+      // `/en/topics/` does not exist (Topics is a RU-only route), and the site
+      // policy is that an EN link never leaves the locale. The EN About page
+      // carries the Stack tab, so it is the honest target.
+      links: [{ label: "About", href: "en/about/" }],
     },
   },
   {
     id: "ab-testing",
-    keywords: ["ab", "a/b", "тест", "тестирование", "experiment", "cuped", "купед", "aa", "bonferroni", "ship", "gate", "p-value", "эксперимент"],
+    keywords: ["ab", "a/b", "тест", "тестирование", "experiment", "cuped", "купед", "aa", "bonferroni", "ship", "gate", "p-value", "эксперимент", "testing", "test"],
     ru: {
       question: "Что у тебя с A/B-тестами?",
       answer:
@@ -114,7 +119,7 @@ export const QA_CORPUS: QAPair[] = [
   },
   {
     id: "retention",
-    keywords: ["retention", "когорт", "cohort", "удержание", "ltv", "arpu", "отток", "churn"],
+    keywords: ["retention", "когорт", "cohort", "удержание", "ltv", "arpu", "отток", "churn", "метрик", "metric", "metrics"],
     ru: {
       question: "Расскажи про retention-анализ.",
       answer:
@@ -134,13 +139,13 @@ export const QA_CORPUS: QAPair[] = [
     ru: {
       question: "Что с сегментацией клиентов?",
       answer:
-        "RFM-анализ банковских клиентов: Recency / Frequency / Monetary, 4 сегмента с per-segment стратегией монетизации. В Volta — миграция сегментов до +€310K/yr; в RFM-кейсе — 12% → 41% выручки от целевых сегментов.",
+        "RFM-анализ банковских клиентов: Recency / Frequency / Monetary, квартильный скоринг → 6 именованных сегментов, для каждого своя стратегия удержания. Концентрация измерена, а не заявлена: топ-20% клиентов держат 38,2% выручки (Gini 0,324), Champions — 6,4% базы и 12,1% дохода. В Volta — миграция сегментов до +€310K/yr.",
       links: [{ label: "RFM", href: "projects/rfm/" }],
     },
     en: {
       question: "What about customer segmentation?",
       answer:
-        "RFM analysis of bank clients: Recency / Frequency / Monetary, 4 segments with a per-segment monetization strategy. In Volta — segment migration up to +€310K/yr; in the RFM case — 12% → 41% of revenue from target segments.",
+        "RFM analysis of bank clients: Recency / Frequency / Monetary, quartile scoring → 6 named segments, each with its own retention strategy. Concentration is measured, not asserted: the top 20% of clients hold 38.2% of revenue (Gini 0.324), Champions are 6.4% of the base and 12.1% of revenue. In Volta — segment migration worth up to +€310K/yr.",
       links: [{ label: "RFM", href: "en/projects/rfm/" }],
     },
   },
@@ -162,7 +167,9 @@ export const QA_CORPUS: QAPair[] = [
   },
   {
     id: "automation",
-    keywords: ["бот", "bot", "telegram", "автоматизац", "automation", "отчёт", "report", "cron", "пайплайн", "pipeline"],
+    // "telegram"/"телеграм" deliberately NOT here — a bare mention of the
+    // messenger is a contact question; the bot is reached via "бот" / "bot".
+    keywords: ["бот", "bot", "автоматизац", "automation", "отчет", "report", "cron", "пайплайн", "pipeline"],
     ru: {
       question: "Что с автоматизацией отчётности?",
       answer:
@@ -178,7 +185,7 @@ export const QA_CORPUS: QAPair[] = [
   },
   {
     id: "volta",
-    keywords: ["volta", "необанк", "neobank", "главный", "featured", "kyc", "флагман"],
+    keywords: ["volta", "необанк", "neobank", "главный", "featured", "kyc", "флагман", "проект", "project"],
     ru: {
       question: "Что за проект Volta?",
       answer:
@@ -194,23 +201,23 @@ export const QA_CORPUS: QAPair[] = [
   },
   {
     id: "contact",
-    keywords: ["контакт", "contact", "связаться", "telegram", "телеграм", "github", "linkedin", "почта", "email", "написать", "напиши", "reach", "связь", "телеф"],
+    keywords: ["контакт", "contact", "связаться", "telegram", "телеграм", "github", "linkedin", "почта", "email", "написать", "напиши", "reach", "связь", "телеф", "резюме", "resume", "cv"],
     ru: {
       question: "Как с тобой связаться?",
       answer:
-        "Быстрее всего — Telegram @lofinibo. Также GitHub, LinkedIn и страница контактов.",
+        "Быстрее всего — Telegram @lofinibo. Также GitHub, LinkedIn и страница контактов. Резюме по запросу.",
       links: [{ label: "Контакты", href: "contact/" }],
     },
     en: {
       question: "How can I reach you?",
       answer:
-        "Fastest — Telegram @lofinibo. Also GitHub, LinkedIn and the contact page.",
+        "Fastest — Telegram @lofinibo. Also GitHub, LinkedIn and the contact page. CV on request.",
       links: [{ label: "Contact", href: "en/contact/" }],
     },
   },
   {
     id: "portfolio",
-    keywords: ["портфолио", "portfolio", "навигац", "navigate", "start", "начать", "структура", "устроено", "как читать"],
+    keywords: ["портфолио", "portfolio", "навигац", "navigate", "начать", "структура", "устроен", "читать", "проект", "проекты", "project", "projects", "built", "build"],
     ru: {
       question: "Как устроено портфолио?",
       answer:
@@ -264,7 +271,7 @@ export const QA_CORPUS: QAPair[] = [
     ru: {
       question: "Есть ли ML в твоей работе?",
       answer:
-        "Да, прикладной ML и causal inference: в портфолио — модель оттока без утечек (as-of признаки, хронологический сплит train/val/test, recall@top-10% 0.53, lift 3.07×) и CUPED/uplift для экспериментов (стандартная ошибка −26% при том же ATE). Я не позиционируюсь как ML-инженер: сильная сторона — SQL, статистика и продуктовая аналитика, а ML-инструменты подключаю там, где они решают задачу.",
+        "Да, прикладной ML и causal inference: в портфолио — модель оттока без утечек (as-of признаки, хронологический сплит train/val/test, recall@top-10% 0,544, lift 5,44×) и CUPED/uplift для экспериментов (стандартная ошибка −26% при том же ATE). Я не позиционируюсь как ML-инженер: сильная сторона — SQL, статистика и продуктовая аналитика, а ML-инструменты подключаю там, где они решают задачу.",
       links: [
         { label: "Churn-модель", href: "projects/churn/" },
         { label: "Causal / Uplift", href: "projects/causal/" },
@@ -273,7 +280,7 @@ export const QA_CORPUS: QAPair[] = [
     en: {
       question: "Do you do ML?",
       answer:
-        "Yes — applied ML and causal inference: the portfolio has a leakage-free churn model (as-of features, chronological train/val/test split, recall@top-10% 0.53, lift 3.07x) and CUPED/uplift for experiments (standard error −26% at the same ATE). I don't position myself as an ML engineer — my strength is SQL, statistics and product analytics, and I bring ML tools in where they solve the problem.",
+        "Yes — applied ML and causal inference: the portfolio has a leakage-free churn model (as-of features, chronological train/val/test split, recall@top-10% 0.544, lift 5.44x) and CUPED/uplift for experiments (standard error −26% at the same ATE). I don't position myself as an ML engineer — my strength is SQL, statistics and product analytics, and I bring ML tools in where they solve the problem.",
       links: [
         { label: "Churn model", href: "en/projects/churn/" },
         { label: "Causal / Uplift", href: "en/projects/causal/" },
@@ -298,7 +305,10 @@ export const QA_CORPUS: QAPair[] = [
   },
   {
     id: "graph",
-    keywords: ["граф", "graph", "знания", "knowledge", "карта", "домен", "domain"],
+    // `knowledge` deliberately absent: it prefix-matched the token `know`, so
+    // "do you know dbt" answered with the graph. `graph`/`граф`/`знания` carry
+    // the topic on their own.
+    keywords: ["граф", "graph", "знания", "карта", "домен", "domain"],
     ru: {
       question: "Что такое граф знаний?",
       answer:
@@ -314,7 +324,7 @@ export const QA_CORPUS: QAPair[] = [
   },
   {
     id: "conditions",
-    keywords: ["зарплат", "salary", "услов", "conditions", "график", "режим", "день", "when", "начинаешь", "срок", "remote", "удалён", "office", "офис", "часы", "pay", "компенсац", "вилк", "бюджет", "договор", "заработ"],
+    keywords: ["зарплат", "salary", "услов", "conditions", "график", "режим", "день", "when", "начинаешь", "срок", "remote", "удален", "office", "офис", "часы", "pay", "компенсац", "вилк", "бюджет", "договор", "заработ", "старт", "start", "notice", "period", "relocation", "релокац"],
     ru: {
       question: "Условия: зарплата, график, старт?",
       answer:
@@ -330,7 +340,7 @@ export const QA_CORPUS: QAPair[] = [
     id: "differentiate",
     // «чем» deliberately NOT here — it routes to the interview pair; the
     // longer «отличаешься»/«different» tokens win the tie via matchedLen.
-    keywords: ["отличаешься", "отличие", "отличает", "уникальн", "уникален", "выделяешься", "выделяешь", "преимуществ", "сильные", "стороны", "плюсы", "конкурентн", "different", "unique", "strengths", "advantage", "competitive", "distinguish", "standout", "stand"],
+    keywords: ["отличаешься", "отличие", "отличает", "уникальн", "уникален", "выделяешься", "выделяешь", "преимуществ", "сильные", "стороны", "плюсы", "конкурентн", "different", "unique", "strengths", "advantage", "competitive", "distinguish", "standout", "stand", "других", "другие", "остальных", "нанять", "hire", "hiring"],
     ru: {
       question: "Чем ты отличаешься от других кандидатов?",
       answer:
@@ -358,7 +368,10 @@ const STOPWORDS = new Set([
   // RU
   "а", "о", "у", "ты", "вы", "он", "она", "мы", "мне", "меня", "тебя", "тобой",
   "что", "как", "за", "на", "по", "из", "в", "с", "для", "ли", "об", "же",
-  "бы", "то", "это", "так", "все", "всё", "или", "где", "когда", "свой", "свои",
+  "бы", "то", "это", "так", "все", "или", "где", "когда", "свой", "свои",
+  // `про` is a preposition, but at 3 chars it prefix-matched the `прогноз`
+  // keyword, so "расскажи про проекты" answered with the ML pair.
+  "про", "обо",
   // EN
   "a", "an", "the", "is", "are", "do", "does", "you", "your", "my", "me",
   "what", "with", "how", "and", "or", "of", "to", "in", "on", "at",
@@ -366,8 +379,9 @@ const STOPWORDS = new Set([
 
 /**
  * Normalize a query into match tokens: lowercase, fold `a/b`/`а/б` → `ab`
- * (the placeholder's example form), strip punctuation, drop stop words and
- * single-character tokens (they substring-match everything and add noise).
+ * (the placeholder's example form), fold `ё` → `е` so "отчет" reaches the
+ * `отчет` keyword, strip punctuation, drop stop words and single-character
+ * tokens (they substring-match everything and add noise).
  * This is the shared tokenizer used by both the server-side corpus API and
  * the client-side widget script.
  */
@@ -375,6 +389,7 @@ export function normalizeTokens(q: string): string[] {
   return q
     .toLowerCase()
     .replace(/a\/b|а\/б/gi, "ab")
+    .replace(/ё/g, "е")
     .replace(/[^a-zа-яё0-9\s]/g, " ")
     .split(/\s+/)
     .filter((t) => t.length >= 2 && !STOPWORDS.has(t));
@@ -438,18 +453,25 @@ export function scorePair(pair: QAPair, tokens: string[]): number {
 }
 
 /**
- * Best matching pair for a query, or null if nothing scores ≥ 1. Ties are
- * broken by exact-hit count, then by total matched-token length, then by
- * corpus order — so short/noisy queries no longer drift to the first pair.
+ * Best-scoring item for pre-normalized tokens, or null when nothing scores ≥ 1.
+ * Ties are broken by exact-hit count, then by total matched-token length, then
+ * by array order — so short/noisy queries do not drift to the first item.
+ *
+ * Generic over `{ keywords }` on purpose: the widget ships only the current
+ * locale's pairs, so it must rank a filtered array with the SAME rules as the
+ * corpus API. Before this existed the island carried a private copy of the
+ * loop and could drift from the lib unseen.
  */
-export function bestMatch(q: string): QAPair | null {
-  const tokens = normalizeTokens(q);
+export function bestPair<T extends { keywords: string[] }>(
+  pairs: readonly T[],
+  tokens: string[],
+): T | null {
   if (!tokens.length) return null;
-  let best: QAPair | null = null;
+  let best: T | null = null;
   let bestScore = 0;
   let bestExact = 0;
   let bestLen = 0;
-  for (const pair of QA_CORPUS) {
+  for (const pair of pairs) {
     const m = matchPair(pair.keywords, tokens);
     if (m.score < 1) continue;
     const better =
@@ -464,4 +486,9 @@ export function bestMatch(q: string): QAPair | null {
     }
   }
   return bestScore >= 1 ? best : null;
+}
+
+/** Best matching pair for a query, or null if nothing scores ≥ 1. */
+export function bestMatch(q: string): QAPair | null {
+  return bestPair(QA_CORPUS, normalizeTokens(q));
 }

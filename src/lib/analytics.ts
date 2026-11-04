@@ -33,7 +33,16 @@ export interface AnalyticsEventMap {
   post_read: { slug: string; locale: Locale };
   lang_switched: { from: Locale; to: Locale; path: string };
   theme_change: { theme: string };
-  ask_me_used: { question: string; answer_matched: boolean; locale: Locale };
+  // No free text: the visitor's typed question never leaves the browser (the
+  // site documents that it collects no PII — a 100-char cap is not a redaction).
+  // `matched_id` is what the dashboards segment on, and `question_source` keeps
+  // curated chip text out of the typed series.
+  ask_me_used: {
+    matched_id: string | null;
+    answer_matched: boolean;
+    locale: Locale;
+    question_source: "typed" | "chip";
+  };
   random_post_click: { slug: string; path: string };
   section_viewed: { section: string; path: string };
   outbound_click: { domain: string; url: string; surface: string; path: string };
