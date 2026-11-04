@@ -34,7 +34,7 @@ export const NOW: Record<Lang, NowContent> = {
     items: [
       'Развиваю этот сайт: личностный слой, граф знаний, аркада из 10 мини-игр.',
       'Поддерживаю Obsidian knowledge base по product analytics — структурированный Zettelkasten с автоматизацией.',
-      'Готовлюсь к BI / Data Analyst и Product Analyst junior-интервью: SQL, pandas, алгоритмы, моки.',
+      'Готовлюсь к BI / Data Analyst и Product Analyst интервью: SQL, pandas, алгоритмы, моки.',
       'Экспериментирую с AI-assisted аналитическими workflow на Claude Code + MCP.',
       'Пишу о практических data-техниках: A/B-тестирование, когортный анализ, RFM-сегментация.',
     ],
@@ -46,7 +46,7 @@ export const NOW: Record<Lang, NowContent> = {
     items: [
       'Building out this site: the personal layer, the knowledge graph, a 10-mini-game arcade.',
       'Maintaining an Obsidian knowledge base on product analytics — a structured Zettelkasten with automation.',
-      'Preparing for BI / Data Analyst and Product Analyst junior-level interviews: SQL, pandas, algorithms, mocks.',
+      'Preparing for BI / Data Analyst and Product Analyst interviews: SQL, pandas, algorithms, mocks.',
       'Experimenting with AI-assisted analytical workflows on Claude Code + MCP.',
       'Writing about practical data techniques: A/B testing, cohort analysis, RFM segmentation.',
     ],
