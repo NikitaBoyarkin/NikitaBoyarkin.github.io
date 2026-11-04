@@ -10,5 +10,19 @@ sources:
     files:
       reports: data/lhci-table.csv
 
+  # Local Trino coordinator (483, http://127.0.0.1:8080) reading two DuckDB
+  # marts from sibling projects as *separate catalogs*, so one query can span
+  # them. Local-only by nature: the board is rendered on this machine and the
+  # resulting HTML is what ships in public/demos/.
+  # `catalog` is dbt-trino's `database` and selects the default catalog only —
+  # a fully-qualified `duckdb_promo.main.<table>` still resolves across catalogs.
+  trino:
+    type: trino
+    host: 127.0.0.1
+    port: 8080
+    catalog: duckdb
+    schema: main
+    user: dbt_charts
+
 # serve:
 #   dialect: duckdb

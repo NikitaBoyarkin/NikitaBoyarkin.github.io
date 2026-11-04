@@ -1,0 +1,93 @@
+title: Trino federation / two DuckDB marts
+notes: >
+  One Trino coordinator reads two DuckDB files that belong to different
+  projects — sql-analytics-case-study (analytics.duckdb) and promo-margin-lab
+  (promo.db) — as separate catalogs. Every query below is plain SQL against
+  the same endpoint; the last one touches both catalogs in a single statement.
+
+source: trino
+
+queries:
+  # Proof of federation: one statement, two catalogs, six tables.
+  # Long form on purpose — a wide row would print promo counts under the
+  # Events/Orders/Users headers and read as the wrong numbers.
+  catalog_scale: |
+    SELECT 'duckdb / analytics.duckdb' AS catalog, 'events' AS table_name, COUNT(*) AS row_count
+    FROM duckdb.main.events
+    UNION ALL
+    SELECT 'duckdb / analytics.duckdb', 'orders', COUNT(*) FROM duckdb.main.orders
+    UNION ALL
+    SELECT 'duckdb / analytics.duckdb', 'users', COUNT(*) FROM duckdb.main.users
+    UNION ALL
+    SELECT 'duckdb_promo / promo.db', 'promo_waves', COUNT(*) FROM duckdb_promo.main.promo_waves
+    UNION ALL
+    SELECT 'duckdb_promo / promo.db', 'promo_cells', COUNT(*) FROM duckdb_promo.main.promo_cells
+    UNION ALL
+    SELECT 'duckdb_promo / promo.db', 'breakeven', COUNT(*) FROM duckdb_promo.main.breakeven
+    ORDER BY catalog, table_name
+
+  # Catalog 1: ecommerce events, from the analytics mart.
+  event_mix: |
+    SELECT event_name, COUNT(*) AS events
+    FROM duckdb.main.events
+    GROUP BY event_name
+    ORDER BY events DESC
+    LIMIT 10
+
+  # Catalog 2: promo effectiveness by category, from the retail mart.
+  promo_by_category: |
+    SELECT
+      category,
+      ROUND(SUM(own_profit), 0)     AS own_profit,
+      ROUND(SUM(revenue_delta), 0)  AS revenue_delta,
+      CAST(SUM(promoted_skus) AS BIGINT) AS promoted_skus
+    FROM duckdb_promo.main.promo_waves
+    GROUP BY category
+    ORDER BY own_profit DESC
+
+charts:
+  catalog_scale:
+    query: catalog_scale
+    type: table
+    title: Two catalogs, one endpoint
+    subtitle: Row counts read across both DuckDB files in a single Trino statement
+    notes: >
+      duckdb and duckdb_promo are static catalogs in the coordinator's
+      etc/catalog; neither file is copied — Trino opens them read-only in place.
+
+  event_mix:
+    query: event_mix
+    type: bar
+    title: Event mix, catalog 1
+    subtitle: duckdb.main.events — the ecommerce analytics mart
+    x: event_name
+    y: events
+    x_label: Event
+    y_label: Events
+    height: 380
+
+  promo_by_category:
+    query: promo_by_category
+    type: bar
+    title: Promo profit by category, catalog 2
+    subtitle: duckdb_promo.main.promo_waves — the retail promo mart
+    x: category
+    y: own_profit
+    x_label: Category
+    y_label: Own profit
+    height: 380
+
+rows:
+  - text: |
+      ## One SQL endpoint over two independent warehouses
+
+      Both projects keep their own DuckDB file; nothing was exported, merged or
+      re-loaded. Trino holds each file as a catalog and plans a query that spans
+      them — the table above is a single statement, not two results stitched
+      together.
+
+      The catalogs are declared as static properties files, so adding a source
+      is a file plus a coordinator restart, not a pipeline change.
+  - catalog_scale
+  - event_mix
+  - promo_by_category

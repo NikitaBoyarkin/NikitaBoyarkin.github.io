@@ -503,9 +503,11 @@ describe('demos carry no hardcoded colours', () => {
   // failure this block exists to prevent. Preserve that property — when a board
   // is added under `public/demos/`, add its slug here in the same change.
   //
-  // `volta-board` is deliberately absent: it is a generated dbt-charts export
-  // (708 KB, one long line) whose SVG is built by an external compiler, not
-  // hand-authored against `demo.css`. `volta` is the hand-authored board.
+  // `volta-board` and `trino-federation` are deliberately absent: both are
+  // generated dbt-charts exports whose SVG is built by an external compiler,
+  // not hand-authored against `demo.css` (they carry their own palette, so the
+  // "no colour literal" gate cannot hold for them). Everything else in the
+  // list is hand-authored. Rationale: DESIGN.md → Demos.
   const PAGES = [
     'cohort',
     'rfm',

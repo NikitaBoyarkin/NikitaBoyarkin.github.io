@@ -136,6 +136,14 @@ Also:
 
 Splitting question and SQL in one file plus regression invariants makes the cases self-checking: 43 pytest tests and 18 dbt tests keep `cases.md` and the code in sync, and `dbt build` is green in CI.
 
+### Interactive board
+
+The same SQL layer at a different scale: a local Trino coordinator holds this project's `analytics.duckdb` and `promo.db` from [Promo Margin Lab](../promo/) as two separate catalogs, and plans one query across both. The table on the board is a single `UNION ALL` statement over two catalogs, not two results stitched together in code — nothing was exported, Trino opens both files read-only in place. Catalogs are declared as static `.properties`, so adding a source is a file plus a coordinator restart, not a pipeline change.
+
+<iframe src="/demos/trino-federation/index.html" title="Trino federation — one SQL endpoint over two DuckDB marts: per-catalog row counts, event mix and promo profit by category" height="720" loading="lazy" style="width:100%;border:0;border-radius:10px"></iframe>
+
+[Open the board full screen →](/demos/trino-federation/index.html)
+
 ## Limitations
 
 25 of 26 cases are synthetic: their numbers describe the shape of generated data, not a real product's behavior. Case 26 on UCI Online Retail II shows how far the conclusion can flip on real data (72.4% repeat vs 3.5%) — that is the honest boundary of applicability: the SQL patterns transfer, the specific metrics do not.
