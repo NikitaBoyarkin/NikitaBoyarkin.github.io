@@ -53,7 +53,7 @@ I needed a lab where every case is scored against a snapshot and an independent 
 
 **Ten cases.** A `windowFunnel` funnel, cohort retention, 30-minute sessions, gaps-and-islands, `LIMIT BY`, cohort LTV, `argMin/argMax` attribution, RFM, approximate `uniq`, and the tenth case — optimisation.
 
-**Cross-engine checks.** Wrote a DuckDB twin for seven cases: the same question, a different engine. A divergence signals dialect semantics rather than a «correct» engine. Tolerances are explicit: 0.01 absolute and 1e-9 relative.
+**Cross-engine checks.** Wrote a DuckDB twin for seven cases: the same question, a different engine. A divergence signals dialect semantics rather than a "correct" engine. Tolerances are explicit: 0.01 absolute and 1e-9 relative.
 
 **Optimisation without rewriting.** Kept `slow.sql` and `fast.sql` byte-identical — asserted by a test, not a comment. The only change is `ADD PROJECTION ... ORDER BY product_id`, after which the same query reads a key range instead of a full scan.
 

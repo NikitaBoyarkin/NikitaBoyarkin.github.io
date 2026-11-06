@@ -39,7 +39,7 @@ related:
 
 ## Situation
 
-A RAG pipeline is easy to demo on one lucky question and almost impossible to measure: you cannot tell where quality is lost — in document retrieval or in answer generation — or whether the result reproduces at all without external services. Without an offline harness, any "it got better" stays an impression, not a number.
+A RAG pipeline is easy to demo on one lucky question and almost impossible to measure. You cannot tell where quality is lost — in document retrieval or in answer generation — or whether the result reproduces at all without external services. Without an offline harness, any "it got better" stays an impression, not a number.
 
 ## Task
 
@@ -80,13 +80,21 @@ Per-question breakdown: `reports/retrieval_per_question.csv`, `reports/generatio
 
 Retrieval is perfect on this corpus: recall@5 and MRR = 1.00, the gold doc ranks 1 for all 20 questions — TF-IDF is enough at this scale and topic separation. The offline extractive baseline is grounded by construction — faithfulness ≡1.00 because the answer is taken from the context — and reaches 0.37 correctness by token overlap.
 
-But 1.00 on its own proves nothing: on a saturated set the metric cannot fall, and "the harness measures" stays a claim. So there is a second, control set: 11 questions reworded without their gold doc's vocabulary. Every candidate was run through the live retriever and kept only if the gold doc genuinely landed outside the top 5 — at ranks 6–12. On the control set the same metrics read recall@5 = 0.00, while MRR@all (reciprocal rank over the full ranking, not truncated at k) reads 0.12 against 1.00: the metric separates a rank-6 near-miss from a rank-12 miss. Tellingly, faithfulness stays 1.00 on the control set too — the extractive answer is still a verbatim substring, now of the wrong document. So faithfulness cannot see a retrieval failure; only correctness notices (0.37 → 0.07).
+But 1.00 on its own proves nothing: on a saturated set the metric cannot fall, and "the harness measures" stays a claim. So there is a second, control set: 11 questions reworded without their gold doc's vocabulary.
+
+Every candidate was run through the live retriever and kept only if the gold doc genuinely landed outside the top 5 — at ranks 6–12. On the control set the same metrics read recall@5 = 0.00, while MRR@all (reciprocal rank over the full ranking, not truncated at k) reads 0.12 against 1.00: the metric separates a rank-6 near-miss from a rank-12 miss.
+
+Faithfulness cannot see a retrieval failure: it stays 1.00 on the control set too, because the extractive answer is still a verbatim substring — now of the wrong document. Only correctness notices: 0.37 → 0.07.
 
 The value is not the numbers themselves but that the harness separates the layers. With `--llm` and an API key, generation scores rise while retrieval metrics stay put, so you can see which layer to improve. It is the same principle as an A/B test: measure first, change second.
 
 ## Limitations
 
-Faithfulness here is a grounding proxy (answer tokens in the retrieved context), not a truth check: an answer can be grounded and still be wrong. Correctness by Jaccard is sensitive to wording — a low score is not always an error. The corpus is small (12 docs), so recall@5 = 1.00 on the easy set is a property of this set, not a promise on real data; the control set shows the metric can fall, but it does not replace a measurement on a real corpus — grow the corpus and everything has to be recomputed. With 12 docs and one gold per question, recall@5 and precision@5 are binary inside the window (a miss is 0.00, no partial credit), so the depth of a miss only shows in MRR@all and the gold ranks.
+Faithfulness here is a grounding proxy (answer tokens in the retrieved context), not a truth check: an answer can be grounded and still be wrong. Correctness by Jaccard is sensitive to wording — a low score is not always an error.
+
+The corpus is small (12 docs), so recall@5 = 1.00 on the easy set is a property of this set, not a promise on real data. The control set shows the metric can fall, but it does not replace a measurement on a real corpus — grow the corpus and everything has to be recomputed.
+
+With 12 docs and one gold per question, recall@5 and precision@5 are binary inside the window (a miss is 0.00, no partial credit), so the depth of a miss only shows in MRR@all and the gold ranks.
 
 ## Documentation
 

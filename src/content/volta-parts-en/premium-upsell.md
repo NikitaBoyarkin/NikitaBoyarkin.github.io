@@ -29,7 +29,7 @@ github: https://github.com/NikitaBoyarkin/case-premium-upsell
 
 ## Situation
 
-The second Market & Jobs project: does the upsell found in the anchor transfer to new segments.
+Does the upsell found in the anchor transfer to new segments? This is the second Market & Jobs project.
 
 ## Task
 

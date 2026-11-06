@@ -2,7 +2,7 @@
 title: GMV Drop RCA — root cause on real data
 description: "An injected −10% GMV drop on real UCI Online Retail II data: the metric tree attributes 56.2% of the named drop to UK decile-1 and the full attribution reconciles to £0.00."
 star:
-  situation: "A «GMV dropped 10%» alert does not say where the money went: the same total is equally consistent with a collapse in one segment and with a broad decline"
+  situation: "A 'GMV dropped 10%' alert does not say where the money went: the same total is equally consistent with a collapse in one segment and with a broad decline"
   task: "I needed to decompose the drop down to a concrete segment and prove the attribution was complete rather than a convenient slice"
   action: "Metric tree GMV = users × orders_per_user × AOV on the named population, country × decile decomposition, a separate guest addend, Shapley contributions, an executive dashboard"
   result: "UK decile-1 explains 56.2% of the named drop (−£195,218.25); the full attribution reconciles to £0.00 against an overall −10.0% decline"
@@ -30,7 +30,7 @@ date: 2026-10-20
 updated: 2026-10-25
 bet: "The drop was created by concentration in one segment, not by a broad decline: a shared cause would have produced a flat decile contribution."
 failureBar: "The attribution must reconcile to £0.00 with explicit addends, and the segment verdict must land inside the injected ground-truth tier; otherwise the RCA is rejected."
-retro: "The hypothesis held: UK decile-1 produced 56.2% of the named drop. Two earlier failures — population mixing in the tree and the «169% of the drop» headline — became regression tests instead of a footnote."
+retro: "The hypothesis held: UK decile-1 produced 56.2% of the named drop. Two earlier failures — population mixing in the tree and the '169% of the drop' headline — became regression tests instead of a footnote."
 related:
   - /projects/sql/
   - /projects/marketplace-liquidity/
@@ -41,7 +41,7 @@ related:
 
 ## Situation
 
-The alert said «GMV dropped 10% month over month», on real UCI Online Retail II transactions.
+The alert said "GMV dropped 10% month over month", on real UCI Online Retail II transactions.
 
 The total does not answer the only question that matters: **where** the money went. The same figure is equally consistent with one large segment collapsing, with an assortment shift, or with guest purchases drying up. Until the cause is decomposed by segment, every action is a guess.
 
@@ -68,14 +68,14 @@ I needed to decompose the drop down to a concrete segment and prove the attribut
 - **AOV:** £538.79 → £326.14 (**−39.5%**) — the injection removed the largest invoices, so the basket collapse is the cause's signature.
 - **Root cause:** United Kingdom, decile-1, **−£195,218.25** = **56.2%** of the named drop and 36.9% of the decile-universe drop.
 - **Cancellation share did not mask it:** 7.87% in October → 4.81% in November.
-- **Full attribution, zero remainder:** decile universe −£529,190.59 + customers whose first purchase is in the window +£181,619.08 + guests +£232,018.44 = **−£115,553.07**. The decile view cannot see the last two groups — they are explicit addends now, not an «unexplained» gap.
-- **The bug that was fixed:** the tree used to mix populations (`users` and `orders` named-only, AOV over total GMV, `orders_per_user` including guests), so the old factor split described no coherent population. The old «169% of the drop» headline is the same defect: £195,218.25 / £115,553.07. Against the named base it is 56.2%; against the decile universe, 36.9%.
+- **Full attribution, zero remainder:** decile universe −£529,190.59 + customers whose first purchase is in the window +£181,619.08 + guests +£232,018.44 = **−£115,553.07**. The decile view cannot see the last two groups — they are explicit addends now, not an "unexplained" gap.
+- **The bug that was fixed:** the tree used to mix populations (`users` and `orders` named-only, AOV over total GMV, `orders_per_user` including guests), so the old factor split described no coherent population. The old "169% of the drop" headline is the same defect: £195,218.25 / £115,553.07. Against the named base it is 56.2%; against the decile universe, 36.9%.
 
 ## Limitations
 
 The data is real, but the drop is **injected** and seeded: the case tests the correctness of the RCA method, not a reproduction of a real incident.
 
-A decile slice cannot see guests or customers who first bought inside the window by construction — both are carried as addends, so the total reconciles while the «by cause» view stays incomplete inside one table.
+A decile slice cannot see guests or customers who first bought inside the window by construction — both are carried as addends, so the total reconciles while the "by cause" view stays incomplete inside one table.
 
 Shapley contributions are additive on the chosen population; carrying them to the full base without the addends is not valid.
 

@@ -2,7 +2,7 @@
 title: Volta Neobank — Product Analytics
 description: "Fixed a neobank's onboarding bottleneck with an A/B test: +5.72pp KYC conversion, €208.5K in 12 mo at 13.9× ROI. 23 projects: funnel → A/B → retention → segmentation → Market & Jobs → RAT v2 → causal."
 star:
-  situation: "«Volta» is a fictional neobank losing users during onboarding: every team had its own number, and none explained where the money leaked"
+  situation: "'Volta' is a fictional neobank losing users during onboarding: every team had its own number, and none explained where the money leaked"
   task: "Find the critical onboarding step and prove it so the conclusion cannot be dismissed as a convenient sample"
   action: "One discover → validate → measure → optimize loop: funnel, KYC progress-bar A/B, cohorts, KMeans segmentation, DiD causality check"
   result: "KYC fix: +5.72pp conversion (p<0.0001) → €208.5K over 12 months at 13.9× ROI; M3 retention +9.2pp"
@@ -88,7 +88,7 @@ sources:
 
 ## Situation
 
-«Volta» is a fictional neobank that was losing users during onboarding. Marketing saw traffic, product saw activation, support saw tickets. Every team had its own number — and none of them explained where the money was leaking. We started with one question: **which onboarding step is critical?**
+"Volta" is a fictional neobank that was losing users during onboarding. Marketing saw traffic, product saw activation, support saw tickets. Every team had its own number — and none of them explained where the money was leaking. We started with one question: **which onboarding step is critical?**
 
 We answered it with four projects wired into a single **discover → validate → measure → optimize** loop. Each project is a piece of evidence that narrows the case. All data is synthetic, generated deterministically (seed), and reproduced from code: any conclusion can be re-checked by re-running, not taken on faith.
 
@@ -114,7 +114,7 @@ I needed to find where the onboarding flow was actually losing users, and to pro
 
 **RAT v2 methods (projects 18–22):** LTV per user (ARPU × contribution margin × retention months) and blended CAC with bootstrap CIs, Welch t-test anchor vs 45+; liquidity-provider quotes and log-interpolation of the required volume.
 
-A randomized A/B of segment offers with Holm correction and a segment × arm (DiD) interaction; marginal-CAC curves by channel, cheap-first greedy allocation and the break-even scale; a three-arm win-back (auto / light-touch / human) with z-tests and ROI per 10K treated.
+A randomized A/B of segment offers with Holm correction and a segment × arm (DiD) interaction; marginal-CAC curves by channel, cheap-first greedy allocation and the break-even scale. A three-arm win-back (auto / light-touch / human) with z-tests and ROI per 10K treated.
 
 **Code structure:** shared `utils/common.py` (`setup()`, `print_section()`, `CONSTANTS`, `data_path()`), `functions + main()` — importing a module does not run the analysis. Excel reports via `openpyxl`.
 
@@ -189,7 +189,9 @@ Verdict: control 55.8% → treatment 61.5%, **+5.72pp**, p < 0.0001, 95% CI [+3.
 
 ### Evidence #3 — Retention: does the effect hold
 
-Shipping is not the end: we checked the effect on retention with cohort triangles (signup month × age) instead of "the average across everyone". Along the diagonal: cohorts with the new onboarding hold **M3 retention at +9.2pp** over older cohorts → **+€282K/yr incremental LTV**. The new onboarding improves both the first week (faster time-to-value) and month 3 (less churn after the "honeymoon"). Without triangles, this conclusion would hide behind the average.
+Shipping is not the end: we checked the effect on retention with cohort triangles (signup month × age) instead of "the average across everyone". Along the diagonal: cohorts with the new onboarding hold **M3 retention at +9.2pp** over older cohorts → **+€282K/yr incremental LTV**.
+
+The new onboarding improves both the first week (faster time-to-value) and month 3 (less churn after the "honeymoon"). Without triangles, this conclusion would hide behind the average.
 
 A separate **DiD check** separated the causal effect from background trends: M3 retention **+9.09pp** (95% CI [+6.21, +11.96]), flat pre-trends (p = 0.29–0.70), placebo ≈ 0, max |SMD| 0.157.
 
@@ -272,7 +274,9 @@ A loop of four projects beats isolated analyses:
 
 ## Limitations
 
-Volta is a fictional bank and all data is synthetic and seeded: the figures (€208.5K over 12 months, 13.9× ROI, +9.2pp) show **the correctness of the methodology on a modelled product**, not a real launch result. ROI is computed against a €15K dev cost without subtracting margin, so it is an upper bound. The RAT v2 layer prices the portfolio's own recommendations, but on the same synthetic assumptions.
+Volta is a fictional bank and all data is synthetic and seeded: the figures (€208.5K over 12 months, 13.9× ROI, +9.2pp) show **the correctness of the methodology on a modelled product**, not a real launch result.
+
+ROI is computed against a €15K dev cost without subtracting margin, so it is an upper bound. The RAT v2 layer prices the portfolio's own recommendations, but on the same synthetic assumptions.
 
 ## Interactive board
 

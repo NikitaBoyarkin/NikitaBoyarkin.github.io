@@ -27,9 +27,9 @@ tools:
   - uv
 date: 2026-10-20
 updated: 2026-11-01
-bet: "Ranking by expected effect is not a decision: money appears where the model answers not «who ranks higher» but «what is it worth»."
+bet: "Ranking by expected effect is not a decision: money appears where the model answers not 'who ranks higher' but 'what is it worth'."
 rejected:
-  - option: "Reporting ROI as «lift × margin»"
+  - option: "Reporting ROI as 'lift × margin'"
     why: "Units that would have sold anyway also lose margin to the discount. The formula without that term gave +11.0 m RUB instead of −24.4 m RUB."
     cost: "The P&L had to be rewritten after the sign of the result flipped."
   - option: "Letting Qini make the decision"
@@ -63,13 +63,15 @@ The product behind this case models promotions before launch: it should answer w
 
 ## Task
 
-I had to build the measurement-and-decision loop: a counterfactual that does not lie, a lift ledger in roubles, promo P&L, a depth ceiling by category, an experiment design, a model-quality metric and a budget allocation — showing at every step where the estimate can be wrong.
+I had to build the measurement-and-decision loop. A counterfactual that does not lie, a lift ledger in roubles, promo P&L, a depth ceiling by category, an experiment design, a model-quality metric and a budget allocation — showing at every step where the estimate can be wrong.
 
 ## Actions
 
 ### A panel with known truth
 
-561,600 cells: 120 stores × 60 SKUs × 78 weeks, three formats, six categories with 12–35% margin. Promo assignment is not random: the probability rises when the last three weeks were weak. The generator stores eight truth components — base, lift, pantry, cannibalisation, halo, cross-format, noise and an explicit clipping residual — and `feature_columns()` fails if any `truth_*` column reaches the features.
+561,600 cells: 120 stores × 60 SKUs × 78 weeks, three formats, six categories with 12–35% margin. Promo assignment is not random: the probability rises when the last three weeks were weak.
+
+The generator stores eight truth components — base, lift, pantry, cannibalisation, halo, cross-format, noise and an explicit clipping residual — and `feature_columns()` fails if any `truth_*` column reaches the features.
 
 Price and depth are attached with an as-of join on the price version effective in the fact week; joining on `store_id + sku_id` would multiply rows and pick the wrong price.
 
@@ -89,7 +91,9 @@ Promo P&L: revenue +68.5 m RUB, discount 60.0 m RUB, supplier funding +15.6 m RU
 
 ### Test
 
-Cluster design: store is the randomisation unit, the outcome is incremental margin per store-week. ICC 0.2197, MDE 786 ₽ per store-week. Over 1,000 null splits the false-positive rate is 4.3%, power at the MDE 77.8%, CI coverage 95.3%. A classic switchback with a common switch week rejected 100% under the null — week effects absorbed the treatment; a per-store phase with two-way demeaning gives 5.2% and recovers an injected carryover of 0.5 as 0.495.
+Cluster design: store is the randomisation unit, the outcome is incremental margin per store-week. ICC 0.2197, MDE 786 ₽ per store-week.
+
+Over 1,000 null splits the false-positive rate is 4.3%, power at the MDE 77.8%, CI coverage 95.3%. A classic switchback with a common switch week rejected 100% under the null — week effects absorbed the treatment; a per-store phase with two-way demeaning gives 5.2% and recovers an injected carryover of 0.5 as 0.495.
 
 ### Model and policy
 
@@ -99,17 +103,21 @@ The model predicts incremental margin per cell: R² 0.925, Qini 0.963 [0.958; 0.
 
 One planning week, 4,756 candidates after a six-week spacing rule, depth 5–40% capped at the category ceiling. On a 444.8 k RUB budget: optimiser +231 496 ₽, top-15% +136 648 ₽, random +21 888 ₽. Blanket 15% across all candidates loses −851 508 ₽ on 4.45 m. Greedy matches brute force on a small instance.
 
-On a loose 2.22 m RUB budget the binding constraint is the ceiling, not the money: the optimiser spends 841 k RUB and earns +267 850 ₽ across 14 484 cells, leaving 1.38 m RUB unspent, while top-15% reaches only +191 502 ₽ for 1.07 m RUB. The budget stops being the decision as soon as depth is capped.
+On a loose 2.22 m RUB budget the binding constraint is the ceiling, not the money. The optimiser spends 841 k RUB and earns +267 850 ₽ across 14 484 cells, leaving 1.38 m RUB unspent, while top-15% reaches only +191 502 ₽ for 1.07 m RUB. The budget stops being the decision as soon as depth is capped.
 
 ### Superset and Spark
 
 Four SQL marts and a SQLite mart database. The specification describes three dashboards, while the live instance provisions a single "Promo Margin Lab" dashboard with four charts in a 2×2 grid — the gap is labelled rather than hidden. The static render is built from the same queries and its footer marks it as a render, not the live Superset.
 
-The PySpark job (4.2.0 on a local Java 25) reconciles against pandas on 10 stores and 780 store-week rows: a maximum absolute difference of 0.0 across six metrics and no row missing on either side; the generated plan shows a broadcast join, a window and a shuffle. At 16.6 m rows it materialises 166,000 output rows in 14.1 s on `local[4]`. That is a correctness check on a single JVM, not a cluster throughput claim — the artefact `reports/spark_parity.json` says so.
+The PySpark job (4.2.0 on a local Java 25) reconciles against pandas on 10 stores and 780 store-week rows: a maximum absolute difference of 0.0 across six metrics and no row missing on either side. The generated plan shows a broadcast join, a window and a shuffle.
+
+At 16.6 m rows it materialises 166,000 output rows in 14.1 s on `local[4]`. That is a correctness check on a single JVM, not a cluster throughput claim — the artefact `reports/spark_parity.json` says so.
 
 ### Reproducibility
 
-One entry point, `python run.py --stage all`, over the stages data, panel, baseline, ledger, experiment, response, allocation, marts and spark. The `--fast` profile builds a panel nine times smaller (40 stores instead of 120), writes artefacts with a `_fast` suffix and never overwrites the headline numbers. 85 tests, including the Spark-to-pandas parity check and a guard that no `truth_*` column reaches the features.
+One entry point, `python run.py --stage all`, over the stages data, panel, baseline, ledger, experiment, response, allocation, marts and spark.
+
+The `--fast` profile builds a panel nine times smaller (40 stores instead of 120), writes artefacts with a `_fast` suffix and never overwrites the headline numbers. 85 tests, including the Spark-to-pandas parity check and a guard that no `truth_*` column reaches the features.
 
 ## Result
 
@@ -125,7 +133,7 @@ Qini 0.963 does not save the decision: ranking loses −55 396 ₽, a calibrated
 
 The recommendation is **not to continue in the current configuration**: hold depth at the category ceiling and fund only cells with positive expected margin — 3.7% of candidates rather than the whole catalogue. The reason is not the model but the economics: at an actual depth of 25.4% against a 1.0–19.5% ceiling, the discount eats margin faster than the lift returns it.
 
-What would change it: tiered supplier funding (the data carry a flat rate, so tiers are not modelled), a different elasticity (at a 0.85 multiplier the selection changes by 20.4% and profit falls to 168 k RUB; at 1.15 it is 14.6% and 383 k RUB), and a sharper test — an MDE of 786 ₽ per store-week is too coarse to separate policies, while a switchback carries an SE of about 31 ₽.
+What would change it: tiered supplier funding (the data carry a flat rate, so tiers are not modelled). A different elasticity (at a 0.85 multiplier the selection changes by 20.4% and profit falls to 168 k RUB; at 1.15 it is 14.6% and 383 k RUB). And a sharper test — an MDE of 786 ₽ per store-week is too coarse to separate policies, while a switchback carries an SE of about 31 ₽.
 
 ## Limitations
 

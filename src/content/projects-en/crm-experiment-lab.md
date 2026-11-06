@@ -38,7 +38,7 @@ related:
 
 A CRM team ports product A/B habits into campaigns and breaks at randomization. Users are bucketed when they "show up" on launch day rather than when the campaign segment is built. Only part of the late arrivals reach the control arm, the arm shares diverge, and the sample-ratio-mismatch check fires on clean assignment.
 
-The same mistakes repeat on every later layer: the global control group is refreshed by a full reshuffle and the comparison baseline jumps, the campaign effect is read without the price of unsubscribes, and the exposure window is sold as a free variance cut.
+The same mistakes repeat on every later layer: the global control group is refreshed by a full reshuffle and the comparison baseline jumps. The campaign effect is read without the price of unsubscribes, and the exposure window is sold as a free variance cut.
 
 The lab puts all these layers into one synthetic experiment with a known answer, so each step can be checked and made to fail visibly.
 
@@ -106,13 +106,17 @@ uv run python scripts/run_full_pipeline.py
 | Exposure window | SE 0.00066 versus 0.00124 | the window anchors the horizon, it does not cut SE |
 | Guardrails | 1 of 2 breached | unsubscribes fire, the daily cap holds |
 
-The practical read is not "the campaign works" but "it works under an explicit churn budget". The strict guardrail — unsubscribes must not rise — is unreachable at any send volume, because the treated arm is sent to and control is not. Under a 12% budget the send ships at cap 2, and the net maximum also lands at cap 2 (+56.8 per 1,000): fewer sends mean fewer unsubscribes, and the lost uplift is smaller than the churn saved. The readout verdict is Investigate, not Ship: the primary metric wins and the guardrail fails.
+The practical read is not "the campaign works" but "it works under an explicit churn budget". The strict guardrail — unsubscribes must not rise — is unreachable at any send volume, because the treated arm is sent to and control is not.
+
+Under a 12% budget the send ships at cap 2, and the net maximum also lands at cap 2 (+56.8 per 1,000): fewer sends mean fewer unsubscribes, and the lost uplift is smaller than the churn saved. The readout verdict is Investigate, not Ship: the primary metric wins and the guardrail fails.
 
 ## Limitations
 
 The honest headline caveat: `data/experiment_sample.csv` is a 300-row outcomes-schema example with no `group` column, so the headline figures cannot be reproduced from it. Every number above comes from the simulator (`scripts/run_full_pipeline.py`), not from that CSV.
 
-The data is synthetic and comes from a known generator: no interference between users, no bots, no delayed conversions, no logging loss, and the planted lift is constant in time. The GCG and exposure-window comparisons are estimators exercised on one seed, not a power study. There is no real assignment service, metric store or monitoring here: this is a single-experiment playground, not an experimentation platform.
+The data is synthetic and comes from a known generator: no interference between users, no bots, no delayed conversions, no logging loss, and the planted lift is constant in time. The GCG and exposure-window comparisons are estimators exercised on one seed, not a power study.
+
+There is no real assignment service, metric store or monitoring here: this is a single-experiment playground, not an experimentation platform.
 
 ## Documentation
 

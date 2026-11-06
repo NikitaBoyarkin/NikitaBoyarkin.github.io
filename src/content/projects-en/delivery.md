@@ -47,7 +47,7 @@ Delivery is usually measured as one number — the average time. That is not eno
 
 ## Task
 
-I had to build a reproducible analytics loop: land the data in marts, verify it with named quality checks, produce a forecast and compare it honestly with a baseline, locate the bottlenecks, test pre-registered hypotheses, and show a SQL layer with measured optimizations.
+I had to build a reproducible analytics loop: land the data in marts, verify it with named quality checks, produce a forecast and compare it honestly with a baseline. Locate the bottlenecks, test pre-registered hypotheses, and show a SQL layer with measured optimizations.
 
 ## Actions
 
@@ -70,7 +70,9 @@ Rolling-origin backtest: a 28-day test window, four folds, refit every 7 days. F
 
 ### Bottlenecks
 
-Three views on one question. The channel × category decomposition: snacks ≈40.0 min, pizza ≈26.6 min, drinks ≈30.0 min, desserts ≈25.0 min; the channel moves time by tenths of a minute. The load curve: mean time per volume decile falls from 31.88 to 31.24 min, rho = −0.092. City ranking by the `avg_time ~ qty` slope: the top is Усолье-Сибирское (index 2.02), Грозный (1.63), Магадан (1.18), but slope R² is 0.0004–0.0185 — a prioritization aid, not a proven trend.
+Three views on one question. The channel × category decomposition: snacks ≈40.0 min, pizza ≈26.6 min, drinks ≈30.0 min, desserts ≈25.0 min; the channel moves time by tenths of a minute.
+
+The load curve: mean time per volume decile falls from 31.88 to 31.24 min, rho = −0.092. City ranking by the `avg_time ~ qty` slope: the top is Усолье-Сибирское (index 2.02), Грозный (1.63), Магадан (1.18), but slope R² is 0.0004–0.0185 — a prioritization aid, not a proven trend.
 
 ### Hypotheses
 
@@ -87,11 +89,15 @@ The dashboard is a single offline HTML file of ≈81 KB with no CDN and no clien
 
 ## Result
 
-The forecast reaches 6.01% WAPE at the weekly horizon (h=7) with the seasonal baseline; the complex model does not beat it, and that is what the recommendation says. The bottleneck is category, not load (rho = −0.092): snacks take 40.0 min against 26.6 min for pizza, 13.4 min (+50%) longer in every channel. The channel mix is shifting: the mp share grew 5.7 pp in six months. One negative result — H2 on weekends — was rejected by the pre-registered rule: the effect is significant but in the opposite direction.
+The forecast reaches 6.01% WAPE at the weekly horizon (h=7) with the seasonal baseline; the complex model does not beat it, and that is what the recommendation says. The bottleneck is category, not load (rho = −0.092): snacks take 40.0 min against 26.6 min for pizza, 13.4 min (+50%) longer in every channel.
+
+The channel mix is shifting: the mp share grew 5.7 pp in six months. One negative result — H2 on weekends — was rejected by the pre-registered rule: the effect is significant but in the opposite direction.
 
 ## Limitations
 
-The data is aggregated to day × city × channel × category: there is no per-order, courier or restaurant timing. `cost` is a money metric with unconfirmed currency, and `avg_price` does not reconcile with it and is not used. The order sample covers two anonymized cities. The backtest has four folds, so differences of a few hundredths of a point are not meaningful. Nothing here is causal: the tests are associational.
+The data is aggregated to day × city × channel × category: there is no per-order, courier or restaurant timing. `cost` is a money metric with unconfirmed currency, and `avg_price` does not reconcile with it and is not used. The order sample covers two anonymized cities.
+
+The backtest has four folds, so differences of a few hundredths of a point are not meaningful. Nothing here is causal: the tests are associational.
 
 ## Documentation
 

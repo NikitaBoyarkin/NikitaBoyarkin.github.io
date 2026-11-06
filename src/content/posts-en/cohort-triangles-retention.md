@@ -91,7 +91,9 @@ Cohort LTV is the sum of revenue across ages. For a young cohort only the tail u
 
 ## In practice
 
-In the [Cohort Analysis Dashboard](/projects/cohort/) the triangular matrix with triangular decay is built on synthetic data: signup-month cohorts, month ages, retention and ARPU/LTV with an explicit observation-age caveat. The analysis folder is assembled into a pandas + matplotlib/seaborn pipeline, and the output exports to CSV and a `.hyper` extract for Tableau. The same matrix powers the [Volta](/projects/volta/) write-up: retention was read along triangle diagonals, not from the "average".
+In the [Cohort Analysis Dashboard](/projects/cohort/) the triangular matrix with triangular decay is built on synthetic data: signup-month cohorts, month ages, retention and ARPU/LTV with an explicit observation-age caveat.
+
+The analysis folder is assembled into a pandas + matplotlib/seaborn pipeline, and the output exports to CSV and a `.hyper` extract for Tableau. The same matrix powers the [Volta](/projects/volta/) write-up: retention was read along triangle diagonals, not from the "average".
 
 ## Interview Q&A
 

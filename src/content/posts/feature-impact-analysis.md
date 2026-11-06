@@ -24,11 +24,17 @@ draft: false
 
 ## Кратко
 
-Фича выпущена на 100 % пользователей, A/B-тест не проводился, а продакт-менеджер спрашивает: «она дала что-нибудь?» Обычный ответ — посмотреть adoption rate и retention тех, кто фичей воспользовался. Это и есть self-selection bias: пользователи, которые нашли и включили фичу сами, почти всегда сильнее вовлечены, чем те, кто не включил. Разница в retention — это не эффект фичи, это разница между двумя типами пользователей.
+Фича выпущена на 100 % пользователей, A/B-тест не проводился, а продакт-менеджер спрашивает: «она дала что-нибудь?» Обычный ответ — посмотреть adoption rate и retention тех, кто фичей воспользовался.
+
+Это и есть self-selection bias: пользователи, которые нашли и включили фичу сами, почти всегда сильнее вовлечены, чем те, кто не включил.
+
+Разница в retention — это не эффект фичи, это разница между двумя типами пользователей.
 
 Feature Impact Analysis — это методологический фреймворк, который разделяет причинный эффект фичи и смещение отбора.
 
-Когда чистый A/B невозможен (фича уже в проде, есть network effects, этические или юридические ограничения на рандомизацию), на сцену выходят методы causal inference: CUPED для повышения чувствительности метрик, propensity matching для балансировки групп, difference-in-differences для staggered rollout, synthetic control для geo-экспериментов, uplift modeling для гетерогенных эффектов. Ниже — как выбрать метод под кейс и какие ловушки ждут на каждом шаге.
+Когда чистый A/B невозможен (фича уже в проде, есть network effects, этические или юридические ограничения на рандомизацию), на сцену выходят методы causal inference.
+
+Набор такой: CUPED для повышения чувствительности метрик, propensity matching для балансировки групп, difference-in-differences для staggered rollout, synthetic control для geo-экспериментов, uplift modeling для гетерогенных эффектов. Ниже — как выбрать метод под кейс и какие ловушки ждут на каждом шаге.
 
 ## Зачем нужен causal-фреймворк
 
@@ -73,7 +79,9 @@ MLRATE (Meta) делает то же через ML-based regression adjustment, 
     └── Богатые pre-treatment ковариаты? → Propensity Score Matching / Weighting
 ```
 
-Каждый метод имеет ключевое допущение, которое либо выполняется, либо нет — третьего не дано. PSM требует unconfoundedness (все конфаундеры измерены) и overlap. DiD требует parallel trends и no anticipation. Synthetic Control требует, чтобы доноры были в convex hull и не подвергались spillover. IV требует relevance, exclusion restriction, independence и monotonicity — валидные инструменты редки, и метод оценивает LATE (на compliers), а не ATE.
+Каждый метод имеет ключевое допущение, которое либо выполняется, либо нет — третьего не дано. PSM требует unconfoundedness (все конфаундеры измерены) и overlap. DiD требует parallel trends и no anticipation. Synthetic Control требует, чтобы доноры были в convex hull и не подвергались spillover.
+
+IV требует relevance, exclusion restriction, independence и monotonicity — валидные инструменты редки, и метод оценивает LATE (на compliers), а не ATE.
 
 ## Propensity Score Matching: балансировка observational данных
 
@@ -109,7 +117,7 @@ att = (
 print(f"ATT = {att:.4f}")
 ```
 
-Ключевые правила: никаких post-treatment переменных в propensity model (это сразу ломает идентификацию), обязательная проверка common support (если propensity у treated 0.7–0.9, а у control 0.1–0.3 — overlap нет, trim), и balance diagnostics до и после matching — standardized mean difference по каждому ковариату должна упасть ниже 0.1.
+Ключевые правила: никаких post-treatment переменных в propensity model — это сразу ломает идентификацию. Обязательная проверка common support: если propensity у treated 0.7–0.9, а у control 0.1–0.3 — overlap нет, trim. И balance diagnostics до и после matching: standardized mean difference по каждому ковариату должна упасть ниже 0.1.
 
 Версия с весами (IPW) вместо matching:
 
@@ -130,7 +138,11 @@ PSM оценивает ATT (средний эффект на treated), а не A
 
 ## Difference-in-Differences при staggered rollout
 
-Если фича раскатывалась по когортам в разное время (страны, сегменты, платформы), работает DiD: сравниваем изменение метрики до и после между treated и control когортами. Классическая TWFE-регрессия (`outcome ~ treated + post + treated*post`) при staggered adoption даёт biased оценки из-за «forbidden comparisons» (Goodman-Bacon 2021) — уже treated когорты используются как контроль для newly treated. Решение — современные оценки: Callaway & Sant'Anna (2021) или Borusyak-Jaravel-Spiess (2024).
+Если фича раскатывалась по когортам в разное время (страны, сегменты, платформы), работает DiD: сравниваем изменение метрики до и после между treated и control когортами.
+
+Классическая TWFE-регрессия (`outcome ~ treated + post + treated*post`) при staggered adoption даёт biased оценки из-за «forbidden comparisons» (Goodman-Bacon 2021) — уже treated когорты используются как контроль для newly treated.
+
+Решение — современные оценки: Callaway & Sant'Anna (2021) или Borusyak-Jaravel-Spiess (2024).
 
 ```python
 import statsmodels.formula.api as smf
@@ -164,9 +176,13 @@ results.print_summary()
 
 ## Synthetic Control для geo-экспериментов
 
-Один treated geo (страна, регион, город) и несколько donor-гео, не подвергавшихся воздействию, — сценарий для synthetic control. Метод строит взвешенную комбинацию доноров, которая до treatment максимально точно воспроизводит метрику treated, и сравнивает с фактом после. Discord применял SCM для Voice Messages (Бразилия vs Synthetic Brazil), Glovo — для алгоритма ранжирования курьеров в Констанце, PayPal — для Delta CV.
+Один treated geo (страна, регион, город) и несколько donor-гео, не подвергавшихся воздействию, — сценарий для synthetic control. Метод строит взвешенную комбинацию доноров, которая до treatment максимально точно воспроизводит метрику treated, и сравнивает с фактом после.
 
-Ключевые ограничения: доноры не должны быть подвержены spillover (если фича в Бразилии перетекает в Аргентину через общих пользователей, synthetic Brazil contaminated), pre-period должен быть достаточно длинным, а результат локален — экстраполировать на другие рынки нельзя. Placebo-тест: поочерёдно притвориться, что каждый donor — treated, и проверить, что истинный treated действительно выделяется на фоне распределения placebo-эффектов.
+Discord применял SCM для Voice Messages (Бразилия vs Synthetic Brazil), Glovo — для алгоритма ранжирования курьеров в Констанце, PayPal — для Delta CV.
+
+Ключевые ограничения: доноры не должны быть подвержены spillover (если фича в Бразилии перетекает в Аргентину через общих пользователей, synthetic Brazil contaminated), pre-period должен быть достаточно длинным, а результат локален — экстраполировать на другие рынки нельзя.
+
+Placebo-тест: поочерёдно притвориться, что каждый donor — treated, и проверить, что истинный treated действительно выделяется на фоне распределения placebo-эффектов.
 
 ## Гетерогенность: кому фича помогает, а кому вредит
 
@@ -191,7 +207,11 @@ Uplift Random Forest из CausalML даёт Qini-кривую: наскольк�
 
 ## Guardrail-метрики и валидация
 
-Любой causal-анализ без guardrails — это оптимизация вслепую. Airbnb сообщает: ~25 экспериментов в месяц флагаются guardrails, ~20 % останавливаются. Meta использует SRM (Sample Ratio Mismatch) как trust guardrail — если фактическое соотношение групп отличается от ожидаемого, эксперимент невалиден до выяснения. При observational оценке аналогичные guardrails: проверяйте, что нет регресса по revenue, latency, error rate, NPS.
+Любой causal-анализ без guardrails — это оптимизация вслепую. Airbnb сообщает: ~25 экспериментов в месяц флагаются guardrails, ~20 % останавливаются.
+
+Meta использует SRM (Sample Ratio Mismatch) как trust guardrail — если фактическое соотношение групп отличается от ожидаемого, эксперимент невалиден до выяснения.
+
+При observational оценке аналогичные guardrails: проверяйте, что нет регресса по revenue, latency, error rate, NPS.
 
 Робастность оценки проверяется тремя способами:
 

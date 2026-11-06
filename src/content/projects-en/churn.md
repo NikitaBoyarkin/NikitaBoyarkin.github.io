@@ -62,7 +62,7 @@ I needed a churn model whose offline score would survive contact with production
 
 ## Actions
 
-The data is synthetic and deterministic (seed = 42): 12,000 users sign up between Jun 2023 and Jan 2024, a channel-driven tenure (exponential lifetime) and a plan-driven daily activity probability; activity decays slightly approaching churn; the snapshot base rate `base_rate = 0.174` is a mixture artifact, not a churn share.
+The data is synthetic and deterministic (seed = 42): 12,000 users sign up between Jun 2023 and Jan 2024, a channel-driven tenure (exponential lifetime) and a plan-driven daily activity probability. Activity decays slightly approaching churn; the snapshot base rate `base_rate = 0.174` is a mixture artifact, not a churn share.
 
 ### Features and label
 
@@ -101,7 +101,9 @@ Outputs land in `reports/`: `metrics.json` + `evaluation.png` (ROC, PR, SHAP bar
 
 ## Result
 
-LightGBM and logistic regression run even: the synthetic features are nearly linear, and the linear model is no worse — LogReg is marginally ahead on AUC, PR-AUC and Brier (0.062 vs 0.063). The honest finding: boosting earns no trophy here. The project demonstrates a leakage-free evaluation setup, not that GBM beats logistic regression. `recency_days` is so strong that the lift ceiling is low for any model: within the top 10% riskiest users the model catches 54.4% of real churners at 5.44x lift.
+LightGBM and logistic regression run even: the synthetic features are nearly linear, and the linear model is no worse — LogReg is marginally ahead on AUC, PR-AUC and Brier (0.062 vs 0.063). The honest finding: boosting earns no trophy here.
+
+The project demonstrates a leakage-free evaluation setup, not that GBM beats logistic regression. `recency_days` is so strong that the lift ceiling is low for any model: within the top 10% riskiest users the model catches 54.4% of real churners at 5.44x lift.
 
 - **Money threshold:** the score becomes a spending decision — offer cost and retained-customer value set the minimum probability below which no contact pays back.
 - **Honest scale:** on the at-risk subgroup (n = 1,692 of 5,581) lift falls to 1.75x and Brier rises to 0.163 / 0.157 — the headline metrics are earned mostly on users who could not have churned inside the label window.

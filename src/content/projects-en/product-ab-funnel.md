@@ -9,7 +9,7 @@ star:
 track: analytics
 hero: images/product-ab-funnel.svg
 ogImage: /images/og/product-ab-funnel.png
-bet: "The bet: ship not because conversion is «several times stronger», but because its effect is measured and significant while retention has neither an experiment nor an effect estimate."
+bet: "The bet: ship not because conversion is 'several times stronger', but because its effect is measured and significant while retention has neither an experiment nor an effect estimate."
 impact:
   - "SHIP: target conversion activation → paid +19.59% relative (p=0.000946), no SRM (χ²=0.0392, p=0.843)"
   - "ITT check paid per signup: +16.41% (p=0.007967) — the sign of the effect does not depend on the denominator"
@@ -49,11 +49,13 @@ faq:
 
 A subscription B2C service spends on acquisition, but revenue hits a bottleneck. The data live on three grains — user, event, transaction — and 8 616 of 12 000 signups never pay at all. Any monetary metric must declare its denominator explicitly, or numbers across cuts diverge by multiples.
 
-The product team is testing a new onboarding flow. The management question is not «does the variant work» but «should we ship it, and which lever — conversion or retention — moves revenue more».
+The product team is testing a new onboarding flow. The management question is not "does the variant work" but "should we ship it, and which lever — conversion or retention — moves revenue more".
 
 ## Task
 
-I needed to answer three questions in one pass: does the variant produce a statistically significant lift in target conversion without breaking arm ratios and guardrails; where the funnel loses users and which step holds the bulk of the loss; and what moves revenue more — conversion uplift or retention — and what the outcome is: ship, extend or stop. The lever comparison required a single step size, otherwise the conclusion would compare quantities of different magnitude.
+I needed to answer three questions in one pass: does the variant produce a statistically significant lift in target conversion without breaking arm ratios and guardrails; where the funnel loses users and which step holds the bulk of the loss. And what moves revenue more — conversion uplift or retention — and what the outcome is: ship, extend or stop.
+
+The lever comparison required a single step size, otherwise the conclusion would compare quantities of different magnitude.
 
 ## Actions
 
@@ -63,7 +65,9 @@ The `signup → activation → paid_subscription` funnel is computed in DuckDB o
 
 ### A/B analysis
 
-The experiment cohort is 2 552 users (control 1 271 / treatment 1 281). The first check is SRM via χ²; without it, downstream p-values are invalid. The target metric is `paid given activated`: the denominator is activated users, not the whole arm, because that is the step the decision invests in. For the binary metric the analysis reports absolute and relative lift, a 95% CI, the z-statistic and the p-value.
+The experiment cohort is 2 552 users (control 1 271 / treatment 1 281). The first check is SRM via χ²; without it, downstream p-values are invalid.
+
+The target metric is `paid given activated`: the denominator is activated users, not the whole arm, because that is the step the decision invests in. For the binary metric the analysis reports absolute and relative lift, a 95% CI, the z-statistic and the p-value.
 
 ### Guardrails and robustness
 
@@ -87,7 +91,9 @@ The analysis cores are vendored into the repository, so a clean clone runs witho
 | activation | 9 623 | 80.19 | 80.19 | 2 377 |
 | paid_subscription | 3 384 | 35.17 | 28.20 | 6 239 |
 
-The `activation → paid` step absorbs 6 239 of 8 616 losses — 72% of the drop. The entrance loses 2 377 users (19.81%). In the extended funnel `renew given paid` is 76.48% (2 588 users), so post-payment leakage is 7.8 times smaller. Across channels the gap sits almost entirely at payment: `referral` 33.65% overall versus `paid_search` 25.79%; across platforms the gap comes from activation (`ios` 85.41% versus `web` 72.59%).
+The `activation → paid` step absorbs 6 239 of 8 616 losses — 72% of the drop. The entrance loses 2 377 users (19.81%).
+
+In the extended funnel `renew given paid` is 76.48% (2 588 users), so post-payment leakage is 7.8 times smaller. Across channels the gap sits almost entirely at payment: `referral` 33.65% overall versus `paid_search` 25.79%; across platforms the gap comes from activation (`ios` 85.41% versus `web` 72.59%).
 
 ### A/B: the target metric is significant, guardrails did not degrade
 
@@ -109,11 +115,13 @@ The 95% CI of the relative lift on the target metric is [+8.00%; +31.18%], achie
 | conversion, +10% | 1 754.05 | +10.00% |
 | retention, +10% | 1 732.45 | +8.65% |
 
-The ratio is roughly 1.2×, not «several times». The measured variant effect on the ITT base gives LTV 1 856.27 RUB; the conditional lift among activated users extrapolated to everyone is 1 906.97 RUB, but that is an upper bound because activation in the treatment is lower. The conclusion: ship — not because conversion is dramatically stronger, but because its effect is measured and significant while retention has neither an experiment nor an effect estimate.
+The ratio is roughly 1.2×, not "several times". The measured variant effect on the ITT base gives LTV 1 856.27 RUB; the conditional lift among activated users extrapolated to everyone is 1 906.97 RUB, but that is an upper bound because activation in the treatment is lower.
+
+The conclusion: ship — not because conversion is dramatically stronger, but because its effect is measured and significant while retention has neither an experiment nor an effect estimate.
 
 ### Difference from volta
 
-The shape is the same as `volta` (funnel → A/B → ship), but this case's contribution is the measured comparison of the conversion and retention levers at one step. That is what turns «ship because of a p-value» into a decision with a priced alternative.
+The shape is the same as `volta` (funnel → A/B → ship), but this case's contribution is the measured comparison of the conversion and retention levers at one step. That is what turns "ship because of a p-value" into a decision with a priced alternative.
 
 ### Verdict: SHIP
 

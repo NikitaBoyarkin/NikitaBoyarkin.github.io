@@ -138,7 +138,9 @@ Splitting question and SQL in one file plus regression invariants makes the case
 
 ### Interactive board
 
-The same SQL layer at a different scale: a local Trino coordinator holds this project's `analytics.duckdb` and `promo.db` from [Promo Margin Lab](../promo/) as two separate catalogs, and plans one query across both. The table on the board is a single `UNION ALL` statement over two catalogs, not two results stitched together in code — nothing was exported, Trino opens both files read-only in place. Catalogs are declared as static `.properties`, so adding a source is a file plus a coordinator restart, not a pipeline change.
+The same SQL layer at a different scale: a local Trino coordinator holds this project's `analytics.duckdb` and `promo.db` from [Promo Margin Lab](../promo/) as two separate catalogs, and plans one query across both.
+
+The table on the board is a single `UNION ALL` statement over two catalogs, not two results stitched together in code — nothing was exported, Trino opens both files read-only in place. Catalogs are declared as static `.properties`, so adding a source is a file plus a coordinator restart, not a pipeline change.
 
 <iframe src="/demos/trino-federation/index.html" title="Trino federation — one SQL endpoint over two DuckDB marts: per-catalog row counts, event mix and promo profit by category" height="720" loading="lazy" style="width:100%;border:0;border-radius:10px"></iframe>
 

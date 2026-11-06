@@ -148,7 +148,9 @@ The pipeline runs end-to-end from a fixed seed, including the synthetic raw gene
 
 The synthetic SERP layer resembling real traffic is an **inference** — no real impression log exists for this surface, so every ranking and A/B number comes from a model, not a measurement. The oracle ceiling (+38%) follows from the assumed `affinity`/`price_index` anti-correlation, so it is labelled `modeled` and plays no part in the decision.
 
-The experiment is 6 000 searches; the MDE of such a run is 15.57% against the observed −14.26%, so the effect sits at the edge of detectability and the conclusion rests on the significant guardrails, not on the primary metric. Two islands of real data (orders and booking legs) carry no foreign key to the clickstream and are reported separately, never fused with the modeled SERP metrics. Raw third-party data is not committed: the repository holds only the loader, the SERP generator and the SQL.
+The experiment is 6 000 searches; the MDE of such a run is 15.57% against the observed −14.26%, so the effect sits at the edge of detectability and the conclusion rests on the significant guardrails, not on the primary metric. Two islands of real data (orders and booking legs) carry no foreign key to the clickstream and are reported separately, never fused with the modeled SERP metrics.
+
+Raw third-party data is not committed: the repository holds only the loader, the SERP generator and the SQL.
 
 ## Documentation
 

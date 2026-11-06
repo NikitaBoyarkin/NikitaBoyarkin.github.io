@@ -59,7 +59,9 @@ I needed learners to practice workplace English inside a real situation rather t
 
 ## Result
 
-Synchronizing narrative and visualization holds attention better than a static article with pictures: the reader reaches a paragraph and at that moment the chart on the right changes. Splitting MDX and data modules solves the core pain of static sites — mixing text and logic: the narrative stays editable in Markdown, and the visualizations stay typed in TypeScript. A new scene is a new data file + MDX, with no rendering changes.
+Synchronizing narrative and visualization holds attention better than a static article with pictures: the reader reaches a paragraph and at that moment the chart on the right changes.
+
+Splitting MDX and data modules solves the core pain of static sites — mixing text and logic: the narrative stays editable in Markdown, and the visualizations stay typed in TypeScript. A new scene is a new data file + MDX, with no rendering changes.
 
 ## Limitations
 

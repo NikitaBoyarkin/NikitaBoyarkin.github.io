@@ -55,7 +55,7 @@ I needed to measure how far the proxy drifts from the planted truth per category
 
 **The correction.** Split the observed reply signal into two components — sold and unsold — and fitted the mixture by EM over reply and lag signals. The correction is per category, not one constant: the proxy error differs between them.
 
-**Testing the correction.** Scored recovery of the truth on a held-out segment against a 3 pp tolerance, and added a sensitivity test: remove the `SOLD_REPLY_LAG_MAX = 4.5` separator or move the cutoff to 2 days and the recovery must break — otherwise the test proves nothing.
+**Testing the correction.** Scored recovery of the truth on a held-out segment against a 3 pp tolerance, and added a sensitivity test: remove the `SOLD_REPLY_LAG_MAX = 4.5` separator or move the cutoff to 2 days and the recovery must break. Otherwise the test proves nothing.
 
 **Paid visibility.** Gave 10% of listings a random within-category boost. Compared the naive before/after read with a contrast against the holdout on contacts per session; measured guardrails separately — organic contacts and reply rate.
 
@@ -68,7 +68,7 @@ I needed to measure how far the proxy drifts from the planted truth per category
 - **Naive visibility:** 0.4702 → 1.0027 contacts per listing, **+113%** — selection, not an effect.
 - **Causal contrast:** **−0.0116** contacts per session (**−2.47%**), Welch p = 0.308, interval (−0.0346, 0.0084) — zero is not excluded.
 - **Guardrails:** organic contacts **−10.9%**, reply rate **56.6%** against 64.4% for unpaid listings.
-- **Negative control:** the naive estimator must «improve» — the test fails if it does not.
+- **Negative control:** the naive estimator must "improve" — the test fails if it does not.
 
 ## Limitations
 

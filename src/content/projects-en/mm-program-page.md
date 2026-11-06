@@ -2,7 +2,7 @@
 title: Matemarketing 2026 Programme — a static replica
 description: "Rebuilt a conference programme page: a time × hall grid over 91 talks, track filters, a modal and .ics export — then checked the copy against the original with measurements, not eyeballing."
 star:
-  situation: "A conference programme page is a Vue SPA: the data lives in an API and the layout in a bundle, so «make it the same» usually means «make it look similar»"
+  situation: "A conference programme page is a Vue SPA: the data lives in an API and the layout in a bundle, so 'make it the same' usually means 'make it look similar'"
   task: "Take a third-party interface apart down to measurable quantities and rebuild it with no build step and no backend"
   action: "Pulled the programme from the public API, measured the grid on the rendered DOM, rebuilt it in plain HTML/CSS/JS, then ran four independent passes: code review, security audit, browser tests, visual audit"
   result: "The grid matches the original to the pixel: 99 px time column, 420 px hall column, 391 px card, 550 px row, grid top at y = 414; tests catch data and layout drift"
@@ -37,13 +37,13 @@ updated: 2026-11-03
 A conference programme page is a typical SPA: the HTML ships an empty `<div id="app">`, the
 programme arrives from an API and the browser draws it. You cannot copy such a page by saving the
 rendered markup — the saved file has neither the talks nor the grid. The usual answer to this task
-is «I made it look similar», and there is no way to check that claim.
+is "I made it look similar", and there is no way to check that claim.
 
 ## Task
 
 Take the interface apart into measurable quantities — column widths, insets, row height, type
 sizes — and rebuild it with no build step, no backend and no npm. More importantly, replace
-«looks similar» with something checkable: measurements, tests and an explicit list of deviations.
+"looks similar" with something checkable: measurements, tests and an explicit list of deviations.
 
 ## Actions
 
@@ -90,7 +90,7 @@ mutation-checked: a broken counter, a shifted grid and an empty title each fail 
 - Images and the commercial heading typeface are not redistributed — they load from the original
   CDN. Because of CORS the original Loos Wide does not load, so the heading is drawn by the free
   Unbounded, fitted to the ink box (650×22 against 638×22).
-- The header counter shows the number of talks that day, not a fake «people online»: presence in a
+- The header counter shows the number of talks that day, not a fake "people online": presence in a
   static page cannot be invented.
 - The data is a snapshot. `python3 tools/fetch_program.py --check` reports when the original
   programme changes.

@@ -49,7 +49,7 @@ I needed a catalog where the data comes from one machine-owned source, pages are
 
 **Data source.** A Python script calls the GitHub API and writes one TOML file: 47 records with 15 fields each — name, description, stars, forks, releases, licence, language, contributors, last update and others. The API response cache lives outside the repository.
 
-**Ownership split.** The generator rewrites only the frontmatter block under an «updated automatically» marker; the rest of the page stays authored. An `exclude:` field prunes noisy machine values, and explicitly set languages survive a repeated sync.
+**Ownership split.** The generator rewrites only the frontmatter block under an "updated automatically" marker; the rest of the page stays authored. An `exclude:` field prunes noisy machine values, and explicitly set languages survive a repeated sync.
 
 **Build.** Astro 7 with content collections: a `glob` loader reads project and note pages, a Zod schema checks types, and the project page renders metadata and links. The site is static with no client framework.
 

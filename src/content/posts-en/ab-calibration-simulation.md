@@ -25,7 +25,9 @@ draft: false
 
 ## Short version
 
-Statistical methods are sold on asymptotic promises: "with large samples the t-test behaves like this." But in product A/B testing you almost never work in the conditions those promises were proven for: you peek at the data mid-experiment, compare ratio metrics (CTR, RPC), add covariates, slice by segments.
+Statistical methods are sold on asymptotic promises: "with large samples the t-test behaves like this."
+
+But in product A/B testing you almost never work in the conditions those promises were proven for: you peek at the data mid-experiment, compare ratio metrics (CTR, RPC), add covariates, slice by segments.
 
 The only honest way to learn how a method will behave on your data is to run it on a simulation where the true effect is known. Two mandatory tests per module:
 
@@ -106,14 +108,18 @@ mSPRT (mixture Sequential Probability Ratio Test) is built so the probability of
 
 ## In practice
 
-In the [A/B Testing Methodology Toolkit](/projects/ab/) every one of the 15 modules follows this recipe: a seeded generator, an A/A check, power/coverage curves. The result is not "use the t-test" but a set of verified choices: an SRM check on entry, CUPED, delta method for CTR, alpha-spending boundaries, segment ATEs with Benjamini–Hochberg correction, novelty/primacy checks. The tests live in the repo and re-run in CI — a method can't silently rot without anyone noticing.
+In the [A/B Testing Methodology Toolkit](/projects/ab/) every one of the 15 modules follows this recipe: a seeded generator, an A/A check, power/coverage curves.
+
+The result is not "use the t-test" but a set of verified choices: an SRM check on entry, CUPED, delta method for CTR, alpha-spending boundaries, segment ATEs with Benjamini–Hochberg correction, novelty/primacy checks. The tests live in the repo and re-run in CI — a method can't silently rot without anyone noticing.
 
 ## Interview Q&A
 
 <details>
 <summary>❓ How do you make sure a new A/B analysis method works?</summary>
 
-Run it on a simulation with a known truth. The first test is A/A: at effect 0 the share of "significant" results should sit within noise around α (usually 0.05). The second is power/coverage: at a realistic effect the method should catch it with the expected probability, and confidence intervals should cover the true value in ~95% of runs. Calibrate on your own data distribution, including production special cases (ratio metrics, peeking, segment cuts).
+Run it on a simulation with a known truth. The first test is A/A: at effect 0 the share of "significant" results should sit within noise around α (usually 0.05).
+
+The second is power/coverage: at a realistic effect the method should catch it with the expected probability, and confidence intervals should cover the true value in ~95% of runs. Calibrate on your own data distribution, including production special cases (ratio metrics, peeking, segment cuts).
 
 — Nikita Boyarkin
 </details>
@@ -121,7 +127,9 @@ Run it on a simulation with a known truth. The first test is A/A: at effect 0 th
 <details>
 <summary>❓ Why is naive peeking dangerous and what to do about it?</summary>
 
-With constant monitoring of the p-value, the chance of seeing "significance" under the null grows with every look — by the end of the experiment it is far from the advertised 5%. Either alpha-spending boundaries (Pocock, O'Brien–Fleming), which spend the error budget across looks in advance, or always-valid methods like mSPRT, which allow looking any time without penalty. Both approaches are verified by the same A/A simulation.
+With constant monitoring of the p-value, the chance of seeing "significance" under the null grows with every look — by the end of the experiment it is far from the advertised 5%.
+
+Either alpha-spending boundaries (Pocock, O'Brien–Fleming), which spend the error budget across looks in advance, or always-valid methods like mSPRT, which allow looking any time without penalty. Both approaches are verified by the same A/A simulation.
 
 — Nikita Boyarkin
 </details>

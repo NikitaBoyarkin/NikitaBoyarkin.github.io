@@ -3,7 +3,7 @@ title: LinkedIn Content Analytics
 description: "Analytics on my own LinkedIn posts: one parser, four renderers. Formats are compared with confidence intervals — and noise is called noise, not a ranking."
 star:
   situation: "A format ranking whose confidence interval covers the whole field is not an answer: showing it as one is worse than showing nothing"
-  task: "Answer not «how many impressions did I get» but «which format to write next — and is the difference even established»"
+  task: "Answer not 'how many impressions did I get' but 'which format to write next — and is the difference even established'"
   action: "One workbook-parsing core, four renderers (markdown report, HTML dashboard, SVG chart, vault note) and per-post bootstrap intervals instead of a point ranking"
   result: "50,101 impressions, 9,440 reach, 1.71% ER over 12.10.2025 — 11.10.2026; three of four comparisons landed inside the noise, and that is recorded as the result"
 track: analytics
@@ -41,7 +41,7 @@ related:
 
 ## Situation
 
-One workbook, exported by hand from LinkedIn, is the only source of truth about how my content performs. The question is not «how many impressions did I get» but «which format to write next — and is the difference even established».
+One workbook, exported by hand from LinkedIn, is the only source of truth about how my content performs. The question is not "how many impressions did I get" but "which format to write next — and is the difference even established".
 
 A ranking whose confidence interval covers the whole field is not an answer: showing it as one is worse than showing nothing.
 

@@ -29,7 +29,7 @@ github: https://github.com/NikitaBoyarkin/case-jtbd
 
 ## Situation
 
-The first Market & Jobs project: do job segments (JTBD) match the behavioral cohorts from segmentation.
+Do job segments (JTBD) match the behavioral cohorts from segmentation? This is the first Market & Jobs project.
 
 ## Task
 
