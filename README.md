@@ -130,6 +130,9 @@
 Обозначения: **page** — страница кейса на сайте · **repo** — исходники
 на GitHub · **demo** — то, что можно запустить.
 
+Таблицы ниже — кураторская выборка: 17 из 31 кейса, остальные видны
+только на доске `/projects/` и в `src/content/projects/`.
+
 ### `track: experiments`
 
 | Проект | Что показывает | Ссылки |
@@ -252,13 +255,13 @@ Lighthouse CI работает отдельно — см. [CI/CD](#cicd).
 │   ├── content.config.ts   # схемы Zod, 11 коллекций
 │   ├── content/            # Markdown и MDX всех коллекций
 │   ├── layouts/            # Base.astro, Post.astro
-│   ├── components/         # 61 компонент
+│   ├── components/         # 60 компонентов
 │   ├── lib/                # чистая логика: metrics, graph…
-│   ├── pages/              # 48 модулей маршрутов
+│   ├── pages/              # 47 модулей маршрутов
 │   ├── data/               # данные графиков, github-activity
 │   └── styles/             # global.css, blog.css
 ├── scripts/                # OG, синхронизация, check_site
-├── tests/lib/              # 54 набора bun:test
+├── tests/lib/              # 61 набор bun:test
 ├── docs/                   # PRD, ADR, SPEC
 ├── monitoring/             # RED-стек: Prometheus, Grafana
 └── public/                 # картинки, шрифты, демо
@@ -291,8 +294,8 @@ Lighthouse CI работает отдельно — см. [CI/CD](#cicd).
 
 | Коллекция | Файлов | Язык |
 |---|---|---|
-| `projects` | 22 | RU |
-| `projects-en` | 22 | EN |
+| `projects` | 31 | RU |
+| `projects-en` | 31 | EN |
 | `volta-parts` | 23 | RU |
 | `volta-parts-en` | 23 | EN |
 | `posts` | 24 | RU |
@@ -484,9 +487,11 @@ PostHog API, а не публичный токен проекта.
 отдельным workflow после успешного деплоя, без переменных аналитики,
 поэтому оценки остаются чистыми.
 
-Пороги Lighthouse (`.lighthouserc.json`, 18 адресов): accessibility,
-best-practices и SEO — **ошибки** при ≥ 0.95, performance —
-**предупреждение** при ≥ 0.85.
+Пороги Lighthouse (`.lighthouserc.json`, 21 адрес): accessibility и
+best-practices — **ошибки** при ≥ 0.95 везде; SEO — **ошибка** при ≥ 0.95,
+кроме `/repo-audit/` и `/404`, где он выключен; performance — тоже
+**ошибка**, при ≥ 0.85 (0.75 для `/repo-audit/` и `/404`, 0.9 для
+`/projects/volta/` и `/colleague/`).
 
 Не пушьте в `master`, пока в `Settings → Pages → Build and deployment`
 не выбрано `GitHub Actions`.
