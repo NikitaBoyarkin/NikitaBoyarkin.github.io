@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-04T02:58:34.500Z",
+  "generated_at": "2026-11-07T01:45:34.957Z",
   "site_url": "https://nikitaboyarkin.github.io",
   "projects": [
     {
@@ -194,7 +194,7 @@
         "superset"
       ],
       "github": "https://github.com/NikitaBoyarkin/delivery-control-tower",
-      "demo": null,
+      "demo": "https://nikitaboyarkin.github.io/delivery-control-tower/",
       "private": false,
       "href": "https://nikitaboyarkin.github.io/projects/delivery/"
     },
