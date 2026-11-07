@@ -70,6 +70,19 @@ uv run python -m python_analytics      # end-to-end pipeline
 
 The key difference from one-off analysis scripts is structure and testability: modules are small and single-purpose, requirements are documented in a PRD, and tests keep coverage ≥80%. You can extend the tool and not fear breaking existing behavior.
 
+## What I learned
+
+The reusable unit in analytics is not a script but a module with a contract. Once a module answers a single requirement and a test holds that requirement, the next analysis starts from something you can hand to a colleague instead of retyping load-clean-plot.
+
+The second lesson is what coverage actually means. A coverage percentage is worth little on its own; what is worth a lot is the link between a test and a requirement, so a failing test names the promise that broke rather than the line that turned red. That traceability is what makes the toolkit safe to change.
+
+## Discussion points
+
+- **Why modules rather than one large script.** A single-purpose module with a test can be reused and changed without reading the whole pipeline.
+- **Why requirements are traced to PRD items.** A test that names its requirement turns a red run into a diagnosis.
+- **Why RFM was not used here.** The data are cross-sectional with no transaction history, so RFM would invent recency the data do not contain.
+- **What I would do differently.** Extend the tests to the report layer, which is currently the thinnest part of the chain.
+
 ## Limitations
 
 The pipeline targets tabular CSVs and a basic EDA set — it is not a framework for arbitrary pipelines. The ≥80% coverage applies to the package modules, not to user analyses built on top of them.

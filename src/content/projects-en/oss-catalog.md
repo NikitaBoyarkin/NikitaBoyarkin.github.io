@@ -68,6 +68,19 @@ I needed a catalog where the data comes from one machine-owned source, pages are
 - The build never goes to the network: the site reads only committed frontmatter, so the deploy is reproducible.
 - The validator passes on every page, and `astro check` catches schema drift before the build.
 
+## What I learned
+
+A catalog is a projection of machine data, not a hand-kept table. While there is one source and pages are built from it, a card cannot drift from GitHub: a divergence becomes a broken build rather than an editorial slip. The ownership split — the generator rewrites only the block under the marker, everything else stays authored — is what makes a repeated sync safe.
+
+The boundary: build reproducibility here follows from the site reading committed frontmatter and never touching the network, not from good architecture in the abstract. The CI ordering from cheap gate to expensive one is likewise a consequence — the validator and Python tests need no Astro dependencies. And unused fields plus Pagefind with no search UI are recorded as debt, not presented as features.
+
+## Discussion points
+
+- **Why a TOML file rather than an API call at build time.** A build with no network is reproducible; otherwise the deploy depends on API availability and rate limits.
+- **Why an ownership marker rather than generating the whole page.** Authored edits have to survive a re-sync, or every run wipes out manual work.
+- **Where validation stops helping.** It is mechanical: description drift, placeholders and alt text remain a human pass, and the page-count test only holds a floor.
+- **What I would change under real traffic.** Fields with no consumer and Pagefind with no UI would either get a renderer or be cut — right now they are debt.
+
 ## Limitations
 
 Validation is mechanical: description drift, placeholders and alt text remain a human or separate editorial pass.

@@ -73,6 +73,19 @@ The value is in the completeness of the cycle. The typed event catalog and PII s
 - **Onboarding:** completion 55.9% → 70.8% (+26.6% relative), χ² = 40.10, p < 0.0001 at SRM p = 0.90 — uneven buckets do not explain the effect.
 - **Money and speed:** 6.3% of completed signups reach a paid upgrade (107 of 1,709) for $1,712 of revenue at $1.00 ARPU; the median signup-to-first-core-action time is 2.0 h.
 
+## What I learned
+
+A metric is not a number in a dashboard but a definition with an address. As long as events are typed and live in one catalog, the funnel, the cohort and the A/B all count the same thing; once the definition scatters across one-off queries, every number becomes a version with nothing to check it against. Trust in a metric turns out to follow from instrumentation discipline, not from how careful the analyst is.
+
+The second lesson is about symmetry in reporting. Running the same calculation in Python and in SQL is not duplication but a check: a disagreement between the two is a bug you found, not a licence to pick the convenient result. The SRM check is the same logic one level up: before explaining an effect, confirm that the groups being compared are comparable.
+
+## Discussion points
+
+- **Why PostHog rather than a hand-rolled event log.** A tool with a typed catalog and feature flags gives one contract for an event and one source for the experiment variant instead of two independent sources of truth.
+- **Why the event catalog matters more than the tool itself.** Swapping the analytics backend rewrites the transport but not the meaning of an event — while the definition lives in the catalog, the metrics move with it.
+- **Where the line between demo and production runs.** A simulator gives a controlled, reproducible stream, but it tests neither traffic quality nor event drift — in production the first thing you need is monitoring for instrumentation coverage.
+- **What I would do under real traffic.** Reconcile capture counts against actual requests and set an alert on volume drops in key events before computing any experiment effect.
+
 ## Limitations
 
 Traffic comes from a simulator, not real users: the event stream is seeded, so every number above demonstrates the methods rather than a production result. The value is the instrumentation discipline and the complete cycle, where every step reproduces.

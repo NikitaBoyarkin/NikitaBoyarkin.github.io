@@ -146,6 +146,19 @@ The table on the board is a single `UNION ALL` statement over two catalogs, not 
 
 [Open the board full screen →](/demos/trino-federation/index.html)
 
+## What I learned
+
+The same query supports opposite business conclusions depending on the data, so a case is honest only when it shows both. The real-data case that overturns the synthetic one is the most valuable part: it separates the SQL techniques that transfer from the properties of generated data that do not.
+
+The second lesson is that a case library becomes trustworthy when it checks itself. Regression invariants and a dbt layer turn "the query looks right" into "the query still returns the pinned answer", and that is what lets the collection grow without drifting.
+
+## Discussion points
+
+- **Why one case per file rather than one long script.** A self-contained case can be read, run and checked in isolation.
+- **Why a real-data case is included.** It marks the boundary where synthetic patterns stop predicting real behaviour.
+- **Why every case carries an invariant.** A pinned deterministic result makes a change to the data or the SQL visible instead of silent.
+- **What I would do differently.** Add the real-data case earlier, because it reframes how every synthetic finding should be read.
+
 ## Limitations
 
 25 of 26 cases are synthetic: their numbers describe the shape of generated data, not a real product's behavior. Case 26 on UCI Online Retail II shows how far the conclusion can flip on real data (72.4% repeat vs 3.5%) — that is the honest boundary of applicability: the SQL patterns transfer, the specific metrics do not.

@@ -68,6 +68,19 @@ I needed campaigns to stop sending the same offer to every client, so I owned th
 
 Revenue concentration is measured, not asserted: **Gini = 0.324**, and the top 20% of clients hold **38.2%** of revenue. At Risk + Hibernating ≈ **50%** of the base — the main reactivation pool, described as concrete personas for targeting.
 
+## What I learned
+
+Segmentation is useful only when it survives a check that the segments mean something. Measuring concentration — how much revenue the top group actually holds — turns a list of personas into a claim you can defend; without it, the segments are labels with no evidence behind them.
+
+The second lesson is that RFM is a rule, not a model. The boundaries are set by the analyst and will move on another dataset; that is acceptable as long as the rule is declared a convention and the business meaning is checked separately rather than inferred from the labels.
+
+## Discussion points
+
+- **Why segments are built from score combinations, not score sums.** Summing collapses distinct profiles into one bucket and erases the distinction the segmentation exists to make.
+- **Why concentration is measured with a curve and a coefficient.** It converts "these clients matter" from an assertion into a number with a shape.
+- **Why RFM here rather than a clustering model.** The axes are interpretable for marketing, and the goal was a rule the team can act on, not a latent space.
+- **What I would do differently.** Check boundary stability on another period before shipping the personas.
+
 ## Limitations
 
 The segmentation runs on a synthetic, reproducible extract (seed = 42) — the effect size here is not the point; the value is the scoring methodology and the concentration check. RFM is a rule, not a model: the score thresholds are set by the analyst and would need revision on a different dataset.

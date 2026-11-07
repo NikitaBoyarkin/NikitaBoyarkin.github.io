@@ -144,6 +144,19 @@ uv run streamlit run app.py           # dashboard on :8501
 
 The pipeline runs end-to-end from a fixed seed, including the synthetic raw generation, so a clean clone reproduces these numbers.
 
+## What I learned
+
+An offline gain that does not survive a rollout is not a gain but a property of the model's assumptions. The case exists to make that gap visible before release: the rollout is the instrument that prices the offline metric, and here it priced it negative.
+
+The second lesson is that when the production policy beats every trained model, the bottleneck is usually the data, not the objective. The production blend sees a relevance signal the click logs do not contain, so optimising money on the wrong signal buys clicks and calls it revenue. The next move is to fix the signal, not the loss function.
+
+## Discussion points
+
+- **Why the verdict came from a guardrail, not the primary metric.** Revenue was inconclusive, while clicks and conversion breached the threshold significantly.
+- **Why offline NDCG cannot be the release gate.** A policy with a better ranking score earned less money than one with a worse score.
+- **Why both policies sit on one information set.** Only then does the difference become a price of the choice rather than a confound.
+- **What I would do differently.** Log a relevance signal before training a ranker — otherwise the model has no chance to see what the production blend sees.
+
 ## Limitations
 
 The synthetic SERP layer resembling real traffic is an **inference** — no real impression log exists for this surface, so every ranking and A/B number comes from a model, not a measurement. The oracle ceiling (+38%) follows from the assumed `affinity`/`price_index` anti-correlation, so it is labelled `modeled` and plays no part in the decision.

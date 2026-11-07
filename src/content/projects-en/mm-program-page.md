@@ -84,6 +84,33 @@ Verification: `tests/test_data.py` — 9 tests, 2,370 data-invariant assertions;
 screenshots at 1440 and 390 px, graceful degradation without data). Both suites are
 mutation-checked: a broken counter, a shifted grid and an empty title each fail the matching test.
 
+## What I learned
+
+"Looks similar" and "matches" are different claims, and the difference between them is measurable.
+Once the interface is broken down into columns, insets, row height and type sizes, the replica
+becomes checkable: the grid either agrees with the original or it does not, and a test catches a
+shift before the eye does. Measurement is the only thing separating a replica from an impression,
+and it is also what makes the list of deviations honest.
+
+The boundary matters more than the result here: the replica does not claim authorship of the
+content. The programme, the texts and the design tokens come from the original; only the
+reproduction of layout and data was checked. The deviations are listed rather than hidden, and
+almost all of them follow from constraints, not choices: the heading typeface does not load
+because of CORS, and the counter shows the number of talks instead of "people online" because
+presence cannot be invented in a static page.
+
+## Discussion points
+
+- **Why take the SPA apart before measuring instead of saving the markup.** The saved HTML holds
+  neither the talks nor the grid: the data lives in an API, and without reconnaissance there is
+  nothing to copy.
+- **Why pull the data from the API rather than scrape the DOM.** The API hands over structure
+  directly and makes drift between snapshot and original detectable.
+- **Where the replica honestly diverges.** The heading typeface and images are not redistributed for
+  licence and CORS reasons, so the deviation is measured against the ink box rather than papered over.
+- **What was checked and what was not.** Tests hold the data, `grid-area` and rendering, but the
+  replica does not replace the original and does not claim authorship of its content.
+
 ## Limitations
 
 - No backend: no auth, no personal cabinet, no server-side favourites, no chat or player.

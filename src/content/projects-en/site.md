@@ -62,6 +62,19 @@ I needed publishing a project to be a content change and not a code change, so I
 
 Content collections with Zod are a contract between content and presentation: invalid frontmatter breaks the build, not the deploy. `withBase()` encapsulates the GitHub Pages base path — no link hardcodes the base. The "content = `.md`, presentation = `.astro`" split means adding a project requires no code changes.
 
+## What I learned
+
+Publishing as a content change rather than a code change is a property of the contract, not a convenience. A Zod schema makes frontmatter checkable at build time, `withBase()` keeps the base path out of every link, and together they reduce a new project to adding a file. Errors surface at build, before the deploy rather than after it.
+
+The boundary: all of this is fitted to one hosting setup — a GitHub Pages user site served from the root. Moving to a project page would require changes to `withBase()` and the deploy workflow, so part of the design is a consequence of the platform rather than an architectural choice. Validation is finite too: it covers structure and links, not the quality of the prose or the correctness of the data in the cases.
+
+## Discussion points
+
+- **Why content collections rather than a plain Markdown folder.** A schema fails the build instead of shipping a broken page to production.
+- **Why `withBase()` rather than relative links.** One mechanism covers links and images alike and survives a change of base path.
+- **Where it breaks on another host.** A root path and a user site are assumptions at the foundation, so a project page would force changes in both paths and deployment.
+- **What is not checked.** The validator holds structure and links, not the quality of the prose or the correctness of the data in the cases.
+
 ## Limitations
 
 The site is built for one hosting setup: GitHub Pages as a user site with `base: '/'`. Moving to a project page or another host would require changes to `withBase()` and the deploy workflow. Validation covers structure and links, not content.

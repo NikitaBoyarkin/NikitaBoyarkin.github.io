@@ -111,6 +111,19 @@ The `tests/` suite re-runs every calibration with assertions:
 - CUPED on the pipeline run: variance −17.7%, SE 0.00360 → 0.00327;
 - delta-method CTR: +0.51 pp lift at p < 0.0001, SRM p = 0.8376.
 
+## What I learned
+
+A method is correct not because the literature says so but because a run could have failed. The claim that Type I error holds at alpha becomes a property only when it shows up under the null on an actual run, and power shows up on the curve under a real effect. So the toolkit collects demonstrations rather than formulas: each one shows the assumption whose violation breaks the method.
+
+The second point is that every correction is paid for with an assumption, and that assumption travels with the result. CUPED needs a pre-period covariate that correlates with the outcome and is untouched by assignment; always-valid inference trades the freedom to peek for wider boundaries; a multiple-testing correction controls exactly the family you declared in advance. The design lets you assert a controlled error rate within a declared stopping rule and a declared metric family — and forbids extending it to a metric added after you looked at the data.
+
+## Discussion points
+
+- **Why calibration by simulation instead of a citation.** Asymptotics assumes what the data may not deliver; only a run under a known generator shows the actual error rate.
+- **Why CUPED instead of buying more traffic.** The pre-period is already collected and independent of assignment, so variance drops without new users.
+- **Why alpha-spending boundaries instead of a promise not to peek.** The observer chooses the stopping time, and a fixed-horizon p-value no longer means what it is credited with at that moment.
+- **Where validity ends.** One generator, one metric family, one randomization scheme: a clean calibration is a property of the implementation, not a guarantee for production traffic.
+
 ## Limitations
 
 The numbers come from simulations with a known DGP, not production traffic: calibration confirms the implementation is correct, but it does not guarantee that real data satisfies the assumptions. This is a set of tools, not a substitute for a sound experiment design.

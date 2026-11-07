@@ -127,6 +127,19 @@ The shape is the same as `volta` (funnel → A/B → ship), but this case's cont
 
 No SRM, the target metric is significant, the effect is above MDE, the direction is robust to the choice of denominator, and guardrails did not degrade. Post-release monitoring keeps activation rate, cancel rate among payers and `paid given activated`.
 
+## What I learned
+
+"The test passed" is not a shipping decision; a decision has a price of the alternative. Comparing conversion and retention at one step turned "ship because it is significant" into "ship because this lever is measured and the other one is not" — the comparison is what makes the verdict management-grade rather than statistical.
+
+The second lesson is about the denominator of a money metric. The same funnel yields different-sounding numbers depending on whether you divide by signups or by activated users, and the whole-group check exists because a post-treatment denominator can flip the sign. It also stops the choice of denominator from becoming the result.
+
+## Discussion points
+
+- **Why the target metric is payment among activated users, not across the group.** That step carries the bulk of the funnel's loss, and the investment goes precisely there.
+- **Why the whole-group check is mandatory.** Conditioning on a post-treatment variable can bias the effect, and only an intent-style check shows the sign survives the switch of denominator.
+- **Why the levers are compared at an equal step.** Setting a conversion lift against an arbitrary shift of the retention curve compares quantities of different size.
+- **What I would do differently.** Run a real retention experiment before claiming which lever is stronger — the current comparison is a model, not a measurement.
+
 ## Limitations
 
 The data are fully synthetic: the variant's effect, the shape of the retention curve and the funnel are built into the generator (seed 42), so a significant result is expected by construction and is not evidence about a real product. The target metric is conditioned on activation — a post-treatment variable; the ITT check reduces but does not remove that risk.

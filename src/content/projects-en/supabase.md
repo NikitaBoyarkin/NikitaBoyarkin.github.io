@@ -64,6 +64,19 @@ Every table has Row Level Security enabled. A user only ever sees rows of their 
 
 Analytics is computed where the data lives: SQL views and `v_results` mean metrics and experiment results are consistent across any client that connects to the database — dashboard, BI tool, or ad-hoc SQL all see the same numbers. The concluded A/B shows control 29.6% vs treatment 40.7%, **+11.1pp** at p ≈ 1.7e-10 (χ²).
 
+## What I learned
+
+When the calculation lives in the database, a metric's definition stops being the property of one client. The dashboard, a BI tool and an ad-hoc query all read the same views, so a disagreement between them is a signal of a bug rather than a debate about whose report is right. Trust in the number is guaranteed by the fact that it cannot be computed differently.
+
+The second lesson is about isolation as part of analytics rather than a layer on top of it. When the rule for row access is set on the table rather than in report code, "the metric for one organization" and "the metric for everyone" are the same query under a different context — and a data leak becomes a configuration error you can see immediately.
+
+## Discussion points
+
+- **Why compute in the database rather than in the application.** A view is the one place where a metric's definition is written once; the app and the BI tool read the result instead of each reproducing the logic their own way.
+- **Why RLS rather than a filter in the code.** A rule set on the table applies to any client, including the one someone wires up tomorrow, whereas a dashboard filter only protects the dashboard.
+- **Where applicability ends.** A seeded stream tests the architecture and the reproducibility of the calculation, not behaviour at real volume, on late-arriving events or under concurrent writes.
+- **What I would do under real traffic.** Add time-based partitioning for events, indexes behind the views and a key-rotation policy for ingest — otherwise the calculation stays correct while becoming too expensive to run.
+
 ## Limitations
 
 The A/B events are seeded, so the value is not the effect size itself but the fact that the experiment is computed in the database, isolated per tenant, and reproducible by any client. There is no product story behind the numbers — this demonstrates architecture, not a real launch result.

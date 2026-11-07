@@ -71,6 +71,19 @@ I needed to decompose the drop down to a concrete segment and prove the attribut
 - **Full attribution, zero remainder:** decile universe −£529,190.59 + customers whose first purchase is in the window +£181,619.08 + guests +£232,018.44 = **−£115,553.07**. The decile view cannot see the last two groups — they are explicit addends now, not an "unexplained" gap.
 - **The bug that was fixed:** the tree used to mix populations (`users` and `orders` named-only, AOV over total GMV, `orders_per_user` including guests), so the old factor split described no coherent population. The old "169% of the drop" headline is the same defect: £195,218.25 / £115,553.07. Against the named base it is 56.2%; against the decile universe, 36.9%.
 
+## What I learned
+
+An RCA is worth exactly as much as its arithmetic reconciles. A segment that "explains a lot" is a story; a decomposition whose parts sum back to the total is a proof. The zero residual here is not a formality — it is what separates an explanation from a convenient slice fitted to an answer you already suspected.
+
+The second lesson is structural rather than statistical. When factors in a tree are computed on different denominators, the output looks analytical and describes no population at all — hence the earlier headline where the share of the drop exceeded the whole. The cure is not care but a contract: every factor runs on one population, and anything outside it becomes an explicit addend rather than a silent gap.
+
+## Discussion points
+
+- **Why Shapley rather than a plain before-minus-after difference.** Only Shapley keeps additivity when factors interact; plain differences do not sum back to the total.
+- **Why the guest addend is kept separate.** Guests enter neither average order value nor orders per user, so folding them in would distort every factor above.
+- **Why the ground-truth tier matters more than the size of the drop.** A correct method must land inside the pre-set segment tier; that is what makes the case a test of the method.
+- **What I would do differently.** Write the population contract into the tree definition and lock it with a regression test, instead of discovering the mixing after the fact.
+
 ## Limitations
 
 The data is real, but the drop is **injected** and seeded: the case tests the correctness of the RCA method, not a reproduction of a real incident.

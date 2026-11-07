@@ -91,6 +91,19 @@ The cohort view matters more than average retention: it exposes churn speed and 
 - **Python inside Tableau:** 4 calculations are deployed to a TabPy server (localhost:9004) by `tabpy/deploy.py` — 6 endpoints, with Python executed inside Tableau.
 - **Tests:** 65 (26 tabpy + 16 real_data + 14 cohort_analysis + 9 tableau_export) keep the pipeline reproducible.
 
+## What I learned
+
+A cohort analysis answers a different question than "what is the product's retention": it answers "which cohort behaves worse, and at what age". The unit of decision changes — a single average gives way to the age dimension, and "is this normal?" becomes "compared to whom". An averaged curve welds cohorts of different ages into one line and hides exactly the divergence the analysis exists to expose.
+
+The second lesson is about the comparability conditions built into the metric. ARPU and LTV grow with observation time, so younger cohorts look worse because their history is short, not because they behave worse. A metric that encodes tenure ranks cohorts by how long you have watched them; to measure the product it needs a fixed horizon.
+
+## Discussion points
+
+- **Why a matrix, not a single retention curve.** One curve is an average over cohorts of different ages; the matrix keeps the age dimension the average erases.
+- **Why the zero period is full by definition.** Everyone is active in the join month, so it carries no information about churn and cannot be used to compare cohorts.
+- **Why LTV is compared only at an equal horizon.** Without equal observation age, cohorts are ranked by exposure time, not by behaviour.
+- **What I would do differently.** Make LTV at a fixed horizon the headline and treat cumulative LTV as a diagnostic, not a basis for ranking.
+
 ## Limitations
 
 LTV of younger cohorts is understated due to short history — compare LTV correctly only at equal cohort "age." The data is synthetic, so the numbers illustrate the method, not the behavior of a real product.

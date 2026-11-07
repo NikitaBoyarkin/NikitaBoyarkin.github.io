@@ -70,6 +70,19 @@ I needed to measure how far the proxy drifts from the planted truth per category
 - **Guardrails:** organic contacts **−10.9%**, reply rate **56.6%** against 64.4% for unpaid listings.
 - **Negative control:** the naive estimator must "improve" — the test fails if it does not.
 
+## What I learned
+
+Before trusting a metric, measure how wrong it is against a known answer. The proxy looked reasonable until it was checked against the planted truth; the finding is not the metric but the size and direction of its error. And when that error differs by category, a single constant does not fix it — one global factor repairs some categories and breaks others.
+
+The second lesson is the difference between a gain and selection. A naive before-and-after showed a multiple increase in contacts; the holdout showed paid visibility does not create demand, it redistributes it. The gap between "the number went up" and "the number went up because of the treatment" is a control group, and its absence is the default failure mode of product metrics.
+
+## Discussion points
+
+- **Why a synthetic base with planted truth.** It lets the estimator be scored against an oracle rather than against a narrative.
+- **Why the correction is per category, not a single constant.** The proxy error is not uniform, so one global multiplier would fix some categories and corrupt others.
+- **Why sessions were randomised, not listings.** The boost is bought endogenously, so randomising listings would compare seller types rather than the boost.
+- **What I would do differently.** Check the minimum detectable effect before running the test: the design could not see the effect it was asked about.
+
 ## Limitations
 
 The data is synthetic: this is evidence about a measurement mechanism, not about Avito. The generator defines a world in which the mixture is recoverable, so the correction checks a specification rather than validating against an independent source.

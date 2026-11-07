@@ -101,6 +101,19 @@ What is clean is not AUUC or QINI but the segment recovery and corr(τ) = 0.50�
 | new | 0.110 | 0.126 | 0.120 |
 | returning | 0.013 | 0.018 | 0.019 |
 
+## What I learned
+
+CUPED does not improve the answer — it makes the same answer cheaper. The point estimate stays where it was and only its uncertainty shrinks, so "do we need more traffic" becomes "do we have a pre-period covariate". That is the portable principle: variance can often be bought from the past rather than the future, provided the covariate is measured before assignment and is unaffected by it.
+
+The second point is about what an uplift estimate actually measures. The aggregate curve metrics are noisier than they are discriminating: at this sample size even an oracle ranking by the known true effect sits close to zero, and a random scorer sits where it belongs. What reproduces steadily is not the curve but the order of segments. The design lets you assert "the effect is stronger on new than on returning" and forbids "the effect on this user equals this much": an individual effect is never observed on real data.
+
+## Discussion points
+
+- **Why CUPED instead of a larger sample.** The pre-period covariate is already collected and independent of assignment, so the error drops without new traffic.
+- **Why the ship threshold is fixed before the experiment.** A rule chosen after seeing the result fits the decision to noise.
+- **Why the verdict rests on segment order, not AUUC.** The curves are noise-dominated at this size: even the oracle barely separates from zero, so models cannot be compared on them.
+- **Where validity ends.** Synthetic data with a known heterogeneous effect is the only reason recovery is checkable at all; in production an individual effect is never observed.
+
 ## Limitations
 
 The latent ground-truth τ is 0.60 (new) / 0.08 (returning), but the *conversion* uplift is ~0.11 / 0.01 because the sigmoid at a high baseline conversion (~71%) damps large latent effects. Comparing predicted binary uplift to latent τ would be a scale mismatch, so the report uses rank correlation (scale-free) and per-segment empirical recovery.

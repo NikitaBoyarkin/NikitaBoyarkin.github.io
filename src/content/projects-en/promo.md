@@ -135,6 +135,19 @@ The recommendation is **not to continue in the current configuration**: hold dep
 
 What would change it: tiered supplier funding (the data carry a flat rate, so tiers are not modelled). A different elasticity (at a 0.85 multiplier the selection changes by 20.4% and profit falls to 168 k RUB; at 1.15 it is 14.6% and 383 k RUB). And a sharper test — an MDE of 786 ₽ per store-week is too coarse to separate policies, while a switchback carries an SE of about 31 ₽.
 
+## What I learned
+
+Revenue and profit can move in opposite directions, and a promo that "worked" by the first metric loses money by the second. The discount is paid on units that would have sold at full price, so the incremental-profit calculation must subtract what the lift did not create; without that term the sign of the result flips.
+
+The second lesson is that a ranking metric is not a decision rule. Near-perfect ordering still loses money when the policy is "take the top slice of the list": ranking says who is higher, not whether anyone is worth the spend. The decision lives at a threshold expressed in money, not in the order.
+
+## Discussion points
+
+- **Why the profit calculation includes margin lost on baseline units.** Without that term the promo looks profitable; the term is what turns "revenue up" into "profit down".
+- **Why a calibrated threshold beats selection by score.** Selection by rank ignores whether expected margin is positive; a threshold prices every cell.
+- **Why the synthetic base has known truth.** It lets both the estimator and the allocator be checked against an oracle rather than a story.
+- **What I would do differently.** Model tiered supplier funding and a real season instead of a flat rate and a single week.
+
 ## Limitations
 
 The data are synthetic: that is a feature, not a discount — the truth is known, so the estimator can be scored against an oracle. But real promo decisions need real data: external validation on a public dataset is not done.

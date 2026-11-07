@@ -110,6 +110,19 @@ The practical read is not "the campaign works" but "it works under an explicit c
 
 Under a 12% budget the send ships at cap 2, and the net maximum also lands at cap 2 (+56.8 per 1,000): fewer sends mean fewer unsubscribes, and the lost uplift is smaller than the churn saved. The readout verdict is Investigate, not Ship: the primary metric wins and the guardrail fails.
 
+## What I learned
+
+The failure was structural, not statistical: where randomization happens decides what the test can even assert. If bucketing happens when the segment is built, arm shares are a property of the design and the SRM check confirms cleanliness. If it happens at first exposure, the shares become a property of behavior and the check fires on correct assignment. The portable sign follows: in a CRM experiment a mistake usually shows up as diverging arm shares, not as a suspicious p-value.
+
+The second point is that a campaign has two sides, and a verdict that reads only the upside always says ship. Netting unsubscribes turns "does it work" into "does it work under which unsubscribe budget", and the strict guardrail turns out to be unreachable by construction: the treated arm is sent to and control is not. A guardrail therefore has to be a budget, not a prohibition — as a prohibition it can never pass, and the decision falls to the primary metric alone.
+
+## Discussion points
+
+- **Why randomize at the segment stage rather than at exposure.** First-exposure bucketing drops late arrivals from control, so what diverges is the arm shares, not the effect.
+- **Why a global control group is required.** Uplift is read as "marketing minus the baseline", so baseline instability lands directly in the estimate.
+- **Why the guardrail is an unsubscribe budget, not a ban.** A strict ban is unreachable by construction, so it would fail every campaign regardless of its value.
+- **What would be the wrong conclusion.** "The campaign works" on the primary metric while the guardrail breaches is Investigate, not Ship.
+
 ## Limitations
 
 The honest headline caveat: `data/experiment_sample.csv` is a 300-row outcomes-schema example with no `group` column, so the headline figures cannot be reproduced from it. Every number above comes from the simulator (`scripts/run_full_pipeline.py`), not from that CSV.

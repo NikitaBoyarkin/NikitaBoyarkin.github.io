@@ -63,6 +63,19 @@ Synchronizing narrative and visualization holds attention better than a static a
 
 Splitting MDX and data modules solves the core pain of static sites — mixing text and logic: the narrative stays editable in Markdown, and the visualizations stay typed in TypeScript. A new scene is a new data file + MDX, with no rendering changes.
 
+## What I learned
+
+The main result is not the scrollytelling effect but the boundary between narrative and data. While the text stays in MDX and the visualization lives in a typed module, a new scene is added as a file with no rendering changes. The paragraph-to-chart sync follows from that boundary, not the other way round: separation first, effect second.
+
+The second layer is trust in the source. Hero and footer always come from the data module, never from frontmatter — an injection guard chosen deliberately. But the boundary is honest: the split protects the channel, not the content itself, and a typed module does not guarantee the numbers inside it are right.
+
+## Discussion points
+
+- **Why MDX and not a ready-made slider.** The narrative has to be editable as text rather than as a component config, and MDX keeps text and data where they belong.
+- **Why lazy-import the visualizations.** A reader who never scrolls pays nothing for the charts, and a panel loads by the time it is needed.
+- **Where the guarantee ends.** Data from the data module is trusted, but its content is unchecked: frontmatter injection is closed, an error in the data itself is not.
+- **What I would change for another proficiency level.** The scenes would have to be rebuilt for a different audience — the material covers workplace conversations, not general English.
+
 ## Limitations
 
 The guide targets A2–B1 and covers workplace scenarios, not general English; the material is the author's and has not been reviewed by a methodologist. Decoupling content from data modules guards against frontmatter injection, but not against the content itself.

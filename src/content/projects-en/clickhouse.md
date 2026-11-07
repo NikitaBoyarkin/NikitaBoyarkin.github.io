@@ -71,6 +71,19 @@ I needed a lab where every case is scored against a snapshot and an independent 
 - **Optimisation:** slow and fast SQL are identical, and the projection clears the **≥10×** speed-up threshold on a full scan.
 - **Tests:** **56** static tests without a server and **3** integration tests; CI separately asserts that `expected.json` has not dropped out of the repository.
 
+## What I learned
+
+The gap between "the query works" and "the query is proven" is an external reference. A snapshot pins the expected answer, an independent engine checks dialect semantics, and a divergence between them reads as a signal about engines rather than grounds for picking the "right" one. The same move ports to any SQL work: correctness has to be checked against something that is not the same engine.
+
+The boundary rests on what here followed from a constraint. Slow and fast SQL are pinned byte-identical by a test, because otherwise the win cannot be attributed to the schema; a speed-up threshold is recorded instead of a measured curve, because EXPLAIN and the benchmark are not attached; integration tests skip without Docker, so CI checks neither snapshots nor the speed-up. The two empty levers are a result, not a failure: the negative finding stayed in the case instead of being dropped.
+
+## Discussion points
+
+- **Why DuckDB and not a second ClickHouse server.** A different engine tests dialect semantics, while a second server of the same engine would reproduce the same mistake.
+- **Why optimise without rewriting the query.** Change the SQL and the schema at once and the win belongs to neither change — what remains is belief, not measurement.
+- **Where the claim ends.** Integration tests skip without Docker, so CI checks neither the snapshots nor the speed-up: the threshold is pinned, the curve is not measured.
+- **What I would change on business data.** The fixture carries no product signal, so I would add tolerances for source drift and state what a cross-engine divergence means for the report.
+
 ## Limitations
 
 The dataset is a benchmark fixture, not business data: channels and products carry no signal and correlations with the amount are near zero. The cases test SQL and schema correctness, not product conclusions.

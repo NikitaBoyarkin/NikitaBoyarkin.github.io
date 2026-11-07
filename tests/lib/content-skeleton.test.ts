@@ -21,6 +21,14 @@ const CONTENT = path.resolve(import.meta.dir, '../../src/content');
 const PROJECT_RU = ['Ситуация', 'Задача', 'Действия', 'Результат', 'Ограничения', 'Документация'];
 const PROJECT_EN = ['Situation', 'Task', 'Actions', 'Result', 'Limitations', 'Documentation'];
 
+// Optional H2s, admitted only in the slot between `Результат` and `Ограничения`
+// (`Result` / `Limitations`), contiguously and in the declared order. Extending these
+// lists is a deliberate contract change (interview-facing sections per case, 2026-11-07),
+// not a test relaxed to let a rewrite through: an unknown H2 still fails, and the
+// mandatory sequence is still compared exactly.
+const PROJECT_OPTIONAL_RU = ['Что я понял', 'Точки обсуждения'];
+const PROJECT_OPTIONAL_EN = ['What I learned', 'Discussion points'];
+
 const PART_RU = ['Ситуация', 'Задача', 'Действия', 'Результат', 'Рекомендации', 'Документация'];
 const PART_EN = ['Situation', 'Task', 'Actions', 'Result', 'Recommendations', 'Documentation'];
 
@@ -94,11 +102,31 @@ function sectionBody(md: string, heading: string): string | null {
   return next < 0 ? rest : rest.slice(0, next);
 }
 
+/** Optional headings sit strictly between `slot[0]` and `slot[1]`, in the declared order. */
+function inSlot(h2: string[], optional: string[], slot: [string, string] | null): boolean {
+  if (!slot) return true;
+  const present = h2.filter((h) => optional.includes(h));
+  if (present.length === 0) return true;
+  const first = h2.indexOf(present[0]);
+  const last = h2.lastIndexOf(present[present.length - 1]);
+  const ordered = JSON.stringify(present) === JSON.stringify(optional.filter((h) => present.includes(h)));
+  return first > h2.indexOf(slot[0]) && last < h2.indexOf(slot[1]) && ordered;
+}
+
 /** `[{file, h2}]` for every file whose H2 sequence differs from `expected`. */
-function drift(dir: string, expected: string[], exclude: string[] = []) {
+function drift(
+  dir: string,
+  expected: string[],
+  exclude: string[] = [],
+  optional: string[] = [],
+  slot: [string, string] | null = null,
+) {
   return filesOf(dir, exclude)
     .map((f) => ({ file: f, h2: h2s(mdOf(dir, f)) }))
-    .filter((x) => JSON.stringify(x.h2) !== JSON.stringify(expected));
+    .filter((x) => {
+      const mandatory = x.h2.filter((h) => !optional.includes(h));
+      return JSON.stringify(mandatory) !== JSON.stringify(expected) || !inSlot(x.h2, optional, slot);
+    });
 }
 
 /** `[{file, body}]` for every file whose Task section contains a digit. */
@@ -110,11 +138,21 @@ function taskDigits(dir: string, heading: string, exclude: string[] = []) {
 
 describe('STAR skeleton — projects', () => {
   it('RU files follow the frozen H2 order (hub excluded)', () => {
-    expect(drift('projects', PROJECT_RU, ['volta.md'])).toEqual([]);
+    expect(drift('projects', PROJECT_RU, ['volta.md'], PROJECT_OPTIONAL_RU, ['Результат', 'Ограничения'])).toEqual([]);
   });
 
   it('EN files follow the frozen H2 order (hub excluded)', () => {
-    expect(drift('projects-en', PROJECT_EN, ['volta.md'])).toEqual([]);
+    expect(drift('projects-en', PROJECT_EN, ['volta.md'], PROJECT_OPTIONAL_EN, ['Result', 'Limitations'])).toEqual(
+      [],
+    );
+  });
+
+  it('optional sections are present in RU and EN alike', () => {
+    const count = (dir: string, set: string[]) =>
+      Object.fromEntries(
+        filesOf(dir, ['volta.md']).map((f) => [f, h2s(mdOf(dir, f)).filter((h) => set.includes(h)).length]),
+      );
+    expect(count('projects', PROJECT_OPTIONAL_RU)).toEqual(count('projects-en', PROJECT_OPTIONAL_EN));
   });
 
   it('## Задача / ## Task carry no digits, hub included (binds audit:content)', () => {

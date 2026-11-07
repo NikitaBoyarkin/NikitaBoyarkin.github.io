@@ -108,6 +108,19 @@ The project demonstrates a leakage-free evaluation setup, not that GBM beats log
 - **Money threshold:** the score becomes a spending decision — offer cost and retained-customer value set the minimum probability below which no contact pays back.
 - **Honest scale:** on the at-risk subgroup (n = 1,692 of 5,581) lift falls to 1.75x and Brier rises to 0.163 / 0.157 — the headline metrics are earned mostly on users who could not have churned inside the label window.
 
+## What I learned
+
+The choice of metric flips the verdict on the model. Scored by ROC-AUC there is a winner; scored by recall at the top of the risk list it is a tie, because both models catch roughly the same share of churners. The boosting-versus-logistic question is settled not by the data but by which error the business treats as more expensive.
+
+The second lesson is about the denominator. The headline metric is earned on users who could not have churned inside the label window. Until the at-risk subgroup is separated out, lift reads as a property of the model when it is really a property of the cohort's composition.
+
+## Discussion points
+
+- **Why recall at the top of the risk list rather than precision.** The campaign has a fixed contact budget, so the question is not how many of the contacted users churn but how many churners were caught at all.
+- **Why a chronological split matters more than test-set size.** A random split puts a user's future activity into training, and test quality becomes a by-product of leakage rather than of signal.
+- **How the money threshold is chosen.** Expected value of a contact is churn probability times retained-customer value minus offer cost; below that threshold the campaign does not run.
+- **What changes inside the at-risk subgroup,** and why headline lift should never be quoted without it.
+
 ## Limitations
 
 The synthetic features are nearly linear, so the boosting edge in ranking is not informative here. The project demonstrates a leakage-free evaluation setup and score calibration, not that GBM beats logistic regression. The lift ceiling is set by the strength of `recency_days`, not model quality — on other data the gap could be larger.

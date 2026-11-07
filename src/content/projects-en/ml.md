@@ -99,6 +99,19 @@ The outcome is a correct, reproducible preprocessing pipeline rather than a mode
 - Code migrated to the modern scikit-learn API.
 - 21 tests (7 + 9 + 5) keep the pipeline runnable: data_preprocessing, eda_plots, generate_dummy_data.
 
+## What I learned
+
+Preprocessing is where most of an ML result is quietly won or lost. A pipeline fit on the whole dataset slips the test into training and inflates everything above it; the correct version is boring, and that is the point — the boring version is what makes model comparisons mean anything.
+
+The second lesson is reproducibility without a seed you hope to remember. A seed is a hidden parameter that is easy to lose; a split taken by sorting on stable keys turns "it worked on my machine" into a property of the code rather than the environment.
+
+## Discussion points
+
+- **Why one transformer fit only on train.** Any transform that has seen the test set contaminates the evaluation, and the contamination is invisible in the score.
+- **Why a deterministic split rather than a seeded one.** A seed is a hidden parameter; sorting on stable keys is a property that repeats on any machine.
+- **Why the project stops at preprocessing.** The value is the foundation later models stand on, not the score of one of them.
+- **What I would do differently.** Add an explicit leakage test that fails if the transformer is fit before the split, instead of relying on code review.
+
 ## Limitations
 
 This is a learning project: the datasets are course and synthetic data, not production. The goal is a correct and reproducible pipeline, not model quality on real data.

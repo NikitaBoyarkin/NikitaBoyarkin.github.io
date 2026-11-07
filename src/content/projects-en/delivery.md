@@ -94,6 +94,19 @@ The forecast reaches 6.01% WAPE at the weekly horizon (h=7) with the seasonal ba
 
 The channel mix is shifting: the mp share grew 5.7 pp in six months. One negative result — H2 on weekends — was rejected by the pre-registered rule: the effect is significant but in the opposite direction.
 
+## What I learned
+
+A forecast earns its place in production only by beating the simplest seasonal baseline at the horizon you actually plan capacity for. The complex model losing to the seasonal baseline is not a failure of the project but its conclusion: the baseline sets the bar the model must clear, and recording the loss honestly is worth more than a good-looking chart.
+
+The second lesson is about the cut, not the average. A single delivery-time number does not say where time is lost; decomposing along the dimension that actually varies turns "speed up delivery" into a concrete action. And a negative result that is significant in the opposite direction is still a result — the pre-registered rule is what makes it usable rather than filed as a weak effect.
+
+## Discussion points
+
+- **Why the bar was the seasonal baseline, not a boosted model.** If the model cannot beat the naive seasonal forecast at the planning horizon, its complexity buys nothing.
+- **Why time is cut by category before channel.** Channel moves time by tenths, category by tens of minutes; the action lives where the variance is.
+- **Why the negative weekend result is kept.** The rule was fixed before looking at the data, and only for that reason does the rejection mean anything.
+- **What I would do differently.** Use order-level data instead of the day × city × channel × category aggregate, which cannot separate courier, restaurant and route effects.
+
 ## Limitations
 
 The data is aggregated to day × city × channel × category: there is no per-order, courier or restaurant timing. `cost` is a money metric with unconfirmed currency, and `avg_price` does not reconcile with it and is not used. The order sample covers two anonymized cities.

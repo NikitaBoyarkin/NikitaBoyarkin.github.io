@@ -89,6 +89,19 @@ python3 sync_games.py --dry-run   # preview sync to portfolio
 
 10 games work on phone (swipe/tap) and desktop (keyboard/mouse), open from a single file with no server. Analytics games are a learning tool: concept → mechanic → intuition. Portfolio sync is automatic, and Playwright smoke tests catch load failures.
 
+## What I learned
+
+A game teaches the price of a decision, not the definition. On the page a p-value is a formula; in the mechanic it is a resource you have to accumulate, and the moment when there is still too little data feels like the risk of stopping too early. Knowledge won through action settles as intuition: meeting the same situation in a real report, the player already senses where the edge is.
+
+The second point is about what a game does not do. The mechanic carries the idea of a metric, not its computation: it compresses statistics into a single choice and therefore cannot serve as proof. That is why a game belongs at the start of meeting a concept rather than in place of the analysis, and why its simplicity is paid for with no reuse — one file per game, every change made by hand.
+
+## Discussion points
+
+- **Why a game rather than text or a dashboard.** Text explains the definition and a dashboard shows a finished result, while only action lets you feel what the choice costs.
+- **Why one mechanic per concept.** A game has to present exactly one decision, or intuition blurs across several ideas at once.
+- **Why a self-contained file rather than a shared engine.** The game opens with no build and no server, at the price of no code reuse between games.
+- **What a game does not prove.** "I understood the p-value" is not "I computed the p-value correctly": the mechanic builds intuition, it does not replace the calculation.
+
 ## Limitations
 
 The games simplify statistics into intuition and do not replace real analysis: the mechanic shows the idea of a p-value or retention, not a valid computation. Zero-dependency means one file per game — code is not shared across games, so any change is made by hand in each file.

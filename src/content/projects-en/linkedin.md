@@ -89,6 +89,19 @@ Window 12.10.2025 — 11.10.2026:
 - **Weekday rhythm.** Mon 23.1, Sun 12.6, p = 0.060 — the threshold is not cleared, still a hypothesis.
 - **Impressions vs followers.** r = 0.35, 95% CI [−0.15, 0.72] — the interval contains zero; followers are not a measure of a post's success.
 
+## What I learned
+
+Publishing a ranking whose confidence intervals blanket the whole field is worse than publishing nothing: such a ranking invites a decision the data cannot support. The useful output is not "which format is best" but "where the difference is established and where it is absent" — an empty result, named as empty, is the honest answer.
+
+The second lesson is about a single source of truth. The bug was engineering, not statistics: two parsers of the same workbook disagreed and nothing turned red. One core plus an invariant test turned a hidden discrepancy into a failing check — the same discipline as leakage-free evaluation: a number must have exactly one origin.
+
+## Discussion points
+
+- **Why bootstrap over posts, not over impressions.** Impressions are deterministic once a post is chosen; what varies is which posts happened to get written.
+- **Why intervals, not a point ranking.** With only a handful of posts per series, a point estimate mostly reflects a lucky sample, not the format.
+- **Why an empty result is reported as a result.** Original versus repost and weekday rhythm did not clear the bar, and saying so is a finding, not a gap.
+- **What I would do differently.** Keep the invariant test from the first commit: the parser split cost a silently collapsed post.
+
 ## Limitations
 
 Series hold 3–8 posts each and weekly buckets 6–9: at that n a narrow interval almost certainly means lucky posts landed in the sample, not that a format is genuinely better. The README deliberately omits audience demographics (companies, cities, roles) — they stay in the report and dashboard. The unsubscribe count (~81) is inferred: the workbook carries no direct figure.

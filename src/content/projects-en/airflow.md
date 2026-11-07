@@ -112,6 +112,19 @@ Configuration is fully externalised into Airflow Variables under the `AIRFLOW_CF
 
 - **Measured run:** the full DAG takes 440 s, with the `forecast` task alone at 413 s.
 
+## What I learned
+
+The value here is not Airflow but the run contract: a window bound to `logical_date`, a DQ gate before the sink, and a metrics row after every run. That skeleton ports to any scheduler — swap the framework and the report stays reproducible and idempotent, because reproducibility is defined by the window, not by the engine.
+
+The boundary shows up in what followed from a constraint rather than a choice: the tests run without Airflow services because a portfolio has no live scheduler in CI; the CSV fallback exists because there is no service account; and the measured run is almost entirely one `forecast` task, which is a property of the demo data, not of the platform.
+
+## Discussion points
+
+- **Why a report is a DAG and not a cron script.** Retries, scheduling and run metrics are scheduler properties, and a script under cron leaves no trace of a failure.
+- **Why the window is a half-open interval rather than "the last day".** Keying on `logical_date` makes a run idempotent and lets a backfill work without double-counting the boundary.
+- **Where the mocked Airflow stops.** Tests without services check task logic, not scheduler behaviour under load or retries on a live cluster.
+- **What I would change with a real source.** The DQ gate and the DAG template would stay; the synthetic generator and the CSV fallback would give way to sink contracts and an alert channel someone actually reads.
+
 ## Limitations
 
 The data source is synthetic (`scripts/generate_sales_data.py`), so the platform is verified on demo data, not on a production stream. Google Sheets as a sink needs a real service account; without it only the CSV fallback remains. This is a portfolio project: Airflow's behaviour under heavy load at large volumes was not measured.

@@ -57,6 +57,19 @@ I needed my notes to stay connected instead of sliding down a timeline, so I own
 
 The power of a digital garden is in the links, not the individual notes. Backlinks turn a note into a "node" and show which contexts include it. The graph turns note accumulation into a navigable structure: topic clusters and isolated islands are visible. A chronological blog answers "when"; a garden answers "how is this connected."
 
+## What I learned
+
+A garden's value comes from the content model, not the publishing tool: one note, one idea, links written out explicitly, maturity visible to the reader. Quartz only renders it — had the notes stayed long and miscellaneous, neither backlinks nor the graph would have shown anything but clutter. What transfers is the discipline of atomicity, not the choice of generator.
+
+The boundary: the garden follows from a decision to publish a living personal archive without editorial work, not from a product decision. Immature notes and links that follow the author's thinking are not an implementation defect but a direct consequence of an archive that keeps growing. A chronological blog wins where an outside reader needs predictability rather than a map of thought.
+
+## Discussion points
+
+- **Why a garden and not a blog.** A feed answers "when", a network answers "how is this connected", and for accumulating ideas the second matters more.
+- **Why backlinks rather than categories.** A category fixes one context; backlinks show every context a note actually landed in.
+- **Where it breaks for an outside reader.** Some notes stay seedlings, and navigation reflects the author's thinking rather than a designed course.
+- **What I would change for a public product.** I would add an editorial pass and turn maturity from a label into a filter.
+
 ## Limitations
 
 The garden is a personal tool, not a product: notes are immature by definition, some stay seedlings, and the links reflect the author's thinking rather than a finished system. That makes the site more honest than a blog, but also less predictable for an outside reader.

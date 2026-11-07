@@ -88,6 +88,19 @@ Faithfulness cannot see a retrieval failure: it stays 1.00 on the control set to
 
 The value is not the numbers themselves but that the harness separates the layers. With `--llm` and an API key, generation scores rise while retrieval metrics stay put, so you can see which layer to improve. It is the same principle as an A/B test: measure first, change second.
 
+## What I learned
+
+A metric that cannot fail proves nothing. Perfect retrieval on an easy set is a property of the set; a control set built so the gold document is guaranteed to fall outside the window turns "the harness measures" from a claim into a fact.
+
+The second lesson is that separating layers makes evaluation actionable. When retrieval and generation are scored apart, a drop points at the layer to fix; when they are collapsed into one score, you know quality moved but not where.
+
+## Discussion points
+
+- **Why a negative control set is needed.** Without questions where retrieval is guaranteed to miss, a perfect score cannot be told apart from a metric that never moves.
+- **Why faithfulness is labelled an invariant.** The extractive answer is copied from context by construction, so a perfect score measures the design, not the generation.
+- **Why retrieval is held fixed when the LLM is enabled.** Holding one layer constant is what shows which layer the change came from.
+- **What I would do differently.** Score on a larger corpus — the current perfect recall is a property of a small, well-separated set.
+
 ## Limitations
 
 Faithfulness here is a grounding proxy (answer tokens in the retrieved context), not a truth check: an answer can be grounded and still be wrong. Correctness by Jaccard is sensitive to wording — a low score is not always an error.

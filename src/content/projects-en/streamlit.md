@@ -66,6 +66,19 @@ uv run streamlit run app.py
 
 Every AARRR question reads from one consistent base. The deterministic seed means Funnel, Retention, Revenue, and Segments all talk about the same users, and the numbers can be checked. The same UI later became the presentation layer for the Supabase full-stack project — only the data layer changed.
 
+## What I learned
+
+A dashboard is convincing not by the number of charts but by all of them computing from the same base. While the funnel, retention and revenue pages read one dataset under a shared definition of activity, a disagreement between pages means a bug in the code rather than a different view of the product. Determinism here is not a debugging convenience but the condition under which a metric can be discussed at all.
+
+The second lesson is about separating layers, which matters more than the choice of library. When the data layer moves from a generated dataset to a live database and the UI stays the same, it becomes visible that a dashboard is a contract between a metric's definition and its display — and that contract survives the swap of its source.
+
+## Discussion points
+
+- **Why Streamlit rather than a full BI stack.** For a portfolio it matters that the calculation code sits next to the display: you can see where a number came from, not just the finished chart.
+- **Why one dataset across every page.** Metric consistency is a property of the shared denominator, not of the charts: a different source on each page yields attractive but incomparable numbers.
+- **Where applicability ends.** Synthetic data with a fixed seed tests the consistency of the calculations, not event quality or behaviour on incomplete data — this is a demo of a method, not of a product.
+- **What would change under real traffic.** Caching on heavy aggregates, incremental recomputation and data-freshness checks: without them the first ingest delay makes the dashboard confidently wrong.
+
 ## Limitations
 
 The data is synthetic and generated in-memory: the numbers reproduce, but they do not describe a real product. The value of the dashboard is the completeness of the cycle and the consistency of metrics across pages, not the specific values.

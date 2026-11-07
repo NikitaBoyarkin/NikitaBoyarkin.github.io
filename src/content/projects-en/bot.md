@@ -99,6 +99,19 @@ Analytics lives in `src/analytics/` as pure, tested modules; CI runs pytest, ruf
 
 From a CSV — p-value, lift and 95% CI in under 30 seconds, plus a power note and a chart. `/export` returns the last analysis as a standalone HTML report you can attach to a hypothesis discussion.
 
+## What I learned
+
+The value of an analysis is lost not in the statistics but in the distance between the export and the answer. A hypothesis dies not because the formula is hard but because reaching it takes a notebook, an environment and someone who remembers the details — and by the time that path is walked the question is stale. So the tool shortens the path instead of reinventing the method: the test, the lift and the interval stay standard, only the distance to them changes.
+
+The second point is that a guardrail belongs inside the answer, not beside it. A number without an SRM and power check reads as a result, even when a broken assignment or a short sample sits behind it; a warning you have to request separately is never requested. That is also the boundary: the bot guarantees the computation, not the experiment — observation independence, novelty and multiple comparisons stay with the analyst.
+
+## Discussion points
+
+- **Why a bot rather than a dashboard.** A dashboard answers questions set in advance, while a hypothesis is born in a thread and lives for minutes.
+- **Why guardrails in the same message as the number.** A check that needs a separate step does not get run in time.
+- **Why two tests rather than one universal one.** A numeric and a binary metric need different error models, and a compromise would cost accuracy on both.
+- **What the bot forbids claiming.** It does not design the experiment: a correct computation on wrongly designed data is still a wrong conclusion.
+
 ## Limitations
 
 The bot computes but does not design an experiment: observation independence, novelty and multiple comparisons stay with the analyst. Data arrives only as a CSV — there is no warehouse connection. The free tier is capped at 5 MB and 10 analyses a day. The repository is private — there is no public code, and the card does not link an empty repository.

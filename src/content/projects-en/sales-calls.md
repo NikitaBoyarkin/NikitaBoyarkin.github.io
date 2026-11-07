@@ -79,6 +79,19 @@ python3 -m venv .venv
 
 The dashboard gives an answer in a minute: which step loses the client and what to fix. Labeling is deterministic and reproducible, with no LLM in the critical path, so the numbers can be checked. The funnel yields a growth point — weighted contact loss and a first A/B scenario.
 
+## What I learned
+
+When the script is templated, the funnel step can be read from the transcript deterministically, which removes the main reason call review was manual. The dashboard's value is not the chart but the shift: instead of "someone listened to the calls" there is "the pipeline labels them the same way every time".
+
+The second lesson is that the funnel shows where the drop is, while weighted contact loss shows where fixing it is worth the most. Comparing steps by raw counts would send effort to the biggest step, not to the one that actually costs the most missed opportunities.
+
+## Discussion points
+
+- **Why labelling by script markers rather than an LLM.** Determinism keeps the numbers re-checkable, and the LLM hook stays optional rather than load-bearing.
+- **Why the loss is weighted, not raw.** The step with the most people is not always the step with the most value at stake.
+- **Why the data are fully synthetic.** The method can be shown without putting real calls or phone numbers into a repository.
+- **What I would do differently.** Validate the heuristics against free-form bot replies, where the markers stop being reliable.
+
 ## Limitations
 
 The dataset is synthetic and the step labels come from a templated script's markers: on a live bot with freer replies the heuristics would need revision. The value of the card is the method of breaking down an export on safe data, not the specific funnel values.
