@@ -187,6 +187,8 @@
 копии: `CONTACT_ENDPOINT` содержит плейсхолдер `PROJECT_REF`, поэтому
 `CONTACT_FORM_ENABLED === false`, и включение требует отдельного Supabase-проекта
 плюс задеплоенной Edge Function из приватного `portfolio-contact-backend`.
+Это про contact-форму, не про ingest аналитики: тот включён и пишет в
+`public.analytics_events` (см. `docs/supabase-analytics.md`).
 
 ### Что это меняет
 
@@ -200,7 +202,7 @@
 
 - Форма остаётся в коде и остаётся рабочей: `validateContact`, хонейпот,
   лимиты, `label`/`autocomplete`/`aria-live` на месте. Включение — это подстановка
-  `PROJECT_REF`, а не написание заново.
+  `PROJECT_REF` (contact-эндпоинта, не ingest), а не написание заново.
 - `/contact` продолжает предлагать бронь, Telegram и LinkedIn; они не удаляются
   и не переставляются.
 
@@ -217,3 +219,29 @@
 
 Возврат оформляется правкой этого раздела и снятием пометки «**B-7**» с пункта
 «Контакт-форма выключена» в перечне известных лимитов (B-4).
+
+---
+
+## B-8 — Остатки fan-out 2026-11-08 (канал ingest → Supabase)
+
+Починено в тот же день, здесь не повторяется: двойной счёт `v_project_views`
+(join без `locale`) и несовпадение слагов глав Volta — `supabase/migrations/20261108000400_project_views_fix.sql`;
+красный `bun test tests/lib` — `tests/lib/ingest.test.ts` (тест снова реально
+выключает флаг и считает `sendBeacon`, а не только `fetch`).
+
+### Известные лимиты (не баги, не чинятся без владельца)
+
+| Пункт | file:line | Почему оставлено |
+|---|---|---|
+| `synced_at` / `updated_at` не в payload → фризятся на времени первого insert | `supabase/migrations/20261108000200_site_content.sql:23-24`, `scripts/sync-supabase-content.mjs:51-61` | Колонки никем не читаются; правится одной строкой, когда появится потребитель |
+| `last_view` берёт `created_at` (серверное время приёма), остальные вьюхи — `coalesce(client_ts, created_at)` | `supabase/migrations/20261108000400_project_views_fix.sql:25` | Разница в секундах; унификация — вместе с ревизией всех `v_*` |
+| `--apply` идёт автоматически на push в `main`/`master` с `service_role`, без environment-approval | `.github/workflows/sync-analytics-content.yml:53-58` | Один мейнтейнер, path-фильтр, upsert идемпотентен |
+| `HAS_ANALYTICS` смотрит только URL-секрет: без service-ключа шаг падает вместо skip | `.github/workflows/sync-analytics-content.yml:28,54` | Проявляется только при полупустых секретах |
+| `concurrency: cancel-in-progress` может оборвать прогон между upsert `site_projects` и `site_posts` | `.github/workflows/sync-analytics-content.yml:16-18` | Восстанавливается следующим прогоном (upsert, без удалений) |
+| anon имеет `GRANT ALL` на `analytics_events` и `site_*`; защищает только RLS с нулём политик | `supabase/migrations/20261108000000_analytics_events.sql:32`, `…000200_site_content.sql:59-60` | Явный `revoke insert, update, delete, truncate` — второй слой, добавить вместе со следующей миграцией |
+
+### Что осталось непроверенным
+
+- `draft`-фильтр `site_posts`/`site_projects` в проде проверить не с чем: строк с `draft = true` в БД ноль.
+- `analytics_events` в проде пуста, поэтому «anon не видит строк» доказано планом
+  (`One-Time Filter: false` под `SET ROLE anon`), а не данными.

@@ -131,11 +131,13 @@ the `analytics` and `experiments` schemas; every object this repository creates
 lives in `public`, so the two do not overlap. Deployed 2026-11-08:
 
 ```bash
-npx supabase link --project-ref geojpakugqlcwyhtnjvv
-npx supabase db push                                 # 4 migrations → public
-npx supabase secrets set IP_SALT="$(openssl rand -hex 32)"
-npx supabase functions deploy ingest --use-api       # verify_jwt=false from config.toml
+npx supabase@3.0.0 link --project-ref geojpakugqlcwyhtnjvv
+npx supabase@3.0.0 db push                           # 4 migrations → public
+npx supabase@3.0.0 secrets set IP_SALT="$(openssl rand -hex 32)"
+npx supabase@3.0.0 functions deploy ingest --use-api # verify_jwt=false from config.toml
 ```
+
+The CLI is pinned to `supabase@3.0.0`; the same version runs every command in this document.
 
 Its `supabase_migrations` history carried five legacy versions
 (`20260813175326 … 20260813184906`, the `analytics`/`experiments` schema). They
@@ -157,7 +159,7 @@ misconfiguration, and `ingest` answers `500` rather than hashing without one.
 1. Grants on the live project: the four views answer, and only `service_role` /
    `postgres` hold privileges on them; `analytics_events` has RLS on with zero
    policies. The local stack was not started for this deploy — to re-check
-   offline: `npx supabase start && npx supabase db reset`, then `set role anon`.
+   offline: `npx supabase@3.0.0 start && npx supabase@3.0.0 db reset`, then `set role anon`.
 2. `cd supabase && deno fmt --check && deno lint && deno check functions/ingest/*.ts && deno test --allow-read`.
 3. `bun test tests/lib` — includes the payload shape, the `PROJECT_REF` gate,
    "never throws", the property allowlist, and the `query` truncation.

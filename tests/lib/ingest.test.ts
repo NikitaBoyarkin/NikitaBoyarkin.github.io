@@ -14,7 +14,7 @@ describe("ingest payload", () => {
   beforeEach(() => sessionStorage.clear());
   afterEach(() => setIngestEnabledForTests(INGEST_ENABLED));
 
-  it("is inert until PROJECT_REF is replaced", () => {
+  it("ships enabled with the real project ref", () => {
     expect(INGEST_ENDPOINT).not.toContain("PROJECT_REF");
     expect(INGEST_ENABLED).toBe(true);
   });
@@ -47,17 +47,26 @@ describe("ingest payload", () => {
   });
 
   it("does not send while disabled", () => {
+    setIngestEnabledForTests(false);
     let called = 0;
-    const original = globalThis.fetch;
+    const originalFetch = globalThis.fetch;
+    const originalBeacon = navigator.sendBeacon;
     globalThis.fetch = (() => {
       called++;
       return Promise.resolve(new Response(null, { status: 204 }));
     }) as unknown as typeof fetch;
+    // happy-dom's sendBeacon calls its own window.fetch, not the global mock,
+    // so counting only fetch would pass while a real request leaves the page.
+    navigator.sendBeacon = (() => {
+      called++;
+      return true;
+    }) as typeof navigator.sendBeacon;
     try {
       sendIngest("pageview");
       expect(called).toBe(0);
     } finally {
-      globalThis.fetch = original;
+      globalThis.fetch = originalFetch;
+      navigator.sendBeacon = originalBeacon;
     }
   });
 
