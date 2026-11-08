@@ -9,6 +9,14 @@
 //
 // One static page per allowlisted target — the target list is the allowlist;
 // an unknown slug is a 404, never an open redirect.
+//
+// Two URL shapes, one template:
+//   /r/<target>/                      campaign from `?cmp=`, read by JS only
+//   /r/<target>/<campaign>/           campaign baked into the path
+// The second exists because the no-JS hop cannot read a query string: the
+// `meta refresh` and the anchor `href` are rendered at build time, so a
+// `?cmp=` value was silently dropped and every script-less click landed
+// without `utm_campaign`. Placement stays in `?c=` and falls back to `deck`.
 export const prerender = true;
 
 const TARGETS = {
@@ -48,17 +56,24 @@ export function getStaticPaths() {
   // Literal, not `Object.keys(TARGETS)`: Astro compiles `getStaticPaths` into
   // its own prerender chunk, where module scope above is not in scope —
   // referencing TARGETS here failed the build with "TARGETS is not defined".
-  return ["github", "telegram", "linkedin", "community", "site"].map((target) => ({
-    params: { target },
-  }));
+  const targets = ["github", "telegram", "linkedin", "community", "site"];
+  // A new deck needs its campaign slug here, or its path-shaped links 404.
+  const campaigns = ["python_files_json_202611", "python_list_comprehensions_202611"];
+  return [
+    ...targets.map((target) => ({ params: { slug: target } })),
+    ...targets.flatMap((target) =>
+      campaigns.map((campaign) => ({ params: { slug: `${target}/${campaign}` } })),
+    ),
+  ];
 }
 
-const target = Astro.params.target as keyof typeof TARGETS;
+const parts = (Astro.params.slug as string).split("/").filter(Boolean);
+const target = parts[0] as keyof typeof TARGETS;
+const pathCampaign = parts[1] ?? "";
 const destination = TARGETS[target];
 
-// `placement` and `campaign` come from the query string so one static page
-// serves every slide of a deck. Build-time values are the fallback for a
-// visitor without JavaScript (the meta refresh below).
+// `placement` comes from the query string, `campaign` from the path (or `?cmp=`).
+// Build-time values are the fallback for a visitor without JavaScript.
 const buildDestination = (placement: string, campaign: string) => {
   const u = new URL(destination.url);
   u.searchParams.set("utm_source", destination.source);
@@ -72,7 +87,7 @@ const buildDestination = (placement: string, campaign: string) => {
   return u.toString();
 };
 
-const fallbackUrl = buildDestination("deck", "");
+const fallbackUrl = buildDestination("deck", pathCampaign);
 const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY ?? "";
 const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
 ---
@@ -110,6 +125,7 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || "https://us.i.posthog
         base: destination.url,
         source: destination.source,
         medium: destination.medium,
+        pathCampaign,
         posthogKey,
         posthogHost,
       }}
@@ -121,7 +137,7 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || "https://us.i.posthog
       (function () {
         var params = new URLSearchParams(window.location.search);
         var placement = params.get("c") || "deck";
-        var campaign = params.get("cmp") || "";
+        var campaign = params.get("cmp") || pathCampaign;
 
         var url = new URL(base);
         url.searchParams.set("utm_source", source);
