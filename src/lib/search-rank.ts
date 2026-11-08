@@ -7,6 +7,7 @@
  * have a runnable check — they are the whole feature and were previously only
  * observable by typing into the page.
  */
+import { bestWordIn, typoBudget, wordsOf } from "./fuzzy";
 
 export type SearchEntry = {
   type: string;
@@ -26,6 +27,9 @@ export type PreparedEntry = {
   tags: string[];
   tools: string[];
   ts: number;
+  /** Folded once here, not on every keystroke. */
+  titleWords: string[];
+  metaWords: string[];
 };
 
 export type PreparedIndex = PreparedEntry[];
@@ -50,14 +54,19 @@ export function tokenize(q: string): string[] {
 
 /** Fold each entry's searchable text once, not on every keystroke. */
 export function prepareIndex(entries: SearchEntry[]): PreparedIndex {
-  return entries.map((e) => ({
-    e,
-    title: normalize(e.title),
-    desc: normalize(e.desc || ""),
-    tags: (e.tags || []).map(normalize),
-    tools: (e.tools || []).map(normalize),
-    ts: e.date ? Date.parse(e.date) || 0 : 0,
-  }));
+  return entries.map((e) => {
+    const meta = [...(e.tags ?? []), ...(e.tools ?? []), e.desc ?? ""];
+    return {
+      e,
+      title: normalize(e.title),
+      desc: normalize(e.desc || ""),
+      tags: (e.tags || []).map(normalize),
+      tools: (e.tools || []).map(normalize),
+      ts: e.date ? Date.parse(e.date) || 0 : 0,
+      titleWords: wordsOf(normalize(e.title)),
+      metaWords: meta.flatMap((x) => wordsOf(normalize(x))),
+    };
+  });
 }
 
 /** `matched` counts the tokens that landed somewhere, so the caller can fall
@@ -75,6 +84,15 @@ function scoreEntry(p: PreparedEntry, tokens: string[]) {
     if (p.tools.some((x) => x === tk)) add += 2;
     else if (p.tools.some((x) => x.includes(tk))) add += 1;
     if (p.desc.includes(tk)) add += 1;
+    // A typo fills a gap but never outranks an exact/prefix/includes match:
+    // every tier above scores at least 1, and a 1-edit hit in the title is 2.
+    const budget = typoBudget(tk);
+    if (budget) {
+      const inTitle = bestWordIn(tk, p.titleWords, budget);
+      if (inTitle === 1) add += 2;
+      else if (inTitle === 2) add += 1;
+      if (bestWordIn(tk, p.metaWords, budget) === 1) add += 1;
+    }
     if (add > 0) matched += 1;
     s += add;
   }

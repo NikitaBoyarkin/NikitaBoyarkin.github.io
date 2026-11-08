@@ -108,7 +108,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
 </div>
 
 <script>
-  import { ldWithin } from "../lib/fuzzy";
+  import { bestWordDistance, typoBudget } from "../lib/fuzzy";
   import { track, whenAnalyticsReady } from "../lib/analytics";
   import { ICON } from "../lib/icons";
 
@@ -261,9 +261,9 @@ const X_D = "M6 6l12 12M6 18L18 6";
     // ── Pagefind (primary engine) ─────────────────────────────────────────
     // The index is built by `pagefind --site dist` in `package.json` `build`:
     // full page bodies, RU/EN indexes separated by `<html lang>`, chunks loaded
-    // on demand. Pagefind has no fuzzy matching, so `fuzzyFallback()` keeps the
-    // old `ldWithin` typo recovery, and `getIndex()` still answers the
-    // browse-by-facet mode (Pagefind needs a term).
+    // on demand. Pagefind 1.6 exposes no typo tolerance, so `fuzzyFallback()`
+    // covers it, and `getIndex()` still answers the browse-by-facet mode
+    // (Pagefind needs a term).
     type PagefindResult = {
       results: Array<{
         data: () => Promise<{
@@ -289,10 +289,24 @@ const X_D = "M6 6l12 12M6 18L18 6";
 
     async function fuzzyFallback(tokens: string[], active: string): Promise<Entry[]> {
       const idx = await getIndex();
-      return idx
-        .filter((e) => e.locale === lang && inFacet(e.type, active))
-        .filter((e) => tokens.some((tk) => tk.length >= 5 && ldWithin(tk, e.title.toLowerCase())))
-        .slice(0, MAX_ROWS);
+      const hits: { e: Entry; d: number }[] = [];
+      for (const e of idx) {
+        if (e.locale !== lang || !inFacet(e.type, active)) continue;
+        const text = [e.title, e.desc, ...(e.tags || []), ...(e.tools || [])].join(" ");
+        let best = Infinity;
+        for (const tk of tokens) {
+          const budget = typoBudget(tk);
+          if (!budget) continue;
+          const d = bestWordDistance(tk, text, budget);
+          if (d < best) best = d;
+        }
+        if (best !== Infinity) hits.push({ e, d: best });
+      }
+      // Closest typo first; recency breaks the tie.
+      return hits
+        .sort((a, b) => a.d - b.d || (b.e.date ?? "").localeCompare(a.e.date ?? ""))
+        .slice(0, MAX_ROWS)
+        .map((h) => h.e);
     }
 
     function render(rows: Entry[], tokens: string[], more: boolean, query: string) {
@@ -467,7 +481,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
           console.error("[search] pagefind failed", err);
           rows = [];
         }
-        // No typo tolerance in Pagefind — `ldWithin` over titles covers the miss.
+        // No typo tolerance in Pagefind — fuzzy word matching covers the miss.
         if (!rows.length) rows = await fuzzyFallback(tokens, facet);
       }
       render(rows, tokens, more, rawQuery);

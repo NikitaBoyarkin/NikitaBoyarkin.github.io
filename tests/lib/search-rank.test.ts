@@ -73,4 +73,25 @@ describe("rankEntries", () => {
   it("ranks an exact title above a description hit", () => {
     expect(hrefs("crm")[0]).toBe("/projects/crm");
   });
+
+  it("reaches a title through a typo", () => {
+    expect(hrefs("crmm")).toEqual(["/projects/crm"]);
+    // Inflected-form typo: no exact/prefix/includes tier sees this one.
+    expect(hrefs("когорты")).toContain("/posts/ru");
+  });
+
+  it("ranks an exact match above a typo, both ways", () => {
+    const idx = prepareIndex([
+      { type: "project", locale: "ru", title: "Retention", desc: "", href: "/projects/exact" },
+      { type: "project", locale: "ru", title: "Retantion", desc: "", href: "/projects/typo" },
+    ]);
+    const ranked = (q: string) => rankEntries(idx, tokenize(q), "ru", 6).map((e) => e.href);
+    expect(ranked("retention")).toEqual(["/projects/exact", "/projects/typo"]);
+    expect(ranked("retantion")).toEqual(["/projects/typo", "/projects/exact"]);
+  });
+
+  it("leaves short tokens and noise to exact matching", () => {
+    expect(hrefs("zzzz")).toEqual([]);
+    expect(hrefs("crm")).toEqual(["/projects/crm"]);
+  });
 });
