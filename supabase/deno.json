@@ -5,6 +5,7 @@
     "exclude": ["**/*.md", "**/*.sql"]
   },
   "test": {
-    "include": ["supabase/functions/ingest/"]
+    // Relative to this file's directory: `deno test` runs from `supabase/`.
+    "include": ["functions/ingest/"]
   }
 }

@@ -57,7 +57,12 @@ docs/_build/
 target/
 
 # DotEnv configuration
+# `.env` alone misses `.env.local` — which Bun loads automatically, ahead of
+# `.env` — and `.env.production`, so a local secret override would have been
+# committed to this public repo. The example file stays tracked.
 .env
+.env.*
+!.env.example
 
 # Database
 *.db

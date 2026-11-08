@@ -1,0 +1,48 @@
+# CI checks but never deploys: `supabase db push` and `supabase functions deploy
+# ingest` stay manual owner steps — deploying from CI would change remote state
+# without them in the room.
+name: supabase
+
+on:
+  push:
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/supabase.yml'
+  pull_request:
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/supabase.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: supabase
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - uses: denoland/setup-deno@v2
+        with:
+          # Pinned, not `v2.x`: a floating minor lets CI change the formatter or
+          # the type checker under a green branch. Bump deliberately, together
+          # with the local `deno --version`.
+          deno-version: v2.8.0
+
+      - run: deno fmt --check
+      - run: deno lint
+
+      # A glob, not `index.ts`: the entry point reaches handler.ts and limits.ts,
+      # but the three test files are not importable from it — `deno check
+      # index.ts` would leave them unchecked while looking like full coverage.
+      - run: deno check functions/ingest/*.ts
+
+      # No path argument: deno.json sets test.include = supabase/functions/ingest/.
+      # --allow-read lets the drift test compare the migrations' CHECK constraints
+      # with limits.ts; without it that comparison is skipped silently.
+      - run: deno test --allow-read

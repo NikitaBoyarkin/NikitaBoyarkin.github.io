@@ -7,6 +7,9 @@ Canonical event taxonomy for the portfolio, per
 > Naming rule (PRD §4.1): `object_action`, `snake_case`; no identifier in the
 > event name — the entity lives in a property.
 
+Every event also lands in the Supabase sink next to PostHog — schema, property
+allowlist and retention: `docs/supabase-analytics.md`.
+
 ## 1. First-class events (typed in `AnalyticsEventMap`)
 
 | Event | Properties | Fires when | Where |
