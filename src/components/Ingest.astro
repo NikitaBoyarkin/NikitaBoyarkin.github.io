@@ -1,0 +1,18 @@
+---
+// Pageviews for the Supabase ingest sink. Inert until PROJECT_REF is replaced
+// in src/lib/ingest.ts — the same constant-plus-guard pattern as the contact
+// form, so a missing deployment never renders a broken beacon.
+//
+// BeaconMetrics is left alone: PUBLIC_BEACON_ENDPOINT feeds the self-hosted
+// monitoring stack, and repointing it here would silently kill that.
+import { INGEST_ENABLED } from '../lib/ingest';
+---
+
+{INGEST_ENABLED && (
+  <script>
+    import { sendIngest } from '../lib/ingest';
+
+    const IS_LOCAL = /^(localhost|127\.0\.0\.1|::1|\[::1\]|0\.0\.0\.0)$/.test(window.location.hostname);
+    if (!IS_LOCAL) sendIngest('pageview');
+  </script>
+)}

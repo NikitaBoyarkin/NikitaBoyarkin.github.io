@@ -16,6 +16,7 @@
 export type Locale = 'ru' | 'en';
 
 import { AUDIENCES, type Audience } from './projects';
+import { sendIngest } from './ingest';
 
 /** Normalized first-touch source class (PRD §4.2, REQ-A03). */
 export type ReferrerClass = 'linkedin' | 'github' | 'google' | 'direct' | 'other';
@@ -239,6 +240,9 @@ function warnNotReady(): void {
 export function track<E extends KnownEventName>(event: E, props: AnalyticsEventMap[E]): void;
 export function track(event: string, props?: Record<string, unknown>): void;
 export function track(event: string, props?: Record<string, unknown>): void {
+  // Second sink first, so an event is not lost while PostHog is still loading
+  // (or blocked): `sendIngest` is independent of `ph` and never throws.
+  sendIngest(event, props);
   if (!ph) {
     warnNotReady();
     if (pending.length < PENDING_MAX) pending.push([event, props ?? {}]);

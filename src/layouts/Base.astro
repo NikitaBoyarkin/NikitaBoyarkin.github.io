@@ -17,6 +17,7 @@ import NavRoles from '../components/NavRoles.astro';
 import SearchBox from '../components/SearchBox.astro';
 import SiteTabs from '../components/SiteTabs.astro';
 import BeaconMetrics from '../components/BeaconMetrics.astro';
+import Ingest from '../components/Ingest.astro';
 
 interface Props {
   title: string;
@@ -511,6 +512,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
 
     <Analytics />
     <BeaconMetrics />
+    <Ingest />
   </head>
 
   <body class:list={[isHome && 'is-home']}>

@@ -1,0 +1,9 @@
+# Hosted project ref lives in `npx supabase link`, not here — only the local
+# project id is committed, matching portfolio-contact-backend.
+project_id = "nikitaboyarkin-analytics"
+
+[functions.ingest]
+# The browser posts here with `sendBeacon` — there is no JWT to present. The
+# security boundary is RLS with zero policies on public.analytics_events;
+# this function writes as service_role, and nothing else can.
+verify_jwt = false

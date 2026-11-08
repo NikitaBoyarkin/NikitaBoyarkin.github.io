@@ -1,0 +1,10 @@
+{
+  "fmt": {
+    "lineWidth": 120,
+    "singleQuote": true,
+    "exclude": ["**/*.md", "**/*.sql"]
+  },
+  "test": {
+    "include": ["supabase/functions/ingest/"]
+  }
+}

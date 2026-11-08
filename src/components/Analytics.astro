@@ -18,11 +18,14 @@ const plausibleDomain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN;
 const plausibleSrc =
   import.meta.env.PUBLIC_PLAUSIBLE_SRC || 'https://plausible.io/js/script.js';
 const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
+// The same instrumentation also feeds the Supabase ingest sink, so the script
+// has to render even when PostHog is not configured.
+import { INGEST_ENABLED } from '../lib/ingest';
 ---
 
 {plausibleDomain && <script defer data-domain={plausibleDomain} src={plausibleSrc} is:inline></script>}
 
-{posthogKey && (
+{(posthogKey || INGEST_ENABLED) && (
   <script>
     // Never instrument local development. Dev sessions (localhost / 127.0.0.1
     // / ::1 / 0.0.0.0) would pollute the PostHog project and skew funnels.
@@ -75,7 +78,6 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
         teardownTriggers();
 
         const [
-          { posthog },
           {
             attachPosthog,
             flushAnalyticsQueue,
@@ -85,26 +87,35 @@ const posthogKey = import.meta.env.PUBLIC_POSTHOG_KEY;
           },
           { contentInfo, READ_DEPTH_THRESHOLDS, scrollDepthPct },
         ] = await Promise.all([
-          import('posthog-js'),
           import('../lib/analytics'),
           import('../lib/scroll-depth'),
         ]);
 
-        posthog.init(import.meta.env.PUBLIC_POSTHOG_KEY, {
-          api_host: import.meta.env.PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
-          defaults: '2026-05-30',
-          capture_pageview: true,
-          capture_pageleave: true,
-          autocapture: true,
-          capture_exceptions: true,
-          session_recording: { maskAllInputs: true },
-        });
+        // PostHog is one sink, not the gate on the other: a blocked SDK or a
+        // failed chunk must not stop the Supabase ingest sink from receiving the
+        // same events, so the init sits in its own try.
+        if (import.meta.env.PUBLIC_POSTHOG_KEY) {
+          try {
+            const { posthog } = await import('posthog-js');
+            posthog.init(import.meta.env.PUBLIC_POSTHOG_KEY, {
+              api_host: import.meta.env.PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+              defaults: '2026-05-30',
+              capture_pageview: true,
+              capture_pageleave: true,
+              autocapture: true,
+              capture_exceptions: true,
+              session_recording: { maskAllInputs: true },
+            });
 
-        // Hand the instance to the canonical module, register super properties
-        // (REQ-A03), then flush anything buffered before init.
-        attachPosthog(posthog);
-        registerSuperProperties();
-        flushAnalyticsQueue();
+            // Hand the instance to the canonical module, register super
+            // properties (REQ-A03), then flush anything buffered before init.
+            attachPosthog(posthog);
+            registerSuperProperties();
+            flushAnalyticsQueue();
+          } catch {
+            // ingest still gets every event through track()
+          }
+        }
 
         const base = import.meta.env.BASE_URL || '/';
         const norm = base.replace(/\/$/, '');
