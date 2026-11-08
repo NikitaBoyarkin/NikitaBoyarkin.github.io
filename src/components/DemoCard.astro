@@ -1,0 +1,174 @@
+---
+// One board on /demos/.
+//
+// The card is a pointer, not a preview: a 25-card grid of live iframes would
+// load 25 documents at once. The board opens on its own URL (the one its own
+// canonical points at) and, where the project frontmatter says which case it
+// belongs to, the card carries the way back to that case.
+interface Props {
+  href: string;
+  title: string;
+  description: string;
+  caseHref?: string;
+  caseTitle?: string;
+  trackLabel?: string;
+  lang?: 'ru' | 'en';
+}
+
+const { href, title, description, caseHref, caseTitle, trackLabel, lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+const t = isEn
+  ? { open: 'Open board', case: 'Case study', opensIn: 'opens in a new tab' }
+  : { open: 'Открыть доску', case: 'Кейс', opensIn: 'откроется в новой вкладке' };
+---
+
+<article class="demo-card reveal">
+  {trackLabel && (
+    <div class="demo-card-top">
+      <span class="demo-card-track">{trackLabel}</span>
+    </div>
+  )}
+
+  <h3 class="demo-card-title">
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      {title}<span class="visually-hidden"> ({t.opensIn})</span>
+    </a>
+  </h3>
+
+  {description && <p class="demo-card-desc">{description}</p>}
+
+  <div class="demo-card-actions">
+    <a class="demo-card-open" href={href} target="_blank" rel="noopener noreferrer">
+      {t.open} ↗<span class="visually-hidden"> ({t.opensIn})</span>
+    </a>
+    {caseHref && (
+      <a class="demo-card-case" href={caseHref} aria-label={caseTitle ? `${t.case}: ${caseTitle}` : undefined}>
+        {t.case} →
+      </a>
+    )}
+  </div>
+</article>
+
+<style>
+  /* The shared card recipe (`--card-padding` / `--card-radius`) — bound by
+     `tests/lib/card-recipe.test.ts`, so this cannot drift into a fifth card
+     system. */
+  .demo-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--card-padding);
+    border-radius: var(--card-radius);
+    /* `--gradient-surface` is the site's card paint (`.project` uses the same
+       token). `--background-secondary` is the nav/form chrome and is a
+       different colour in both themes — a visible fifth card surface. */
+    background: var(--gradient-surface);
+    border: 1px solid var(--border-color);
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .demo-card:hover {
+    border-color: color-mix(in srgb, var(--text-accent) 40%, transparent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--shadow-color);
+  }
+
+  .demo-card-top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 1.25rem;
+  }
+
+  .demo-card-track {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .demo-card-title {
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.35;
+    color: var(--text-normal);
+  }
+
+  .demo-card-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .demo-card-title a:hover {
+    color: var(--text-accent);
+    text-decoration: underline;
+  }
+
+  .demo-card-title a:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .demo-card-desc {
+    margin: 0;
+    flex: 1 1 auto;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .demo-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+    margin-top: var(--space-1);
+  }
+
+  .demo-card-open,
+  .demo-card-case {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .demo-card-open {
+    color: var(--text-accent);
+  }
+
+  .demo-card-open:hover {
+    color: var(--text-accent-hover);
+    text-decoration: underline;
+  }
+
+  .demo-card-case {
+    color: var(--text-muted);
+  }
+
+  .demo-card-case:hover {
+    color: var(--text-accent);
+    text-decoration: underline;
+  }
+
+  .demo-card-open:focus-visible,
+  .demo-card-case:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

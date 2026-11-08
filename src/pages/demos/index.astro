@@ -1,0 +1,142 @@
+---
+import Base from '../../layouts/Base.astro';
+import DemoCard from '../../components/DemoCard.astro';
+import { withBase } from '../../lib/path';
+import { getCollection } from 'astro:content';
+import { attachCases, demoCaseMap, groupDemos, scanDemos } from '../../lib/demos';
+
+// The hub is derived, never listed: `scanDemos` reads whatever boards sit in
+// `public/demos/`, and `groupDemos` orders them by the catalogue's own tracks,
+// so a new board appears here without an edit.
+const projects = await getCollection('projects', (p) => !p.data.draft);
+const demos = attachCases(scanDemos(), demoCaseMap(projects));
+const groups = groupDemos(demos, 'ru');
+
+// The scan is the only source of cards. A cwd or permission change that makes
+// it read nothing would otherwise ship a page with a headline, a footer and no
+// boards; fail the build instead.
+if (demos.length === 0) throw new Error('demos hub: no boards found under public/demos/');
+
+const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
+
+// One ListItem per rendered card, in the same order the page prints them
+// (track order, then the unassigned group), so the markup and the page agree.
+const collectionJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Демо',
+  url: `${siteUrl}${withBase('demos/')}`,
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: demos.length,
+    itemListElement: groups.flatMap((group) => group.demos).map((demo, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: demo.title,
+      url: `${siteUrl}${withBase(demo.href)}`,
+    })),
+  },
+};
+---
+
+<Base
+  title="Демо | Nikita Boyarkin"
+  description="Демо-доски портфолио: самостоятельные страницы с данными проекта — часть интерактивна, часть статична. Без установки и сборки."
+  canonical={withBase('demos/')}
+  counterpartHref={withBase('en/demos/')}
+  activeNav="demos"
+  lang="ru"
+  jsonLd={collectionJsonLd}
+>
+  <div class="container">
+    <h1 class="page-title reveal">Демо</h1>
+
+    <p class="demo-lead reveal">
+      Каждая доска — самостоятельная страница с данными проекта: где есть элементы
+      управления, их можно двигать. Открывается в новой вкладке — устанавливать и
+      собирать ничего не нужно.
+    </p>
+
+    {
+      groups.map((group) => (
+        <section class="demo-group reveal" aria-labelledby={`demo-group-${group.key}`}>
+          <h2 id={`demo-group-${group.key}`} class="demo-group-title">
+            {group.label}
+            <span class="filter-count">{group.demos.length}</span>
+          </h2>
+          <div class="project-grid">
+            {group.demos.map((demo) => (
+              <DemoCard
+                href={withBase(demo.href)}
+                title={demo.title}
+                description={demo.description}
+                caseHref={demo.caseSlug ? withBase(`projects/${demo.caseSlug}/`) : undefined}
+                caseTitle={demo.caseTitle ?? undefined}
+                lang="ru"
+              />
+            ))}
+          </div>
+        </section>
+      ))
+    }
+
+    <p class="demo-footer">
+      <a href={withBase('projects/')}>Кейсы, из которых эти доски собраны →</a>
+      <span class="demo-footer-sep" aria-hidden="true">·</span>
+      <a href={withBase('games/')}>Аркада мини-игр →</a>
+    </p>
+  </div>
+</Base>
+
+<style>
+  .demo-lead {
+    max-width: 68ch;
+    margin: 0 0 var(--space-8);
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* The catalogue's track-heading recipe (`#project-list .project-group-heading`
+     in global.css): a group marker, not a section title. Four 1.9rem headings
+     down the page would read as four sections. */
+  .demo-group + .demo-group {
+    margin-top: var(--space-10);
+  }
+
+  .demo-group-title {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-4);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--text-normal);
+  }
+
+  .demo-footer {
+    margin: var(--space-10) 0 0;
+    font-weight: 600;
+  }
+
+  .demo-footer a {
+    color: var(--text-accent);
+    text-decoration: none;
+  }
+
+  .demo-footer a:hover {
+    color: var(--text-accent-hover);
+    text-decoration: underline;
+  }
+
+  .demo-footer a:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .demo-footer-sep {
+    margin: 0 var(--space-2);
+    color: var(--text-muted);
+  }
+</style>

@@ -1,6 +1,6 @@
 ---
-// The homepage: who → what is proven → what to do, then the new-tab surface
-// below it (search + shortcuts). It replaces `HeroGate` (three persona cards) on
+// The homepage: who → what to do, then the new-tab surface below it (search).
+// It replaces `HeroGate` (three persona cards) on
 // `/` and `/en/` by the owner's call — the persona landings stay reachable from
 // the header's `NavRoles` group, from the drawer and from the tiles in this band.
 //
@@ -8,8 +8,16 @@
 // page a literal new-tab — an 8rem clock, a search field and nothing else. A
 // recruiter landing there got no answer to "who is this", "what did they prove"
 // and "what do I do next", so the clock was demoted to a status line and the
-// identity, the flagship figure and two CTAs took the fold. The search and the
-// shortcuts are kept: they serve the second visitor, the one already convinced.
+// identity, the flagship figure and two CTAs took the fold. The search is kept:
+// it serves the second visitor, the one already convinced.
+//
+// 2026-11-08: the method line, the Volta proof card and the «Смотреть кейсы /
+// Оставить запрос» pair left the fold on the owner's call, and the shortcut
+// chips («Проекты · Статьи · Словарь · Граф · Обозреватель · Обо мне») left the
+// new-tab surface the same day. The Telegram action stays —
+// `docs/cta-inventory.md` makes it the hero's one primary ask and
+// `tests/lib/persona.test.ts` guards it — and every removed destination keeps a
+// row in the drawer, so nothing became unreachable.
 //
 // The search is deliberately its own small island rather than a second mount of
 // `SearchBox`: that component owns the drawer's panel and keys off fixed ids
@@ -17,10 +25,7 @@
 // would collide. This one reads the same `search-index.json` and hands a longer
 // query off to the Explorer surface, which already accepts `?q=`.
 import { ICON } from '../lib/icons';
-import { formatNumber } from '../lib/format';
-import { METRICS } from '../lib/metrics';
 import { withBase } from '../lib/path';
-import FigureText from './FigureText.astro';
 // Persona promise lines come from ROLE_COPY so the homepage cannot drift from
 // the landings it points at.
 import { ROLE_COPY } from '../lib/projects';
@@ -41,15 +46,9 @@ const t = isEn
       empty: 'Nothing found',
       all: 'All results',
       searchLabel: 'Site search',
-      shortcutsLabel: 'Shortcuts',
       personasLabel: 'Three ways in',
       name: 'Nikita Boyarkin',
       role: 'Product Analyst',
-      // One line, the work rather than the job title: what a recruiter scans
-      // for in the first three seconds is the method, not the noun.
-      value: 'I test hypotheses with experiments: A/B tests, retention, segmentation',
-      cases: 'See the cases',
-      contact: 'Send a request',
     }
   : {
       clockLabel: 'Текущее время',
@@ -57,20 +56,14 @@ const t = isEn
       empty: 'Ничего не найдено',
       all: 'Все результаты',
       searchLabel: 'Поиск по сайту',
-      shortcutsLabel: 'Быстрые ссылки',
       personasLabel: 'Три способа читать сайт',
       name: 'Никита Бояркин',
       role: 'Продуктовый аналитик',
-      value: 'Проверяю гипотезы экспериментами: A/B-тесты, retention, сегментация',
-      cases: 'Смотреть кейсы',
-      contact: 'Оставить запрос',
     };
 
 // The CV download button was removed on the owner's call (2026-11-01) — the PDF
 // is no longer offered from the site, so there is nothing here to point at.
 const TELEGRAM_URL = 'https://t.me/lofinibo';
-const casesUrl = withBase(isEn ? 'en/projects/' : 'projects/');
-const contactUrl = withBase(isEn ? 'en/contact/' : 'contact/');
 
 const roleCopy = ROLE_COPY[isEn ? 'en' : 'ru'];
 
@@ -99,59 +92,8 @@ const PERSONAS = [
   },
 ];
 
-// The hero's proof line reads from `METRICS`, not from a copy: the whole point
-// of `src/lib/metrics.ts` is that a headline number has one home, and this block
-// was the last place that still restated one (it said €208,5K correctly by hand,
-// which is why nothing caught the €656K drift next door for a release).
-const FLAGSHIP = {
-  href: withBase(isEn ? 'en/projects/volta/' : 'projects/volta/'),
-  title: 'Volta Neobank — Product Analytics',
-  metric: [
-    isEn
-      ? `+${formatNumber(METRICS.abKyc.deltaPp, undefined, 'en')} pp KYC conversion`
-      : `+${formatNumber(METRICS.abKyc.deltaPp, undefined, 'ru')} п.п. KYC-конверсии`,
-    isEn
-      ? `€${formatNumber(METRICS.abKyc.annualEurK, undefined, 'en')}K in 12 mo`
-      : `€${formatNumber(METRICS.abKyc.annualEurK, undefined, 'ru')}K за 12 мес`,
-    isEn
-      ? `${formatNumber(METRICS.abKyc.roiX, undefined, 'en')}× ROI`
-      : `${formatNumber(METRICS.abKyc.roiX, undefined, 'ru')}× ROI`,
-  ],
-};
-
-const SHORTCUTS = [
-  {
-    icon: ICON.projects,
-    href: withBase(isEn ? 'en/projects/' : 'projects/'),
-    label: isEn ? 'Projects' : 'Проекты',
-  },
-  {
-    icon: ICON.writing,
-    href: withBase(isEn ? 'en/writing/' : 'writing/'),
-    label: isEn ? 'Writing' : 'Статьи',
-  },
-  {
-    icon: ICON.glossary,
-    href: withBase(isEn ? 'en/glossary/' : 'glossary/'),
-    label: isEn ? 'Glossary' : 'Словарь',
-  },
-  {
-    icon: ICON.graph,
-    href: withBase(isEn ? 'en/graph/' : 'graph/'),
-    label: isEn ? 'Graph' : 'Граф',
-  },
-  {
-    icon: ICON.explorer,
-    href: explorerUrl,
-    label: isEn ? 'Explorer' : 'Обозреватель',
-  },
-  {
-    icon: ICON.about,
-    href: withBase(isEn ? 'en/about/' : 'about/'),
-    label: isEn ? 'About' : 'Обо мне',
-  },
-];
 ---
+
 
 <section
   class="newtab"
@@ -178,7 +120,7 @@ const SHORTCUTS = [
       <span class="nt-date" id="nt-date"></span>
     </p>
 
-    {/* who → what is proven → what to do. The portrait is a plain 64px <img>:
+    {/* who → what to do. The portrait is a plain 64px <img>:
         `HeroAvatar` next door mounts a ~960 KB 3D bundle on demand, which has no
         business on the page a recruiter lands on first. */}
     <div class="nt-intro">
@@ -200,36 +142,8 @@ const SHORTCUTS = [
       </h1>
     </div>
 
-    <p class="nt-value">{t.value}</p>
-
-    {/* The proof line: the flagship figure set, reused verbatim from FLAGSHIP
-        (and therefore from volta.md) rather than re-typed here. It is also the
-        link to the case it comes from. */}
-    <a class="nt-flagship" href={FLAGSHIP.href} data-analytics="flagship_case">
-      <span class="nt-flagship-title">{FLAGSHIP.title}</span>
-      <span class="nt-flagship-metric">
-        {FLAGSHIP.metric.map((m) => (
-          <span>
-            <FigureText text={m} />
-          </span>
-        ))}
-      </span>
-    </a>
-
     <div class="nt-ctas">
       <a class="button" href={TELEGRAM_URL} data-analytics="telegram_hero"> Telegram </a>
-      <a class="nt-cases" href={casesUrl}>
-        {t.cases} <span class="nt-cases-arrow" aria-hidden="true">→</span>
-      </a>
-      <span class="nt-sep" aria-hidden="true">·</span>
-      <a
-        class="nt-contact"
-        href={contactUrl}
-        data-analytics="contact_page_click"
-        data-analytics-surface="home_hero"
-      >
-        {t.contact}
-      </a>
     </div>
 
     <form class="nt-form" id="nt-form" role="search" aria-label={t.searchLabel} autocomplete="off">
@@ -282,22 +196,6 @@ const SHORTCUTS = [
       </nav>
     </div>
 
-    <ul class="nt-shortcuts" aria-label={t.shortcutsLabel}>
-      {
-        SHORTCUTS.map((s) => (
-          <li>
-            <a class="nt-shortcut" href={s.href}>
-              <span
-                class="nt-shortcut-icon"
-                aria-hidden="true"
-                set:html={`<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">${s.icon}</svg>`}
-              />
-              {s.label}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
   </div>
 </section>
 
@@ -608,18 +506,6 @@ const SHORTCUTS = [
     color: var(--text-accent);
   }
 
-  .nt-value {
-    /* 40rem, so the sentence holds on one line at desktop width instead of
-       breaking on the colon; it still wraps to two below ~700px. */
-    max-inline-size: 40rem;
-    margin: var(--space-3) 0 0;
-    font-size: 1.0625rem;
-    line-height: 1.5;
-    color: var(--text-normal);
-    text-align: center;
-    text-wrap: balance;
-  }
-
   .nt-ctas {
     display: flex;
     flex-wrap: wrap;
@@ -627,42 +513,6 @@ const SHORTCUTS = [
     justify-content: center;
     gap: var(--space-2) var(--space-3);
     margin-block-start: var(--space-1);
-  }
-
-  /* Tertiary: a text link beside the two buttons, never a third filled shape —
-     three buttons in a row read as three equal asks. */
-  .nt-cases,
-  .nt-contact {
-    font-size: 0.9375rem;
-    font-weight: 500;
-    color: var(--text-accent);
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .nt-cases:hover,
-  .nt-contact:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .nt-cases:focus-visible,
-  .nt-contact:focus-visible {
-    outline: 2px solid var(--text-accent);
-    outline-offset: 3px;
-    border-radius: var(--radius-sm);
-  }
-
-  /* A middot between the two secondary links. Hidden when the row wraps to a
-     second line on phones, where a lone separator would open the line. */
-  .nt-sep {
-    color: var(--text-muted);
-  }
-
-  @media (max-width: 600px) {
-    .nt-sep {
-      display: none;
-    }
   }
 
   .nt-form {
@@ -719,21 +569,10 @@ const SHORTCUTS = [
     text-align: start;
   }
 
-  .nt-shortcuts {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--space-2);
-    margin: var(--space-5) 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
   /* Content band: aligned to the search island so the eye reads one column.
      The persona tiles are outlined cards, not bare text: on a phone there is no
      hover to reveal that they are links, so the border and the fill have to
-     carry it. The shortcut pills below are demoted to plain links in exchange —
-     the content outranks the secondary navigation. */
+     carry it. */
   .nt-content {
     inline-size: min(38rem, 100%);
     margin-block-start: var(--space-5);
@@ -749,9 +588,10 @@ const SHORTCUTS = [
     list-style: none;
   }
 
-  .nt-persona,
-  .nt-flagship {
+  .nt-persona {
     display: grid;
+    align-content: start;
+    block-size: 100%;
     gap: var(--space-2);
     padding: var(--space-3);
     border: 1px solid var(--border-color);
@@ -761,15 +601,8 @@ const SHORTCUTS = [
     transition: border-color 0.18s ease, background-color 0.18s ease;
   }
 
-  .nt-persona {
-    align-content: start;
-    block-size: 100%;
-  }
-
   .nt-persona:hover,
-  .nt-persona:focus-visible,
-  .nt-flagship:hover,
-  .nt-flagship:focus-visible {
+  .nt-persona:focus-visible {
     border-color: var(--border-active);
     background-color: color-mix(in srgb, var(--card-background) 100%, transparent);
   }
@@ -807,89 +640,9 @@ const SHORTCUTS = [
 
   /* The focus ring is the tile's own edge, so it hugs the rounded corner
      instead of drawing a second rectangle inside it. */
-  .nt-persona:focus-visible,
-  .nt-flagship:focus-visible {
+  .nt-persona:focus-visible {
     outline: 2px solid var(--text-accent);
     outline-offset: 2px;
-  }
-
-  .nt-flagship {
-    /* A direct child of `.nt-center` now (the proof step of who → proven → do),
-       so it carries the search island's measure instead of inheriting it from
-       `.nt-content`. */
-    inline-size: min(38rem, 100%);
-    margin-block-start: var(--space-1);
-  }
-
-  .nt-flagship-title {
-    font-size: 0.9375rem;
-    font-weight: 500;
-    color: var(--text-normal);
-  }
-
-  /* Items, not one string: a separator is drawn *after* each item but the last,
-     so a wrapped line can never begin with one. */
-  .nt-flagship-metric {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    font-size: 0.8125rem;
-    /* Muted prose, orange *figures*: each item runs through `FigureText`, so
-       only the measurement takes the figure ink and the words around it
-       («п.п. KYC-конверсии») stay quiet. Colouring the whole line orange was the
-       first attempt and it failed two ways — it made a sentence orange, and at
-       13px/400 the ink is below the 4.5:1 normal-text floor on the light card. */
-    color: var(--text-muted);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .nt-flagship-metric span:not(:last-child)::after {
-    content: '·';
-    margin-inline: var(--space-2);
-    color: var(--text-muted);
-  }
-
-  .nt-shortcut {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-1) var(--space-2);
-    border: 1px solid transparent;
-    border-radius: var(--radius-full);
-    background-color: transparent;
-    color: var(--text-muted);
-    font-size: 0.8125rem;
-    font-weight: 500;
-    text-decoration: none;
-    transition: color 0.18s ease, border-color 0.18s ease;
-  }
-
-  .nt-shortcut:hover,
-  .nt-shortcut:focus-visible {
-    border-color: var(--border-color);
-    color: var(--text-accent);
-  }
-
-  /* A thumb needs the 44px floor even though the pill itself is now small. */
-  @media (pointer: coarse) {
-    .nt-shortcut {
-      min-height: 44px;
-    }
-  }
-
-  .nt-shortcut:focus-visible {
-    outline: 2px solid var(--text-accent);
-    outline-offset: 2px;
-  }
-
-  .nt-shortcut-icon {
-    display: inline-flex;
-    color: var(--text-muted);
-  }
-
-  .nt-shortcut:hover .nt-shortcut-icon,
-  .nt-shortcut:focus-visible .nt-shortcut-icon {
-    color: var(--text-accent);
   }
 
   @media (max-width: 860px) {
@@ -902,7 +655,7 @@ const SHORTCUTS = [
   @media (max-width: 599px) {
     /* The band stacks into three full-width tiles on phones, which is ~200px
        taller than the bare text it replaced. The padding here is paid back so
-       the shortcut row does not straddle the fold. */
+       the band stays inside the first screen. */
     .newtab {
       padding-block: var(--space-4);
     }
@@ -918,10 +671,6 @@ const SHORTCUTS = [
       block-size: 56px;
     }
 
-    .nt-value {
-      font-size: 1rem;
-    }
-
     .nt-form {
       padding: var(--space-3) var(--space-4);
     }
@@ -934,22 +683,15 @@ const SHORTCUTS = [
       gap: var(--space-2);
     }
 
-    .nt-persona,
-    .nt-flagship {
+    .nt-persona {
       padding: var(--space-2) var(--space-3);
     }
 
-    .nt-shortcuts {
-      gap: var(--space-1);
-      margin-block-start: var(--space-4);
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .nt-form,
-    .nt-shortcut,
-    .nt-persona,
-    .nt-flagship {
+    .nt-persona {
       transition: none;
     }
   }

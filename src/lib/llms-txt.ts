@@ -136,6 +136,8 @@ export async function buildLlmsTxt(site: string): Promise<string> {
   add(`- [Contact (RU)](${abs("contact/")}): how to reach me.`);
   add(`- [Contact (EN)](${abs("en/contact/")}): English contact page.`);
   add(`- [Games (RU)](${abs("games/")}): playable analytics arcade — 10 zero-dependency SVG mini-games (A/B test, funnel drop, cohort catch, SQL, retention, metric match) + arcade (snake, pong, 2048). Phone + desktop.`);
+  add(`- [Demos (RU)](${abs("demos/")}): every demo board in one index — A/B, cohorts, RFM, churn, SQL, dashboards.`);
+  add(`- [Demos (EN)](${abs("en/demos/")}): the same index with English chrome; the boards themselves are in Russian.`);
   add();
 
   add("## Featured project");

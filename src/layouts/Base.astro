@@ -34,6 +34,7 @@ interface Props {
     | 'home'
     | 'about'
     | 'projects'
+    | 'demos'
     | 'glossary'
     | 'graph'
     | 'library'
@@ -122,6 +123,8 @@ const displayTitle = isEn && counterpartHref ? `${title} · EN` : title;
 const homeHref = isEn ? withBase('en/') : withBase('/');
 const aboutHref = isEn ? withBase('en/about/') : withBase('about/');
 const projectsHref = isEn ? withBase('en/projects/') : withBase('projects/');
+// The boards hub has a real EN twin, unlike `/topics/` and `/repo-audit/`.
+const demosHref = isEn ? withBase('en/demos/') : withBase('demos/');
 const contactHref = isEn ? withBase('en/contact/') : withBase('contact/');
 // The CV download and its `navCv` label were removed on the owner's call
 // (2026-11-01): the PDF stays in `public/cv/` but nothing on the site offers it.
@@ -164,6 +167,7 @@ const t = {
   roleTitle: isEn ? 'Product Analyst' : 'Продуктовый аналитик',
   navHome: isEn ? 'Home' : 'Главная',
   navProjects: isEn ? 'Projects' : 'Проекты',
+  navDemos: isEn ? 'Demos' : 'Демо',
   navAbout: isEn ? 'About' : 'Обо мне',
   navGlossary: isEn ? 'Glossary' : 'Словарь',
   navGraph: isEn ? 'Graph' : 'Граф',
@@ -206,6 +210,12 @@ const allNavLinks = [
     href: projectsHref,
     label: t.navProjects,
     icon: ICON.projects,
+  },
+  {
+    key: 'demos',
+    href: demosHref,
+    label: t.navDemos,
+    icon: ICON.demos,
   },
   {
     key: 'about',
@@ -597,7 +607,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
 
       {/* With scripting off the drawer never slides in (`body.nav-open` is set
           by the script below), so this row is the only route to nine of the
-          ten destinations. It lists the same `navLinks` the drawer does —
+          eleven destinations. It lists the same `navLinks` the drawer does —
           labels and hrefs cannot drift, and the RU-only rows are already
           filtered out for EN above. */}
       <noscript>

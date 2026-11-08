@@ -2,7 +2,8 @@
 //
 // History: the canvas hero was retired on 2026-10-18 for `HeroGate` (three
 // persona cards), and the gate was retired on 2026-10-24 in favour of a
-// new-tab surface — a clock, a search field and shortcut chips. Each time this
+// new-tab surface — a clock and a search field (the shortcut chips left on
+// 2026-11-08 on the owner's call). Each time this
 // file moved with the surface rather than being deleted, because the homepage's
 // real contract survived every rework: an `<h1>`, the persona landings still
 // reachable, no one-screen lock, every internal link resolving. Deleting the
@@ -55,6 +56,7 @@ const NAV = {
     drawer: [
       { href: '/', label: 'Главная' },
       { href: '/projects/', label: 'Проекты' },
+      { href: '/demos/', label: 'Демо' },
       { href: '/about/', label: 'Обо мне' },
       { href: '/glossary/', label: 'Словарь' },
       { href: '/graph/', label: 'Граф' },
@@ -70,6 +72,7 @@ const NAV = {
     drawer: [
       { href: '/en/', label: 'Home' },
       { href: '/en/projects/', label: 'Projects' },
+      { href: '/en/demos/', label: 'Demos' },
       { href: '/en/about/', label: 'About' },
       { href: '/en/glossary/', label: 'Glossary' },
       { href: '/en/graph/', label: 'Graph' },
@@ -162,17 +165,20 @@ describe('homepage new tab (built HTML)', () => {
       );
     });
 
-    it(`${file}: the clock and the search sit above the shortcuts, and the h1 stays real text`, () => {
+    it(`${file}: the h1, the clock and the search render in that order`, () => {
       const d = doc();
       const h1At = d.indexOf('<h1');
       expect(h1At, `${lang}: no <h1>`).toBeGreaterThan(-1);
 
       const clockAt = d.indexOf('id="nt-clock"');
       const searchAt = d.indexOf('id="nt-input"');
-      const shortcutsAt = d.indexOf('class="nt-shortcuts"');
       expect(clockAt, `${lang}: no clock`).toBeGreaterThan(-1);
       expect(searchAt, `${lang}: no search field`).toBeGreaterThan(clockAt);
-      expect(shortcutsAt, `${lang}: no shortcuts`).toBeGreaterThan(searchAt);
+
+      // The shortcut chips («Проекты · Статьи · Словарь …») left the homepage on
+      // 2026-11-08; the drawer is the one navigation surface, so their return
+      // would be a second, unaccounted pathway.
+      expect(d, `${lang}: the shortcut chips are back`).not.toContain('class="nt-shortcuts"');
 
       // The site-wide tab strip is mounted by the layout on every page, the
       // homepage included; it renders empty and hidden until a second tab exists.

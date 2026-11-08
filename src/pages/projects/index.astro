@@ -6,12 +6,16 @@ import ProjectViews from '../../components/ProjectViews.astro';
 import NextStep from '../../components/NextStep.astro';
 import { withBase } from '../../lib/path';
 import { sortByProjectOrder } from '../../lib/projects';
+import { scanDemos } from '../../lib/demos';
 
 // Catalog-level rich result: the board is a list of projects, so it earns a
 // CollectionPage + ItemList. Positions follow the board's visible order
 // (PROJECT_ORDER via sortByProjectOrder) so the markup matches what renders.
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
 const projects = sortByProjectOrder(await getCollection('projects', (p) => !p.data.draft));
+// The hub's own count, scanned from disk — a literal here would be the drift
+// the demos module exists to prevent.
+const demoCount = scanDemos().length;
 
 const collectionJsonLd = {
   '@context': 'https://schema.org',
@@ -51,7 +55,35 @@ const collectionJsonLd = {
       <ProjectBoard starPreview="none" grouped sphereFilter />
     </ProjectViews>
 
+    <p class="projects-demos-link">
+      <a href={withBase('demos/')}>{demoCount} интерактивных демо →</a>
+    </p>
+
     <NextStep lang="ru" surface="projects_index" variant="catalog" />
   </div>
 </Base>
+
+<style>
+  .projects-demos-link {
+    margin: var(--space-6) 0 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .projects-demos-link a {
+    color: var(--text-accent);
+    text-decoration: none;
+  }
+
+  .projects-demos-link a:hover {
+    color: var(--text-accent-hover);
+    text-decoration: underline;
+  }
+
+  .projects-demos-link a:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+</style>
 

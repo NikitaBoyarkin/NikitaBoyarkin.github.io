@@ -4,8 +4,12 @@
 // pins the placements to the built HTML, so unmounting it on one lane (or
 // losing the analytics surface) turns red here instead of going unnoticed.
 //
-// The homepage is asserted the same way: its entry is a tertiary link under the
-// hero CTAs, written in `HomeNewTab` rather than `NextStep`.
+// The homepage used to be asserted the same way: a tertiary «Оставить запрос»
+// link under the hero CTAs, written in `HomeNewTab` rather than `NextStep`. It
+// left on 2026-11-08 with the hero's proof card on the owner's call, so the
+// homepage is deliberately absent here — its one primary ask is the Telegram
+// button (`telegram_hero`, guarded by `tests/lib/persona.test.ts`), and the
+// contact page stays reachable from the drawer and the footer on every page.
 //
 // Each assertion is scoped twice — to the `<main>` element and to the single
 // anchor carrying the surface — because `data-analytics="contact_page_click"`
@@ -31,8 +35,6 @@ const PAGES = [
   { file: 'en/manager/index.html', surface: 'role_manager_contact', contact: '/en/contact/' },
   { file: 'colleague/index.html', surface: 'role_colleague_contact', contact: '/contact/' },
   { file: 'en/colleague/index.html', surface: 'role_colleague_contact', contact: '/en/contact/' },
-  { file: 'index.html', surface: 'home_hero', contact: '/contact/' },
-  { file: 'en/index.html', surface: 'home_hero', contact: '/en/contact/' },
 ] as const;
 
 const html = new Map<string, string>();

@@ -1,0 +1,153 @@
+---
+// Demos hub (EN). Mirror of /demos/ over the same on-disk boards.
+//
+// The boards are authored in Russian and are not translated: this page is the
+// English chrome around them. It reads the `projects-en` collection so the
+// "Case study" link and the group labels are the English ones — the project
+// slugs are identical in both collections, so the join is the same one.
+import Base from '../../../layouts/Base.astro';
+import DemoCard from '../../../components/DemoCard.astro';
+import { withBase } from '../../../lib/path';
+import { getCollection } from 'astro:content';
+import { attachCases, demoCaseMap, groupDemos, scanDemos } from '../../../lib/demos';
+
+const projects = await getCollection('projects-en', (p) => !p.data.draft);
+const demos = attachCases(scanDemos(), demoCaseMap(projects));
+const groups = groupDemos(demos, 'en');
+
+// Fail the build rather than ship an empty catalogue if the scan reads nothing.
+if (demos.length === 0) throw new Error('demos hub (en): no boards found under public/demos/');
+
+// The list is a catalog of standalone pages, so it earns CollectionPage +
+// ItemList. Order follows the rendered groups, so the markup matches the page.
+const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
+const collectionJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Demos',
+  url: `${siteUrl}${withBase('en/demos/')}`,
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: demos.length,
+    itemListElement: groups
+      .flatMap((group) => group.demos)
+      .map((demo, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: demo.title,
+        url: `${siteUrl}${withBase(demo.href)}`,
+      })),
+  },
+};
+---
+
+<Base
+  title="Demos | Nikita Boyarkin"
+  description="Every demo board in one place, each figure computed from the project's own data. Some are interactive, some are static renders. The boards are in Russian."
+  canonical={withBase('en/demos/')}
+  counterpartHref={withBase('demos/')}
+  activeNav="demos"
+  lang="en"
+  jsonLd={collectionJsonLd}
+>
+  <div class="container demos-page">
+    <h1 class="page-title reveal">Demos</h1>
+
+    <p class="demo-lead reveal">
+      Every demo board the site ships, grouped by track. Each is a standalone page built from the
+      project's own data; where a board has controls, you can move them.
+    </p>
+    <p class="demo-note reveal">The boards themselves are in Russian.</p>
+
+    {
+      groups.map((group) => (
+        <section class="demo-group" aria-labelledby={`demo-group-${group.key}`}>
+          <h2 id={`demo-group-${group.key}`} class="demo-group-title">
+            {group.label}
+            <span class="filter-count">{group.demos.length}</span>
+          </h2>
+          <div class="project-grid">
+            {group.demos.map((demo) => (
+              <DemoCard
+                href={withBase(demo.href)}
+                title={demo.title}
+                description={demo.description}
+                caseHref={demo.caseSlug ? withBase(`en/projects/${demo.caseSlug}/`) : undefined}
+                caseTitle={demo.caseTitle ?? undefined}
+                lang="en"
+              />
+            ))}
+          </div>
+        </section>
+      ))
+    }
+
+    <p class="demo-footer">
+      <a href={withBase('en/projects/')}>The case studies behind these boards →</a>
+      <span class="demo-footer-sep" aria-hidden="true">·</span>
+      <a href={withBase('games/')}>The mini-game arcade →</a>
+    </p>
+  </div>
+</Base>
+
+<style>
+  .demo-lead {
+    max-width: 68ch;
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-body);
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  .demo-note {
+    max-width: 68ch;
+    margin: 0 0 var(--space-10);
+    font-size: var(--text-body);
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  /* Same track-heading recipe as the RU page and the projects board: a group
+     marker at 1.0625rem, not a 1.9rem section title. */
+  .demo-group + .demo-group {
+    margin-top: var(--space-10);
+  }
+
+  .demo-group-title {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-4);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--text-normal);
+  }
+
+  .demo-footer {
+    margin: var(--space-10) 0 0;
+    font-size: var(--text-body);
+  }
+
+  .demo-footer a {
+    color: var(--text-accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .demo-footer a:hover {
+    color: var(--text-accent-hover);
+    text-decoration: underline;
+  }
+
+  .demo-footer a:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .demo-footer-sep {
+    margin: 0 var(--space-2);
+    color: var(--text-muted);
+  }
+</style>

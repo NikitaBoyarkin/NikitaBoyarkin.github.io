@@ -24,6 +24,8 @@
 // The frame is not a substitute for the numbers — `ChartsSection` still renders
 // the static, build-time chart set for slugs that have one. The board is the
 // interactive view; the charts are the greppable, crawlable one.
+import { withBase } from '../lib/path';
+
 interface Props {
   href: string;
   external?: boolean;
@@ -38,12 +40,14 @@ const t = isEn
       label: 'Live board',
       hint: 'Interactive: every figure is computed from the project’s own data, so you can move the controls instead of taking the sentence on trust.',
       open: 'Open full screen',
+      all: 'All demos',
       frame: 'Interactive dashboard',
     }
   : {
       label: 'Живая панель',
       hint: 'Интерактивно: каждое число посчитано по данным проекта — контролы можно двигать, а не верить формулировке.',
       open: 'Открыть во весь экран',
+      all: 'Все демо',
       frame: 'Интерактивный дашборд',
     };
 ---
@@ -53,9 +57,12 @@ const t = isEn
 <section class="project-demo" aria-label={t.label}>
   <div class="project-demo-bar">
     <span class="project-demo-label">{t.label}</span>
-    <a class="project-demo-open" href={href} target="_blank" rel="noopener noreferrer">
-      {t.open} →
-    </a>
+    <span class="project-demo-links">
+      <a class="project-demo-open" href={href} target="_blank" rel="noopener noreferrer">
+        {t.open} →
+      </a>
+      <a class="project-demo-all" href={withBase(isEn ? 'en/demos/' : 'demos/')}>{t.all} →</a>
+    </span>
   </div>
 
   <p class="project-demo-hint">{t.hint}</p>
@@ -106,7 +113,35 @@ const t = isEn
     text-decoration: underline;
   }
 
+  /* The two actions stay together on the right edge: the bar is
+     `space-between`, so a third child would spread them. */
+  .project-demo-links {
+    display: inline-flex;
+    gap: var(--space-3);
+    align-items: baseline;
+  }
+
   .project-demo-open:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* The hub is the secondary exit: muted at rest, so the board's own
+     "open full screen" keeps the accent (60-30-10). */
+  .project-demo-all {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .project-demo-all:hover {
+    color: var(--text-accent);
+    text-decoration: underline;
+  }
+
+  .project-demo-all:focus-visible {
     outline: 2px solid var(--text-accent);
     outline-offset: 2px;
     border-radius: var(--radius-sm);
