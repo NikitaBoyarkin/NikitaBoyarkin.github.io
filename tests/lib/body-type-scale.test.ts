@@ -66,7 +66,6 @@ const ROLES: Array<[file: string, selector: string]> = [
   ['src/pages/glossary/index.astro', '.term-blurb'],
   ['src/pages/en/glossary/index.astro', '.term-blurb'],
   ['src/pages/topics/index.astro', '.topic-blurb'],
-  ['src/pages/projects/index.astro', '.headline-strip-desc'],
 ];
 
 describe('body type scale', () => {

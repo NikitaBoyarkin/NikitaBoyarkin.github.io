@@ -1,17 +1,15 @@
 // Shared project-board configuration for RU/EN locales.
 // Single source of truth for the display order and the track (category) taxonomy
 // used by ProjectBoard and ProjectSpotlight.
+import { formatDate } from './date';
 
 export const PROJECT_ORDER = ['volta', 'ab', 'games', 'supabase', 'posthog', 'streamlit', 'sales-calls', 'sql', 'clickhouse', 'delivery', 'gmv-drop-rca', 'marketplace-liquidity', 'rfm', 'cohort', 'churn', 'causal', 'crm-experiment-lab', 'rag', 'python', 'bot', 'scrolly', 'garden', 'serp-rank', 'airflow', 'ml', 'linkedin', 'promo', 'product-ab-funnel', 'oss-catalog', 'mm-program-page', 'site'];
 
-// PRD v6 S2.6 — three headline case studies on the home page, each a distinct
-// proof with at least one reachable public artifact:
-//   volta  — experimentation + funnel + retention (public repo + demo)
-//   sql    — analytics engineering (public repo + live report)
-//   cohort — retention / product metrics (public repo + interactive demo)
-// Private-repo projects (posthog, streamlit) stay in the compressed
-// list until their S2.1–S2.2 compensating artifacts land; then they can swap in.
-export const HEADLINE_PROJECTS = ['volta', 'sql', 'cohort'] as const;
+// The catalogue used to open with a "С чего начать" strip over three headline
+// cases (`HEADLINE_PROJECTS`). It went on 2026-11-08 with the redesign: the
+// board now leads with the taxonomy, and the same three cases sit first in
+// `PROJECT_ORDER` anyway, so the strip ranked three cards above thirty-one equal
+// ones by repeating an order the reader can already see.
 
 // ---------------------------------------------------------------------------
 // Audience taxonomy — `docs/prd-persona-landing.md` §5. The three personas the
@@ -504,4 +502,160 @@ export function projectSphereFilters(
 export function matchesSphere(sphere: string | undefined, sphereKey: string): boolean {
   if (sphereKey === ALL_SPHERES) return true;
   return sphere === sphereKey;
+}
+
+// ---------------------------------------------------------------------------
+// Catalogue views — the four lenses a reader picks on `/projects/`: by track,
+// real data only, newest first, and a dense table. Every helper here is pure
+// and DOM-free, like the track helpers above: the route renders the active view
+// on the server and the switch re-runs the same predicates in a client script,
+// so a lens cannot mean one thing in the HTML and another in the browser.
+//
+// Ordering is always deterministic. Both date sorts end on `projectRank`, so two
+// projects sharing a date keep their curated slot instead of reshuffling between
+// builds — the same contract `groupByYear` and `sortSlugsByNewest` already keep.
+//
+// `fresh` mirrors the `.base` "Свежие" view, whose limit is 12. The number is
+// declared once here so a board and a table cannot show different cut-offs.
+// ---------------------------------------------------------------------------
+
+export type ProjectViewKey = 'tracks' | 'real' | 'fresh' | 'table';
+
+/** The four lenses, in display order, with both locales' labels. */
+export const PROJECT_VIEWS: ReadonlyArray<{ key: ProjectViewKey; ru: string; en: string }> = [
+  { key: 'tracks', ru: 'По трекам', en: 'By track' },
+  { key: 'real', ru: 'Реальные данные', en: 'Real data' },
+  { key: 'fresh', ru: 'Свежие', en: 'Fresh' },
+  { key: 'table', ru: 'Таблица', en: 'Table' },
+];
+
+/** Landing lens: the board a visitor sees before choosing anything. */
+export const DEFAULT_PROJECT_VIEW: ProjectViewKey = 'tracks';
+
+/** `PROJECT_VIEWS` with the active locale's label — the shape the switch renders. */
+export function projectViews(lang: 'ru' | 'en' = 'ru'): { key: ProjectViewKey; label: string }[] {
+  return PROJECT_VIEWS.map((view) => ({ key: view.key, label: view[lang] }));
+}
+
+/** Narrows a raw `?view=` value (or storage entry) to a known lens. */
+export function isProjectViewKey(value: string | null | undefined): value is ProjectViewKey {
+  return PROJECT_VIEWS.some((view) => view.key === value);
+}
+
+/** How many projects the "Свежие" lens shows — the `.base` view's limit. */
+export const FRESH_LIMIT = 12;
+
+export type ProjectDataset = 'synthetic' | 'real' | 'mixed';
+
+/** Datasets whose numbers come from real rows; `mixed` counts as real. */
+export const REAL_DATASETS: readonly ProjectDataset[] = ['real', 'mixed'];
+
+export function isRealDataset(dataset: ProjectDataset | undefined): dataset is 'real' | 'mixed' {
+  return dataset === 'real' || dataset === 'mixed';
+}
+
+/**
+ * Badge text for a project's provenance, or `null` when there is nothing to
+ * say. Synthetic is the schema default and stays unlabelled: labelling the
+ * default is noise, labelling the exception is information (the words are the
+ * ones `ProjectCard.astro` already prints, and `tests/lib/project-views.test.ts`
+ * reads that file to keep the two from drifting).
+ */
+const DATASET_LABELS: Record<'real' | 'mixed', Record<'ru' | 'en', string>> = {
+  real: { ru: 'Реальные данные', en: 'Real data' },
+  mixed: { ru: 'Реальные + синтетика', en: 'Real + synthetic' },
+};
+
+export function datasetLabel(
+  dataset: ProjectDataset | undefined,
+  lang: 'ru' | 'en' = 'ru',
+): string | null {
+  if (!isRealDataset(dataset)) return null;
+  return DATASET_LABELS[dataset][lang];
+}
+
+/**
+ * Newest first by `updated ?? date`, ties broken by `PROJECT_ORDER`. Undated
+ * projects sink to the end: they have no position on a time axis, and a fake
+ * one would put them somewhere false. `Array#sort` is stable, but the explicit
+ * rank tie-break is what makes the order identical across builds.
+ */
+export function sortByFreshness<T extends { id: string; date?: Date; updated?: Date }>(
+  projects: readonly T[],
+): T[] {
+  const when = (project: T): number => (project.updated ?? project.date)?.getTime() ?? 0;
+  return [...projects].sort((a, b) => when(b) - when(a) || projectRank(a.id) - projectRank(b.id));
+}
+
+/** The freshest `limit` projects — the "Свежие" lens. */
+export function freshProjects<T extends { id: string; date?: Date; updated?: Date }>(
+  projects: readonly T[],
+  limit: number = FRESH_LIMIT,
+): T[] {
+  return sortByFreshness(projects).slice(0, limit);
+}
+
+export interface ProjectTableRow {
+  slug: string;
+  title: string;
+  /** Locale-relative case URL, e.g. `projects/ab/` or `en/projects/ab/` — no base prefix; the component applies withBase. */
+  href: string;
+  /** Localized track label, e.g. 'Эксперименты'. */
+  track: string;
+  /** Localized dataset label, or null for synthetic. */
+  dataset: string | null;
+  /** Display date, already formatted for the locale, or null when the file has none. */
+  published: string | null;
+  updated: string | null;
+  github: string | null;
+  isPrivate: boolean;
+  tools: string[];
+}
+
+/**
+ * Display date for a table cell. `formatDate` pins the calendar to UTC, so a
+ * date-only frontmatter value cannot print as the previous day for a reader west
+ * of UTC; using the same helper as the fresh lens also keeps one date style on
+ * the page instead of an ISO string in a column beside a localized one.
+ */
+const displayDay = (value: Date | undefined, lang: 'ru' | 'en'): string | null =>
+  value ? formatDate(value, lang) : null;
+
+/**
+ * One row per project for the table lens, in curated order so the table reads
+ * in the same sequence as the board it replaces. Labels and dates arrive ready
+ * to print: the component owns layout, and a second copy of the formatter is
+ * how two views end up disagreeing about what "11 авг. 2026 г." means.
+ */
+export function projectTableRows<
+  T extends {
+    id: string;
+    date?: Date;
+    updated?: Date;
+    track: string;
+    dataset?: ProjectDataset;
+    github?: string;
+    private?: boolean;
+    tools: string[];
+    title: string;
+  },
+>(projects: readonly T[], opts: { lang?: 'ru' | 'en'; linkPrefix?: string }): ProjectTableRow[] {
+  const lang = opts.lang ?? 'ru';
+  const labels = projectTrackLabels(lang);
+  // Strip trailing slashes before re-adding one: callers pass both `'en/'` and
+  // `'en'`, and `'en//projects/…'` would be a broken URL on a static build.
+  const prefix = (opts.linkPrefix ?? '').replace(/\/+$/, '');
+
+  return sortByProjectOrder(projects).map((project) => ({
+    slug: stripExt(project.id),
+    title: project.title,
+    href: `${prefix ? `${prefix}/` : ''}projects/${stripExt(project.id)}/`,
+    track: labels[project.track] ?? project.track,
+    dataset: datasetLabel(project.dataset, lang),
+    published: displayDay(project.date, lang),
+    updated: displayDay(project.updated, lang),
+    github: project.github ?? null,
+    isPrivate: Boolean(project.private),
+    tools: [...project.tools],
+  }));
 }

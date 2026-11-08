@@ -1,0 +1,496 @@
+---
+// The catalogue's four lenses — the web counterpart of the owner's Obsidian
+// Bases file `00 portfolio site.base`, whose four views are: cards grouped by
+// track, cards on real data only, the freshest cases, and a table.
+//
+// /projects/ used to be one board with a track filter, a sphere filter, a tool
+// filter and a sort select — five controls over one arrangement. A reader who
+// wants "which cases actually touch real rows?" or "compare the stack across
+// all cases" has no control for either, because both questions need a different
+// *shape* of the catalogue, not another filter over the same grid.
+//
+// So the four lenses are tabs, and each lens owns its own body:
+//   tracks — the existing board, passed in as a slot child (unchanged: its
+//            filters, sort and reorder controller keep working);
+//   real   — the same cards, membership restricted to `dataset: real|mixed`;
+//   fresh  — compact rows, newest `updated ?? date` first, cut at FRESH_LIMIT;
+//   table  — every case as a row (ProjectTable), which is what makes the
+//            catalogue comparable rather than browsable.
+//
+// Progressive enhancement, the AboutTabs contract: the three non-default panels
+// are rendered `hidden` on the server and the tablist only works with JS, so a
+// visitor with JS off keeps exactly the page that shipped before — the board,
+// all 31 cases, no dead controls (the <noscript> rule hides the tablist).
+//
+// Every lens is server-rendered from the same collection, so the HTML is the
+// deliverable: a crawler sees all 31 case links in the table as well as in the
+// board, and no view is a client-side reconstruction of the data. The cost is
+// duplicate card markup for the 3 real-data cases; the table and the fresh list
+// are their own, lighter shapes, and a hidden panel's covers are lazy images
+// with no layout box, so they are never fetched.
+import { getCollection } from 'astro:content';
+import { formatDate } from '../lib/date';
+import {
+  DEFAULT_PROJECT_VIEW,
+  datasetLabel,
+  freshProjects,
+  isRealDataset,
+  projectSphere,
+  projectTableRows,
+  projectTrackLabels,
+  projectViews,
+  sortByProjectOrder,
+  stripExt,
+} from '../lib/projects';
+import { withBase } from '../lib/path';
+import ProjectCard from './ProjectCard.astro';
+import ProjectTable from './ProjectTable.astro';
+
+interface Props {
+  collection?: 'projects' | 'projects-en';
+  /** Locale prefix for case links — `''` (RU) or `'en/'` (EN). */
+  linkPrefix?: string;
+  lang?: 'ru' | 'en';
+}
+
+const { collection = 'projects', linkPrefix = '', lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+const projects = sortByProjectOrder(await getCollection(collection, (p) => !p.data.draft));
+const views = projectViews(lang);
+const trackLabels = projectTrackLabels(lang);
+
+const real = projects.filter((project) => isRealDataset(project.data.dataset));
+
+// `freshProjects` expects the dates at the top level, while a collection entry
+// carries them under `data` — the same lift `ProjectList` does for `groupByYear`.
+const fresh = freshProjects(
+  projects.map((project) => ({
+    ...project,
+    date: project.data.date,
+    updated: project.data.updated,
+  })),
+);
+
+const rows = projectTableRows(
+  projects.map((project) => ({
+    id: project.id,
+    title: project.data.title,
+    date: project.data.date,
+    updated: project.data.updated,
+    track: project.data.track,
+    dataset: project.data.dataset,
+    github: project.data.github,
+    private: project.data.private,
+    tools: project.data.tools,
+  })),
+  { lang, linkPrefix },
+);
+
+const t = {
+  label: isEn ? 'Project catalogue view' : 'Вид каталога проектов',
+  real: isEn ? 'Projects on real data' : 'Проекты на реальных данных',
+  realLead: isEn
+    ? 'Cases whose numbers come from real rows rather than a simulated generator — the strongest evidence in the catalogue.'
+    : 'Кейсы, чьи числа посчитаны на реальных строках, а не на генераторе — самая сильная доказательная база каталога.',
+  fresh: isEn ? 'Fresh cases' : 'Свежие кейсы',
+  // «12 последних обновлений» rather than «Последние 12 обновления»: the list is
+  // `updated ?? date`, so it holds freshly published cases too, and the count is
+  // interpolated — a numeral inside the phrase is what forces a plural form.
+  freshLead: isEn
+    ? `${fresh.length} newest cases by last change, newest first.`
+    : `${fresh.length} последних обновлённых кейсов, сначала новые.`,
+  table: isEn ? 'Catalogue as a table' : 'Каталог таблицей',
+  tableLead: isEn
+    ? 'Same cases as columns: track, provenance, dates, repository, stack.'
+    : 'Те же кейсы в колонках: трек, данные, даты, репозиторий, стек.',
+  updated: isEn ? 'updated' : 'обновлено',
+  empty: isEn ? 'No cases in this view.' : 'В этом виде пока нет кейсов.',
+};
+
+// The panel a statically-built page can ship. `?view=` is read by the script
+// below, not here — a static build has no query string to read — so a shared
+// `?view=table` link renders the board first and switches on load. That is the
+// honest degradation: with JS off the board is what loads, not a wrong panel.
+const activeView = DEFAULT_PROJECT_VIEW;
+---
+
+<div class="project-views" data-project-views data-active-view={activeView}>
+  <div class="pview-bar">
+    <div class="pview-tablist" role="tablist" aria-label={t.label}>
+      {
+        views.map((view) => (
+          <button
+            type="button"
+            role="tab"
+            class="pview-tab"
+            id={`pview-tab-${view.key}`}
+            data-view={view.key}
+            aria-controls={`pview-panel-${view.key}`}
+            aria-selected={view.key === activeView ? 'true' : 'false'}
+            tabindex={view.key === activeView ? '0' : '-1'}
+          >
+            {view.label}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  {/* tracks — the board the page already had. It brings its own `<h2>`
+      (`ProjectBoard.astro` renders «Все проекты» visually hidden), so this panel
+      deliberately adds none: two identical headings in a row is an outline that
+      says the same thing twice. */}
+  <div
+    class="pview-panel"
+    id="pview-panel-tracks"
+    role="tabpanel"
+    aria-labelledby="pview-tab-tracks"
+    data-panel="tracks"
+  >
+    <slot />
+  </div>
+
+  <div
+    class="pview-panel"
+    id="pview-panel-real"
+    role="tabpanel"
+    aria-labelledby="pview-tab-real"
+    data-panel="real"
+    hidden
+  >
+    <h2 class="visually-hidden">{t.real}</h2>
+    <p class="pview-lead">{t.realLead}</p>
+    {
+      real.length > 0 ? (
+        <div class="project-grid">
+          {real.map((project) => (
+            <ProjectCard
+              slug={stripExt(project.id)}
+              title={project.data.title}
+              description={project.data.description}
+              image={project.data.hero}
+              star={project.data.star}
+              impact={project.data.impact}
+              tools={project.data.tools}
+              github={project.data.github}
+              demo={project.data.demo}
+              private={project.data.private}
+              linkPrefix={linkPrefix}
+              lang={lang}
+              track={project.data.track}
+              trackLabel={trackLabels[project.data.track]}
+              dataset={project.data.dataset}
+              sphere={projectSphere(project.id)}
+              date={(project.data.date ?? project.data.updated)?.toISOString().slice(0, 10)}
+              compact
+              starPreview="none"
+            />
+          ))}
+        </div>
+      ) : (
+        <p class="pview-empty">{t.empty}</p>
+      )
+    }
+  </div>
+
+  <div
+    class="pview-panel"
+    id="pview-panel-fresh"
+    role="tabpanel"
+    aria-labelledby="pview-tab-fresh"
+    data-panel="fresh"
+    hidden
+  >
+    <h2 class="visually-hidden">{t.fresh}</h2>
+    <p class="pview-lead">{t.freshLead}</p>
+    {
+      fresh.length > 0 ? (
+        <ol class="pview-fresh">
+          {fresh.map((project) => {
+            const updated = project.updated ?? project.date;
+            const dataset = datasetLabel(project.data.dataset, lang);
+            return (
+              <li
+                class="pview-fresh-row"
+                data-slug={stripExt(project.id)}
+                data-updated={(updated ?? new Date(0)).toISOString().slice(0, 10)}
+              >
+                <a class="pview-fresh-title" href={withBase(`${linkPrefix}projects/${stripExt(project.id)}/`)} data-analytics-project={stripExt(project.id)} data-analytics-surface="fresh">
+                  {project.data.title}
+                </a>
+                <span class="pview-fresh-meta">
+                  <span class="pview-fresh-track">{trackLabels[project.data.track]}</span>
+                  {dataset && <span class="project-dataset-badge">{dataset}</span>}
+                  {updated && (
+                    <span class="pview-fresh-date">
+                      {t.updated} {formatDate(updated, lang)}
+                    </span>
+                  )}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      ) : (
+        <p class="pview-empty">{t.empty}</p>
+      )
+    }
+  </div>
+
+  <div
+    class="pview-panel"
+    id="pview-panel-table"
+    role="tabpanel"
+    aria-labelledby="pview-tab-table"
+    data-panel="table"
+    hidden
+  >
+    <h2 class="visually-hidden">{t.table}</h2>
+    <p class="pview-lead">{t.tableLead}</p>
+    <ProjectTable rows={rows} lang={lang} />
+  </div>
+
+  {/* Without JS the tablist is four buttons that cannot switch anything. The
+      hidden panels are already hidden server-side, so hiding the tablist is the
+      whole fix — the page degrades to the board it used to be. */}
+  <noscript set:html="<style>.pview-bar{display:none !important}</style>" />
+</div>
+
+<script>
+  import { DEFAULT_PROJECT_VIEW, isProjectViewKey } from '../lib/projects';
+
+  // One controller for the lens switch. Same contract as AboutTabs: the ARIA tab
+  // pattern (roving tabindex, Arrow/Home/End), `?view=` in the URL so a lens can
+  // be linked, and `history.replaceState` rather than a push — switching a view
+  // is not a navigation, so Back must not walk through four lenses of one page.
+  //
+  // The board's own controller owns `?tool=`, `?sphere=`, `?sort=` and the
+  // `#track-…` hash; every URL write below preserves them, or choosing a lens
+  // would silently reset the reader's filters.
+  const root = document.querySelector<HTMLElement>('[data-project-views]');
+  if (root) {
+    const scope: HTMLElement = root;
+    const tabs = Array.from(scope.querySelectorAll<HTMLButtonElement>('[role="tab"][data-view]'));
+    // Scoped to this component's own panels: `data-panel` is also used by
+    // `SectionPanel` / `about/TabPanel`, and a bare `[data-panel]` would let a
+    // panel adopted inside the board slot be force-hidden by the lens switch.
+    const panels = Array.from(scope.querySelectorAll<HTMLElement>('.pview-panel[data-panel]'));
+
+    function activate(key: string, focus: boolean): void {
+      const heldFocus = scope.contains(document.activeElement);
+      for (const panel of panels) {
+        panel.hidden = panel.dataset.panel !== key;
+      }
+      for (const tab of tabs) {
+        const on = tab.dataset.view === key;
+        tab.setAttribute('aria-selected', on ? 'true' : 'false');
+        tab.tabIndex = on ? 0 : -1;
+        if (on && focus) tab.focus();
+      }
+      // Nothing else needs telling: each panel is server-rendered, and the
+      // catalogue board is a grid now — there is no carousel to re-measure.
+      // Hiding the panel that holds focus drops focus to <body> and restarts the
+      // tab order at the top of the document (WCAG 2.4.3). Hand it to the tab
+      // that now owns the screen.
+      if (heldFocus && key !== DEFAULT_PROJECT_VIEW) {
+        const active = tabs.find((tab) => tab.dataset.view === key);
+        active?.focus();
+      }
+      scope.setAttribute('data-active-view', key);
+    }
+
+    function fromUrl(): string {
+      const value = new URLSearchParams(location.search).get('view');
+      return isProjectViewKey(value) ? value : DEFAULT_PROJECT_VIEW;
+    }
+
+    function urlFor(key: string): string {
+      const params = new URLSearchParams(location.search);
+      if (key === DEFAULT_PROJECT_VIEW) params.delete('view');
+      else params.set('view', key);
+      const query = params.toString();
+      return `${location.pathname}${query ? `?${query}` : ''}${location.hash}`;
+    }
+
+    const initial = fromUrl();
+    if (initial !== DEFAULT_PROJECT_VIEW) activate(initial, false);
+
+    scope.addEventListener('click', (event) => {
+      const tab = (event.target as Element | null)?.closest?.<HTMLButtonElement>('[role="tab"][data-view]');
+      if (!tab || !scope.contains(tab)) return;
+      const key = tab.dataset.view ?? DEFAULT_PROJECT_VIEW;
+      if (scope.getAttribute('data-active-view') !== key) activate(key, false);
+      // Always rewrite: an invalid `?view=foo` normalises to `tracks` in
+      // `fromUrl()`, so an early return would leave the junk param in the
+      // address bar and in every link copied from it.
+      history.replaceState(null, '', urlFor(key));
+      // No custom PostHog event: `docs/analytics-dead-events.md` rules out new
+      // events at this traffic, and `$autocapture` already records the click
+      // with the tab's text, which is the whole fact worth having.
+    });
+
+    scope.addEventListener('keydown', (event) => {
+      const tab = (event.target as Element | null)?.closest?.<HTMLButtonElement>('[role="tab"][data-view]');
+      if (!tab) return;
+      const index = tabs.indexOf(tab);
+      if (index < 0) return;
+      let next = -1;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (index + 1) % tabs.length;
+      else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp')
+        next = (index - 1 + tabs.length) % tabs.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = tabs.length - 1;
+      else return;
+      event.preventDefault();
+      const target = tabs[next];
+      const key = target.dataset.view ?? DEFAULT_PROJECT_VIEW;
+      activate(key, true);
+      history.replaceState(null, '', urlFor(key));
+    });
+
+    window.addEventListener('popstate', () => activate(fromUrl(), false));
+  }
+</script>
+
+<style>
+  /* Segmented control, the same recipe as `.about-tab` / `.filter-tag`: muted at
+     rest, accent as a signal (text, border, an underline that is a shape change
+     and not only a hue) — never an accent surface fill. */
+  .pview-tablist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-5);
+    padding: 0 0 var(--space-3);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .pview-tab {
+    appearance: none;
+    cursor: pointer;
+    position: relative;
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text-muted);
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .pview-tab:hover {
+    color: var(--text-accent);
+    border-color: var(--border-active);
+  }
+
+  .pview-tab[aria-selected='true'] {
+    color: var(--text-accent);
+    border-color: var(--border-active);
+    background: color-mix(in srgb, var(--text-accent) 8%, transparent);
+  }
+
+  .pview-tab[aria-selected='true']::after {
+    content: '';
+    position: absolute;
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: calc(var(--space-3) * -1 - 1px);
+    height: 2px;
+    background: var(--text-accent);
+  }
+
+  .pview-tab:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+
+  .pview-lead {
+    max-width: 62ch;
+    margin: 0 0 var(--space-5);
+    font-size: var(--text-body);
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .pview-empty {
+    color: var(--text-muted);
+  }
+
+  /* Fresh: one row per case, title left, provenance and date right. Deliberately
+     not cards — this lens answers "what changed lately?", and 12 covers would
+     bury the dates it exists to show. */
+  .pview-fresh {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pview-fresh-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--surface-secondary);
+  }
+
+  .pview-fresh-row:last-child {
+    border-bottom: none;
+  }
+
+  .pview-fresh-title {
+    font-size: 1.0625rem;
+    line-height: 1.35;
+    color: var(--text-normal);
+    text-decoration: none;
+  }
+
+  .pview-fresh-title:hover {
+    color: var(--text-accent);
+    text-decoration: underline;
+  }
+
+  .pview-fresh-title:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+
+  .pview-fresh-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    flex: 0 0 auto;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  .pview-fresh-track {
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .pview-fresh-date {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* The row's two halves stack before the title is squeezed to a sliver. */
+  @media (max-width: 640px) {
+    .pview-fresh-row {
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .pview-fresh-meta {
+      justify-content: flex-start;
+    }
+  }
+</style>

@@ -85,6 +85,7 @@ bun run sync:activity
 │   │   └── Post.astro        # blog post wrapper
 │   ├── components/
 │   │   ├── ProjectCard.astro / ProjectBoard.astro / ProjectFilter.astro
+│   │   ├── ProjectViews.astro / ProjectTable.astro   # the catalogue's four lenses on /projects/ (grouped board · real data · fresh · table), mirroring the owner's Bases file
 │   │   ├── BlogCard.astro / BlogFilter.astro
 │   │   ├── InnerTOC.astro    # client-side TOC + scrollspy
 │   │   ├── KnowledgeGraph.astro / Graph (graph.astro)

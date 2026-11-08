@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// `/projects/` — the catalogue board: cover on the card, no Result on it.
+// `/projects/` — the catalogue: cover on the card, no Result on it, one section
+// per track.
 //
 // The defect this binds: the board's cards carried the STAR preview (one Result
 // sentence) and, at ≥1140px, no cover at all — the CSS hid the image to buy width
@@ -13,14 +14,15 @@ import { fileURLToPath } from 'node:url';
 // `/manager/` (Task → Result) and on the project page itself.
 //
 // What fails when the claim stops being true:
-//   - `/projects/` stops passing `cover`, and the covers vanish again on desktop
-//   - it stops passing `starPreview="none"`, and every card grows a Result line
+//   - `/projects/` stops passing `grouped`, and the catalogue loses its track
+//     headings (the Bases `groupBy` view it exists to mirror);
+//   - it stops passing `starPreview="none"`, and every card grows a Result line;
 //   - the `none` branch in `ProjectCard` loses its `description` fallback, and
-//     the card body goes empty
-//   - the cover override is moved above the ≥1140px hide rule, so the two rules
-//     tie on specificity and the hide wins on source order
-//   - the manager board inherits the override, and its Task → Result cards lose
-//     the width the STAR block needs
+//     the card body goes empty;
+//   - `.project-grid` loses its stacked-cover rules, and the grid falls back to
+//     the horizontal board card, whose cover clamp cannot fit a 360px column;
+//   - a role landing inherits `grouped`, and its curated sequence is cut into
+//     tracks it was never ordered by.
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const read = (rel: string) => readFileSync(join(ROOT, rel), 'utf8');
@@ -32,19 +34,21 @@ const CARD = read('src/components/ProjectCard.astro');
 const STAR = read('src/components/StarBlock.astro');
 const CSS = read('src/styles/global.css');
 
-describe('/projects/ board — cover on, Result off', () => {
-  it('asks for the cover and for no STAR preview, in both locales', () => {
-    expect(RU).toMatch(/<ProjectBoard starPreview="none" cover sphereFilter \/>/);
-    expect(EN).toMatch(/<ProjectBoard[^>]*starPreview="none" cover sphereFilter \/>/);
+describe('/projects/ catalogue — cover on, Result off, grouped by track', () => {
+  it('asks for the grouped board and no STAR preview, in both locales', () => {
+    expect(RU).toMatch(/<ProjectBoard starPreview="none" grouped sphereFilter \/>/);
+    expect(EN).toMatch(/<ProjectBoard[^>]*starPreview="none" grouped sphereFilter \/>/);
   });
 
-  it('scopes the cover override to the catalogue board', () => {
-    expect(BOARD).toMatch(/cover\?: boolean;/);
-    expect(BOARD).toMatch(
-      /class:list=\{\['project-track-grid', cover && 'project-board-cover'\]\}/,
-    );
-    // The role boards must not turn it on.
-    expect(read('src/components/RoleLanding.astro')).not.toMatch(/<ProjectBoard[\s\S]*?\bcover\b/);
+  it('scopes grouping to the catalogue, never to a role landing', () => {
+    expect(BOARD).toMatch(/grouped\?: boolean;/);
+    expect(BOARD).toMatch(/const sections = grouped/);
+    expect(BOARD).toMatch(/class="project-group"/);
+    expect(BOARD).toMatch(/class="project-grid"/);
+    // The role boards render the flat grid and must not turn grouping on.
+    expect(read('src/components/RoleLanding.astro')).not.toMatch(/<ProjectBoard[\s\S]*?\bgrouped\b/);
+    // `ProjectList` (the HR list) is a different component and stays a list.
+    expect(read('src/components/ProjectList.astro')).not.toMatch(/\bgrouped=/);
   });
 
   it('renders the description when the preview is `none`', () => {
@@ -60,20 +64,20 @@ describe('/projects/ board — cover on, Result off', () => {
     );
   });
 
-  it('keeps the cover visible where the boards hide it, after the hide rule', () => {
-    // Below 1140px the cover already sits beside the body; only the two-column
-    // branch needs an override. The block must come after the hide rule: the two
-    // selectors tie on specificity, so source order is what decides.
-    const hide = CSS.indexOf('#project-list.project-track-grid .project.compact img');
-    const show = CSS.indexOf('#project-list.project-board-cover .project.compact img');
-    expect(hide).toBeGreaterThan(-1);
-    expect(show).toBeGreaterThan(hide);
-    expect(CSS.slice(show, show + 260)).toMatch(/display: block;/);
-    expect(CSS.slice(show, show + 260)).toMatch(/width: 100%;/);
-    // …and the override lives inside the same ≥1140px breakpoint: the only
-    // `@media` between that breakpoint and the selector is the one opening it.
-    const media = CSS.lastIndexOf('@media (min-width: 1140px)', show);
-    expect(media).toBeGreaterThan(-1);
-    expect(CSS.slice(media, show).match(/@media/g) ?? []).toHaveLength(1);
+  it('gives the grouped grid its own stacked-card recipe', () => {
+    // The horizontal board card needs the full width for its 260–420px cover
+    // clamp; a 360px grid column cannot give it one, so the cover moves on top.
+    const grid = CSS.indexOf('.project-grid {');
+    expect(grid).toBeGreaterThan(-1);
+    const block = CSS.slice(grid, grid + 900);
+    expect(block).toMatch(/grid-template-columns: repeat\(auto-fill/);
+    expect(block).toMatch(/\.project-grid \.project\.compact \{\s*flex-direction: column;/);
+    expect(block).toMatch(/\.project-grid \.project\.compact img \{\s*flex: none;\s*width: 100%;/);
+    // The section heading is a group marker, not a new card style.
+    expect(CSS).toMatch(/\.project-group-heading \{/);
+    expect(CSS).toMatch(/\.project-group\.is-hidden \{\s*display: none;/);
+    // The old single-row catalogue is gone — one rule would otherwise bring the
+    // carousel back without its nav.
+    expect(CSS).not.toContain('project-board-cover');
   });
 });

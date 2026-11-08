@@ -7,6 +7,7 @@ import ProjectSphereFilter from './ProjectSphereFilter.astro';
 import ProjectTrackFilter from './ProjectTrackFilter.astro';
 import {
   flattenByTrack,
+  groupByTrack,
   projectSphere,
   projectSphereFilters,
   projectTracks,
@@ -29,15 +30,17 @@ interface Props {
    *  landing, which reads a case as brief → outcome) or `none` (no STAR — the
    *  card shows its `description`; the catalogue board). */
   starPreview?: StarPreview;
-  /** Show the card cover above the body at every width. `/projects/` reads as a
-   *  catalogue, so the cover is the preview; the role boards keep the horizontal
-   *  cover the board's CSS gives them (hidden at ≥1140px to buy width for STAR). */
-  cover?: boolean;
+  /** Group the cards under a heading per track, the way the owner's Bases file
+   *  groups its cards view. The catalogue opts in: a reader browsing by domain
+   *  needs the taxonomy visible, not inferred from a badge on each card. Role
+   *  landings keep the flat grid — they are curated sequences, and a heading
+   *  would slice the sequence they exist to show. */
+  grouped?: boolean;
   /** Render the sphere (business domain) chips. The catalogue opts in; role
    *  landings do not — they are curated sequences, not a browse surface. */
   sphereFilter?: boolean;
 }
-const { collection = 'projects', linkPrefix = '', slugs, ordered = false, starPreview = 'result', cover = false, sphereFilter = false } = Astro.props;
+const { collection = 'projects', linkPrefix = '', slugs, ordered = false, starPreview = 'result', grouped = false, sphereFilter = false } = Astro.props;
 const lang: 'ru' | 'en' = linkPrefix.startsWith('en/') ? 'en' : 'ru';
 
 const all = sortByProjectOrder(await getCollection(collection, (p) => !p.data.draft));
@@ -52,9 +55,8 @@ const projects = slugs
       .filter((project): project is (typeof all)[number] => Boolean(project))
   : all;
 
-// One flat grid, cards grouped track by track. The track is a badge on the card,
-// not a section heading — the card carries `data-track` so the controller can
-// filter and reorder within it.
+// One flat grid, cards grouped track by track. A role landing keeps the track as
+// a badge on the card; the catalogue turns the same order into sections below.
 const trackLabels = new Map(projectTracks(lang).map((track) => [track.key, track.label]));
 const entries =
   ordered && slugs
@@ -66,6 +68,47 @@ const entries =
         projects.map((project) => ({ ...project, track: project.data.track })),
         lang,
       );
+// Grouped catalogue: one section per non-empty track, in taxonomy order. The
+// board's cards are already ordered track-by-track by `flattenByTrack`; grouping
+// makes that order visible instead of implied by a badge repeated on every card.
+// A role landing never opts in — its sequence is curated, not taxonomic.
+const sections = grouped
+  ? groupByTrack(
+      projects.map((project) => ({ ...project, track: project.data.track })),
+      lang,
+    )
+  : [];
+
+// One props object for a card, used by both layouts. The catalogue renders the
+// same card in the grouped grid and (before this change) in the flat row; a
+// second copy of these twenty props is how the two drift the day a field is
+// added.
+const cardProps = (project: (typeof projects)[number], index: number) => ({
+  slug: project.id.replace(/\.md$/, ''),
+  priority: index === 0,
+  title: project.data.title,
+  description: project.data.description,
+  image: project.data.hero,
+  star: project.data.star,
+  impact: project.data.impact,
+  tools: project.data.tools,
+  github: project.data.github,
+  demo: project.data.demo,
+  private: project.data.private,
+  linkPrefix,
+  lang,
+  track: project.data.track,
+  // The grouped catalogue states the track once, in the section heading; a badge
+  // on every card would repeat it three times per row. The card still carries
+  // `data-track` — the filter and the sort both read that, not the label.
+  trackLabel: grouped ? undefined : (trackLabels.get(project.data.track) ?? project.data.track),
+  dataset: project.data.dataset,
+  sphere: projectSphere(project.id),
+  date: (project.data.date ?? project.data.updated)?.toISOString().slice(0, 10),
+  compact: true,
+  starPreview,
+} as const);
+
 const counts = trackCounts(
   projects.map((project) => ({ track: project.data.track })),
   lang,
@@ -79,8 +122,15 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
 
 <section id="projects" class="reveal reveal-delay-2" aria-labelledby="projects-heading">
   {/* The cards are h3, so the section needs its own h2: without one the outline
-      jumps h1 (page title) -> h3 and the Lighthouse heading-order audit fails. */}
-  <h2 id="projects-heading" class="visually-hidden">{lang === 'en' ? 'All projects' : 'Все проекты'}</h2>
+      jumps h1 (page title) -> h3 and the Lighthouse heading-order audit fails.
+      The grouped catalogue is the exception — its track headings ARE the h2
+      level, so an extra "Все проекты" h2 would put the cards a level too deep
+      and say the same thing twice. */}
+  {!grouped && (
+    <h2 id="projects-heading" class="visually-hidden">
+      {lang === 'en' ? 'All projects' : 'Все проекты'}
+    </h2>
+  )}
 
   {/* One row, one disclosure. The category tabs are the taxonomy a reader
       browses by, so they stay inline; every other facet — the sphere chips, the
@@ -136,45 +186,45 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
     </button>
   </p>
 
-  {/* The board is a snap row at every width (`global.css`, keyed on
-      `.project-board-cover`), so the arrows are the pointer-less path through
-      it. A short row that fits needs no nav: the module measures the overflow
-      and keeps itself `hidden`. Rendered *before* the list, or the controls sit
-      behind every card's tab stops — 27 of them on this board. */}
-  <CarouselNav track="projects" label={lang === 'en' ? 'Projects' : 'Проекты'} lang={lang} />
+  {/* The role boards are a snap row at every width, so the arrows are the
+      pointer-less path through it; the catalogue is a grouped grid and needs no
+      nav at all. A short row that fits needs none either: the module measures
+      the overflow and keeps itself `hidden`. Rendered *before* the list, or the
+      controls sit behind every card's tab stops. */}
+  {!grouped && <CarouselNav track="projects" label={lang === 'en' ? 'Projects' : 'Проекты'} lang={lang} />}
 
-  <div
-    id="project-list"
-    data-carousel-track="projects"
-    class:list={['project-track-grid', cover && 'project-board-cover']}
-  >
-    {
-      entries.map(({ project, trackLabel }, index) => (
-        <ProjectCard
-          slug={project.id.replace(/\.md$/, '')}
-          priority={index === 0}
-          title={project.data.title}
-          description={project.data.description}
-          image={project.data.hero}
-          star={project.data.star}
-          impact={project.data.impact}
-          tools={project.data.tools}
-          github={project.data.github}
-          demo={project.data.demo}
-          private={project.data.private}
-          linkPrefix={linkPrefix}
-          lang={lang}
-          track={project.data.track}
-          trackLabel={trackLabel}
-          dataset={project.data.dataset}
-          sphere={projectSphere(project.id)}
-          date={(project.data.date ?? project.data.updated)?.toISOString().slice(0, 10)}
-          compact
-          starPreview={starPreview}
-        />
-      ))
-    }
-  </div>
+  {
+    grouped ? (
+      <div id="project-list" class="project-catalog">
+        {sections.map((section) => (
+          <section
+            class="project-group"
+            data-group={section.key}
+            aria-labelledby={`project-group-${section.key}`}
+          >
+            {/* h2, not h3: the card titles are h3, and a group heading at the
+                same level as its own cards says "this is a sibling of the
+                thing it contains". */}
+            <h2 id={`project-group-${section.key}`} class="project-group-heading">
+              {section.label}
+              <span class="filter-count">{section.projects.length}</span>
+            </h2>
+            <div class="project-grid">
+              {section.projects.map((project, index) => (
+                <ProjectCard {...cardProps(project, index)} />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    ) : (
+      <div id="project-list" data-carousel-track="projects" class="project-track-grid">
+        {entries.map(({ project }, index) => (
+          <ProjectCard {...cardProps(project, index)} />
+        ))}
+      </div>
+    )
+  }
 </section>
 
 <script>
@@ -191,10 +241,14 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
 
   // One controller for the whole board: category tabs, sphere chips and tool
   // chips share the same state, so they filter, sync the URL and toggle
-  // empty/disabled states together. Ordering is the sort select's alone: the
-  // board is a horizontal row, and a hand-picked order cannot live in it —
-  // `board-reorder` reads a row as one column and picks the drop side by
-  // vertical midpoint, which here names the wrong neighbour every time.
+  // empty/disabled states together. Ordering is the sort select's alone: there
+  // is no hand-picked order to keep — `board-reorder` reads a row as one column
+  // and picks the drop side by vertical midpoint, which in a horizontal row
+  // names the wrong neighbour every time, so the gesture was removed.
+  //
+  // The same code runs in both layouts: the flat role grid and the catalogue's
+  // grouped grid. `groups` is what tells them apart, and the two places it
+  // matters are marking an emptied group and keeping a sort inside its section.
   // No analytics event for the sphere or tool facet: `docs/analytics-dead-events.md`
   // rules out new events at this traffic, and `$autocapture` already shows the
   // chip clicks.
@@ -232,6 +286,18 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
     const toolsOf = (card: HTMLElement): string[] =>
       (card.dataset.tools || '').split(',').filter(Boolean);
 
+    // The grouped catalogue wraps each track in a `<section>`; a role landing is
+    // one flat grid. Everything below that touches layout asks this: a section
+    // left standing with no visible card is a heading over a blank stretch.
+    const groups = Array.from(root.querySelectorAll<HTMLElement>('.project-group'));
+    const isGrouped = groups.length > 0;
+    /** The element that owns one track's cards — the group's grid, or the root. */
+    function gridOf(key: string): HTMLElement {
+      if (!isGrouped) return root;
+      const found = root.querySelector<HTMLElement>(`.project-group[data-group="${key}"] .project-grid`);
+      return found ?? root;
+    }
+
     let activeTrack = ALL_TRACKS;
     let activeSphere = ALL_SPHERES;
     let activeTool = ALL_TOOLS;
@@ -254,6 +320,16 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
           matchesTool(toolsOf(card), activeTool);
         card.classList.toggle('is-hidden', !ok);
         if (ok) visible += 1;
+      }
+
+      // A group is only as real as its visible cards: hiding the last one must
+      // take its heading with it, or the reader sees "Эксперименты" followed by
+      // nothing and concludes the filter is broken.
+      for (const group of groups) {
+        const any = Array.from(group.querySelectorAll<HTMLElement>('.project')).some(
+          (card) => !card.classList.contains('is-hidden'),
+        );
+        group.classList.toggle('is-hidden', !any);
       }
 
       for (const btn of trackBtns) {
@@ -390,11 +466,6 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
     sortSelect?.addEventListener('change', () => {
       activeSort = sortSelect.value === NEWEST ? NEWEST : CURATED;
       applySort();
-      // Reordering moves the cards under a stationary viewport, so from the
-      // third screenful the reader lands on the tail of the new order and the
-      // change looks like it did nothing. The row is a sequence: go back to its
-      // first card.
-      root.scrollTo({ left: 0, behavior: 'auto' });
       history.replaceState(null, '', urlFor(activeTrack, activeTool, activeSphere));
     });
 
@@ -420,11 +491,13 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
 
     // --- Order: newest-first re-sort, and the reset back to the curated one ---
 
-    // Put one track's cards back in `slugs` order without leaving the row.
+    // Put one track's cards back in `slugs` order inside that track's own grid.
     // `ref` walks the block: a card already sitting where it belongs advances
     // the cursor, any other card is moved in front of it. Never moves a node
-    // out of the tree, so `ref` is always still attached.
+    // out of its container, so `ref` is always still attached — and in the
+    // grouped catalogue a card can never be hoisted out of its section.
     function reorderTrackTo(key: string, slugs: string[]): void {
+      const parent = gridOf(key);
       const peers = cardsOfTrack(key);
       if (!peers.length) return;
       const bySlug = new Map(peers.map((card) => [card.dataset.slug || '', card]));
@@ -434,13 +507,13 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
       // Cards not listed in `slugs` (e.g. a new project) keep their DOM order.
       for (const card of peers) if (!ordered.includes(card)) ordered.push(card);
 
-      let ref: ChildNode | null = peers[0];
+      let ref: ChildNode | null = ordered[0] ?? null;
       for (const card of ordered) {
         if (card === ref) {
           ref = ref.nextSibling;
           continue;
         }
-        root.insertBefore(card, ref);
+        parent.insertBefore(card, ref);
       }
     }
 
@@ -493,7 +566,6 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
       activeSort = CURATED;
       if (sortSelect) sortSelect.value = CURATED;
       for (const key of trackKeys()) reorderTrackTo(key, canonicalOrder[key] || []);
-      root.scrollTo({ left: 0, behavior: 'auto' });
       showHint(hintEl?.dataset.reset || 'Reset');
       history.replaceState(null, '', urlFor(activeTrack, activeTool, activeSphere));
     });

@@ -171,7 +171,8 @@
 | **This Portfolio Site** | Сайт, который вы читаете: Astro 7, TypeScript, коллекции Markdown, статическая сборка, тёмная и светлая темы, RSS, sitemap, JSON-LD, деплой на Pages | [страница](https://nikitaboyarkin.github.io/projects/site/) · [репозиторий](https://github.com/NikitaBoyarkin/NikitaBoyarkin.github.io) |
 
 Порядок на доске задаёт `PROJECT_ORDER` в `src/lib/projects.ts`,
-заголовочные кейсы — `HEADLINE_PROJECTS` там же. Каждый показатель выше
+а `/projects/` показывает каталог в четырёх видах: по трекам, на реальных
+данных, свежие и таблица. Каждый показатель выше
 записан в Markdown-файле проекта и сверяется с `src/lib/metrics.ts`.
 
 ## Стек

@@ -51,7 +51,11 @@ describe('manager landing — card previews Task + Result', () => {
   it('threads the prop board → card → block', () => {
     expect(board).toMatch(/starPreview\?: StarPreview;/);
     expect(board).toMatch(/starPreview = 'result'/);
-    expect(board).toMatch(/starPreview=\{starPreview\}/);
+    // The board builds one props object and renders it in both layouts (the flat
+    // role grid and the grouped catalogue), so the teaser has to ride there —
+    // a second copy of the card props is exactly how this would drift.
+    expect(board).toMatch(/const cardProps = \([\s\S]*?starPreview,/);
+    expect(board.match(/<ProjectCard \{\.\.\.cardProps\(/g) ?? []).toHaveLength(2);
     expect(card).toMatch(/starPreview\?: StarPreview;/);
     expect(card).toMatch(/<StarBlock star=\{star\} lang=\{lang\} compact preview=\{starPreview\} \/>/);
   });

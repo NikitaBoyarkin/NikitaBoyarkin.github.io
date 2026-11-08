@@ -11,7 +11,7 @@ Canonical event taxonomy for the portfolio, per
 
 | Event | Properties | Fires when | Where |
 |---|---|---|---|
-| `project_viewed` | `{ slug, locale, surface? }` | a project page loads, or a project link is clicked | `Analytics.astro` (page, `surface:'page'`), `ProjectCard.astro` (`surface:'card'`), `ProjectList.astro` (`surface:'list'`); an unscoped `[data-analytics-project]` click falls back to `surface:'unknown'`. `surface:'headline'` is retired — see §4 |
+| `project_viewed` | `{ slug, locale, surface? }` | a project page loads, or a project link is clicked | `Analytics.astro` (page, `surface:'page'`), `ProjectCard.astro` (`surface:'card'`), `ProjectList.astro` (`surface:'list'`), `ProjectTable.astro` (`surface:'table'`), `ProjectViews.astro`'s fresh lens (`surface:'fresh'`); an unscoped `[data-analytics-project]` click falls back to `surface:'unknown'`. `surface:'headline'` is retired — see §4 |
 | `post_read` | `{ slug, locale }` | a blog post page loads | `Analytics.astro` |
 | `lang_switched` | `{ from, to, path }` | the RU/EN switch is clicked | `Analytics.astro` (special-cases `data-analytics="lang_switch_*"`) |
 | `theme_change` | `{ theme }` | the theme toggle is clicked | `Base.astro` (bundled script) |
@@ -87,7 +87,7 @@ These keep their historical names (they are the slider for the "hard naming" cas
 | `search_open` | `SearchBox.astro` |
 | `ask_me_open` | `AskMe.astro` |
 | `hero_avatar_3d` | `HeroAvatar.astro` (hero avatar interaction) |
-| `project_demo_<slug>`, `project_github_<slug>` | `ProjectCard.astro` |
+| `project_demo_<slug>`, `project_github_<slug>` | `ProjectCard.astro`, `ProjectTable.astro` (the table's GitHub column) |
 | `projects_reset` | `ProjectBoard.astro` |
 | `game_selected`, `game_started`, `game_over`, `game_win`, `daily_completed`, `best_broken`, `sig_reached`, `experiment_started`, `milestone`, `contact_click` | `public/games/**` |
 | `lang_switch_ru`, `lang_switch_en` | `LangSwitch.astro` (mapped to `lang_switched`) |

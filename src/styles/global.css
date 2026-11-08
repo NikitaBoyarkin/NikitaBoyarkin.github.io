@@ -3302,57 +3302,82 @@ textarea::placeholder {
   gap: var(--space-5);
 }
 
-/* The catalogue board is one horizontal snap row at every width. A grid of
-   540px columns only fits one card per line under 1100px, so the catalogue
-   read as a 19-card vertical scroll — a shelf that peeks the next card says the
-   same thing in one screenful and makes the arrows obvious.
+/* The catalogue's grouped grid (`ProjectBoard grouped`). One section per track
+   with a visible heading — the taxonomy the reader browses by, instead of a
+   badge repeated on every card. Two columns of the board's own cards; the cover
+   stays on top because the catalogue is a preview of the work, not a verdict on
+   it (that is what `starPreview="none"` says on the card itself).
 
-   Scoped to `project-board-cover`, which only `/projects/` sets: a role landing
-   is a short curated sequence and keeps the grid above. There is no breakpoint
-   and no gesture contract to keep in sync — `ProjectBoard` used to gate drag
-   reorder on a matching `859px` media query, and that drag is gone, so the
-   layout is the stylesheet's alone.
-
-   `flex-direction: row` is load-bearing: the base `#project-list` rule above is
-   a column, and without it `display: flex` here would inherit that direction.
-
-   `overflow-x: auto` promotes the block axis to `auto` as well (CSS pairs a
-   `visible` axis with a scrollable sibling), which would clip the card's hover
-   lift (`translateY(-6px)`) and its shadow at the scrollport edge. The
-   `padding-block` gives both room *inside* the scrollport instead of shrinking
-   the cards. The bottom value is the shadow's reach, not a gutter: `0 20px
-   40px` puts the silhouette 20px down and spreads it half a blur (20px)
-   further, so anything under 40px shaves the shadow flat along a hard line
-   under the row; the top clears the 6px lift. The focus ring is *not* part of
-   this: `.project:focus-visible` only ever matches the focusable `<article>`,
-   which nothing renders any more, so the rings on these cards are the global
-   `a:focus-visible` at +2px — drawn inside the card's own padding and never
-   flush with the scrollport edge. The horizontal scrollbar is hidden on
-   purpose — the peeking card is the affordance, and the carousel nav
-   (CarouselNav.astro) covers the pointer-less path. */
-#project-list.project-board-cover {
-  display: flex;
-  flex-direction: row;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  gap: var(--space-5);
-  padding-block: var(--space-3) calc(var(--space-8) + var(--space-2));
-  scrollbar-width: none;
+   `auto-fill`, not `auto-fit`: an empty track is not a section, so a short row
+   must not stretch one card across the page. */
+.project-catalog {
+  display: block;
 }
 
-#project-list.project-board-cover::-webkit-scrollbar {
+.project-group + .project-group {
+  margin-top: var(--space-10);
+}
+
+.project-group.is-hidden {
   display: none;
 }
 
-/* `flex: 0 0` — cards must neither grow to fill the row nor shrink below the
-   snap width; only the flex longhands are set, so the `flex-direction: column`
-   the ≤768px block gives `.project.compact` (that is the card's own internal
-   flow, not its place in the row) stays untouched. `min(420px, 86%)` is the
-   widest the compact card's cover clamp allows, and 86% leaves the next card
-   visibly peeking. */
-#project-list.project-board-cover > .project {
-  flex: 0 0 min(420px, 86%);
-  scroll-snap-align: start;
+/* Same label-plus-rule recipe as the HR year headings: a group marker, not a
+   value. `#project-list` is load-bearing — `#projects h2` owns the section-title
+   recipe (2rem, centred, with a decorative rule under it) at id weight, and a
+   plain class selector loses to it. Two ids tie, the class breaks the tie. */
+#project-list .project-group-heading {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-normal);
+  text-align: start;
+}
+
+/* No decorative rule under a track heading: the section title wears one, and
+   four of them down the page would read as four section titles. */
+#project-list .project-group-heading::after {
+  content: none;
+}
+
+.project-grid {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+}
+
+/* The board card is horizontal by default (cover left, body right). A grid
+   column is narrower than the card's cover clamp, so the cover goes on top and
+   the body takes the full column — the same card, stacked. */
+.project-grid .project.compact {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.project-grid .project.compact img {
+  flex: none;
+  width: 100%;
+  margin-right: 0;
+  margin-bottom: var(--space-4);
+}
+
+.project-grid .project.compact .project-body {
+  flex: none;
+  width: 100%;
+}
+
+@media (min-width: 1140px) {
+  /* A grouped card is a column, not a half-page cell, so its demo/GitHub links
+     share the row with the button and do not need the full-basis break the
+     two-column role boards use. */
+  .project-grid .project.compact .project-action-links {
+    flex-basis: auto;
+  }
 }
 
 /* Two columns: the board card drops its cover and the body takes the whole
@@ -3380,8 +3405,7 @@ textarea::placeholder {
      above wrapped — so two cards in the same row ended at different heights
      (468px vs 430px measured). A full-basis link group forces its own line and
      makes every card in the grid identical, which is the point of a board. */
-  #project-list.project-track-grid .project.compact .project-action-links,
-  #project-list.project-board-cover .project.compact .project-action-links {
+  #project-list.project-track-grid .project.compact .project-action-links {
     flex-basis: 100%;
   }
 }
@@ -3399,33 +3423,6 @@ textarea::placeholder {
     margin-bottom: var(--space-4);
   }
   .project.compact .project-body {
-    flex: none;
-    width: 100%;
-  }
-}
-
-/* `/projects/` — the catalogue board. Its cards carry no STAR block (the page
-   reads as a preview of the work, not a verdict on it), so the cover is the
-   card's subject: at the two-column width where the role boards hide it to buy
-   room for the four STAR rows, the catalogue stacks it above the body instead.
-   Narrower widths already show the cover beside the body, so only the ≥1140px
-   branch changes. Specificity ties with the hide rule above and wins on source
-   order — keep this block after it. */
-@media (min-width: 1140px) {
-  #project-list.project-board-cover .project.compact {
-    flex-direction: column;
-    flex-wrap: nowrap;
-  }
-
-  #project-list.project-board-cover .project.compact img {
-    display: block;
-    flex: none;
-    width: 100%;
-    margin-right: 0;
-    margin-bottom: var(--space-4);
-  }
-
-  #project-list.project-board-cover .project.compact .project-body {
     flex: none;
     width: 100%;
   }
