@@ -16,7 +16,7 @@ import {
   type GraphLink,
   type GraphNode,
 } from '../lib/graph';
-import { buildGraphTooltips } from '../lib/graph-tooltip';
+import { buildGraphTooltips, nodeKindOf } from '../lib/graph-tooltip';
 import { LABEL_HALO, placeLabels } from '../lib/graph-labels';
 
 interface Props {
@@ -213,6 +213,27 @@ const indexGroups = sectionOrder.map((section) => ({
   nodes: nodes.filter((n) => n.section === section).sort(byLabel),
 }));
 
+// The colour legend ships server-rendered. Shipping it empty and filling it at
+// init grew the control bar by ~72px on a 412px viewport and pushed the whole
+// board down behind it — CLS 0.138 on `/graph/`, the same number in every
+// Lighthouse run since 2026-11-04 and the only deterministic failure among
+// them. Counts and labels are read from the same `nodes` the client receives,
+// so `renderLegend()` rebuilds an identical box on init and nothing moves.
+const legendItems = Object.keys(GRAPH_SECTION_COLORS).map((key) => ({
+  label: key,
+  color: GRAPH_SECTION_COLORS[key],
+  count: nodes.filter((n) => n.section === key).length,
+}));
+
+// Same reason as the legend: an empty `.kg-chip-count` widened every quick-filter
+// chip at init, which rewrapped the row and moved the board. `nodeKindOf` is the
+// exact predicate the client counts with, so both renders agree.
+const presetCounts: Record<string, number> = {};
+for (const n of nodes) {
+  const kind = nodeKindOf(n.id);
+  presetCounts[kind] = (presetCounts[kind] ?? 0) + 1;
+}
+
 // Client data: nodes get an absolute href (base-prefixed) for navigation; the
 // rest is the raw graph so search/legend/hover can read it from the DOM.
 const clientData = {
@@ -253,7 +274,18 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         />
         <div id="kg-search-results" class="kg-search-results" role="listbox" hidden></div>
       </div>
-      <div class="kg-legend" id="kg-legend" role="list" aria-label={isEn ? 'Graph color legend' : 'Легенда цветов графа'}></div>
+      <div class="kg-legend" id="kg-legend" role="list" aria-label={isEn ? 'Graph color legend' : 'Легенда цветов графа'}>
+        {legendItems.map((it) => (
+          <span class="kg-legend-item" role="listitem">
+            <i style={`background:${it.color}`}></i>
+            <label class="kg-legend-toggle">
+              <input type="checkbox" checked aria-label={it.label} />
+              <span class="kg-legend-name">{it.label}</span>
+              <span class="kg-legend-count">{it.count}</span>
+            </label>
+          </span>
+        ))}
+      </div>
       <div class="kg-controls" role="group" aria-label={isEn ? 'Graph controls' : 'Управление графом'}>
         <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-color" aria-pressed="false" aria-label={t.colorMode} title={t.colorByGroup} data-label-group={t.colorByGroup} data-label-community={t.colorByCommunity}>{t.colorByGroup}</button>
         <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-arrows" aria-pressed="false" aria-label={t.arrowsLabel} title={t.arrowsLabel}>{t.arrows}</button>
@@ -292,12 +324,12 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       </div>
     </div>
     <div class="kg-presets" role="group" aria-label={t.presetLabel}>
-      <button type="button" class="kg-chip" data-kg-preset="" aria-pressed="true" data-label={t.presetAll}><span class="kg-chip-label">{t.presetAll}</span><span class="kg-chip-count"></span></button>
-      <button type="button" class="kg-chip" data-kg-preset="project" aria-pressed="false" data-label={t.presetProject}><span class="kg-chip-label">{t.presetProject}</span><span class="kg-chip-count"></span></button>
-      <button type="button" class="kg-chip" data-kg-preset="post" aria-pressed="false" data-label={t.presetPost}><span class="kg-chip-label">{t.presetPost}</span><span class="kg-chip-count"></span></button>
-      <button type="button" class="kg-chip" data-kg-preset="topic" aria-pressed="false" data-label={t.presetTopic}><span class="kg-chip-label">{t.presetTopic}</span><span class="kg-chip-count"></span></button>
-      <button type="button" class="kg-chip" data-kg-preset="volta" aria-pressed="false" data-label={t.presetVolta}><span class="kg-chip-label">{t.presetVolta}</span><span class="kg-chip-count"></span></button>
-      <button type="button" class="kg-chip" data-kg-preset="glossary" aria-pressed="false" data-label={t.presetGlossary}><span class="kg-chip-label">{t.presetGlossary}</span><span class="kg-chip-count"></span></button>
+      <button type="button" class="kg-chip" data-kg-preset="" aria-pressed="true" data-label={t.presetAll}><span class="kg-chip-label">{t.presetAll}</span><span class="kg-chip-count">{nodes.length}</span></button>
+      <button type="button" class="kg-chip" data-kg-preset="project" aria-pressed="false" data-label={t.presetProject}><span class="kg-chip-label">{t.presetProject}</span><span class="kg-chip-count">{presetCounts.project ?? 0}</span></button>
+      <button type="button" class="kg-chip" data-kg-preset="post" aria-pressed="false" data-label={t.presetPost}><span class="kg-chip-label">{t.presetPost}</span><span class="kg-chip-count">{presetCounts.post ?? 0}</span></button>
+      <button type="button" class="kg-chip" data-kg-preset="topic" aria-pressed="false" data-label={t.presetTopic}><span class="kg-chip-label">{t.presetTopic}</span><span class="kg-chip-count">{presetCounts.topic ?? 0}</span></button>
+      <button type="button" class="kg-chip" data-kg-preset="volta" aria-pressed="false" data-label={t.presetVolta}><span class="kg-chip-label">{t.presetVolta}</span><span class="kg-chip-count">{presetCounts.volta ?? 0}</span></button>
+      <button type="button" class="kg-chip" data-kg-preset="glossary" aria-pressed="false" data-label={t.presetGlossary}><span class="kg-chip-label">{t.presetGlossary}</span><span class="kg-chip-count">{presetCounts.glossary ?? 0}</span></button>
     </div>
   </div>
   <!-- role="group" (not "img"): ARIA "img" has presentational children, which
