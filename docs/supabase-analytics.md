@@ -125,37 +125,46 @@ order by card_clicks desc;
 
 ## 6. Deploying
 
-Prerequisites are owner steps: create the project (EU region), then
-`npx supabase login`. Until they run, `src/lib/ingest.ts` points at the
-`PROJECT_REF` placeholder and `INGEST_ENABLED` is `false`, so the site ships
-inert — the same shape as `src/lib/contact.ts`.
+The sink runs on the owner's existing project `geojpakugqlcwyhtnjvv`
+(«NikitaBoyarkin's Project», eu-west-1). That project keeps its own tables in
+the `analytics` and `experiments` schemas; every object this repository creates
+lives in `public`, so the two do not overlap. Deployed 2026-11-08:
 
 ```bash
-npx supabase link --project-ref <ref>
-npx supabase db push
+npx supabase link --project-ref geojpakugqlcwyhtnjvv
+npx supabase db push                                 # 4 migrations → public
 npx supabase secrets set IP_SALT="$(openssl rand -hex 32)"
-npx supabase functions deploy ingest      # --no-verify-jwt comes from config.toml
+npx supabase functions deploy ingest --use-api       # verify_jwt=false from config.toml
 ```
+
+Its `supabase_migrations` history carried five legacy versions
+(`20260813175326 … 20260813184906`, the `analytics`/`experiments` schema). They
+were marked `reverted` so `db push` would run; nothing in those schemas changed.
+A push from whichever repository owns them will need the repair undone first
+(`--status applied`), otherwise `001`–`005` re-run into existing objects.
 
 `IP_SALT` has no default on purpose: a shared fallback salt makes `ip_hash`
 reversible by brute force over the IPv4 space. A missing salt is a
 misconfiguration, and `ingest` answers `500` rather than hashing without one.
 
-Then replace `PROJECT_REF` in `src/lib/ingest.ts`, and add the two
-`ANALYTICS_SUPABASE_*` secrets to the repository so
-`sync-analytics-content.yml` can write the content tables. The workflow guards
-itself on the secret, so it stays green (and skips) until they exist.
+`src/lib/ingest.ts` carries the project ref directly: `INGEST_ENABLED` is
+`true`, so the site sends events. `ANALYTICS_SUPABASE_URL` and
+`ANALYTICS_SUPABASE_SERVICE_ROLE_KEY` are repository secrets, so
+`sync-analytics-content.yml` writes the content tables instead of skipping.
 
 ## 7. Verifying a deploy
 
-1. `npx supabase start && npx supabase db reset`; `set role anon` — the
-   analytics tables and views must be unreadable, the content readable without
-   `draft` / `private`.
+1. Grants on the live project: the four views answer, and only `service_role` /
+   `postgres` hold privileges on them; `analytics_events` has RLS on with zero
+   policies. The local stack was not started for this deploy — to re-check
+   offline: `npx supabase start && npx supabase db reset`, then `set role anon`.
 2. `cd supabase && deno fmt --check && deno lint && deno check functions/ingest/*.ts && deno test --allow-read`.
 3. `bun test tests/lib` — includes the payload shape, the `PROJECT_REF` gate,
    "never throws", the property allowlist, and the `query` truncation.
 4. `curl -i -X POST …/functions/v1/ingest -H 'content-type: text/plain' --data '{"events":[{"event_name":"pageview",…}]}'`
-   → `204`, and one row in `analytics_events`.
+   → `204`, and one row in `analytics_events`. Send a browser `user-agent`:
+   `curl/` matches `BOT_UA_RE`, the event is dropped, and the answer is still
+   `204` — indistinguishable from success.
 5. Browser: **no** `OPTIONS` in the network panel, one `POST` → `204`; a CTA
    click lands with the same `session_id` as the pageview.
 6. After 24 h, compare `v_daily_traffic.pageviews` against PostHog `$pageview`.

@@ -12,7 +12,7 @@
 
 import { getSessionId } from './beacon';
 
-export const INGEST_ENDPOINT = 'https://PROJECT_REF.supabase.co/functions/v1/ingest';
+export const INGEST_ENDPOINT = 'https://geojpakugqlcwyhtnjvv.supabase.co/functions/v1/ingest';
 
 /** Build-time gate for <Ingest />: false until PROJECT_REF is replaced. */
 export const INGEST_ENABLED = !INGEST_ENDPOINT.includes('PROJECT_REF');

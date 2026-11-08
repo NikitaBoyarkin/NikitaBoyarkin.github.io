@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import {
   buildIngestEvent,
   INGEST_ENABLED,
+  INGEST_ENDPOINT,
   INGEST_PROPS,
   sanitizeIngestProps,
   sendIngest,
@@ -14,7 +15,8 @@ describe("ingest payload", () => {
   afterEach(() => setIngestEnabledForTests(INGEST_ENABLED));
 
   it("is inert until PROJECT_REF is replaced", () => {
-    expect(INGEST_ENABLED).toBe(false);
+    expect(INGEST_ENDPOINT).not.toContain("PROJECT_REF");
+    expect(INGEST_ENABLED).toBe(true);
   });
 
   it("keeps only allowlisted scalar props", () => {
