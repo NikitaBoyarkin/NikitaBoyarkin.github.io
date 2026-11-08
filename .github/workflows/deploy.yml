@@ -172,7 +172,18 @@ jobs:
           pipx run --spec dbt-charts==0.9.1 dct render charts/volta-core.yml \
             --project-dir vendor/volta-banking \
             --format html \
-            --output "$GITHUB_WORKSPACE/public/demos/volta-board/index.html"
+            --output "$RUNNER_TEMP/volta-board.html"
+          # The render carries charset, viewport and <title> only. The
+          # description, canonical and OG block are site-owned — they live in
+          # the committed copy — so put them back before the Astro build copies
+          # public/ into dist/. Without this the /demos/ card for this board
+          # renders blank (tests/lib/demos.test.ts) and the page ships with no
+          # description or canonical, which is what the bare render did on run
+          # 42446109157.
+          bun run scripts/reapply-demo-head.mjs \
+            "$RUNNER_TEMP/volta-board.html" \
+            public/demos/volta-board/index.html \
+            public/demos/volta-board/index.html
 
       - name: Build & validate site
         # Build then run the single gate. `make check` depends on `build`, so
