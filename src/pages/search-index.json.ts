@@ -57,7 +57,9 @@ export async function GET() {
       locale: "ru",
       title: t.label,
       desc: t.blurb,
-      tags: t.tags,
+      // `labelEn` too: topic pages are RU-only, so an English query ("retention
+      // / cohorts") is the only way a `/en/` visitor can reach them.
+      tags: [...t.tags, t.labelEn],
       tools: [],
       href: withBase(`topics/${t.key}/`),
       date: null,

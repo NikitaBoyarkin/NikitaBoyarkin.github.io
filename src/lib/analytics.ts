@@ -47,19 +47,20 @@ export interface AnalyticsEventMap {
   section_viewed: { section: string; path: string };
   outbound_click: { domain: string; url: string; surface: string; path: string };
   // `surface` keeps the search inputs apart: the site-wide SearchBox (`header`),
-  // the glossary filter (`glossary`) and the Explorer (`explorer`) all emit these
-  // names, and without the prop they collapse into one series in PostHog.
+  // the glossary filter (`glossary`), the Explorer (`explorer`) and the homepage
+  // hero (`hero`) all emit these names, and without the prop they collapse into
+  // one series in PostHog.
   search_used: {
     query: string;
     results_count: number;
     locale: Locale;
-    surface: 'header' | 'glossary' | 'explorer';
+    surface: 'header' | 'glossary' | 'explorer' | 'hero';
   };
   search_no_results: {
     query: string;
     results_count: number;
     locale: Locale;
-    surface: 'header' | 'glossary' | 'explorer';
+    surface: 'header' | 'glossary' | 'explorer' | 'hero';
   };
   // Which result the visitor actually opened. `query` is repeated so a click can
   // be joined to its query without relying on session stitching, and `rank` is
@@ -70,7 +71,7 @@ export interface AnalyticsEventMap {
     href: string;
     type: string;
     locale: Locale;
-    surface: 'header' | 'explorer';
+    surface: 'header' | 'explorer' | 'hero';
   };
   read_depth: { content_type: ContentType; slug: string; depth: number; locale: Locale };
   filter_applied: {

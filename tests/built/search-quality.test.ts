@@ -168,7 +168,11 @@ async function searchInUi(path: string, query: string, facet?: string): Promise<
   const page = await browser!.newPage();
   try {
     await page.goto(`${BASE}${path}`, { waitUntil: 'networkidle' });
-    await page.keyboard.press('/');
+    // On `/` the `/` shortcut belongs to the hero search now, so open the header
+    // panel the way a pointer user would: drawer first, then its toggle. The
+    // assertions below still guard the Pagefind wiring this test exists for.
+    await page.locator('#nav-toggle').click();
+    await page.locator('#search-toggle').click();
     await page.locator('input[type="search"]').first().fill(query);
     await page.waitForTimeout(1000);
     if (facet) {
@@ -202,5 +206,18 @@ describe.skipIf(!CHROME)('client wiring (browser)', () => {
     const routes = await searchInUi('/', 'retention', 'post');
     expect(routes.length).toBeGreaterThan(0);
     expect(routes.every((r) => r.startsWith('/posts/'))).toBe(true);
+  }, 30_000);
+
+  it('the `/` shortcut focuses the hero search and leaves the drawer shut', async () => {
+    const page = await browser!.newPage();
+    try {
+      await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+      await page.keyboard.press('/');
+      await page.waitForTimeout(200);
+      expect(await page.evaluate(() => document.activeElement?.id)).toBe('nt-input');
+      expect(await page.evaluate(() => document.body.classList.contains('nav-open'))).toBe(false);
+    } finally {
+      await page.close();
+    }
   }, 30_000);
 });

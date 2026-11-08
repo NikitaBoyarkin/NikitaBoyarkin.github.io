@@ -45,6 +45,7 @@ const t = isEn
       placeholder: 'Search projects, writing, glossary…',
       empty: 'Nothing found',
       all: 'All results',
+      found: 'Results',
       searchLabel: 'Site search',
       personasLabel: 'Three ways in',
       name: 'Nikita Boyarkin',
@@ -55,6 +56,7 @@ const t = isEn
       placeholder: 'Поиск по проектам, статьям, словарю…',
       empty: 'Ничего не найдено',
       all: 'Все результаты',
+      found: 'Найдено',
       searchLabel: 'Поиск по сайту',
       personasLabel: 'Три способа читать сайт',
       name: 'Никита Бояркин',
@@ -102,6 +104,7 @@ const PERSONAS = [
   data-explorer-url={explorerUrl}
   data-empty={t.empty}
   data-all={t.all}
+  data-found={t.found}
   data-type-project={isEn ? 'Project' : 'Проект'}
   data-type-post={isEn ? 'Post' : 'Запись'}
   data-type-term={isEn ? 'Glossary' : 'Словарь'}
@@ -175,6 +178,9 @@ const PERSONAS = [
       />
     </form>
     <ul class="nt-results" id="nt-results" role="listbox" aria-label={t.searchLabel} hidden></ul>
+    {/* Announces the result count as the query changes; the listbox itself is
+        silent until an option is focused. */}
+    <p class="visually-hidden" id="nt-status" aria-live="polite"></p>
 
     <div class="nt-content">
       <nav class="nt-personas-wrap" aria-label={t.personasLabel}>
@@ -200,15 +206,16 @@ const PERSONAS = [
 </section>
 
 <script>
-  type Entry = {
-    type: string;
-    locale: string;
-    title: string;
-    desc: string;
-    tags?: string[];
-    tools?: string[];
-    href: string;
-  };
+  import {
+    prepareIndex,
+    rankEntries,
+    tokenize,
+    type PreparedIndex,
+    type SearchEntry,
+  } from '../lib/search-rank';
+  import { track, whenAnalyticsReady } from '../lib/analytics';
+
+  const MAX_ROWS = 6;
 
   function init() {
     const root = document.querySelector<HTMLElement>('[data-nt]');
@@ -244,72 +251,50 @@ const PERSONAS = [
     const form = document.getElementById('nt-form') as HTMLFormElement | null;
     const input = document.getElementById('nt-input') as HTMLInputElement | null;
     const results = document.getElementById('nt-results');
+    const status = document.getElementById('nt-status');
     const indexUrl = root.dataset.indexUrl;
     if (!form || !input || !results || !indexUrl) return;
 
     const explorerUrl = root.dataset.explorerUrl || '/';
     const typeOf = (tp: string) => root.dataset[`type${tp[0].toUpperCase()}${tp.slice(1)}`] || tp;
 
-    let index: Entry[] | null = null;
-    let rows: Entry[] = [];
-    let active = -1;
+    const lang: 'ru' | 'en' = document.documentElement.lang === 'en' ? 'en' : 'ru';
 
-    async function getIndex() {
+    let index: PreparedIndex | null = null;
+    let rows: SearchEntry[] = [];
+    let active = -1;
+    let lastReported = '';
+
+    async function getIndex(): Promise<void> {
       if (!index) {
         try {
           const res = await fetch(indexUrl!);
-          index = res.ok ? ((await res.json()) as Entry[]) : [];
+          if (res.ok) index = prepareIndex((await res.json()) as SearchEntry[]);
         } catch {
-          index = [];
+          // Leave `index` null: one flaky fetch used to disable the hero search
+          // for the rest of the page session, with no way to recover.
         }
       }
-      return index;
-    }
-
-    const lang = document.documentElement.lang === 'en' ? 'en' : 'ru';
-
-    function score(entry: Entry, tokens: string[]) {
-      const title = entry.title.toLowerCase();
-      const desc = (entry.desc || '').toLowerCase();
-      const tags = (entry.tags || []).map((x) => x.toLowerCase());
-      const tools = (entry.tools || []).map((x) => x.toLowerCase());
-      let s = 0;
-      for (const token of tokens) {
-        const hit =
-          title.includes(token) ||
-          desc.includes(token) ||
-          tags.some((x) => x === token) ||
-          tools.some((x) => x === token);
-        if (!hit) return -1;
-        s += title.includes(token) ? 3 : 0;
-        s += tags.includes(token) || tools.includes(token) ? 2 : 0;
-        s += 1;
-      }
-      if (entry.locale === lang) s += 5;
-      return s;
     }
 
     function close() {
       results!.hidden = true;
       results!.innerHTML = '';
       input!.setAttribute('aria-expanded', 'false');
+      input!.removeAttribute('aria-activedescendant');
+      if (status) status.textContent = '';
       active = -1;
     }
 
     function render() {
-      const query = input!.value.trim().toLowerCase();
-      const tokens = query ? query.split(/\s+/).filter(Boolean) : [];
+      const raw = input!.value.trim();
+      const tokens = tokenize(raw);
       if (!tokens.length) {
         close();
         return;
       }
 
-      rows = (index || [])
-        .map((e) => ({ e, s: score(e, tokens) }))
-        .filter((x) => x.s >= 0)
-        .sort((a, b) => b.s - a.s)
-        .slice(0, 6)
-        .map((x) => x.e);
+      rows = rankEntries(index || [], tokens, lang, MAX_ROWS);
 
       results!.innerHTML = '';
       if (!rows.length) {
@@ -324,6 +309,7 @@ const PERSONAS = [
           li.setAttribute('role', 'option');
           li.setAttribute('aria-selected', 'false');
           li.dataset.idx = String(i);
+          li.id = `nt-option-${i}`;
 
           const a = document.createElement('a');
           a.href = r.href;
@@ -346,19 +332,37 @@ const PERSONAS = [
           li.append(a);
           results!.append(li);
         });
-      }
 
-      const more = document.createElement('li');
-      more.className = 'nt-result nt-result-all';
-      const moreLink = document.createElement('a');
-      moreLink.href = `${explorerUrl}?q=${encodeURIComponent(input!.value.trim())}`;
-      moreLink.textContent = root!.dataset.all || '';
-      more.append(moreLink);
-      results!.append(more);
+        // The Explorer handoff only helps when the hero list has something;
+        // offering "all results" over an empty state was a dead end.
+        const more = document.createElement('li');
+        more.className = 'nt-result nt-result-all';
+        const moreLink = document.createElement('a');
+        moreLink.href = `${explorerUrl}?q=${encodeURIComponent(raw)}`;
+        moreLink.textContent = root!.dataset.all || '';
+        more.append(moreLink);
+        results!.append(more);
+      }
 
       results!.hidden = false;
       input!.setAttribute('aria-expanded', 'true');
+      input!.removeAttribute('aria-activedescendant');
       active = -1;
+      if (status) {
+        status.textContent = rows.length
+          ? `${root!.dataset.found || ''}: ${rows.length}`
+          : root!.dataset.empty || '';
+      }
+
+      if (raw !== lastReported) {
+        lastReported = raw;
+        track(rows.length ? 'search_used' : 'search_no_results', {
+          query: raw.slice(0, 100),
+          results_count: rows.length,
+          locale: lang,
+          surface: 'hero',
+        });
+      }
     }
 
     let debounce: ReturnType<typeof setTimeout> | undefined;
@@ -378,6 +382,8 @@ const PERSONAS = [
         it.classList.toggle('is-active', i === active);
         it.setAttribute('aria-selected', String(i === active));
       });
+      const current = items[active];
+      if (current?.id) input!.setAttribute('aria-activedescendant', current.id);
     }
 
     input.addEventListener('keydown', (e) => {
@@ -393,15 +399,65 @@ const PERSONAS = [
       }
     });
 
+    // `/` and `⌘K` belong to the hero on this page. Capture phase plus
+    // `stopPropagation` keeps SearchBox's bubble-phase handler from opening the
+    // drawer panel at the same time; once the drawer is open, that handler wins.
+    document.addEventListener(
+      'keydown',
+      (e) => {
+        if (document.body.classList.contains('nav-open')) return;
+        const el = document.activeElement;
+        const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA');
+        const slash = e.key === '/' && !typing;
+        const cmdK = (e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey);
+        if (!slash && !cmdK) return;
+        e.preventDefault();
+        e.stopPropagation();
+        input!.focus();
+      },
+      true,
+    );
+
+    // The capture causes the navigation, so it must wait for the SDK (bounded)
+    // — an in-flight capture dies with the page otherwise. Same as SearchBox.
+    function go(href: string, rank: number, type: string) {
+      whenAnalyticsReady(() => {
+        track('search_result_click', {
+          query: input!.value.trim().slice(0, 100),
+          rank,
+          href,
+          type,
+          locale: lang,
+          surface: 'hero',
+        });
+        window.location.href = href;
+      });
+    }
+
+    results!.addEventListener('click', (e) => {
+      const a = (e.target as Element | null)?.closest('a');
+      // Modified clicks (new tab, download) keep native behaviour.
+      if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      const idx = a.closest('.nt-result')?.getAttribute('data-idx');
+      e.preventDefault();
+      if (idx == null) {
+        go(a.href, rows.length + 1, 'all');
+        return;
+      }
+      go(a.href, Number(idx) + 1, rows[Number(idx)].type);
+    });
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const query = input.value.trim();
       if (!query) return;
-      if (active >= 0 && rows[active]) {
-        window.location.href = rows[active].href;
-        return;
-      }
-      window.location.href = rows[0] ? rows[0].href : `${explorerUrl}?q=${encodeURIComponent(query)}`;
+      const i = active >= 0 && rows[active] ? active : 0;
+      const target = rows[i];
+      go(
+        target ? target.href : `${explorerUrl}?q=${encodeURIComponent(query)}`,
+        target ? i + 1 : rows.length + 1,
+        target ? target.type : 'all',
+      );
     });
 
     document.addEventListener('click', (e) => {
