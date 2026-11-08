@@ -46,23 +46,38 @@ export interface AnalyticsEventMap {
   random_post_click: { slug: string; path: string };
   section_viewed: { section: string; path: string };
   outbound_click: { domain: string; url: string; surface: string; path: string };
-  // `surface` keeps the two search inputs apart: the site-wide SearchBox
-  // (`header`) and the glossary filter (`glossary`) both emit these names, and
-  // without the prop they collapse into one series in PostHog.
+  // `surface` keeps the search inputs apart: the site-wide SearchBox (`header`),
+  // the glossary filter (`glossary`) and the Explorer (`explorer`) all emit these
+  // names, and without the prop they collapse into one series in PostHog.
   search_used: {
     query: string;
     results_count: number;
     locale: Locale;
-    surface: 'header' | 'glossary';
+    surface: 'header' | 'glossary' | 'explorer';
   };
   search_no_results: {
     query: string;
     results_count: number;
     locale: Locale;
-    surface: 'header' | 'glossary';
+    surface: 'header' | 'glossary' | 'explorer';
+  };
+  // Which result the visitor actually opened. `query` is repeated so a click can
+  // be joined to its query without relying on session stitching, and `rank` is
+  // 1-based so CTR@1..3 is a plain aggregation.
+  search_result_click: {
+    query: string;
+    rank: number;
+    href: string;
+    type: string;
+    locale: Locale;
+    surface: 'header' | 'explorer';
   };
   read_depth: { content_type: ContentType; slug: string; depth: number; locale: Locale };
-  filter_applied: { tag: string; results_count: number; surface: 'writing' | 'glossary' };
+  filter_applied: {
+    tag: string;
+    results_count: number;
+    surface: 'writing' | 'glossary' | 'explorer';
+  };
   projects_track_filter: { track: string; results_count: number; locale: Locale };
   contact_submit: { locale: Locale };
   contact_form_error: {

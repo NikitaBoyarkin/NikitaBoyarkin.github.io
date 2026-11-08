@@ -14,6 +14,9 @@ const { lang = "ru" } = Astro.props;
 const isEn = lang === "en";
 
 const indexUrl = withBase("search-index.json");
+// Pagefind runtime + index live under `<base>/pagefind/`. Stamped like
+// `indexUrl`: the client must not resolve the base itself.
+const pagefindUrl = withBase("pagefind/");
 // The addressable Explorer surface the "show all" row hands off to (see
 // design-plans/explorer-surface.md §4). Stamped server-side like `indexUrl`, so
 // the client never resolves the locale itself.
@@ -46,6 +49,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
 <div
   class="search"
   data-index-url={indexUrl}
+  data-pagefind-url={pagefindUrl}
   data-explorer-url={explorerUrl}
   data-topics={JSON.stringify(topicLinks)}
   data-i18n={JSON.stringify(i18n)}
@@ -105,7 +109,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
 
 <script>
   import { ldWithin } from "../lib/fuzzy";
-  import { track } from "../lib/analytics";
+  import { track, whenAnalyticsReady } from "../lib/analytics";
   import { ICON } from "../lib/icons";
 
   // Wrap in init() — ES module top-level `return` is illegal, so all early
@@ -114,6 +118,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
     const root = document.querySelector<HTMLElement>(".search");
     if (!root) return;
     const indexUrl = root.dataset.indexUrl!;
+    const pagefindUrl = root.dataset.pagefindUrl!;
     const explorerUrl = root.dataset.explorerUrl!;
     const topics: { l: string; h: string }[] = JSON.parse(root.dataset.topics || "[]");
     type I18n = {
@@ -173,6 +178,8 @@ const X_D = "M6 6l12 12M6 18L18 6";
       tools?: string[];
       href: string;
       date?: string;
+      /** Pagefind's highlighted excerpt — already `<mark>`ed, used as-is. */
+      html?: string;
     };
     let index: Entry[] | null = null;
     let activeIndex = -1;
@@ -180,8 +187,8 @@ const X_D = "M6 6l12 12M6 18L18 6";
     // Dropdown cap. When a query has more matches, the last row hands the whole
     // set off to the Explorer surface instead of truncating silently.
     const MAX_ROWS = 8;
-    // One `search_used` / `search_no_results` per open panel (REQ-A08).
-    let searchReported = false;
+    // Last query already sent to analytics — a refinement is a new query.
+    let lastReported = "";
 
     async function getIndex() {
       if (!index) {
@@ -221,7 +228,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
       input.removeAttribute("aria-activedescendant");
       activeIndex = -1;
       setFacet("all");
-      searchReported = false;
+      lastReported = "";
       // Return focus to the trigger so keyboard users aren't dropped to <body> —
       // but only if focus was inside this widget (don't steal it from a sibling).
       if (hadFocus) toggle.focus();
@@ -251,38 +258,41 @@ const X_D = "M6 6l12 12M6 18L18 6";
       return esc.replace(re, "<mark>$1</mark>");
     }
 
-    function score(entry: Entry, tokens: string[]): number {
-      const title = entry.title.toLowerCase();
-      const desc = entry.desc.toLowerCase();
-      const tags = (entry.tags ?? []).map((t) => t.toLowerCase());
-      const tools = (entry.tools ?? []).map((t) => t.toLowerCase());
-      const words = [title, desc, ...tags, ...tools].join(" ").split(/\s+/);
-      let s = 0;
-      for (const tk of tokens) {
-        const inTitle = title.includes(tk);
-        const inDesc = desc.includes(tk);
-        const tagHit = tags.some((t) => t === tk);
-        const toolHit = tools.some((t) => t === tk);
-        // Fuzzy prefix: "ret" matches "retention" (word-boundary aware, so
-        // Cyrillic works too — \b is ASCII-only in JS).
-        const prefixHit = words.some((w) => w.startsWith(tk));
-        // Typo recovery: ≤2 edits against any index word, only for tokens long
-        // enough to be meaningful (early-exit LD, zero-dep — see lib/fuzzy).
-        // Threshold 5: 4-char tokens with max=2 edit distance match almost every
-        // index word (e.g. "data" ~ "hat") → noise in the top-8 results.
-        const fuzzyHit = tk.length >= 5 && words.some((w) => ldWithin(tk, w));
-        if (!inTitle && !inDesc && !tagHit && !toolHit && !prefixHit && !fuzzyHit) return -1;
-        s += inTitle ? 3 : 0;
-        s += tagHit ? 2 : 0;
-        s += toolHit ? 2 : 0;
-        s += prefixHit ? 1 : 0;
-        s += fuzzyHit ? 1 : 0;
-        s += 1;
+    // ── Pagefind (primary engine) ─────────────────────────────────────────
+    // The index is built by `pagefind --site dist` in `package.json` `build`:
+    // full page bodies, RU/EN indexes separated by `<html lang>`, chunks loaded
+    // on demand. Pagefind has no fuzzy matching, so `fuzzyFallback()` keeps the
+    // old `ldWithin` typo recovery, and `getIndex()` still answers the
+    // browse-by-facet mode (Pagefind needs a term).
+    type PagefindResult = {
+      results: Array<{
+        data: () => Promise<{
+          url: string;
+          excerpt: string;
+          meta: { title?: string };
+          filters: Record<string, string[]>;
+        }>;
+      }>;
+    };
+    type Pagefind = {
+      init?: () => Promise<void>;
+      search: (q: string, opts?: Record<string, unknown>) => Promise<PagefindResult>;
+    };
+    let pf: Pagefind | null = null;
+    async function getPagefind(): Promise<Pagefind> {
+      if (!pf) {
+        pf = (await import(/* @vite-ignore */ `${pagefindUrl}pagefind.js`)) as Pagefind;
+        await pf.init?.();
       }
-      // Locale boost: current-locale entries rank above cross-locale matches
-      // instead of being hard-filtered out (see runSearch).
-      if (entry.locale === lang) s += 5;
-      return s;
+      return pf;
+    }
+
+    async function fuzzyFallback(tokens: string[], active: string): Promise<Entry[]> {
+      const idx = await getIndex();
+      return idx
+        .filter((e) => e.locale === lang && inFacet(e.type, active))
+        .filter((e) => tokens.some((tk) => tk.length >= 5 && ldWithin(tk, e.title.toLowerCase())))
+        .slice(0, MAX_ROWS);
     }
 
     function render(rows: Entry[], tokens: string[], more: boolean, query: string) {
@@ -342,6 +352,25 @@ const X_D = "M6 6l12 12M6 18L18 6";
         const a = document.createElement("a");
         a.href = r.href;
         a.tabIndex = -1;
+        a.addEventListener("click", (ev) => {
+          // Modified clicks (new tab, download) keep native behaviour.
+          if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button !== 0) return;
+          ev.preventDefault();
+          const href = a.href;
+          // The capture causes the navigation, so it must wait for the SDK
+          // (bounded) — an in-flight capture dies with the page otherwise.
+          whenAnalyticsReady(() => {
+            track("search_result_click", {
+              query: input.value.trim().slice(0, 100),
+              rank: i + 1,
+              href: r.href,
+              type: r.type,
+              locale: lang,
+              surface: "header",
+            });
+            window.location.href = href;
+          });
+        });
 
         const type = document.createElement("span");
         type.className = "search-result-type";
@@ -360,7 +389,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
           // The CSS clamps this to two lines; without a title the cut text is
           // unreachable without opening the result.
           d.title = r.desc;
-          d.innerHTML = highlight(r.desc, tokens);
+          d.innerHTML = r.html ?? highlight(r.desc, tokens);
           a.appendChild(d);
         }
 
@@ -390,42 +419,63 @@ const X_D = "M6 6l12 12M6 18L18 6";
 
     let debounce: ReturnType<typeof setTimeout> | undefined;
     async function runSearch() {
-      const idx = await getIndex();
-      if (!idx) return;
-      const q = input.value.trim().toLowerCase();
       const rawQuery = input.value.trim();
-      const tokens = q ? q.split(/\s+/).filter(Boolean) : [];
-      let rows: Entry[];
+      const tokens = rawQuery ? rawQuery.toLowerCase().split(/\s+/).filter(Boolean) : [];
+      let rows: Entry[] = [];
       let more = false;
-      if (!q) {
-        // No query + active facet → browse recent items of that type.
+
+      if (!rawQuery) {
+        // Browse mode: Pagefind needs a term, so the lightweight index answers
+        // "what is recent in this facet" (unchanged UX).
         if (facet === "all") {
           resultsEl.innerHTML = "";
           input.setAttribute("aria-expanded", "false");
           activeIndex = -1;
           return;
         }
+        const idx = await getIndex();
         rows = idx
           .filter((e) => e.locale === lang && inFacet(e.type, facet))
           .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
           .slice(0, MAX_ROWS);
       } else {
-        // No hard locale filter — score() boosts the current locale so
-        // cross-locale results still surface when they match better.
-        const matched = idx
-          .filter((e) => inFacet(e.type, facet))
-          .map((e) => ({ e, s: score(e, tokens) }))
-          .filter((x) => x.s >= 0)
-          .sort((a, b) => b.s - a.s)
-          .map((x) => x.e);
-        more = matched.length > MAX_ROWS;
-        rows = matched.slice(0, MAX_ROWS);
+        // Only `type` is a Pagefind filter; the locale is enforced on the URLs
+        // below (the `lang` filter indexed empty for content pages).
+        const filters: Record<string, string[]> = {};
+        if (facet !== "all") filters.type = facet === "project" ? ["project", "part"] : [facet];
+        try {
+          const engine = await getPagefind();
+          const found = await engine.search(rawQuery, { filters });
+          // Pagefind's own `lang` filter is not honoured through the JS API
+          // here, so the locale is enforced on the returned URLs (it is the
+          // same signal the index was split by). Ask for a wider page first.
+          const data = await Promise.all(found.results.slice(0, 60).map((r) => r.data()));
+          const wantedEn = lang === "en";
+          const local = data.filter((d) => /\/en\//.test(d.url) === wantedEn);
+          more = local.length > MAX_ROWS;
+          rows = local.slice(0, MAX_ROWS).map((d) => ({
+            type: d.filters?.type?.[0] ?? "project",
+            locale: /\/en\//.test(d.url) ? "en" : "ru",
+            title: d.meta?.title ?? d.url,
+            desc: (d.excerpt ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
+            html: d.excerpt ?? "",
+            href: d.url,
+          }));
+        } catch (err) {
+          // Never silent: a missing/failed index must be visible, or the box
+          // degrades to the fuzzy title fallback and looks like "no results".
+          console.error("[search] pagefind failed", err);
+          rows = [];
+        }
+        // No typo tolerance in Pagefind — `ldWithin` over titles covers the miss.
+        if (!rows.length) rows = await fuzzyFallback(tokens, facet);
       }
       render(rows, tokens, more, rawQuery);
 
-      // Emit once per panel session, when the first real query runs (REQ-A08).
-      if (rawQuery && !searchReported) {
-        searchReported = true;
+      // Report every distinct query: before this, only the first query of a
+      // panel session was visible, so refinements and dead ends were invisible.
+      if (rawQuery && rawQuery !== lastReported) {
+        lastReported = rawQuery;
         track(rows.length > 0 ? "search_used" : "search_no_results", {
           query: rawQuery.slice(0, 100),
           results_count: rows.length,
@@ -485,7 +535,9 @@ const X_D = "M6 6l12 12M6 18L18 6";
           const a = items[activeIndex].querySelector("a");
           if (a) {
             e.preventDefault();
-            window.location.href = a.href;
+            // `.click()` so the analytics handler on the anchor runs; a bare
+            // `location.href` assignment skipped it.
+            a.click();
           }
         }
       } else if (e.key === "Escape") {

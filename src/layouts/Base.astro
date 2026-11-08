@@ -62,6 +62,14 @@ interface Props {
    *  rendered from a body slot is ignored by crawlers, which is how /404/ was
    *  indexable despite carrying one. */
   noindex?: boolean;
+  /**
+   * Content type stamped onto `<main>` as Pagefind attributes (`data-pagefind-body`
+   * + `data-pagefind-filter="type:<x>"`). Pagefind treats a page carrying
+   * `data-pagefind-body` as an allow-list member: templates that omit this prop
+   * stay out of the search index, which is how the ~109 demo, diagram, redirect
+   * and hub pages are excluded without a deny-list.
+   */
+  searchType?: 'project' | 'part' | 'post' | 'term' | 'source' | 'topic' | 'page';
 }
 
 const {
@@ -82,6 +90,7 @@ const {
   canvasFullBleed = false,
   bleed = false,
   noindex = false,
+  searchType,
 } = Astro.props;
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
@@ -736,7 +745,16 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
 
     <div class="nav-scrim" id="nav-scrim"></div>
 
-    <main id="main" tabindex="-1">
+    <main
+      id="main"
+      tabindex="-1"
+      data-pagefind-body={searchType ? true : undefined}
+      data-search-type={searchType}
+      data-search-lang={lang}
+      data-pagefind-filter={
+        searchType ? 'type[data-search-type],lang[data-search-lang]' : undefined
+      }
+    >
       {/* Trail from the pathname, rendered for both locales before the page's
           own markup — outside every article container. The homepage renders
           none (see Breadcrumbs.astro). */}

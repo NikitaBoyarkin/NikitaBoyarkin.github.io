@@ -145,7 +145,7 @@ const show = crumbs.length > 1;
 
 {
   show && (
-    <nav class="breadcrumbs" aria-label={t.nav}>
+    <nav class="breadcrumbs" aria-label={t.nav} data-pagefind-ignore>
       <ol>
         {crumbs.map((crumb, i) => (
           <li>

@@ -219,6 +219,7 @@ const dirGlyph = pageDefaults.dir === 'asc' ? '↑' : '↓';
     type ExplorerState,
     type FacetKey,
   } from "../lib/explorer";
+  import { track, whenAnalyticsReady } from "../lib/analytics";
 
   /** Rows rendered per interaction before the readout says "first N". */
   const RESULT_CAP = 200;
@@ -269,6 +270,9 @@ const dirGlyph = pageDefaults.dir === 'asc' ? '↑' : '↓';
     /** Rendered rows by key — the lookup `setActive` needs, rebuilt per render. */
     const rendered = new Map<string, ExplorerRecord>();
     let debounce: ReturnType<typeof setTimeout> | undefined;
+    /** Last query reported to PostHog — one event per distinct query, so a
+     *  typed word does not become five events and a refinement stays visible. */
+    let lastReported = "";
 
     const keyOf = (rec: ExplorerRecord): string => `${rec.locale}:${rec.id}`;
 
@@ -336,12 +340,31 @@ const dirGlyph = pageDefaults.dir === 'asc' ? '↑' : '↓';
       return box;
     }
 
-    function rowNode(rec: ExplorerRecord): HTMLElement {
+    function rowNode(rec: ExplorerRecord, rank: number): HTMLElement {
       const li = el("li", "xp-item");
       li.dataset.xpKey = keyOf(rec);
 
       const anchor = document.createElement("a");
       anchor.href = rec.href;
+      anchor.addEventListener("click", (event) => {
+        // The list is the search result page here, so a row click is the same
+        // signal as `search_result_click` from the header box — same wait for
+        // the SDK, or the capture dies with the page.
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        event.preventDefault();
+        const href = anchor.href;
+        whenAnalyticsReady(() => {
+          track("search_result_click", {
+            query: state.q.slice(0, 100),
+            rank,
+            href: rec.href,
+            type: rec.kind,
+            locale: rec.locale,
+            surface: "explorer",
+          });
+          window.location.href = href;
+        });
+      });
       const kind = el("span", "xp-item-kind");
       kind.textContent = KIND_LABELS[rec.kind][lang];
       const title = document.createElement("strong");
@@ -367,7 +390,7 @@ const dirGlyph = pageDefaults.dir === 'asc' ? '↑' : '↓';
       rendered.clear();
       for (const rec of rows) rendered.set(keyOf(rec), rec);
       const fragment = document.createDocumentFragment();
-      for (const rec of rows) fragment.appendChild(rowNode(rec));
+      rows.forEach((rec, i) => fragment.appendChild(rowNode(rec, i + 1)));
       list.replaceChildren(fragment);
     }
 
@@ -455,8 +478,10 @@ const dirGlyph = pageDefaults.dir === 'asc' ? '↑' : '↓';
       }
     }
 
-    function apply(): void {
-      if (!ready) return;
+    /** Returns the match count so callers that report analytics do not have to
+     *  re-run the selection pass just to learn it. */
+    function apply(): number {
+      if (!ready) return 0;
       // Timing is the explorer's own readout: the filter + sort pass only, not
       // the DOM write (DOM work would make the number depend on list length
       // twice over and say nothing about the query).
@@ -469,6 +494,7 @@ const dirGlyph = pageDefaults.dir === 'asc' ? '↑' : '↓';
       if (emptyEl) emptyEl.hidden = rows.length > 0;
       syncFacets();
       syncControls();
+      return rows.length;
     }
 
     function writeUrl(): void {
@@ -526,7 +552,16 @@ const dirGlyph = pageDefaults.dir === 'asc' ? '↑' : '↓';
     const readInput = (): void => {
       state = { ...state, q: input.value };
       writeUrl();
-      apply();
+      const matched = apply();
+      const query = state.q.trim();
+      if (!query || query === lastReported) return;
+      lastReported = query;
+      track(matched > 0 ? "search_used" : "search_no_results", {
+        query: query.slice(0, 100),
+        results_count: matched,
+        locale: lang,
+        surface: "explorer",
+      });
     };
 
     const facetButtons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-xp-facet]"));
@@ -538,7 +573,12 @@ const dirGlyph = pageDefaults.dir === 'asc' ? '↑' : '↓';
         if (!key || value === undefined) return;
         state = toggleFacet(key, value);
         writeUrl();
-        apply();
+        const matched = apply();
+        track("filter_applied", {
+          tag: `${key}:${value}`,
+          results_count: matched,
+          surface: "explorer",
+        });
       });
     }
 

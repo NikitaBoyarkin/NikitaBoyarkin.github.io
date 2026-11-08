@@ -8,7 +8,7 @@ const { selector = '#project-content', lang = 'ru' } = Astro.props;
 const isEn = lang === 'en';
 ---
 
-<aside id="inner-toc" aria-label={isEn ? 'Table of contents' : 'Содержание'}>
+<aside id="inner-toc" aria-label={isEn ? 'Table of contents' : 'Содержание'} data-pagefind-ignore>
   <div class="toc-title">{isEn ? 'On this page' : 'На этой странице'}</div>
   <ul id="inner-toc-list"></ul>
 </aside>
