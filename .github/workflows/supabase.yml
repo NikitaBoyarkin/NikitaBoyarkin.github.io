@@ -32,7 +32,7 @@ jobs:
           # Pinned, not `v2.x`: a floating minor lets CI change the formatter or
           # the type checker under a green branch. Bump deliberately, together
           # with the local `deno --version`.
-          deno-version: v2.8.0
+          deno-version: v2.9.7
 
       - run: deno fmt --check
       - run: deno lint
