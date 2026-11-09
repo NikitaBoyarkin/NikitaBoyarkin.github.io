@@ -971,6 +971,23 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         syncInert();
       })();
 
+      // The bar's height is not a function of the viewport alone: it is two rows
+      // below 768px, one row of 44px coarse-pointer targets above that, and its
+      // chip row wraps to a second line around 1024px on a touch device (measured:
+      // 129px of bar under a 77px token). CSS guesses; this measures. The
+      // media-query values stay as the pre-JS fallback for the sticky offsets.
+      (function () {
+        const bar = document.querySelector('.nav-mobile');
+        if (!bar || !window.ResizeObserver) return;
+        const root = document.documentElement;
+        const sync = () => {
+          const h = Math.ceil(bar.getBoundingClientRect().height);
+          if (h > 0) root.style.setProperty('--nav-mobile-h', h + 'px');
+        };
+        new ResizeObserver(sync).observe(bar);
+        sync();
+      })();
+
     </script>
 
     <script>
@@ -1346,7 +1363,9 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       /* The phone bar carries two rows (identity, then the persona row), so it is
          taller than the 65/77px token global.css pins the drawer, filter bar and
          graph overlay to. Those offsets are read from this token, so it has to
-         track the measured bar height or the drawer slides under the bar. */
+         track the measured bar height or the drawer slides under the bar. The
+         inline script above overwrites the token with the real height once the
+         bar is in the document; these two rules are the pre-JS fallback. */
       @media (max-width: 767px) {
         :root {
           --nav-mobile-h: calc(107px + env(safe-area-inset-top));

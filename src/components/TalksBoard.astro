@@ -357,6 +357,19 @@ const cards = buildTalkCards(data, lang, overlay);
 <style is:global>
   .talks-board { max-width: 1040px; margin: 0 auto; padding: var(--space-6) var(--space-4); }
   .talks-head { margin-bottom: var(--space-4); }
+  /* "Матемаркетинг" at the 2.5rem page-title level is wider than a 320px
+     screen and pushed the whole document 31px wide; break the word instead of
+     shrinking the level (REQ-008 keeps the h1 at the page-title token). */
+  .talks-head .page-title { overflow-wrap: break-word; hyphens: auto; }
+  /* The overview graph asked for a fixed 480px canvas, which is most of a phone
+     screen. The inline height on the SVG (the `height` prop) stays as the wide
+     -screen cap; below that the canvas is square-ish and scales with the card. */
+  .talks-board #talks-overview-svg {
+    height: auto !important;
+    aspect-ratio: 1 / 1;
+    max-height: min(480px, 80vh);
+    min-height: 300px;
+  }
   .talks-note { color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin: var(--space-3) 0; }
   .talks-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--space-3); margin: var(--space-4) 0; }
   .talks-stats div { background: var(--background-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: var(--space-3); display: flex; flex-direction: column; gap: 2px; }

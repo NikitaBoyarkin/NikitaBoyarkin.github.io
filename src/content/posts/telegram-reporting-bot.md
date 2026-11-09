@@ -54,7 +54,7 @@ draft: false
 
 Команда `/report` даёт любому запросить свежую версию вручную. Это страховка от «опубликуй прямо сейчас».
 
-<iframe src="/demos/telegram/index.html" title="Схема пайплайна: хранилище → SQL → форматирование → Telegram API → канал. Наведите на этап" height="280" loading="lazy" style="width:100%;border:0;border-radius:10px"></iframe>
+<iframe src="/demos/telegram/index.html" title="Схема пайплайна: хранилище → SQL → форматирование → Telegram API → канал" height="280" loading="lazy" style="width:100%;border:0;border-radius:10px"></iframe>
 
 ## Почему Telegram
 

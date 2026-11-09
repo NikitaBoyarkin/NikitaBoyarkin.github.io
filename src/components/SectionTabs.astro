@@ -133,12 +133,20 @@ const noScriptFallback =
               Array.prototype.forEach.call(panel.querySelectorAll('.reveal'), function (el) {
                 el.classList.add('visible');
               });
+              // A nested dashboard in this panel centred its selected tab while
+              // the panel had no layout, so the centring was a no-op. Redo it now
+              // that the strip has a width.
+              Array.prototype.forEach.call(panel.querySelectorAll('[data-section-tabs]'), function (nested) {
+                var selTab = nested.querySelector('[role="tab"][aria-selected="true"]');
+                if (selTab) revealTab(selTab);
+              });
             }
           });
           tabs.forEach(function (tab) {
             var on = tab.dataset.tab === id;
             tab.setAttribute('aria-selected', on ? 'true' : 'false');
             tab.tabIndex = on ? 0 : -1;
+            if (on) revealTab(tab);
             if (on && focus) tab.focus();
           });
           // The fixed TOC rail belongs to the case-study panel: hide it with the
@@ -147,8 +155,25 @@ const noScriptFallback =
           root.setAttribute('data-active', id);
         }
 
+        // On a phone the tablist is one horizontal strip, so the selected tab can
+        // sit outside the scrollport. Centre it there by moving the strip's own
+        // scrollLeft: `scrollIntoView` would also move the document, undoing the
+        // jump the reader just made.
+        function revealTab(tab) {
+          var list = tab.parentElement;
+          if (!list || list.scrollWidth <= list.clientWidth) return;
+          var listBox = list.getBoundingClientRect();
+          var tabBox = tab.getBoundingClientRect();
+          var left = list.scrollLeft + (tabBox.left - listBox.left) - (list.clientWidth - tabBox.width) / 2;
+          list.scrollLeft = Math.max(0, Math.min(left, list.scrollWidth - list.clientWidth));
+        }
+
         function scrollToAnchor(id) {
-          var el = id && document.getElementById(id);
+          if (!id) return;
+          // A hash may name a heading inside a panel (`#theme-ai`, `#t288`) or a
+          // tab, which has no element of its own — its node is `panel-<id>`. Without
+          // the fallback `#tracks` opened the right panel and left the page on top.
+          var el = document.getElementById(id) || document.getElementById('panel-' + id);
           if (el) el.scrollIntoView({ block: 'start' });
         }
 
@@ -268,8 +293,11 @@ const noScriptFallback =
     outline-offset: 2px;
   }
   /* Deep-link anchors and TOC jumps land under the sticky nav without this.
-     Applies to any element with an id inside a panel. */
-  :global(.section-panel [id]) {
+     Applies to any element with an id inside a panel, and to the panel itself:
+     a hash that names a tab (`#tracks`) resolves to `panel-<id>`, which no
+     descendant selector reaches. */
+  :global(.section-panel [id]),
+  :global(.section-panel[data-panel]) {
     scroll-margin-top: calc(var(--nav-mobile-h) + var(--space-4));
   }
   /* Nested dashboard: same pattern, one step quieter than the page-level tabs
@@ -288,13 +316,47 @@ const noScriptFallback =
     right: var(--space-2);
     bottom: calc(var(--space-2) * -1 - 1px);
   }
-  @media (max-width: 640px) {
+  /* Phone: one swipeable row instead of a wrap. Twelve tracks or eleven themes
+     wrapped three-to-four deep is a 200px block of chrome above every panel —
+     taller than the panel's own first screen. `proximity`, not `mandatory`: the
+     strip has no end padding, and mandatory snapping parks a short drag back
+     where it started, so the last tab would need a second swipe to reach. */
+  @media (max-width: 767px) {
     .section-tablist {
+      flex-wrap: nowrap;
       gap: var(--space-1);
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+      overscroll-behavior-x: contain;
+    }
+    .section-tablist::-webkit-scrollbar {
+      display: none;
     }
     .section-tab {
+      flex: 0 0 auto;
+      /* A track name runs to a sentence; uncapped it makes a tab wider than the
+         strip, so the selected tab could never be fully on screen and the next
+         one never peeked. The panel's own <h3> repeats the name in full, so the
+         ellipsis costs nothing. */
+      max-width: 75%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      scroll-snap-align: start;
+      white-space: nowrap;
       padding: var(--space-1) var(--space-3);
       font-size: 0.82rem;
+    }
+    /* The tab clips its own text for the ellipsis above, and the strip clips
+       vertically — so the desktop underline, which sits outside the tab's
+       padding box, vanished on a phone. Draw the non-color cue inside the
+       padding box instead: same 2px rule, nothing left to clip. */
+    .section-tab[aria-selected='true']::after,
+    .section-tabs--sm .section-tab[aria-selected='true']::after {
+      left: var(--space-2);
+      right: var(--space-2);
+      bottom: 0;
     }
   }
 </style>

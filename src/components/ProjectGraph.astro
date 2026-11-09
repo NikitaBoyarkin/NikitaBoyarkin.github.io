@@ -84,15 +84,15 @@ const ariaLabel = Astro.props.ariaLabel ?? (isEn ? 'Connections of this project'
 const caption =
   Astro.props.caption ??
   (isEn
-    ? 'Projects, posts and topics connected to this one. Hover a node to see its name; click to open.'
-    : 'Проекты, записи и темы, связанные с этим проектом. Наведите на узел, чтобы увидеть название; клик — открыть.');
+    ? 'Projects, posts and topics connected to this one. Tap or click opens a node.'
+    : 'Проекты, записи и темы, связанные с этим проектом. Касание или клик открывают узел.');
 ---
 
 <div id={uid('root')} class="pg-root" data-pg-root>
   {/* role="group", not "img": ARIA gives `img` presentational children, which
-      would flatten the focusable `role="link"` nodes this component builds into
-      it out of the accessibility tree. A group keeps them real; the
-      visually-hidden list below is the plain-text mirror. */}
+      would flatten the focusable link nodes this component builds into it out
+      of the accessibility tree. A group keeps them real; the visually-hidden
+      list below is the plain-text mirror. */}
   <svg id={uid('svg')} class="pg-svg" style={`height:${height}px`} role="group" aria-label={ariaLabel} aria-describedby={uid('sr-desc')}></svg>
   <div class="visually-hidden">
     <p id={uid('sr-desc')}>{srDesc}</p>
@@ -144,6 +144,15 @@ const caption =
   let world = { w: 600, h: 280 };
   let nodes: any[] = [];
   let nodeEls: SVGGElement[] = [];
+  let nodeTexts: SVGTextElement[] = [];
+  /** Tap pads and visible radii, index-aligned with `nodes`; the pad radius is
+   *  re-derived from the live layout (see `updatePads`). */
+  let padEls: SVGCircleElement[] = [];
+  let nodeRadii: number[] = [];
+  /** Advance width per label, measured once per render pass. Kept out of the
+   *  per-frame label layout: 91 labels re-measuring every tick would thrash
+   *  layout for nothing, the text never changes. */
+  let labelWidths: number[] = [];
   let links: { source: any; target: any; weight: number; type: string }[] = [];
   let edges: SVGLineElement[] = [];
   let edgeHits: SVGLineElement[] = [];
@@ -152,14 +161,22 @@ const caption =
   let restart: (() => void) | null = null;
   let dragging: any = null;
   let dragStart: { x: number; y: number } | null = null;
+  let dragPointerId: number | null = null;
   let dragRaf = 0;
   let moved = false;
+  /** Set when a press turned into a drag: the compatibility click that follows
+   *  the release must not reach the anchor. */
+  let suppressClick = false;
 
   const adjacency = new Map<string, Set<string>>();
 
+  /** Client coords → SVG user units, or null when the geometry cannot be read.
+   *  Returning a made-up (0, 0) instead used to turn one bad sample into a fake
+   *  200px drag: `moved` latched on, the node jumped to the top-left corner and
+   *  the tap that produced it was swallowed. */
   function toWorld(clientX: number, clientY: number) {
     const ctm = svg.getScreenCTM();
-    if (!ctm) return { x: 0, y: 0 };
+    if (!ctm) return null;
     const pt = new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse());
     return { x: pt.x, y: pt.y };
   }
@@ -227,21 +244,48 @@ const caption =
 
     const nodeLayer = el('g');
     svg.appendChild(nodeLayer);
+    const textEls: SVGTextElement[] = [];
+    padEls = [];
+    nodeRadii = [];
     nodeEls = nodes.map((n, i) => {
       const g = el('g');
-      g.setAttribute('tabindex', '0');
-      g.setAttribute('role', 'link');
-      g.setAttribute('aria-label', n.label);
+      // A real SVG anchor inside the group (an `<a>` may not wrap a `<g>`). It
+      // is the tab stop and the activation target, so Enter and a touch tap are
+      // the browser's own link behaviour: a tap that drifted a couple of pixels
+      // used to be dropped because Chrome kills navigation issued from a
+      // pointerup handler inside a moving touch sequence, while the anchor's
+      // compatibility click survives it.
+      const a = el('a');
+      a.setAttribute('href', n.href);
+      a.setAttribute('tabindex', '0');
+      a.setAttribute('aria-label', n.label);
       g.style.cursor = 'pointer';
       if (n.id === data.centerId) g.classList.add('pg-center');
       const title = el('title');
       title.textContent = titleLines(data.nodeT?.[i]);
       g.appendChild(title);
       const r = (n.size || 6) * NODE_SIZE;
+      // Invisible tap target, inside this same anchor so the browser grows the
+      // anchor's own hit box. The visible radius follows the node's weight, so
+      // a light node was a 10.6px dot — every node on /talks/ failed the 24px
+      // minimum. A pad drawn outside the `<a>` would not have helped: the tap
+      // target is the anchor, not the circle. The pad's radius is not fixed
+      // here: `updatePads` re-derives it from the settled layout, because a
+      // constant 44px pad on a dense ring covered the neighbour's dot and a tap
+      // on one node opened another.
+      const pad = el('circle');
+      pad.setAttribute('class', 'pg-hit');
+      pad.setAttribute('r', String(Math.max(r, 22)));
+      pad.setAttribute('fill', 'transparent');
+      pad.setAttribute('pointer-events', 'all');
+      padEls.push(pad as SVGCircleElement);
+      nodeRadii.push(r);
+      // `.pg-center circle` paints a ring; the pad must not inherit one.
+      pad.style.stroke = 'none';
       const c = el('circle');
       c.setAttribute('r', String(r));
       c.setAttribute('fill', GRAPH_SECTION_COLORS[n.section] || 'var(--text-accent)');
-      const txt = el('text');
+      const txt = el('text') as SVGTextElement;
       const isCenter = n.id === data.centerId;
       // The centre's label is the only always-on anchor text. Set to the right
       // of the circle it ran into the ring node at 3 o'clock, which painted
@@ -259,24 +303,31 @@ const caption =
           : 'pg-label',
       );
       txt.textContent = n.label;
-      g.appendChild(c);
-      g.appendChild(txt);
+      textEls.push(txt);
+      a.appendChild(pad);
+      a.appendChild(c);
+      a.appendChild(txt);
+      g.appendChild(a);
       nodeLayer.appendChild(g);
       return g as SVGGElement;
     });
+    nodeTexts = textEls;
+    labelWidths = [];
 
     // Paint the centre last for the same reason: it must never be covered,
     // while the ring nodes only need their circles ordered among themselves.
     const centerIdx = nodes.findIndex((n) => n.id === data.centerId);
     if (centerIdx >= 0) nodeLayer.appendChild(nodeEls[centerIdx]);
 
-    // Keyboard: Enter/Space on a focused node navigates.
+    // Keyboard: the anchor is the tab stop, so Enter is the link's own
+    // activation. Space is not an activation key for links in the spec, so it
+    // is mapped by hand and the screen-reader copy below keeps promising it.
+    // The event bubbles from the anchor up to the group.
     nodeEls.forEach((g, i) => {
       g.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          navigateTo(nodes[i]);
-        }
+        if (e.key !== ' ') return;
+        e.preventDefault();
+        navigateTo(nodes[i]);
       });
     });
 
@@ -295,6 +346,114 @@ const caption =
       const a = (i / Math.max(1, others.length)) * 2 * Math.PI - Math.PI / 2;
       n.x = cx + Math.cos(a) * ring;
       n.y = cy + Math.sin(a) * ring;
+    });
+    measureLabels();
+    layoutLabels();
+    updatePads();
+  }
+
+  /** Tap-pad radius from the live layout: `max(visible r, min(22, 0.45·d))`,
+   *  where `d` is the distance to the nearest other node. A flat 44px pad is
+   *  fine on a sparse ring, but the dense `untracked` track packs 32 nodes at a
+   *  ~15.6px step, so a 44px pad covered the neighbour's dot and a tap on the
+   *  visible circle opened the wrong node. Half the neighbour distance is the
+   *  largest pad that cannot swallow an adjacent centre; 24px stays the target
+   *  wherever the geometry allows it. O(n²) over ≤ a few dozen nodes per frame. */
+  function updatePads() {
+    const n = nodes.length;
+    for (let i = 0; i < n; i++) {
+      const a = nodes[i];
+      let nearest2 = Infinity;
+      for (let j = 0; j < n; j++) {
+        if (j === i) continue;
+        const dx = a.x - nodes[j].x;
+        const dy = a.y - nodes[j].y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < nearest2) nearest2 = d2;
+      }
+      const nearest = Math.sqrt(nearest2);
+      const limit = Math.min(22, (Number.isFinite(nearest) ? nearest : 44) * 0.45);
+      const r = nodeRadii[i] ?? 6;
+      const pad = padEls[i];
+      if (pad) pad.setAttribute('r', String(Math.max(r, limit)));
+    }
+  }
+
+  /** Advance width of each label, measured once per render pass. `getComputed-
+   *  TextLength` returns 0 when the SVG has no layout box yet, so a character
+   *  estimate stands in until the element is really rendered. */
+  function measureLabels() {
+    labelWidths = nodeTexts.map((txt, i) => {
+      if (txt.hasAttribute('textLength')) {
+        txt.removeAttribute('textLength');
+        txt.removeAttribute('lengthAdjust');
+      }
+      let w = 0;
+      try {
+        w = txt.getComputedTextLength();
+      } catch {
+        w = 0;
+      }
+      return w || (nodeTexts[i].textContent || '').length * 6.2;
+    });
+  }
+
+  /** Keep every label inside the canvas. Labels are drawn to the right of the
+   *  circle, and near the right edge that ran off the SVG — 6 of the 13 graphs
+   *  on /talks/ lost the tail of a track name, clipped rather than covered.
+   *  Such a label flips to the circle's left, is then shifted back inside the
+   *  box, and a label wider than the canvas itself (a long talk title) is
+   *  condensed with `textLength` instead of overflowing. The centre's label
+   *  sits under its circle and is nudged horizontally the same way. */
+  function layoutLabels() {
+    if (!nodes.length) return;
+    const pad = 4;
+    const maxW = Math.max(24, world.w - pad * 2);
+    // Approximate ascent/descent of an 11px, weight-600 label around its
+    // baseline; the vertical clamp below needs them to keep the glyphs inside.
+    const ascend = 10;
+    const descend = 4;
+    nodes.forEach((n, i) => {
+      const txt = nodeTexts[i];
+      if (!txt) return;
+      const r = (n.size || 6) * NODE_SIZE;
+      const isCenter = n.id === data.centerId;
+      let w = labelWidths[i] || (txt.textContent || '').length * 6.2;
+      if (w > maxW) {
+        if (txt.getAttribute('textLength') !== String(maxW)) {
+          txt.setAttribute('textLength', String(maxW));
+          txt.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+        }
+        w = maxW;
+      } else if (txt.hasAttribute('textLength')) {
+        txt.removeAttribute('textLength');
+        txt.removeAttribute('lengthAdjust');
+      }
+      let x: number;
+      let anchor: 'start' | 'end' | 'middle';
+      let y = isCenter ? r + 14 : 4;
+      if (isCenter) {
+        anchor = 'middle';
+        x = Math.min(Math.max(n.x, pad + w / 2), world.w - pad - w / 2) - n.x;
+      } else {
+        anchor = n.x + r + 6 + w > world.w - pad ? 'end' : 'start';
+        x = anchor === 'end' ? -(r + 6) : r + 6;
+        // Clamp the whole label box, not just its origin: a label flipped to
+        // the left of a node near the left edge overflows on that side instead.
+        const left = anchor === 'end' ? n.x + x - w : n.x + x;
+        if (left < pad) x += pad - left;
+        else if (left + w > world.w - pad) x += world.w - pad - w - left;
+      }
+      // `y` is local to the node group (the group carries translate(n.x,n.y)),
+      // so the test is against the absolute baseline while the assignment has
+      // to come back into local space — without the `- n.y` a node dragged near
+      // the bottom edge got `y = world.h - 6`, i.e. an absolute baseline of
+      // `n.y + world.h - 6`, and the label ran off the canvas.
+      if (n.y + y - ascend < 2) y = 2 + ascend - n.y;
+      else if (n.y + y + descend > world.h - 2) y = world.h - 2 - descend - n.y;
+      txt.setAttribute('x', String(x));
+      txt.setAttribute('y', String(y));
+      txt.setAttribute('text-anchor', anchor);
     });
   }
 
@@ -354,9 +513,16 @@ const caption =
     // Same alpha-based settling as the main graph, scaled to node count.
     const N = Math.max(1, nodes.length);
     const charge = 2200 * Math.sqrt(N);
+    // Soften the 1/d² kernel so coincident nodes cannot blow up: the biggest
+    // visible radius is size 13 × NODE_SIZE 1.06 ≈ 13.8px, so 2× of it (28px)
+    // is the contact distance below which two circles would overlap anyway.
+    const minD2 = 28 * 28;
     const gravity = 0.004 + 0.001 * Math.sqrt(N);
     const damp = 0.86;
-    const margin = Math.min(80, 60 + N * 0.5);
+    // A fixed margin eats the whole canvas on a 320px phone (75px of 254), the
+    // settled ring then exceeds the perimeter and nodes collide on the clamp
+    // corners, so the margin may never consume more than ~1/8 of the width.
+    const margin = Math.min(80, 60 + N * 0.5, world.w * 0.12);
     const alphaDecay = Math.max(0.015, 0.03 - 0.001 * Math.sqrt(N));
     const alphaMin = 0.01;
     const maxFrames = Math.max(400, N * 10);
@@ -367,9 +533,15 @@ const caption =
         for (let j = i + 1; j < nodes.length; j++) {
           const a = nodes[i], b = nodes[j];
           let dx = a.x - b.x, dy = a.y - b.y;
-          let d2 = dx * dx + dy * dy || 1;
+          let d2 = dx * dx + dy * dy;
+          if (d2 < 1e-6) {
+            // A coincident pair has no direction vector, so softening alone
+            // would leave it stacked: give it a deterministic unit separation.
+            const jig = (i + 1) * 1.618 + (j + 1) * 2.414;
+            dx = Math.cos(jig); dy = Math.sin(jig); d2 = 1;
+          }
           let d = Math.sqrt(d2);
-          const f = (charge / d2) * alpha;
+          const f = (charge / Math.max(d2, minD2)) * alpha;
           a.vx += (dx / d) * f; a.vy += (dy / d) * f;
           b.vx -= (dx / d) * f; b.vy -= (dy / d) * f;
         }
@@ -394,6 +566,8 @@ const caption =
       });
       drawEdges();
       nodes.forEach((n, i) => nodeEls[i].setAttribute('transform', `translate(${n.x},${n.y})`));
+      updatePads();
+      layoutLabels();
     }
 
     function loop() {
@@ -431,55 +605,94 @@ const caption =
       nodeEls[i].setAttribute('transform', `translate(${dragging.x},${dragging.y})`);
     }
     drawEdges();
+    updatePads();
+    layoutLabels();
     dragRaf = requestAnimationFrame(dragFrame);
   }
 
   function handlePointerDown(e: PointerEvent) {
-    svg.setPointerCapture(e.pointerId);
     const target = nodeEls.find((g) => g.contains(e.target as Node));
     if (!target) return;
-    const n = nodes[nodeEls.indexOf(target)];
+    // Capture only when the press landed on a node — capturing on the whole
+    // surface swallowed every gesture that started on the empty background,
+    // and nothing ever released the capture. It is also taken later, at the
+    // drag threshold: a captured pointer retargets the compatibility click to
+    // the SVG, which would leave the anchor's own navigation unreachable.
     const p = toWorld(e.clientX, e.clientY);
-    dragging = n;
-    dragStart = { x: p.x, y: p.y };
+    if (!p) return;
+    dragging = nodes[nodeEls.indexOf(target)];
+    dragStart = p;
     moved = false;
-    n.fx = p.x;
-    n.fy = p.y;
-    target.style.cursor = 'grabbing';
-    if (!dragRaf) dragRaf = requestAnimationFrame(dragFrame);
+    suppressClick = false;
   }
 
   function handlePointerMove(e: PointerEvent) {
     if (!dragging) return;
     const p = toWorld(e.clientX, e.clientY);
-    const dx = p.x - (dragStart?.x ?? p.x);
-    const dy = p.y - (dragStart?.y ?? p.y);
-    if (dx * dx + dy * dy > 9) moved = true;
+    if (!p) return;
+    if (!moved) {
+      const dx = p.x - (dragStart?.x ?? p.x);
+      const dy = p.y - (dragStart?.y ?? p.y);
+      // 10 CSS px, not 3: below that a hand tremor turned a tap into a drag and
+      // a swipe into a lost tap. The node is not pinned before the threshold,
+      // so a tap never makes it jump under the finger.
+      if (dx * dx + dy * dy <= 100) return;
+      moved = true;
+      // A real drag now: take the pointer so it keeps tracking past the SVG
+      // edge for the rest of the gesture.
+      try {
+        svg.setPointerCapture(e.pointerId);
+        dragPointerId = e.pointerId;
+      } catch {
+        // The pointer went away between events; dragging still works inside.
+      }
+      const g = nodeEls[nodes.indexOf(dragging)];
+      if (g) g.style.cursor = 'grabbing';
+      if (!dragRaf) dragRaf = requestAnimationFrame(dragFrame);
+    }
     dragging.fx = p.x;
     dragging.fy = p.y;
   }
 
-  function handlePointerUp() {
+  /** Finish a press. Navigation is the anchor's job now, so this only tears the
+   *  drag down and arms the click guard: a press that moved must not follow the
+   *  link on release. `cancelled` (pointercancel) is never a click — the browser
+   *  took the pointer (the page started scrolling, a call arrived, a system
+   *  gesture fired), and there is no compatibility click to suppress. */
+  function endPress(cancelled: boolean) {
     if (!dragging) return;
     const n = dragging;
-    const wasClick = !moved;
+    suppressClick = !cancelled && moved;
     n.fx = null;
     n.fy = null;
     if (dragRaf) {
       cancelAnimationFrame(dragRaf);
       dragRaf = 0;
     }
+    if (dragPointerId != null) {
+      try {
+        svg.releasePointerCapture(dragPointerId);
+      } catch {
+        // The pointer is already gone; nothing to release.
+      }
+      dragPointerId = null;
+    }
     const g = nodeEls[nodes.indexOf(n)];
     if (g) g.style.cursor = 'pointer';
     dragging = null;
     dragStart = null;
-    if (wasClick) navigateTo(n);
   }
 
   svg.addEventListener('pointerdown', handlePointerDown);
   svg.addEventListener('pointermove', handlePointerMove);
-  svg.addEventListener('pointerup', handlePointerUp);
-  svg.addEventListener('pointercancel', handlePointerUp);
+  svg.addEventListener('pointerup', () => endPress(false));
+  svg.addEventListener('pointercancel', () => endPress(true));
+  svg.addEventListener('click', (e) => {
+    if (!suppressClick) return;
+    suppressClick = false;
+    e.preventDefault();
+    e.stopPropagation();
+  });
 
   // --- Tooltip: content lines come precomputed (data.nodeT / data.edgeT) so
   // the client only positions and renders them. Hover-only; keyboard users get
@@ -563,6 +776,16 @@ const caption =
   renderMode = reduced ? renderStatic : renderForce;
   renderWhenVisible();
 
+  // Web-font metrics differ from the fallback the first measure used; re-take
+  // the widths once the fonts are in, or a flipped label can still poke out.
+  document.fonts?.ready
+    .then(() => {
+      if (!nodes.length) return;
+      measureLabels();
+      layoutLabels();
+    })
+    .catch(() => {});
+
   // Visible at load → render now. Hidden in the «Связи» tab (or below an
   // un-activated SectionPanel) → the observer above renders it when it opens.
   }
@@ -593,14 +816,23 @@ const caption =
   .pg-svg {
     width: 100%;
     display: block;
+    /* A mouse owns the whole surface. A finger does not: with `none` a swipe
+       that starts on the graph cannot scroll the page at all, and the card is
+       up to 480px tall — most of a phone screen. Coarse pointers pan, so the
+       touch that lands on a graph still scrolls the page. */
     touch-action: none;
     cursor: grab;
+  }
+  @media (pointer: coarse) {
+    .pg-svg {
+      touch-action: pan-y pinch-zoom;
+    }
   }
   .pg-edge {
     stroke: color-mix(in srgb, var(--text-muted) 50%, transparent);
     stroke-width: 1;
   }
-  .pg-center circle {
+  .pg-center circle:not(.pg-hit) {
     stroke: var(--text-accent);
     stroke-width: 2.5px;
   }
@@ -611,7 +843,7 @@ const caption =
     font-family: var(--font-sans);
     paint-order: stroke;
     stroke: var(--background-secondary);
-    stroke-width: 5px;
+    stroke-width: 3px;
     stroke-opacity: 0.95;
     stroke-linejoin: round;
     pointer-events: none;
@@ -622,18 +854,18 @@ const caption =
   .pg-label-hover {
     opacity: 0;
   }
-  .pg-root :is(g[tabindex]) {
+  .pg-root :is(a[href]) {
     outline: none;
   }
-  .pg-root :is(g[tabindex]:focus-visible) {
+  .pg-root :is(a[href]:focus-visible) {
     outline: 2px solid var(--text-accent);
     outline-offset: 2px;
   }
-  .pg-root :is(g[tabindex]:hover) .pg-label-hover,
-  .pg-root :is(g[tabindex]:focus) .pg-label-hover {
+  .pg-root :is(a[href]:hover) .pg-label-hover,
+  .pg-root :is(a[href]:focus) .pg-label-hover {
     opacity: 1;
   }
-  .pg-root :is(g[tabindex]:focus) text {
+  .pg-root :is(a[href]:focus) text {
     fill: var(--text-accent);
   }
   .pg-tooltip {
@@ -651,7 +883,7 @@ const caption =
     line-height: 1.45;
     color: var(--text-normal);
     max-width: 240px;
-    white-space: nowrap;
+    white-space: normal;
   }
   .pg-tooltip[hidden] {
     display: none;
