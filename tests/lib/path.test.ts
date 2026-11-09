@@ -26,4 +26,18 @@ describe('withBase', () => {
     process.env.BASE_URL = '/';
     expect(withBase('writing/')).toBe('/writing/');
   });
+
+  // The talks graph hangs an external hub off the content graph; that node's
+  // url is complete already, and prefixing it would produce `/https://…`.
+  it('leaves absolute urls untouched', () => {
+    process.env.BASE_URL = '/Personal_Projects.github.io/';
+    for (const url of [
+      'https://nikitaboyarkin.github.io/mm-program-page/',
+      'http://example.com/x',
+      '//cdn.example.com/x',
+      'mailto:hi@example.com',
+    ]) {
+      expect(withBase(url)).toBe(url);
+    }
+  });
 });

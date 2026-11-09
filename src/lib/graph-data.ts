@@ -2,9 +2,25 @@
 // KnowledgeGraph SVG (rendered at `astro build`) and the /graph.json endpoints,
 // so they always agree on nodes, links and positions.
 import { getCollection } from "astro:content";
-import { buildGraph, mergePostsForLocale, type GraphData } from "./graph";
+import { buildGraph, mergePostsForLocale, type ExternalHub, type GraphData } from "./graph";
 import { layoutGraph, layoutRadial } from "./graph-layout";
 import { TOPICS } from "./topics";
+import { EVENT_ID, PROGRAM_URL } from "./talks-graph";
+import talks from "../data/talks.json";
+
+/** The conference programme graph is a sibling graph, not content: one hub node
+ *  hangs off the project card that reproduces the programme. Its url is the
+ *  programme page itself — the same root the talks graph points at — so both
+ *  graphs name one source instead of pointing back at each other. */
+export function programHub(): ExternalHub {
+  return {
+    id: EVENT_ID,
+    label: talks.event.name,
+    url: PROGRAM_URL,
+    section: "talks",
+    from: "p:mm-program-page",
+  };
+}
 
 async function buildGraphFor(lang: "ru" | "en"): Promise<GraphData> {
   if (lang === "en") {
@@ -18,7 +34,15 @@ async function buildGraphFor(lang: "ru" | "en"): Promise<GraphData> {
       getCollection("glossary-en"),
     ]);
     const posts = mergePostsForLocale(postsRu, postsEn);
-    return buildGraph({ projects, posts, parts, topics: TOPICS, lang: "en", glossary });
+    return buildGraph({
+      projects,
+      posts,
+      parts,
+      topics: TOPICS,
+      lang: "en",
+      glossary,
+      externalHubs: [programHub()],
+    });
   }
   const [projects, posts, parts, glossary] = await Promise.all([
     getCollection("projects", (p) => !p.data.draft),
@@ -26,7 +50,15 @@ async function buildGraphFor(lang: "ru" | "en"): Promise<GraphData> {
     getCollection("volta-parts", (p) => !p.data.draft),
     getCollection("glossary"),
   ]);
-  return buildGraph({ projects, posts, parts, topics: TOPICS, lang: "ru", glossary });
+  return buildGraph({
+    projects,
+    posts,
+    parts,
+    topics: TOPICS,
+    lang: "ru",
+    glossary,
+    externalHubs: [programHub()],
+  });
 }
 
 /** Both deterministic layouts for the SSR component: the taxonomy-group layout

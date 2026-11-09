@@ -24,6 +24,7 @@ import { getBacklinks } from '../../../lib/link-index-data';
 import { loadChartFile } from '../../../lib/charts';
 import { formatDate } from '../../../lib/date';
 import { buildGraph, mergePostsForLocale, subgraphAround } from '../../../lib/graph';
+import { programHub } from '../../../lib/graph-data';
 import { TOPICS } from '../../../lib/topics';
 import { PROJECT_ORDER } from '../../../lib/projects';
 
@@ -109,7 +110,7 @@ const backlinks = await getBacklinks('en', 'project', slug);
 // Posts are merged with a RU fallback so untranslated posts still appear
 // (RU title, link to the RU page) — same convention as the EN graph page.
 const posts = mergePostsForLocale(allPosts, postsEn);
-const graph = buildGraph({ projects: allProjects, posts, parts: allParts, topics: TOPICS, lang: 'en' });
+const graph = buildGraph({ projects: allProjects, posts, parts: allParts, topics: TOPICS, lang: 'en', externalHubs: [programHub()] });
 const sub = subgraphAround(graph, `p:${slug}`);
 
 // Dashboard tabs are derived from what actually renders: a tab that opens onto

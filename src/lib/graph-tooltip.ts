@@ -9,7 +9,10 @@ export type NodeKind = 'core' | 'project' | 'post' | 'volta' | 'topic' | 'glossa
 
 /** Node kind from the id prefix scheme used by graph.ts. */
 export function nodeKindOf(id: string): NodeKind {
-  if (id.startsWith('core:')) return 'core';
+  // An external hub (`event:program`) is the same kind of anchor as the site
+  // core — a centre other nodes hang off, not a piece of content. Without this
+  // it fell through to 'project' and inflated the «Проекты» chip by one.
+  if (id.startsWith('core:') || id.startsWith('event:')) return 'core';
   if (id.startsWith('p:')) return 'project';
   if (id.startsWith('post:')) return 'post';
   if (id.startsWith('vp:')) return 'volta';

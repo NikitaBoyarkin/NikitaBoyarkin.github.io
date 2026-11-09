@@ -105,11 +105,15 @@ describe('graph legend and chip counts (built HTML)', () => {
       const block = legendBlock(page().html);
       expect(block, 'legend block').not.toBe('');
       const items = legendItems(block);
+      // Sections present on this page, in palette order — not every key in the
+      // palette: the talks graph's `track`/`theme` sections live in the same
+      // map and would otherwise ship as rows that toggle nothing.
+      const present = SECTIONS.filter((s) => page().nodes.some((n: any) => n.section === s));
       // Before the fix this was 0: the server shipped `<div id="kg-legend">`
       // with no children and the client filled it after hydration.
-      expect(items.length).toBe(SECTIONS.length);
+      expect(items.length).toBe(present.length);
       // Same order and same labels as the constant the graph paints with.
-      expect(items.map((it) => it.name)).toEqual(SECTIONS);
+      expect(items.map((it) => it.name)).toEqual(present);
     });
 
     it(`${file}: every legend item carries a label and a count of its own`, () => {

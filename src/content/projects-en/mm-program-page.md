@@ -31,6 +31,7 @@ updated: 2026-11-03
 
 **▶ [Live replica](https://nikitaboyarkin.github.io/mm-program-page/)** — runs on any static host, no build, no install.
 **Code:** [NikitaBoyarkin/mm-program-page](https://github.com/NikitaBoyarkin/mm-program-page).
+**Talks graph:** [the same 91 talks as a graph](/en/talks/) — tracks, themes and the links between talks.
 
 ## Situation
 

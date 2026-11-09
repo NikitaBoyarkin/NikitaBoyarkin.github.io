@@ -38,6 +38,7 @@ interface Props {
     | 'demos'
     | 'glossary'
     | 'graph'
+    | 'talks'
     | 'library'
     | 'explorer'
     | 'topics';
@@ -140,6 +141,9 @@ const contactHref = isEn ? withBase('en/contact/') : withBase('contact/');
 // (2026-11-01): the PDF stays in `public/cv/` but nothing on the site offers it.
 const glossaryHref = isEn ? withBase('en/glossary/') : withBase('glossary/');
 const graphHref = isEn ? withBase('en/graph/') : withBase('graph/');
+// The conference programme graph: its own route pair, next to `/graph/` in the
+// drawer but a different subject — 91 talks, not the site's content graph.
+const talksHref = isEn ? withBase('en/talks/') : withBase('talks/');
 const libraryHref = isEn ? withBase('en/library/') : withBase('library/');
 const writingHref = isEn ? withBase('en/writing/') : withBase('writing/');
 const explorerHref = isEn ? withBase('en/explorer/') : withBase('explorer/');
@@ -156,13 +160,18 @@ const activeRole = Astro.url.pathname.match(/^\/(?:en\/)?(hr|manager|colleague)\
 // Which inline/drawer entry the current URL belongs to. The topics and explorer
 // routes inherit `activeNav="home"`, so without this their own drawer row would
 // never mark itself current — the same reason `activeRole` above derives from
-// the pathname instead of trusting the passed prop.
+// the pathname instead of trusting the passed prop. A URL-derived key wins over
+// the passed prop: `/talks/` passes `activeNav="graph"` so it inherits the
+// top-bar styling, and without precedence «Граф» would also claim
+// `aria-current` on a page that is not `/graph/`.
 const urlActiveNav = /^\/(?:en\/)?explorer\/?$/.test(Astro.url.pathname)
   ? 'explorer'
-  : /^\/topics(?:\/|$)/.test(Astro.url.pathname)
-    ? 'topics'
-    : null;
-const isNavCurrent = (key: string) => activeNav === key || urlActiveNav === key;
+  : /^\/(?:en\/)?talks\/?$/.test(Astro.url.pathname)
+    ? 'talks'
+    : /^\/topics(?:\/|$)/.test(Astro.url.pathname)
+      ? 'topics'
+      : null;
+const isNavCurrent = (key: string) => (urlActiveNav ?? activeNav) === key;
 
 // The new-tab homepage prints the owner's name and role as its own `<h1>`, so
 // the top bar drops the role there rather than repeating it 350px away. The
@@ -181,6 +190,7 @@ const t = {
   navAbout: isEn ? 'About' : 'Обо мне',
   navGlossary: isEn ? 'Glossary' : 'Словарь',
   navGraph: isEn ? 'Graph' : 'Граф',
+  navTalks: isEn ? 'Talks graph' : 'Граф докладов',
   navLibrary: isEn ? 'Library' : 'Библиотека',
   navWriting: isEn ? 'Writing' : 'Статьи',
   navRepoAudit: isEn ? 'Repo audit' : 'Аудит репозиториев',
@@ -244,6 +254,12 @@ const allNavLinks = [
     href: graphHref,
     label: t.navGraph,
     icon: ICON.graph,
+  },
+  {
+    key: 'talks',
+    href: talksHref,
+    label: t.navTalks,
+    icon: ICON.talks,
   },
   {
     key: 'library',
@@ -617,8 +633,8 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       </button>
 
       {/* With scripting off the drawer never slides in (`body.nav-open` is set
-          by the script below), so this row is the only route to nine of the
-          eleven destinations. It lists the same `navLinks` the drawer does —
+          by the script below), so this row is the only route to ten of the
+          twelve destinations. It lists the same `navLinks` the drawer does —
           labels and hrefs cannot drift, and the RU-only rows are already
           filtered out for EN above. */}
       <noscript>

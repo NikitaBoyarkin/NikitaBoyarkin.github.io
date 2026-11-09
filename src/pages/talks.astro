@@ -1,0 +1,19 @@
+---
+// Thin wrapper: the board itself is locale-aware (components/TalksBoard.astro),
+// so RU and EN share one markup tree and cannot drift apart.
+import Base from '../layouts/Base.astro';
+import TalksBoard from '../components/TalksBoard.astro';
+import { withBase } from '../lib/path';
+---
+
+<Base
+  title="Граф докладов Матемаркетинг 2026 | Nikita Boyarkin"
+  description="91 доклад, 11 треков, 11 тем: как связаны доклады программы Матемаркетинг 2026."
+  canonical={withBase('talks/')}
+  counterpartHref={withBase('en/talks/')}
+  activeNav="graph"
+  lang="ru"
+  bleed
+>
+  <TalksBoard lang="ru" />
+</Base>

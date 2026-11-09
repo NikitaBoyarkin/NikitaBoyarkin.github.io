@@ -1,0 +1,19 @@
+---
+// EN twin of /talks/. Same board component, same anchors — only the overlay and
+// the chrome copy change.
+import Base from '../../layouts/Base.astro';
+import TalksBoard from '../../components/TalksBoard.astro';
+import { withBase } from '../../lib/path';
+---
+
+<Base
+  title="Matemarketing 2026 talk graph | Nikita Boyarkin"
+  description="91 talks, 11 tracks, 11 themes: how the Matemarketing 2026 programme fits together as a graph."
+  canonical={withBase('en/talks/')}
+  counterpartHref={withBase('talks/')}
+  activeNav="graph"
+  lang="en"
+  bleed
+>
+  <TalksBoard lang="en" />
+</Base>

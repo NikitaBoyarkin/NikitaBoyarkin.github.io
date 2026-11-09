@@ -43,6 +43,11 @@ export const ICON = {
     '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',
   graph:
     '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
+  // A presentation board with a rising line: the /talks/ page is a conference
+  // programme, not the content graph, so it must not borrow `graph`'s nodes —
+  // the two destinations sit next to each other in the drawer.
+  talks:
+    '<rect x="3" y="3" width="18" height="13" rx="2"/><path d="M12 16v4"/><path d="M8 20h8"/><path d="m7 12 3-3 2 2 4-4"/>',
   library: '<path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/>',
   writing:
     '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>',

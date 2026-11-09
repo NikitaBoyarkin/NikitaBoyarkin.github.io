@@ -92,6 +92,11 @@ export const GRAPH_SECTION_COLORS: Record<string, string> = {
   // use; ~3.3:1 on the light (#ffffff) background and ~4:1 on the dark teal
   // (#1a3435) one, so term nodes read in both themes.
   glossary: '#e0609b',
+  // Conference programme (src/lib/talks-graph.ts). Three hues outside the
+  // content-graph palette, so a talks graph never reads as portfolio content.
+  talks: '#6c8ae0',
+  track: '#c9a24a',
+  theme: '#5db8b0',
 };
 
 /** Obsidian-style visual tokens, shared by the full graph and the per-project
@@ -182,6 +187,28 @@ interface GlossaryLike {
      *  back to the other locale's term page. */
     url?: string;
   };
+}
+
+/** A hub that lives outside this content graph — the conference programme
+ *  graph (`lib/talks-graph.ts`) is the first one. Declaring it here lets a
+ *  content node point at the other graph without this module importing its
+ *  builder, so the two graphs stay independent and `buildGraph` keeps its
+ *  signature for every existing caller (the list defaults to empty). */
+export interface ExternalHub {
+  /** Node id in this graph — must not collide with `p:`/`post:`/`core:` ids. */
+  id: string;
+  label: string;
+  /** Site-relative and locale-prefixed (`talks/`, no base) or absolute
+   *  (`https://…`) — `withBase` passes the latter through untouched. A hub
+   *  without a url is skipped: every node in this graph must be navigable. */
+  url: string;
+  /** Section key for colour/legend; must exist in GRAPH_SECTION_COLORS. */
+  section: string;
+  /** Content node in THIS graph that links to the hub, e.g. `p:mm-program-page`.
+   *  Skipped when absent from the graph, so a hub can never arrive orphaned.
+   *  The edge reuses `related`: a real cross-reference a reader can follow,
+   *  which keeps the hub visible in the project mini-graph. */
+  from: string;
 }
 
 const slugOf = (id: string) => id.replace(/\.md$/, "");
@@ -411,8 +438,20 @@ export function buildGraph(opts: {
    *  Optional — graphs built without it (project mini-graphs, older callers)
    *  simply contain no term nodes. */
   glossary?: GlossaryLike[];
+  /** Hubs that belong to a sibling graph (the conference programme). Each one
+   *  becomes a node wired to `from` by a `related` edge; empty by default, so
+   *  every existing caller's graph is unchanged. */
+  externalHubs?: ExternalHub[];
 }): GraphData {
-  const { projects, posts, parts, topics = TOPICS, lang = "ru", glossary = [] } = opts;
+  const {
+    projects,
+    posts,
+    parts,
+    topics = TOPICS,
+    lang = "ru",
+    glossary = [],
+    externalHubs = [],
+  } = opts;
   const nodes: GraphNode[] = [];
   const links: GraphLink[] = [];
   const nodeById = new Map<string, GraphNode>();
@@ -534,6 +573,26 @@ export function buildGraph(opts: {
       // be a dead link the moment a node is rendered as a real anchor.
       url: `topics/${t.key}/`,
     });
+  }
+
+  // External hubs — a node owned by a sibling graph (the conference programme)
+  // that one content node points at. Added only when the `from` node really
+  // exists, so an empty list (or a renamed project) leaves the graph untouched
+  // and a hub can never land as an orphan. `related`, not `core`: it is a
+  // cross-reference a reader follows, and content edges are the ones
+  // `subgraphAround` keeps — the project mini-graph then shows the way out.
+  const externalHubIds = new Set<string>();
+  for (const hub of externalHubs) {
+    if (!hub.url || !nodeById.has(hub.from)) continue;
+    addNode({
+      id: hub.id,
+      label: hub.label,
+      group: hub.section,
+      section: hub.section,
+      url: hub.url,
+    });
+    externalHubIds.add(hub.id);
+    addLink(hub.from, hub.id, 1, "related");
   }
 
   // Related links (project↔project, project↔post, post↔post, term↔…) —
@@ -735,7 +794,7 @@ export function buildGraph(opts: {
   for (const n of visibleNodes) {
     if (isRootNode(n.id)) continue;
     const deg = degrees.get(n.id) ?? 0;
-    if (n.id.startsWith("core:")) {
+    if (n.id.startsWith("core:") || externalHubIds.has(n.id)) {
       const s = hubSize(deg);
       sizes.set(n.id, s);
       if (s > biggestHub) biggestHub = s;

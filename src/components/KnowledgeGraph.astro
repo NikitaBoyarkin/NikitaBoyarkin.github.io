@@ -193,6 +193,12 @@ const SECTION_LABELS: Record<string, [ru: string, en: string]> = {
   articles: ['Статьи', 'Articles'],
   glossary: ['Словарь', 'Glossary'],
   topic: ['Темы', 'Topics'],
+  // The conference programme enters the content graph as one hub node; the
+  // talks palette also carries `track`/`theme`, which the index would otherwise
+  // print as a bare lowercase key.
+  talks: ['Доклады', 'Talks'],
+  track: ['Треки', 'Tracks'],
+  theme: ['Темы докладов', 'Talk themes'],
 };
 const labelForSection = (section: string) => {
   const labels = SECTION_LABELS[section];
@@ -219,11 +225,13 @@ const indexGroups = sectionOrder.map((section) => ({
 // Lighthouse run since 2026-11-04 and the only deterministic failure among
 // them. Counts and labels are read from the same `nodes` the client receives,
 // so `renderLegend()` rebuilds an identical box on init and nothing moves.
-const legendItems = Object.keys(GRAPH_SECTION_COLORS).map((key) => ({
-  label: key,
-  color: GRAPH_SECTION_COLORS[key],
-  count: nodes.filter((n) => n.section === key).length,
-}));
+const legendItems = Object.keys(GRAPH_SECTION_COLORS)
+  .filter((key) => nodes.some((n) => n.section === key))
+  .map((key) => ({
+    label: key,
+    color: GRAPH_SECTION_COLORS[key],
+    count: nodes.filter((n) => n.section === key).length,
+  }));
 
 // Same reason as the legend: an empty `.kg-chip-count` widened every quick-filter
 // chip at init, which rewrapped the row and moved the board. `nodeKindOf` is the
@@ -489,7 +497,13 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   // Must match the label font-size in the component styles and the build-time
   // placement call in the template above.
   const LABEL_FONT_SIZE = 11;
-  const sectionList = Object.keys(GRAPH_SECTION_COLORS);
+  // Sections the content graph actually contains. The palette carries keys for
+  // the talks graph (`track:`, `theme:`) that never appear here; a legend row
+  // that toggles nothing is worse than no row, so both the SSR legend and this
+  // list derive from the nodes in play.
+  const sectionList = Object.keys(GRAPH_SECTION_COLORS).filter((key) =>
+    nodes.some((n) => n.section === key),
+  );
   // Color mode: fixed track/category taxonomy vs emergent communities.
   let mode: 'group' | 'community' = 'group';
   // Obsidian "Arrows": show link direction on directed edge types.

@@ -31,6 +31,7 @@ updated: 2026-11-03
 
 **▶ [Живая копия](https://nikitaboyarkin.github.io/mm-program-page/)** — открывается на любом хостинге, без сборки и установки.
 **Код:** [NikitaBoyarkin/mm-program-page](https://github.com/NikitaBoyarkin/mm-program-page).
+**Граф докладов:** [те же 91 доклад как граф](/talks/) — треки, темы и связи между докладами.
 
 ## Ситуация
 
