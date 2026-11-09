@@ -18,7 +18,7 @@ interface Props {
   cards: TalkCardItem[];
 }
 
-const { copy, cards } = Astro.props;
+const { copy, cards } = Astro.props as Props;
 const payload = JSON.stringify(cards).replace(/</g, '\\u003c');
 ---
 

@@ -83,7 +83,6 @@ export function rowsFromReport(file, report) {
   const locale = path === "/en" || path.startsWith("/en/") ? "en" : "ru";
   const cats = report.categories || {};
   const audits = report.audits || {};
-  const score = (k) => num(cats[k]?.score);
   const metric = (k) => {
     const v = audits[METRICS[k]]?.numericValue;
     return v === undefined || v === null ? "" : Math.round(v * 100) / 100;

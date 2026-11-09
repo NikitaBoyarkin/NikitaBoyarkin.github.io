@@ -399,8 +399,8 @@ const picks: Record<FacetKey, FacetPick> = {
   kind: (rec) => ({ value: rec.kind, label: rec.kind }),
   group: (rec) => (rec.group ? { value: rec.group, label: rec.groupLabel } : null),
   topic: (rec) => (rec.topic ? { value: rec.topic, label: rec.topic } : null),
-  tag: (rec) => null, // multi-valued — handled by `countMulti`
-  tool: (rec) => null,
+  tag: () => null, // multi-valued — handled by `countMulti`
+  tool: () => null,
   year: (rec) => (rec.year === null ? null : { value: String(rec.year), label: String(rec.year) }),
 };
 
