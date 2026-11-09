@@ -20,7 +20,7 @@ tools:
   - Tableau
 github: https://github.com/NikitaBoyarkin/rfm-analysis-of-bank-clients
 date: 2025-12-06
-updated: 2026-11-01
+updated: 2026-11-06
 demo: demos/rfm/index.html
 related:
   - /posts/rfm-segmentation-practical/

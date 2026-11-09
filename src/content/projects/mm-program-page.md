@@ -24,7 +24,7 @@ demo: https://nikitaboyarkin.github.io/mm-program-page/
 related:
   - /projects/site/
 date: 2026-11-03
-updated: 2026-11-03
+updated: 2026-11-09
 ---
 
 # Программа Матемаркетинг 2026 — статическая копия
