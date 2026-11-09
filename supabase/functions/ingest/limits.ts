@@ -34,6 +34,14 @@ export const PROPS = [
   'question_source',
   'track',
   'query',
+  // Граф докладов (/talks/): tab switches, dialog opens/nav, graph node clicks.
+  'tab',
+  'group',
+  'talk_id',
+  'direction',
+  'graph',
+  'node_kind',
+  'node_id',
 ] as const;
 
 /** `outbound_click.url` is deliberately absent: full URLs can carry tokens and

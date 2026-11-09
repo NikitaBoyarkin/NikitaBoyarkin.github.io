@@ -1,0 +1,188 @@
+---
+// Client-side instrumentation for the /talks/ dashboard («Граф докладов»).
+// Mounted once inside TalksBoard, so it ships on /talks/ and /en/talks/ only.
+//
+// Why a separate bundled module instead of `track()` inside the components:
+// the three controllers it instruments — SectionTabs' tab pattern, TalksProgram's
+// programme filter and TalkCard's dialog — are `<script is:inline>` ES5 IIFEs.
+// They cannot import the analytics module, and converting them to bundled
+// modules would drag ~400 lines of untyped DOM code under `astro check` strict.
+// So this module observes what those controllers already write to the DOM (the
+// `data-active` attribute, the rows' `hidden` flag, the dialog's `open`
+// attribute) and emits through the shared module. Same shape as the theme
+// toggle, which emits from a bundled module beside Base.astro's inline script.
+//
+// Layering (documented in docs/analytics-events.md): a click on a talk node in
+// a ProjectGraph emits both `graph_node_click` (the graph instance) and
+// `talk_opened` (the content). Dashboards count one layer, never the sum.
+---
+<script>
+  import { localeFromPath, track } from '../lib/analytics';
+
+  type TalkSource = 'program' | 'track' | 'theme' | 'graph' | 'deeplink' | 'other';
+  interface Card {
+    id: number;
+    trackSlug: string | null;
+  }
+
+  const locale = () => localeFromPath(window.location.pathname);
+
+  /** Rows the programme panel currently shows: its filter writes `hidden`. */
+  const shownTalks = () =>
+    document.querySelectorAll('[data-talk-day]:not([hidden])').length;
+
+  /** `#t<id>` of the talk the dialog is on, or null when no card is open. */
+  const openTalkId = (): number | null => {
+    const match = (window.location.hash || '').match(/^#t(\d+)$/);
+    return match ? Number(match[1]) : null;
+  };
+
+  // --- 1. Tab switches -------------------------------------------------------
+  // The controller writes `data-active` for a click, an arrow key and a hash
+  // deep link alike, so one attribute observer covers every activation path.
+  // It only starts writing at DOMContentLoaded (the inline controller boots
+  // there), which is why this runs on the same event: a module body executes
+  // *before* DOMContentLoaded, so reading the attribute any earlier would see
+  // `''` and count the default panel as a user choice on every page load.
+  // Opt-in: only roots that carry `data-analytics-group` are watched.
+  const watchTabs = () => {
+    document
+      .querySelectorAll<HTMLElement>('[data-section-tabs][data-analytics-group]')
+      .forEach((root) => {
+        const group = root.getAttribute('data-analytics-group') || '';
+        let seen = root.getAttribute('data-active') || '';
+        new MutationObserver(() => {
+          const tab = root.getAttribute('data-active') || '';
+          if (!group || !tab || tab === seen) return;
+          seen = tab;
+          track('tab_selected', { tab, group, locale: locale() });
+        }).observe(root, { attributes: true, attributeFilter: ['data-active'] });
+      });
+  };
+  if (document.readyState === 'complete') watchTabs();
+  else document.addEventListener('DOMContentLoaded', watchTabs, { once: true });
+
+  // --- 2. Programme search + day filters -------------------------------------
+  const input = document.querySelector<HTMLInputElement>('[data-talks-query]');
+
+  /** One event per settled query, never per keystroke, and never for a
+   *  one-letter fragment (that is browsing, not a query). The dedupe key is
+   *  normalized so «Ещё» and «еще» count as one search; the emitted query is the
+   *  reader's own text, capped like the site-wide SearchBox. */
+  if (input) {
+    let timer = 0;
+    let lastQuery = '';
+    const emitSearch = () => {
+      const raw = input.value.trim();
+      const key = raw.toLowerCase().replace(/ё/g, 'е');
+      if (key.length < 2 || key === lastQuery) return;
+      lastQuery = key;
+      const props = {
+        query: raw.slice(0, 100),
+        results_count: shownTalks(),
+        locale: locale(),
+        surface: 'talks' as const,
+      };
+      if (props.results_count > 0) track('search_used', props);
+      else track('search_no_results', props);
+    };
+    // Our `input` listener is registered after the inline filter's (modules are
+    // deferred), so `hidden` is already applied when the debounce fires.
+    input.addEventListener('input', () => {
+      window.clearTimeout(timer);
+      // Clearing the field ends the query: the same text typed again is a new
+      // search, not a repeat the dedupe should swallow.
+      if (input.value.trim().length < 2) lastQuery = '';
+      timer = window.setTimeout(emitSearch, 800);
+    });
+  }
+
+  // `all` is the state the panel renders in, so the first click on it is not a
+  // change; re-clicking the active day is not one either.
+  let lastDay = 'all';
+  document.querySelectorAll<HTMLElement>('[data-day-filter]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const day = chip.getAttribute('data-day-filter') || '';
+      const key = day || 'all';
+      if (key === lastDay) return;
+      lastDay = key;
+      // Runs after the inline chip handler, so the count already reflects the
+      // day (and any active text query).
+      track('filter_applied', {
+        tag: day ? `day:${day}` : 'day:all',
+        results_count: shownTalks(),
+        surface: 'talks',
+      });
+    });
+  });
+
+  // The reset button clears the text query and the day filter at once; without
+  // its own row the series would show filters being applied and never lifted.
+  document.querySelector('[data-talks-reset]')?.addEventListener('click', () => {
+    lastDay = 'all';
+    track('filter_applied', { tag: 'reset', results_count: shownTalks(), surface: 'talks' });
+  });
+
+  // --- 3. Talk dialog: opens and prev/next -----------------------------------
+  // The card payload island is the same data the dialog renders, so the track
+  // slug needs no second lookup table.
+  let cards: Card[] = [];
+  try {
+    const island = document.getElementById('talk-cards-data');
+    cards = island?.textContent ? (JSON.parse(island.textContent) as Card[]) : [];
+  } catch {
+    cards = [];
+  }
+  const trackOf = (id: number) => cards.find((card) => card.id === id)?.trackSlug ?? null;
+
+  /** Which placement a talk link was clicked from — the question the overview
+   *  graph exists to answer: is the graph itself used, or are the lists? */
+  const sourceOf = (link: Element | null): TalkSource => {
+    if (!link) return 'deeplink';
+    if (link.closest('[data-pg-root]')) return 'graph';
+    if (link.closest('.talks-program')) return 'program';
+    if (link.closest('.talks-theme-table')) return 'theme';
+    if (link.closest('.talks-list')) return 'track';
+    return 'other';
+  };
+
+  document.addEventListener('click', (event) => {
+    const target = event.target as Element | null;
+    if (!target?.closest) return;
+
+    // Prev/next inside the dialog. The inline handler has already moved the hash
+    // by the time this (later-registered) document listener runs.
+    const step = target.closest('[data-talk-card-prev], [data-talk-card-next]');
+    if (step) {
+      const id = openTalkId();
+      if (id != null) {
+        track('talk_card_nav', {
+          direction: step.hasAttribute('data-talk-card-prev') ? 'prev' : 'next',
+          talk_id: id,
+          locale: locale(),
+        });
+      }
+      return;
+    }
+
+    // A talk link. Modified clicks open the page in a new tab and are not a
+    // dialog open — the inline handler skips them for the same reason.
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    const link = target.closest('a[href]');
+    if (!link) return;
+    const match = (link.getAttribute('href') || '').match(/#t(\d+)$/);
+    if (!match) return;
+    const id = Number(match[1]);
+    track('talk_opened', { talk_id: id, track: trackOf(id), source: sourceOf(link), locale: locale() });
+  });
+
+  // A shared `#t<id>` landing opens the dialog during parse, before this module
+  // runs. Record it as a deep-link open instead of losing it.
+  const dialog = document.getElementById('talk-card') as HTMLDialogElement | null;
+  if (dialog?.open) {
+    const id = openTalkId();
+    if (id != null) {
+      track('talk_opened', { talk_id: id, track: trackOf(id), source: 'deeplink', locale: locale() });
+    }
+  }
+</script>

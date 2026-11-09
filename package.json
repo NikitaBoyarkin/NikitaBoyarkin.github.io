@@ -20,6 +20,7 @@
     "verify:carousel": "bun run scripts/verify-carousel.mjs",
     "verify:views": "bun run scripts/verify-project-views.mjs",
     "verify:talks-mobile": "bun run scripts/verify-talks-mobile.mjs",
+    "verify:talks-analytics": "bun run scripts/verify-talks-analytics.mjs",
     "og": "bun run scripts/generate-og.mjs",
     "og:watch": "bun run --watch scripts/generate-og.mjs",
     "og:home": "bun run scripts/generate-home-og.mjs",

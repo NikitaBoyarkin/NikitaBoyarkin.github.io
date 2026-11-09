@@ -19,6 +19,7 @@ import SectionTabs from './SectionTabs.astro';
 import SectionPanel from './SectionPanel.astro';
 import TalksProgram from './TalksProgram.astro';
 import TalkCard from './TalkCard.astro';
+import TalksAnalytics from './TalksAnalytics.astro';
 import { withBase } from '../lib/path';
 import rawData from '../data/talks.json';
 import rawOverlay from '../data/talks-en.json';
@@ -190,7 +191,7 @@ const cards = buildTalkCards(data, lang, overlay);
     <div><b>{repeatLectors}</b><span>{copy.statRepeat}</span></div>
   </div>
 
-  <SectionTabs tabs={tabs} label={copy.tablistLabel}>
+  <SectionTabs tabs={tabs} label={copy.tablistLabel} analytics="talks">
     <SectionPanel id="overview" active={true}>
       <p class="talks-note">{copy.methodNote}</p>
 
@@ -201,6 +202,7 @@ const cards = buildTalkCards(data, lang, overlay);
         lang={lang}
         height={480}
         idPrefix="talks-overview"
+        analytics
         caption={copy.graphCaption}
         ariaLabel={copy.graphAria}
       />
@@ -230,7 +232,7 @@ const cards = buildTalkCards(data, lang, overlay);
 
       {/* A dashboard inside a dashboard: SectionTabs scopes itself to its own
          root, so the nested track tablist does not fight the page-level one. */}
-      <SectionTabs tabs={trackTabs} label={copy.trackTablistLabel} size="sm">
+      <SectionTabs tabs={trackTabs} label={copy.trackTablistLabel} size="sm" analytics="talks:tracks">
         {trackGroups.map((t, i) => {
           const sub = trackGraph(graph, data, t.slug, lang);
           const name = t.slug === UNTRACKED ? t.name : label(t.name);
@@ -247,6 +249,7 @@ const cards = buildTalkCards(data, lang, overlay);
                   centerId={`track:${t.slug}`}
                   lang={lang}
                   idPrefix={`talks-track-${t.slug}`}
+                  analytics
                   caption={copy.trackCaption(name, t.talks.length, themeHubs)}
                   ariaLabel={copy.trackAria(name)}
                 />
@@ -295,7 +298,7 @@ const cards = buildTalkCards(data, lang, overlay);
       {/* Eleven theme tables stacked became a second nested dashboard, same
          pattern as the tracks one. The panel keeps a `theme-<id>` heading id so
          older `#theme-ai` links still land inside the right theme. */}
-      <SectionTabs tabs={themeTabs} label={copy.themeTablistLabel} size="sm">
+      <SectionTabs tabs={themeTabs} label={copy.themeTablistLabel} size="sm" analytics="talks:themes">
         {themeGroups.map((th, i) => (
           <SectionPanel id={th.id} active={i === 0}>
             <section class="talks-track" id={`theme-${th.id}`}>
@@ -352,6 +355,10 @@ const cards = buildTalkCards(data, lang, overlay);
   </SectionTabs>
 
   <TalkCard copy={copy} cards={cards} />
+
+  {/* Observes the controllers above and emits through lib/analytics (see the
+      component for why it is a module rather than calls in the inline scripts). */}
+  <TalksAnalytics />
 </section>
 
 <style is:global>

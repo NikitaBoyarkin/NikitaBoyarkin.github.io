@@ -10,7 +10,12 @@ export interface TalkCardItem {
   title: string;
   time: string;
   hall: string;
+  /** Display label for the dialog, already localized. */
   track: string | null;
+  /** The programme's own track slug (`avito`, …), null for untracked talks.
+   *  Analytics needs the stable key, not the label: `/talks/` and `/en/talks/`
+   *  print two different names for the same track. */
+  trackSlug: string | null;
   day: string;
   lectors: { name: string; role: string }[];
   short: string;
@@ -47,6 +52,7 @@ export function buildTalkCards(
     // The source leaves ~30% of the programme without a track; the card says so
     // with `null` rather than printing an empty string next to the label.
     track: talk.trackName ? trackName(talk.trackName, lang, overlay) : null,
+    trackSlug: talk.trackSlug || null,
     day: dayById.get(talk.dayId)?.name ?? '',
     lectors: talk.lectors.map((l) => ({ name: l.name, role: l.role })),
     short: talk.short ?? '',

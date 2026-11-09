@@ -17,9 +17,7 @@ export type Locale = 'ru' | 'en';
 
 import { AUDIENCES, type Audience } from './projects';
 import { sendIngest } from './ingest';
-
-/** Normalized first-touch source class (PRD §4.2, REQ-A03). */
-export type ReferrerClass = 'linkedin' | 'github' | 'google' | 'direct' | 'other';
+import { firstTouch, utmSuperProperties, visitUtm } from './attribution';
 
 /** Content types that carry a `read_depth` signal (PRD §4.4, REQ-A09). */
 export type ContentType = 'post' | 'case_study' | 'note';
@@ -48,20 +46,20 @@ export interface AnalyticsEventMap {
   section_viewed: { section: string; path: string };
   outbound_click: { domain: string; url: string; surface: string; path: string };
   // `surface` keeps the search inputs apart: the site-wide SearchBox (`header`),
-  // the glossary filter (`glossary`), the Explorer (`explorer`) and the homepage
-  // hero (`hero`) all emit these names, and without the prop they collapse into
-  // one series in PostHog.
+  // the glossary filter (`glossary`), the Explorer (`explorer`), the homepage
+  // hero (`hero`) and the programme panel on `/talks/` (`talks`) all emit these
+  // names, and without the prop they collapse into one series in PostHog.
   search_used: {
     query: string;
     results_count: number;
     locale: Locale;
-    surface: 'header' | 'glossary' | 'explorer' | 'hero';
+    surface: 'header' | 'glossary' | 'explorer' | 'hero' | 'talks';
   };
   search_no_results: {
     query: string;
     results_count: number;
     locale: Locale;
-    surface: 'header' | 'glossary' | 'explorer' | 'hero';
+    surface: 'header' | 'glossary' | 'explorer' | 'hero' | 'talks';
   };
   // Which result the visitor actually opened. `query` is repeated so a click can
   // be joined to its query without relying on session stitching, and `rank` is
@@ -78,7 +76,7 @@ export interface AnalyticsEventMap {
   filter_applied: {
     tag: string;
     results_count: number;
-    surface: 'writing' | 'glossary' | 'explorer';
+    surface: 'writing' | 'glossary' | 'explorer' | 'talks';
   };
   projects_track_filter: { track: string; results_count: number; locale: Locale };
   contact_submit: { locale: Locale };
@@ -127,6 +125,38 @@ export interface AnalyticsEventMap {
   // ("what is in progress?"), and the old homepage `bento_graph` series cannot
   // be reused — that surface no longer exists.
   bento_now: { path: string };
+  // --- Граф докладов (`/talks/`, `/en/talks/`) -----------------------------
+  // `group` names the tablist, so the page's five panels (`talks`), the twelve
+  // track panels (`talks:tracks`) and the eleven theme panels (`talks:themes`)
+  // stay three series instead of collapsing into one `tab_selected`. Opt-in:
+  // only a SectionTabs root carrying `data-analytics-group` emits, so project
+  // pages keep their old (uninstrumented) behaviour.
+  tab_selected: { tab: string; group: string; locale: Locale };
+  // A talk detail opened. `source` is the placement the click came from
+  // (`program`, `track`, `theme`, `graph`, `deeplink`, `other`), which is the
+  // question the overview graph exists to answer: is the graph itself used, or
+  // does everyone read the lists? `track` is the programme's own slug, null for
+  // the ~30% of talks the source feed leaves untracked.
+  talk_opened: {
+    talk_id: number;
+    track: string | null;
+    source: 'program' | 'track' | 'theme' | 'graph' | 'deeplink' | 'other';
+    locale: Locale;
+  };
+  // Prev/next inside the dialog: the reader moving through the programme
+  // without going back to a list. `talk_id` is the talk moved *to*.
+  talk_card_nav: { direction: 'prev' | 'next'; talk_id: number; locale: Locale };
+  // A node of an opted-in ProjectGraph instance (`analytics` prop) was clicked
+  // or activated with Space. `graph` is the instance `idPrefix`
+  // (`talks-overview`, `talks-track-avito`), `node_id` the payload id
+  // (`talk:277`, `track:avito`, `theme:ai`, `event:program`) and `node_kind` its
+  // prefix — so a dashboard can join a click to the talks data directly.
+  graph_node_click: {
+    graph: string;
+    node_kind: string;
+    node_id: string;
+    locale: Locale;
+  };
 }
 
 export type KnownEventName = keyof AnalyticsEventMap;
@@ -292,216 +322,15 @@ export function writeAudience(audience: Audience): void {
 }
 
 
-/**
- * Map a referrer hostname to the normalized first-touch class.
- * Pure and unit-tested (REQ-A03 acceptance).
- */export function classifyReferrer(referrer: string | null | undefined): ReferrerClass {
-  if (!referrer) return 'direct';
-  const r = referrer.toLowerCase();
-  if (r === '$direct' || r === 'direct') return 'direct';
-  if (r.includes('linkedin.')) return 'linkedin';
-  if (r.includes('github.')) return 'github';
-  if (r.includes('google.')) return 'google';
-  return 'other';
-}
-
-/** UTM parameters carried by the landing URL (PRD §4.2, `docs/linkedin-campaign-spec.md`). */
-export type UtmKey = 'source' | 'medium' | 'campaign' | 'content' | 'term';
-export type UtmParams = Partial<Record<UtmKey, string>>;
-
-const UTM_KEYS: readonly UtmKey[] = ['source', 'medium', 'campaign', 'content', 'term'];
-
-// Long enough for a real campaign slug, short enough that a pasted essay or a
-// runaway ad macro cannot spawn a thousand near-identical breakdown rows.
-const UTM_MAX = 100;
 
 /**
- * Read the five UTM parameters out of a query string.
- *
- * Case and separators are preserved on purpose: the link was already normalized
- * where it was built (`/utm-tags` feeds the ad cabinet), and normalizing again
- * here would make the site's value disagree with the platform's report.
+ * Attribution (`classifyReferrer`, `parseUtm`, `firstTouch`, `visitUtm`, …)
+ * lives in `./attribution` now that this module is the event registry. Every
+ * name is re-exported, so callers and the unit tests keep importing from here.
  */
-export function parseUtm(search: string): UtmParams {
-  const out: UtmParams = {};
-  if (!search) return out;
-  const params = new URLSearchParams(search);
-  for (const key of UTM_KEYS) {
-    const raw = params.get(`utm_${key}`);
-    if (!raw) continue;
-    const value = raw
-      .replace(/[\u0000-\u001f\u007f]/g, '')
-      .trim()
-      .slice(0, UTM_MAX);
-    if (value) out[key] = value;
-  }
-  return out;
-}
-
-/** Narrow an unknown stored value back to the five whitelisted keys. */
-function readUtm(value: unknown): UtmParams {
-  const out: UtmParams = {};
-  if (!value || typeof value !== 'object') return out;
-  for (const key of UTM_KEYS) {
-    const stored = (value as Record<string, unknown>)[key];
-    if (typeof stored === 'string' && stored) out[key] = stored;
-  }
-  return out;
-}
-
-/**
- * `{ first_utm_source: 'linkedin', … }` — all five keys every time, `null` when
- * the visit carries nothing, so the property schema stays stable in PostHog.
- */
-function utmSuperProperties(
-  prefix: 'first_utm' | 'visit_utm',
-  utm: UtmParams,
-): Record<string, string | null> {
-  const out: Record<string, string | null> = {};
-  for (const key of UTM_KEYS) out[`${prefix}_${key}`] = utm[key] ?? null;
-  return out;
-}
-
-export interface FirstTouch {
-  referrer_class: ReferrerClass;
-  landing_path: string;
-  utm: UtmParams;
-}
-
-const FIRST_TOUCH_KEY = 'dswo_ph_first_touch';
-
-function store(kind: 'session' | 'local'): Storage | null {
-  try {
-    return kind === 'session' ? window.sessionStorage : window.localStorage;
-  } catch {
-    return null;
-  }
-}
-
-const REFERRER_CLASSES: ReadonlySet<string> = new Set([
-  'linkedin',
-  'github',
-  'google',
-  'direct',
-  'other',
-]);
-
-function isReferrerClass(value: unknown): value is ReferrerClass {
-  return typeof value === 'string' && REFERRER_CLASSES.has(value);
-}
-
-function readFirstTouch(s: Storage | null): FirstTouch | null {
-  if (!s) return null;
-  try {
-    const raw = s.getItem(FIRST_TOUCH_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<FirstTouch>;
-    if (typeof parsed.landing_path !== 'string') return null;
-    return {
-      // The stored value is already a class name, not a hostname — running it
-      // through classifyReferrer again collapses every class except 'direct'
-      // to 'other' ('linkedin' does not contain 'linkedin.'), destroying
-      // first-touch attribution on every page load after the first.
-      referrer_class: isReferrerClass(parsed.referrer_class)
-        ? parsed.referrer_class
-        : 'other',
-      landing_path: parsed.landing_path,
-      utm: readUtm(parsed.utm),
-    };
-  } catch {
-    return null;
-  }
-}
-
-function writeFirstTouch(s: Storage | null, value: FirstTouch): void {
-  if (!s) return;
-  try {
-    s.setItem(FIRST_TOUCH_KEY, JSON.stringify(value));
-  } catch {
-    // Storage may be unavailable (private mode, quota).
-  }
-}
-
-/** Compute first-touch attribution from a raw referrer URL and landing path. */
-export function computeFirstTouch(
-  referrer: string,
-  pathname: string,
-  search = '',
-): FirstTouch {
-  let domain = '';
-  if (referrer) {
-    try {
-      domain = new URL(referrer).hostname;
-    } catch {
-      domain = '';
-    }
-  }
-  return {
-    referrer_class: classifyReferrer(domain),
-    landing_path: pathname,
-    utm: parseUtm(search),
-  };
-}
-
-/**
- * First-touch attribution, computed once and persisted (sessionStorage, with a
- * localStorage fallback). A second call never overwrites the stored value.
- */
-export function firstTouch(): FirstTouch {
-  const session = store('session');
-  const local = store('local');
-  const existing = readFirstTouch(session) ?? readFirstTouch(local);
-  if (existing) return existing;
-
-  const value = computeFirstTouch(
-    document.referrer || '',
-    window.location.pathname,
-    window.location.search,
-  );
-  writeFirstTouch(session, value);
-  writeFirstTouch(local, value);
-  return value;
-}
-
-const VISIT_UTM_KEY = 'dswo_ph_visit_utm';
-
-function readVisitUtm(s: Storage | null): UtmParams | null {
-  if (!s) return null;
-  try {
-    const raw = s.getItem(VISIT_UTM_KEY);
-    if (!raw) return null;
-    const parsed = readUtm(JSON.parse(raw));
-    return Object.keys(parsed).length ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * UTM of the current visit, persisted in sessionStorage.
- *
- * Written the first time this visit carries any UTM and never overwritten
- * afterwards: navigating deeper, or landing on an untagged page, must not erase
- * the campaign that brought the visitor in. A new tab starts empty — first touch
- * answers "how did they hear about me at all", this answers "which campaign is
- * live right now", and a campaign report that spans months needs the second.
- */
-export function visitUtm(): UtmParams {
-  const session = store('session');
-  const stored = readVisitUtm(session);
-  if (stored) return stored;
-
-  const fresh = parseUtm(window.location.search);
-  if (session && Object.keys(fresh).length) {
-    try {
-      session.setItem(VISIT_UTM_KEY, JSON.stringify(fresh));
-    } catch {
-      // Storage may be unavailable (private mode, quota).
-    }
-  }
-  return fresh;
-}
-
+export { classifyReferrer, computeFirstTouch, parseUtm } from './attribution';
+export { firstTouch, visitUtm };
+export type { FirstTouch, ReferrerClass, UtmKey, UtmParams } from './attribution';
 /**
  * Register the super properties (PRD §4.2) exactly once per page load.
  * Called by `Analytics.astro` immediately after `posthog.init()`.

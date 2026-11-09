@@ -28,9 +28,23 @@ interface Props {
    *  the first one's nodes and stayed an empty SVG. Callers with more than one
    *  instance must pass a unique value; single-instance pages keep the default. */
   idPrefix?: string;
+  /** Opt-in analytics: when true, a node click or Space activation emits
+   *  `graph_node_click` with this instance's `idPrefix` as `graph`. Enabled by
+   *  /talks/, where "is the graph itself used, or does everyone read the
+   *  lists?" is the question; the project pages leave it off and ship no
+   *  analytics listener at all. */
+  analytics?: boolean;
 }
 
-const { nodes, links, centerId, lang = 'ru', height: heightProp, idPrefix = 'pg' } = Astro.props;
+const {
+  nodes,
+  links,
+  centerId,
+  lang = 'ru',
+  height: heightProp,
+  idPrefix = 'pg',
+  analytics = false,
+} = Astro.props;
 // `uid('root')` → `pg-root`, or `<idPrefix>-root` for an instance that passed
 // its own prefix.
 const uid = (part: string) => `${idPrefix}-${part}`;
@@ -88,7 +102,7 @@ const caption =
     : 'Проекты, записи и темы, связанные с этим проектом. Касание или клик открывают узел.');
 ---
 
-<div id={uid('root')} class="pg-root" data-pg-root>
+<div id={uid('root')} class="pg-root" data-pg-root data-analytics-graph={analytics ? idPrefix : undefined}>
   {/* role="group", not "img": ARIA gives `img` presentational children, which
       would flatten the focusable link nodes this component builds into it out
       of the accessibility tree. A group keeps them real; the visually-hidden
@@ -120,6 +134,7 @@ const caption =
 </div>
 
 <script>
+  import { localeFromPath, track } from '../lib/analytics';
   import {
     GRAPH_SECTION_COLORS,
     GRAPH_EDGE_STYLE,
@@ -169,6 +184,27 @@ const caption =
   let suppressClick = false;
 
   const adjacency = new Map<string, Set<string>>();
+
+  /** Opt-in analytics for this instance (`analytics` prop → the root's
+   *  `data-analytics-graph`). Empty when the caller did not ask for it. */
+  const graphName = root.getAttribute('data-analytics-graph') || '';
+
+  /** Prefix of a payload node id: `talk:277` → `talk`, `event:program` →
+   *  `event`, an id without a prefix → `node`. */
+  function nodeKind(id: string): string {
+    const sep = id.indexOf(':');
+    return sep > 0 ? id.slice(0, sep) : 'node';
+  }
+
+  function emitNodeClick(n: any) {
+    if (!graphName || !n || typeof n.id !== 'string') return;
+    track('graph_node_click', {
+      graph: graphName,
+      node_kind: nodeKind(n.id),
+      node_id: n.id,
+      locale: localeFromPath(window.location.pathname),
+    });
+  }
 
   /** Client coords → SVG user units, or null when the geometry cannot be read.
    *  Returning a made-up (0, 0) instead used to turn one bad sample into a fake
@@ -259,6 +295,15 @@ const caption =
       a.setAttribute('href', n.href);
       a.setAttribute('tabindex', '0');
       a.setAttribute('aria-label', n.label);
+      // The anchor's own click covers mouse, touch and Enter alike. A press
+      // that ended a drag is suppressed by the SVG handler below
+      // (`suppressClick`), and must not be counted as an open.
+      if (graphName) {
+        a.addEventListener('click', () => {
+          if (suppressClick) return;
+          emitNodeClick(n);
+        });
+      }
       g.style.cursor = 'pointer';
       if (n.id === data.centerId) g.classList.add('pg-center');
       const title = el('title');
@@ -327,7 +372,19 @@ const caption =
       g.addEventListener('keydown', (e) => {
         if (e.key !== ' ') return;
         e.preventDefault();
-        navigateTo(nodes[i]);
+        // A stale drag flag (a pointerup that never reached the SVG) would make
+        // the click guard swallow the activation, so clear it first.
+        suppressClick = false;
+        // Go through the anchor's own click instead of navigating directly: the
+        // click path is what emits `graph_node_click` and what TalkCard
+        // intercepts to open the talk dialog — a direct `navigateTo` would emit
+        // one layer and not the other.
+        const anchor = g.querySelector('a');
+        if (anchor) {
+          anchor.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        } else {
+          navigateTo(nodes[i]);
+        }
       });
     });
 

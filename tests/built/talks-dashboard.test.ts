@@ -134,6 +134,21 @@ describe.each(PAGES)('talks dashboard contract (%s)', (path) => {
     expect(rows.length).toBeGreaterThan(1);
   });
 
+  it('instruments the dashboard: three named tablists and one opted-in graph per panel', () => {
+    // `tab_selected` can only separate the page's five panels from the twelve
+    // track tabs and the eleven theme tabs if each tablist names itself.
+    const groups = [...page(path).matchAll(/data-analytics-group="([^"]+)"/g)].map((m) => m[1]);
+    expect(groups.sort()).toEqual(['talks', 'talks:themes', 'talks:tracks']);
+
+    // `graph_node_click` is opt-in per instance: the overview plus one graph per
+    // track group (11 tracks + «Без трека»).
+    const graphs = [...page(path).matchAll(/data-analytics-graph="([^"]+)"/g)].map((m) => m[1]);
+    expect(graphs.length).toBe(13);
+    expect(new Set(graphs).size).toBe(13);
+    expect(graphs).toContain('talks-overview');
+    expect(graphs).toContain('talks-track-avito');
+  });
+
   it('ships the talk-card dialog with one payload row per talk', () => {
     const doc = page(path);
     expect(doc).toContain('id="talk-card"');

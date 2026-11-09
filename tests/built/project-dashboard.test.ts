@@ -151,4 +151,12 @@ describe.each(PAGES)('project dashboard contract ($label)', ({ path }) => {
     );
     expect(reveal).toBeDefined();
   });
+
+  it('does not opt these pages into the talks instrumentation', () => {
+    // `tab_selected` and `graph_node_click` are opt-in through attributes the
+    // talks page adds. A shared component gaining them by default would make
+    // every project page emit the talks series too.
+    expect(html).not.toContain('data-analytics-group');
+    expect(html).not.toContain('data-analytics-graph');
+  });
 });

@@ -58,7 +58,8 @@ Properties are an allowlist (`supabase/functions/ingest/limits.ts`):
 ```
 slug, locale, path, surface, tag, section, content_type, depth, results_count,
 rank, href, type, domain, theme, persona, lang, source, matched_id,
-answer_matched, question_source, track, query
+answer_matched, question_source, track, query, tab, group, talk_id, direction,
+graph, node_kind, node_id
 ```
 
 Anything else is dropped before the insert. Two deliberate exclusions:

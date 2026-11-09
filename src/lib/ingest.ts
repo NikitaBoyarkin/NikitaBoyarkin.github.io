@@ -41,6 +41,14 @@ export const INGEST_PROPS = [
   'question_source',
   'track',
   'query',
+  // Граф докладов (/talks/): tab switches, dialog opens/nav, graph node clicks.
+  'tab',
+  'group',
+  'talk_id',
+  'direction',
+  'graph',
+  'node_kind',
+  'node_id',
 ] as const;
 
 type Scalar = string | number | boolean;

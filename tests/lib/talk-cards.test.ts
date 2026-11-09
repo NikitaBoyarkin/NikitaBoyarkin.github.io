@@ -47,6 +47,16 @@ describe('talk cards', () => {
     const untracked = DATA.talks.find((t) => !t.trackName)!;
     const card = buildTalkCards(DATA).find((c) => c.id === untracked.id)!;
     expect(card.track).toBeNull();
+    // Analytics keys on the slug, so an untracked talk must not carry `''`.
+    expect(card.trackSlug).toBeNull();
+  });
+
+  it('carries the stable track slug next to the localized label', () => {
+    const tracked = DATA.talks.find((t) => t.trackName)!;
+    const card = buildTalkCards(DATA, 'en', OVERLAY).find((c) => c.id === tracked.id)!;
+    // The label may be translated; the slug is what both locales share.
+    expect(card.trackSlug).toBe(tracked.trackSlug);
+    expect(card.trackSlug!.length).toBeGreaterThan(0);
   });
 
   it('labels every theme that the card carries', () => {

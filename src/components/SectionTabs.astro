@@ -41,8 +41,19 @@ interface Props {
   // A nested dashboard (tracks inside the talks page) is a second tablist in the
   // same document: same contract, less visual weight than the page-level tabs.
   size?: 'sm';
+  // Opt-in analytics: when set, every user-initiated tab activation emits
+  // `tab_selected { tab, group, locale }` with this value as `group`. Left unset
+  // on the project pages, whose tab switches stay uninstrumented.
+  analytics?: string;
 }
-const { tabs = [], label, railId = '', single = false, size = '' } = Astro.props;
+const {
+  tabs = [],
+  label,
+  railId = '',
+  single = false,
+  size = '',
+  analytics = '',
+} = Astro.props;
 
 // set:html, not a literal <style>: Astro would scope a nested style to this
 // component, and the panels it must reveal live in SectionPanel.
@@ -50,7 +61,7 @@ const noScriptFallback =
   '<style>.section-panel[hidden]{display:block !important}.section-tablist{display:none !important}</style>';
 ---
 
-<div class="section-tabs" class:list={[size && `section-tabs--${size}`]} data-section-tabs data-rail-id={railId}>
+<div class="section-tabs" class:list={[size && `section-tabs--${size}`]} data-section-tabs data-rail-id={railId} data-analytics-group={analytics || undefined}>
   <div class="section-tablist" role="tablist" aria-label={label} {...(single ? { hidden: true } : {})}>
     {
       tabs.map((tab, i) => (
