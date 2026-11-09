@@ -38,8 +38,11 @@ interface Props {
   // With one section the tablist is noise; the page passes this so it is not
   // rendered and its panel drops the tabpanel role.
   single?: boolean;
+  // A nested dashboard (tracks inside the talks page) is a second tablist in the
+  // same document: same contract, less visual weight than the page-level tabs.
+  size?: 'sm';
 }
-const { tabs = [], label, railId = '', single = false } = Astro.props;
+const { tabs = [], label, railId = '', single = false, size = '' } = Astro.props;
 
 // set:html, not a literal <style>: Astro would scope a nested style to this
 // component, and the panels it must reveal live in SectionPanel.
@@ -47,7 +50,7 @@ const noScriptFallback =
   '<style>.section-panel[hidden]{display:block !important}.section-tablist{display:none !important}</style>';
 ---
 
-<div class="section-tabs" data-section-tabs data-rail-id={railId}>
+<div class="section-tabs" class:list={[size && `section-tabs--${size}`]} data-section-tabs data-rail-id={railId}>
   <div class="section-tablist" role="tablist" aria-label={label} {...(single ? { hidden: true } : {})}>
     {
       tabs.map((tab, i) => (
@@ -76,107 +79,140 @@ const noScriptFallback =
 
   <script is:inline>
     (function () {
-      var root = document.querySelector('[data-section-tabs]');
-      if (!root) return;
-      var tabs = Array.prototype.slice.call(root.querySelectorAll('[role="tab"]'));
-      var panels = Array.prototype.slice.call(root.querySelectorAll('[data-panel]'));
-      if (!panels.length) return;
-
-      var railId = root.getAttribute('data-rail-id') || '';
-      var rail = railId ? document.getElementById(railId) : null;
-      var first = panels[0].getAttribute('data-panel');
-
-      // Anchor id -> panel id. Derived from the DOM, so a new heading inside a
-      // panel (or a new panel) needs no change here.
-      var anchors = {};
-      panels.forEach(function (panel) {
-        var id = panel.getAttribute('data-panel');
-        anchors[id] = id;
-        Array.prototype.forEach.call(panel.querySelectorAll('[id]'), function (el) {
-          anchors[el.id] = id;
-        });
-      });
-
-      function fromHash() {
-        var hash = (location.hash || '').replace(/^#/, '');
-        return anchors[hash] || first;
-      }
-
-      function activate(id, focus) {
-        if (!id) id = first;
-        var ownsRail = false;
-        panels.forEach(function (panel) {
-          var on = panel.getAttribute('data-panel') === id;
-          panel.hidden = !on;
-          if (on) {
-            if (panel.hasAttribute('data-owns-rail')) ownsRail = true;
-            // `.reveal` nodes start at opacity 0; an IntersectionObserver cannot
-            // see a panel that was display:none at parse time, so reveal them
-            // here or a switched-to panel (charts, graph) stays blank.
-            Array.prototype.forEach.call(panel.querySelectorAll('.reveal'), function (el) {
-              el.classList.add('visible');
-            });
-          }
-        });
-        tabs.forEach(function (tab) {
-          var on = tab.dataset.tab === id;
-          tab.setAttribute('aria-selected', on ? 'true' : 'false');
-          tab.tabIndex = on ? 0 : -1;
-          if (on && focus) tab.focus();
-        });
-        // The fixed TOC rail belongs to the case-study panel: hide it with the
-        // panel it describes, or its links scroll to headings nobody can see.
-        if (rail) rail.hidden = !ownsRail;
-        root.setAttribute('data-active', id);
-      }
-
-      function scrollToAnchor(id) {
-        var el = id && document.getElementById(id);
-        if (el) el.scrollIntoView({ block: 'start' });
-      }
-
-      function setAnchor(anchor) {
-        if (anchor && location.hash !== '#' + anchor) {
-          history.replaceState(null, '', '#' + anchor);
+      // One controller per root, because a page may nest a second dashboard
+      // inside a panel of the first (/talks/ does: tracks inside the tracks
+      // panel). `closest` keeps each root to its own tabs and its own panels —
+      // a nested panel belongs to the inner root, not to the outer one.
+      function init(root) {
+        function owned(selector) {
+          return Array.prototype.filter.call(root.querySelectorAll(selector), function (el) {
+            return el.closest('[data-section-tabs]') === root;
+          });
         }
+
+        var tabs = owned('[role="tab"]');
+        var panels = owned('[data-panel]');
+        if (!panels.length) return;
+
+        var railId = root.getAttribute('data-rail-id') || '';
+        var rail = railId ? document.getElementById(railId) : null;
+        var first = panels[0].getAttribute('data-panel');
+
+        // Anchor id -> panel id. Derived from the DOM, so a new heading inside a
+        // panel (or a new panel) needs no change here.
+        var anchors = {};
+        panels.forEach(function (panel) {
+          var id = panel.getAttribute('data-panel');
+          anchors[id] = id;
+          Array.prototype.forEach.call(panel.querySelectorAll('[id],[data-panel]'), function (el) {
+            if (el.id) anchors[el.id] = id;
+            // A nested dashboard's tab ids (`#avito`) exist only as its panels'
+            // `data-panel`, so without this line a shared /talks/#avito falls
+            // back to the first page tab instead of opening the tracks panel.
+            var nested = el.getAttribute('data-panel');
+            if (nested) anchors[nested] = id;
+          });
+        });
+
+        function fromHash() {
+          var hash = (location.hash || '').replace(/^#/, '');
+          return anchors[hash] || first;
+        }
+
+        function activate(id, focus) {
+          if (!id) id = first;
+          var ownsRail = false;
+          panels.forEach(function (panel) {
+            var on = panel.getAttribute('data-panel') === id;
+            panel.hidden = !on;
+            if (on) {
+              if (panel.hasAttribute('data-owns-rail')) ownsRail = true;
+              // `.reveal` nodes start at opacity 0; an IntersectionObserver cannot
+              // see a panel that was display:none at parse time, so reveal them
+              // here or a switched-to panel (charts, graph) stays blank.
+              Array.prototype.forEach.call(panel.querySelectorAll('.reveal'), function (el) {
+                el.classList.add('visible');
+              });
+            }
+          });
+          tabs.forEach(function (tab) {
+            var on = tab.dataset.tab === id;
+            tab.setAttribute('aria-selected', on ? 'true' : 'false');
+            tab.tabIndex = on ? 0 : -1;
+            if (on && focus) tab.focus();
+          });
+          // The fixed TOC rail belongs to the case-study panel: hide it with the
+          // panel it describes, or its links scroll to headings nobody can see.
+          if (rail) rail.hidden = !ownsRail;
+          root.setAttribute('data-active', id);
+        }
+
+        function scrollToAnchor(id) {
+          var el = id && document.getElementById(id);
+          if (el) el.scrollIntoView({ block: 'start' });
+        }
+
+        function setAnchor(anchor) {
+          if (anchor && location.hash !== '#' + anchor) {
+            history.replaceState(null, '', '#' + anchor);
+          }
+        }
+
+        var initial = (location.hash || '').replace(/^#/, '');
+        activate(fromHash(), false);
+        if (initial) requestAnimationFrame(function () {
+          scrollToAnchor(initial);
+        });
+
+        root.addEventListener('click', function (event) {
+          var tab = event.target.closest('[role="tab"]');
+          if (!tab || !root.contains(tab) || tabs.indexOf(tab) < 0) return;
+          event.preventDefault();
+          activate(tab.dataset.tab, false);
+          setAnchor(tab.dataset.anchor);
+        });
+
+        root.addEventListener('keydown', function (event) {
+          var tab = event.target.closest('[role="tab"]');
+          if (!tab) return;
+          var i = tabs.indexOf(tab);
+          if (i < 0) return;
+          var n = -1;
+          if (event.key === 'ArrowRight' || event.key === 'ArrowDown') n = (i + 1) % tabs.length;
+          else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') n = (i - 1 + tabs.length) % tabs.length;
+          else if (event.key === 'Home') n = 0;
+          else if (event.key === 'End') n = tabs.length - 1;
+          else return;
+          event.preventDefault();
+          var next = tabs[n];
+          activate(next.dataset.tab, true);
+          setAnchor(next.dataset.anchor);
+        });
+
+        window.addEventListener('hashchange', function () {
+          var hash = (location.hash || '').replace(/^#/, '');
+          activate(fromHash(), false);
+          scrollToAnchor(hash);
+        });
       }
 
-      var initial = (location.hash || '').replace(/^#/, '');
-      activate(fromHash(), false);
-      if (initial) requestAnimationFrame(function () {
-        scrollToAnchor(initial);
-      });
-
-      root.addEventListener('click', function (event) {
-        var tab = event.target.closest('[role="tab"]');
-        if (!tab || !root.contains(tab)) return;
-        event.preventDefault();
-        activate(tab.dataset.tab, false);
-        setAnchor(tab.dataset.anchor);
-      });
-
-      root.addEventListener('keydown', function (event) {
-        var tab = event.target.closest('[role="tab"]');
-        if (!tab) return;
-        var i = tabs.indexOf(tab);
-        if (i < 0) return;
-        var n = -1;
-        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') n = (i + 1) % tabs.length;
-        else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') n = (i - 1 + tabs.length) % tabs.length;
-        else if (event.key === 'Home') n = 0;
-        else if (event.key === 'End') n = tabs.length - 1;
-        else return;
-        event.preventDefault();
-        var next = tabs[n];
-        activate(next.dataset.tab, true);
-        setAnchor(next.dataset.anchor);
-      });
-
-      window.addEventListener('hashchange', function () {
-        var hash = (location.hash || '').replace(/^#/, '');
-        activate(fromHash(), false);
-        scrollToAnchor(hash);
-      });
+      // This script is emitted once per mounted instance, so /talks/ ships it
+      // twice (page-level dashboard + nested tracks one). Wait for the whole
+      // document, then let the first copy initialise every root and mark it —
+      // otherwise the inner copy would build the outer root's anchor map from a
+      // half-parsed DOM and register a second set of listeners.
+      function boot() {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-section-tabs]'), function (root) {
+          if (root.dataset.sectionTabsReady) return;
+          root.dataset.sectionTabsReady = '1';
+          init(root);
+        });
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot);
+      } else {
+        boot();
+      }
     })();
   </script>
 </div>
@@ -235,6 +271,22 @@ const noScriptFallback =
      Applies to any element with an id inside a panel. */
   :global(.section-panel [id]) {
     scroll-margin-top: calc(var(--nav-mobile-h) + var(--space-4));
+  }
+  /* Nested dashboard: same pattern, one step quieter than the page-level tabs
+     that contain it. */
+  .section-tabs--sm .section-tablist {
+    gap: var(--space-1);
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-2);
+  }
+  .section-tabs--sm .section-tab {
+    padding: 2px var(--space-3);
+    font-size: 0.82rem;
+  }
+  .section-tabs--sm .section-tab[aria-selected='true']::after {
+    left: var(--space-2);
+    right: var(--space-2);
+    bottom: calc(var(--space-2) * -1 - 1px);
   }
   @media (max-width: 640px) {
     .section-tablist {

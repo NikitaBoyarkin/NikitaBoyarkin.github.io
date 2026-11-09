@@ -36,24 +36,60 @@ beforeAll(() => {
 const page = (path: string) => html.get(path)!;
 
 describe.each(PAGES)('talks dashboard contract (%s)', (path) => {
-  it('mounts one dashboard root with one tablist and the expected tab ids', () => {
+  it('mounts the page dashboard plus one nested dashboard per track section and per theme section', () => {
     // The bare `data-section-tabs` token also appears inside the inlined
-    // controller, so count the wrapper element.
-    expect([...page(path).matchAll(/<div class="section-tabs"[^>]*>/g)].length).toBe(1);
-    expect([...page(path).matchAll(/role="tablist"/g)].length).toBe(1);
+    // controller, so count the wrapper elements. Two dashboards: page-level
+    // tabs, and one tab per track inside the tracks panel.
+    expect([...page(path).matchAll(/<div class="section-tabs[^"]*"[^>]*data-section-tabs/g)].length).toBe(3);
+    expect([...page(path).matchAll(/role="tablist"/g)].length).toBe(3);
     const tabs = [...page(path).matchAll(/role="tab" [^>]*data-tab="([^"]+)"/g)].map((m) => m[1]);
-    expect(tabs).toEqual([...TAB_IDS]);
+    expect(tabs.slice(0, TAB_IDS.length)).toEqual([...TAB_IDS]);
+    // 28 tabs across three dashboards, no id repeated: a duplicated tab would
+    // make two `aria-controls` point at one panel.
+    expect(tabs.length).toBe(TAB_IDS.length + 12 + 11);
+    expect(new Set(tabs).size).toBe(tabs.length);
+    const trackTabs = tabs.slice(TAB_IDS.length, TAB_IDS.length + 12);
+    // One per track plus the synthetic «Без трека» bucket — the tablist is the
+    // only navigation into a track now, so losing one loses that track.
+    expect(trackTabs.length).toBe(12);
+    expect(trackTabs).toContain('avito');
+    // Themes are the third dashboard: one tab per theme table, and the table is
+    // only reachable through it, so a lost tab hides a whole theme.
+    const themeTabs = tabs.slice(TAB_IDS.length + 12);
+    expect(themeTabs.length).toBe(11);
+    expect(themeTabs).toContain('ai');
   });
 
-  it('wires every tab to a panel that exists, and shows exactly one panel server-side', () => {
+  it('wires every tab to a panel that exists, and opens one panel per dashboard', () => {
     const doc = page(path);
     const controls = [...doc.matchAll(/aria-controls="(panel-[^"]+)"/g)].map((m) => m[1]);
-    expect(controls.length).toBe(TAB_IDS.length);
+    expect(controls.length).toBe(TAB_IDS.length + 12 + 11);
     for (const id of controls) expect(doc).toContain(`id="${id}"`);
     const panels = [...doc.matchAll(/<section[^>]*class="section-panel"[^>]*>/g)].map((m) => m[0]);
-    expect(panels.length).toBe(TAB_IDS.length);
-    expect(panels.filter((p) => !p.includes('hidden'))).toEqual([panels[0]]);
-    expect(panels[0]).toContain('id="panel-overview"');
+    expect(panels.length).toBe(TAB_IDS.length + 12 + 11);
+    const open = panels.filter((p) => !p.includes('hidden'));
+    // One open panel per dashboard: overview, the first track, the first theme.
+    expect(open.length).toBe(3);
+    expect(open[0]).toContain('id="panel-overview"');
+    // The *first* tab of each nested dashboard, not merely "a tabpanel": a
+    // nested root opening any other track/theme still contains that string.
+    const allTabs = [...doc.matchAll(/role="tab" [^>]*data-tab="([^"]+)"/g)].map((m) => m[1]);
+    const trackTabs = allTabs.slice(TAB_IDS.length, TAB_IDS.length + 12);
+    const themeTabs = allTabs.slice(TAB_IDS.length + 12);
+    expect(open[1]).toContain(`id="panel-${trackTabs[0]}"`);
+    expect(open[2]).toContain(`id="panel-${themeTabs[0]}"`);
+  });
+
+  it('points every tab anchor at an element that exists', () => {
+    const doc = page(path);
+    const ids = new Set([...doc.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]));
+    const anchors = [...doc.matchAll(/data-anchor="([^"]+)"/g)].map((m) => m[1]);
+    expect(anchors.length).toBe(TAB_IDS.length + 12 + 11);
+    // A tab writes `#<anchor>` on switch. If the anchor names no element, a
+    // shared/reloaded link falls back to the first tab — how the nested track
+    // tabs lost their track while `#track-<slug>` ids sat unused.
+    const unresolved = anchors.filter((a) => !ids.has(a) && !ids.has(`panel-${a}`));
+    expect(unresolved).toEqual([]);
   });
 
   it('keeps the no-JS fallback: reveal panels, hide the tablist', () => {
@@ -85,5 +121,28 @@ describe.each(PAGES)('talks dashboard contract (%s)', (path) => {
     expect(doc).toContain(`href="${prefix}#theme-ai"`);
     expect(doc).toContain('id="theme-ai"');
     expect(doc).toContain('id="track-avito"');
+  });
+
+  it('renders each theme as a table of its talks', () => {
+    const doc = page(path);
+    const tables = [...doc.matchAll(/<table class="talks-theme-table">/g)];
+    expect(tables.length).toBe(11);
+    // A table with no rows would still pass the count above, so check that one
+    // theme lists as many rows as the data says it has.
+    const section = doc.slice(doc.indexOf('id="theme-ai"'));
+    const rows = section.slice(0, section.indexOf('</section>')).match(/<tr>/g) ?? [];
+    expect(rows.length).toBeGreaterThan(1);
+  });
+
+  it('ships the talk-card dialog with one payload row per talk', () => {
+    const doc = page(path);
+    expect(doc).toContain('id="talk-card"');
+    expect(doc).toContain('data-talk-card-title');
+    const island = doc.match(/<script[^>]*id="talk-cards-data"[^>]*>([\s\S]*?)<\/script>/);
+    expect(island).not.toBeNull();
+    const cards = JSON.parse(island![1]) as { id: number; title: string; lectors: unknown[] }[];
+    expect(cards.length).toBe(91);
+    expect(new Set(cards.map((c) => c.id)).size).toBe(91);
+    for (const card of cards) expect(card.title.length).toBeGreaterThan(0);
   });
 });

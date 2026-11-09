@@ -1,0 +1,289 @@
+---
+// The talk card: one <dialog> for the whole programme, filled in the browser
+// from a JSON island. 91 talks are too many for 91 server-rendered dialogs, and
+// a detail route per talk would add 182 thin pages; the payload is the same
+// data the tracks panel already prints, in programme order, so prev/next is an
+// array index.
+//
+// Without JS the links stay `#t<id>` and land on the talk's own list entry —
+// nothing is lost, the card is an enhancement.
+//
+// The island escapes `<`, so a title containing `</script>` cannot close it
+// early.
+import type { TalksCopy } from '../lib/talks-copy';
+import type { TalkCardItem } from '../lib/talk-cards';
+
+interface Props {
+  copy: TalksCopy;
+  cards: TalkCardItem[];
+}
+
+const { copy, cards } = Astro.props;
+const payload = JSON.stringify(cards).replace(/</g, '\\u003c');
+---
+
+<dialog class="talk-card" id="talk-card" aria-labelledby="talk-card-title">
+  <div class="talk-card__box">
+    <button type="button" class="talk-card__close" data-talk-card-close aria-label={copy.cardClose}>
+      ×
+    </button>
+    <p class="talk-card__eyebrow" data-talk-card-when></p>
+    <h2 class="talk-card__title" id="talk-card-title" data-talk-card-title aria-live="polite"></h2>
+    <dl class="talk-card__facts">
+      <dt>{copy.cardTime}</dt><dd data-talk-card-time></dd>
+      <dt>{copy.cardHall}</dt><dd data-talk-card-hall></dd>
+      <dt>{copy.cardTrack}</dt><dd data-talk-card-track></dd>
+      <dt>{copy.cardLectors}</dt><dd data-talk-card-lectors></dd>
+    </dl>
+    <p class="talk-card__short" data-talk-card-short></p>
+    <ul class="talk-card__themes" data-talk-card-themes aria-label={copy.cardThemes}></ul>
+    <div class="talk-card__nav">
+      <button type="button" class="talk-card__step" data-talk-card-prev>{copy.cardPrev}</button>
+      <button type="button" class="talk-card__step" data-talk-card-next>{copy.cardNext}</button>
+    </div>
+  </div>
+</dialog>
+
+<script type="application/json" id="talk-cards-data" is:inline set:html={payload} />
+
+<script is:inline>
+  (function () {
+    var dialog = document.getElementById('talk-card');
+    var island = document.getElementById('talk-cards-data');
+    // `showModal` is the whole enhancement; without it the links keep working.
+    if (!dialog || !island || typeof dialog.showModal !== 'function') return;
+
+    var cards;
+    try {
+      cards = JSON.parse(island.textContent || '[]');
+    } catch (error) {
+      return;
+    }
+    if (!cards.length) return;
+
+    var index = {};
+    cards.forEach(function (card, i) {
+      index[card.id] = i;
+    });
+
+    var el = {
+      when: dialog.querySelector('[data-talk-card-when]'),
+      title: dialog.querySelector('[data-talk-card-title]'),
+      time: dialog.querySelector('[data-talk-card-time]'),
+      hall: dialog.querySelector('[data-talk-card-hall]'),
+      track: dialog.querySelector('[data-talk-card-track]'),
+      lectors: dialog.querySelector('[data-talk-card-lectors]'),
+      short: dialog.querySelector('[data-talk-card-short]'),
+      themes: dialog.querySelector('[data-talk-card-themes]'),
+      prev: dialog.querySelector('[data-talk-card-prev]'),
+      next: dialog.querySelector('[data-talk-card-next]'),
+    };
+
+    var current = -1;
+    var opener = null;
+    // The hash the reader was on before the card took it over. Closing puts it
+    // back, so a card opened from the theme tables does not leave `#t277` behind
+    // and silently reopen itself (on the Треки panel) on the next reload.
+    var prevHash = '';
+
+    function show(i) {
+      var card = cards[i];
+      current = i;
+      el.when.textContent = card.day;
+      el.title.textContent = card.title;
+      el.time.textContent = card.time;
+      el.hall.textContent = card.hall;
+      el.track.textContent = card.track || '—';
+      el.lectors.textContent =
+        card.lectors
+          .map(function (lector) {
+            return lector.role ? lector.name + ' — ' + lector.role : lector.name;
+          })
+          .join(', ') || '—';
+      el.short.textContent = card.short;
+      el.short.hidden = !card.short;
+      el.themes.textContent = '';
+      card.themes.forEach(function (theme) {
+        var item = document.createElement('li');
+        item.textContent = theme.label;
+        el.themes.appendChild(item);
+      });
+      el.prev.disabled = i === 0;
+      el.next.disabled = i === cards.length - 1;
+      // The hash stays a real deep link: #t277 is shareable and reopens the card.
+      history.replaceState(null, '', '#t' + card.id);
+    }
+
+    function open(id, trigger) {
+      var i = index[id];
+      if (i === undefined) return false;
+      opener = trigger || null;
+      if (!dialog.open) prevHash = location.hash;
+      show(i);
+      if (!dialog.open) dialog.showModal();
+      return true;
+    }
+
+    function fromHash() {
+      var match = (location.hash || '').match(/^#t(\d+)$/);
+      if (match) open(match[1], null);
+    }
+
+    // Every talk link on the page — programme rows, track lists, theme tables —
+    // is `…/talks/#t<id>`. The trailing-digits test keeps #theme-* and
+    // #track-* out: they both start with "#t".
+    document.addEventListener('click', function (event) {
+      // Cmd/Ctrl/Shift/middle-click keeps its native meaning: open the talk
+      // page in a new tab instead of hijacking it into the modal.
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+      var link = event.target.closest ? event.target.closest('a[href]') : null;
+      if (!link) return;
+      var match = (link.getAttribute('href') || '').match(/#t(\d+)$/);
+      if (!match) return;
+      if (!open(match[1], link)) return;
+      event.preventDefault();
+    });
+
+    dialog.querySelector('[data-talk-card-close]').addEventListener('click', function () {
+      dialog.close();
+    });
+    dialog.addEventListener('click', function (event) {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('close', function () {
+      history.replaceState(null, '', location.pathname + location.search + prevHash);
+      if (opener && opener.focus) opener.focus();
+      opener = null;
+    });
+    el.prev.addEventListener('click', function () {
+      if (current > 0) show(current - 1);
+    });
+    el.next.addEventListener('click', function () {
+      if (current < cards.length - 1) show(current + 1);
+    });
+
+    fromHash();
+    window.addEventListener('hashchange', fromHash);
+  })();
+</script>
+
+<style>
+  .talk-card {
+    /* `* { margin: 0 }` in global.css beats the UA `dialog { margin: auto }`,
+       so the modal pinned itself to the top-left corner. Both properties are
+       restated here: `inset: 0` + `margin: auto` is what centers a modal. */
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: min(620px, calc(100vw - 2 * var(--space-4)));
+    max-height: 85vh;
+    /* Without this a tall card is clipped, not scrollable: on a 320px-tall
+       landscape phone the prev/next buttons sat below the viewport. */
+    overflow: auto;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--card-background);
+    color: var(--text-normal);
+    font-family: var(--font-sans);
+  }
+  .talk-card::backdrop {
+    background: rgb(0 0 0 / 0.55);
+  }
+  .talk-card__box {
+    position: relative;
+    padding: var(--space-5);
+  }
+  /* 44 px hit area: the × glyph is 1rem, the box is the target (DESIGN.md). */
+  .talk-card__close {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: var(--text-muted);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+  }
+  .talk-card__close:hover,
+  .talk-card__close:focus-visible {
+    color: var(--text-accent);
+  }
+  .talk-card__eyebrow {
+    margin: 0 0 4px;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .talk-card__title {
+    margin: 0 var(--space-5) var(--space-3) 0;
+    font-size: 1.25rem;
+    line-height: 1.3;
+  }
+  .talk-card__facts {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px var(--space-3);
+    margin: 0 0 var(--space-3);
+    font-size: 0.85rem;
+  }
+  .talk-card__facts dt {
+    color: var(--text-muted);
+  }
+  .talk-card__facts dd {
+    margin: 0;
+  }
+  .talk-card__short {
+    margin: 0 0 var(--space-3);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+  .talk-card__themes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0 0 var(--space-4);
+    padding: 0;
+    list-style: none;
+  }
+  /* The chips are created in the browser, so they carry no Astro scope
+     attribute — a scoped selector would never match them. */
+  :global(.talk-card__themes li) {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 1px 8px;
+  }
+  .talk-card__nav {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: space-between;
+  }
+  .talk-card__step {
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+  }
+  .talk-card__step:hover:not(:disabled),
+  .talk-card__step:focus-visible {
+    color: var(--text-accent);
+    border-color: var(--border-active);
+  }
+  .talk-card__step:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+</style>

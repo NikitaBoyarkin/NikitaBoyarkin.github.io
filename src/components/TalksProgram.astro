@@ -174,8 +174,8 @@ const total = dayGroups.reduce((n, d) => n + d.talks.length, 0) + unassigned.len
   .talks-search-label { font-size: 0.8rem; color: var(--text-muted); }
   .talks-search-input { flex: 1 1 260px; min-width: 0; padding: var(--space-2) var(--space-3); font-family: var(--font-sans); font-size: 0.9rem; color: var(--text-normal); background: var(--background-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); }
   .talks-search-input:focus-visible { outline: 2px solid var(--text-accent); outline-offset: 2px; border-color: var(--border-active); }
-  /* `.talks-chip*` live in TalksBoard.astro's global block: the track jump nav
-     uses the same chip outside this component. */
+  /* `.talks-chip*` live in TalksBoard.astro's global block — global there
+     because Astro cannot scope a class used by two components. */
   .talks-found { font-size: 0.8rem; color: var(--text-muted); margin: 0; font-variant-numeric: tabular-nums; }
   .talks-program { list-style: none; padding: 0; margin: var(--space-2) 0 var(--space-4); display: grid; gap: var(--space-2); }
   .talks-row { border-left: 2px solid var(--border-color); padding: 2px 0 2px var(--space-3); scroll-margin-top: 80px; }

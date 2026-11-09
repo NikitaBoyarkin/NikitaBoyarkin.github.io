@@ -33,9 +33,21 @@ export interface TalksCopy {
   foundTemplate: string;
   noResults: string;
   themeOnTalk: string;
-  trackNavLabel: string;
+  trackTablistLabel: string;
+  themeTablistLabel: string;
   tracksH2: string;
   tracksNote: string;
+  thTalk: string;
+  thTrack: string;
+  thTime: string;
+  cardClose: string;
+  cardPrev: string;
+  cardNext: string;
+  cardTime: string;
+  cardHall: string;
+  cardTrack: string;
+  cardLectors: string;
+  cardThemes: string;
   trackCaption: (name: string, n: number, k: number) => string;
   trackAria: (name: string) => string;
   noLector: string;
@@ -93,10 +105,22 @@ export function talksCopy(lang: 'ru' | 'en', s: TalksStats): TalksCopy {
       foundTemplate: 'Showing {n} of {total}',
       noResults: 'No talks match this query.',
       themeOnTalk: 'Themes',
-      trackNavLabel: 'Jump to a track',
+      trackTablistLabel: 'Programme tracks',
+      themeTablistLabel: 'Programme themes',
       tracksH2: 'Mini-graphs per track',
       tracksNote:
         'Each track is its own subgraph: the track hub, its talks, and the themes that define that track. “Untracked” holds the talks the programme leaves without a track. Theme labels after a talk open that theme.',
+      thTalk: 'Talk',
+      thTrack: 'Track',
+      thTime: 'Time',
+      cardClose: 'Close the talk card',
+      cardPrev: 'Previous talk',
+      cardNext: 'Next talk',
+      cardTime: 'Time',
+      cardHall: 'Hall',
+      cardTrack: 'Track',
+      cardLectors: 'Speakers',
+      cardThemes: 'Themes',
       trackCaption: (name, n, k) => `Track “${name}”: ${n} talks${k > 0 ? `, ${k} themes` : ''}.`,
       trackAria: (name) => `Track mini-graph: ${name}`,
       noLector: 'no speaker',
@@ -141,10 +165,22 @@ export function talksCopy(lang: 'ru' | 'en', s: TalksStats): TalksCopy {
     foundTemplate: 'Показано {n} из {total}',
     noResults: 'Ни один доклад не подходит под запрос.',
     themeOnTalk: 'Темы',
-    trackNavLabel: 'Быстрый переход к треку',
+    trackTablistLabel: 'Треки программы',
+    themeTablistLabel: 'Темы программы',
     tracksH2: 'Мини-графы по трекам',
     tracksNote:
       'Каждый трек — отдельный подграф: хаб трека, его доклады и темы, которые этот трек определяют. В «Без трека» — доклады, которым трек в программе не назначен. Плашки тем под докладом открывают раздел темы.',
+    thTalk: 'Доклад',
+    thTrack: 'Трек',
+    thTime: 'Время',
+    cardClose: 'Закрыть карточку доклада',
+    cardPrev: 'Предыдущий доклад',
+    cardNext: 'Следующий доклад',
+    cardTime: 'Время',
+    cardHall: 'Зал',
+    cardTrack: 'Трек',
+    cardLectors: 'Лекторы',
+    cardThemes: 'Темы',
     trackCaption: (name, n, k) => `Трек «${name}»: ${n} докладов${k > 0 ? `, тем — ${k}` : ''}.`,
     trackAria: (name) => `Мини-граф трека ${name}`,
     noLector: 'без лектора',
