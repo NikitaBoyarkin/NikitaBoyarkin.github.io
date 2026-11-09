@@ -26,7 +26,7 @@ tools:
   - uv
 github: https://github.com/NikitaBoyarkin/airflow
 date: 2026-09-27
-updated: 2026-11-01
+updated: 2026-11-06
 demo: demos/airflow/index.html
 related:
   - /projects/volta/

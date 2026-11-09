@@ -23,7 +23,7 @@ tools:
   - Tableau (Hyper API)
 github: https://github.com/NikitaBoyarkin/tableau_cohort_analysis
 date: 2026-07-12
-updated: 2026-11-01
+updated: 2026-11-06
 demo: demos/cohort/index.html
 related:
   - /posts/cohort-retention-guide/
