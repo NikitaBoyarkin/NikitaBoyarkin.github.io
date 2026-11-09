@@ -1,0 +1,188 @@
+---
+// The programme panel of the /talks/ dashboard: every talk by day and start time,
+// with an in-browser filter. Split out of TalksBoard.astro so the dashboard shell
+// stays small enough for the large-file guard; it also keeps the filter's CSS and
+// controller next to the markup they touch.
+//
+// Every row is server-rendered, so without JS the visitor gets the full programme
+// and the controls simply do nothing — nothing is lost.
+import type { TalksTalk } from '../lib/talks-graph';
+import type { TalksCopy } from '../lib/talks-copy';
+import { foundLabel } from '../lib/talks-copy';
+
+interface Props {
+  copy: TalksCopy;
+  dayGroups: { id: number; name: string; date: string; talks: TalksTalk[] }[];
+  unassigned: TalksTalk[];
+  href: (hash: string) => string;
+  label: (name: string) => string;
+  title: (talk: { id: number; title: string }) => string;
+  timeOf: (talk: { start: string; end: string }) => string;
+  searchBlob: (talk: TalksTalk) => string;
+}
+
+const { copy, dayGroups, unassigned, href, label, title, timeOf, searchBlob } = Astro.props;
+const total = dayGroups.reduce((n, d) => n + d.talks.length, 0) + unassigned.length;
+---
+
+<h2 class="talks-h2">{copy.programH2}</h2>
+<p class="talks-note">{copy.programNote}</p>
+
+<div class="talks-search" data-talks-search data-tpl={copy.foundTemplate}>
+  <div class="talks-search-row">
+    <label class="talks-search-label" for="talks-query">{copy.searchLabel}</label>
+    <input
+      id="talks-query"
+      class="talks-search-input"
+      type="search"
+      data-talks-query
+      placeholder={copy.searchPlaceholder}
+      autocomplete="off"
+    />
+    <button type="button" class="talks-chip talks-chip-action" data-talks-reset>
+      {copy.reset}
+    </button>
+  </div>
+  <div class="talks-chips" role="group" aria-label={copy.dayFilterLabel}>
+    <button type="button" class="talks-chip" data-day-filter="" aria-pressed="true">
+      {copy.allDays}
+    </button>
+    {dayGroups.map((d) => (
+      <button type="button" class="talks-chip" data-day-filter={String(d.id)} aria-pressed="false">
+        {d.name} <span class="talks-chip-n">{d.talks.length}</span>
+      </button>
+    ))}
+  </div>
+  <p class="talks-found" data-talks-found aria-live="polite">
+    {foundLabel(copy, total, total)}
+  </p>
+</div>
+
+{
+  [...dayGroups, ...(unassigned.length > 0 ? [{ id: 0, name: copy.allDays, date: '', talks: unassigned }] : [])].map((d) => (
+    <section class="talks-day" data-talks-day={d.id === 0 ? '' : String(d.id)}>
+      <h3 class="talks-h3">
+        {d.name} <span class="talks-count" data-day-count>{d.talks.length}</span>
+        {d.date && <span class="talks-daydate">{d.date}</span>}
+      </h3>
+      <ol class="talks-program">
+        {d.talks.map((talk) => (
+          <li class="talks-row" data-talk-day={d.id === 0 ? '' : String(d.id)} data-search={searchBlob(talk)}>
+            <p class="talks-row-head">
+              <span class="talks-time">{timeOf(talk)}</span>
+              <span class="talks-where">
+                {talk.hall}
+                {talk.trackName ? ` · ${label(talk.trackName)}` : ''}
+                {` · `}
+                {talk.lectors.map((l) => l.name).join(', ') || copy.noLector}
+              </span>
+            </p>
+            <a class="talks-title" href={href(`#t${talk.id}`)}>{title(talk)}</a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  ))
+}
+
+<p class="talks-empty" data-talks-empty hidden>{copy.noResults}</p>
+
+<script is:inline>
+  (function () {
+    var root = document.querySelector('[data-talks-search]');
+    if (!root) return;
+    var input = root.querySelector('[data-talks-query]');
+    var counter = root.querySelector('[data-talks-found]');
+    var reset = root.querySelector('[data-talks-reset]');
+    var empty = document.querySelector('[data-talks-empty]');
+    var chips = Array.prototype.slice.call(root.querySelectorAll('[data-day-filter]'));
+    var rows = Array.prototype.slice.call(document.querySelectorAll('[data-talk-day]'));
+    var days = Array.prototype.slice.call(document.querySelectorAll('[data-talks-day]'));
+    var tpl = root.getAttribute('data-tpl') || '{n} / {total}';
+    if (!input || !rows.length) return;
+
+    // `ё` folds into `е` on both sides: the programme spells both ways, and a
+    // search for «еще» must find «ещё».
+    function norm(value) {
+      return String(value || '').toLowerCase().replace(/ё/g, 'е');
+    }
+
+    var day = '';
+
+    function setDay(next) {
+      chips.forEach(function (chip) {
+        chip.setAttribute('aria-pressed', chip.getAttribute('data-day-filter') === next ? 'true' : 'false');
+      });
+    }
+
+    function apply() {
+      var terms = norm(input.value).trim().split(/\s+/).filter(Boolean);
+      var shown = 0;
+      rows.forEach(function (row) {
+        var hay = norm(row.getAttribute('data-search'));
+        var match = terms.every(function (t) { return hay.indexOf(t) !== -1; });
+        var inDay = !day || row.getAttribute('data-talk-day') === day;
+        row.hidden = !(match && inDay);
+        if (match && inDay) shown++;
+      });
+      days.forEach(function (section) {
+        var n = section.querySelectorAll('[data-talk-day]:not([hidden])').length;
+        section.hidden = n === 0;
+        var count = section.querySelector('[data-day-count]');
+        if (count) count.textContent = String(n);
+      });
+      if (counter) {
+        counter.textContent = tpl.replace('{n}', String(shown)).replace('{total}', String(rows.length));
+      }
+      if (empty) empty.hidden = shown > 0;
+    }
+
+    input.addEventListener('input', apply);
+    input.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape') return;
+      input.value = '';
+      day = '';
+      setDay('');
+      apply();
+    });
+
+    chips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        day = chip.getAttribute('data-day-filter') || '';
+        setDay(day);
+        apply();
+      });
+    });
+
+    if (reset) {
+      reset.addEventListener('click', function () {
+        input.value = '';
+        day = '';
+        setDay('');
+        apply();
+        input.focus();
+      });
+    }
+
+    apply();
+  })();
+</script>
+
+<style>
+  .talks-search { display: grid; gap: var(--space-2); margin: var(--space-3) 0 var(--space-4); }
+  .talks-search-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  .talks-search-label { font-size: 0.8rem; color: var(--text-muted); }
+  .talks-search-input { flex: 1 1 260px; min-width: 0; padding: var(--space-2) var(--space-3); font-family: var(--font-sans); font-size: 0.9rem; color: var(--text-normal); background: var(--background-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); }
+  .talks-search-input:focus-visible { outline: 2px solid var(--text-accent); outline-offset: 2px; border-color: var(--border-active); }
+  /* `.talks-chip*` live in TalksBoard.astro's global block: the track jump nav
+     uses the same chip outside this component. */
+  .talks-found { font-size: 0.8rem; color: var(--text-muted); margin: 0; font-variant-numeric: tabular-nums; }
+  .talks-program { list-style: none; padding: 0; margin: var(--space-2) 0 var(--space-4); display: grid; gap: var(--space-2); }
+  .talks-row { border-left: 2px solid var(--border-color); padding: 2px 0 2px var(--space-3); scroll-margin-top: 80px; }
+  .talks-row-head { display: flex; flex-wrap: wrap; gap: 0 0.6rem; margin: 0 0 2px; font-size: 0.78rem; color: var(--text-muted); }
+  .talks-time { font-variant-numeric: tabular-nums; color: var(--text-accent); }
+  .talks-daydate { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .talks-day[hidden], .talks-row[hidden] { display: none; }
+  .talks-empty { color: var(--text-muted); font-size: 0.9rem; margin: var(--space-3) 0; }
+  .talks-empty[hidden] { display: none; }
+</style>

@@ -7,10 +7,21 @@
 // scripts/sync-talks-data.mjs. The EN overlay only carries what the source
 // project itself translates (track names, talk titles); halls, days and blurbs
 // fall back to RU rather than disappearing.
+//
+// The five sections are grouped into a dashboard (SectionTabs + SectionPanel) so
+// the page is not one 91-talk scroll. Deep links survive the regrouping —
+// SectionTabs maps every `[id]` inside a panel back to that panel, so `#t123`,
+// `#track-avito` and `#theme-ai` all open the tab that contains them.
+//
+// Copy lives in lib/talks-copy.ts, the programme panel in TalksProgram.astro.
 import ProjectGraph from './ProjectGraph.astro';
+import SectionTabs from './SectionTabs.astro';
+import SectionPanel from './SectionPanel.astro';
+import TalksProgram from './TalksProgram.astro';
 import { withBase } from '../lib/path';
 import rawData from '../data/talks.json';
 import rawOverlay from '../data/talks-en.json';
+import { talksCopy } from '../lib/talks-copy';
 import {
   buildTalksGraph,
   overviewGraph,
@@ -23,6 +34,7 @@ import {
   EVENT_ID,
   type TalksData,
   type TalksOverlay,
+  type TalksTalk,
 } from '../lib/talks-graph';
 
 interface Props {
@@ -58,7 +70,7 @@ const trackGroups = [
   );
 
 const themeGroups = data.themes
-  .map((th) => ({ ...th, talks: data.talks.filter((t) => t.themes.includes(th.id)) }))
+  .map((th) => ({ ...th, talks: data.talks.filter((t) => (t.themes ?? []).includes(th.id)) }))
   .filter((th) => th.talks.length > 0)
   .sort((a, b) => b.talks.length - a.talks.length);
 
@@ -93,72 +105,56 @@ const untrackedCount = talksOfTrack(data, UNTRACKED).length;
 const label = (name: string) => trackName(name, lang, overlay);
 const title = (talk: { id: number; title: string }) => talkTitle(talk, lang, overlay);
 const timeOf = (t: { start: string; end: string }) => `${t.start}–${t.end}`;
+const themeById = new Map(data.themes.map((th) => [th.id, th]));
+const themeLabel = (id: string) => {
+  const th = themeById.get(id);
+  return th ? (isEn ? th.labelEn : th.label) : id;
+};
 
-const copy = isEn
-  ? {
-      h1: 'Matemarketing 2026 talk graph',
-      headNote: `${data.event.name} · ${data.event.startDate} — ${data.event.endDate}. Built from the conference programme at build time.`,
-      statTalks: 'talks',
-      statTracks: 'tracks',
-      statUntracked: 'untracked talks',
-      statThemes: 'themes',
-      statHalls: 'halls',
-      statLectors: 'speakers',
-      statRepeat: 'speakers with 2+ talks',
-      methodNote: `Edges are only what the data actually holds, and the page shows them at two levels. The map above is the first level: the event, its ${data.tracks.length} tracks and one “Untracked” bucket (${untrackedCount} talks). The second level is per track, below — its talks and the themes that define that track. Theme tags (AI, metrics, A/B, BI, data, marketing, HR, causal inference, retention, product, security) are not a level of the hierarchy: at programme scale they are not selective, the widest tag covers ${widestTheme} of ${data.talks.length} talks, so as hubs they would connect half the graph to everything. No two talks share a speaker: all ${lectorCount} names are distinct. A speaker is listed for ${talksWithLector} of ${data.talks.length} talks; ${talksWithoutLector} have none.`,
-      graphCaption:
-        `The event in the middle, gold are its ${data.tracks.length} tracks plus an “Untracked” bucket; each track's talks and themes are in its own section below. Hover a node to read its name; click to jump to its section.`,
-      graphAria: 'Conference talk graph',
-      tracksH2: 'Mini-graphs per track',
-      tracksNote:
-        'Each track is its own subgraph: the track hub, its talks, and the themes that define that track. “Untracked” holds the talks the programme leaves without a track.',
-      trackCaption: (name: string, n: number, k: number) =>
-        `Track “${name}”: ${n} talks${k > 0 ? `, ${k} themes` : ''}.`,
-      trackAria: (name: string) => `Track mini-graph: ${name}`,
-      noLector: 'no speaker',
-      themesH2: 'Themes',
-      themesNote:
-        'Themes are tags on talks, not a level of the hierarchy: a talk lands in several of them, so the theme mentions below total more than the number of talks.',
-      hallsDaysH2: 'Halls and days',
-      thHall: 'Hall',
-      thDay: 'Day',
-      thDate: 'Date',
-      thTalks: 'Talks',
-      sourceNote: 'Programme source —',
-      generatorNote: 'graph builder —',
-    }
-  : {
-      h1: 'Граф докладов Матемаркетинг 2026',
-      headNote: `${data.event.name} · ${data.event.startDate} — ${data.event.endDate}. Строится из программы конференции на build-time.`,
-      statTalks: 'докладов',
-      statTracks: 'треков',
-      statUntracked: 'докладов без трека',
-      statThemes: 'тем',
-      statHalls: 'залов',
-      statLectors: 'лекторов',
-      statRepeat: 'лекторов с 2+ докладами',
-      methodNote: `Связи в графе — только те, что реально есть в данных, и показаны они на двух уровнях. Карта выше — первый: конференция, её ${data.tracks.length} треков и бакет «Без трека» (${untrackedCount} докладов). Второй уровень — по трекам, ниже: доклады трека и темы, которые его определяют. Тематические теги (AI, метрики, A/B, BI, данные, маркетинг, HR, причинный вывод, retention, продукт, безопасность) — не ступень иерархии: на масштабе всей программы они не избирательны, самый широкий тег покрывает ${widestTheme} докладов из ${data.talks.length}, и как хабы они соединили бы половину графа со всем подряд. Общих лекторов нет совсем: все ${lectorCount} имени уникальны, ни одно не повторяется. Лектор указан у ${talksWithLector} из ${data.talks.length} докладов; у ${talksWithoutLector} его нет.`,
-      graphCaption:
-        `В центре — конференция, золотые — её ${data.tracks.length} треков и бакет «Без трека»; доклады и темы каждого трека — в его разделе ниже. Наведите на узел, чтобы увидеть название; клик — перейти к разделу.`,
-      graphAria: 'Граф докладов конференции',
-      tracksH2: 'Мини-графы по трекам',
-      tracksNote:
-        'Каждый трек — отдельный подграф: хаб трека, его доклады и темы, которые этот трек определяют. В «Без трека» — доклады, которым трек в программе не назначен.',
-      trackCaption: (name: string, n: number, k: number) =>
-        `Трек «${name}»: ${n} докладов${k > 0 ? `, тем — ${k}` : ''}.`,
-      trackAria: (name: string) => `Мини-граф трека ${name}`,
-      noLector: 'без лектора',
-      themesH2: 'Темы',
-      themesNote:
-        'Темы — теги докладов, а не ступень иерархии: один доклад попадает в несколько тем, поэтому упоминаний тем ниже больше, чем докладов.',
-      hallsDaysH2: 'Залы и дни',
-      thHall: 'Зал',
-      thDay: 'День',
-      thDate: 'Дата',
-      thTalks: 'Докладов',
-      sourceNote: 'Источник программы —',
-      generatorNote: 'генератор графа —',
-    };
+const copy = talksCopy(lang, {
+  event: data.event,
+  tracks: data.tracks.length,
+  untracked: untrackedCount,
+  talks: data.talks.length,
+  widestTheme,
+  lectors: lectorCount,
+  talksWithLector,
+  talksWithoutLector,
+});
+
+// Programme panel: days in the source's own order (1 день → 2 день →
+// Онлайн-день — chronological by date would put the online day first), talks
+// inside a day sorted by start time. `data.days` is already in programme order,
+// so the array index is the sort key.
+const dayIndex = new Map(data.days.map((d, i) => [d.id, i]));
+const sortTalks = (a: TalksTalk, b: TalksTalk) =>
+  (dayIndex.get(a.dayId) ?? data.days.length) - (dayIndex.get(b.dayId) ?? data.days.length) ||
+  a.start.localeCompare(b.start) ||
+  a.title.localeCompare(b.title, 'ru');
+const dayGroups = data.days.map((d) => ({
+  ...d,
+  talks: data.talks.filter((t) => t.dayId === d.id).sort(sortTalks),
+}));
+const unassignedTalks = data.talks.filter((t) => !dayIndex.has(t.dayId));
+const searchBlob = (talk: TalksTalk) =>
+  [
+    title(talk),
+    talk.hall,
+    talk.trackName ? label(talk.trackName) : '',
+    ...talk.lectors.map((l) => l.name),
+    ...(talk.themes ?? []).map(themeLabel),
+  ]
+    .join(' ')
+    .toLowerCase()
+    .replace(/ё/g, 'е');
+
+const tabs = [
+  { id: 'overview', label: copy.tabOverview },
+  { id: 'program', label: copy.tabProgram },
+  { id: 'tracks', label: copy.tabTracks },
+  { id: 'themes', label: copy.tabThemes },
+  { id: 'halls', label: copy.tabHalls },
+];
 ---
 
 <section class="talks-board reveal">
@@ -177,109 +173,146 @@ const copy = isEn
     <div><b>{repeatLectors}</b><span>{copy.statRepeat}</span></div>
   </div>
 
-  <p class="talks-note">{copy.methodNote}</p>
+  <SectionTabs tabs={tabs} label={copy.tablistLabel}>
+    <SectionPanel id="overview" active={true}>
+      <p class="talks-note">{copy.methodNote}</p>
 
-  <ProjectGraph
-    nodes={overview.nodes}
-    links={overview.links}
-    centerId={EVENT_ID}
-    lang={lang}
-    height={480}
-    idPrefix="talks-overview"
-    caption={copy.graphCaption}
-    ariaLabel={copy.graphAria}
-  />
+      <ProjectGraph
+        nodes={overview.nodes}
+        links={overview.links}
+        centerId={EVENT_ID}
+        lang={lang}
+        height={480}
+        idPrefix="talks-overview"
+        caption={copy.graphCaption}
+        ariaLabel={copy.graphAria}
+      />
 
-  <h2 class="talks-h2">{copy.tracksH2}</h2>
-  <p class="talks-note">{copy.tracksNote}</p>
+      <p class="talks-note">
+        {copy.sourceNote} <a href="https://github.com/NikitaBoyarkin/mm-program-page">mm-program-page</a>;
+        {copy.generatorNote} <code>src/lib/talks-graph.ts</code>.
+      </p>
+    </SectionPanel>
 
-  {
-    trackGroups.map((t) => {
-      const sub = trackGraph(graph, data, t.slug, lang);
-      const name = t.slug === UNTRACKED ? t.name : label(t.name);
-      const themeHubs = sub.nodes.filter((n) => n.section === 'theme').length;
-      return (
-        <section class="talks-track" id={`track-${t.slug}`}>
-          <h3 class="talks-h3">
-            {name} <span class="talks-count">{t.talks.length}</span>
-          </h3>
-          <ProjectGraph
-            nodes={sub.nodes}
-            links={sub.links}
-            centerId={`track:${t.slug}`}
-            lang={lang}
-            idPrefix={`talks-track-${t.slug}`}
-            caption={copy.trackCaption(name, t.talks.length, themeHubs)}
-            ariaLabel={copy.trackAria(name)}
-          />
-          <ol class="talks-list">
-            {t.talks.map((talk) => (
-              <li id={`t${talk.id}`}>
-                <a class="talks-title" href={href(`#t${talk.id}`)}>
-                  {title(talk)}
-                </a>
-                <p class="talks-meta">
-                  {timeOf(talk)} · {talk.hall} · {talk.lectors.map((l) => l.name).join(', ') ||
-                    copy.noLector}
-                </p>
-                {talk.short && (
-                  /* The source project translates only titles and track names, so
-                     on the EN page the blurb is the RU original: declare its
-                     language rather than let a screen reader read Cyrillic in an
-                     English voice. */
-                  <p class="talks-short" lang={isEn ? 'ru' : undefined}>
-                    {talk.short}
+    <SectionPanel id="program">
+      <TalksProgram
+        copy={copy}
+        dayGroups={dayGroups}
+        unassigned={unassignedTalks}
+        href={href}
+        label={label}
+        title={title}
+        timeOf={timeOf}
+        searchBlob={searchBlob}
+      />
+    </SectionPanel>
+
+    <SectionPanel id="tracks">
+      <h2 class="talks-h2">{copy.tracksH2}</h2>
+      <p class="talks-note">{copy.tracksNote}</p>
+
+      <nav class="talks-tracknav" aria-label={copy.trackNavLabel}>
+        {trackGroups.map((t) => (
+          <a class="talks-chip" href={href(`#track-${t.slug}`)}>
+            {t.slug === UNTRACKED ? t.name : label(t.name)}
+            <span class="talks-chip-n">{t.talks.length}</span>
+          </a>
+        ))}
+      </nav>
+
+      {trackGroups.map((t) => {
+        const sub = trackGraph(graph, data, t.slug, lang);
+        const name = t.slug === UNTRACKED ? t.name : label(t.name);
+        const themeHubs = sub.nodes.filter((n) => n.section === 'theme').length;
+        return (
+          <section class="talks-track" id={`track-${t.slug}`}>
+            <h3 class="talks-h3">
+              {name} <span class="talks-count">{t.talks.length}</span>
+            </h3>
+            <ProjectGraph
+              nodes={sub.nodes}
+              links={sub.links}
+              centerId={`track:${t.slug}`}
+              lang={lang}
+              idPrefix={`talks-track-${t.slug}`}
+              caption={copy.trackCaption(name, t.talks.length, themeHubs)}
+              ariaLabel={copy.trackAria(name)}
+            />
+            <ol class="talks-list">
+              {t.talks.map((talk) => (
+                <li id={`t${talk.id}`}>
+                  <a class="talks-title" href={href(`#t${talk.id}`)}>
+                    {title(talk)}
+                  </a>
+                  <p class="talks-meta">
+                    {timeOf(talk)} · {talk.hall} · {talk.lectors.map((l) => l.name).join(', ') ||
+                      copy.noLector}
                   </p>
-                )}
+                  {talk.short && (
+                    /* The source project translates only titles and track names, so
+                       on the EN page the blurb is the RU original: declare its
+                       language rather than let a screen reader read Cyrillic in an
+                       English voice. */
+                    <p class="talks-short" lang={isEn ? 'ru' : undefined}>
+                      {talk.short}
+                    </p>
+                  )}
+                  {(talk.themes ?? []).length > 0 && (
+                    <ul class="talks-tags" aria-label={copy.themeOnTalk}>
+                      {(talk.themes ?? []).map((th) => (
+                        <li>
+                          <a href={href(`#theme-${th}`)}>{themeLabel(th)}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </section>
+        );
+      })}
+    </SectionPanel>
+
+    <SectionPanel id="themes">
+      <h2 class="talks-h2">{copy.themesH2}</h2>
+      <p class="talks-note">{copy.themesNote}</p>
+
+      {themeGroups.map((th) => (
+        <section class="talks-track" id={`theme-${th.id}`}>
+          <h3 class="talks-h3">
+            {isEn ? th.labelEn : th.label} <span class="talks-count">{th.talks.length}</span>
+          </h3>
+          <ul class="talks-themes">
+            {th.talks.map((talk) => (
+              <li>
+                <a href={href(`#t${talk.id}`)}>{title(talk)}</a>
+                {talk.trackName ? ` · ${label(talk.trackName)}` : ''}
               </li>
             ))}
-          </ol>
+          </ul>
         </section>
-      );
-    })
-  }
+      ))}
+    </SectionPanel>
 
-  <h2 class="talks-h2">{copy.themesH2}</h2>
-  <p class="talks-note">{copy.themesNote}</p>
-
-  {
-    themeGroups.map((th) => (
-      <section class="talks-track" id={`theme-${th.id}`}>
-        <h3 class="talks-h3">
-          {isEn ? th.labelEn : th.label} <span class="talks-count">{th.talks.length}</span>
-        </h3>
-        <ul class="talks-themes">
-          {th.talks.map((talk) => (
-            <li>
-              <a href={href(`#t${talk.id}`)}>{title(talk)}</a>
-              {talk.trackName ? ` · ${label(talk.trackName)}` : ''}
-            </li>
-          ))}
-        </ul>
-      </section>
-    ))
-  }
-
-  <h2 class="talks-h2">{copy.hallsDaysH2}</h2>
-  <div class="talks-grid">
-    <table>
-      <thead><tr><th>{copy.thHall}</th><th>{copy.thTalks}</th></tr></thead>
-      <tbody>
-        {hallCounts.map((h) => <tr><td>{h.name}</td><td>{h.n}</td></tr>)}
-      </tbody>
-    </table>
-    <table>
-      <thead><tr><th>{copy.thDay}</th><th>{copy.thDate}</th><th>{copy.thTalks}</th></tr></thead>
-      <tbody>
-        {dayCounts.map((d) => <tr><td>{d.name}</td><td>{d.date}</td><td>{d.n}</td></tr>)}
-      </tbody>
-    </table>
-  </div>
-
-  <p class="talks-note">
-    {copy.sourceNote} <a href="https://github.com/NikitaBoyarkin/mm-program-page">mm-program-page</a>;
-    {copy.generatorNote} <code>src/lib/talks-graph.ts</code>.
-  </p>
+    <SectionPanel id="halls">
+      <h2 class="talks-h2">{copy.hallsDaysH2}</h2>
+      <div class="talks-grid">
+        <table>
+          <thead><tr><th>{copy.thHall}</th><th>{copy.thTalks}</th></tr></thead>
+          <tbody>
+            {hallCounts.map((h) => <tr><td>{h.name}</td><td>{h.n}</td></tr>)}
+          </tbody>
+        </table>
+        <table>
+          <thead><tr><th>{copy.thDay}</th><th>{copy.thDate}</th><th>{copy.thTalks}</th></tr></thead>
+          <tbody>
+            {dayCounts.map((d) => <tr><td>{d.name}</td><td>{d.date}</td><td>{d.n}</td></tr>)}
+          </tbody>
+        </table>
+      </div>
+    </SectionPanel>
+  </SectionTabs>
 </section>
 
 <style is:global>
@@ -290,8 +323,8 @@ const copy = isEn
   .talks-stats div { background: var(--background-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: var(--space-3); display: flex; flex-direction: column; gap: 2px; }
   .talks-stats b { font-size: 1.5rem; color: var(--text-accent); }
   .talks-stats span { color: var(--text-muted); font-size: 0.8rem; }
-  .talks-h2 { font-size: 1.35rem; margin: var(--space-6) 0 var(--space-2); }
-  .talks-h3 { font-size: 1.05rem; margin: var(--space-5) 0 var(--space-2); display: flex; align-items: center; gap: 0.5rem; }
+  .talks-h2 { font-size: 1.35rem; margin: var(--space-4) 0 var(--space-2); }
+  .talks-h3 { font-size: 1.05rem; margin: var(--space-5) 0 var(--space-2); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
   .talks-count { font-size: 0.75rem; color: var(--text-muted); border: 1px solid var(--border-color); border-radius: 999px; padding: 1px 8px; }
   .talks-track { margin-bottom: var(--space-5); }
   .talks-list { list-style: none; padding: 0; margin: var(--space-3) 0 0; display: grid; gap: var(--space-3); }
@@ -299,6 +332,21 @@ const copy = isEn
   .talks-title { font-weight: 600; }
   .talks-meta { color: var(--text-muted); font-size: 0.82rem; margin: 2px 0; }
   .talks-short { font-size: 0.88rem; line-height: 1.55; margin: 4px 0 0; }
+
+  /* Theme tags under a talk: muted chips, not buttons — they are cross-panel
+     anchors into the themes tab. */
+  .talks-tags { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; margin: 6px 0 0; padding: 0; }
+  .talks-tags a { display: inline-block; font-size: 0.72rem; color: var(--text-muted); border: 1px solid var(--border-color); border-radius: 999px; padding: 1px 8px; text-decoration: none; }
+  .talks-tags a:hover, .talks-tags a:focus-visible { color: var(--text-accent); border-color: var(--border-active); }
+
+  /* Shared chip: day filter buttons (TalksProgram) and the track jump nav. */
+  .talks-chips { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+  .talks-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; font-family: var(--font-sans); font-size: 0.8rem; color: var(--text-muted); background: var(--background-secondary); border: 1px solid var(--border-color); border-radius: 999px; text-decoration: none; cursor: pointer; white-space: nowrap; }
+  .talks-chip:hover, .talks-chip:focus-visible { color: var(--text-accent); border-color: var(--border-active); }
+  .talks-chip[aria-pressed='true'] { color: var(--text-accent); border-color: var(--border-active); background: color-mix(in srgb, var(--text-accent) 8%, transparent); }
+  .talks-chip-n { font-size: 0.7rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .talks-tracknav { display: flex; flex-wrap: wrap; gap: var(--space-1); margin: var(--space-2) 0 var(--space-4); }
+
   .talks-themes { margin: var(--space-2) 0 0; padding-left: 1.1rem; columns: 2; column-gap: var(--space-5); font-size: 0.88rem; }
   @media (max-width: 640px) { .talks-themes { columns: 1; } }
   .talks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4); }
