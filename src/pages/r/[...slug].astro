@@ -170,7 +170,13 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || "https://us.i.posthog
           }
         }
 
-        if (posthogKey) {
+        // Automated runs (Playwright, Lighthouse) must not land in the campaign
+        // report: `navigator.webdriver` is true for a controlled browser.
+        // `?test=1` is the manual escape hatch for checking a link by hand.
+        // Only the event is skipped — the redirect still happens.
+        var isTest = params.get("test") === "1" || navigator.webdriver === true;
+
+        if (posthogKey && !isTest) {
           try {
             var payload = JSON.stringify({
               api_key: posthogKey,
