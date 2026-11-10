@@ -58,7 +58,11 @@ export function getStaticPaths() {
   // referencing TARGETS here failed the build with "TARGETS is not defined".
   const targets = ["github", "telegram", "linkedin", "community", "site"];
   // A new deck needs its campaign slug here, or its path-shaped links 404.
-  const campaigns = ["python_files_json_202611", "python_list_comprehensions_202611"];
+  const campaigns = [
+    "python_files_json_202611",
+    "python_list_comprehensions_202611",
+    "python_datetime_202611",
+  ];
   return [
     ...targets.map((target) => ({ params: { slug: target } })),
     ...targets.flatMap((target) =>
