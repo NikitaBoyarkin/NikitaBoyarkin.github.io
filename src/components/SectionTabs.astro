@@ -327,37 +327,28 @@ const noScriptFallback =
     right: var(--space-2);
     bottom: calc(var(--space-2) * -1 - 1px);
   }
-  /* Phone: one swipeable row instead of a wrap. Twelve tracks or eleven themes
-     wrapped three-to-four deep is a 200px block of chrome above every panel —
-     taller than the panel's own first screen. `proximity`, not `mandatory`: the
-     strip has no end padding, and mandatory snapping parks a short drag back
-     where it started, so the last tab would need a second swipe to reach. */
+  /* Phone: every tab in view, nothing to swipe. The tabs share the row width
+     instead (`flex: 1 1 auto`), so the five page tabs sit on one line and the
+     twelve track / eleven theme chips wrap two or three per line. The panel's
+     own <h3> repeats a long name in full, so the ellipsis here costs nothing. */
   @media (max-width: 767px) {
     .section-tablist {
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       gap: var(--space-1);
-      overflow-x: auto;
-      overflow-y: hidden;
-      scroll-snap-type: x proximity;
-      scrollbar-width: none;
-      overscroll-behavior-x: contain;
-    }
-    .section-tablist::-webkit-scrollbar {
-      display: none;
     }
     .section-tab {
-      flex: 0 0 auto;
-      /* A track name runs to a sentence; uncapped it makes a tab wider than the
-         strip, so the selected tab could never be fully on screen and the next
-         one never peeked. The panel's own <h3> repeats the name in full, so the
-         ellipsis costs nothing. */
-      max-width: 75%;
+      /* Natural width, allowed to shrink — not `1 1 auto`: growing stretched the
+         tabs to fill the line, which left the fifth page tab alone on a second
+         row at full width. At this padding and size the five fit one row. */
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
-      scroll-snap-align: start;
       white-space: nowrap;
-      padding: var(--space-1) var(--space-3);
-      font-size: 0.82rem;
+      padding: var(--space-1) 6px;
+      font-size: 0.78rem;
+      text-align: center;
     }
     /* The tab clips its own text for the ellipsis above, and the strip clips
        vertically — so the desktop underline, which sits outside the tab's

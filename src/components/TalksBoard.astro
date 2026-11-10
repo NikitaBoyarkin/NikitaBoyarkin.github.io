@@ -205,6 +205,11 @@ const cards = buildTalkCards(data, lang, overlay);
         analytics
         caption={copy.graphCaption}
         ariaLabel={copy.graphAria}
+        legendLabel={copy.legendLabel}
+        legend={[
+          { section: 'talks', label: copy.legendEvent },
+          { section: 'track', label: copy.legendTrack },
+        ]}
       />
 
       <p class="talks-note">
@@ -252,6 +257,12 @@ const cards = buildTalkCards(data, lang, overlay);
                   analytics
                   caption={copy.trackCaption(name, t.talks.length, themeHubs)}
                   ariaLabel={copy.trackAria(name)}
+                  legendLabel={copy.legendLabel}
+                  legend={[
+                    { section: 'track', label: copy.legendTrack },
+                    { section: 'talks', label: copy.legendTalk },
+                    ...(themeHubs > 0 ? [{ section: 'theme', label: copy.legendTheme }] : []),
+                  ]}
                 />
                 <ol class="talks-list">
                   {t.talks.map((talk) => (

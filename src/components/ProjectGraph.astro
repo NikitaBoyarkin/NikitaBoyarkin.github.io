@@ -7,7 +7,7 @@
 // Labels appear on hover/focus; the center node's label is always visible as
 // the anchor. Click a node to navigate to its page.
 import { withBase } from '../lib/path';
-import type { GraphNode, GraphLink } from '../lib/graph';
+import { GRAPH_SECTION_COLORS, type GraphNode, type GraphLink } from '../lib/graph';
 import { buildGraphTooltips, tooltipCopy } from '../lib/graph-tooltip';
 
 interface Props {
@@ -34,6 +34,11 @@ interface Props {
    *  lists?" is the question; the project pages leave it off and ship no
    *  analytics listener at all. */
   analytics?: boolean;
+  /** Colour key below the canvas. One row per node section actually present;
+   *  sections are painted from GRAPH_SECTION_COLORS, so the swatches and the
+   *  nodes cannot drift. Empty (default) renders no legend. */
+  legend?: { section: string; label: string }[];
+  legendLabel?: string;
 }
 
 const {
@@ -44,6 +49,8 @@ const {
   height: heightProp,
   idPrefix = 'pg',
   analytics = false,
+  legend = [],
+  legendLabel,
 } = Astro.props;
 // `uid('root')` → `pg-root`, or `<idPrefix>-root` for an instance that passed
 // its own prefix.
@@ -108,6 +115,20 @@ const caption =
       of the accessibility tree. A group keeps them real; the visually-hidden
       list below is the plain-text mirror. */}
   <svg id={uid('svg')} class="pg-svg" style={`height:${height}px`} role="group" aria-label={ariaLabel} aria-describedby={uid('sr-desc')}></svg>
+  {/* Server-rendered controls: they work before the client module runs, and the
+      buttons are real `<button>`s, so a JS-off visitor gets nothing broken. */}
+  <div class="pg-controls" role="group" aria-label={isEn ? 'Graph controls' : 'Управление графом'}>
+    <button type="button" class="pg-btn" data-pg-zoom="in" aria-label={isEn ? 'Zoom in' : 'Увеличить'}>+</button>
+    <button type="button" class="pg-btn" data-pg-zoom="out" aria-label={isEn ? 'Zoom out' : 'Уменьшить'}>−</button>
+    <button type="button" class="pg-btn" data-pg-zoom="reset" aria-label={isEn ? 'Reset view' : 'Сбросить вид'}>⟲</button>
+    <button
+      type="button"
+      class="pg-btn"
+      data-pg-labels
+      aria-pressed="false"
+      aria-label={isEn ? 'Show all labels' : 'Показать все подписи'}
+    >Aa</button>
+  </div>
   <div class="visually-hidden">
     <p id={uid('sr-desc')}>{srDesc}</p>
     <ul>
@@ -128,6 +149,22 @@ const caption =
   </div>
   <div id={uid('tooltip')} class="pg-tooltip" role="tooltip" hidden></div>
   <p class="pg-caption">{caption}</p>
+  {
+    legend.length > 0 && (
+      <ul class="pg-legend" aria-label={legendLabel ?? (isEn ? 'Node colours' : 'Цвета узлов')}>
+        {legend.map((item) => (
+          <li>
+            <span
+              class="pg-swatch"
+              style={`background:${GRAPH_SECTION_COLORS[item.section] || 'var(--text-accent)'}`}
+              aria-hidden="true"
+            />
+            {item.label}
+          </li>
+        ))}
+      </ul>
+    )
+  }
   {/* Inside the root on purpose: the client finds each instance's payload by
       querying its own subtree, never the document. */}
   <script is:inline type="application/json" id={uid('data')} class="pg-data" set:html={json}></script>
@@ -182,6 +219,16 @@ const caption =
   /** Set when a press turned into a drag: the compatibility click that follows
    *  the release must not reach the anchor. */
   let suppressClick = false;
+  /** Pan/zoom lives on one `<g>` around both layers: the layout keeps working in
+   *  SVG units, the transform is purely visual, and `getScreenCTM()` on this
+   *  group is what maps a finger back into layout space. */
+  let viewport: SVGGElement | null = null;
+  let view = { k: 1, x: 0, y: 0 };
+  const MIN_K = 0.6;
+  const MAX_K = 3;
+  const pointers = new Map<number, { x: number; y: number }>();
+  let pinch: { dist: number; k: number; mx: number; my: number } | null = null;
+  let pan: { x: number; y: number; vx: number; vy: number } | null = null;
 
   const adjacency = new Map<string, Set<string>>();
 
@@ -211,10 +258,38 @@ const caption =
    *  200px drag: `moved` latched on, the node jumped to the top-left corner and
    *  the tap that produced it was swallowed. */
   function toWorld(clientX: number, clientY: number) {
-    const ctm = svg.getScreenCTM();
+    const ctm = (viewport ?? svg).getScreenCTM();
     if (!ctm) return null;
     const pt = new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse());
     return { x: pt.x, y: pt.y };
+  }
+
+  const clampK = (k: number) => Math.max(MIN_K, Math.min(MAX_K, k));
+
+  /** Zoom about the canvas centre, then pan by `view.x/y`. `touch-action:none`
+   *  is only switched on while zoomed: at 1× a one-finger swipe must still
+   *  scroll the page (verify-talks-mobile check (a)), and a graph that claims
+   *  the whole surface traps the reader inside a 480px card. */
+  function applyView() {
+    if (viewport) {
+      const cx = world.w / 2;
+      const cy = world.h / 2;
+      viewport.setAttribute(
+        'transform',
+        `translate(${cx + view.x},${cy + view.y}) scale(${view.k}) translate(${-cx},${-cy})`,
+      );
+    }
+    root.classList.toggle('pg-zoomed', view.k > 1.001);
+  }
+
+  function setZoom(k: number) {
+    view.k = clampK(k);
+    applyView();
+  }
+
+  function resetView() {
+    view = { k: 1, x: 0, y: 0 };
+    applyView();
   }
 
   function rebuild() {
@@ -247,8 +322,12 @@ const caption =
       adjacency.get(l.target.id)!.add(l.source.id);
     }
 
+    viewport = el('g') as SVGGElement;
+    viewport.setAttribute('class', 'pg-viewport');
+    svg.appendChild(viewport);
+    applyView();
     const edgeLayer = el('g');
-    svg.appendChild(edgeLayer);
+    viewport.appendChild(edgeLayer);
     edges = links.map((l, i) => {
       const line = el('line');
       line.setAttribute('class', 'pg-edge');
@@ -279,7 +358,7 @@ const caption =
     });
 
     const nodeLayer = el('g');
-    svg.appendChild(nodeLayer);
+    viewport.appendChild(nodeLayer);
     const textEls: SVGTextElement[] = [];
     padEls = [];
     nodeRadii = [];
@@ -466,10 +545,17 @@ const caption =
     if (!nodes.length) return;
     const pad = 4;
     const maxW = Math.max(24, world.w - pad * 2);
-    // Approximate ascent/descent of an 11px, weight-600 label around its
-    // baseline; the vertical clamp below needs them to keep the glyphs inside.
+    // Approximate ascent/descent of an 11px, weight-600 label around its baseline.
     const ascend = 10;
     const descend = 4;
+    const boxes: {
+      x: number;
+      top: number;
+      w: number;
+      anchor: 'start' | 'end' | 'middle';
+      center: boolean;
+    }[] = [];
+
     nodes.forEach((n, i) => {
       const txt = nodeTexts[i];
       if (!txt) return;
@@ -486,32 +572,79 @@ const caption =
         txt.removeAttribute('textLength');
         txt.removeAttribute('lengthAdjust');
       }
-      let x: number;
-      let anchor: 'start' | 'end' | 'middle';
-      let y = isCenter ? r + 14 : 4;
-      if (isCenter) {
-        anchor = 'middle';
-        x = Math.min(Math.max(n.x, pad + w / 2), world.w - pad - w / 2) - n.x;
-      } else {
-        anchor = n.x + r + 6 + w > world.w - pad ? 'end' : 'start';
-        x = anchor === 'end' ? -(r + 6) : r + 6;
-        // Clamp the whole label box, not just its origin: a label flipped to
-        // the left of a node near the left edge overflows on that side instead.
-        const left = anchor === 'end' ? n.x + x - w : n.x + x;
-        if (left < pad) x += pad - left;
-        else if (left + w > world.w - pad) x += world.w - pad - w - left;
-      }
-      // `y` is local to the node group (the group carries translate(n.x,n.y)),
-      // so the test is against the absolute baseline while the assignment has
-      // to come back into local space — without the `- n.y` a node dragged near
-      // the bottom edge got `y = world.h - 6`, i.e. an absolute baseline of
-      // `n.y + world.h - 6`, and the label ran off the canvas.
-      if (n.y + y - ascend < 2) y = 2 + ascend - n.y;
-      else if (n.y + y + descend > world.h - 2) y = world.h - 2 - descend - n.y;
-      txt.setAttribute('x', String(x));
-      txt.setAttribute('y', String(y));
-      txt.setAttribute('text-anchor', anchor);
+      const y = isCenter ? r + 14 : 4;
+      const anchor: 'start' | 'end' | 'middle' = isCenter
+        ? 'middle'
+        : n.x + r + 6 + w > world.w - pad
+          ? 'end'
+          : 'start';
+      const x = isCenter ? 0 : anchor === 'end' ? -(r + 6) : r + 6;
+      // Absolute baseline of the label box; local `y` arrives later.
+      boxes[i] = { x, top: n.y + y - ascend, w, anchor, center: isCenter };
     });
+
+    // Place top-down, pushing each label below any box it would cover. At
+    // 390px the eleven track names used to stack in pairs («Без трека» on
+    // «АРХИТЕКТУРА»): nothing compared one label to another, only to the canvas
+    // edge. The centre's label is the anchor and never yields.
+    const order = nodes
+      .map((_, i) => i)
+      .filter((i) => boxes[i])
+      .sort((a, b) => boxes[a].top - boxes[b].top);
+    const placed: { left: number; right: number; top: number; bottom: number }[] = [];
+    const boxH = ascend + descend;
+
+    for (const i of order) {
+      const box = boxes[i];
+      const n = nodes[i];
+      const leftOf = (cx: number) =>
+        box.anchor === 'end' ? cx - box.w : box.anchor === 'middle' ? cx - box.w / 2 : cx;
+      // Clamp the whole label box, not just its origin: a label flipped to the
+      // left of a node near the left edge overflows on that side instead.
+      let absX = n.x + box.x;
+      let left = leftOf(absX);
+      if (left < pad) {
+        absX += pad - left;
+        left = pad;
+      } else if (left + box.w > world.w - pad) {
+        absX += world.w - pad - box.w - left;
+        left = world.w - pad - box.w;
+      }
+      let top = Math.max(2, Math.min(world.h - 2 - boxH, box.top));
+      if (!box.center) {
+        // ≤ 33 labels per graph, so the quadratic scan is cheaper than sorting twice.
+        const over = (t: number) =>
+          placed.filter(
+            (p) => left < p.right && left + box.w > p.left && t < p.bottom && t + boxH > p.top,
+          );
+        const maxTop = Math.max(2, world.h - 2 - boxH);
+        // Downward first: the common case, and it keeps the reading order.
+        for (let guard = 0; guard < 64; guard++) {
+          const hit = over(top)[0];
+          if (!hit) break;
+          const next = Math.min(maxTop, hit.bottom + 2);
+          if (next === top) break;
+          top = next;
+        }
+        // Against the bottom edge the clamp above pins several labels to one
+        // top, so "push down" can resolve nothing. Stack upward instead — that
+        // is where the free space is for nodes hanging low in the ring.
+        for (let guard = 0; guard < 64; guard++) {
+          const hits = over(top);
+          if (!hits.length) break;
+          const ceiling = hits.reduce((m, p) => Math.min(m, p.top), Infinity) - 2 - boxH;
+          const next = Math.max(2, ceiling);
+          if (next === top) break;
+          top = next;
+        }
+      }
+      placed.push({ left, right: left + box.w, top, bottom: top + boxH });
+      // `x`/`y` are local to the node group (the group carries translate(n.x,n.y)),
+      // so absolute values come back into local space with `- n.x` / `- n.y`.
+      nodeTexts[i].setAttribute('x', String(absX - n.x));
+      nodeTexts[i].setAttribute('y', String(top + ascend - n.y));
+      nodeTexts[i].setAttribute('text-anchor', box.anchor);
+    }
   }
 
   /** Stop the line at the target's edge so it doesn't run under the circle —
@@ -667,9 +800,51 @@ const caption =
     dragRaf = requestAnimationFrame(dragFrame);
   }
 
+  /** Two fingers: pinch scales about the midpoint and the midpoint's own drift
+   *  pans, which is what every map on a phone does. `pinch.mx/my` is carried
+   *  forward each move so the pan is relative, not cumulative. */
+  function startPinch() {
+    const [a, b] = [...pointers.values()];
+    pinch = {
+      dist: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+      k: view.k,
+      mx: (a.x + b.x) / 2,
+      my: (a.y + b.y) / 2,
+    };
+    dragging = null;
+    pan = null;
+  }
+
+  function updatePinch() {
+    const pts = [...pointers.values()];
+    if (pts.length < 2 || !pinch) return;
+    const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+    view.k = clampK(pinch.k * (dist / pinch.dist));
+    const mx = (pts[0].x + pts[1].x) / 2;
+    const my = (pts[0].y + pts[1].y) / 2;
+    view.x += mx - pinch.mx;
+    view.y += my - pinch.my;
+    pinch.mx = mx;
+    pinch.my = my;
+    applyView();
+  }
+
   function handlePointerDown(e: PointerEvent) {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      startPinch();
+      return;
+    }
     const target = nodeEls.find((g) => g.contains(e.target as Node));
-    if (!target) return;
+    if (!target) {
+      // Background drag pans with a mouse, or with a finger once the graph is
+      // zoomed. At 1× on touch the vertical swipe must keep scrolling the page
+      // (verify-talks-mobile check (a)).
+      if (view.k > 1.001 || e.pointerType === 'mouse') {
+        pan = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y };
+      }
+      return;
+    }
     // Capture only when the press landed on a node — capturing on the whole
     // surface swallowed every gesture that started on the empty background,
     // and nothing ever released the capture. It is also taken later, at the
@@ -684,6 +859,17 @@ const caption =
   }
 
   function handlePointerMove(e: PointerEvent) {
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && pointers.size >= 2) {
+      updatePinch();
+      return;
+    }
+    if (pan) {
+      view.x = pan.vx + (e.clientX - pan.x);
+      view.y = pan.vy + (e.clientY - pan.y);
+      applyView();
+      return;
+    }
     if (!dragging) return;
     const p = toWorld(e.clientX, e.clientY);
     if (!p) return;
@@ -716,7 +902,10 @@ const caption =
    *  link on release. `cancelled` (pointercancel) is never a click — the browser
    *  took the pointer (the page started scrolling, a call arrived, a system
    *  gesture fired), and there is no compatibility click to suppress. */
-  function endPress(cancelled: boolean) {
+  function endPress(cancelled: boolean, pointerId?: number) {
+    if (pointerId != null) pointers.delete(pointerId);
+    if (pointers.size < 2) pinch = null;
+    pan = null;
     if (!dragging) return;
     const n = dragging;
     suppressClick = !cancelled && moved;
@@ -742,13 +931,43 @@ const caption =
 
   svg.addEventListener('pointerdown', handlePointerDown);
   svg.addEventListener('pointermove', handlePointerMove);
-  svg.addEventListener('pointerup', () => endPress(false));
-  svg.addEventListener('pointercancel', () => endPress(true));
+  svg.addEventListener('pointerup', (e) => endPress(false, e.pointerId));
+  svg.addEventListener('pointercancel', (e) => endPress(true, e.pointerId));
   svg.addEventListener('click', (e) => {
     if (!suppressClick) return;
     suppressClick = false;
     e.preventDefault();
     e.stopPropagation();
+  });
+
+  // --- Zoom / pan controls ---------------------------------------------------
+  // Wheel zooms only with Ctrl/Cmd held: a plain wheel over a 480px card has to
+  // keep scrolling the document, or the graph swallows the page.
+  svg.addEventListener(
+    'wheel',
+    (e) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      setZoom(view.k * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
+    },
+    { passive: false },
+  );
+
+  root.querySelectorAll<HTMLButtonElement>('[data-pg-zoom]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const mode = btn.getAttribute('data-pg-zoom');
+      if (mode === 'in') setZoom(view.k * 1.35);
+      else if (mode === 'out') setZoom(view.k / 1.35);
+      else resetView();
+    });
+  });
+
+  // Talk labels are hover-only (a 91-title cloud otherwise), which on a phone
+  // leaves an unlabelled dot cloud. This reveals them on demand.
+  const labelsBtn = root.querySelector<HTMLButtonElement>('[data-pg-labels]');
+  labelsBtn?.addEventListener('click', () => {
+    const on = root.classList.toggle('pg-labels-on');
+    labelsBtn.setAttribute('aria-pressed', String(on));
   });
 
   // --- Tooltip: content lines come precomputed (data.nodeT / data.edgeT) so
@@ -944,6 +1163,86 @@ const caption =
   }
   .pg-tooltip[hidden] {
     display: none;
+  }
+  /* Below the canvas, not floating over it: absolutely positioned, the cluster
+     sat on top of the labels of whatever nodes the layout put in that corner. */
+  .pg-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: var(--space-2);
+  }
+  .pg-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    line-height: 1;
+    color: var(--text-normal);
+    background: var(--background-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+  .pg-btn:hover,
+  .pg-btn:focus-visible {
+    color: var(--text-accent);
+    border-color: var(--border-active);
+  }
+  .pg-btn[aria-pressed='true'] {
+    color: var(--text-accent);
+    border-color: var(--border-active);
+    background: color-mix(in srgb, var(--text-accent) 10%, transparent);
+  }
+  /* WCAG 2.5.8: a finger needs 24px, and 34px still misses under a thumb. */
+  @media (pointer: coarse) {
+    .pg-btn {
+      width: 44px;
+      height: 44px;
+    }
+  }
+  /* Zoomed in, one finger pans the graph instead of scrolling the page — the
+     coarse-pointer `pan-y` override above would otherwise hand every gesture to
+     the document and make the zoom useless. */
+  /* A label can still cross a *node* it does not belong to (labels are only
+     kept apart from each other). A paper-coloured halo keeps the text readable
+     over a disc instead of hiding it behind one. */
+  .pg-label {
+    paint-order: stroke;
+    stroke: var(--background-primary);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+  .pg-root.pg-zoomed .pg-svg {
+    touch-action: none;
+    cursor: move;
+  }
+  .pg-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 14px;
+    list-style: none;
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .pg-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pg-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .pg-labels-on .pg-label-hover {
+    opacity: 1;
   }
   .pg-caption {
     color: var(--text-muted);

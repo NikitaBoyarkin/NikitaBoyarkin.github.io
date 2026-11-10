@@ -149,6 +149,23 @@ describe.each(PAGES)('talks dashboard contract (%s)', (path) => {
     expect(graphs).toContain('talks-track-avito');
   });
 
+  it('gives every graph zoom controls and a colour legend', () => {
+    const doc = page(path);
+    // One control cluster per graph instance: 4 buttons × 13 graphs.
+    expect([...doc.matchAll(/class="pg-controls"/g)].length).toBe(13);
+    expect([...doc.matchAll(/data-pg-zoom="in"/g)].length).toBe(13);
+    expect([...doc.matchAll(/data-pg-labels/g)].length).toBe(13);
+    // The legend is the only place a reader learns what the colours mean, and
+    // it is SSR text: the overview names the event + track hues, a track graph
+    // names track + talk (+ theme where that track has theme hubs).
+    const legends = [...doc.matchAll(/<ul class="pg-legend"[\s\S]*?<\/ul>/g)].map((m) => m[0]);
+    expect(legends.length).toBe(13);
+    for (const ul of legends) {
+      expect(ul).toContain('class="pg-swatch"');
+      expect([...ul.matchAll(/<li>/g)].length).toBeGreaterThanOrEqual(2);
+    }
+  });
+
   it('ships the talk-card dialog with one payload row per talk', () => {
     const doc = page(path);
     expect(doc).toContain('id="talk-card"');

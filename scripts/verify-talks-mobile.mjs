@@ -34,6 +34,7 @@
 import { chromium } from 'playwright';
 import { existsSync, statSync } from 'node:fs';
 import { extname, isAbsolute, join, normalize, sep } from 'node:path';
+import { checkGraphLabelsAndTabs } from './talks-mobile-graph-checks.mjs';
 
 const ROOT = join(import.meta.dir, '..');
 const distArg = process.env.DIST_DIR || 'dist';
@@ -423,6 +424,12 @@ try {
     );
     await page.close();
   }
+
+  // --- (d)(e)(f) labels, zoom controls, tab strips -------------------------
+  // Extracted to a module of their own: these three checks are graph- and
+  // tab-specific, and inlining them pushed this entry point past the repo's
+  // file-size budget.
+  await checkGraphLabelsAndTabs({ openPhone, settle, sleep, check, PHONE });
 
   check('no console or page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
 } finally {
