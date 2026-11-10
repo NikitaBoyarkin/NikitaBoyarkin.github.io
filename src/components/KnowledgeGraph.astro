@@ -27,12 +27,17 @@ interface Props {
    *  presents it the way the homepage presents its board; the role-landing
    *  embeds keep the card. */
   bare?: boolean;
+  /** Paint the bento-card surface on the bare board too. `/graph/` mounts its
+   *  three section graphs as cards; the bare reset strips the surface for a
+   *  board that runs the full page width, and this puts it back without
+   *  giving up the height cap or the static index that `bare` also carries. */
+  card?: boolean;
   /** Render one content section's graph instead of the whole thing. `/graph/`
    *  mounts three of these in a row; the role-landing embeds pass no section
    *  and keep the single combined graph. */
   section?: GraphSection;
 }
-const { lang = 'ru', bare = false, section } = Astro.props;
+const { lang = 'ru', bare = false, card = false, section } = Astro.props;
 /** Stable per-instance key: the section, or `main` for the combined graph.
  *  It suffixes the aria-referenced ids and namespaces the arrow marker. */
 const kgKey = section ?? 'main';
@@ -68,6 +73,8 @@ const t = {
   labelsLabel: isEn
     ? 'Labels: name every node, not just projects and topics'
     : 'Подписи: подписать все узлы, не только проекты и темы',
+  names: 'Aa',
+  namesLabel: isEn ? 'Show or hide node names' : 'Показать или скрыть названия узлов',
   edges: isEn ? 'Edges' : 'Рёбра',
   edgesLabel: isEn ? 'Filter by link type' : 'Фильтр по типу связей',
   edgeType: {
@@ -283,7 +290,7 @@ const clientData = {
 const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
 ---
 
-<div data-kg-instance={kgKey} data-kg="root" class:list={['kg-root', { 'kg-bare': bare }]} style={`--kg-label-halo:${LABEL_HALO}px`} data-lang={lang} data-graph-key={kgKey} data-analytics-graph={bare ? (section ?? 'content') : undefined} data-live-shown={isEn ? '{n} of {total} nodes shown' : 'Показано узлов: {n} из {total}'} data-live-search={isEn ? '{n} matches' : 'Совпадений: {n}'} data-search-empty={isEn ? 'No matches' : 'Ничего не найдено'} data-search-reset={isEn ? 'Clear search' : 'Очистить поиск'} data-live-labels-on={isEn ? '{n} of {total} labels shown' : 'Показано подписей: {n} из {total}'} data-live-labels-off={isEn ? 'Labels hidden' : 'Подписи скрыты'}>
+<div data-kg-instance={kgKey} data-kg="root" class:list={['kg-root', { 'kg-bare': bare, 'kg-card': card }]} style={`--kg-label-halo:${LABEL_HALO}px`} data-lang={lang} data-graph-key={kgKey} data-analytics-graph={bare ? (section ?? 'content') : undefined} data-live-shown={isEn ? '{n} of {total} nodes shown' : 'Показано узлов: {n} из {total}'} data-live-search={isEn ? '{n} matches' : 'Совпадений: {n}'} data-search-empty={isEn ? 'No matches' : 'Ничего не найдено'} data-search-reset={isEn ? 'Clear search' : 'Очистить поиск'} data-live-labels-on={isEn ? '{n} of {total} labels shown' : 'Показано подписей: {n} из {total}'} data-live-labels-off={isEn ? 'Hub names only, other labels hidden' : 'Подписаны только ядра, остальные названия скрыты'}>
   <!-- The whole control bar is one bento block: the site's `.bento-cell`
        recipe (a bordered, rounded surface) around the search, the legend and
        the view controls, with the quick-filter chips under them. It is
@@ -325,6 +332,10 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-focus" aria-pressed="false" aria-label={t.focusLabel} title={t.focusLabel}>{t.focus}</button>
         <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-physics" aria-pressed="false" aria-label={t.physicsLabel} title={t.physicsLabel}>{t.physics}</button>
         <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-labels" aria-pressed="false" aria-label={t.labelsLabel} title={t.labelsLabel}>{t.labels}</button>
+        <!-- "Aa" master switch: hides every name except a hub's (root and type
+             hubs keep theirs), including the hover-only ones the Labels toggle
+             deliberately keeps for projects and topics. -->
+        <button type="button" class="kg-btn kg-btn-toggle kg-btn-aa" data-kg-action="toggle-label-names" aria-pressed="true" aria-label={t.namesLabel} title={t.namesLabel}>{t.names}</button>
         <div class="kg-popover">
           <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-edge-panel" aria-haspopup="true" aria-expanded="false" aria-label={`${t.edges}: ${t.edgesLabel}`} title={t.edgesLabel}>{t.edges}</button>
           <div data-kg="edge-panel" class="kg-edge-panel" role="group" aria-label={t.edgesLabel} hidden>
@@ -410,7 +421,9 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         // pick of every slot, and a core a reader cannot name is unreadable
         // however clean the rest of the cloud is.
         const alwaysOn = p ? p.placed || isCoreNode(n.id) : false;
-        const labelClass = alwaysOn ? 'kg-label' : 'kg-label kg-label-hover';
+        // `kg-label-core` marks a hub: the "Aa" switch hides every name but
+        // these, so the graph still says what its sections are.
+        const labelClass = `${alwaysOn ? 'kg-label' : 'kg-label kg-label-hover'}${isCoreNode(n.id) ? ' kg-label-core' : ''}`;
         // Every node ships as an empty ring: at rest the graph reads as pure
         // contour, and a node's colour arrives on hover/focus ("touch"). The
         // colour lives in a CSS variable because the client recolours nodes on the
@@ -909,6 +922,17 @@ function initGraph(root: HTMLElement, data: any) {
     /** "Labels" toggle: off is the build-time rule (root, hubs, projects,
      *  topics), on runs the same placement pass over every node. */
     let showAllLabels = false;
+    /** "Aa" master switch: hides every name except a hub's. */
+    let labelsHidden = false;
+    /** Labels painted right now — the count the live region announces. */
+    function visibleLabelCount() {
+      let n = 0;
+      for (const g of nodeEls) {
+        const text = g.querySelector('text');
+        if (text && !text.classList.contains('kg-label-hover')) n += 1;
+      }
+      return n;
+    }
 
     /** Move every node onto the current mode's build-time positions and recolor
      *  (used by the color toggle and by URL restore — the SVG ships the group
@@ -1774,15 +1798,21 @@ function initGraph(root: HTMLElement, data: any) {
           // labels the placement pass actually painted.
           if (booted) {
             if (showAllLabels) {
-              let withLabel = 0;
-              for (const g of nodeEls) {
-                const text = g.querySelector('text');
-                if (text && !text.classList.contains('kg-label-hover')) withLabel += 1;
-              }
-              announce(fillTpl(root.dataset.liveLabelsOn ?? '', { n: withLabel, total: nodes.length }));
+              announce(fillTpl(root.dataset.liveLabelsOn ?? '', { n: visibleLabelCount(), total: nodes.length }));
             } else {
               announce(root.dataset.liveLabelsOff ?? '');
             }
+          }
+        } else if (action === 'toggle-label-names') {
+          labelsHidden = !labelsHidden;
+          btn.setAttribute('aria-pressed', String(!labelsHidden));
+          root.classList.toggle('kg-labels-hidden', labelsHidden);
+          if (booted) {
+            announce(
+              labelsHidden
+                ? (root.dataset.liveLabelsOff ?? '')
+                : fillTpl(root.dataset.liveLabelsOn ?? '', { n: visibleLabelCount(), total: nodes.length }),
+            );
           }
         } else if (action === 'toggle-edge-panel') {
           const wasHidden = edgePanel ? edgePanel.hidden : true;
@@ -2022,6 +2052,21 @@ function initGraph(root: HTMLElement, data: any) {
     inline-size: min(100%, calc(74svh * (900 / 560)));
     margin-inline: auto;
   }
+  /* Bento-card presentation for the bare board (`/graph/`): the site's
+     `.bento-cell` recipe minus its hover lift — a graph is a surface to read,
+     not a card to open, so it must not move under the pointer. The block gutter
+     the bare reset applies is replaced by the card's own padding. */
+  .kg-root.kg-bare.kg-card:not(.kg-fullscreen) {
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+  }
+  /* Inside a card the control bar is one step off the card surface, exactly as
+     it is on the embedded graph (see the `.kg-bar` note below). */
+  .kg-root.kg-card .kg-bar {
+    background: var(--background-primary);
+  }
   .kg-root.kg-fullscreen {
     position: fixed;
     inset: 0;
@@ -2219,6 +2264,14 @@ function initGraph(root: HTMLElement, data: any) {
     border-color: var(--text-accent);
     color: var(--text-accent);
   }
+  /* "Aa" reads as an icon, not a word: tighter to the button's own box and a
+     lighter weight than the word toggles beside it. */
+  .kg-btn-aa {
+    padding: 0 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
   /* Zoom trio as one segmented control: joined borders, outer corners rounded,
      and the hovered button lifted so its accent border is not clipped by the
      neighbour it overlaps. */
@@ -2282,6 +2335,15 @@ function initGraph(root: HTMLElement, data: any) {
      dimmed node outright so only the highlighted neighbourhood is legible. */
   .kg-root :is(g.kg-dim) .kg-label,
   .kg-root :is(g.kg-dim) .kg-label-hover {
+    opacity: 0;
+  }
+  /* "Aa" master switch: every name goes except a hub's — the root and the type
+     hubs keep theirs, so a nameless cloud still says what its sections are.
+     Scoped past the hover/focus reveal above so the hidden set cannot flicker
+     back under the pointer. Bridge badges are controls, not names. */
+  .kg-root.kg-labels-hidden .kg-label:not(.kg-label-core),
+  .kg-root.kg-labels-hidden :is(g[tabindex]:hover) .kg-label:not(.kg-label-core),
+  .kg-root.kg-labels-hidden :is(g[tabindex]:focus) .kg-label:not(.kg-label-core) {
     opacity: 0;
   }
   /* Every node is a ring: no fill at rest, so the graph reads as contour and the

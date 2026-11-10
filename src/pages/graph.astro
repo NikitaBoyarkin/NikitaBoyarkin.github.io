@@ -32,7 +32,7 @@ const sections = await getGraphSections('ru');
           {labelForSection(s.key, 'ru')}
           <span class="graph-block-count">{s.group.nodes.length}</span>
         </h2>
-        <KnowledgeGraph section={s.key} bare />
+        <KnowledgeGraph section={s.key} bare card />
       </section>
     ))}
 
@@ -48,6 +48,10 @@ const sections = await getGraphSections('ru');
     margin-block-start: var(--space-10);
   }
   .graph-block {
+    /* The graphs are cards now, so the block carries the page gutter itself —
+       otherwise the card runs edge to edge while the heading above it sits on
+       the reading measure. */
+    padding-inline: var(--page-pad);
     scroll-margin-top: var(--space-10);
   }
   .graph-block-title {
