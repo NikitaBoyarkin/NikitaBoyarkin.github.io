@@ -6,15 +6,17 @@
 // runs only while a node is being dragged. No fetch, and no animation loop at
 // rest: the build-time layout *is* the resting state.
 import { withBase } from '../lib/path';
-import { getGraphLayouts } from '../lib/graph-data';
+import { getGraphLayouts, getGraphSections } from '../lib/graph-data';
 import {
   GRAPH_SECTION_COLORS,
   GRAPH_EDGE_STYLE,
   GRAPH_EDGE_COLOR,
   NODE_SIZE,
   LINK_THICKNESS,
+  labelForSection,
   type GraphLink,
   type GraphNode,
+  type GraphSection,
 } from '../lib/graph';
 import { buildGraphTooltips, nodeKindOf } from '../lib/graph-tooltip';
 import { LABEL_HALO, placeLabels } from '../lib/graph-labels';
@@ -25,8 +27,15 @@ interface Props {
    *  presents it the way the homepage presents its board; the role-landing
    *  embeds keep the card. */
   bare?: boolean;
+  /** Render one content section's graph instead of the whole thing. `/graph/`
+   *  mounts three of these in a row; the role-landing embeds pass no section
+   *  and keep the single combined graph. */
+  section?: GraphSection;
 }
-const { lang = 'ru', bare = false } = Astro.props;
+const { lang = 'ru', bare = false, section } = Astro.props;
+/** Stable per-instance key: the section, or `main` for the combined graph.
+ *  It suffixes the aria-referenced ids and namespaces the arrow marker. */
+const kgKey = section ?? 'main';
 const isEn = lang === 'en';
 const ariaLabel = isEn
   ? 'Knowledge graph of portfolio content'
@@ -55,6 +64,10 @@ const t = {
   physicsLabel: isEn
     ? 'Physics: drag a node and its neighbors follow — released nodes return home'
     : 'Физика: тяните узел, соседи поедут за ним — брошенный вернётся на место',
+  labels: isEn ? 'Labels' : 'Подписи',
+  labelsLabel: isEn
+    ? 'Labels: name every node, not just projects and topics'
+    : 'Подписи: подписать все узлы, не только проекты и темы',
   edges: isEn ? 'Edges' : 'Рёбра',
   edgesLabel: isEn ? 'Filter by link type' : 'Фильтр по типу связей',
   edgeType: {
@@ -78,10 +91,25 @@ const t = {
 // Both layouts ran at build time. The SVG ships the group layout (so every
 // node carries a concrete x/y); the community layout is embedded for the
 // client's color toggle, which swaps positions along with the colors.
-const { group, community } = await getGraphLayouts(lang);
+const sectionGraph = section
+  ? (await getGraphSections(lang)).find((s) => s.key === section)
+  : undefined;
+const { group, community } = sectionGraph ?? (await getGraphLayouts(lang));
+/** Cross-section edges of this graph: a `→N` badge on the node plus the ids it
+ *  points at, so a click can jump and flash the recipients. Empty on the
+ *  combined graph, where every edge is already drawn. */
+const bridges = sectionGraph?.bridges ?? {};
+const bridgeIds = sectionGraph?.bridgeIds ?? {};
+const bridgeTotal = (id: string) =>
+  Object.values(bridgeIds[id] ?? {}).reduce((sum, ids) => sum + ids.length, 0);
 const nodes = group.nodes as (GraphNode & { x: number; y: number })[];
 const communityNodes = community.nodes as (GraphNode & { x: number; y: number })[];
 const links = group.links;
+/** Edge types this graph actually draws. The panel used to offer all five
+ *  whatever the data held; a section graph without Volta `children` edges would
+ *  toggle a type it does not contain. */
+const EDGE_TYPES = ['related', 'children', 'topic', 'shared', 'core'] as const;
+const edgeTypes = EDGE_TYPES.filter((ty) => links.some((l) => l.type === ty));
 const nodeById = new Map(nodes.map((n) => [n.id, n]));
 // Tooltip lines (per node / per edge, aligned by index) rendered into the SVG
 // <title> elements and embedded for the interactive tooltip below.
@@ -187,23 +215,10 @@ function edgeEndpoints(l: GraphLink) {
 // crawler, a screen reader or a no-JS reader reaches a dead end. Built from the
 // SSR graph (`nodes`), never fetched.
 const SECTION_ORDER = ['root', 'projects', 'articles', 'glossary', 'topic'];
-const SECTION_LABELS: Record<string, [ru: string, en: string]> = {
-  root: ['Ядро', 'Core'],
-  projects: ['Проекты', 'Projects'],
-  articles: ['Статьи', 'Articles'],
-  glossary: ['Словарь', 'Glossary'],
-  topic: ['Темы', 'Topics'],
-  // The conference programme enters the content graph as one hub node; the
-  // talks palette also carries `track`/`theme`, which the index would otherwise
-  // print as a bare lowercase key.
-  talks: ['Доклады', 'Talks'],
-  track: ['Треки', 'Tracks'],
-  theme: ['Темы докладов', 'Talk themes'],
-};
-const labelForSection = (section: string) => {
-  const labels = SECTION_LABELS[section];
-  return labels ? labels[isEn ? 1 : 0] : section;
-};
+// The section's display name lives in `src/lib/graph.ts` beside the palette it
+// belongs to, so the legend, the colour-switch re-render and this index cannot
+// word one section three ways.
+const sectionLabel = (section: string) => labelForSection(section, lang);
 const collatorLocale = isEn ? 'en' : 'ru';
 const byLabel = (a: GraphNode, b: GraphNode) =>
   a.label.localeCompare(b.label, collatorLocale);
@@ -215,7 +230,7 @@ const sectionOrder = [
 ];
 const indexGroups = sectionOrder.map((section) => ({
   section,
-  label: labelForSection(section),
+  label: sectionLabel(section),
   nodes: nodes.filter((n) => n.section === section).sort(byLabel),
 }));
 
@@ -228,7 +243,8 @@ const indexGroups = sectionOrder.map((section) => ({
 const legendItems = Object.keys(GRAPH_SECTION_COLORS)
   .filter((key) => nodes.some((n) => n.section === key))
   .map((key) => ({
-    label: key,
+    key,
+    label: sectionLabel(key),
     color: GRAPH_SECTION_COLORS[key],
     count: nodes.filter((n) => n.section === key).length,
   }));
@@ -245,11 +261,20 @@ for (const n of nodes) {
 // Client data: nodes get an absolute href (base-prefixed) for navigation; the
 // rest is the raw graph so search/legend/hover can read it from the DOM.
 const clientData = {
+  key: kgKey,
+  section: section ?? null,
   nodes: nodes.map((n) => ({ ...n, href: withBase(n.url) })),
   links,
+  // Badge counts and the ids behind them (per destination section); empty on
+  // the combined graph, which draws those edges instead.
+  bridges,
+  bridgeIds,
   // Parallel to `nodes`: the community-mode build-time positions, so the
   // client can swap layouts without running any simulation.
   communityPos: communityNodes.map((n) => ({ x: n.x, y: n.y })),
+  // Section display names, so the client's legend re-render (colour switch)
+  // words a section exactly as the server-rendered legend did.
+  sectionLabels: Object.fromEntries(legendItems.map((it) => [it.key, it.label])),
   // Tooltip lines are NOT serialised: `buildGraphTooltips(nodes, links, lang)`
   // is pure and both inputs already ship, so the client rebuilds them at init
   // instead of receiving them twice. Dropped 57 KB raw (≈7 KB gzip) of
@@ -258,7 +283,7 @@ const clientData = {
 const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
 ---
 
-<div id="kg-root" class:list={['kg-root', { 'kg-bare': bare }]} style={`--kg-label-halo:${LABEL_HALO}px`} data-lang={lang} data-search-empty={isEn ? 'No matches' : 'Ничего не найдено'} data-search-reset={isEn ? 'Clear search' : 'Очистить поиск'}>
+<div data-kg-instance={kgKey} data-kg="root" class:list={['kg-root', { 'kg-bare': bare }]} style={`--kg-label-halo:${LABEL_HALO}px`} data-lang={lang} data-graph-key={kgKey} data-analytics-graph={bare ? (section ?? 'content') : undefined} data-live-shown={isEn ? '{n} of {total} nodes shown' : 'Показано узлов: {n} из {total}'} data-live-search={isEn ? '{n} matches' : 'Совпадений: {n}'} data-search-empty={isEn ? 'No matches' : 'Ничего не найдено'} data-search-reset={isEn ? 'Clear search' : 'Очистить поиск'} data-live-labels-on={isEn ? '{n} of {total} labels shown' : 'Показано подписей: {n} из {total}'} data-live-labels-off={isEn ? 'Labels hidden' : 'Подписи скрыты'}>
   <!-- The whole control bar is one bento block: the site's `.bento-cell`
        recipe (a bordered, rounded surface) around the search, the legend and
        the view controls, with the quick-filter chips under them. It is
@@ -269,7 +294,7 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     <div class="kg-topbar">
       <div class="kg-search" role="search">
         <input
-          id="kg-search-input"
+          data-kg="search-input"
           class="kg-search-input"
           type="search"
           placeholder={t.searchPlaceholder}
@@ -277,12 +302,12 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
           autocomplete="off"
           role="combobox"
           aria-expanded="false"
-          aria-controls="kg-search-results"
+          aria-controls={`kg-search-results-${kgKey}`}
           aria-autocomplete="list"
         />
-        <div id="kg-search-results" class="kg-search-results" role="listbox" hidden></div>
+        <div data-kg="search-results" id={`kg-search-results-${kgKey}`} class="kg-search-results" role="listbox" hidden></div>
       </div>
-      <div class="kg-legend" id="kg-legend" role="list" aria-label={isEn ? 'Graph color legend' : 'Легенда цветов графа'}>
+      <div class="kg-legend" data-kg="legend" role="list" aria-label={isEn ? 'Graph color legend' : 'Легенда цветов графа'}>
         {legendItems.map((it) => (
           <span class="kg-legend-item" role="listitem">
             <i style={`background:${it.color}`}></i>
@@ -299,10 +324,11 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
         <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-arrows" aria-pressed="false" aria-label={t.arrowsLabel} title={t.arrowsLabel}>{t.arrows}</button>
         <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-focus" aria-pressed="false" aria-label={t.focusLabel} title={t.focusLabel}>{t.focus}</button>
         <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-physics" aria-pressed="false" aria-label={t.physicsLabel} title={t.physicsLabel}>{t.physics}</button>
+        <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-labels" aria-pressed="false" aria-label={t.labelsLabel} title={t.labelsLabel}>{t.labels}</button>
         <div class="kg-popover">
           <button type="button" class="kg-btn kg-btn-toggle" data-kg-action="toggle-edge-panel" aria-haspopup="true" aria-expanded="false" aria-label={`${t.edges}: ${t.edgesLabel}`} title={t.edgesLabel}>{t.edges}</button>
-          <div id="kg-edge-panel" class="kg-edge-panel" role="group" aria-label={t.edgesLabel} hidden>
-            {(['related', 'children', 'topic', 'shared', 'core'] as const).map((ty) => (
+          <div data-kg="edge-panel" class="kg-edge-panel" role="group" aria-label={t.edgesLabel} hidden>
+            {edgeTypes.map((ty) => (
               <label class="kg-edge-toggle">
                 <input type="checkbox" data-kg-type={ty} checked />
                 <span class="kg-edge-swatch" data-kg-swatch={ty}></span>
@@ -333,20 +359,20 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
     </div>
     <div class="kg-presets" role="group" aria-label={t.presetLabel}>
       <button type="button" class="kg-chip" data-kg-preset="" aria-pressed="true" data-label={t.presetAll}><span class="kg-chip-label">{t.presetAll}</span><span class="kg-chip-count">{nodes.length}</span></button>
-      <button type="button" class="kg-chip" data-kg-preset="project" aria-pressed="false" data-label={t.presetProject}><span class="kg-chip-label">{t.presetProject}</span><span class="kg-chip-count">{presetCounts.project ?? 0}</span></button>
-      <button type="button" class="kg-chip" data-kg-preset="post" aria-pressed="false" data-label={t.presetPost}><span class="kg-chip-label">{t.presetPost}</span><span class="kg-chip-count">{presetCounts.post ?? 0}</span></button>
-      <button type="button" class="kg-chip" data-kg-preset="topic" aria-pressed="false" data-label={t.presetTopic}><span class="kg-chip-label">{t.presetTopic}</span><span class="kg-chip-count">{presetCounts.topic ?? 0}</span></button>
-      <button type="button" class="kg-chip" data-kg-preset="volta" aria-pressed="false" data-label={t.presetVolta}><span class="kg-chip-label">{t.presetVolta}</span><span class="kg-chip-count">{presetCounts.volta ?? 0}</span></button>
-      <button type="button" class="kg-chip" data-kg-preset="glossary" aria-pressed="false" data-label={t.presetGlossary}><span class="kg-chip-label">{t.presetGlossary}</span><span class="kg-chip-count">{presetCounts.glossary ?? 0}</span></button>
+      <button type="button" class="kg-chip" hidden={!presetCounts.project} data-kg-preset="project" aria-pressed="false" data-label={t.presetProject}><span class="kg-chip-label">{t.presetProject}</span><span class="kg-chip-count">{presetCounts.project ?? 0}</span></button>
+      <button type="button" class="kg-chip" hidden={!presetCounts.post} data-kg-preset="post" aria-pressed="false" data-label={t.presetPost}><span class="kg-chip-label">{t.presetPost}</span><span class="kg-chip-count">{presetCounts.post ?? 0}</span></button>
+      <button type="button" class="kg-chip" hidden={!presetCounts.topic} data-kg-preset="topic" aria-pressed="false" data-label={t.presetTopic}><span class="kg-chip-label">{t.presetTopic}</span><span class="kg-chip-count">{presetCounts.topic ?? 0}</span></button>
+      <button type="button" class="kg-chip" hidden={!presetCounts.volta} data-kg-preset="volta" aria-pressed="false" data-label={t.presetVolta}><span class="kg-chip-label">{t.presetVolta}</span><span class="kg-chip-count">{presetCounts.volta ?? 0}</span></button>
+      <button type="button" class="kg-chip" hidden={!presetCounts.glossary} data-kg-preset="glossary" aria-pressed="false" data-label={t.presetGlossary}><span class="kg-chip-label">{t.presetGlossary}</span><span class="kg-chip-count">{presetCounts.glossary ?? 0}</span></button>
     </div>
   </div>
   <!-- role="group" (not "img"): ARIA "img" has presentational children, which
        would flatten the 75 focusable node links inside the SVG out of the
        accessibility tree. A group keeps them real, focusable links; the
        visually-hidden list below carries the plain-text data alternative. -->
-  <svg id="kg-svg" class="kg-svg" viewBox="0 0 900 560" preserveAspectRatio="xMidYMid meet" role="group" aria-label={ariaLabel} aria-describedby="kg-sr-desc">
+  <svg data-kg="svg" class="kg-svg" viewBox="0 0 900 560" preserveAspectRatio="xMidYMid meet" role="group" aria-label={ariaLabel} aria-describedby={`kg-sr-desc-${kgKey}`}>
     <defs>
-      <marker id="kg-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <marker id={`kg-arrow-${kgKey}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
         <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-muted)"></path>
       </marker>
     </defs>
@@ -401,15 +427,33 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
             style={`cursor:pointer;--kg-ring:${ringColor}`}
           >
             <title>{tooltips.node[i].join('\n')}</title>
+            {/* Touch pad: a 6-unit ring is an 8px target on a phone. This
+                invisible disc widens the hit area to ≥22 units without
+                painting anything — a finger lands on it, the ring still reads
+                as contour. */}
+            <circle r={Math.max(r, 11)} class="kg-pad" />
             <circle r={r} class="kg-ring" />
             <text x={geo.tx} y={geo.ty} text-anchor={geo.anchor} class={labelClass}>{n.label}</text>
+            {/* Cross-section bridges: the section graphs do not draw the 30%
+                of edges that leave them, so the count rides on the node. The
+                click handler looks the destination ids up in the payload. */}
+            {bridgeTotal(n.id) > 0 && (
+              <text
+                x={r + 3}
+                y={-(r + 2)}
+                class="kg-bridge"
+                data-kg-bridge={n.id}
+                role="note"
+                aria-label={isEn ? `${bridgeTotal(n.id)} links to other sections` : `${bridgeTotal(n.id)} связей в других разделах`}
+              >→{bridgeTotal(n.id)}</text>
+            )}
           </g>
         );
       })}
     </g>
   </svg>
   <div class="visually-hidden">
-    <p id="kg-sr-desc">{srDesc}</p>
+    <p data-kg="sr-desc" id={`kg-sr-desc-${kgKey}`}>{srDesc}</p>
     <ul>
       {nodes.map((n) => {
         const conns = connsByNode.get(n.id);
@@ -445,10 +489,14 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
       </div>
     </details>
   )}
-  <div id="kg-tooltip" class="kg-tooltip" role="tooltip" hidden></div>
+  <div data-kg="tooltip" class="kg-tooltip" role="tooltip" hidden></div>
+  {/* The filter and the search change what is on screen with no visible
+      confirmation of how much changed; a screen reader gets nothing at all.
+      One polite live region carries both ("Показано узлов: 74 из 119"). */}
+  <p data-kg="live" class="visually-hidden" role="status" aria-live="polite"></p>
+  <script is:inline type="application/json" data-kg="data" set:html={json}></script>
 </div>
 
-<script is:inline type="application/json" id="kg-data" set:html={json}></script>
 
 <script>
   import { GRAPH_SECTION_COLORS, GRAPH_COMMUNITY_COLORS, NODE_SIZE, isDirected } from '../lib/graph';
@@ -457,365 +505,493 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
   import { easeTo, physicsParams, stepSim, type Point, type SimLink, type SimNode } from '../lib/graph-physics';
   import { buildGraphTooltips, nodeKindOf } from '../lib/graph-tooltip';
   import { placeLabels } from '../lib/graph-labels';
+  import { localeFromPath, track } from '../lib/analytics';
 
-  const rootEl = document.getElementById('kg-root');
-  const svgEl = document.getElementById('kg-svg');
-  const dataEl = document.getElementById('kg-data');
-  if (!rootEl || !svgEl || !dataEl) throw new Error('kg-root / kg-svg / kg-data not found');
-  const root = rootEl as HTMLElement;
-  const svg = svgEl as unknown as SVGSVGElement;
-  const data = JSON.parse(dataEl.textContent || '{}');
-
-  // Astro scopes this component's <style> by stamping `data-astro-cid-…` on every
-  // element it renders. Nodes built below with `createElement` never got that
-  // attribute, so not one rule for them matched: the legend rendered as loose
-  // unstyled text with a native checkbox in it, and the search dropdown's items
-  // and empty state lost their styling the same way. Copying the attribute onto
-  // JS-made nodes repairs every such rule at once, instead of wrapping each of
-  // them in `:global()`.
-  const scopeAttr = Array.from(root.attributes)
-    .map((a) => a.name)
-    .find((n) => n.startsWith('data-astro-cid-'));
-  /** `createElement`, carrying this component's style scope. */
-  function mk<K extends keyof HTMLElementTagNameMap>(
-    tag: K,
-    className?: string,
-  ): HTMLElementTagNameMap[K] {
-    const el = document.createElement(tag);
-    if (className) el.className = className;
-    if (scopeAttr) el.setAttribute(scopeAttr, '');
-    return el;
+  interface KgApi {
+    root: HTMLElement;
+    settle: () => void;
+    focusIn: (ids: string[]) => void;
+    onKeyDown: (e: KeyboardEvent) => void;
+    onEscape: (e: KeyboardEvent) => void;
+    onPointerDown: (e: PointerEvent) => void;
   }
+  /** Every mounted instance, keyed by `data-kg-instance`. */
+  const registry = new Map<string, KgApi>();
+  /** Last instance a pointer landed in — decides who owns an Esc. */
+  let activeRoot: HTMLElement | null = null;
 
-  // World size must match the SSR viewBox (see the template above).
-  const world = { w: 900, h: 560 };
-  // The label size is read from the rendered label below, never re-declared:
-  // `.kg-label`'s font-size is the one number this zoom depends on, and a second
-  // copy of it here would drift silently.
-  const READABLE_LABEL_PX = 11;
-  const MAX_READABLE_ZOOM = 3.2;
-  // Must match the label font-size in the component styles and the build-time
-  // placement call in the template above.
-  const LABEL_FONT_SIZE = 11;
-  // Sections the content graph actually contains. The palette carries keys for
-  // the talks graph (`track:`, `theme:`) that never appear here; a legend row
-  // that toggles nothing is worse than no row, so both the SSR legend and this
-  // list derive from the nodes in play.
-  const sectionList = Object.keys(GRAPH_SECTION_COLORS).filter((key) =>
-    nodes.some((n) => n.section === key),
-  );
-  // Color mode: fixed track/category taxonomy vs emergent communities.
-  let mode: 'group' | 'community' = 'group';
-  // Obsidian "Arrows": show link direction on directed edge types.
-  let showArrows = false;
-  // Obsidian "Tags" filter: per-mode hidden sets (groups in group mode,
-  // communities in community mode), preserved across mode switches.
-  let hiddenGroups = new Set<string | number>();
-  let hiddenCommunities = new Set<string | number>();
-  const hiddenSet = () => (mode === 'community' ? hiddenCommunities : hiddenGroups);
-  const keyOf = (n: any) => (mode === 'community' ? (n.community ?? 0) : n.section);
-  // Edge-type filter (mode-independent): hidden link types, kept in the URL.
-  let hiddenEdgeTypes = new Set<string>();
-  // Focus mode: clicking a node keeps its 1-hop neighborhood highlighted.
-  let focusMode = false;
-  let focusedId: string | null = null;
-  // Quick-view preset: filter the whole graph to a single node kind — the
-  // second grouping axis ("only projects / only posts / only topics / only
-  // Volta"), orthogonal to the legend checkboxes.
-  let preset: string | null = null;
-  /** Node kind from the id prefix (the same helper the tooltips use). */
-  const kindOf = (n: any) => nodeKindOf(n.id);
-  /** A node is hidden by the group/community checkboxes OR by an active preset
-   *  that excludes its kind. Reads the live hidden set each call. */
-  const nodeHidden = (n: any) => hiddenSet().has(keyOf(n)) || (preset !== null && kindOf(n) !== preset);
+function initGraph(root: HTMLElement, data: any) {
+    const key = String(data.key ?? root.dataset.graphKey ?? 'main');
+    const svg = root.querySelector('[data-kg="svg"]') as unknown as SVGSVGElement;
+    if (!svg) throw new Error('kg: graph svg not found');
+    // Shared URL scope: `?graph=<key>` names the one block whose mode/preset/
+    // focus a link carries, so three graphs on one page do not fight over it.
+    const graphParam = new URLSearchParams(window.location.search).get('graph');
+    const ownsURL = () => !graphParam || graphParam === key;
+    /** Which instance an Esc (or a fullscreen key trap) belongs to: the one
+     *  with DOM focus, the fullscreen one, or the last one touched. */
+    const ownsInteraction = () =>
+      registry.size === 1 ||
+      root.contains(document.activeElement) ||
+      root.classList.contains('kg-fullscreen') ||
+      activeRoot === root;
+    // Mutated below; the page-level listeners fan out through this object, so
+    // every document event reaches exactly the live instance it concerns.
+    const api: any = {
+      root,
+      settle: settleIfRunning,
+      focusIn,
+      onKeyDown: () => {},
+      onEscape: () => {},
+      onPointerDown: () => {},
+    };
+    registry.set(key, api);
 
-  const nodes: any[] = data.nodes;
-  const links: any[] = data.links;
-  // One source of truth for tooltip copy: the same pure builder the server uses
-  // for the SVG <title> lines, re-run here on data that is already in memory.
-  const tips = buildGraphTooltips(nodes, links, root.dataset.lang === 'en' ? 'en' : 'ru');
-  const nodeById = new Map(nodes.map((n: any) => [n.id, n]));
-  const nodeEls = Array.from(svg.querySelectorAll<SVGGElement>('g[tabindex]'));
-  const edgeEls = Array.from(svg.querySelectorAll<SVGLineElement>('.kg-edge'));
-  // Per-type edge color, sampled from the server-rendered lines so the filter
-  // panel swatches always match the SSR edge styling.
-  const edgeColor = new Map<string, string>();
-  edgeEls.forEach((e, i) => {
-    const ty = links[i].type;
-    if (!edgeColor.has(ty)) edgeColor.set(ty, e.getAttribute('stroke') || 'var(--text-muted)');
-  });
-  // Wide transparent hit areas (behind the nodes) so the thin links are
-  // actually hoverable for the tooltip. Each carries a copy of its line's
-  // endpoints; `applyPositions` keeps both in step while physics runs.
-  const edgeHitEls = edgeEls.map((e) => {
-    const hit = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    for (const attr of ['x1', 'y1', 'x2', 'y2']) {
-      hit.setAttribute(attr, e.getAttribute(attr)!);
+    // Astro scopes this component's <style> by stamping `data-astro-cid-…` on every
+    // element it renders. Nodes built below with `createElement` never got that
+    // attribute, so not one rule for them matched: the legend rendered as loose
+    // unstyled text with a native checkbox in it, and the search dropdown's items
+    // and empty state lost their styling the same way. Copying the attribute onto
+    // JS-made nodes repairs every such rule at once, instead of wrapping each of
+    // them in `:global()`.
+    const scopeAttr = Array.from(root.attributes)
+      .map((a) => a.name)
+      .find((n) => n.startsWith('data-astro-cid-'));
+    /** `createElement`, carrying this component's style scope. */
+    function mk<K extends keyof HTMLElementTagNameMap>(
+      tag: K,
+      className?: string,
+    ): HTMLElementTagNameMap[K] {
+      const el = document.createElement(tag);
+      if (className) el.className = className;
+      if (scopeAttr) el.setAttribute(scopeAttr, '');
+      return el;
     }
-    hit.setAttribute('stroke', 'transparent');
-    hit.setAttribute('stroke-width', '12');
-    hit.setAttribute('fill', 'none');
-    hit.setAttribute('pointer-events', 'stroke');
-    e.after(hit);
-    return hit;
-  });
-  // Build-time positions per mode — reset restores these (a node drag is
-  // cosmetic unless physics is on). `groupPos` starts where the SSR rendered;
-  // `communityPos` is the second layout embedded in the data blob. `pristine`
-  // snapshots both so reset always returns to the untouched build-time layout,
-  // and `posFor` points at the live array for the current mode.
-  const groupPos = nodes.map((n: any) => ({ x: n.x, y: n.y }));
-  const communityPos: { x: number; y: number }[] = data.communityPos;
-  const pristine = {
-    group: groupPos.map((p: any) => ({ ...p })),
-    community: communityPos.map((p: any) => ({ ...p })),
-  };
-  const posFor = (m: 'group' | 'community') => (m === 'community' ? communityPos : groupPos);
 
-  const communities = [...new Set(nodes.map((n: any) => n.community ?? 0))].sort((a, b) => a - b);
-  const communityLabels = new Map<number, string>();
-  for (const n of nodes) {
-    const c = n.community ?? 0;
-    if (!communityLabels.has(c)) communityLabels.set(c, n.communityLabel ?? `#${c}`);
-  }
-  const colorFor = (n: any) =>
-    mode === 'community'
-      ? GRAPH_COMMUNITY_COLORS[(n.community ?? 0) % GRAPH_COMMUNITY_COLORS.length]
-      : GRAPH_SECTION_COLORS[n.section] || 'var(--text-muted)';
+    // World size must match the SSR viewBox (see the template above).
+    const world = { w: 900, h: 560 };
+    // The label size is read from the rendered label below, never re-declared:
+    // `.kg-label`'s font-size is the one number this zoom depends on, and a second
+    // copy of it here would drift silently.
+    const READABLE_LABEL_PX = 11;
+    const MAX_READABLE_ZOOM = 3.2;
+    // Must match the label font-size in the component styles and the build-time
+    // placement call in the template above.
+    const LABEL_FONT_SIZE = 11;
+    const nodes: any[] = data.nodes;
+    const links: any[] = data.links;
+    // Sections the content graph actually contains. The palette carries keys for
+    // the talks graph (`track:`, `theme:`) that never appear here; a legend row
+    // that toggles nothing is worse than no row, so both the SSR legend and this
+    // list derive from the nodes in play.
+    const sectionList = Object.keys(GRAPH_SECTION_COLORS).filter((key) =>
+      nodes.some((n) => n.section === key),
+    );
+    // Color mode: fixed track/category taxonomy vs emergent communities.
+    let mode: 'group' | 'community' = 'group';
+    // Obsidian "Arrows": show link direction on directed edge types.
+    let showArrows = false;
+    // Obsidian "Tags" filter: per-mode hidden sets (groups in group mode,
+    // communities in community mode), preserved across mode switches.
+    let hiddenGroups = new Set<string | number>();
+    let hiddenCommunities = new Set<string | number>();
+    const hiddenSet = () => (mode === 'community' ? hiddenCommunities : hiddenGroups);
+    const keyOf = (n: any) => (mode === 'community' ? (n.community ?? 0) : n.section);
+    // Edge-type filter (mode-independent): hidden link types, kept in the URL.
+    let hiddenEdgeTypes = new Set<string>();
+    // Focus mode: clicking a node keeps its 1-hop neighborhood highlighted.
+    let focusMode = false;
+    let focusedId: string | null = null;
+    // Quick-view preset: filter the whole graph to a single node kind — the
+    // second grouping axis ("only projects / only posts / only topics / only
+    // Volta"), orthogonal to the legend checkboxes.
+    let preset: string | null = null;
+    /** Node kind from the id prefix (the same helper the tooltips use). */
+    const kindOf = (n: any) => nodeKindOf(n.id);
+    /** A node is hidden by the group/community checkboxes OR by an active preset
+     *  that excludes its kind. Reads the live hidden set each call. */
+    const nodeHidden = (n: any) => hiddenSet().has(keyOf(n)) || (preset !== null && kindOf(n) !== preset);
 
-  // --- Live physics: only while a node is dragged, plus the ease home ───────
-  //
-  // The build-time layout is the resting state and stays the resting state. The
-  // simulation is built from the coordinates already on screen, runs only while
-  // a pointer holds a node, and then hands over to a fixed-duration ease that
-  // ends exactly on `pristine` — at which point the rAF is cancelled outright.
-  // Nothing here runs at rest.
-  //
-  // The last leg is an ease rather than "run until it stops" for two reasons:
-  // the simulation's own equilibrium is NOT the build-time coordinate (the home
-  // spring and a filtered subset both shift it), and the alpha-decay schedule
-  // freezes mid-flight instead of converging — waiting for it would strand the
-  // graph wherever it happened to be, with no threshold to snap on.
-  let physicsOn = false;
-  let physicsPhase: 'idle' | 'drag' | 'return' = 'idle';
-  let physicsRaf = 0;
-  /** The OS vetoes motion the user asked to be spared. The toggle still works
-   *  and still travels in the URL; the drag just stays cosmetic. */
-  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
-  const physicsEnabled = () => physicsOn && !reduceMotion;
-
-  const indexById = new Map<string, number>(nodes.map((n: any, i: number) => [n.id, i]));
-  let simNodes: SimNode[] = [];
-  let simLinks: SimLink[] = [];
-  let simParams = physicsParams(nodes.length);
-
-  /** Indices into `nodes`, resolved the way the build-time layout resolves them
-   *  — including dropping the hub springs in community mode, where they would
-   *  fight the community pull. */
-  function buildSimLinks(): SimLink[] {
-    return links.flatMap((l: any) => {
-      const source = indexById.get(l.source);
-      const target = indexById.get(l.target);
-      if (source === undefined || target === undefined) return [];
-      if (mode === 'community' && l.type === 'core') return [];
-      return [{ source, target, weight: typeof l.weight === 'number' ? l.weight : 1 }];
-    });
-  }
-
-  /** Rebuild the simulation from the coordinates on screen right now, with the
-   *  build-time positions as each node's home. */
-  function startSim() {
-    simLinks = buildSimLinks();
-    simParams = physicsParams(nodes.length);
-    const home = pristine[mode];
-    simNodes = nodes.map((n: any, i: number) => ({
-      x: n.x,
-      y: n.y,
-      vx: 0,
-      vy: 0,
-      core: n.id.startsWith('core:'),
-      community: n.community ?? 0,
-      hidden: nodeHidden(n),
-      home: { x: home[i].x, y: home[i].y },
-    }));
-  }
-
-  /** The single writer for everything that carries a node position: node
-   *  transforms, both edge arrays (the visible lines and the hit areas, which
-   *  must stay on top of each other) and the collision-resolved labels. One
-   *  function, so a frame can never leave an edge on stale coordinates. */
-  function applyPositions(p: Point[]) {
-    nodes.forEach((n: any, i: number) => {
-      n.x = p[i].x;
-      n.y = p[i].y;
-      nodeEls[i].setAttribute('transform', `translate(${n.x},${n.y})`);
-    });
+    // Section display names, server-resolved (see `clientData` in the template).
+    const sectionLabels: Record<string, string> = data.sectionLabels ?? {};
+    // Opt-in analytics: `/graph/` passes `bare`, the persona-landing card does
+    // not — a card in a scan-the-page layout is not a session worth an event.
+    const graphName = root.dataset.analyticsGraph || '';
+    const emitNodeClick = (n: any) => {
+      if (!graphName || !n || typeof n.id !== 'string') return;
+      const sep = n.id.indexOf(':');
+      track('graph_node_click', {
+        graph: graphName,
+        node_kind: sep > 0 ? n.id.slice(0, sep) : 'node',
+        node_id: n.id,
+        locale: localeFromPath(window.location.pathname),
+      });
+    };
+    // Screen-reader announcements for filter/search changes. Debounced: typing a
+    // query would otherwise fire one utterance per keystroke.
+    const liveEl = root.querySelector('[data-kg="live"]');
+    let liveTimer = 0;
+    let booted = false;
+    /** `{n} из {total}` — the template is server-side so no sentence is authored
+     *  in this script (the RU/EN pair lives in the one `t` dictionary). */
+    const fillTpl = (tpl: string, v: Record<string, number>) =>
+      tpl.replace(/\{(\w+)\}/g, (_, k: string) => String(v[k] ?? ''));
+    const announce = (msg: string) => {
+      if (!liveEl) return;
+      window.clearTimeout(liveTimer);
+      liveTimer = window.setTimeout(() => {
+        liveEl.textContent = msg;
+      }, 200);
+    };
+    /** The one visible-node count announcement, in the instance's own wording.
+     *  Shared by the filter pass, the search reset and query clearing so an empty
+     *  search cannot leave a stale "N matches" behind. */
+    const announceShownCount = () => {
+      if (!booted) return;
+      const shown = nodes.filter((n) => !nodeHidden(n)).length;
+      announce(fillTpl(root.dataset.liveShown || '', { n: shown, total: nodes.length }));
+    };
+    // One source of truth for tooltip copy: the same pure builder the server uses
+    // for the SVG <title> lines, re-run here on data that is already in memory.
+    const tips = buildGraphTooltips(nodes, links, root.dataset.lang === 'en' ? 'en' : 'ru');
+    const nodeById = new Map(nodes.map((n: any) => [n.id, n]));
+    const nodeEls = Array.from(svg.querySelectorAll<SVGGElement>('g[tabindex]'));
+    const edgeEls = Array.from(svg.querySelectorAll<SVGLineElement>('.kg-edge'));
+    // Per-type edge color, sampled from the server-rendered lines so the filter
+    // panel swatches always match the SSR edge styling.
+    const edgeColor = new Map<string, string>();
     edgeEls.forEach((e, i) => {
-      const l = links[i];
-      const si = indexById.get(l.source);
-      const ti = indexById.get(l.target);
-      if (si === undefined || ti === undefined) return;
-      const a = p[si];
-      const b = p[ti];
-      const dx = b.x - a.x;
-      const dy = b.y - a.y;
-      const d = Math.sqrt(dx * dx + dy * dy) || 1;
-      // Stop each line at the target's edge, as the build-time pass does.
-      const r = (nodes[ti].size || 6) + 2;
-      const x2 = b.x - (dx / d) * r;
-      const y2 = b.y - (dy / d) * r;
-      for (const el of [e, edgeHitEls[i]]) {
-        if (!el) continue;
-        el.setAttribute('x1', String(a.x));
-        el.setAttribute('y1', String(a.y));
-        el.setAttribute('x2', String(x2));
-        el.setAttribute('y2', String(y2));
+      const ty = links[i].type;
+      if (!edgeColor.has(ty)) edgeColor.set(ty, e.getAttribute('stroke') || 'var(--text-muted)');
+    });
+    // Wide transparent hit areas (behind the nodes) so the thin links are
+    // actually hoverable for the tooltip. Each carries a copy of its line's
+    // endpoints; `applyPositions` keeps both in step while physics runs.
+    const edgeHitEls = edgeEls.map((e) => {
+      const hit = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      for (const attr of ['x1', 'y1', 'x2', 'y2']) {
+        hit.setAttribute(attr, e.getAttribute(attr)!);
       }
+      hit.setAttribute('stroke', 'transparent');
+      hit.setAttribute('stroke-width', '12');
+      hit.setAttribute('fill', 'none');
+      hit.setAttribute('pointer-events', 'stroke');
+      e.after(hit);
+      return hit;
     });
-    placeAnchorLabels();
-  }
+    // Build-time positions per mode — reset restores these (a node drag is
+    // cosmetic unless physics is on). `groupPos` starts where the SSR rendered;
+    // `communityPos` is the second layout embedded in the data blob. `pristine`
+    // snapshots both so reset always returns to the untouched build-time layout,
+    // and `posFor` points at the live array for the current mode.
+    const groupPos = nodes.map((n: any) => ({ x: n.x, y: n.y }));
+    const communityPos: { x: number; y: number }[] = data.communityPos;
+    const pristine = {
+      group: groupPos.map((p: any) => ({ ...p })),
+      community: communityPos.map((p: any) => ({ ...p })),
+    };
+    const posFor = (m: 'group' | 'community') => (m === 'community' ? communityPos : groupPos);
 
-  /** The drag phase re-arms alpha every time the pointer moves and lets it decay
-   *  in between (`alphaTarget` in d3 terms). Holding alpha at 1 for the whole
-   *  gesture — the first version of this — keeps the pairwise repulsion
-   *  (`charge = 2200·√N`, ~23 000 at 109 nodes) at full strength on every frame,
-   *  and two nodes passing close fold that into a velocity of hundreds of px.
-   *  Measured: 764 px of travel in a single frame, the whole graph thrashing
-   *  between the margin clamps. Alpha decays from 1 to 0.01 over ~230 ticks
-   *  at build time for exactly this reason. */
-  const DRAG_ALPHA_ARM = 0.3;
-  const DRAG_ALPHA_DECAY = 0.05;
-  /** Hard ceiling on a node's travel per frame (~720 px/s at 60fps). A drag can
-   *  place two nodes on top of each other, and 1/d² repulsion has no bound of
-   *  its own. */
-  const DRAG_MAX_STEP = 12;
-  let dragAlpha = DRAG_ALPHA_ARM;
-  /** Fixed, so the return can never become a threshold snap (see above). */
-  const RETURN_MS = 400;
-  let returnFrom: Point[] = [];
-  let returnStart = 0;
-
-  function schedule() {
-    if (!physicsRaf) physicsRaf = requestAnimationFrame(frame);
-  }
-
-  function frame(ts: number) {
-    physicsRaf = 0;
-    if (physicsPhase === 'return') {
-      const t = Math.min(1, (ts - returnStart) / RETURN_MS);
-      // `t >= 1` returns `pristine` itself, exact, not a lerp that lands near.
-      applyPositions(easeTo(returnFrom, pristine[mode], t));
-      if (t >= 1) finishReturn();
-      else schedule();
-      return;
+    const communities = [...new Set(nodes.map((n: any) => n.community ?? 0))].sort((a, b) => a - b);
+    const communityLabels = new Map<number, string>();
+    for (const n of nodes) {
+      const c = n.community ?? 0;
+      if (!communityLabels.has(c)) communityLabels.set(c, n.communityLabel ?? `#${c}`);
     }
-    if (physicsPhase !== 'drag') return;
-    stepSim(simNodes, simLinks, {
-      alpha: dragAlpha,
-      params: simParams,
-      width: world.w,
-      height: world.h,
-      clusterByCommunity: mode === 'community',
-      maxStep: DRAG_MAX_STEP,
-    });
-    dragAlpha *= 1 - DRAG_ALPHA_DECAY;
-    applyPositions(simNodes);
-    schedule();
-  }
+    const colorFor = (n: any) =>
+      mode === 'community'
+        ? GRAPH_COMMUNITY_COLORS[(n.community ?? 0) % GRAPH_COMMUNITY_COLORS.length]
+        : GRAPH_SECTION_COLORS[n.section] || 'var(--text-muted)';
 
-  /** The graph is back on the build-time layout: drop the pin, stop the loop. */
-  function finishReturn() {
-    physicsPhase = 'idle';
-    returnFrom = [];
-    for (const n of simNodes) n.fixed = null;
-  }
+    // --- Live physics: only while a node is dragged, plus the ease home ───────
+    //
+    // The build-time layout is the resting state and stays the resting state. The
+    // simulation is built from the coordinates already on screen, runs only while
+    // a pointer holds a node, and then hands over to a fixed-duration ease that
+    // ends exactly on `pristine` — at which point the rAF is cancelled outright.
+    // Nothing here runs at rest.
+    //
+    // The last leg is an ease rather than "run until it stops" for two reasons:
+    // the simulation's own equilibrium is NOT the build-time coordinate (the home
+    // spring and a filtered subset both shift it), and the alpha-decay schedule
+    // freezes mid-flight instead of converging — waiting for it would strand the
+    // graph wherever it happened to be, with no threshold to snap on.
+    let physicsOn = false;
+    let physicsPhase: 'idle' | 'drag' | 'return' = 'idle';
+    let physicsRaf = 0;
+    /** The OS vetoes motion the user asked to be spared. The toggle still works
+     *  and still travels in the URL; the drag just stays cosmetic. */
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
+    const physicsEnabled = () => physicsOn && !reduceMotion;
 
-  function stopPhysics() {
-    if (physicsRaf) {
-      cancelAnimationFrame(physicsRaf);
+    const indexById = new Map<string, number>(nodes.map((n: any, i: number) => [n.id, i]));
+    let simNodes: SimNode[] = [];
+    let simLinks: SimLink[] = [];
+    let simParams = physicsParams(nodes.length);
+
+    /** Indices into `nodes`, resolved the way the build-time layout resolves them
+     *  — including dropping the hub springs in community mode, where they would
+     *  fight the community pull. */
+    function buildSimLinks(): SimLink[] {
+      return links.flatMap((l: any) => {
+        const source = indexById.get(l.source);
+        const target = indexById.get(l.target);
+        if (source === undefined || target === undefined) return [];
+        if (mode === 'community' && l.type === 'core') return [];
+        return [{ source, target, weight: typeof l.weight === 'number' ? l.weight : 1 }];
+      });
+    }
+
+    /** Rebuild the simulation from the coordinates on screen right now, with the
+     *  build-time positions as each node's home. */
+    function startSim() {
+      simLinks = buildSimLinks();
+      simParams = physicsParams(nodes.length);
+      const home = pristine[mode];
+      simNodes = nodes.map((n: any, i: number) => ({
+        x: n.x,
+        y: n.y,
+        vx: 0,
+        vy: 0,
+        core: n.id.startsWith('core:'),
+        community: n.community ?? 0,
+        hidden: nodeHidden(n),
+        home: { x: home[i].x, y: home[i].y },
+      }));
+    }
+
+    /** The single writer for everything that carries a node position: node
+     *  transforms, both edge arrays (the visible lines and the hit areas, which
+     *  must stay on top of each other) and the collision-resolved labels. One
+     *  function, so a frame can never leave an edge on stale coordinates. */
+    function applyPositions(p: Point[]) {
+      nodes.forEach((n: any, i: number) => {
+        n.x = p[i].x;
+        n.y = p[i].y;
+        nodeEls[i].setAttribute('transform', `translate(${n.x},${n.y})`);
+      });
+      edgeEls.forEach((e, i) => {
+        const l = links[i];
+        const si = indexById.get(l.source);
+        const ti = indexById.get(l.target);
+        if (si === undefined || ti === undefined) return;
+        const a = p[si];
+        const b = p[ti];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const d = Math.sqrt(dx * dx + dy * dy) || 1;
+        // Stop each line at the target's edge, as the build-time pass does.
+        const r = (nodes[ti].size || 6) + 2;
+        const x2 = b.x - (dx / d) * r;
+        const y2 = b.y - (dy / d) * r;
+        for (const el of [e, edgeHitEls[i]]) {
+          if (!el) continue;
+          el.setAttribute('x1', String(a.x));
+          el.setAttribute('y1', String(a.y));
+          el.setAttribute('x2', String(x2));
+          el.setAttribute('y2', String(y2));
+        }
+      });
+      placeAnchorLabels();
+    }
+
+    /** The drag phase re-arms alpha every time the pointer moves and lets it decay
+     *  in between (`alphaTarget` in d3 terms). Holding alpha at 1 for the whole
+     *  gesture — the first version of this — keeps the pairwise repulsion
+     *  (`charge = 2200·√N`, ~23 000 at 109 nodes) at full strength on every frame,
+     *  and two nodes passing close fold that into a velocity of hundreds of px.
+     *  Measured: 764 px of travel in a single frame, the whole graph thrashing
+     *  between the margin clamps. Alpha decays from 1 to 0.01 over ~230 ticks
+     *  at build time for exactly this reason. */
+    const DRAG_ALPHA_ARM = 0.3;
+    const DRAG_ALPHA_DECAY = 0.05;
+    /** Hard ceiling on a node's travel per frame (~720 px/s at 60fps). A drag can
+     *  place two nodes on top of each other, and 1/d² repulsion has no bound of
+     *  its own. */
+    const DRAG_MAX_STEP = 12;
+    let dragAlpha = DRAG_ALPHA_ARM;
+    /** Fixed, so the return can never become a threshold snap (see above). */
+    const RETURN_MS = 400;
+    let returnFrom: Point[] = [];
+    let returnStart = 0;
+
+    function schedule() {
+      if (!physicsRaf) physicsRaf = requestAnimationFrame(frame);
+    }
+
+    function frame(ts: number) {
       physicsRaf = 0;
+      if (physicsPhase === 'return') {
+        const t = Math.min(1, (ts - returnStart) / RETURN_MS);
+        // `t >= 1` returns `pristine` itself, exact, not a lerp that lands near.
+        applyPositions(easeTo(returnFrom, pristine[mode], t));
+        if (t >= 1) finishReturn();
+        else schedule();
+        return;
+      }
+      if (physicsPhase !== 'drag') return;
+      stepSim(simNodes, simLinks, {
+        alpha: dragAlpha,
+        params: simParams,
+        width: world.w,
+        height: world.h,
+        clusterByCommunity: mode === 'community',
+        maxStep: DRAG_MAX_STEP,
+      });
+      dragAlpha *= 1 - DRAG_ALPHA_DECAY;
+      applyPositions(simNodes);
+      schedule();
     }
-    physicsPhase = 'idle';
-    returnFrom = [];
-    simNodes = [];
-    // Whatever the pointer was holding is void: every caller of this replaced
-    // the coordinates the gesture was driving (mode switch, reset, filter,
-    // fullscreen, physics off). A surviving `dragging` would re-arm the run on
-    // the next pointermove, against a layout it was never started for.
-    if (dragging) {
-      const di = nodes.indexOf(dragging);
-      if (di >= 0) nodeEls[di].style.cursor = 'pointer';
+
+    /** The graph is back on the build-time layout: drop the pin, stop the loop. */
+    function finishReturn() {
+      physicsPhase = 'idle';
+      returnFrom = [];
+      for (const n of simNodes) n.fixed = null;
+      // The return lands on a new layout, so a label set placed against the old
+      // coordinates (drag frames re-place anchors only) is refreshed once.
+      if (showAllLabels) placeAllLabels();
     }
-    dragging = null;
-    dragStart = null;
-  }
 
-  /** Snap every node — and both position arrays — back to the build-time
-   *  layout. Used by `reset` and by switching physics off. */
-  function restorePristine() {
-    stopPhysics();
-    const home = pristine[mode];
-    const live = posFor(mode);
-    for (let i = 0; i < live.length; i++) live[i] = { ...home[i] };
-    applyPositions(home);
-  }
+    function stopPhysics() {
+      if (physicsRaf) {
+        cancelAnimationFrame(physicsRaf);
+        physicsRaf = 0;
+      }
+      physicsPhase = 'idle';
+      returnFrom = [];
+      simNodes = [];
+      // Whatever the pointer was holding is void: every caller of this replaced
+      // the coordinates the gesture was driving (mode switch, reset, filter,
+      // fullscreen, physics off). A surviving `dragging` would re-arm the run on
+      // the next pointermove, against a layout it was never started for.
+      if (dragging) {
+        const di = nodes.indexOf(dragging);
+        if (di >= 0) nodeEls[di].style.cursor = 'pointer';
+      }
+      dragging = null;
+      dragStart = null;
+    }
 
-  /** Anything still in flight when the node set or the view changes settles
-   *  first. An already-idle run is left exactly as it is, so with physics off a
-   *  cosmetic drag keeps the positions it was given. */
-  function settleIfRunning() {
-    if (physicsPhase !== 'idle') restorePristine();
-  }
+    /** Snap every node — and both position arrays — back to the build-time
+     *  layout. Used by `reset` and by switching physics off. */
+    function restorePristine() {
+      stopPhysics();
+      const home = pristine[mode];
+      const live = posFor(mode);
+      for (let i = 0; i < live.length; i++) live[i] = { ...home[i] };
+      applyPositions(home);
+    }
 
-  function startReturn() {
-    if (!physicsEnabled() || !simNodes.length) return;
-    returnFrom = simNodes.map((n) => ({ x: n.x, y: n.y }));
-    returnStart = performance.now();
-    physicsPhase = 'return';
-    schedule();
-  }
+    /** Anything still in flight when the node set or the view changes settles
+     *  first. An already-idle run is left exactly as it is, so with physics off a
+     *  cosmetic drag keeps the positions it was given. */
+    function settleIfRunning() {
+      if (physicsPhase !== 'idle') restorePristine();
+    }
 
-  /** The always-on label set: the root, the four type hubs, projects and topics.
-   *  Same predicate as the template's `isAnchor`, so the two label passes cannot
-   *  disagree about which labels are permanent. */
-  const isCoreId = (id: string) => id.startsWith('core:');
-  const isAnchorId = (id: string) => isCoreId(id) || id.startsWith('p:') || id.startsWith('topic:');
+    function startReturn() {
+      if (!physicsEnabled() || !simNodes.length) return;
+      returnFrom = simNodes.map((n) => ({ x: n.x, y: n.y }));
+      returnStart = performance.now();
+      physicsPhase = 'return';
+      schedule();
+    }
 
-  /** Move every node onto the current mode's build-time positions and recolor
-   *  (used by the color toggle and by URL restore — the SVG ships the group
-   *  layout, so community mode has to relocate nodes). */
-  function applyModeLayout() {
-    // A run in flight would keep overwriting the coordinates written below.
-    stopPhysics();
-    const incoming = posFor(mode);
-    nodes.forEach((n, i) => {
-      n.x = incoming[i].x;
-      n.y = incoming[i].y;
-      const g = nodeEls[i];
-      g.setAttribute('transform', `translate(${n.x},${n.y})`);
-      // The ring's paint is CSS (`fill: none` at rest, `--kg-ring` on hover), and
-      // a class rule outranks the `fill` attribute — so the variable is what
-      // actually colours a node, and writing the attribute too would be dead
-      // weight. Without this the rings would keep their section hue in community
-      // mode instead of taking the community's.
-      g.style.setProperty('--kg-ring', colorFor(n));
-    });
-    // The SSR placements were resolved against the group layout; the community
-    // layout puts the same nodes somewhere else, so the labels are re-placed
-    // with the same pure function rather than left to collide.
-    placeAnchorLabels();
-  }
-
-  /** Re-run the collision pass for the always-on labels on the current
-   *  positions. Mirrors the build-time call in the template above. */
-  function placeAnchorLabels() {
-    const isAnchor = isAnchorId;
+    /** The always-on label set: the root, the four type hubs, projects and topics.
+     *  Same predicate as the template's `isAnchor`, so the two label passes cannot
+     *  disagree about which labels are permanent. */
+    const isCoreId = (id: string) => id.startsWith('core:');
+    const isAnchorId = (id: string) => isCoreId(id) || id.startsWith('p:') || id.startsWith('topic:');
+    /** Lower wins a contested slot. Same order as the template's pass. */
     const priorityOf = (id: string) =>
       id === 'core:me' ? 0 : id.startsWith('core:') ? 1 : id.startsWith('p:') ? 2 : 3;
-    const map = placeLabels(
-      nodes
-        .filter((n) => isAnchor(n.id))
-        .map((n) => ({
+    /** "Labels" toggle: off is the build-time rule (root, hubs, projects,
+     *  topics), on runs the same placement pass over every node. */
+    let showAllLabels = false;
+
+    /** Move every node onto the current mode's build-time positions and recolor
+     *  (used by the color toggle and by URL restore — the SVG ships the group
+     *  layout, so community mode has to relocate nodes). */
+    function applyModeLayout() {
+      // A run in flight would keep overwriting the coordinates written below.
+      stopPhysics();
+      const incoming = posFor(mode);
+      nodes.forEach((n, i) => {
+        n.x = incoming[i].x;
+        n.y = incoming[i].y;
+        const g = nodeEls[i];
+        g.setAttribute('transform', `translate(${n.x},${n.y})`);
+        // The ring's paint is CSS (`fill: none` at rest, `--kg-ring` on hover), and
+        // a class rule outranks the `fill` attribute — so the variable is what
+        // actually colours a node, and writing the attribute too would be dead
+        // weight. Without this the rings would keep their section hue in community
+        // mode instead of taking the community's.
+        g.style.setProperty('--kg-ring', colorFor(n));
+      });
+      // The SSR placements were resolved against the group layout; the community
+      // layout puts the same nodes somewhere else, so the labels are re-placed
+      // with the same pure function rather than left to collide.
+      placeAnchorLabels();
+    }
+
+    /** Re-run the collision pass for the always-on labels on the current
+     *  positions. Mirrors the build-time call in the template above. */
+    function placeAnchorLabels() {
+      const isAnchor = isAnchorId;
+      const map = placeLabels(
+        nodes
+          .filter((n) => isAnchor(n.id))
+          .map((n) => ({
+            id: n.id,
+            label: n.label,
+            x: n.x,
+            y: n.y,
+            size: (n.size || 6) * NODE_SIZE,
+            priority: priorityOf(n.id),
+          })),
+        {
+          width: world.w,
+          height: world.h,
+          fontSize: LABEL_FONT_SIZE,
+          pad: 4,
+          // Same obstacle set as the build-time pass above: the node rings.
+          obstacles: nodes.map((n) => ({
+            id: n.id,
+            x: n.x,
+            y: n.y,
+            r: (n.size || 6) * NODE_SIZE,
+          })),
+        },
+      );
+      nodes.forEach((n, i) => {
+        if (!isAnchor(n.id)) return;
+        const p = map.get(n.id);
+        const text = nodeEls[i].querySelector('text');
+        if (!p || !text) return;
+        text.setAttribute('x', String(p.tx));
+        text.setAttribute('y', String(p.ty));
+        text.setAttribute('text-anchor', p.anchor);
+        // Cores keep their label in every layout — see the SSR template.
+        text.classList.toggle('kg-label-hover', !p.placed && !isCoreId(n.id));
+      });
+    }
+
+    /** The Labels toggle. On, the same pure placement pass runs over every node;
+     *  a label that finds no clear slot stays hover-only rather than painting
+     *  over its neighbour, so switching on never produces a text cloud of
+     *  collisions — it fills in what the picture has room for. */
+    function placeAllLabels() {
+      if (!showAllLabels) {
+        nodes.forEach((n, i) => {
+          if (!isAnchorId(n.id)) nodeEls[i].querySelector('text')?.classList.add('kg-label-hover');
+        });
+        placeAnchorLabels();
+        return;
+      }
+      const obstacles = nodes.map((n) => ({ id: n.id, x: n.x, y: n.y, r: (n.size || 6) * NODE_SIZE }));
+      const map = placeLabels(
+        nodes.map((n) => ({
           id: n.id,
           label: n.label,
           x: n.x,
@@ -823,876 +999,995 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
           size: (n.size || 6) * NODE_SIZE,
           priority: priorityOf(n.id),
         })),
-      {
-        width: world.w,
-        height: world.h,
-        fontSize: LABEL_FONT_SIZE,
-        pad: 4,
-        // Same obstacle set as the build-time pass above: the node rings.
-        obstacles: nodes.map((n) => ({
-          id: n.id,
-          x: n.x,
-          y: n.y,
-          r: (n.size || 6) * NODE_SIZE,
-        })),
-      },
-    );
-    nodes.forEach((n, i) => {
-      if (!isAnchor(n.id)) return;
-      const p = map.get(n.id);
-      const text = nodeEls[i].querySelector('text');
-      if (!p || !text) return;
-      text.setAttribute('x', String(p.tx));
-      text.setAttribute('y', String(p.ty));
-      text.setAttribute('text-anchor', p.anchor);
-      // Cores keep their label in every layout — see the SSR template.
-      text.classList.toggle('kg-label-hover', !p.placed && !isCoreId(n.id));
-    });
-  }
-
-  // Adjacency for hover highlighting.
-  const adjacency = new Map<string, Set<string>>();
-  for (const l of links) {
-    if (!adjacency.has(l.source)) adjacency.set(l.source, new Set());
-    if (!adjacency.has(l.target)) adjacency.set(l.target, new Set());
-    adjacency.get(l.source)!.add(l.target);
-    adjacency.get(l.target)!.add(l.source);
-  }
-
-  // --- Legend ---
-  const legendEl = document.getElementById('kg-legend') as HTMLDivElement | null;
-  function renderLegend() {
-    if (!legendEl) return;
-    legendEl.replaceChildren();
-    const isCommunity = mode === 'community';
-    const items = isCommunity
-      ? communities.map((c) => ({
-          key: c,
-          label: communityLabels.get(c) ?? `#${c}`,
-          color: GRAPH_COMMUNITY_COLORS[c % GRAPH_COMMUNITY_COLORS.length],
-        }))
-      : sectionList.map((g) => ({ key: g, label: g, color: GRAPH_SECTION_COLORS[g] }));
-    const hidden = hiddenSet();
-    const total = items.length;
-    // Per-chip node counts, so the legend shows how much each group/community
-    // contributes to the graph (counted across all nodes).
-    const counts = new Map<string | number, number>();
-    for (const n of nodes) {
-      const k = isCommunity ? (n.community ?? 0) : n.section;
-      counts.set(k, (counts.get(k) ?? 0) + 1);
-    }
-    for (const it of items) {
-      const span = mk('span', 'kg-legend-item');
-      span.setAttribute('role', 'listitem');
-      const i = mk('i');
-      i.style.background = it.color;
-      span.appendChild(i);
-      // Obsidian "Tags" filter: checkbox chips show/hide a whole group
-      // (or community in community mode).
-      const label = mk('label', 'kg-legend-toggle');
-      const cb = mk('input');
-      cb.type = 'checkbox';
-      cb.checked = !hidden.has(it.key);
-      cb.setAttribute('aria-label', it.label);
-      cb.addEventListener('change', () => {
-        if (cb.checked) {
-          hidden.delete(it.key);
-        } else {
-          // Never hide the last visible group — an empty graph is noise.
-          if (hidden.size + 1 >= total) {
-            cb.checked = true;
-            return;
-          }
-          hidden.add(it.key);
+        { width: world.w, height: world.h, fontSize: LABEL_FONT_SIZE, pad: 4, obstacles },
+      );
+      nodes.forEach((n, i) => {
+        const text = nodeEls[i].querySelector('text');
+        if (!text) return;
+        const p = map.get(n.id);
+        if (!p) {
+          text.classList.add('kg-label-hover');
+          return;
         }
-        applyFilter();
-        syncURL();
+        text.setAttribute('x', String(p.tx));
+        text.setAttribute('y', String(p.ty));
+        text.setAttribute('text-anchor', p.anchor);
+        text.classList.toggle('kg-label-hover', !p.placed && !isCoreId(n.id));
       });
-      label.appendChild(cb);
-      const name = mk('span', 'kg-legend-name');
-      name.textContent = it.label;
-      label.appendChild(name);
-      const count = mk('span', 'kg-legend-count');
-      count.textContent = String(counts.get(it.key) ?? 0);
-      label.appendChild(count);
-      span.appendChild(label);
-      legendEl.appendChild(span);
     }
-  }
 
-  /** Obsidian "Tags"-style filter: hide whole groups (or communities), edges
-   *  touching a hidden node or of a hidden edge type, and anything an active
-   *  quick-view preset excludes. */
-  function applyFilter() {
-    // The simulation would otherwise keep writing positions for a node set that
-    // just changed; a run in flight settles before the filter lands.
-    settleIfRunning();
-    nodes.forEach((n, i) => {
-      nodeEls[i].style.display = nodeHidden(n) ? 'none' : '';
-    });
-    edgeEls.forEach((e, i) => {
-      const l = links[i];
-      const s = nodeById.get(l.source);
-      const t = nodeById.get(l.target);
-      const nodeHiddenEdge = (s && nodeHidden(s)) || (t && nodeHidden(t));
-      const typeHidden = hiddenEdgeTypes.has(l.type);
-      const isHidden = nodeHiddenEdge || typeHidden;
-      e.style.display = isHidden ? 'none' : '';
-      edgeHitEls[i].style.display = isHidden ? 'none' : '';
-    });
-  }
+    // Adjacency for hover highlighting.
+    const adjacency = new Map<string, Set<string>>();
+    for (const l of links) {
+      if (!adjacency.has(l.source)) adjacency.set(l.source, new Set());
+      if (!adjacency.has(l.target)) adjacency.set(l.target, new Set());
+      adjacency.get(l.source)!.add(l.target);
+      adjacency.get(l.target)!.add(l.source);
+    }
 
-  /** Keep the view shareable: mode + hidden sets + focused node live in the URL
-   *  query string, updated in place (`replaceState` only — a focus change must
-   *  never push a history entry) and merged with any existing params. */
-  function syncURL() {
-    const q = encodeGraphState(
-      {
-        mode,
-        hiddenGroups: [...hiddenGroups] as string[],
-        hiddenCommunities: [...hiddenCommunities].map(Number),
-        hiddenEdges: [...hiddenEdgeTypes],
-        // Runtime value comes from a data attribute / URL; the encoder only
-        // accepts the known preset kinds (anything else serializes as
-        // absent), so narrowing here is safe.
-        preset: preset as 'project' | 'post' | 'topic' | 'volta' | 'glossary' | null,
-        physics: physicsOn,
-        focus: focusedId ?? undefined,
-      },
-      window.location.search,
-    );
-    history.replaceState(null, '', `${window.location.pathname}${q}${window.location.hash}`);
-  }
-
-  // --- Viewport ---
-  let vp = { x: 0, y: 0, k: 1 };
-  function applyViewport() {
-    const vb = viewBoxOf(vp, world);
-    svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
-  }
-
-  /** Zoom that keeps the labels legible in CSS pixels. On a phone the world is
-   *  scaled to ~0.35 CSS px per unit, so an 11px label renders under 5px — the
-   *  reset view opens zoomed in on the centre instead, and the reader pans from
-   *  there. At desktop width the multiplier is already 1, so nothing changes. */
-  function initialZoom() {
-    const labelEl = svg.querySelector('.kg-label');
-    if (!labelEl) return 1;
-    const labelPx = parseFloat(getComputedStyle(labelEl).fontSize) || 11;
-    return readableZoom(
-      svg.getBoundingClientRect().width,
-      world.w,
-      labelPx,
-      READABLE_LABEL_PX,
-      MAX_READABLE_ZOOM,
-    );
-  }
-
-  function resetViewport() {
-    vp = centerOn({ x: 0, y: 0, k: 1 }, { x: world.w / 2, y: world.h / 2 }, initialZoom(), world);
-    applyViewport();
-  }
-
-  /** Convert a client (screen) point into world/viewBox coordinates. */
-  function toWorld(clientX: number, clientY: number) {
-    const ctm = svg.getScreenCTM();
-    if (!ctm) return { x: 0, y: 0 };
-    const pt = new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse());
-    return { x: pt.x, y: pt.y };
-  }
-
-  // --- Hover: highlight neighbors; the label appears via CSS on hover/focus ---
-  let hoveredId: string | null = null;
-
-  /** Single writer for node dim state. Hover/focus highlight and the search
-   *  filter both dim nodes, and the `kg-dim` class must never drift from the
-   *  inline opacity: a dimmed group's opacity is inherited by its text, so a
-   *  class left behind by an interrupted highlight keeps always-on labels
-   *  invisible over an otherwise fully lit graph. */
-  function applyNodeStates(explicitId?: string | null, query?: string) {
-    // `focusedId` lights regardless of the Focus toggle: a node focused by the
-    // search picker or a `?focus=` deep link must stay lit even though the
-    // toggle (whose job is only "click toggles focus instead of navigating") is
-    // a separate control. Hover still wins while the pointer is on a node.
-    const hl = explicitId ?? (hoveredId || focusedId);
-    const lit = hl ? adjacency.get(hl) || new Set<string>() : null;
-    if (lit && hl) lit.add(hl);
-    // `query` is passed by the search paths, which must keep working when the
-    // input is blurred but still holds text (blur deliberately clears the filter).
-    const q = (query ?? searchInput?.value ?? '').trim().toLowerCase();
-    nodes.forEach((n, i) => {
-      if (lit && !lit.has(n.id)) {
-        nodeEls[i].style.opacity = '0.12';
-        nodeEls[i].classList.add('kg-dim');
-      } else if (q && !n.label.toLowerCase().includes(q)) {
-        nodeEls[i].style.opacity = '0.08';
-        nodeEls[i].classList.add('kg-dim');
-      } else {
-        nodeEls[i].style.opacity = '';
-        nodeEls[i].classList.remove('kg-dim');
+    // --- Legend ---
+    const legendEl = root.querySelector('[data-kg="legend"]') as HTMLDivElement | null;
+    function renderLegend() {
+      if (!legendEl) return;
+      legendEl.replaceChildren();
+      const isCommunity = mode === 'community';
+      const items = isCommunity
+        ? communities.map((c) => ({
+            key: c,
+            label: communityLabels.get(c) ?? `#${c}`,
+            color: GRAPH_COMMUNITY_COLORS[c % GRAPH_COMMUNITY_COLORS.length],
+          }))
+        : sectionList.map((g) => ({ key: g, label: sectionLabels[g] ?? g, color: GRAPH_SECTION_COLORS[g] }));
+      const hidden = hiddenSet();
+      const total = items.length;
+      // Per-chip node counts, so the legend shows how much each group/community
+      // contributes to the graph (counted across all nodes).
+      const counts = new Map<string | number, number>();
+      for (const n of nodes) {
+        const k = isCommunity ? (n.community ?? 0) : n.section;
+        counts.set(k, (counts.get(k) ?? 0) + 1);
       }
-    });
-  }
-
-  function clearHighlight() {
-    hoveredId = null;
-    applyNodeStates();
-    edgeEls.forEach((e) => (e.style.opacity = ''));
-    // A persistent 1-hop focus survives the transient hover fading — whether it
-    // came from the Focus toggle, the search picker or a `?focus=` deep link.
-    if (focusedId) {
-      highlight(focusedId);
-    }
-  }
-
-  function highlight(id: string) {
-    applyNodeStates(id);
-    edgeEls.forEach((e, i) => {
-      const l = links[i];
-      const on = l.source === id || l.target === id;
-      e.style.opacity = on ? String(Math.min(1, (l.weight || 1) * 0.9 + 0.2)) : '0.05';
-    });
-  }
-
-  function navigateTo(n: any) {
-    if (n?.href) window.location.href = n.href;
-  }
-
-  /** Pin a node's tooltip at its on-screen position — the "open the node's
-   *  info" half of a focus, for a node the reader did not hover. */
-  function showNodeInfo(id: string) {
-    if (!tooltipEl) return;
-    const idx = nodes.findIndex((n) => n.id === id);
-    const ctm = svg.getScreenCTM();
-    if (idx < 0 || !ctm) return;
-    const p = new DOMPoint(nodes[idx].x, nodes[idx].y).matrixTransform(ctm);
-    showTooltip(tips.node[idx], p.x, p.y);
-  }
-
-  /** The single writer for "which node is focused": lights its 1-hop
-   *  neighbourhood, opens its info and keeps the URL in step. `null` clears.
-   *  A focus is `replaceState`-only (see `syncURL`) so it never spams history. */
-  function setFocus(id: string | null) {
-    focusedId = id;
-    if (id) {
-      highlight(id);
-      showNodeInfo(id);
-    } else {
-      clearHighlight();
-      hideTooltip();
-    }
-    syncURL();
-  }
-
-  // --- Tooltip: content lines are rebuilt from `nodes`/`links` at init, so
-  // the client only positions and renders them. Hover-only; keyboard users get
-  // the native SVG <title>. ---
-  const tooltipEl = document.getElementById('kg-tooltip') as HTMLDivElement | null;
-  function showTooltip(lines: string[] | undefined, clientX: number, clientY: number) {
-    if (!tooltipEl || !lines || !lines.length) return;
-    tooltipEl.replaceChildren();
-    for (const line of lines) {
-      const row = document.createElement('div');
-      row.textContent = line;
-      tooltipEl.appendChild(row);
-    }
-    tooltipEl.hidden = false;
-    const rect = root.getBoundingClientRect();
-    const w = tooltipEl.offsetWidth;
-    const h = tooltipEl.offsetHeight;
-    let x = clientX - rect.left + 14;
-    let y = clientY - rect.top + 14;
-    if (x + w > rect.width - 8) x = Math.max(8, clientX - rect.left - w - 14);
-    if (y + h > rect.height - 8) y = Math.max(8, clientY - rect.top - h - 8);
-    tooltipEl.style.transform = `translate(${x}px, ${y}px)`;
-  }
-  function hideTooltip() {
-    if (tooltipEl) tooltipEl.hidden = true;
-  }
-
-  // --- Pointer handling: node drag (click = navigate), canvas pan, pinch ---
-  let dragging: any = null;
-  let dragStart: { x: number; y: number } | null = null;
-  let moved = false;
-  let panning: { startX: number; startY: number; vpX: number; vpY: number } | null = null;
-  let pinch: { startDist: number; vp0: typeof vp; mid0: { x: number; y: number } } | null = null;
-  const pointers = new Map<number, { x: number; y: number }>();
-
-  /** The single exit from a drag. Called from `pointerup`, `pointercancel` AND
-   *  the pinch branch: a second finger used to null `dragging`, and `pointerup`
-   *  then early-returned on `!dragging`, so the pin was never lifted and the
-   *  node stayed welded to its last coordinate with the loop still running. */
-  function releaseDrag() {
-    if (!dragging) return;
-    const di = nodes.indexOf(dragging);
-    dragging = null;
-    dragStart = null;
-    if (di >= 0) {
-      nodeEls[di].style.cursor = 'pointer';
-      if (simNodes[di]) simNodes[di].fixed = null;
-    }
-    // Physics on: everything eases back to the build-time layout. Off: the node
-    // stays where it was dropped, which is the old cosmetic drag.
-    startReturn();
-  }
-
-  function handlePointerDown(e: PointerEvent) {
-    hideTooltip();
-    svg.setPointerCapture(e.pointerId);
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-    if (pointers.size === 2) {
-      releaseDrag();
-      panning = null;
-      const [a, b] = [...pointers.values()];
-      const startDist = Math.hypot(a.x - b.x, a.y - b.y);
-      pinch = {
-        startDist: Math.max(1, startDist),
-        vp0: { ...vp },
-        mid0: toWorld((a.x + b.x) / 2, (a.y + b.y) / 2),
-      };
-      return;
+      for (const it of items) {
+        const span = mk('span', 'kg-legend-item');
+        span.setAttribute('role', 'listitem');
+        const i = mk('i');
+        i.style.background = it.color;
+        span.appendChild(i);
+        // Obsidian "Tags" filter: checkbox chips show/hide a whole group
+        // (or community in community mode).
+        const label = mk('label', 'kg-legend-toggle');
+        const cb = mk('input');
+        cb.type = 'checkbox';
+        cb.checked = !hidden.has(it.key);
+        cb.setAttribute('aria-label', it.label);
+        cb.addEventListener('change', () => {
+          if (cb.checked) {
+            hidden.delete(it.key);
+          } else {
+            // Never hide the last visible group — an empty graph is noise.
+            if (hidden.size + 1 >= total) {
+              cb.checked = true;
+              return;
+            }
+            hidden.add(it.key);
+          }
+          applyFilter();
+          syncURL();
+        });
+        label.appendChild(cb);
+        const name = mk('span', 'kg-legend-name');
+        name.textContent = it.label;
+        label.appendChild(name);
+        const count = mk('span', 'kg-legend-count');
+        count.textContent = String(counts.get(it.key) ?? 0);
+        label.appendChild(count);
+        span.appendChild(label);
+        legendEl.appendChild(span);
+      }
     }
 
-    // Single pointer: node drag if it hit a node, else canvas pan.
-    const target = nodeEls.find((g) => g.contains(e.target as Node));
-    if (target) {
-      const n = nodes[nodeEls.indexOf(target)];
-      const p = toWorld(e.clientX, e.clientY);
-      dragging = n;
-      dragStart = { x: p.x, y: p.y };
-      moved = false;
-      target.style.cursor = 'grabbing';
-      return;
+    /** Obsidian "Tags"-style filter: hide whole groups (or communities), edges
+     *  touching a hidden node or of a hidden edge type, and anything an active
+     *  quick-view preset excludes. */
+    function applyFilter() {
+      // The simulation would otherwise keep writing positions for a node set that
+      // just changed; a run in flight settles before the filter lands.
+      settleIfRunning();
+      nodes.forEach((n, i) => {
+        nodeEls[i].style.display = nodeHidden(n) ? 'none' : '';
+      });
+      edgeEls.forEach((e, i) => {
+        const l = links[i];
+        const s = nodeById.get(l.source);
+        const t = nodeById.get(l.target);
+        const nodeHiddenEdge = (s && nodeHidden(s)) || (t && nodeHidden(t));
+        const typeHidden = hiddenEdgeTypes.has(l.type);
+        const isHidden = nodeHiddenEdge || typeHidden;
+        e.style.display = isHidden ? 'none' : '';
+        edgeHitEls[i].style.display = isHidden ? 'none' : '';
+      });
+      announceShownCount();
     }
-    panning = { startX: e.clientX, startY: e.clientY, vpX: vp.x, vpY: vp.y };
-    svg.style.cursor = 'grabbing';
-  }
 
-  function handlePointerMove(e: PointerEvent) {
-    if (!pointers.has(e.pointerId)) return;
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    /** Keep the view shareable: mode + hidden sets + focused node live in the URL
+     *  query string, updated in place (`replaceState` only — a focus change must
+     *  never push a history entry) and merged with any existing params. */
+    function syncURL() {
+      // Only the URL owner writes: with no `graph` param the block that was
+      // interacted with claims the link, so a reload restores that block.
+      if (!ownsURL()) return;
+      const q0 = encodeGraphState(
+        {
+          mode,
+          hiddenGroups: [...hiddenGroups] as string[],
+          hiddenCommunities: [...hiddenCommunities].map(Number),
+          hiddenEdges: [...hiddenEdgeTypes],
+          // Runtime value comes from a data attribute / URL; the encoder only
+          // accepts the known preset kinds (anything else serializes as
+          // absent), so narrowing here is safe.
+          preset: preset as 'project' | 'post' | 'topic' | 'volta' | 'glossary' | null,
+          physics: physicsOn,
+          focus: focusedId ?? undefined,
+        },
+        window.location.search,
+      );
+      let q = q0;
+      if (!graphParam && q) {
+        const params = new URLSearchParams(q);
+        const owned = ['mode', 'hideGroups', 'hideC', 'hideEdges', 'preset', 'physics', 'focus'];
+        if (owned.some((k) => params.has(k))) {
+          params.set('graph', key);
+          q = `?${params.toString()}`;
+        }
+      }
+      history.replaceState(null, '', `${window.location.pathname}${q}${window.location.hash}`);
+    }
 
-    if (pinch && pointers.size === 2) {
-      const [a, b] = [...pointers.values()];
-      const dist = Math.hypot(a.x - b.x, a.y - b.y);
-      const factor = clampZoom((pinch.vp0.k * dist) / pinch.startDist) / pinch.vp0.k;
-      vp = zoomAt(pinch.vp0, pinch.mid0, factor, world);
+    // --- Viewport ---
+    let vp = { x: 0, y: 0, k: 1 };
+    function applyViewport() {
+      const vb = viewBoxOf(vp, world);
+      svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+    }
+
+    /** Zoom that keeps the labels legible in CSS pixels. On a phone the world is
+     *  scaled to ~0.35 CSS px per unit, so an 11px label renders under 5px — the
+     *  reset view opens zoomed in on the centre instead, and the reader pans from
+     *  there. At desktop width the multiplier is already 1, so nothing changes. */
+    function initialZoom() {
+      const labelEl = svg.querySelector('.kg-label');
+      if (!labelEl) return 1;
+      const labelPx = parseFloat(getComputedStyle(labelEl).fontSize) || 11;
+      return readableZoom(
+        svg.getBoundingClientRect().width,
+        world.w,
+        labelPx,
+        READABLE_LABEL_PX,
+        MAX_READABLE_ZOOM,
+      );
+    }
+
+    function resetViewport() {
+      vp = centerOn({ x: 0, y: 0, k: 1 }, { x: world.w / 2, y: world.h / 2 }, initialZoom(), world);
       applyViewport();
-      return;
     }
 
-    if (dragging) {
-      const p = toWorld(e.clientX, e.clientY);
-      const dx = p.x - (dragStart?.x ?? p.x);
-      const dy = p.y - (dragStart?.y ?? p.y);
-      if (dx * dx + dy * dy > 9) moved = true;
+    /** Convert a client (screen) point into world/viewBox coordinates. */
+    function toWorld(clientX: number, clientY: number) {
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return { x: 0, y: 0 };
+      const pt = new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse());
+      return { x: pt.x, y: pt.y };
+    }
+
+    // --- Hover: highlight neighbors; the label appears via CSS on hover/focus ---
+    let hoveredId: string | null = null;
+
+    /** Single writer for node dim state. Hover/focus highlight and the search
+     *  filter both dim nodes, and the `kg-dim` class must never drift from the
+     *  inline opacity: a dimmed group's opacity is inherited by its text, so a
+     *  class left behind by an interrupted highlight keeps always-on labels
+     *  invisible over an otherwise fully lit graph. */
+    function applyNodeStates(explicitId?: string | null, query?: string) {
+      // `focusedId` lights regardless of the Focus toggle: a node focused by the
+      // search picker or a `?focus=` deep link must stay lit even though the
+      // toggle (whose job is only "click toggles focus instead of navigating") is
+      // a separate control. Hover still wins while the pointer is on a node.
+      const hl = explicitId ?? (hoveredId || focusedId);
+      const lit = hl ? adjacency.get(hl) || new Set<string>() : null;
+      if (lit && hl) lit.add(hl);
+      // `query` is passed by the search paths, which must keep working when the
+      // input is blurred but still holds text (blur deliberately clears the filter).
+      const q = (query ?? searchInput?.value ?? '').trim().toLowerCase();
+      nodes.forEach((n, i) => {
+        if (lit && !lit.has(n.id)) {
+          nodeEls[i].style.opacity = '0.12';
+          nodeEls[i].classList.add('kg-dim');
+        } else if (q && !n.label.toLowerCase().includes(q)) {
+          nodeEls[i].style.opacity = '0.08';
+          nodeEls[i].classList.add('kg-dim');
+        } else {
+          nodeEls[i].style.opacity = '';
+          nodeEls[i].classList.remove('kg-dim');
+        }
+      });
+    }
+
+    function clearHighlight() {
+      hoveredId = null;
+      applyNodeStates();
+      edgeEls.forEach((e) => (e.style.opacity = ''));
+      // A persistent 1-hop focus survives the transient hover fading — whether it
+      // came from the Focus toggle, the search picker or a `?focus=` deep link.
+      if (focusedId) {
+        highlight(focusedId);
+      }
+    }
+
+    function highlight(id: string) {
+      applyNodeStates(id);
+      edgeEls.forEach((e, i) => {
+        const l = links[i];
+        const on = l.source === id || l.target === id;
+        e.style.opacity = on ? String(Math.min(1, (l.weight || 1) * 0.9 + 0.2)) : '0.05';
+      });
+    }
+
+    function navigateTo(n: any) {
+      if (n?.href) window.location.href = n.href;
+    }
+
+    /** Pin a node's tooltip at its on-screen position — the "open the node's
+     *  info" half of a focus, for a node the reader did not hover. */
+    function showNodeInfo(id: string) {
+      if (!tooltipEl) return;
+      const idx = nodes.findIndex((n) => n.id === id);
+      const ctm = svg.getScreenCTM();
+      if (idx < 0 || !ctm) return;
+      const p = new DOMPoint(nodes[idx].x, nodes[idx].y).matrixTransform(ctm);
+      showTooltip(tips.node[idx], p.x, p.y);
+    }
+
+    /** The single writer for "which node is focused": lights its 1-hop
+     *  neighbourhood, opens its info and keeps the URL in step. `null` clears.
+     *  A focus is `replaceState`-only (see `syncURL`) so it never spams history. */
+    function setFocus(id: string | null) {
+      focusedId = id;
+      if (id) {
+        highlight(id);
+        showNodeInfo(id);
+      } else {
+        clearHighlight();
+        hideTooltip();
+      }
+      syncURL();
+    }
+
+    // --- Tooltip: content lines are rebuilt from `nodes`/`links` at init, so
+    // the client only positions and renders them. Hover-only; keyboard users get
+    // the native SVG <title>. ---
+    const tooltipEl = root.querySelector('[data-kg="tooltip"]') as HTMLDivElement | null;
+    function showTooltip(lines: string[] | undefined, clientX: number, clientY: number) {
+      if (!tooltipEl || !lines || !lines.length) return;
+      tooltipEl.replaceChildren();
+      for (const line of lines) {
+        const row = document.createElement('div');
+        row.textContent = line;
+        tooltipEl.appendChild(row);
+      }
+      tooltipEl.hidden = false;
+      const rect = root.getBoundingClientRect();
+      const w = tooltipEl.offsetWidth;
+      const h = tooltipEl.offsetHeight;
+      let x = clientX - rect.left + 14;
+      let y = clientY - rect.top + 14;
+      if (x + w > rect.width - 8) x = Math.max(8, clientX - rect.left - w - 14);
+      if (y + h > rect.height - 8) y = Math.max(8, clientY - rect.top - h - 8);
+      tooltipEl.style.transform = `translate(${x}px, ${y}px)`;
+    }
+    function hideTooltip() {
+      if (tooltipEl) tooltipEl.hidden = true;
+    }
+
+    // --- Pointer handling: node drag (click = navigate), canvas pan, pinch ---
+    let dragging: any = null;
+    let dragStart: { x: number; y: number } | null = null;
+    let moved = false;
+    let panning: { startX: number; startY: number; vpX: number; vpY: number } | null = null;
+    let pinch: { startDist: number; vp0: typeof vp; mid0: { x: number; y: number } } | null = null;
+    const pointers = new Map<number, { x: number; y: number }>();
+
+    /** The single exit from a drag. Called from `pointerup`, `pointercancel` AND
+     *  the pinch branch: a second finger used to null `dragging`, and `pointerup`
+     *  then early-returned on `!dragging`, so the pin was never lifted and the
+     *  node stayed welded to its last coordinate with the loop still running. */
+    function releaseDrag() {
+      if (!dragging) return;
       const di = nodes.indexOf(dragging);
-      if (physicsEnabled()) {
-        // Physics moves the node, not this handler: pin it under the cursor and
-        // let the loop carry it and its neighbours. `posFor` is deliberately
-        // left untouched — it is the render state a mode switch restores, so a
-        // thrown position written there would outlive the trip home and
-        // resurrect the throw on the next mode change.
-        if (!simNodes.length) startSim();
-        if (di >= 0 && simNodes[di]) {
-          simNodes[di].fixed = { x: p.x, y: p.y };
-          simNodes[di].x = p.x;
-          simNodes[di].y = p.y;
-        }
-        if (physicsPhase !== 'drag') {
-          physicsPhase = 'drag';
-          schedule();
-        }
-        // Every pointer move re-arms the alpha, so the neighbours stay lively
-        // while the hand is moving and calm down the moment it stops.
-        dragAlpha = DRAG_ALPHA_ARM;
+      dragging = null;
+      dragStart = null;
+      if (di >= 0) {
+        nodeEls[di].style.cursor = 'pointer';
+        if (simNodes[di]) simNodes[di].fixed = null;
+      }
+      // Physics on: everything eases back to the build-time layout. Off: the node
+      // stays where it was dropped, which is the old cosmetic drag.
+      startReturn();
+    }
+
+    function handlePointerDown(e: PointerEvent) {
+      // A `→N` badge is a control of its own, not the node's drag handle.
+      if ((e.target as Element | null)?.closest?.('[data-kg-bridge]')) return;
+      hideTooltip();
+      svg.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (pointers.size === 2) {
+        releaseDrag();
+        panning = null;
+        const [a, b] = [...pointers.values()];
+        const startDist = Math.hypot(a.x - b.x, a.y - b.y);
+        pinch = {
+          startDist: Math.max(1, startDist),
+          vp0: { ...vp },
+          mid0: toWorld((a.x + b.x) / 2, (a.y + b.y) / 2),
+        };
         return;
       }
-      // Cosmetic drag (physics off): move the node and remember the position
-      // (in the active mode's layout) so search centers on where the user
-      // actually put it.
-      dragging.x = p.x;
-      dragging.y = p.y;
-      if (di >= 0) posFor(mode)[di] = { x: p.x, y: p.y };
-      const g = nodeEls[di];
-      if (g) g.setAttribute('transform', `translate(${p.x},${p.y})`);
-      return;
-    }
 
-    if (panning) {
-      const p = toWorld(e.clientX, e.clientY);
-      const start = toWorld(panning.startX, panning.startY);
-      // Keep the world point grabbed at start under the cursor.
-      vp = panBy({ x: panning.vpX, y: panning.vpY, k: vp.k }, start.x - p.x, start.y - p.y);
-      applyViewport();
-    }
-  }
-
-  function handlePointerUp(e: PointerEvent) {
-    pointers.delete(e.pointerId);
-    if (pointers.size < 2) pinch = null;
-    if (dragging) {
-      const n = dragging;
-      const wasClick = !moved;
-      releaseDrag();
-      if (wasClick) {
-        if (focusMode) {
-          // Focus mode: click toggles a persistent 1-hop highlight instead of
-          // navigating; clicking the focused node again (or Esc) clears it.
-          // Either way the URL `focus` param follows.
-          if (focusedId === n.id) setFocus(null);
-          else setFocus(n.id);
-        } else {
-          navigateTo(n);
-        }
+      // Single pointer: node drag if it hit a node, else canvas pan.
+      const target = nodeEls.find((g) => g.contains(e.target as Node));
+      if (target) {
+        const n = nodes[nodeEls.indexOf(target)];
+        const p = toWorld(e.clientX, e.clientY);
+        dragging = n;
+        dragStart = { x: p.x, y: p.y };
+        moved = false;
+        target.style.cursor = 'grabbing';
+        return;
       }
-      return;
+      panning = { startX: e.clientX, startY: e.clientY, vpX: vp.x, vpY: vp.y };
+      svg.style.cursor = 'grabbing';
     }
-    if (panning) {
-      panning = null;
-      svg.style.cursor = '';
-      // Clicking or dragging the empty canvas dismisses a focus.
-      if (focusedId) setFocus(null);
-    }
-  }
 
-  svg.addEventListener('pointerdown', handlePointerDown);
-  svg.addEventListener('pointermove', handlePointerMove);
-  svg.addEventListener('pointerup', handlePointerUp);
-  svg.addEventListener('pointercancel', handlePointerUp);
+    function handlePointerMove(e: PointerEvent) {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-  // Hover: highlight neighbors and show a tooltip. Links get their own hit
-  // areas (nodes render above them, so a node wins when they overlap).
-  svg.addEventListener('pointerover', (e) => {
-    const hitIdx = edgeHitEls.indexOf(e.target as unknown as SVGLineElement);
-    if (hitIdx >= 0) {
-      showTooltip(tips.edge[hitIdx], e.clientX, e.clientY);
-      return;
-    }
-    const target = nodeEls.find((g) => g.contains(e.target as Node));
-    if (!target) {
-      clearHighlight();
-      hideTooltip();
-      return;
-    }
-    const idx = nodeEls.indexOf(target);
-    const n = nodes[idx];
-    hoveredId = n.id;
-    highlight(n.id);
-    showTooltip(tips.node[idx], e.clientX, e.clientY);
-  });
-  svg.addEventListener('pointerout', (e) => {
-    const stillIn = (e.relatedTarget as Node | null) && svg.contains(e.relatedTarget as Node);
-    if (!stillIn) {
-      clearHighlight();
-      hideTooltip();
-    }
-  });
+      if (pinch && pointers.size === 2) {
+        const [a, b] = [...pointers.values()];
+        const dist = Math.hypot(a.x - b.x, a.y - b.y);
+        const factor = clampZoom((pinch.vp0.k * dist) / pinch.startDist) / pinch.vp0.k;
+        vp = zoomAt(pinch.vp0, pinch.mid0, factor, world);
+        applyViewport();
+        return;
+      }
 
-  // Keyboard: Enter/Space on a focused node navigates — or, in focus mode,
-  // toggles the 1-hop highlight.
-  nodeEls.forEach((g, i) => {
-    g.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        if (focusMode) {
-          if (focusedId === nodes[i].id) setFocus(null);
-          else setFocus(nodes[i].id);
-        } else {
-          navigateTo(nodes[i]);
+      if (dragging) {
+        const p = toWorld(e.clientX, e.clientY);
+        const dx = p.x - (dragStart?.x ?? p.x);
+        const dy = p.y - (dragStart?.y ?? p.y);
+        if (dx * dx + dy * dy > 9) moved = true;
+        const di = nodes.indexOf(dragging);
+        if (physicsEnabled()) {
+          // Physics moves the node, not this handler: pin it under the cursor and
+          // let the loop carry it and its neighbours. `posFor` is deliberately
+          // left untouched — it is the render state a mode switch restores, so a
+          // thrown position written there would outlive the trip home and
+          // resurrect the throw on the next mode change.
+          if (!simNodes.length) startSim();
+          if (di >= 0 && simNodes[di]) {
+            simNodes[di].fixed = { x: p.x, y: p.y };
+            simNodes[di].x = p.x;
+            simNodes[di].y = p.y;
+          }
+          if (physicsPhase !== 'drag') {
+            physicsPhase = 'drag';
+            schedule();
+          }
+          // Every pointer move re-arms the alpha, so the neighbours stay lively
+          // while the hand is moving and calm down the moment it stops.
+          dragAlpha = DRAG_ALPHA_ARM;
+          return;
         }
+        // Cosmetic drag (physics off): move the node and remember the position
+        // (in the active mode's layout) so search centers on where the user
+        // actually put it.
+        dragging.x = p.x;
+        dragging.y = p.y;
+        if (di >= 0) posFor(mode)[di] = { x: p.x, y: p.y };
+        const g = nodeEls[di];
+        if (g) g.setAttribute('transform', `translate(${p.x},${p.y})`);
+        return;
+      }
+
+      if (panning) {
+        const p = toWorld(e.clientX, e.clientY);
+        const start = toWorld(panning.startX, panning.startY);
+        // Keep the world point grabbed at start under the cursor.
+        vp = panBy({ x: panning.vpX, y: panning.vpY, k: vp.k }, start.x - p.x, start.y - p.y);
+        applyViewport();
+      }
+    }
+
+    function handlePointerUp(e: PointerEvent) {
+      pointers.delete(e.pointerId);
+      if (pointers.size < 2) pinch = null;
+      if (dragging) {
+        const n = dragging;
+        const wasClick = !moved;
+        releaseDrag();
+        if (wasClick) {
+          emitNodeClick(n);
+          if (focusMode) {
+            // Focus mode: click toggles a persistent 1-hop highlight instead of
+            // navigating; clicking the focused node again (or Esc) clears it.
+            // Either way the URL `focus` param follows.
+            if (focusedId === n.id) setFocus(null);
+            else setFocus(n.id);
+          } else {
+            navigateTo(n);
+          }
+        }
+        return;
+      }
+      if (panning) {
+        panning = null;
+        svg.style.cursor = '';
+        // Clicking or dragging the empty canvas dismisses a focus.
+        if (focusedId) setFocus(null);
+      }
+    }
+
+    svg.addEventListener('pointerdown', handlePointerDown);
+    svg.addEventListener('pointermove', handlePointerMove);
+    svg.addEventListener('pointerup', handlePointerUp);
+    svg.addEventListener('pointercancel', handlePointerUp);
+
+    // Hover: highlight neighbors and show a tooltip. Links get their own hit
+    // areas (nodes render above them, so a node wins when they overlap).
+    svg.addEventListener('pointerover', (e) => {
+      const hitIdx = edgeHitEls.indexOf(e.target as unknown as SVGLineElement);
+      if (hitIdx >= 0) {
+        showTooltip(tips.edge[hitIdx], e.clientX, e.clientY);
+        return;
+      }
+      const target = nodeEls.find((g) => g.contains(e.target as Node));
+      if (!target) {
+        clearHighlight();
+        hideTooltip();
+        return;
+      }
+      const idx = nodeEls.indexOf(target);
+      const n = nodes[idx];
+      hoveredId = n.id;
+      highlight(n.id);
+      showTooltip(tips.node[idx], e.clientX, e.clientY);
+    });
+    svg.addEventListener('pointerout', (e) => {
+      const stillIn = (e.relatedTarget as Node | null) && svg.contains(e.relatedTarget as Node);
+      if (!stillIn) {
+        clearHighlight();
+        hideTooltip();
       }
     });
-  });
 
-  // Wheel zoom around the cursor. Plain wheel belongs to the page: the canvas
-  // is 74svh tall on /graph/, so taking every wheel event made the rest of the
-  // document unreachable with a trackpad. Ctrl/Cmd + wheel is the browser-wide
-  // zoom gesture, so hijacking it costs nothing.
-  svg.addEventListener(
-    'wheel',
-    (e) => {
-      if (!e.ctrlKey && !e.metaKey) return;
-      e.preventDefault();
-      hideTooltip();
-      const p = toWorld(e.clientX, e.clientY);
-      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
-      vp = zoomAt(vp, p, factor, world);
-      applyViewport();
-    },
-    { passive: false },
-  );
+    // Keyboard: Enter/Space on a focused node navigates — or, in focus mode,
+    // toggles the 1-hop highlight.
+    nodeEls.forEach((g, i) => {
+      g.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          emitNodeClick(nodes[i]);
+          if (focusMode) {
+            if (focusedId === nodes[i].id) setFocus(null);
+            else setFocus(nodes[i].id);
+          } else {
+            navigateTo(nodes[i]);
+          }
+        }
+      });
+    });
 
-  // --- Search: filter nodes by label, center on a match ---
-  const searchInput = document.getElementById('kg-search-input') as HTMLInputElement | null;
-  const searchResults = document.getElementById('kg-search-results') as HTMLDivElement | null;
-  let searchActive = -1;
+    // Wheel zoom around the cursor. Plain wheel belongs to the page: the canvas
+    // is 74svh tall on /graph/, so taking every wheel event made the rest of the
+    // document unreachable with a trackpad. Ctrl/Cmd + wheel is the browser-wide
+    // zoom gesture, so hijacking it costs nothing.
+    svg.addEventListener(
+      'wheel',
+      (e) => {
+        if (!e.ctrlKey && !e.metaKey) return;
+        e.preventDefault();
+        hideTooltip();
+        const p = toWorld(e.clientX, e.clientY);
+        const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+        vp = zoomAt(vp, p, factor, world);
+        applyViewport();
+      },
+      { passive: false },
+    );
 
-  function applySearchFilter(query: string) {
-    applyNodeStates(null, query);
-  }
+    // --- Search: filter nodes by label, center on a match ---
+    const searchInput = root.querySelector('[data-kg="search-input"]') as HTMLInputElement | null;
+    const searchResults = root.querySelector('[data-kg="search-results"]') as HTMLDivElement | null;
+    let searchActive = -1;
 
-  function renderSearchResults(query: string) {
-    if (!searchResults) return;
-    const q = query.trim().toLowerCase();
-    searchResults.innerHTML = '';
-    if (!q) {
-      searchResults.hidden = true;
-      return;
+    function applySearchFilter(query: string) {
+      applyNodeStates(null, query);
     }
-    const matches = nodes.filter((n) => n.label.toLowerCase().includes(q)).slice(0, 12);
-    searchResults.hidden = false;
-    searchActive = -1;
-    if (matches.length === 0) {
-      const empty = mk('div', 'kg-search-empty');
-      empty.textContent = root.dataset.searchEmpty || 'No matches';
-      // Empty state needs one clear next action: a button that clears the
-      // query and restores the full graph.
-      const reset = mk('button', 'kg-search-empty-btn');
-      reset.type = 'button';
-      reset.textContent = root.dataset.searchReset || 'Clear search';
-      reset.addEventListener('click', () => {
-        if (!searchInput) return;
+
+    function renderSearchResults(query: string) {
+      if (!searchResults) return;
+      const q = query.trim().toLowerCase();
+      searchResults.innerHTML = '';
+      if (!q) {
+        searchResults.hidden = true;
+        // The query is gone but the graph is back to the unfiltered set — say so,
+        // otherwise the last "N matches" stays in the live region.
+        announceShownCount();
+        return;
+      }
+      const all = nodes.filter((n) => n.label.toLowerCase().includes(q));
+      const matches = all.slice(0, 12);
+      searchResults.hidden = false;
+      searchActive = -1;
+      if (booted) announce(fillTpl(root.dataset.liveSearch || '', { n: all.length }));
+      if (matches.length === 0) {
+        const empty = mk('div', 'kg-search-empty');
+        empty.textContent = root.dataset.searchEmpty || 'No matches';
+        // Empty state needs one clear next action: a button that clears the
+        // query and restores the full graph.
+        const reset = mk('button', 'kg-search-empty-btn');
+        reset.type = 'button';
+        reset.textContent = root.dataset.searchReset || 'Clear search';
+        reset.addEventListener('click', () => {
+          if (!searchInput) return;
+          clearSearch();
+          searchInput.focus();
+        });
+        empty.appendChild(reset);
+        searchResults.appendChild(empty);
+        return;
+      }
+      matches.forEach((n, _i) => {
+        const item = mk('button', 'kg-search-item');
+        item.type = 'button';
+        item.setAttribute('role', 'option');
+        item.textContent = n.label;
+        item.addEventListener('click', () => {
+          centerOnNode(n.id);
+          searchInput?.blur();
+        });
+        searchResults.appendChild(item);
+      });
+    }
+
+    /** Make a node visible and bring it to the centre of the viewport. Returns the
+     *  node, or null when the id is not in this graph. Shared by the search picker
+     *  and the `?focus=` deep link. */
+    function revealNode(id: string): any | null {
+      const n = nodes.find((x) => x.id === id);
+      if (!n) return null;
+      // Un-hide the node's group/community so the target is always visible.
+      const hidden = hiddenSet();
+      const key = keyOf(n);
+      // A preset excluding this node would keep it hidden even after the group is
+      // un-checked — drop the preset so the target actually shows.
+      const presetChanged = preset !== null && kindOf(n) !== preset;
+      if (presetChanged) {
+        preset = null;
+        syncPresetButtons();
+      }
+      if (hidden.has(key) || presetChanged) {
+        if (hidden.has(key)) {
+          hidden.delete(key);
+          renderLegend();
+        }
+        applyFilter();
+      }
+      // Recenter on the node's current position with a comfortable zoom. The
+      // caller's focus write (setFocus) syncs the URL, so this stays view-only.
+      vp = centerOn(vp, { x: n.x, y: n.y }, Math.max(1.5, vp.k), world);
+      applyViewport();
+      return n;
+    }
+
+    function centerOnNode(id: string) {
+      const n = revealNode(id);
+      if (!n) return;
+      clearSearch();
+      // Picking a result focuses the node: a persistent 1-hop highlight, its
+      // info, and `focus=` in the URL so the pick survives a reload or a share.
+      setFocus(id);
+      const g = nodeEls[nodes.indexOf(n)];
+      if (g) g.focus();
+    }
+
+    function clearSearch() {
+      if (searchInput) {
         searchInput.value = '';
         searchInput.setAttribute('aria-expanded', 'false');
-        applySearchFilter('');
-        searchResults.hidden = true;
-        searchInput.focus();
-      });
-      empty.appendChild(reset);
-      searchResults.appendChild(empty);
-      return;
-    }
-    matches.forEach((n, _i) => {
-      const item = mk('button', 'kg-search-item');
-      item.type = 'button';
-      item.setAttribute('role', 'option');
-      item.textContent = n.label;
-      item.addEventListener('click', () => {
-        centerOnNode(n.id);
-        searchInput?.blur();
-      });
-      searchResults.appendChild(item);
-    });
-  }
-
-  /** Make a node visible and bring it to the centre of the viewport. Returns the
-   *  node, or null when the id is not in this graph. Shared by the search picker
-   *  and the `?focus=` deep link. */
-  function revealNode(id: string): any | null {
-    const n = nodes.find((x) => x.id === id);
-    if (!n) return null;
-    // Un-hide the node's group/community so the target is always visible.
-    const hidden = hiddenSet();
-    const key = keyOf(n);
-    // A preset excluding this node would keep it hidden even after the group is
-    // un-checked — drop the preset so the target actually shows.
-    const presetChanged = preset !== null && kindOf(n) !== preset;
-    if (presetChanged) {
-      preset = null;
-      syncPresetButtons();
-    }
-    if (hidden.has(key) || presetChanged) {
-      if (hidden.has(key)) {
-        hidden.delete(key);
-        renderLegend();
       }
-      applyFilter();
+      if (searchResults) searchResults.hidden = true;
+      applySearchFilter('');
+      announceShownCount();
     }
-    // Recenter on the node's current position with a comfortable zoom. The
-    // caller's focus write (setFocus) syncs the URL, so this stays view-only.
-    vp = centerOn(vp, { x: n.x, y: n.y }, Math.max(1.5, vp.k), world);
-    applyViewport();
-    return n;
-  }
 
-  function centerOnNode(id: string) {
-    const n = revealNode(id);
-    if (!n) return;
-    clearSearch();
-    // Picking a result focuses the node: a persistent 1-hop highlight, its
-    // info, and `focus=` in the URL so the pick survives a reload or a share.
-    setFocus(id);
-    const g = nodeEls[nodes.indexOf(n)];
-    if (g) g.focus();
-  }
-
-  function clearSearch() {
-    if (searchInput) {
-      searchInput.value = '';
-      searchInput.setAttribute('aria-expanded', 'false');
-    }
-    if (searchResults) searchResults.hidden = true;
-    applySearchFilter('');
-  }
-
-  if (searchInput && searchResults) {
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value;
-      searchInput.setAttribute('aria-expanded', 'true');
-      renderSearchResults(q);
-      applySearchFilter(q);
-    });
-    searchInput.addEventListener('keydown', (e) => {
-      const items = Array.from(searchResults.querySelectorAll<HTMLButtonElement>('.kg-search-item'));
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        searchActive = (searchActive + 1) % Math.max(1, items.length);
-        items[searchActive]?.focus();
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        searchActive = (searchActive - 1 + items.length) % Math.max(1, items.length);
-        items[searchActive]?.focus();
-      } else if (e.key === 'Enter') {
-        if (items[Math.max(0, searchActive)]) {
+    if (searchInput && searchResults) {
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value;
+        searchInput.setAttribute('aria-expanded', 'true');
+        renderSearchResults(q);
+        applySearchFilter(q);
+      });
+      searchInput.addEventListener('keydown', (e) => {
+        const items = Array.from(searchResults.querySelectorAll<HTMLButtonElement>('.kg-search-item'));
+        if (e.key === 'ArrowDown') {
           e.preventDefault();
-          items[Math.max(0, searchActive)].click();
+          searchActive = (searchActive + 1) % Math.max(1, items.length);
+          items[searchActive]?.focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          searchActive = (searchActive - 1 + items.length) % Math.max(1, items.length);
+          items[searchActive]?.focus();
+        } else if (e.key === 'Enter') {
+          if (items[Math.max(0, searchActive)]) {
+            e.preventDefault();
+            items[Math.max(0, searchActive)].click();
+          }
+        } else if (e.key === 'Escape') {
+          clearSearch();
+          searchInput.blur();
         }
-      } else if (e.key === 'Escape') {
-        clearSearch();
-        searchInput.blur();
-      }
-    });
-    searchInput.addEventListener('blur', () => {
-      // Allow click on a result to land before hiding.
-      window.setTimeout(() => {
-        if (!root.contains(document.activeElement)) {
-          searchResults.hidden = true;
-          applySearchFilter('');
-        }
-      }, 120);
-    });
-  }
+      });
+      searchInput.addEventListener('blur', () => {
+        // Allow click on a result to land before hiding.
+        window.setTimeout(() => {
+          if (!root.contains(document.activeElement)) {
+            searchResults.hidden = true;
+            applySearchFilter('');
+          }
+        }, 120);
+      });
+    }
 
-  // --- Edge-type filter panel: swatches sampled from the SSR edge strokes,
-  // checked state synced from hiddenEdgeTypes at init, closes on outside
-  // pointerdown or Esc. ---
-  const edgePanel = document.getElementById('kg-edge-panel') as HTMLDivElement | null;
-  if (edgePanel) {
-    edgePanel.querySelectorAll<HTMLInputElement>('input[data-kg-type]').forEach((cb) => {
-      const ty = cb.dataset.kgType!;
-      const swatch = edgePanel.querySelector<HTMLElement>(`[data-kg-swatch="${ty}"]`);
-      if (swatch) swatch.style.color = edgeColor.get(ty) ?? 'var(--text-muted)';
-      cb.addEventListener('change', () => {
-        if (cb.checked) hiddenEdgeTypes.delete(ty);
-        else hiddenEdgeTypes.add(ty);
+    // --- Edge-type filter panel: swatches sampled from the SSR edge strokes,
+    // checked state synced from hiddenEdgeTypes at init, closes on outside
+    // pointerdown or Esc. ---
+    const edgePanel = root.querySelector('[data-kg="edge-panel"]') as HTMLDivElement | null;
+    if (edgePanel) {
+      edgePanel.querySelectorAll<HTMLInputElement>('input[data-kg-type]').forEach((cb) => {
+        const ty = cb.dataset.kgType!;
+        const swatch = edgePanel.querySelector<HTMLElement>(`[data-kg-swatch="${ty}"]`);
+        if (swatch) swatch.style.color = edgeColor.get(ty) ?? 'var(--text-muted)';
+        cb.addEventListener('change', () => {
+          if (cb.checked) hiddenEdgeTypes.delete(ty);
+          else hiddenEdgeTypes.add(ty);
+          applyFilter();
+          syncURL();
+        });
+      });
+      api.onPointerDown = (e: PointerEvent) => {
+        if (edgePanel.hidden) return;
+        const t = e.target as Node;
+        if (edgePanel.contains(t)) return;
+        if ((t as Element | null)?.closest?.('[data-kg-action="toggle-edge-panel"]')) return;
+        edgePanel.hidden = true;
+        root
+          .querySelector<HTMLButtonElement>('[data-kg-action="toggle-edge-panel"]')
+          ?.setAttribute('aria-expanded', 'false');
+      };
+    }
+    /** Reflect hiddenEdgeTypes in the panel checkboxes (called at init after
+     *  the URL state is restored). */
+    function syncEdgePanel() {
+      edgePanel?.querySelectorAll<HTMLInputElement>('input[data-kg-type]').forEach((cb) => {
+        cb.checked = !hiddenEdgeTypes.has(cb.dataset.kgType!);
+      });
+    }
+
+    // --- Quick-view presets: chips filter the graph to a single node kind ---
+    const presetBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-kg-preset]'));
+    /** Reflect `preset` in the chips' pressed state — exactly one active. */
+    function syncPresetButtons() {
+      presetBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kgPreset === (preset ?? ''))));
+    }
+    presetBtns.forEach((b) => {
+      const kind = b.dataset.kgPreset ? b.dataset.kgPreset : null;
+      // The live node count goes into its own span, not appended to the label's
+      // text: the count is a pill in the chip's styling, and rewriting `textContent`
+      // here would throw that span away on every render.
+      const count = nodes.filter((n) => kind === null || kindOf(n) === kind).length;
+      const countEl = b.querySelector<HTMLElement>('.kg-chip-count');
+      if (countEl) countEl.textContent = String(count);
+      b.addEventListener('click', () => {
+        // Clicking the active chip again (or "All") clears the preset; any other
+        // chip swaps in. Combines with the legend checkboxes, which stay intact.
+        preset = preset === kind ? null : kind;
+        syncPresetButtons();
         applyFilter();
         syncURL();
       });
     });
-    document.addEventListener('pointerdown', (e) => {
-      if (edgePanel.hidden) return;
-      const t = e.target as Node;
-      if (edgePanel.contains(t)) return;
-      if ((t as Element | null)?.closest?.('[data-kg-action="toggle-edge-panel"]')) return;
-      edgePanel.hidden = true;
-      root
-        .querySelector<HTMLButtonElement>('[data-kg-action="toggle-edge-panel"]')
-        ?.setAttribute('aria-expanded', 'false');
-    });
-  }
-  /** Reflect hiddenEdgeTypes in the panel checkboxes (called at init after
-   *  the URL state is restored). */
-  function syncEdgePanel() {
-    edgePanel?.querySelectorAll<HTMLInputElement>('input[data-kg-type]').forEach((cb) => {
-      cb.checked = !hiddenEdgeTypes.has(cb.dataset.kgType!);
-    });
-  }
 
-  // --- Quick-view presets: chips filter the graph to a single node kind ---
-  const presetBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-kg-preset]'));
-  /** Reflect `preset` in the chips' pressed state — exactly one active. */
-  function syncPresetButtons() {
-    presetBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kgPreset === (preset ?? ''))));
-  }
-  presetBtns.forEach((b) => {
-    const kind = b.dataset.kgPreset ? b.dataset.kgPreset : null;
-    // The live node count goes into its own span, not appended to the label's
-    // text: the count is a pill in the chip's styling, and rewriting `textContent`
-    // here would throw that span away on every render.
-    const count = nodes.filter((n) => kind === null || kindOf(n) === kind).length;
-    const countEl = b.querySelector<HTMLElement>('.kg-chip-count');
-    if (countEl) countEl.textContent = String(count);
-    b.addEventListener('click', () => {
-      // Clicking the active chip again (or "All") clears the preset; any other
-      // chip swaps in. Combines with the legend checkboxes, which stay intact.
-      preset = preset === kind ? null : kind;
-      syncPresetButtons();
-      applyFilter();
-      syncURL();
-    });
-  });
-
-  // Control buttons.
-  const fsBtn = root.querySelector<HTMLButtonElement>('[data-kg-action="fullscreen"]');
-  root.querySelectorAll<HTMLButtonElement>('[data-kg-action]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const action = btn.dataset.kgAction;
-      const center = { x: world.w / 2, y: world.h / 2 };
-      if (action === 'zoom-in') {
-        vp = zoomAt(vp, center, 1.35, world);
-        applyViewport();
-      } else if (action === 'zoom-out') {
-        vp = zoomAt(vp, center, 1 / 1.35, world);
-        applyViewport();
-      } else if (action === 'reset') {
-        resetViewport();
-        // Back to the active mode's untouched build-time positions; the other
-        // mode's layout is left alone but stays pristine.
-        restorePristine();
-      } else if (action === 'fullscreen') {
-        toggleFullscreen();
-      } else if (action === 'toggle-color') {
-        mode = mode === 'group' ? 'community' : 'group';
-        const isCommunity = mode === 'community';
-        btn.setAttribute('aria-pressed', String(isCommunity));
-        btn.textContent = isCommunity ? btn.dataset.labelCommunity! : btn.dataset.labelGroup!;
-        btn.title = btn.textContent;
-        // Each mode has its own build-time layout and its own filter, so the
-        // switch swaps in the incoming mode's positions, colors and hidden set.
-        applyModeLayout();
-        renderLegend();
-        applyFilter();
-        syncURL();
-      } else if (action === 'toggle-arrows') {
-        showArrows = !showArrows;
-        btn.setAttribute('aria-pressed', String(showArrows));
-        edgeEls.forEach((e, i) => {
-          const l = links[i];
-          if (showArrows && isDirected(l.type)) {
-            e.setAttribute('marker-end', 'url(#kg-arrow)');
-          } else {
-            e.removeAttribute('marker-end');
+    // Control buttons.
+    const fsBtn = root.querySelector<HTMLButtonElement>('[data-kg-action="fullscreen"]');
+    root.querySelectorAll<HTMLButtonElement>('[data-kg-action]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const action = btn.dataset.kgAction;
+        const center = { x: world.w / 2, y: world.h / 2 };
+        if (action === 'zoom-in') {
+          vp = zoomAt(vp, center, 1.35, world);
+          applyViewport();
+        } else if (action === 'zoom-out') {
+          vp = zoomAt(vp, center, 1 / 1.35, world);
+          applyViewport();
+        } else if (action === 'reset') {
+          resetViewport();
+          // Back to the active mode's untouched build-time positions; the other
+          // mode's layout is left alone but stays pristine.
+          restorePristine();
+        } else if (action === 'fullscreen') {
+          toggleFullscreen();
+        } else if (action === 'toggle-color') {
+          mode = mode === 'group' ? 'community' : 'group';
+          const isCommunity = mode === 'community';
+          btn.setAttribute('aria-pressed', String(isCommunity));
+          btn.textContent = isCommunity ? btn.dataset.labelCommunity! : btn.dataset.labelGroup!;
+          btn.title = btn.textContent;
+          // Each mode has its own build-time layout and its own filter, so the
+          // switch swaps in the incoming mode's positions, colors and hidden set.
+          applyModeLayout();
+          renderLegend();
+          applyFilter();
+          syncURL();
+        } else if (action === 'toggle-arrows') {
+          showArrows = !showArrows;
+          btn.setAttribute('aria-pressed', String(showArrows));
+          edgeEls.forEach((e, i) => {
+            const l = links[i];
+            if (showArrows && isDirected(l.type)) {
+              e.setAttribute('marker-end', `url(#kg-arrow-${key})`);
+            } else {
+              e.removeAttribute('marker-end');
+            }
+          });
+        } else if (action === 'toggle-focus') {
+          focusMode = !focusMode;
+          btn.setAttribute('aria-pressed', String(focusMode));
+          if (!focusMode) {
+            // Dropping focus mode also drops the focused node — and its URL param.
+            setFocus(null);
           }
-        });
-      } else if (action === 'toggle-focus') {
-        focusMode = !focusMode;
-        btn.setAttribute('aria-pressed', String(focusMode));
-        if (!focusMode) {
-          // Dropping focus mode also drops the focused node — and its URL param.
-          setFocus(null);
+        } else if (action === 'toggle-physics') {
+          physicsOn = !physicsOn;
+          btn.setAttribute('aria-pressed', String(physicsOn));
+          // Switching off mid-drag or mid-return would strand nodes off the
+          // layout with no loop left to bring them back.
+          if (!physicsOn) restorePristine();
+          syncURL();
+        } else if (action === 'toggle-labels') {
+          showAllLabels = !showAllLabels;
+          btn.setAttribute('aria-pressed', String(showAllLabels));
+          placeAllLabels();
+          // The pressed state alone is silent for a screen reader: say how many
+          // labels the placement pass actually painted.
+          if (booted) {
+            if (showAllLabels) {
+              let withLabel = 0;
+              for (const g of nodeEls) {
+                const text = g.querySelector('text');
+                if (text && !text.classList.contains('kg-label-hover')) withLabel += 1;
+              }
+              announce(fillTpl(root.dataset.liveLabelsOn ?? '', { n: withLabel, total: nodes.length }));
+            } else {
+              announce(root.dataset.liveLabelsOff ?? '');
+            }
+          }
+        } else if (action === 'toggle-edge-panel') {
+          const wasHidden = edgePanel ? edgePanel.hidden : true;
+          if (edgePanel) edgePanel.hidden = !wasHidden;
+          btn.setAttribute('aria-expanded', String(wasHidden));
         }
-      } else if (action === 'toggle-physics') {
-        physicsOn = !physicsOn;
-        btn.setAttribute('aria-pressed', String(physicsOn));
-        // Switching off mid-drag or mid-return would strand nodes off the
-        // layout with no loop left to bring them back.
-        if (!physicsOn) restorePristine();
-        syncURL();
-      } else if (action === 'toggle-edge-panel') {
-        const wasHidden = edgePanel ? edgePanel.hidden : true;
-        if (edgePanel) edgePanel.hidden = !wasHidden;
-        btn.setAttribute('aria-expanded', String(wasHidden));
+      });
+    });
+
+    function setFullscreen(isFs: boolean) {
+      // The overlay re-fits the viewBox; anything in flight settles first so the
+      // new fit is computed against resting coordinates.
+      settleIfRunning();
+      root.classList.toggle('kg-fullscreen', isFs);
+      if (fsBtn) {
+        fsBtn.setAttribute('aria-label', isFs ? fsBtn.dataset.labelFsExit! : fsBtn.dataset.labelFs!);
+        fsBtn.title = isFs ? fsBtn.dataset.labelFsExit! : fsBtn.dataset.labelFs!;
       }
+      if (isFs) {
+        // Move focus into the overlay so keyboard users land inside it.
+        (root.querySelector<HTMLElement>('g[tabindex]') ?? searchInput)?.focus();
+      } else {
+        fsBtn?.focus();
+      }
+      requestAnimationFrame(resetViewport);
+    }
+
+    function toggleFullscreen() {
+      setFullscreen(!root.classList.contains('kg-fullscreen'));
+    }
+
+    // Fullscreen: Escape exits; Tab is trapped within the overlay.
+    api.onKeyDown = (e: KeyboardEvent) => {
+      if (!root.classList.contains('kg-fullscreen')) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setFullscreen(false);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const focusables = Array.from(
+        root.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), g[tabindex]'),
+      ).filter((el) => el.checkVisibility?.() ?? true);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    // --- Esc clears a focus and closes the edge panel. (The fullscreen trap
+    // above handles its own Escape while fullscreen; this listener runs always.)
+    api.onEscape = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      // A focus that came from `?focus=` owns nothing yet — no pointer landed in
+      // this block and the deep link deliberately leaves DOM focus on the body —
+      // so the "did you interact with me" gate would swallow the only key that
+      // can undo it.
+      if (!ownsInteraction() && !focusedId) return;
+      // A focused node — from the toggle, the search picker or a deep link —
+      // clears on Esc. `setFocus(null)` also drops the `focus` URL param.
+      if (focusedId) setFocus(null);
+      if (edgePanel && !edgePanel.hidden) {
+        edgePanel.hidden = true;
+        root
+          .querySelector<HTMLButtonElement>('[data-kg-action="toggle-edge-panel"]')
+          ?.setAttribute('aria-expanded', 'false');
+      }
+    };
+
+    /** Scroll this block into view and flash the given nodes. The landing half
+     *  of a `→N` badge: the count says how much structure left the block, this
+     *  says which nodes it went to. */
+    function focusIn(ids: string[]) {
+      // Aim at the page block (title + board) when the page wraps the graph in
+      // one, so the jump lands on the heading rather than mid-canvas.
+      (root.closest('.graph-block') ?? root).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const wanted = new Set(ids);
+      nodes.forEach((n, i) => {
+        if (!wanted.has(n.id)) return;
+        const g = nodeEls[i];
+        if (!g) return;
+        g.classList.add('kg-bridge-hit');
+        window.setTimeout(() => g.classList.remove('kg-bridge-hit'), 2400);
+      });
+    }
+
+    // Badge clicks: `data.bridgeIds` is nodeId -> destination section -> ids,
+    // so the jump knows what to flash. The badge is a `<text>` inside the node's
+    // link, hence the pointerdown guard above and the two stops here.
+    svg.querySelectorAll<SVGTextElement>('[data-kg-bridge]').forEach((badge) => {
+      badge.addEventListener('pointerdown', (e) => e.stopPropagation());
+      badge.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const perSection = (data.bridgeIds ?? {})[badge.dataset.kgBridge ?? ''] ?? {};
+        // Only blocks that are actually on this page can receive the jump;
+        // `root`/`talks` bridges have no section graph to land in.
+        const [targetKey, ids] = (Object.entries(perSection) as [string, string[]][])
+          .filter(([section]) => registry.has(section))
+          .sort((a, b) => b[1].length - a[1].length)[0] ?? [];
+        if (!targetKey || !ids?.length) return;
+        registry.get(targetKey)?.focusIn(ids);
+      });
+    });
+
+    // --- Init: restore any shared/URL state (the SVG ships the group layout;
+    // community mode repositions nodes and recolors), then wire up the viewport.
+    const urlState = decodeGraphState(window.location.search);
+    // A block that is not the named one starts from defaults: `?graph=articles`
+    // must not also recolour or hide things in Projects and Glossary.
+    const urlScoped = ownsURL() ? urlState : decodeGraphState('');
+    mode = urlScoped.mode;
+    hiddenGroups = new Set(urlScoped.hiddenGroups);
+    hiddenCommunities = new Set(urlScoped.hiddenCommunities);
+    hiddenEdgeTypes = new Set(urlScoped.hiddenEdges);
+    preset = urlScoped.preset;
+    physicsOn = urlScoped.physics;
+    syncPresetButtons();
+    const physBtn = root.querySelector<HTMLButtonElement>('[data-kg-action="toggle-physics"]');
+    if (physBtn) physBtn.setAttribute('aria-pressed', String(physicsOn));
+    const restoredCommunity = mode === 'community';
+    const colorBtn = root.querySelector<HTMLButtonElement>('[data-kg-action="toggle-color"]');
+    if (colorBtn) {
+      colorBtn.setAttribute('aria-pressed', String(restoredCommunity));
+      colorBtn.textContent = restoredCommunity
+        ? colorBtn.dataset.labelCommunity!
+        : colorBtn.dataset.labelGroup!;
+      colorBtn.title = colorBtn.textContent;
+    }
+    if (restoredCommunity) applyModeLayout();
+    renderLegend();
+    syncEdgePanel();
+    applyFilter();
+    resetViewport();
+    // Announcements start only after the first filter pass — the opening state is
+    // not a change, and a live region that speaks on load is noise.
+    booted = true;
+
+    // Deep link: `?focus=<nodeId>` centres a node, opens its info and keeps its
+    // 1-hop neighbourhood highlighted. An unknown id (the graph changed since
+    // the link was made) is ignored. The focus stays orthogonal to the Focus
+    // toggle: clicking a node still navigates unless that toggle is on. DOM focus
+    // is deliberately not stolen on load.
+    if (urlScoped.focus) {
+      const n = revealNode(urlScoped.focus);
+      if (n) setFocus(urlScoped.focus);
+    }
+
+    // `?graph=<key>` has to move the viewport, not only scope the state: three
+    // graphs share one page, and the named block can sit 2000px down. The
+    // scroll margin keeps it clear of the sticky top bar.
+    if (graphParam === key) {
+      root.style.scrollMarginTop = '84px';
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      root.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+    }
+
+    // A background tab throttles rAF to about 1 Hz, so an in-flight run would
+    // creep across the layout while nobody is looking (and a drag cannot be
+    // resumed afterwards). Whatever is running settles immediately instead.
+    // Visibility and pagehide settle *every* instance; those two listeners are
+    // installed once in the registry epilogue below.
+}
+
+  // --- Instances ---
+  // `/graph/` mounts three section graphs on one page. Everything mutable lives
+  // inside `initGraph`; the document listeners below are installed once and fan
+  // out through `registry`, so Esc, the fullscreen trap and a hidden tab reach
+  // exactly the live graphs that need them.
+  document.querySelectorAll<HTMLElement>('[data-kg-instance]').forEach((el) => {
+    const dataEl = el.querySelector<HTMLScriptElement>('[data-kg="data"]');
+    if (!dataEl) return;
+    initGraph(el, JSON.parse(dataEl.textContent || '{}'));
+  });
+
+  document.addEventListener(
+    'pointerdown',
+    (e) => {
+      const target = e.target as Element | null;
+      registry.forEach((inst) => {
+        if (inst.root.contains(target)) activeRoot = inst.root;
+        inst.onPointerDown(e);
+      });
+    },
+    true,
+  );
+
+  document.addEventListener('keydown', (e) => {
+    registry.forEach((inst) => {
+      inst.onKeyDown(e);
+      inst.onEscape(e);
     });
   });
 
-  function setFullscreen(isFs: boolean) {
-    // The overlay re-fits the viewBox; anything in flight settles first so the
-    // new fit is computed against resting coordinates.
-    settleIfRunning();
-    root.classList.toggle('kg-fullscreen', isFs);
-    if (fsBtn) {
-      fsBtn.setAttribute('aria-label', isFs ? fsBtn.dataset.labelFsExit! : fsBtn.dataset.labelFs!);
-      fsBtn.title = isFs ? fsBtn.dataset.labelFsExit! : fsBtn.dataset.labelFs!;
-    }
-    if (isFs) {
-      // Move focus into the overlay so keyboard users land inside it.
-      (root.querySelector<HTMLElement>('g[tabindex]') ?? searchInput)?.focus();
-    } else {
-      fsBtn?.focus();
-    }
-    requestAnimationFrame(resetViewport);
-  }
-
-  function toggleFullscreen() {
-    setFullscreen(!root.classList.contains('kg-fullscreen'));
-  }
-
-  // Fullscreen: Escape exits; Tab is trapped within the overlay.
-  document.addEventListener('keydown', (e) => {
-    if (!root.classList.contains('kg-fullscreen')) return;
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      setFullscreen(false);
-      return;
-    }
-    if (e.key !== 'Tab') return;
-    const focusables = Array.from(
-      root.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), g[tabindex]'),
-    ).filter((el) => el.checkVisibility?.() ?? true);
-    if (!focusables.length) return;
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  });
-
-  // --- Esc clears a focus and closes the edge panel. (The fullscreen trap
-  // above handles its own Escape while fullscreen; this listener runs always.)
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    // A focused node — from the toggle, the search picker or a deep link —
-    // clears on Esc. `setFocus(null)` also drops the `focus` URL param.
-    if (focusedId) setFocus(null);
-    if (edgePanel && !edgePanel.hidden) {
-      edgePanel.hidden = true;
-      root
-        .querySelector<HTMLButtonElement>('[data-kg-action="toggle-edge-panel"]')
-        ?.setAttribute('aria-expanded', 'false');
-    }
-  });
-
-  // --- Init: restore any shared/URL state (the SVG ships the group layout;
-  // community mode repositions nodes and recolors), then wire up the viewport.
-  const urlState = decodeGraphState(window.location.search);
-  mode = urlState.mode;
-  hiddenGroups = new Set(urlState.hiddenGroups);
-  hiddenCommunities = new Set(urlState.hiddenCommunities);
-  hiddenEdgeTypes = new Set(urlState.hiddenEdges);
-  preset = urlState.preset;
-  physicsOn = urlState.physics;
-  syncPresetButtons();
-  const physBtn = root.querySelector<HTMLButtonElement>('[data-kg-action="toggle-physics"]');
-  if (physBtn) physBtn.setAttribute('aria-pressed', String(physicsOn));
-  const restoredCommunity = mode === 'community';
-  const colorBtn = root.querySelector<HTMLButtonElement>('[data-kg-action="toggle-color"]');
-  if (colorBtn) {
-    colorBtn.setAttribute('aria-pressed', String(restoredCommunity));
-    colorBtn.textContent = restoredCommunity
-      ? colorBtn.dataset.labelCommunity!
-      : colorBtn.dataset.labelGroup!;
-    colorBtn.title = colorBtn.textContent;
-  }
-  if (restoredCommunity) applyModeLayout();
-  renderLegend();
-  syncEdgePanel();
-  applyFilter();
-  resetViewport();
-
-  // Deep link: `?focus=<nodeId>` centres a node, opens its info and keeps its
-  // 1-hop neighbourhood highlighted. An unknown id (the graph changed since
-  // the link was made) is ignored. The focus stays orthogonal to the Focus
-  // toggle: clicking a node still navigates unless that toggle is on. DOM focus
-  // is deliberately not stolen on load.
-  if (urlState.focus) {
-    const n = revealNode(urlState.focus);
-    if (n) setFocus(urlState.focus);
-  }
-
-  // A background tab throttles rAF to about 1 Hz, so an in-flight run would
-  // creep across the layout while nobody is looking (and a drag cannot be
-  // resumed afterwards). Whatever is running settles immediately instead.
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) settleIfRunning();
+    if (document.hidden) registry.forEach((inst) => inst.settle());
   });
-  window.addEventListener('pagehide', () => settleIfRunning());
+  window.addEventListener('pagehide', () => registry.forEach((inst) => inst.settle()));
+
 </script>
 
 <style>
@@ -2003,6 +2298,40 @@ const json = JSON.stringify(clientData).replace(/</g, '\\u003c');
        through to the transparent edge hit-lines that cross the graph and the
        hover — the whole point of the empty ring — would never fire. */
     pointer-events: all;
+  }
+  /* A 6-unit ring is ~8px on a phone — below the 24px a finger needs. The pad
+     paints nothing; it only widens the hit area, so the tap lands and the
+     hover/focus fill above still does the visual work. */
+  .kg-pad {
+    fill: none;
+    pointer-events: all;
+  }
+  /* Cross-section bridge badge. It is a control (click jumps to the other
+     block), so it stays visible regardless of the Labels toggle; the halo
+     keeps the count legible over an edge. */
+  .kg-bridge {
+    font-size: 9px;
+    font-weight: 600;
+    fill: var(--text-muted);
+    paint-order: stroke;
+    stroke: var(--background-primary);
+    stroke-width: 2.5px;
+    stroke-linejoin: round;
+    cursor: pointer;
+    pointer-events: all;
+  }
+  .kg-root :is(g.kg-bridge-hit) .kg-ring {
+    stroke: var(--text-primary);
+    stroke-width: 2.5;
+  }
+  /* The script already vetoes the physics simulation under this query; the CSS
+     half (ring fill, label fade, legend fades) has to opt out too. */
+  @media (prefers-reduced-motion: reduce) {
+    .kg-ring,
+    .kg-label,
+    .kg-legend-item {
+      transition: none;
+    }
   }
   .kg-root :is(g[tabindex]:hover) .kg-ring,
   .kg-root :is(g[tabindex]:focus) .kg-ring {

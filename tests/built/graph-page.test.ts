@@ -25,6 +25,30 @@ const CONTROL = 'colleague/index.html';
 
 const html = new Map<string, string>();
 
+/** One rendered `<KnowledgeGraph>` instance. `/graph/` now draws three in a row
+ *  (projects, glossary, articles), each with its own controls, SVG and payload;
+ *  `/colleague/` and the project dashboards still draw one, keyed `main`. The
+ *  slice runs from a root to the next root, so every per-instance assertion
+ *  below stays inside the instance it claims to talk about. */
+interface Instance {
+  key: string;
+  rootTag: string;
+  html: string;
+}
+
+function instancesOf(doc: string): Instance[] {
+  const roots = [...doc.matchAll(/<div\b[^>]*data-kg="root"[^>]*>/g)];
+  return roots.map((m, i) => {
+    const start = m.index!;
+    const end = i + 1 < roots.length ? roots[i + 1].index! : doc.length;
+    return {
+      key: /data-kg-instance="([^"]*)"/.exec(m[0])?.[1] ?? '',
+      rootTag: m[0],
+      html: doc.slice(start, end),
+    };
+  });
+}
+
 /** Every built stylesheet, concatenated — the CSS half of the assertions below. */
 function builtCss(): string {
   const dir = resolve(DIST, '_astro');
@@ -71,17 +95,36 @@ describe('graph page board (built HTML)', () => {
       expect(doc()).toContain(note);
     });
 
-    it(`${file}: the graph renders bare (no card surface)`, () => {
-      expect(doc()).toMatch(/id="kg-root"[^>]*class="[^"]*\bkg-bare\b/);
+    it(`${file}: the graph renders bare (no card surface), one instance per section`, () => {
+      // Three separate graphs on the board now — projects, glossary, articles —
+      // each a full-bleed `kg-bare` block of its own. A regression to a single
+      // combined graph would pass every other test in this file.
+      const roots = instancesOf(doc());
+      expect(roots.map((r) => r.key)).toEqual(['projects', 'glossary', 'articles']);
+      for (const r of roots) {
+        expect(r.rootTag, `${file}:${r.key}`).toMatch(/class="[^"]*\bkg-bare\b/);
+      }
     });
 
     it(`${file}: the drawing is unchanged and cannot be stretched`, () => {
-      expect(doc()).toContain('viewBox="0 0 900 560"');
-      expect(doc()).toMatch(/preserveAspectRatio="[^"]*meet[^"]*"/);
+      const roots = instancesOf(doc());
+      // One viewBox per instance, not one on the page.
+      expect((doc().match(/viewBox="0 0 900 560"/g) ?? []).length).toBe(roots.length);
+      for (const r of roots) {
+        expect(r.html, `${file}:${r.key}`).toContain('viewBox="0 0 900 560"');
+        expect(r.html, `${file}:${r.key}`).toMatch(/preserveAspectRatio="[^"]*meet[^"]*"/);
+      }
     });
 
     it(`${file}: the JS-off and screen-reader content survives the rework`, () => {
-      expect(doc()).toContain('id="kg-sr-desc"');
+      // Each instance carries its own screen-reader description, keyed by the
+      // graph key (`kg-sr-desc-<key>`), instead of the old page-wide singleton.
+      const roots = instancesOf(doc());
+      expect((doc().match(/data-kg="sr-desc"/g) ?? []).length).toBe(roots.length);
+      for (const r of roots) {
+        expect(r.html, `${file}:${r.key}`).toContain(`id="kg-sr-desc-${r.key}"`);
+        expect(r.html, `${file}:${r.key}`).toContain('data-kg="data"');
+      }
       expect(doc()).toContain('src/lib/graph.ts');
     });
 
@@ -90,15 +133,31 @@ describe('graph page board (built HTML)', () => {
       // node's inline style rather than in a `fill` attribute. articles is a
       // theme token, not a hex: #1400c3 is unreadable on the dark page, so the
       // themes lighten it (see the token test below). projects is one orange in
-      // every theme.
-      expect(doc()).toContain('--kg-ring:var(--kg-core-articles)');
-      expect(doc()).toContain('--kg-ring:#ff4e02');
+      // every theme. Each core paints inside its own section's graph.
+      const byKey = new Map(instancesOf(doc()).map((r) => [r.key, r.html]));
+      expect(byKey.get('projects'), 'projects instance').toContain('--kg-ring:#ff4e02');
+      expect(byKey.get('articles'), 'articles instance').toContain('--kg-ring:var(--kg-core-articles)');
     });
   }
 
   it(`${CONTROL}: the embedded graph keeps its card`, () => {
     const doc = html.get(CONTROL)!;
-    expect(doc).toContain('id="kg-root"');
+    const roots = instancesOf(doc);
+    // One instance, the combined graph, keyed `main` — the control for the
+    // three-instance board above.
+    expect(roots.map((r) => r.key)).toEqual(['main']);
+    // `data-kg="root"` is the marker `instancesOf` filters on, so asserting it
+    // on one root proves nothing. The real shape: /graph/ draws exactly three
+    // instances and each has exactly one root; the control draws exactly one.
+    for (const { file } of PAGES) {
+      const doc = html.get(file)!;
+      const roots = instancesOf(doc);
+      expect(roots.length, `${file}: instances`).toBe(3);
+      expect((doc.match(/data-kg="root"/g) ?? []).length, `${file}: root markers`).toBe(3);
+      for (const r of roots) {
+        expect((r.rootTag.match(/data-kg="root"/g) ?? []).length, `${file}:${r.key}`).toBe(1);
+      }
+    }
     expect(doc).not.toContain('kg-bare');
     expect(doc).not.toContain('class="graph-board');
   });
@@ -110,30 +169,36 @@ describe('graph page board (built HTML)', () => {
     // attribute, so an attribute would be silently dead.
     for (const { file } of PAGES) {
       const doc = html.get(file)!;
-      const data = JSON.parse(doc.match(/id="kg-data"[^>]*>([\s\S]*?)<\/script>/)![1]);
-      const rings = doc.match(/<circle r="[^"]*" class="kg-ring"[^>]*>/g) ?? [];
+      const roots = instancesOf(doc);
+      expect(roots.length, file).toBe(3);
+      for (const r of roots) {
+        const data = JSON.parse(
+          /<script[^>]*data-kg="data"[^>]*>([\s\S]*?)<\/script>/.exec(r.html)![1],
+        );
+        const rings = r.html.match(/<circle r="[^"]*" class="kg-ring"[^>]*>/g) ?? [];
 
-      // One ring per node in the serialized graph — not a subset of them.
-      expect(rings.length, file).toBe(data.nodes.length);
-      for (const ring of rings) expect(ring).not.toContain('fill=');
+        // One ring per node in *this instance's* serialized graph — not a
+        // subset of them, and not the sum across the page.
+        expect(rings.length, `${file}:${r.key}`).toBe(data.nodes.length);
+        for (const ring of rings) expect(ring).not.toContain('fill=');
 
-      const gs = doc.match(/<g[^>]*style="[^"]*--kg-ring:[^"]*"[^>]*>/g) ?? [];
-      expect(gs.length, file).toBe(rings.length);
+        const gs = r.html.match(/<g[^>]*style="[^"]*--kg-ring:[^"]*"[^>]*>/g) ?? [];
+        expect(gs.length, `${file}:${r.key}`).toBe(rings.length);
 
-      // Still sectioned rather than one grey silhouette.
-      const hues = new Set(gs.map((g) => g.match(/--kg-ring:([^;"]*)/)![1]));
-      expect(hues.size, file).toBeGreaterThan(1);
+        // Still sectioned rather than one grey silhouette.
+        const hues = new Set(gs.map((g) => g.match(/--kg-ring:([^;"]*)/)![1]));
+        expect(hues.size, `${file}:${r.key}`).toBeGreaterThan(1);
 
-      // Nothing in the *graph board* keeps a painted fill: the contour is the
-      // whole look. Scoped to the #kg-root subtree on purpose — an unscoped
-      // document scan also matches page chrome (a nav icon glyph has a filled
-      // <circle>), which is not what this claim is about. The per-ring check
-      // above is the precise one; this one covers the rest of the board
-      // (legend, hit lines, tooltip).
-      const fromRoot = doc.slice(doc.indexOf('id="kg-root"'));
-      const board = fromRoot.slice(0, fromRoot.indexOf('id="kg-data"'));
-      expect(board.length, file).toBeGreaterThan(0);
-      expect(board.match(/<circle [^>]*fill="/g) ?? [], file).toHaveLength(0);
+        // Nothing in the *control bar* keeps a painted fill: the contour is the
+        // whole look. Scoped to the instance's markup before its SVG on purpose
+        // — an unscoped document scan also matches page chrome (a nav icon glyph
+        // has a filled <circle>), which is not what this claim is about. The
+        // per-ring check above is the precise one; this one covers the rest of
+        // the board (legend, search, quick filters, view controls).
+        const board = r.html.slice(0, r.html.indexOf('data-kg="svg"'));
+        expect(board.length, `${file}:${r.key}`).toBeGreaterThan(0);
+        expect(board.match(/<circle [^>]*fill="/g) ?? [], `${file}:${r.key}`).toHaveLength(0);
+      }
     }
   });
 

@@ -2,7 +2,17 @@
 // KnowledgeGraph SVG (rendered at `astro build`) and the /graph.json endpoints,
 // so they always agree on nodes, links and positions.
 import { getCollection } from "astro:content";
-import { buildGraph, mergePostsForLocale, type ExternalHub, type GraphData } from "./graph";
+import {
+  GRAPH_SECTIONS,
+  bridgeCounts,
+  bridgeTargets,
+  buildGraph,
+  mergePostsForLocale,
+  sectionSubgraph,
+  type ExternalHub,
+  type GraphData,
+  type GraphSection,
+} from "./graph";
 import { layoutGraph, layoutRadial } from "./graph-layout";
 import { TOPICS } from "./topics";
 import { EVENT_ID, PROGRAM_URL } from "./talks-graph";
@@ -87,4 +97,58 @@ export async function getGraphLayouts(
 
 export async function getGraphData(lang: "ru" | "en"): Promise<GraphData> {
   return (await getGraphLayouts(lang)).group;
+}
+
+export interface SectionGraph {
+  key: GraphSection;
+  group: GraphData;
+  community: GraphData;
+  /** nodeId → { destination section: number of edges leaving this graph } */
+  bridges: Record<string, Record<string, number>>;
+  /** nodeId → { destination section: ids the bridges point at } — the badge's
+   *  click target list, so a jump can flash the actual recipients. */
+  bridgeIds: Record<string, Record<string, string[]>>;
+}
+
+/** The three section graphs `/graph/` renders one under another. Topics ride
+ *  along in every section they touch, so the shared vocabulary stays visible
+ *  without a fourth canvas. Memoised per locale: the page and the three
+ *  component instances all ask for it, and each call would otherwise rebuild
+ *  the whole content graph. */
+const sectionCache: Partial<Record<"ru" | "en", Promise<SectionGraph[]>>> = {};
+
+export function getGraphSections(lang: "ru" | "en"): Promise<SectionGraph[]> {
+  return (sectionCache[lang] ??= buildSectionGraphs(lang));
+}
+
+async function buildSectionGraphs(lang: "ru" | "en"): Promise<SectionGraph[]> {
+  const graph = await buildGraphFor(lang);
+  return GRAPH_SECTIONS.map((key) => {
+    const sub = sectionSubgraph(graph, key);
+    // The radial layout pins one centre: with the person node gone, the most
+    // connected node of the section takes that role, so the picture keeps a
+    // readable hub instead of collapsing into one flat ring.
+    const degree = new Map<string, number>();
+    for (const l of sub.links) {
+      degree.set(l.source, (degree.get(l.source) ?? 0) + 1);
+      degree.set(l.target, (degree.get(l.target) ?? 0) + 1);
+    }
+    const rootId = [...degree.entries()].sort(
+      (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+    )[0]?.[0];
+    return {
+      key,
+      group: layoutRadial(sub, {
+        width: 900,
+        height: 560,
+        minArc: 34,
+        ringStep: 48,
+        startRadius: 84,
+        ...(rootId ? { rootId } : {}),
+      }),
+      community: layoutGraph(sub, { groupBy: "community" }),
+      bridges: bridgeCounts(graph, key),
+      bridgeIds: bridgeTargets(graph, key),
+    };
+  });
 }

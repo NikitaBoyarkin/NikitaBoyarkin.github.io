@@ -2,6 +2,12 @@
 import Base from '../layouts/Base.astro';
 import KnowledgeGraph from '../components/KnowledgeGraph.astro';
 import { withBase } from '../lib/path';
+import { labelForSection } from '../lib/graph';
+import { getGraphSections } from '../lib/graph-data';
+
+// One graph per content section (see `src/lib/graph.ts`): the combined graph
+// mixed sections of very different density, and 30% of its edges crossed them.
+const sections = await getGraphSections('ru');
 ---
 
 <Base
@@ -20,7 +26,15 @@ import { withBase } from '../lib/path';
       <p class="graph-note">Собирается из коллекций на build-time — всегда актуален.</p>
     </header>
 
-    <KnowledgeGraph bare />
+    {sections.map((s) => (
+      <section class="graph-block" id={`graph-${s.key}`} aria-labelledby={`graph-${s.key}-title`}>
+        <h2 class="graph-block-title" id={`graph-${s.key}-title`}>
+          {labelForSection(s.key, 'ru')}
+          <span class="graph-block-count">{s.group.nodes.length}</span>
+        </h2>
+        <KnowledgeGraph section={s.key} bare />
+      </section>
+    ))}
 
     <p class="graph-board-gen">
       Генератор — <code>src/lib/graph.ts</code>; источник рёбер — <code>related</code> в frontmatter,
@@ -28,3 +42,24 @@ import { withBase } from '../lib/path';
     </p>
   </section>
 </Base>
+
+<style>
+  .graph-block + .graph-block {
+    margin-block-start: var(--space-10);
+  }
+  .graph-block {
+    scroll-margin-top: var(--space-10);
+  }
+  .graph-block-title {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin-block: 0 var(--space-4);
+    font-size: var(--text-lg);
+  }
+  .graph-block-count {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+</style>

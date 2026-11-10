@@ -99,6 +99,25 @@ export const GRAPH_SECTION_COLORS: Record<string, string> = {
   theme: '#5db8b0',
 };
 
+/** Display names for a section. The palette above is keyed by raw slugs
+ *  (`root`, `articles`); printing those to a reader is what made the Russian
+ *  legend read «Root Projects Articles Topic». One map, so the server-rendered
+ *  legend, the client's re-render on the colour switch and the no-JS index
+ *  cannot word the same section three ways. */
+export const SECTION_LABELS: Record<string, { ru: string; en: string }> = {
+  root: { ru: 'Ядро', en: 'Core' },
+  projects: { ru: 'Проекты', en: 'Projects' },
+  articles: { ru: 'Статьи', en: 'Articles' },
+  glossary: { ru: 'Словарь', en: 'Glossary' },
+  topic: { ru: 'Темы', en: 'Topics' },
+  talks: { ru: 'Доклады', en: 'Talks' },
+  track: { ru: 'Треки', en: 'Tracks' },
+  theme: { ru: 'Темы докладов', en: 'Talk themes' },
+};
+
+export const labelForSection = (section: string, lang: 'ru' | 'en' = 'ru'): string =>
+  SECTION_LABELS[section]?.[lang] ?? section;
+
 /** Obsidian-style visual tokens, shared by the full graph and the per-project
  *  mini-graph so both read as one system. */
 export const NODE_SIZE = 1.06; // node radius multiplier
@@ -293,6 +312,91 @@ export function subgraphAround(
     nodes: graph.nodes.filter((n) => include.has(n.id)),
     links: graph.links.filter((l) => include.has(l.source) && include.has(l.target)),
   };
+}
+
+/** The sections that get a graph of their own on /graph/. */
+export const GRAPH_SECTIONS = ["projects", "glossary", "articles"] as const;
+export type GraphSection = (typeof GRAPH_SECTIONS)[number];
+
+/** One section plus the topic nodes that actually touch it. Topics are the
+ *  vocabulary the three sections share, so they appear in every section graph
+ *  they have an edge to — but never a topic nobody links to. */
+export function sectionSubgraph(
+  graph: GraphData,
+  section: GraphSection,
+): GraphData {
+  const byId = new Map(graph.nodes.map((n) => [n.id, n]));
+  const own = new Set(
+    graph.nodes.filter((n) => n.section === section).map((n) => n.id),
+  );
+  // Only topics join, and only when an edge ties them to one of the section's
+  // own nodes. Deciding that from the section's links (not from a widened set)
+  // keeps out a topic that touches this section solely through a node of
+  // another section.
+  const include = new Set(own);
+  for (const l of graph.links) {
+    for (const [from, to] of [
+      [l.source, l.target],
+      [l.target, l.source],
+    ] as const) {
+      if (!own.has(from) || own.has(to)) continue;
+      if (byId.get(to)?.section === "topic") include.add(to);
+    }
+  }
+  return {
+    nodes: graph.nodes.filter((n) => include.has(n.id)),
+    links: graph.links.filter((l) => include.has(l.source) && include.has(l.target)),
+  };
+}
+
+/** Edges leaving a node's own section graph, per destination section. Drawn as
+ *  a `→N` badge instead of a line: at 30% of all edges the bridges are what a
+ *  single combined graph was made of, and splitting without a trace of them
+ *  would silently delete a third of the structure. */
+export function bridgeCounts(
+  graph: GraphData,
+  section: GraphSection,
+): Record<string, Record<string, number>> {
+  const inside = new Set(sectionSubgraph(graph, section).nodes.map((n) => n.id));
+  const sectionOf = new Map(graph.nodes.map((n) => [n.id, n.section]));
+  const out: Record<string, Record<string, number>> = {};
+  for (const l of graph.links) {
+    const pairs: [string, string][] = [
+      [l.source, l.target],
+      [l.target, l.source],
+    ];
+    for (const [from, to] of pairs) {
+      if (!inside.has(from) || inside.has(to)) continue;
+      const per = (out[from] ??= {});
+      const key = sectionOf.get(to) ?? "other";
+      per[key] = (per[key] ?? 0) + 1;
+    }
+  }
+  return out;
+}
+
+/** Which nodes a `→N` badge points at, per destination section. The client
+ *  scrolls to that section's block and flashes these nodes; counts alone would
+ *  say "3 bridges" without saying which three. */
+export function bridgeTargets(
+  graph: GraphData,
+  section: GraphSection,
+): Record<string, Record<string, string[]>> {
+  const inside = new Set(sectionSubgraph(graph, section).nodes.map((n) => n.id));
+  const sectionOf = new Map(graph.nodes.map((n) => [n.id, n.section]));
+  const out: Record<string, Record<string, string[]>> = {};
+  for (const l of graph.links) {
+    for (const [from, to] of [
+      [l.source, l.target],
+      [l.target, l.source],
+    ] as const) {
+      if (!inside.has(from) || inside.has(to)) continue;
+      const key = sectionOf.get(to) ?? "other";
+      const per = (out[from] ??= {});
+      (per[key] ??= []).push(to);
+    }
+  }
+  return out;
 }
 
 /** Topics that must not get project edges via the `tools` signal — tool names
