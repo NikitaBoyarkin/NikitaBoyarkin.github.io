@@ -497,15 +497,29 @@ const PERSONAS = [
     pointer-events: none;
     background-image: var(--gradient-page);
     background-size: 160% 160%;
-    animation: nt-drift 12s ease-in-out infinite alternate;
+    animation: nt-orbit 24s linear infinite;
   }
 
-  @keyframes nt-drift {
+  /* An orbit, not a there-and-back: `alternate` puts a reversal (and a speed
+     zero) at each end, which the eye reads as a bounce. A closed loop with
+     `linear` timing keeps one constant speed the whole cycle, so the ramp
+     never stops and never turns around. Radius is well inside the layer's
+     overscan (`inset: -60%`), so no edge can enter the viewport. */
+  @keyframes nt-orbit {
     from {
-      transform: translate3d(-27%, -20%, 0);
+      transform: translate3d(0, -18%, 0);
+    }
+    25% {
+      transform: translate3d(18%, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, 18%, 0);
+    }
+    75% {
+      transform: translate3d(-18%, 0, 0);
     }
     to {
-      transform: translate3d(27%, 20%, 0);
+      transform: translate3d(0, -18%, 0);
     }
   }
 
@@ -518,7 +532,7 @@ const PERSONAS = [
      modes (soft-light, overlay, screen, multiply) each changed the frame by
      ≤2/255 against 46/255 for `normal`, because a `z-index: -2` fixed layer
      blurs against a backdrop it cannot tint in Chrome. Counter-phase and a
-     different period from the ground (17s vs 12s) is what the eye reads as
+     different loop from the ground (34s vs 24s, reversed) is what the eye reads as
      flow rather than as one moving sheet. */
   .newtab::after {
     content: "";
@@ -532,15 +546,26 @@ const PERSONAS = [
       transparent 72%
     );
     opacity: 0.22;
-    animation: nt-drift-accent 17s ease-in-out infinite alternate;
+    animation: nt-orbit-accent 34s linear infinite;
   }
 
-  @keyframes nt-drift-accent {
+  /* Same loop, reversed and slower: two constant speeds that never line up
+     read as flowing colour rather than as one sheet moving. */
+  @keyframes nt-orbit-accent {
     from {
-      transform: translate3d(27%, 20%, 0) scale(1.1);
+      transform: translate3d(0, 22%, 0);
+    }
+    25% {
+      transform: translate3d(-22%, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -22%, 0);
+    }
+    75% {
+      transform: translate3d(22%, 0, 0);
     }
     to {
-      transform: translate3d(-27%, -20%, 0) scale(0.9);
+      transform: translate3d(0, 22%, 0);
     }
   }
 
