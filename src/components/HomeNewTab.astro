@@ -479,6 +479,88 @@ const PERSONAS = [
     padding-block: var(--space-10);
   }
 
+  /* Ground drift — the only animated gradient on the site, and only here.
+     `--gradient-page` is the page ground itself, so drifting a copy of it
+     slides the ground's own diagonal across the fold instead of adding a
+     foreign colour: no new token, no new stop, nothing the contrast pass has
+     not already sampled. It sits at `z-index: -2`, i.e. under the honeycomb
+     lattice (`body::before`, `--z-decor: -1`) and above the static ground on
+     `html` it covers. The motion is a `transform` on an oversized layer,
+     compositor-only: animating `background-position` instead would repaint the
+     viewport every frame — the trap the lattice layer avoids by not using
+     `background-attachment: fixed`. */
+  .newtab::before {
+    content: "";
+    position: fixed;
+    inset: -60%;
+    z-index: -2;
+    pointer-events: none;
+    background-image: var(--gradient-page);
+    background-size: 160% 160%;
+    animation: nt-drift 12s ease-in-out infinite alternate;
+  }
+
+  @keyframes nt-drift {
+    from {
+      transform: translate3d(-27%, -20%, 0);
+    }
+    to {
+      transform: translate3d(27%, 20%, 0);
+    }
+  }
+
+  /* Accent drift — the colour that makes the ground's own movement legible.
+     `--gradient-page` cannot supply it: its stops are one near-identical step
+     apart by design (cyberpunk's are literally the same value), so sliding it
+     reads as a brightness shift, not as flowing colour. A full-strength
+     `--text-accent` stop carries the colour; `opacity` is the only strength
+     lever. `mix-blend-mode` was tried first and measured inert here — four
+     modes (soft-light, overlay, screen, multiply) each changed the frame by
+     ≤2/255 against 46/255 for `normal`, because a `z-index: -2` fixed layer
+     blurs against a backdrop it cannot tint in Chrome. Counter-phase and a
+     different period from the ground (17s vs 12s) is what the eye reads as
+     flow rather than as one moving sheet. */
+  .newtab::after {
+    content: "";
+    position: fixed;
+    inset: -60%;
+    z-index: -2;
+    pointer-events: none;
+    background-image: radial-gradient(
+      55% 70% at 70% 30%,
+      var(--text-accent),
+      transparent 72%
+    );
+    opacity: 0.22;
+    animation: nt-drift-accent 17s ease-in-out infinite alternate;
+  }
+
+  @keyframes nt-drift-accent {
+    from {
+      transform: translate3d(27%, 20%, 0) scale(1.1);
+    }
+    to {
+      transform: translate3d(-27%, -20%, 0) scale(0.9);
+    }
+  }
+
+  /* Cream has the least headroom for a blend wash: soft-light over a near-white
+     ground eats most of the tint, so the light theme gets a stronger source. */
+  /* Cream has less headroom than the saturated themes: the same opacity there
+     is a weaker wash, so the light theme carries a touch more. */
+  [data-theme="light"] .newtab::after {
+    opacity: 0.28;
+  }
+
+  /* Decoration, like the gradient family itself: a printed page, a user-chosen
+     high-contrast palette or a flat-surface request gets nothing moving. */
+  @media print, (forced-colors: active), (prefers-contrast: more) {
+    .newtab::before,
+    .newtab::after {
+      display: none;
+    }
+  }
+
   .nt-center {
     display: grid;
     justify-items: center;
@@ -750,8 +832,12 @@ const PERSONAS = [
     .nt-persona {
       transition: none;
     }
-  }
 
+    .newtab::before,
+    .newtab::after {
+      display: none;
+    }
+  }
   /* The result rows are built by the island, so they carry no scoped attribute
      and need `:global` — which Astro rewrites inside a scoped block (a literal
      `:global(` in an imported stylesheet would be dropped by the browser). */

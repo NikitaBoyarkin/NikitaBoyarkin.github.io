@@ -4,17 +4,17 @@
     "breakpoint": "desktop",
     "dims": "1440x900",
     "total_sampled_px": 324000,
-    "palette_px": 314951,
+    "palette_px": 316324,
     "share_of_screen": {
-      "10": 0.2,
-      "30": 2.4,
-      "60": 94.6,
-      "other": 2.8
+      "10": 0.1,
+      "30": 1.1,
+      "60": 96.4,
+      "other": 2.4
     },
     "share_of_palette": {
-      "10": 0.2,
-      "30": 2.5,
-      "60": 97.3
+      "10": 0.1,
+      "30": 1.2,
+      "60": 98.7
     },
     "budget_verdict": {
       "10": "PASS",
@@ -28,17 +28,17 @@
     "breakpoint": "tablet",
     "dims": "768x1024",
     "total_sampled_px": 196608,
-    "palette_px": 189989,
+    "palette_px": 190893,
     "share_of_screen": {
-      "10": 0.3,
-      "30": 3.5,
-      "60": 92.9,
-      "other": 3.4
+      "10": 0.2,
+      "30": 2.1,
+      "60": 94.8,
+      "other": 2.9
     },
     "share_of_palette": {
-      "10": 0.3,
-      "30": 3.6,
-      "60": 96.1
+      "10": 0.2,
+      "30": 2.2,
+      "60": 97.7
     },
     "budget_verdict": {
       "10": "PASS",
@@ -52,17 +52,17 @@
     "breakpoint": "mobile",
     "dims": "375x812",
     "total_sampled_px": 76328,
-    "palette_px": 73364,
+    "palette_px": 71574,
     "share_of_screen": {
-      "10": 0.5,
-      "30": 5.1,
-      "60": 90.5,
-      "other": 3.9
+      "10": 0.3,
+      "30": 3.9,
+      "60": 89.5,
+      "other": 6.2
     },
     "share_of_palette": {
-      "10": 0.5,
-      "30": 5.3,
-      "60": 94.2
+      "10": 0.3,
+      "30": 4.2,
+      "60": 95.4
     },
     "budget_verdict": {
       "10": "PASS",
@@ -76,17 +76,17 @@
     "breakpoint": "desktop",
     "dims": "1440x900",
     "total_sampled_px": 324000,
-    "palette_px": 309455,
+    "palette_px": 319537,
     "share_of_screen": {
       "10": 0.1,
-      "30": 2.5,
-      "60": 92.9,
-      "other": 4.5
+      "30": 2.9,
+      "60": 95.6,
+      "other": 1.4
     },
     "share_of_palette": {
-      "10": 0.2,
-      "30": 2.6,
-      "60": 97.2
+      "10": 0.1,
+      "30": 3,
+      "60": 96.9
     },
     "budget_verdict": {
       "10": "PASS",
@@ -100,17 +100,17 @@
     "breakpoint": "tablet",
     "dims": "768x1024",
     "total_sampled_px": 196608,
-    "palette_px": 186410,
+    "palette_px": 191965,
     "share_of_screen": {
-      "10": 0.2,
-      "30": 3.1,
-      "60": 91.4,
-      "other": 5.2
+      "10": 0.1,
+      "30": 3.6,
+      "60": 93.9,
+      "other": 2.4
     },
     "share_of_palette": {
-      "10": 0.2,
-      "30": 3.3,
-      "60": 96.4
+      "10": 0.1,
+      "30": 3.7,
+      "60": 96.2
     },
     "budget_verdict": {
       "10": "PASS",
@@ -124,17 +124,17 @@
     "breakpoint": "mobile",
     "dims": "375x812",
     "total_sampled_px": 76328,
-    "palette_px": 71579,
+    "palette_px": 72513,
     "share_of_screen": {
-      "10": 0.5,
-      "30": 4.5,
-      "60": 88.8,
-      "other": 6.2
+      "10": 0.2,
+      "30": 5.1,
+      "60": 89.7,
+      "other": 5
     },
     "share_of_palette": {
-      "10": 0.5,
-      "30": 4.8,
-      "60": 94.7
+      "10": 0.3,
+      "30": 5.4,
+      "60": 94.4
     },
     "budget_verdict": {
       "10": "PASS",
@@ -148,22 +148,22 @@
     "breakpoint": "desktop",
     "dims": "1440x900",
     "total_sampled_px": 324000,
-    "palette_px": 319752,
+    "palette_px": 321841,
     "share_of_screen": {
-      "10": 0.4,
-      "30": 2.8,
-      "60": 95.4,
-      "other": 1.3
+      "10": 0.6,
+      "30": 36.7,
+      "60": 62,
+      "other": 0.7
     },
     "share_of_palette": {
-      "10": 0.5,
-      "30": 2.9,
-      "60": 96.7
+      "10": 0.6,
+      "30": 37,
+      "60": 62.4
     },
     "budget_verdict": {
       "10": "PASS",
       "30": "CHECK",
-      "60": "CHECK"
+      "60": "PASS"
     },
     "screenshot": "reports/palette-audit/cyberpunk-desktop-1440x900.png"
   },
@@ -172,21 +172,21 @@
     "breakpoint": "tablet",
     "dims": "768x1024",
     "total_sampled_px": 196608,
-    "palette_px": 192495,
+    "palette_px": 194658,
     "share_of_screen": {
-      "10": 0.4,
-      "30": 4,
-      "60": 93.6,
-      "other": 2.1
+      "10": 0.7,
+      "30": 29.4,
+      "60": 68.9,
+      "other": 1
     },
     "share_of_palette": {
-      "10": 0.4,
-      "30": 4.1,
-      "60": 95.6
+      "10": 0.7,
+      "30": 29.7,
+      "60": 69.6
     },
     "budget_verdict": {
       "10": "PASS",
-      "30": "CHECK",
+      "30": "PASS",
       "60": "CHECK"
     },
     "screenshot": "reports/palette-audit/cyberpunk-tablet-768x1024.png"
@@ -196,17 +196,17 @@
     "breakpoint": "mobile",
     "dims": "375x812",
     "total_sampled_px": 76328,
-    "palette_px": 74010,
+    "palette_px": 74519,
     "share_of_screen": {
-      "10": 0.8,
-      "30": 5.2,
-      "60": 91,
-      "other": 3
+      "10": 1.7,
+      "30": 22.5,
+      "60": 73.5,
+      "other": 2.4
     },
     "share_of_palette": {
-      "10": 0.8,
-      "30": 5.4,
-      "60": 93.8
+      "10": 1.7,
+      "30": 23,
+      "60": 75.2
     },
     "budget_verdict": {
       "10": "PASS",
