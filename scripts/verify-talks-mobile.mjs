@@ -429,7 +429,7 @@ try {
   // Extracted to a module of their own: these three checks are graph- and
   // tab-specific, and inlining them pushed this entry point past the repo's
   // file-size budget.
-  await checkGraphLabelsAndTabs({ openPhone, settle, sleep, check, PHONE });
+  await checkGraphLabelsAndTabs({ openPhone, settle, sleep, check, PHONE, NARROW });
 
   check('no console or page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
 } finally {

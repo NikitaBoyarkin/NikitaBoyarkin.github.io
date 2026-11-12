@@ -176,7 +176,21 @@ const payload = JSON.stringify(cards).replace(/</g, '\\u003c');
       dialog.close();
     });
     dialog.addEventListener('click', function (event) {
-      if (event.target === dialog) dialog.close();
+      // The `::backdrop` is a child of <dialog>, so a backdrop click targets the
+      // dialog itself — and so does a click on the card's own padding, which now
+      // carries the safe-area inset. Only a point outside the card's box is a
+      // backdrop click. `detail === 0` is a scripted/keyboard click; it never
+      // means "I tapped outside".
+      if (event.target !== dialog || event.detail === 0) return;
+      var rect = dialog.getBoundingClientRect();
+      if (
+        event.clientX < rect.left ||
+        event.clientX > rect.right ||
+        event.clientY < rect.top ||
+        event.clientY > rect.bottom
+      ) {
+        dialog.close();
+      }
     });
     dialog.addEventListener('close', function () {
       history.replaceState(null, '', location.pathname + location.search + prevHash);
@@ -203,30 +217,80 @@ const payload = JSON.stringify(cards).replace(/</g, '\\u003c');
     position: fixed;
     inset: 0;
     margin: auto;
-    width: min(620px, calc(100vw - 2 * var(--space-4)));
-    max-height: 85vh;
-    /* Without this a tall card is clipped, not scrollable: on a 320px-tall
-       landscape phone the prev/next buttons sat below the viewport. */
-    overflow: auto;
-    padding: 0;
+    /* Never wider than the viewport: `inset: 0` sizes the frame, the width
+       just has to stay inside it at 320px. */
+    width: min(640px, calc(100vw - 2 * var(--space-4)));
+    /* `vh` first, then `dvh`: on a phone `vh` is the viewport with the browser
+       toolbars hidden, so 85vh put the card's bottom edge under the toolbar.
+       `dvh` follows the visible strip; the 780px cap keeps a tall card from
+       becoming a full-page sheet on a tablet. */
+    max-height: 92vh;
+    max-height: min(92dvh, 780px);
+    /* The dialog is the frame, not the scroller: it clips, `.talk-card__box`
+       scrolls (below). `visible` here would let the sticky close button drift
+       out over the rounded corners. */
+    overflow: hidden;
+    /* The card's own inset plus the notch / home-indicator strip. This padding
+       sits on the NON-scrolling element, so the safe area cannot scroll away
+       from under the close button or the prev/next row. */
+    padding: max(var(--space-4), env(safe-area-inset-top))
+      max(var(--space-4), env(safe-area-inset-right))
+      max(var(--space-4), env(safe-area-inset-bottom))
+      max(var(--space-4), env(safe-area-inset-left));
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     background: var(--card-background);
     color: var(--text-normal);
     font-family: var(--font-sans);
   }
+  /* Only while open: the UA hides a closed dialog with
+     `dialog:not([open]) { display: none }`, and an unconditional author
+     `display` would beat it and leave an empty open-looking card on the page. */
+  .talk-card[open] {
+    display: flex;
+    flex-direction: column;
+  }
   .talk-card::backdrop {
     background: rgb(0 0 0 / 0.55);
   }
   .talk-card__box {
     position: relative;
-    padding: var(--space-5);
+    /* The one scroll container of the card. The dialog frame does not scroll;
+       this box does, and its two sticky children (close at the top, nav at the
+       bottom) stay on screen however long the talk body is. */
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    /* Without this the flex item refuses to shrink below its content, the
+       dialog overflows its own max-height and the nav row ends up off-screen. */
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* A focused related-talk link must not scroll up under the sticky close. */
+    scroll-padding-top: calc(44px + var(--space-2));
   }
-  /* 44 px hit area: the × glyph is 1rem, the box is the target (DESIGN.md). */
+  /* Chrome makes a scrollable region keyboard-focusable, so the body box takes
+     the UA's bright blue `outline: auto` ring on open — and after a tap it reads
+     as a red frame around the content, indistinguishable from an error state.
+     The box is a container, not a control: its close and prev/next buttons carry
+     their own focus rings, so the container draws none in either state. */
+  .talk-card__box:focus,
+  .talk-card__box:focus-visible {
+    outline: none;
+  }
+  /* 44 px hit area: the × glyph is 1.25rem, the box is the target (DESIGN.md).
+     Sticky, not absolute: the body scrolls, and an absolute control scrolled
+     away with the content. `flex: none` keeps the 44×44 box from being
+     squeezed by the column, and the opaque background stops the title/body
+     from reading through it while it is stuck. The box is already exactly
+     44×44, so no `::after` hit pad is needed. It stays the first focusable
+     element in the dialog. */
   .talk-card__close {
-    position: absolute;
-    top: var(--space-2);
-    right: var(--space-2);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    align-self: flex-end;
+    flex: none;
     display: grid;
     place-items: center;
     width: 44px;
@@ -234,7 +298,7 @@ const payload = JSON.stringify(cards).replace(/</g, '\\u003c');
     font-size: 1.25rem;
     line-height: 1;
     color: var(--text-muted);
-    background: none;
+    background: var(--card-background);
     border: 0;
     border-radius: var(--radius-md);
     cursor: pointer;
@@ -251,7 +315,10 @@ const payload = JSON.stringify(cards).replace(/</g, '\\u003c');
     color: var(--text-muted);
   }
   .talk-card__title {
-    margin: 0 var(--space-5) var(--space-3) 0;
+    /* The 1.25rem right inset used to reserve room for the absolute close
+       button; the close is now in flow above the title, so the title gets the
+       full width at 320px. */
+    margin: 0 0 var(--space-3);
     font-size: 1.25rem;
     line-height: 1.3;
   }
@@ -318,11 +385,21 @@ const payload = JSON.stringify(cards).replace(/</g, '\\u003c');
     content: ' — ';
   }
   .talk-card__nav {
+    /* Sticky to the bottom of the scrollport: the nav is the last row of the
+       body, so on a long card it was reachable only after scrolling past every
+       theme chip and related talk. The opaque background stops body text from
+       reading through the buttons while it is stuck. */
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
     display: flex;
+    flex-wrap: wrap; /* 320 px: two long labels wrap instead of running off */
     gap: var(--space-2);
     justify-content: space-between;
+    background: var(--card-background);
   }
   .talk-card__step {
+    min-width: 0;
     padding: var(--space-2) var(--space-3);
     font-family: var(--font-sans);
     font-size: 0.85rem;
@@ -340,5 +417,13 @@ const payload = JSON.stringify(cards).replace(/</g, '\\u003c');
   .talk-card__step:disabled {
     opacity: 0.45;
     cursor: default;
+  }
+  /* Thumb floor: the default step is ~33px tall, below the 44px tap target.
+     Both buttons share the row evenly, so neither can be squeezed at 320px. */
+  @media (pointer: coarse) {
+    .talk-card__step {
+      flex: 1 1 0;
+      min-height: 44px;
+    }
   }
 </style>

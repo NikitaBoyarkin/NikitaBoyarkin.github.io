@@ -13,11 +13,19 @@
 // SectionTabs maps every `[id]` inside a panel back to that panel, so `#t123`,
 // `#track-avito` and `#theme-ai` all open the tab that contains them.
 //
-// Copy lives in lib/talks-copy.ts, the programme panel in TalksProgram.astro.
+// Copy lives in lib/talks-copy.ts, the programme panel in TalksProgram.astro,
+// a track's talk list in TalkList.astro and the theme tables in TalksThemes.astro.
+//
+// The themes panel was extracted to TalksThemes.astro so this file stays under
+// the repo's large-file budget (the board was 23.8 KB, 3.8 KB over the 20 KB
+// pre-commit limit) — one seam, the block that repeats per theme. The
+// `themeGroups`/`widestTheme` computation stays here: the stats row and the
+// method note read it, so the panel receives the built groups.
 import ProjectGraph from './ProjectGraph.astro';
 import SectionTabs from './SectionTabs.astro';
 import SectionPanel from './SectionPanel.astro';
 import TalksProgram from './TalksProgram.astro';
+import TalksThemes from './TalksThemes.astro';
 import TalkCard from './TalkCard.astro';
 import TalkList from './TalkList.astro';
 import TalksAnalytics from './TalksAnalytics.astro';
@@ -167,13 +175,6 @@ const trackTabs = trackGroups.map((t) => ({
   label: `${t.slug === UNTRACKED ? t.name : label(t.name)} ${t.talks.length}`,
 }));
 
-// Theme tabs: id is the theme slug, so `#theme-<id>` still reaches the panel
-// through the outer controller's nested-`data-panel` mapping.
-const themeTabs = themeGroups.map((th) => ({
-  id: th.id,
-  label: `${isEn ? th.labelEn : th.label} ${th.talks.length}`,
-}));
-
 // Zettelkasten neighbours: computed once here, printed in the track lists and
 // carried into the talk card. `relatedTalks` is symmetric, so the count is half
 // the printed links.
@@ -215,6 +216,7 @@ const cards = buildTalkCards(data, lang, overlay, {
         height={480}
         idPrefix="talks-overview"
         analytics
+        compactKey
         caption={copy.graphCaption}
         ariaLabel={copy.graphAria}
         legendLabel={copy.legendLabel}
@@ -268,6 +270,7 @@ const cards = buildTalkCards(data, lang, overlay, {
                   lang={lang}
                   idPrefix={`talks-track-${t.slug}`}
                   analytics
+                  compactKey
                   caption={copy.trackCaption(name, t.talks.length, themeHubs)}
                   ariaLabel={copy.trackAria(name)}
                   legendLabel={copy.legendLabel}
@@ -294,49 +297,16 @@ const cards = buildTalkCards(data, lang, overlay, {
       </SectionTabs>
     </SectionPanel>
 
-    <SectionPanel id="themes">
-      <h2 class="talks-h2">{copy.themesH2}</h2>
-      <p class="talks-note">{copy.themesNote}</p>
-
-      {/* Eleven theme tables stacked became a second nested dashboard, same
-         pattern as the tracks one. The panel keeps a `theme-<id>` heading id so
-         older `#theme-ai` links still land inside the right theme. */}
-      <SectionTabs tabs={themeTabs} label={copy.themeTablistLabel} size="sm" analytics="talks:themes">
-        {themeGroups.map((th, i) => (
-          <SectionPanel id={th.id} active={i === 0}>
-            <section class="talks-track" id={`theme-${th.id}`}>
-              <h3 class="talks-h3">
-                {isEn ? th.labelEn : th.label} <span class="talks-count">{th.talks.length}</span>
-              </h3>
-              {/* The list became a table (list-to-table): title, track and start
-                 time are three fields of one talk, so they read as columns. */}
-              <div class="talks-tablewrap">
-                <table class="talks-theme-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">{copy.thTalk}</th>
-                      <th scope="col">{copy.thTrack}</th>
-                      <th scope="col">{copy.thTime}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {th.talks.map((talk) => (
-                      <tr>
-                        <td>
-                          <a href={href(`#t${talk.id}`)}>{title(talk)}</a>
-                        </td>
-                        <td>{talk.trackName ? label(talk.trackName) : '—'}</td>
-                        <td class="talks-time">{timeOf(talk)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          </SectionPanel>
-        ))}
-      </SectionTabs>
-    </SectionPanel>
+    <TalksThemes
+      themeGroups={themeGroups}
+      copy={copy}
+      isEn={isEn}
+      href={href}
+      title={title}
+      timeOf={timeOf}
+      label={label}
+      themeLabel={themeLabel}
+    />
 
     <SectionPanel id="halls">
       <h2 class="talks-h2">{copy.hallsDaysH2}</h2>
@@ -371,15 +341,8 @@ const cards = buildTalkCards(data, lang, overlay, {
      screen and pushed the whole document 31px wide; break the word instead of
      shrinking the level (REQ-008 keeps the h1 at the page-title token). */
   .talks-head .page-title { overflow-wrap: break-word; hyphens: auto; }
-  /* The overview graph asked for a fixed 480px canvas, which is most of a phone
-     screen. The inline height on the SVG (the `height` prop) stays as the wide
-     -screen cap; below that the canvas is square-ish and scales with the card. */
-  .talks-board #talks-overview-svg {
-    height: auto !important;
-    aspect-ratio: 1 / 1;
-    max-height: min(480px, 80vh);
-    min-height: 300px;
-  }
+  /* The overview graph keeps the inline 480px height from the `height` prop on
+     wide screens; the phone override (a taller canvas) is at the bottom. */
   .talks-note { color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin: var(--space-3) 0; }
   .talks-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--space-3); margin: var(--space-4) 0; }
   .talks-stats div { background: var(--background-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: var(--space-3); display: flex; flex-direction: column; gap: 2px; }
@@ -391,7 +354,12 @@ const cards = buildTalkCards(data, lang, overlay, {
   .talks-track { margin-bottom: var(--space-5); }
   .talks-list { list-style: none; padding: 0; margin: var(--space-3) 0 0; display: grid; gap: var(--space-3); }
   .talks-list li { border-left: 2px solid var(--border-color); padding-left: var(--space-3); scroll-margin-top: 80px; }
-  .talks-title { font-weight: 600; }
+  /* Talk title in the tracks list. It is content, not a red underlined link —
+     the same ink the programme rows use; the accent is left to the chips and
+     the «see also» links, which are navigation. */
+  .talks-list .talks-title { display: inline-block; min-height: 24px; font-weight: 600; color: var(--text-normal); text-decoration: none; }
+  .talks-list .talks-title:hover,
+  .talks-list .talks-title:focus-visible { color: var(--text-accent); text-decoration: underline; }
   .talks-meta { color: var(--text-muted); font-size: 0.82rem; margin: 2px 0; }
   .talks-short { font-size: 0.88rem; line-height: 1.55; margin: 4px 0 0; }
 
@@ -418,14 +386,35 @@ const cards = buildTalkCards(data, lang, overlay, {
   .talks-chip[aria-pressed='true'] { color: var(--text-accent); border-color: var(--border-active); background: color-mix(in srgb, var(--text-accent) 8%, transparent); }
   .talks-chip-n { font-size: 0.7rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
-  /* Theme tables: eleven of them, one per theme, so the wrapper only has to stop
-     a long talk title from widening the panel. */
-  .talks-tablewrap { overflow-x: auto; margin-top: var(--space-2); }
-  .talks-theme-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-  .talks-theme-table th, .talks-theme-table td { text-align: left; vertical-align: top; padding: 5px 8px; border-bottom: 1px solid var(--border-color); }
-  .talks-theme-table th { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
-  .talks-theme-table td:last-child { white-space: nowrap; color: var(--text-accent); font-variant-numeric: tabular-nums; }
   .talks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4); }
   .talks-grid table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
   .talks-grid th, .talks-grid td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border-color); }
+
+  /* Phone: the graph needs vertical room the square gave it nowhere to find.
+     `height` off the inline attribute (its 480px cap is a desktop number), the
+     ratio supplies the height, the bounds keep it off a full screen. */
+  @media (max-width: 767px) {
+    /* The compact ring carries digits instead of names (see ProjectGraph), so
+       it no longer needs the extra vertical room the labelled ring wanted: a
+       square canvas keeps the card from ending in a hand's width of empty
+       paper below the ring. */
+    .talks-board #talks-overview-svg {
+      height: auto !important;
+      aspect-ratio: 1 / 1;
+      min-height: 300px;
+      max-height: min(480px, 70vh);
+    }
+  }
+
+  /* Phone: the halls and days tables have two or three narrow columns; they fit,
+     so drop global.css's block scroller and the scrim that came with it. */
+  @media (max-width: 768px) {
+    .talks-grid table { display: table; overflow: visible; max-width: none; }
+  }
+
+  /* Coarse pointers: the chip is a day filter, and its neighbours pick another
+     day — a 25px pill is half the 44px thumb floor. Fine pointers keep it. */
+  @media (pointer: coarse) {
+    .talks-chip { min-height: 44px; }
+  }
 </style>

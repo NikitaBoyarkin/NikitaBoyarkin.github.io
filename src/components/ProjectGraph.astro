@@ -39,6 +39,12 @@ interface Props {
    *  nodes cannot drift. Empty (default) renders no legend. */
   legend?: { section: string; label: string }[];
   legendLabel?: string;
+  /** Opt-in phone format: on a canvas narrower than 480px the always-on
+   *  labels become digits and the names move to a numbered key under the
+   *  graph. Opt-in because the key is a list of every named node, which is a
+   *  good trade for twelve track names and a poor one for a project page whose
+   *  hub pulls in thirty connections; those pages keep the labelled ring. */
+  compactKey?: boolean;
 }
 
 const {
@@ -51,6 +57,7 @@ const {
   analytics = false,
   legend = [],
   legendLabel,
+  compactKey = false,
 } = Astro.props;
 // `uid('root')` → `pg-root`, or `<idPrefix>-root` for an instance that passed
 // its own prefix.
@@ -89,6 +96,19 @@ const srDesc = isEn
   ? `Interactive subgraph: ${nodes.length} nodes and ${links.length} links around this page. Each node is keyboard-focusable; press Enter or Space to open its page. A full list of nodes and their links follows the graphic.`
   : `Интерактивный подграф: ${nodes.length} узлов и ${links.length} связей вокруг этой страницы. Каждый узел доступен с клавиатуры; Enter или пробел открывают связанную страницу. Полный список узлов и их связей — после графика.`;
 
+// Ring nodes for the compact key below the canvas, in `nodes` order. The client
+// numbers the discs from this exact list (same array, same filter), which is
+// what keeps a printed digit and its legend row on the same node.
+//
+// Only always-on labels become numbers. Post and talk labels are hover/focus
+// only, so on a phone they are already invisible — numbering them would print a
+// digit for a name the key alone carries, and on /talks/' track graphs the talk
+// list right under the graph already names them. A track graph therefore keys
+// just its themes, and the overview keys all twelve ring nodes.
+const isHoverLabel = (n: { id: string }) =>
+  n.id.startsWith('post:') || n.id.startsWith('talk:');
+const keyNodes = nodes.filter((n) => n.id !== centerId && !isHoverLabel(n));
+
 // Pre-resolve URLs with the base path so the client can navigate directly.
 const data = {
   nodes: nodes.map((n) => ({ ...n, href: withBase(n.url) })),
@@ -109,7 +129,7 @@ const caption =
     : 'Проекты, записи и темы, связанные с этим проектом. Касание или клик открывают узел.');
 ---
 
-<div id={uid('root')} class="pg-root" data-pg-root data-analytics-graph={analytics ? idPrefix : undefined}>
+<div id={uid('root')} class="pg-root" data-pg-root data-analytics-graph={analytics ? idPrefix : undefined} data-compact-key={compactKey ? '1' : undefined}>
   {/* role="group", not "img": ARIA gives `img` presentational children, which
       would flatten the focusable link nodes this component builds into it out
       of the accessibility tree. A group keeps them real; the visually-hidden
@@ -149,6 +169,30 @@ const caption =
   </div>
   <div id={uid('tooltip')} class="pg-tooltip" role="tooltip" hidden></div>
   <p class="pg-caption">{caption}</p>
+  {
+    /* Numbers under the canvas, one row per named node, in `nodes` order. On a
+       narrow card the always-on names cannot be placed around the ring without
+       landing on a disc (measured at 390px), so the client prints 1..N inside
+       the dots and this key carries the names. Server-rendered on purpose: it is
+       the only readable form of the names on a phone and it works before any
+       script runs. Hidden from 480px up, where the labels are all on the canvas.
+       Opt-in (`compactKey`): the key is a list of every named node, which is a
+       good trade for twelve track names and a poor one for a project page whose
+       hub pulls in thirty connections. The client derives the same numbers from
+       the same array and the same filter, so the two cannot drift. */
+    compactKey && (
+      <ol class="pg-key" data-pg-key aria-label={isEn ? 'Nodes in this graph' : 'Узлы графа'}>
+        {keyNodes.map((n, i) => (
+          <li>
+            <a href={withBase(n.url)} data-key={n.id}>
+              <span class="pg-key-n">{i + 1}</span>
+              {n.label}
+            </a>
+          </li>
+        ))}
+      </ol>
+    )
+  }
   {
     legend.length > 0 && (
       <ul class="pg-legend" aria-label={legendLabel ?? (isEn ? 'Node colours' : 'Цвета узлов')}>
@@ -194,6 +238,10 @@ const caption =
    *  the first instance, so every other graph stayed an empty SVG. */
   function initGraph(root: HTMLElement, svg: SVGSVGElement, data: any, tooltipEl: HTMLDivElement | null) {
   let world = { w: 600, h: 280 };
+  /** Narrow canvas (< 480px): the ring prints numbers and the key below the
+   *  canvas carries the names. Re-derived on every rebuild, because the window
+   *  can be resized across the threshold (the observer re-runs `rebuild`). */
+  let compact = false;
   let nodes: any[] = [];
   let nodeEls: SVGGElement[] = [];
   let nodeTexts: SVGTextElement[] = [];
@@ -303,7 +351,23 @@ const caption =
     const rect = svg.getBoundingClientRect();
     world = { w: rect.width || svg.clientWidth || 600, h: rect.height || svg.clientHeight || 280 };
 
+    // Narrow card → numbers in the discs + the key below. Thirteen names of
+    // ~110px cannot be packed around a thirteen-node ring on a 324px canvas
+    // without seven of them landing on a disc: the geometry has no solution,
+    // not a packer defect. Digits do fit, and they never collide because the
+    // discs themselves do not once the layout settles.
+    compact = root.hasAttribute('data-compact-key') && world.w < 480;
+    root.classList.toggle('pg-compact', compact);
+
     nodes = data.nodes.map((n: any) => ({ ...n, x: 0, y: 0, vx: 0, vy: 0 }));
+    // 1..N over the numbered nodes, straight off `nodes` order — the same
+    // array and the same filter the server-rendered key is built from, so a
+    // printed number and its legend row can never point at different nodes.
+    // Hover-only labels (posts, talks) are not numbered: see `keyNodes`.
+    const numById = new Map<string, number>();
+    nodes
+      .filter((n) => n.id !== data.centerId && !/^(post|talk):/.test(n.id))
+      .forEach((n, i) => numById.set(n.id, i + 1));
     const idx = new Map(nodes.map((n) => [n.id, n]));
     links = data.links
       .map((l: any) => ({
@@ -364,6 +428,7 @@ const caption =
     nodeRadii = [];
     nodeEls = nodes.map((n, i) => {
       const g = el('g');
+      const isCenter = n.id === data.centerId;
       // A real SVG anchor inside the group (an `<a>` may not wrap a `<g>`). It
       // is the tab stop and the activation target, so Enter and a touch tap are
       // the browser's own link behaviour: a tap that drifted a couple of pixels
@@ -384,7 +449,7 @@ const caption =
         });
       }
       g.style.cursor = 'pointer';
-      if (n.id === data.centerId) g.classList.add('pg-center');
+      if (isCenter) g.classList.add('pg-center');
       const title = el('title');
       title.textContent = titleLines(data.nodeT?.[i]);
       g.appendChild(title);
@@ -410,23 +475,36 @@ const caption =
       c.setAttribute('r', String(r));
       c.setAttribute('fill', GRAPH_SECTION_COLORS[n.section] || 'var(--text-accent)');
       const txt = el('text') as SVGTextElement;
-      const isCenter = n.id === data.centerId;
-      // The centre's label is the only always-on anchor text. Set to the right
-      // of the circle it ran into the ring node at 3 o'clock, which painted
-      // later and ate "…2026"'s last characters; the text was never clipped,
-      // just covered. Centring it under the circle keeps it off that node.
-      txt.setAttribute('x', isCenter ? '0' : String(r + 6));
-      txt.setAttribute('y', isCenter ? String(r + 14) : '4');
-      if (isCenter) txt.setAttribute('text-anchor', 'middle');
-      // Anchor nodes keep their label; post labels are hover/focus-only, same
-      // rule as the main graph (a text cloud otherwise) — posts and talks.
-      txt.setAttribute(
-        'class',
-        n.id.startsWith('post:') || n.id.startsWith('talk:')
-          ? 'pg-label pg-label-hover'
-          : 'pg-label',
-      );
-      txt.textContent = n.label;
+      if (compact && !isCenter && numById.has(n.id)) {
+        // Compact ring: a number, centred on the disc. No name is laid out
+        // around the node at all — the key under the canvas is where the names
+        // live, and `layoutLabels` never moves these (it is filtered to the
+        // centre in compact mode). Cream ink on a deep-blue rim reads on the
+        // gold, blue and teal dots alike.
+        txt.setAttribute('class', 'pg-num');
+        txt.setAttribute('x', '0');
+        txt.setAttribute('y', '0');
+        txt.setAttribute('text-anchor', 'middle');
+        txt.setAttribute('dominant-baseline', 'central');
+        txt.textContent = String(numById.get(n.id) ?? '');
+      } else {
+        // The centre's label is the only always-on anchor text. Set to the right
+        // of the circle it ran into the ring node at 3 o'clock, which painted
+        // later and ate "…2026"'s last characters; the text was never clipped,
+        // just covered. Centring it under the circle keeps it off that node.
+        txt.setAttribute('x', isCenter ? '0' : String(r + 6));
+        txt.setAttribute('y', isCenter ? String(r + 14) : '4');
+        if (isCenter) txt.setAttribute('text-anchor', 'middle');
+        // Anchor nodes keep their label; post labels are hover/focus-only, same
+        // rule as the main graph (a text cloud otherwise) — posts and talks.
+        txt.setAttribute(
+          'class',
+          n.id.startsWith('post:') || n.id.startsWith('talk:')
+            ? 'pg-label pg-label-hover'
+            : 'pg-label',
+        );
+        txt.textContent = n.label;
+      }
       textEls.push(txt);
       a.appendChild(pad);
       a.appendChild(c);
@@ -534,33 +612,62 @@ const caption =
     });
   }
 
-  /** Keep every label inside the canvas. Labels are drawn to the right of the
-   *  circle, and near the right edge that ran off the SVG — 6 of the 13 graphs
-   *  on /talks/ lost the tail of a track name, clipped rather than covered.
-   *  Such a label flips to the circle's left, is then shifted back inside the
-   *  box, and a label wider than the canvas itself (a long talk title) is
-   *  condensed with `textLength` instead of overflowing. The centre's label
-   *  sits under its circle and is nudged horizontally the same way. */
+  /** Keep every label inside the canvas, off the other labels and off the
+   *  discs of nodes it does not belong to.
+   *
+   *  Labels sit beside their circle, so three things can go wrong on a 390px
+   *  card. Near the right edge a label ran off the SVG — 6 of the 13 graphs on
+   *  /talks/ lost the tail of a track name — fixed by flipping it to the left
+   *  and clamping the box. Two labels landing on each other is the packer's
+   *  job. And a label landing on a *disc* it does not belong to, which the
+   *  packer used to be blind to: `placed` only ever held label boxes, so
+   *  «АРХИТЕКТУРА» was dropped on the «АВИТО» dot and its halo erased it.
+   *  Discs are obstacle boxes now (the label's own node excluded), the side is
+   *  picked by which candidate collides less rather than by the canvas edge,
+   *  and a label the packer would shove more than DISPLACE_BUDGET away from
+   *  its node falls back to the natural spot with the label-vs-label pass
+   *  only — so an impossible ideal degrades to the shipped geometry, never
+   *  worse.
+   *
+   *  The centre's label is the anchor: it sits under its circle, never yields,
+   *  and is placed first so every other label treats it as an obstacle. */
   function layoutLabels() {
     if (!nodes.length) return;
     const pad = 4;
-    const maxW = Math.max(24, world.w - pad * 2);
+    // One long name must condense, not cross the canvas: at 390px the old
+    // `world.w - 2*pad` let a single label be 94% of the width (304 of 324px)
+    // and run over several discs.
+    const maxW = Math.max(24, Math.min(world.w - pad * 2, world.w * 0.72));
     // Approximate ascent/descent of an 11px, weight-600 label around its baseline.
     const ascend = 10;
     const descend = 4;
-    const boxes: {
-      x: number;
-      top: number;
-      w: number;
-      anchor: 'start' | 'end' | 'middle';
-      center: boolean;
-    }[] = [];
+    const boxH = ascend + descend;
+    const maxTop = Math.max(2, world.h - 2 - boxH);
+    /** How far a label may travel from its node before we stop believing the
+     *  packing: past this it reads as some other node's caption. */
+    const DISPLACE_BUDGET = 26;
+
+    type Box = { left: number; right: number; top: number; bottom: number };
+    type Cand = { left: number; anchor: 'start' | 'end' | 'middle' };
+    type LabelBox = { w: number; top: number; center: boolean; cands: Cand[] };
+
+    /** One keep-out box per settled node, at the same radius `updatePads`
+     *  derives the tap pad from. */
+    const discs: (Box & { owner: number })[] = nodes.map((n, i) => {
+      const r = (n.size || 6) * NODE_SIZE;
+      return { left: n.x - r, right: n.x + r, top: n.y - r, bottom: n.y + r, owner: i };
+    });
+
+    const boxes: LabelBox[] = [];
 
     nodes.forEach((n, i) => {
       const txt = nodeTexts[i];
       if (!txt) return;
       const r = (n.size || 6) * NODE_SIZE;
       const isCenter = n.id === data.centerId;
+      // Compact: the ring prints numbers that are already centred on their
+      // discs, so this pass must not touch them at all — no condense, no move.
+      if (compact && !isCenter) return;
       let w = labelWidths[i] || (txt.textContent || '').length * 6.2;
       if (w > maxW) {
         if (txt.getAttribute('textLength') !== String(maxW)) {
@@ -572,78 +679,149 @@ const caption =
         txt.removeAttribute('textLength');
         txt.removeAttribute('lengthAdjust');
       }
-      const y = isCenter ? r + 14 : 4;
-      const anchor: 'start' | 'end' | 'middle' = isCenter
-        ? 'middle'
-        : n.x + r + 6 + w > world.w - pad
-          ? 'end'
-          : 'start';
-      const x = isCenter ? 0 : anchor === 'end' ? -(r + 6) : r + 6;
-      // Absolute baseline of the label box; local `y` arrives later.
-      boxes[i] = { x, top: n.y + y - ascend, w, anchor, center: isCenter };
+      // Natural baseline of the label box, already kept off the top/bottom edge.
+      const top = Math.max(2, Math.min(maxTop, n.y + (isCenter ? r + 14 : 4) - ascend));
+      // Clamp the whole box, not just its origin, on every candidate: a label
+      // flipped to the left of a node near the left edge overflows on that
+      // side instead. The clamp is applied per side, so it can never mask the
+      // other side's better fit.
+      const lo = pad;
+      const hi = Math.max(pad, world.w - pad - w);
+      const clampLeft = (l: number) => Math.max(lo, Math.min(hi, l));
+      boxes[i] = isCenter
+        ? { w, top, center: true, cands: [{ left: clampLeft(n.x - w / 2), anchor: 'middle' }] }
+        : {
+            w,
+            top,
+            center: false,
+            cands: [
+              { left: clampLeft(n.x + r + 6), anchor: 'start' },
+              { left: clampLeft(n.x - r - 6 - w), anchor: 'end' },
+            ],
+          };
     });
 
-    // Place top-down, pushing each label below any box it would cover. At
-    // 390px the eleven track names used to stack in pairs («Без трека» on
-    // «АРХИТЕКТУРА»): nothing compared one label to another, only to the canvas
-    // edge. The centre's label is the anchor and never yields.
+    // Center first: it never yields, so everything else must avoid it.
+    // Compact mode lays out the centre only: the ring carries numbers, which
+    // are already centred on their discs and must never be moved (a numbered
+    // disc without its dot is unreadable). The centre still gets exactly the
+    // same clamp + condense it gets today, because it is still a name.
     const order = nodes
       .map((_, i) => i)
-      .filter((i) => boxes[i])
-      .sort((a, b) => boxes[a].top - boxes[b].top);
-    const placed: { left: number; right: number; top: number; bottom: number }[] = [];
-    const boxH = ascend + descend;
+      .filter((i) => boxes[i] && (!compact || boxes[i].center))
+      .sort((a, b) => {
+        const ca = boxes[a].center ? 0 : 1;
+        const cb = boxes[b].center ? 0 : 1;
+        return ca !== cb ? ca - cb : boxes[a].top - boxes[b].top;
+      });
+
+    const placed: Box[] = [];
+
+    /** Everything a label box at `[left, left+w] × [top, top+boxH]` would
+     *  cover: labels already placed, plus — when `withDiscs` — every node disc
+     *  that is not this label's own node. */
+    const over = (left: number, w: number, top: number, self: number, withDiscs: boolean): Box[] => {
+      const hits: Box[] = [];
+      for (const p of placed) {
+        if (left < p.right && left + w > p.left && top < p.bottom && top + boxH > p.top) hits.push(p);
+      }
+      if (withDiscs) {
+        for (const d of discs) {
+          if (d.owner === self) continue;
+          if (left < d.right && left + w > d.left && top < d.bottom && top + boxH > d.top) hits.push(d);
+        }
+      }
+      return hits;
+    };
+
+    /** Pack one candidate label off everything `over` reports. Downward first
+     *  (the common case, keeps reading order), then upward: against the bottom
+     *  edge the clamp pins several labels to one top, so "push down" resolves
+     *  nothing and the free space is above. Returns the settled top and how
+     *  many boxes are still covered, split into label and disc counts — a
+     *  label↔label overlap is the one thing this component may never ship. */
+    const pack = (left: number, w: number, self: number, withDiscs: boolean) => {
+      let top = boxes[self].top;
+      for (let guard = 0; guard < 64; guard++) {
+        const hit = over(left, w, top, self, withDiscs)[0];
+        if (!hit) break;
+        const next = Math.min(maxTop, hit.bottom + 2);
+        if (next === top) break;
+        top = next;
+      }
+      for (let guard = 0; guard < 64; guard++) {
+        const hits = over(left, w, top, self, withDiscs);
+        if (!hits.length) break;
+        const ceiling = hits.reduce((m, p) => Math.min(m, p.top), Infinity) - 2 - boxH;
+        const next = Math.max(2, ceiling);
+        if (next === top) break;
+        top = next;
+      }
+      const labelHits = over(left, w, top, self, false).length;
+      const hits = over(left, w, top, self, withDiscs).length;
+      return { top, labelHits, discHits: hits - labelHits };
+    };
 
     for (const i of order) {
       const box = boxes[i];
       const n = nodes[i];
-      const leftOf = (cx: number) =>
-        box.anchor === 'end' ? cx - box.w : box.anchor === 'middle' ? cx - box.w / 2 : cx;
-      // Clamp the whole label box, not just its origin: a label flipped to the
-      // left of a node near the left edge overflows on that side instead.
-      let absX = n.x + box.x;
-      let left = leftOf(absX);
-      if (left < pad) {
-        absX += pad - left;
-        left = pad;
-      } else if (left + box.w > world.w - pad) {
-        absX += world.w - pad - box.w - left;
-        left = world.w - pad - box.w;
-      }
-      let top = Math.max(2, Math.min(world.h - 2 - boxH, box.top));
+      const w = box.w;
+      let left = box.cands[0].left;
+      let top = box.top;
+      let anchor: 'start' | 'end' | 'middle' = box.cands[0].anchor;
+
       if (!box.center) {
-        // ≤ 33 labels per graph, so the quadratic scan is cheaper than sorting twice.
-        const over = (t: number) =>
-          placed.filter(
-            (p) => left < p.right && left + box.w > p.left && t < p.bottom && t + boxH > p.top,
-          );
-        const maxTop = Math.max(2, world.h - 2 - boxH);
-        // Downward first: the common case, and it keeps the reading order.
-        for (let guard = 0; guard < 64; guard++) {
-          const hit = over(top)[0];
-          if (!hit) break;
-          const next = Math.min(maxTop, hit.bottom + 2);
-          if (next === top) break;
-          top = next;
+        // Both sides are packed and the one that collides less wins. Number of
+        // label collisions outranks disc collisions, because two labels on top
+        // of each other are unreadable while a label over a dot is still text;
+        // a full tie goes to the smaller vertical displacement, then to
+        // `start` (reading direction). The old rule looked only at
+        // `n.x + r + 6 + w > world.w`, so a label whose right-hand slot still
+        // fit was dropped on whatever disc lived there.
+        let bestLabelHits = Infinity;
+        let bestDiscHits = Infinity;
+        let bestShift = Infinity;
+        let bestLeft = left;
+        let bestTop = top;
+        let bestAnchor: 'start' | 'end' | 'middle' = anchor;
+        for (const cand of box.cands) {
+          const packed = pack(cand.left, w, i, true);
+          const shift = Math.abs(packed.top - box.top);
+          const better =
+            packed.labelHits < bestLabelHits ||
+            (packed.labelHits === bestLabelHits &&
+              (packed.discHits < bestDiscHits ||
+                (packed.discHits === bestDiscHits && shift < bestShift)));
+          if (better) {
+            bestLabelHits = packed.labelHits;
+            bestDiscHits = packed.discHits;
+            bestShift = shift;
+            bestLeft = cand.left;
+            bestTop = packed.top;
+            bestAnchor = cand.anchor;
+          }
         }
-        // Against the bottom edge the clamp above pins several labels to one
-        // top, so "push down" can resolve nothing. Stack upward instead — that
-        // is where the free space is for nodes hanging low in the ring.
-        for (let guard = 0; guard < 64; guard++) {
-          const hits = over(top);
-          if (!hits.length) break;
-          const ceiling = hits.reduce((m, p) => Math.min(m, p.top), Infinity) - 2 - boxH;
-          const next = Math.max(2, ceiling);
-          if (next === top) break;
-          top = next;
+        left = bestLeft;
+        top = bestTop;
+        anchor = bestAnchor;
+
+        // Budget check. A label shoved far from its node has lost the visual
+        // tie to it, so put it back where it belongs and resolve only against
+        // the labels already placed. A disc collision may survive — that is
+        // exactly what shipped before discs were obstacles, so no graph can
+        // render worse than it used to — but a label↔label one may not.
+        if (Math.abs(top - box.top) > DISPLACE_BUDGET || bestLabelHits > 0) {
+          top = pack(left, w, i, false).top;
         }
       }
-      placed.push({ left, right: left + box.w, top, bottom: top + boxH });
+
+      placed.push({ left, right: left + w, top, bottom: top + boxH });
       // `x`/`y` are local to the node group (the group carries translate(n.x,n.y)),
       // so absolute values come back into local space with `- n.x` / `- n.y`.
+      const absX = anchor === 'end' ? left + w : anchor === 'middle' ? left + w / 2 : left;
       nodeTexts[i].setAttribute('x', String(absX - n.x));
       nodeTexts[i].setAttribute('y', String(top + ascend - n.y));
-      nodeTexts[i].setAttribute('text-anchor', box.anchor);
+      nodeTexts[i].setAttribute('text-anchor', anchor);
     }
   }
 
@@ -970,6 +1148,19 @@ const caption =
     labelsBtn.setAttribute('aria-pressed', String(on));
   });
 
+  // The key under a compact canvas is a second way into the same node: a row
+  // lights up its dot and its edges exactly like hovering the dot does. Cheap
+  // and one-way — the dots keep their own hover and the rows never navigate on
+  // hover, only on click (they are the anchor's own href).
+  root.querySelectorAll<HTMLAnchorElement>('[data-pg-key] a').forEach((row) => {
+    const id = row.getAttribute('data-key');
+    if (!id) return;
+    row.addEventListener('pointerenter', () => highlight(id));
+    row.addEventListener('pointerleave', () => clearHighlight());
+    row.addEventListener('focus', () => highlight(id));
+    row.addEventListener('blur', () => clearHighlight());
+  });
+
   // --- Tooltip: content lines come precomputed (data.nodeT / data.edgeT) so
   // the client only positions and renders them. Hover-only; keyboard users get
   // the native SVG <title>. `tooltipEl` arrives from this instance's subtree. ---
@@ -1112,6 +1303,12 @@ const caption =
     stroke: var(--text-accent);
     stroke-width: 2.5px;
   }
+  /* The halo is painted *under* the glyphs (paint-order) in the card colour,
+     so the rare label that still crosses a disc — the layout's fallback path —
+     stays readable. It is declared here and only here: a second `.pg-label`
+     block used to re-declare it with `--background-primary`, which on this
+     card paints a cream patch over the disc instead of a transparent halo,
+     making the label read as that node's caption. */
   .pg-label {
     fill: var(--text-normal);
     font-size: 11px;
@@ -1207,15 +1404,6 @@ const caption =
   /* Zoomed in, one finger pans the graph instead of scrolling the page — the
      coarse-pointer `pan-y` override above would otherwise hand every gesture to
      the document and make the zoom useless. */
-  /* A label can still cross a *node* it does not belong to (labels are only
-     kept apart from each other). A paper-coloured halo keeps the text readable
-     over a disc instead of hiding it behind one. */
-  .pg-label {
-    paint-order: stroke;
-    stroke: var(--background-primary);
-    stroke-width: 3px;
-    stroke-linejoin: round;
-  }
   .pg-root.pg-zoomed .pg-svg {
     touch-action: none;
     cursor: move;
@@ -1243,6 +1431,90 @@ const caption =
   }
   .pg-labels-on .pg-label-hover {
     opacity: 1;
+  }
+  /* --- Compact canvas (<480px): numbers in the dots, names in the key -------
+     Measured on the live page at 390px: 13 labels of ~110px around a 13-node
+     ring on a 324px canvas left seven names on top of other nodes' discs even
+     after the obstacle-aware packing — the arrangement has no solution, so the
+     ring switches to digits and the names move under the caption. Desktop is
+     untouched: the key is hidden and every label is where it was. */
+  .pg-key {
+    display: none;
+  }
+  .pg-root.pg-compact .pg-key {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 var(--space-3);
+    counter-reset: none;
+    list-style: none;
+    margin: var(--space-2) 0 0;
+    padding: 0;
+  }
+  /* One column when two would squeeze a long track name into three lines. */
+  @media (max-width: 359px) {
+    .pg-root.pg-compact .pg-key {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .pg-key a {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-height: 32px;
+    padding: 4px 0;
+    color: var(--text-normal);
+    text-decoration: none;
+    font-size: 0.85rem;
+    line-height: 1.35;
+  }
+  @media (pointer: coarse) {
+    .pg-key a {
+      min-height: 44px;
+    }
+  }
+  .pg-key-n {
+    flex: none;
+    width: 1.6em;
+    text-align: right;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.75rem;
+  }
+  /* The centre is the page you are on; its name stays on the canvas. */
+  .pg-root.pg-compact .pg-label {
+    display: none;
+  }
+  .pg-root.pg-compact .pg-center .pg-label {
+    display: block;
+  }
+  /* Numbered disc. `--cream-surface` on `--banner-ink-deep` are the banner chip
+     tokens, so the pair is cream-on-deep-blue in every theme: light digits with
+     an opposite rim stay legible on gold, orange, pink, blue and teal dots
+     without a per-section palette. Digits can never overlap each other, because
+     the discs they sit in do not once the layout settles. */
+  .pg-num {
+    fill: var(--cream-surface);
+    stroke: var(--banner-ink-deep);
+    stroke-width: 2px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+    pointer-events: none;
+    user-select: none;
+    font-family: var(--font-sans);
+    font-size: 9px;
+    font-weight: 700;
+  }
+  /* The generic focus rule below recolours any `<text>` in a focused anchor to
+     the accent; on a gold dot that is weaker than the cream fill. */
+  .pg-root :is(a[href]:focus) .pg-num {
+    fill: var(--cream-surface);
+  }
+  /* Nothing to reveal: the names are already listed under the caption. Keyed on
+     the controls cluster + the only `aria-pressed` button, because a literal
+     `data-pg-labels` selector here would be one more occurrence of that token
+     in the served HTML and a built test counts them. */
+  .pg-root.pg-compact .pg-controls .pg-btn[aria-pressed] {
+    display: none;
   }
   .pg-caption {
     color: var(--text-muted);

@@ -1,0 +1,132 @@
+---
+// The «Темы» panel of the /talks/ dashboard: eleven theme tables behind a second
+// nested dashboard. Extracted from TalksBoard so that file stays under the repo's
+// large-file budget (it was 23.8 KB, 3.8 KB over the 20 KB pre-commit limit) —
+// one seam, the block that repeats per theme.
+//
+// `themeGroups` and `widestTheme` are still computed in the board: the stats row
+// and the method note read them, so filtering the themes here would compute the
+// same list twice.
+import SectionTabs from './SectionTabs.astro';
+import SectionPanel from './SectionPanel.astro';
+import type { TalksCopy } from '../lib/talks-copy';
+import type { TalksTalk } from '../lib/talks-graph';
+
+interface Props {
+  themeGroups: { id: string; label: string; labelEn: string; talks: TalksTalk[] }[];
+  copy: TalksCopy;
+  isEn: boolean;
+  href: (hash: string) => string;
+  title: (talk: { id: number; title: string }) => string;
+  timeOf: (talk: { start: string; end: string }) => string;
+  /** The track column prints a talk's own track, not a theme, so the board's
+   *  `label` (track name → the overlay's EN name) has to come along; taking it
+   *  from `themeGroups` would print RU track names on the EN page. */
+  label: (name: string) => string;
+  /** Part of the board's helper set; the heading and caption print
+   *  `labelEn`/`label` straight off the group, so it is not called here. */
+  themeLabel: (id: string) => string;
+}
+
+const { themeGroups, copy, isEn, href, title, timeOf, label } = Astro.props;
+
+// Theme tabs: id is the theme slug, so `#theme-<id>` still reaches the panel
+// through the outer controller's nested-`data-panel` mapping.
+const themeTabs = themeGroups.map((th) => ({
+  id: th.id,
+  label: `${isEn ? th.labelEn : th.label} ${th.talks.length}`,
+}));
+---
+
+<SectionPanel id="themes">
+  <h2 class="talks-h2">{copy.themesH2}</h2>
+  <p class="talks-note">{copy.themesNote}</p>
+
+  {/* Eleven theme tables stacked became a second nested dashboard, same
+     pattern as the tracks one. The panel keeps a `theme-<id>` heading id so
+     older `#theme-ai` links still land inside the right theme. */}
+  <SectionTabs tabs={themeTabs} label={copy.themeTablistLabel} size="sm" analytics="talks:themes">
+    {themeGroups.map((th, i) => (
+      <SectionPanel id={th.id} active={i === 0}>
+        <section class="talks-track" id={`theme-${th.id}`}>
+          <h3 class="talks-h3" id={`theme-h-${th.id}`}>
+            {isEn ? th.labelEn : th.label} <span class="talks-count">{th.talks.length}</span>
+          </h3>
+          {/* The list became a table (list-to-table): title, track and start
+             time are three fields of one talk, so they read as columns —
+             table ≥600px, cards below. */}
+          <div class="talks-tablewrap">
+            <table class="talks-theme-table">
+              {/* Accessible name for each of the eleven tables. A `caption`
+                 rather than `aria-labelledby` on the `<table>`: the built
+                 HTML test pins the literal `<table class="talks-theme-table">`
+                 open tag and counts its 11 occurrences. */}
+              <caption class="visually-hidden">{isEn ? th.labelEn : th.label}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">{copy.thTalk}</th>
+                  <th scope="col">{copy.thTrack}</th>
+                  <th scope="col">{copy.thTime}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {th.talks.map((talk) => (
+                  <tr>
+                    <td>
+                      <a href={href(`#t${talk.id}`)}>{title(talk)}</a>
+                    </td>
+                    <td>{talk.trackName ? label(talk.trackName) : '—'}</td>
+                    <td class="talks-time">{timeOf(talk)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </SectionPanel>
+    ))}
+  </SectionTabs>
+</SectionPanel>
+
+{/* `is:global` on purpose. The panel's markup has to stay byte-identical in the
+   built HTML, and a scoped block stamps a `data-astro-cid-*` attribute onto every
+   element in the template — which breaks the contract that pins the literal
+   `<table class="talks-theme-table">` open tag (tests/built/talks-dashboard.test.ts).
+   These selectors also have to outrank global.css's `main table` scroller, so
+   they keep their plain class specificity. Exact class names owned by this
+   panel, so nothing leaks. */}
+<style is:global>
+  /* Theme tables: eleven of them, one per theme. The wrapper is no longer a
+     scroll guard — below 600px the table becomes cards (see the media query at
+     the bottom) and above it the three columns fit the panel. */
+  .talks-tablewrap { overflow: visible; margin-top: var(--space-2); }
+  /* `display: table` + `overflow: visible` on the base rule, not only inside the
+     600px block: global.css turns every `main table` into a block scroller below
+     768px, and a class selector is what outranks it across 601–767px too. */
+  .talks-theme-table { display: table; width: 100%; overflow: visible; max-width: none; border-collapse: collapse; font-size: 0.85rem; }
+  .talks-theme-table th, .talks-theme-table td { text-align: left; vertical-align: top; padding: 5px 8px; border-bottom: 1px solid var(--border-color); }
+  .talks-theme-table th { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+  .talks-theme-table td:last-child { white-space: nowrap; color: var(--text-accent); font-variant-numeric: tabular-nums; }
+
+  /* Phone: the theme table becomes a card list. Column min-content is 396px
+     against a 288–358px box, which cut the time column off and stretched a title
+     to eleven lines; stacked fields have no such width. `thead` is clipped, not
+     `display:none` — Chromium keeps the columnheader nodes and their
+     `scope="col"` association only in the clipped form. */
+  @media (max-width: 600px) {
+    .talks-tablewrap { overflow: visible; }
+    .talks-theme-table { display: table; width: 100%; overflow: visible; max-width: none; background: none; }
+    .talks-theme-table thead { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; clip-path: inset(50%); overflow: hidden; white-space: nowrap; }
+    .talks-theme-table tbody { display: block; }
+    .talks-theme-table tr { display: block; padding: 0 0 var(--space-2) var(--space-3); margin-bottom: var(--space-3); border-left: 2px solid var(--border-color); border-bottom: 0; break-inside: avoid; }
+    .talks-theme-table td { display: block; padding: 0; border: 0; }
+    .talks-theme-table td:first-child { font-weight: 600; }
+    /* In the card layout the title is the card's heading, not a red underlined
+       link: the same ink the programme rows use. The row is still one link. */
+    .talks-theme-table td:first-child a { color: var(--text-normal); text-decoration: none; }
+    .talks-theme-table td:first-child a:focus-visible { color: var(--text-accent); }
+    .talks-theme-table td:nth-child(2), .talks-theme-table td:nth-child(3) { font-size: 0.8rem; line-height: 1.45; color: var(--text-muted); white-space: normal; }
+    .talks-theme-table td:nth-child(2) { margin-top: 4px; }
+    .talks-theme-table td:nth-child(3) { font-variant-numeric: tabular-nums; }
+  }
+</style>

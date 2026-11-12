@@ -62,24 +62,29 @@ const total = dayGroups.reduce((n, d) => n + d.talks.length, 0) + unassigned.len
   [...dayGroups, ...(unassigned.length > 0 ? [{ id: 0, name: copy.allDays, date: '', talks: unassigned }] : [])].map((d) => (
     <section class="talks-day" data-talks-day={d.id === 0 ? '' : String(d.id)}>
       <h3 class="talks-h3">
-        {d.name} <span class="talks-count" data-day-count>{d.talks.length}</span>
+        <span class="talks-dayname">{d.name}</span>
+        <span class="talks-count" data-day-count>{d.talks.length}</span>
         {d.date && <span class="talks-daydate">{d.date}</span>}
       </h3>
       <ol class="talks-program">
-        {d.talks.map((talk) => (
-          <li class="talks-row" data-talk-day={d.id === 0 ? '' : String(d.id)} data-search={searchBlob(talk)}>
-            <p class="talks-row-head">
-              <span class="talks-time">{timeOf(talk)}</span>
-              <span class="talks-where">
-                {talk.hall}
-                {talk.trackName ? ` · ${label(talk.trackName)}` : ''}
-                {` · `}
-                {talk.lectors.map((l) => l.name).join(', ') || copy.noLector}
-              </span>
-            </p>
-            <a class="talks-title" href={href(`#t${talk.id}`)}>{title(talk)}</a>
-          </li>
-        ))}
+        {d.talks.map((talk) => {
+          // House pattern (`TalkList.astro`): join only the parts that exist.
+          // The hand-assembled `{' · '}` printed «Архангельск · · Сергей Кноль»
+          // for a talk without a track.
+          const where = [
+            talk.hall,
+            talk.trackName ? label(talk.trackName) : '',
+            talk.lectors.map((l) => l.name).join(', ') || copy.noLector,
+          ]
+            .filter(Boolean)
+            .join(' · ');
+          return (
+            <li class="talks-row" data-talk-day={d.id === 0 ? '' : String(d.id)} data-search={searchBlob(talk)}>
+              <p class="talks-row-head"><span class="talks-time">{timeOf(talk)}</span><span class="talks-where">{where}</span></p>
+              <a class="talks-title" href={href(`#t${talk.id}`)}>{title(talk)}</a>
+            </li>
+          );
+        })}
       </ol>
     </section>
   ))
@@ -172,17 +177,81 @@ const total = dayGroups.reduce((n, d) => n + d.talks.length, 0) + unassigned.len
   .talks-search { display: grid; gap: var(--space-2); margin: var(--space-3) 0 var(--space-4); }
   .talks-search-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
   .talks-search-label { font-size: 0.8rem; color: var(--text-muted); }
-  .talks-search-input { flex: 1 1 260px; min-width: 0; padding: var(--space-2) var(--space-3); font-family: var(--font-sans); font-size: 0.9rem; color: var(--text-normal); background: var(--background-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); }
+  /* 1rem is the iOS no-zoom floor: below 16px Safari zooms the page on focus
+     and drops the visitor into a magnified panel. The basis is 12rem, not
+     16.25rem, so label + field + reset chip share one line at 390px instead of
+     becoming three stacked blocks; `min-width: 0` keeps it from overflowing
+     at 320px. */
+  .talks-search-input { flex: 1 1 12rem; min-width: 0; padding: var(--space-2) var(--space-3); font-family: var(--font-sans); font-size: 1rem; color: var(--text-normal); background: var(--background-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); }
   .talks-search-input:focus-visible { outline: 2px solid var(--text-accent); outline-offset: 2px; border-color: var(--border-active); }
+  /* 44px is the tap-target floor for a thumb; a mouse does not need it. */
+  @media (pointer: coarse) {
+    .talks-search-input { min-height: 44px; }
+  }
   /* `.talks-chip*` live in TalksBoard.astro's global block — global there
      because Astro cannot scope a class used by two components. */
   .talks-found { font-size: 0.8rem; color: var(--text-muted); margin: 0; font-variant-numeric: tabular-nums; }
-  .talks-program { list-style: none; padding: 0; margin: var(--space-2) 0 var(--space-4); display: grid; gap: var(--space-2); }
-  .talks-row { border-left: 2px solid var(--border-color); padding: 2px 0 2px var(--space-3); scroll-margin-top: 80px; }
-  .talks-row-head { display: flex; flex-wrap: wrap; gap: 0 0.6rem; margin: 0 0 2px; font-size: 0.78rem; color: var(--text-muted); }
-  .talks-time { font-variant-numeric: tabular-nums; color: var(--text-accent); }
-  .talks-daydate { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+  /* Day header as ONE line. The name used to be a bare text node inside a flex
+     container, so it broke between its own words and the header read as three
+     fragments («1» / «день» / chip / date). Each part is now its own
+     non-breaking item. Deliberately not sticky: the page already carries the
+     nav and, below 768px, the panel strip — a third stacked bar would eat half
+     a phone screen. */
+  .talks-dayname { white-space: nowrap; }
+  .talks-daydate { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* A hairline above each row instead of a 2px left rail: the old border drew
+     91 ticks down 13 phone screens and read as a timeline the programme does
+     not have. One line between neighbours — so no extra grid gap on top of it
+     — and the row itself is the target. */
+  .talks-program { list-style: none; padding: 0; margin: var(--space-2) 0 var(--space-4); display: grid; gap: 0; }
+  .talks-row {
+    position: relative;
+    /* Whole row taps: `.talks-title::after` covers it, so the 56px the meta
+       block used to waste above the title is part of the hit area. */
+    min-height: 56px;
+    padding: var(--space-1) 0;
+    border-top: 1px solid color-mix(in srgb, var(--border-color) 45%, transparent);
+    scroll-margin-top: calc(var(--nav-mobile-h) + var(--space-2));
+    -webkit-tap-highlight-color: transparent;
+  }
+  .talks-row:active { background: color-mix(in srgb, var(--text-accent) 8%, transparent); }
+  .talks-row:has(.talks-title:focus-visible) { outline: 2px solid var(--text-accent); outline-offset: 2px; border-radius: var(--radius-sm); }
+
+  /* Meta on one flowing line. It was `flex-wrap: wrap` with a column gap, so
+     the `where` span could not shrink below its longest word: the time was
+     orphaned on line 1 and every row carried 2–3 lines (56px) of grey text
+     before the title. Now it is one line at 0.75rem/1.4. */
+  .talks-row-head { display: block; margin: 0 0 var(--space-1); font-size: 0.75rem; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  /* The time is not tappable, so it does not get the accent: `--text-accent`
+     is for links (global.css, «The accent is semantic, not decorative»).
+     Printing it in accent made every row look like three links. */
+  .talks-time { color: var(--text-normal); font-weight: 600; }
+  /* Punctuation, so it lives here rather than in `copy` — and it disappears
+     when `where` has nothing to print. */
+  .talks-where:not(:empty)::before { content: ' · '; }
+
+  /* The title is the content of the row, not a red link. 91 accent + underlined
+     titles were a wall of red: nothing stood out, and the colour stopped
+     meaning «tappable» because the non-interactive time was accent too. Not
+     clamped — a truncated programme title is a lost item (43 of 91 need 3
+     lines); the row reads tighter via the meta, not by cutting text. */
+  .talks-title { display: block; color: var(--text-normal); text-decoration: none; font-weight: 600; font-size: 1rem; line-height: 1.35; overflow-wrap: break-word; }
+  .talks-title::after { content: ''; position: absolute; inset: 0; }
+  .talks-row:hover .talks-title { color: var(--text-accent); }
+
   .talks-day[hidden], .talks-row[hidden] { display: none; }
   .talks-empty { color: var(--text-muted); font-size: 0.9rem; margin: var(--space-3) 0; }
   .talks-empty[hidden] { display: none; }
+
+  /* An anchor jump must clear the nav and, below 768px, the 56px panel strip
+     that goes sticky there (`SectionTabs`); the old flat 80px landed the
+     target under the bar. */
+  /* An anchor jump must clear the nav and, below 768px, the panel strip — and
+     at 320px that strip wraps to two rows (~76px), so the offset is the wider
+     of the two cases rather than the 390px budget. */
+  @media (max-width: 767px) {
+    .talks-row { scroll-margin-top: calc(var(--nav-mobile-h) + 84px); }
+  }
 </style>
