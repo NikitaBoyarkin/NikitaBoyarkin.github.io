@@ -19,12 +19,14 @@ import SectionTabs from './SectionTabs.astro';
 import SectionPanel from './SectionPanel.astro';
 import TalksProgram from './TalksProgram.astro';
 import TalkCard from './TalkCard.astro';
+import TalkList from './TalkList.astro';
 import TalksAnalytics from './TalksAnalytics.astro';
 import { withBase } from '../lib/path';
 import rawData from '../data/talks.json';
 import rawOverlay from '../data/talks-en.json';
 import { talksCopy } from '../lib/talks-copy';
 import { buildTalkCards, programmeOrder } from '../lib/talk-cards';
+import { relatedTalks } from '../lib/talks-related';
 import {
   buildTalksGraph,
   overviewGraph,
@@ -172,7 +174,17 @@ const themeTabs = themeGroups.map((th) => ({
   label: `${isEn ? th.labelEn : th.label} ${th.talks.length}`,
 }));
 
-const cards = buildTalkCards(data, lang, overlay);
+// Zettelkasten neighbours: computed once here, printed in the track lists and
+// carried into the talk card. `relatedTalks` is symmetric, so the count is half
+// the printed links.
+const related = relatedTalks(data);
+const relatedPairs = [...related.values()].reduce((n, list) => n + list.length, 0) / 2;
+const talkById = new Map(data.talks.map((t) => [t.id, t]));
+
+const cards = buildTalkCards(data, lang, overlay, {
+  related,
+  why: { track: copy.relatedWhyTrack, room: copy.relatedWhyRoom },
+});
 ---
 
 <section class="talks-board reveal">
@@ -234,6 +246,7 @@ const cards = buildTalkCards(data, lang, overlay);
     <SectionPanel id="tracks">
       <h2 class="talks-h2">{copy.tracksH2}</h2>
       <p class="talks-note">{copy.tracksNote}</p>
+      <p class="talks-note">{copy.relatedNote(relatedPairs)}</p>
 
       {/* A dashboard inside a dashboard: SectionTabs scopes itself to its own
          root, so the nested track tablist does not fight the page-level one. */}
@@ -264,37 +277,16 @@ const cards = buildTalkCards(data, lang, overlay);
                     ...(themeHubs > 0 ? [{ section: 'theme', label: copy.legendTheme }] : []),
                   ]}
                 />
-                <ol class="talks-list">
-                  {t.talks.map((talk) => (
-                    <li id={`t${talk.id}`}>
-                      <a class="talks-title" href={href(`#t${talk.id}`)}>
-                        {title(talk)}
-                      </a>
-                      <p class="talks-meta">
-                        {timeOf(talk)} · {talk.hall} · {talk.lectors.map((l) => l.name).join(', ') ||
-                          copy.noLector}
-                      </p>
-                      {talk.short && (
-                        /* The source project translates only titles and track names, so
-                           on the EN page the blurb is the RU original: declare its
-                           language rather than let a screen reader read Cyrillic in an
-                           English voice. */
-                        <p class="talks-short" lang={isEn ? 'ru' : undefined}>
-                          {talk.short}
-                        </p>
-                      )}
-                      {(talk.themes ?? []).length > 0 && (
-                        <ul class="talks-tags" aria-label={copy.themeOnTalk}>
-                          {(talk.themes ?? []).map((th) => (
-                            <li>
-                              <a href={href(`#theme-${th}`)}>{themeLabel(th)}</a>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </li>
-                  ))}
-                </ol>
+                <TalkList
+                  talks={t.talks}
+                  related={related}
+                  talkById={talkById}
+                  copy={copy}
+                  lang={lang}
+                  href={href}
+                  titleOf={title}
+                  themeLabel={themeLabel}
+                />
               </div>
             </SectionPanel>
           );
@@ -408,6 +400,16 @@ const cards = buildTalkCards(data, lang, overlay);
   .talks-tags { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; margin: 6px 0 0; padding: 0; }
   .talks-tags a { display: inline-block; font-size: 0.72rem; color: var(--text-muted); border: 1px solid var(--border-color); border-radius: 999px; padding: 1px 8px; text-decoration: none; }
   .talks-tags a:hover, .talks-tags a:focus-visible { color: var(--text-accent); border-color: var(--border-active); }
+
+  /* Zettelkasten "see also" under a talk: a short list of links, each with the
+     reason it is there. Muted and small — it is navigation, not content, and it
+     must not compete with the blurb above it. */
+  .talks-related { margin: 6px 0 0; }
+  .talks-related__label { margin: 0 0 2px; font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
+  .talks-related__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .talks-related__list li { font-size: 0.82rem; line-height: 1.45; overflow-wrap: break-word; }
+  .talks-related__why { color: var(--text-muted); font-size: 0.72rem; white-space: nowrap; }
+  .talks-related__why::before { content: ' — '; }
 
   /* Chip: the day filter buttons in TalksProgram. */
   .talks-chips { display: flex; flex-wrap: wrap; gap: var(--space-1); }

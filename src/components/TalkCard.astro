@@ -37,6 +37,10 @@ const payload = JSON.stringify(cards).replace(/</g, '\\u003c');
     </dl>
     <p class="talk-card__short" data-talk-card-short></p>
     <ul class="talk-card__themes" data-talk-card-themes aria-label={copy.cardThemes}></ul>
+    <div class="talk-card__related" data-talk-card-related-box hidden>
+      <h3 class="talk-card__related-title">{copy.cardRelated}</h3>
+      <ul class="talk-card__related-list" data-talk-card-related aria-label={copy.cardRelated}></ul>
+    </div>
     <div class="talk-card__nav">
       <button type="button" class="talk-card__step" data-talk-card-prev>{copy.cardPrev}</button>
       <button type="button" class="talk-card__step" data-talk-card-next>{copy.cardNext}</button>
@@ -75,6 +79,8 @@ const payload = JSON.stringify(cards).replace(/</g, '\\u003c');
       lectors: dialog.querySelector('[data-talk-card-lectors]'),
       short: dialog.querySelector('[data-talk-card-short]'),
       themes: dialog.querySelector('[data-talk-card-themes]'),
+      related: dialog.querySelector('[data-talk-card-related]'),
+      relatedBox: dialog.querySelector('[data-talk-card-related-box]'),
       prev: dialog.querySelector('[data-talk-card-prev]'),
       next: dialog.querySelector('[data-talk-card-next]'),
     };
@@ -108,6 +114,28 @@ const payload = JSON.stringify(cards).replace(/</g, '\\u003c');
         item.textContent = theme.label;
         el.themes.appendChild(item);
       });
+      // Related talks: the island carries ids + reasons only, so the title is
+      // resolved from the cards array. The links stay `#t<id>`, which the
+      // document delegate below already turns into "open that talk's card".
+      el.related.textContent = '';
+      var related = card.related || [];
+      related.forEach(function (rel) {
+        var target = cards[index[rel.id]];
+        if (!target) return;
+        var item = document.createElement('li');
+        var link = document.createElement('a');
+        link.href = '#t' + rel.id;
+        link.textContent = target.title;
+        item.appendChild(link);
+        if (rel.why) {
+          var why = document.createElement('span');
+          why.className = 'talk-card__related-why';
+          why.textContent = rel.why;
+          item.appendChild(why);
+        }
+        el.related.appendChild(item);
+      });
+      el.relatedBox.hidden = related.length === 0;
       el.prev.disabled = i === 0;
       el.next.disabled = i === cards.length - 1;
       // The hash stays a real deep link: #t277 is shareable and reopens the card.
@@ -261,6 +289,33 @@ const payload = JSON.stringify(cards).replace(/</g, '\\u003c');
     border: 1px solid var(--border-color);
     border-radius: 999px;
     padding: 1px 8px;
+  }
+  /* Related talks: same rule as the themes — the list is built in the browser. */
+  .talk-card__related {
+    margin: 0 0 var(--space-4);
+  }
+  .talk-card__related-title {
+    margin: 0 0 4px;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  :global(.talk-card__related-list) {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 3px;
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+  :global(.talk-card__related-why) {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+  :global(.talk-card__related-why)::before {
+    content: ' — ';
   }
   .talk-card__nav {
     display: flex;

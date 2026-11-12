@@ -58,6 +58,11 @@ export interface TalksCopy {
   noLector: string;
   themesH2: string;
   themesNote: string;
+  relatedLabel: string;
+  relatedNote: (pairs: number) => string;
+  relatedWhyTrack: string;
+  relatedWhyRoom: string;
+  cardRelated: string;
   hallsDaysH2: string;
   thHall: string;
   thDay: string;
@@ -137,6 +142,12 @@ export function talksCopy(lang: 'ru' | 'en', s: TalksStats): TalksCopy {
       themesH2: 'Themes',
       themesNote:
         'Themes are tags on talks, not a level of the hierarchy: a talk lands in several of them, so the theme mentions below total more than the number of talks.',
+      relatedLabel: 'Related talks',
+      relatedNote: (pairs) =>
+        `Each talk lists the talks it is actually related to, and why: shared themes (a rare tag says more than a frequent one — the widest covers half the programme), the same track, or the neighbouring slot in the same hall. The link is two-way: if A lists B, B lists A. ${pairs} pairs across ${s.talks} talks; where no theme ties two talks, the reason is the track or the room, and it is named as such.`,
+      relatedWhyTrack: 'same track',
+      relatedWhyRoom: 'same hall, same day',
+      cardRelated: 'Related talks',
       hallsDaysH2: 'Halls and days',
       thHall: 'Hall',
       thDay: 'Day',
@@ -202,6 +213,12 @@ export function talksCopy(lang: 'ru' | 'en', s: TalksStats): TalksCopy {
     themesH2: 'Темы',
     themesNote:
       'Темы — теги докладов, а не ступень иерархии: один доклад попадает в несколько тем, поэтому упоминаний тем ниже больше, чем докладов.',
+    relatedLabel: 'Похожие доклады',
+    relatedNote: (pairs) =>
+      `У каждого доклада — доклады, с которыми он действительно связан, и причина связи: общие темы (редкий тег говорит больше частого — самый широкий покрывает половину программы), тот же трек или соседний слот в том же зале. Связь двусторонняя: если A ссылается на B, у B видно A. Всего ${pairs} пар на ${s.talks} докладов; там, где темы двух докладов не пересекаются, причина — трек или зал, и она названа прямо.`,
+    relatedWhyTrack: 'тот же трек',
+    relatedWhyRoom: 'тот же зал в тот же день',
+    cardRelated: 'Похожие доклады',
     hallsDaysH2: 'Залы и дни',
     thHall: 'Зал',
     thDay: 'День',

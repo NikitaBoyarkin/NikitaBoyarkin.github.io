@@ -4,6 +4,17 @@
 // panel: `data.days` order (1 день → 2 день → онлайн-день), then start time,
 // then title.
 import { talkTitle, trackName, type TalksData, type TalksOverlay, type TalksTalk } from './talks-graph';
+import type { RelatedTalk } from './talks-related';
+
+export interface TalkCardRelated {
+  /** Talk id, the same key `#t<id>` uses — the title is resolved from the cards
+   *  array by the dialog, so 230 links do not duplicate 230 titles into the
+   *  JSON island. */
+  id: number;
+  /** Pre-localized reason, ready to print: theme labels joined, or the
+   *  structural reason when no theme ties the pair. */
+  why: string;
+}
 
 export interface TalkCardItem {
   id: number;
@@ -20,6 +31,16 @@ export interface TalkCardItem {
   lectors: { name: string; role: string }[];
   short: string;
   themes: { id: string; label: string }[];
+  /** Zettelkasten neighbours (lib/talks-related.ts), reasons pre-localized. */
+  related: TalkCardRelated[];
+}
+
+export interface TalkCardOptions {
+  /** Related index from `relatedTalks(data)`; omitted → every card carries an
+   *  empty list, which keeps the other callers and the unit tests unchanged. */
+  related?: Map<number, RelatedTalk[]>;
+  /** Localized structural reasons, because copy lives in lib/talks-copy.ts. */
+  why?: { track: string; room: string };
 }
 
 /** Talks in programme order. `data.days` is authored in programme order, so the
@@ -39,10 +60,12 @@ export function buildTalkCards(
   data: TalksData,
   lang: 'ru' | 'en' = 'ru',
   overlay?: TalksOverlay,
+  options: TalkCardOptions = {},
 ): TalkCardItem[] {
   const isEn = lang === 'en';
   const themeById = new Map(data.themes.map((th) => [th.id, th]));
   const dayById = new Map(data.days.map((d) => [d.id, d]));
+  const why = options.why ?? { track: '', room: '' };
 
   return programmeOrder(data).map((talk) => ({
     id: talk.id,
@@ -61,5 +84,19 @@ export function buildTalkCards(
       if (!theme) return [];
       return [{ id, label: isEn ? theme.labelEn : theme.label }];
     }),
+    related: (options.related?.get(talk.id) ?? []).map((rel) => ({
+      id: rel.id,
+      why: rel.sharedThemes.length
+        ? rel.sharedThemes
+            .slice(0, 2)
+            .flatMap((id) => {
+              const theme = themeById.get(id);
+              return theme ? [isEn ? theme.labelEn : theme.label] : [];
+            })
+            .join(' · ')
+        : rel.sameTrack
+          ? why.track
+          : why.room,
+    })),
   }));
 }

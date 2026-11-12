@@ -1,0 +1,88 @@
+---
+// One track's talk list: the `<ol>` inside a Tracks panel. Extracted from
+// TalksBoard so that file stays under the repo's large-file budget (it was
+// 22.1 KB, 651 bytes over the 20 KB pre-commit limit) — one seam, the block
+// that repeats per talk.
+//
+// What lives here is the row the reader scans: title, time/hall/lector line,
+// blurb, theme chips, and the Zettelkasten "see also" links with their reasons.
+// The styles stay in TalksBoard's global block, so nothing visual moved.
+import type { TalksCopy } from '../lib/talks-copy';
+import type { RelatedTalk } from '../lib/talks-related';
+import type { TalksTalk } from '../lib/talks-graph';
+
+interface Props {
+  talks: TalksTalk[];
+  /** Whole-programme index; only the neighbours' titles are read from it. */
+  related: Map<number, RelatedTalk[]>;
+  talkById: Map<number, TalksTalk>;
+  copy: TalksCopy;
+  lang: 'ru' | 'en';
+  href: (hash: string) => string;
+  titleOf: (talk: { id: number; title: string }) => string;
+  themeLabel: (id: string) => string;
+}
+
+const { talks, related, talkById, copy, lang, href, titleOf, themeLabel } = Astro.props as Props;
+const isEn = lang === 'en';
+
+// Two rarest themes at most: `sharedThemes` is sorted rarest-first, and a pair
+// can share four tags (AI, product, data, HR) — printing all of them turns the
+// reason into a wall of chips that says less than the two that decided it.
+const relatedWhy = (rel: RelatedTalk) =>
+  rel.sharedThemes.length > 0
+    ? rel.sharedThemes.slice(0, 2).map(themeLabel).join(' · ')
+    : rel.sameTrack
+      ? copy.relatedWhyTrack
+      : copy.relatedWhyRoom;
+---
+
+<ol class="talks-list">
+  {talks.map((talk) => (
+    <li id={`t${talk.id}`}>
+      <a class="talks-title" href={href(`#t${talk.id}`)}>
+        {titleOf(talk)}
+      </a>
+      <p class="talks-meta">
+        {talk.start}–{talk.end} · {talk.hall} ·{' '}
+        {talk.lectors.map((l) => l.name).join(', ') || copy.noLector}
+      </p>
+      {talk.short && (
+        /* The source project translates only titles and track names, so on the
+           EN page the blurb is the RU original: declare its language rather
+           than let a screen reader read Cyrillic in an English voice. */
+        <p class="talks-short" lang={isEn ? 'ru' : undefined}>
+          {talk.short}
+        </p>
+      )}
+      {(talk.themes ?? []).length > 0 && (
+        <ul class="talks-tags" aria-label={copy.themeOnTalk}>
+          {(talk.themes ?? []).map((th) => (
+            <li>
+              <a href={href(`#theme-${th}`)}>{themeLabel(th)}</a>
+            </li>
+          ))}
+        </ul>
+      )}
+      {/* Zettelkasten "see also": each link names its reason, so the relation is
+         readable without opening either talk. No ids here on purpose —
+         `id="t<id>"` belongs to the talk's own list entry, and a duplicate would
+         break the deep-link mapping. */}
+      {(related.get(talk.id) ?? []).length > 0 && (
+        <div class="talks-related">
+          <p class="talks-related__label">{copy.relatedLabel}</p>
+          <ul class="talks-related__list" aria-label={copy.relatedLabel}>
+            {(related.get(talk.id) ?? []).map((rel) => (
+              <li>
+                <a href={href(`#t${rel.id}`)}>
+                  {titleOf(talkById.get(rel.id) ?? { id: rel.id, title: '' })}
+                </a>
+                <span class="talks-related__why">{relatedWhy(rel)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </li>
+  ))}
+</ol>
