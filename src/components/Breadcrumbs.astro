@@ -47,6 +47,10 @@ const t = {
   writing: isEnUi ? 'Writing' : 'Статьи',
   glossary: isEnUi ? 'Glossary' : 'Словарь',
   library: isEnUi ? 'Library' : 'Библиотека',
+  demos: isEnUi ? 'Demos' : 'Демо',
+  hire: isEnUi ? 'Hiring' : 'Найм',
+  talks: isEnUi ? 'Talks' : 'Доклады',
+  'repo-audit': isEnUi ? 'Repo audit' : 'Аудит репозиториев',
   topics: isEnUi ? 'Topics' : 'Темы',
   explorer: isEnUi ? 'Explorer' : 'Обозреватель',
   graph: isEnUi ? 'Graph' : 'Граф',
@@ -111,6 +115,29 @@ switch (section) {
   }
   case 'library': {
     const hub: Crumb = { label: t.library, href: href('library/') };
+    crumbs = second ? [home, hub, { label: humanize(second) }] : [home, hub];
+    break;
+  }
+  case 'demos': {
+    const hub: Crumb = { label: t.demos, href: href('demos/') };
+    crumbs = second ? [home, hub, { label: humanize(second) }] : [home, hub];
+    break;
+  }
+  case 'hire': {
+    // Persona sub-pages (`hire/hr/`, `hire/manager/`, `hire/colleague/`).
+    const hub: Crumb = { label: t.hire, href: href('hire/') };
+    crumbs = second ? [home, hub, { label: humanize(second) }] : [home, hub];
+    break;
+  }
+  case 'talks': {
+    const hub: Crumb = { label: t.talks, href: href('talks/') };
+    crumbs = second ? [home, hub, { label: humanize(second) }] : [home, hub];
+    break;
+  }
+  case 'repo-audit': {
+    // Served as a static page from `public/repo-audit/`, so no trail is
+    // rendered there today; kept in step with the route pair in sections.ts.
+    const hub: Crumb = { label: t['repo-audit'], href: href('repo-audit/') };
     crumbs = second ? [home, hub, { label: humanize(second) }] : [home, hub];
     break;
   }

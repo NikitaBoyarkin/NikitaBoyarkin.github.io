@@ -92,6 +92,16 @@ def check_required_pages() -> int:
         DIST / "posts" / "sql-window-functions" / "index.html",
         DIST / "posts" / "volta-neobank-case-study" / "index.html",
         DIST / "glossary" / "index.html",
+        # Section hubs from src/lib/sections.ts (RU side)
+        DIST / "navigation" / "index.html",
+        DIST / "demos" / "index.html",
+        DIST / "hire" / "index.html",
+        DIST / "graph" / "index.html",
+        DIST / "talks" / "index.html",
+        DIST / "library" / "index.html",
+        DIST / "explorer" / "index.html",
+        DIST / "topics" / "index.html",
+        DIST / "repo-audit" / "index.html",
         # EN locale (prefixDefaultLocale: false → EN under /en/)
         DIST / "en" / "index.html",
         DIST / "en" / "about" / "index.html",
@@ -107,6 +117,16 @@ def check_required_pages() -> int:
         DIST / "en" / "projects" / "garden" / "index.html",
         DIST / "en" / "projects" / "site" / "index.html",
         DIST / "en" / "glossary" / "index.html",
+        # EN twins of the section hubs (topics, repo-audit are RU-only)
+        DIST / "en" / "navigation" / "index.html",
+        DIST / "en" / "projects" / "index.html",
+        DIST / "en" / "demos" / "index.html",
+        DIST / "en" / "hire" / "index.html",
+        DIST / "en" / "graph" / "index.html",
+        DIST / "en" / "talks" / "index.html",
+        DIST / "en" / "library" / "index.html",
+        DIST / "en" / "writing" / "index.html",
+        DIST / "en" / "explorer" / "index.html",
     ]
     print(f"Checking {len(required)} required page(s)...")
     for path in required:

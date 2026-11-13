@@ -5,9 +5,16 @@
  * had no reason to agree — the drawer array in `Base.astro`, the drawer contract
  * in `tests/built/homepage-gate.test.ts`, the "Core pages" lines in
  * `src/lib/llms-txt.ts`, and the trailing-slash cases in `Breadcrumbs.astro`.
- * Adding a section meant editing all of them and hoping. This is the authority:
- * the nav, `/navigation/`, the per-section OG banner name and the sitemap all
- * read from here.
+ * Adding a section meant editing all of them and hoping. This is the authority
+ * for: the drawer (`src/layouts/Base.astro`), `/navigation/` in both locales,
+ * the per-section OG banner path and name (`sectionOgPath`, consumed by
+ * `SectionCard.astro` and `scripts/generate-section-og.mjs`), and
+ * `sectionForPath`, which resolves the current URL to the section whose banner
+ * `Base.astro` emits.
+ *
+ * It is NOT the sitemap's source: `astro.config.mjs` builds the sitemap from
+ * the pages Astro finds on disk and never imports this module. `Breadcrumbs.astro`
+ * and `src/lib/llms-txt.ts` also still keep their own labels and page lines.
  *
  * Shape notes:
  *   - `href` is relative and locale-aware. `home` differs between locales

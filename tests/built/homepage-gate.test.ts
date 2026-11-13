@@ -21,6 +21,8 @@ import { describe, it, expect, beforeAll } from 'bun:test';
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 
+import { SECTIONS } from '../../src/lib/sections';
+
 const DIST = resolve(__dirname, '../../dist');
 
 const PAGES = [
@@ -43,57 +45,40 @@ beforeAll(() => {
 
 /**
  * The header contract for `/` and `/en/`: the two inline links, and the drawer's
- * full row set. Pinned literally because "the links go to the right pages" is
- * only checkable against an authority, and the nav array in `Base.astro` is
- * that authority — this is its built-output reflection.
+ * full row set.
+ *
+ * The inline pair is pinned literally — it is the top bar's own choice, not a
+ * section list. The drawer is computed from `src/lib/sections.ts`, the ONE
+ * section registry: a 15th section is one registry entry, and this file follows
+ * it instead of going red on a stale copy. What stays asserted is the equality
+ * itself — the built drawer must carry exactly the registry's rows, in order.
  *
  * `/topics/` and `/repo-audit/` are RU-only route pairs: no `/en/` twin exists,
- * so both locales point at the one page rather than at a 404.
+ * so both locales point at the one page rather than at a 404 — that falls out
+ * of each section's own `href`.
  */
+const asPath = (href: string) => {
+  const rel = href.replace(/^\/+|\/+$/g, '');
+  return rel ? `/${rel}/` : '/';
+};
+
+const drawerFor = (lang: 'ru' | 'en') =>
+  SECTIONS.map((section) => ({ href: asPath(section.href[lang]), label: section.label[lang] }));
+
 const NAV = {
   ru: {
     inline: [
       { href: '/', label: 'Главная' },
       { href: '/navigation/', label: 'Навигация' },
     ],
-    drawer: [
-      { href: '/', label: 'Главная' },
-      { href: '/navigation/', label: 'Навигация' },
-      { href: '/projects/', label: 'Проекты' },
-      { href: '/demos/', label: 'Демо' },
-      { href: '/hire/', label: 'Найм' },
-      { href: '/about/', label: 'Обо мне' },
-      { href: '/glossary/', label: 'Словарь' },
-      { href: '/graph/', label: 'Граф' },
-      { href: '/talks/', label: 'Граф докладов' },
-      { href: '/library/', label: 'Библиотека' },
-      { href: '/writing/', label: 'Статьи' },
-      { href: '/explorer/', label: 'Обозреватель' },
-      { href: '/topics/', label: 'Темы' },
-      { href: '/repo-audit/', label: 'Аудит репозиториев' },
-    ],
+    drawer: drawerFor('ru'),
   },
   en: {
     inline: [
       { href: '/en/', label: 'Home' },
       { href: '/en/navigation/', label: 'Navigation' },
     ],
-    drawer: [
-      { href: '/en/', label: 'Home' },
-      { href: '/en/navigation/', label: 'Navigation' },
-      { href: '/en/projects/', label: 'Projects' },
-      { href: '/en/demos/', label: 'Demos' },
-      { href: '/en/hire/', label: 'Hire' },
-      { href: '/en/about/', label: 'About' },
-      { href: '/en/glossary/', label: 'Glossary' },
-      { href: '/en/graph/', label: 'Graph' },
-      { href: '/en/talks/', label: 'Talks graph' },
-      { href: '/en/library/', label: 'Library' },
-      { href: '/en/writing/', label: 'Writing' },
-      { href: '/en/explorer/', label: 'Explorer' },
-      { href: '/topics/', label: 'Topics' },
-      { href: '/repo-audit/', label: 'Repo audit' },
-    ],
+    drawer: drawerFor('en'),
   },
 } as const;
 
@@ -159,6 +144,13 @@ describe('homepage new tab (built HTML)', () => {
       expect(d, `${lang}: the gate section is back`).not.toContain('class="hero-gate"');
       expect(d, `${lang}: the gate cards are back`).not.toContain('data-source="gate"');
       expect(d, `${lang}: still rendering persona-gate`).not.toContain('class="persona-gate"');
+      // The surface that actually left on 2026-11-08 was the new-tab persona
+      // block: a `<ul class="nt-personas">` of three `<a class="nt-persona">`
+      // cards. Restoring it leaves all three negatives above green (it carries
+      // none of those class names), so the container and card classes are
+      // pinned themselves — the removal is what this test is about.
+      expect(d, `${lang}: the persona cards are back`).not.toContain('class="nt-personas"');
+      expect(d, `${lang}: a persona card is back`).not.toContain('nt-persona');
     });
 
     it(`${file}: carries the heading as real text`, () => {
@@ -221,6 +213,13 @@ describe('homepage new tab (built HTML)', () => {
 
     it(`${file}: the drawer carries every destination, each with an icon`, () => {
       const rows = rowsIn(doc(), 'id="nav-links"');
+      // The expected rows come from the registry, but the count check survives:
+      // built HTML and `src/lib/sections.ts` must agree row for row, so a
+      // drawer that silently drops or invents an entry still fails here.
+      expect(
+        rows.length,
+        `${lang}: the drawer row count disagrees with src/lib/sections.ts`,
+      ).toBe(SECTIONS.length);
       expect(rows.map(({ href, label }) => ({ href, label }))).toEqual([...NAV[lang].drawer]);
       expect(rows.filter((row) => !row.icon), `${lang}: drawer rows without an icon`).toEqual([]);
     });

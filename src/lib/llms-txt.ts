@@ -108,23 +108,30 @@ export async function buildLlmsTxt(site: string): Promise<string> {
   add();
 
   // Every route that carries content, not just the ones a sitemap would list.
-  // Bilingual pages get one line per locale; `/topics/`, `/notes*` and
-  // `/games/` are RU-only (no `/en/` twin is built), so they carry a `(RU)`
-  // marker and no invented EN URL.
+  // Bilingual pages get one line per locale; `/topics/`, `/repo-audit/`,
+  // `/notes*` and `/games/` are RU-only (no `/en/` twin is built), so they
+  // carry a `(RU)` marker and no invented EN URL.
   add("## Core pages");
   add(`- [Home (RU)](${abs("")}): intro, featured project (${featuredProject?.data.title ?? "Product analytics"}), skill taxonomy.`);
   add(`- [Home (EN)](${abs("en/")}): English mirror.`);
   add(`- [About (RU)](${abs("about/")}): background and focus — who I am, how I work, what I enjoy, collaboration format, and the offers (hiring + collaboration) with quantified proof — A/B, retention, RFM, automation.`);
   add(`- [About (EN)](${abs("en/about/")}): English mirror of the background and focus page.`);
+  add(`- [Projects (RU)](${abs("projects/")}): case catalogue — A/B tests, retention, dashboards, four views.`);
+  add(`- [Projects (EN)](${abs("en/projects/")}): the English case catalogue.`);
   add(`- [Notes (RU)](${abs("notes/")}): short notes and decision logs — why a decision was made and what came of it.`);
   add(`- [Guides (RU)](${abs("notes/guides/")}): evergreen guides on product analytics — cohort analysis, RFM segmentation, SQL, experiment statistics.`);
   add(`- [Writing (RU)](${abs("writing/")}): articles on SQL, A/B testing, retention, segmentation, automation.`);
   add(`- [Writing (EN)](${abs("en/writing/")}): the same articles in English.`);
   add(`- [Skill taxonomy (RU)](${abs("topics/")}): Junior/Middle/Senior topics with case studies per topic.`);
+  add(`- [Repo audit (RU)](${abs("repo-audit/")}): audits of other people's repositories — what holds, what breaks.`);
   add(`- [Glossary (RU)](${abs("glossary/")}): definitions of core analytics terms — p-value, MDE, SRM, cohort, LTV, RFM.`);
   add(`- [Glossary (EN)](${abs("en/glossary/")}): the same terms defined in English.`);
   add(`- [Knowledge graph (RU)](${abs("graph/")}): product-analytics domain map.`);
   add(`- [Knowledge graph (EN)](${abs("en/graph/")}): English domain map.`);
+  add(`- [Talks graph (RU)](${abs("talks/")}): 91 talks of the Matemarketing 2026 programme and the links between them.`);
+  add(`- [Talks graph (EN)](${abs("en/talks/")}): the English talks graph.`);
+  add(`- [Library (RU)](${abs("library/")}): the books, courses and papers the methodology stands on.`);
+  add(`- [Library (EN)](${abs("en/library/")}): the English shelf index.`);
   add(`- [Explorer (RU)](${abs("explorer/")}): every project, article, glossary term, library source, Volta module and topic in one filterable list — with addressable filters and a relation panel.`);
   add(`- [Explorer (EN)](${abs("en/explorer/")}): the English content explorer.`);
   add(`- [Navigation (RU)](${abs("navigation/")}): every section of the site in one grid.`);

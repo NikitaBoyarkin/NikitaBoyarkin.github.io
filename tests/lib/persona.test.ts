@@ -34,6 +34,19 @@ const lastPropsFor = (ph: Ph, event: string) =>
 const ROOT = join(__dirname, '..', '..');
 const src = (rel: string) => readFileSync(join(ROOT, rel), 'utf8');
 
+/**
+ * A page from `dist/`, the same directory `tests/built/*.test.ts` reads. The
+ * source greps below cannot tell a rendered branch from a comment or a dead
+ * `if`, so anything about what a visitor actually gets is asserted against the
+ * built artifact. `dist/` is a build precondition for this suite (see
+ * `tests/built/homepage-gate.test.ts`); a missing page fails loudly with ENOENT
+ * rather than skipping.
+ */
+const built = (rel: string) => readFileSync(join(ROOT, 'dist', rel), 'utf8');
+
+/** The one `<header>` element of a built page, or `''` when it has none. */
+const headerOf = (d: string) => d.match(/<header[\s\S]*?<\/header>/)?.[0] ?? '';
+
 // ---------------------------------------------------------------------------
 // Buffering — must run FIRST: it asserts the pre-attach state of the module,
 // and `attachPosthog` is sticky for the rest of this file.
@@ -192,6 +205,34 @@ describe('wiring (PRD §6, §9, §10)', () => {
     expect(base, 'the hiring entry point never marks itself current').toMatch(
       /nav-hire[\s\S]{0,400}?isNavCurrent\('hire'\)/,
     );
+
+    // The greps above read the source, where a comment or a dead branch keeps
+    // them green with the header entry point gone. These read the built pages
+    // the browser gets: the anchor must be in the real `<header>`, and the
+    // retired three-role-buttons surface must not be. Scoping to `<header>`
+    // matters — the role landings link each other legitimately.
+    for (const [file, lang] of [
+      ['index.html', 'ru'],
+      ['en/index.html', 'en'],
+    ] as const) {
+      const d = built(file);
+      expect(d, `${file}: the built page has no hiring entry point`).toContain('class="nav-hire"');
+
+      const header = headerOf(d);
+      expect(header, `${file}: no <header> in the built page`).not.toBe('');
+      expect(header, `${file}: the header lost its hiring entry point`).toContain('class="nav-hire"');
+
+      const roleHref = (role: string) => (lang === 'en' ? `/en/hire/${role}/` : `/hire/${role}/`);
+      for (const role of ['hr', 'manager', 'colleague']) {
+        expect(
+          header,
+          `${file}: the header links the retired role route ${roleHref(role)}`,
+        ).not.toContain(`href="${roleHref(role)}"`);
+      }
+      expect(header, `${file}: the retired role buttons are back in the header`).not.toContain(
+        'data-persona',
+      );
+    }
   });
 
   it('keeps role-awareness on the landings after the header group left', () => {
