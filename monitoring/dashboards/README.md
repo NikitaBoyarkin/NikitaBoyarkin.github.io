@@ -56,6 +56,17 @@ funnel keeps reading the pre-deploy rows instead of zeroing out.
 Design rules the v2 set follows:
 
 - **Every tile is verified against live data before it ships.** `verify_tiles.py` runs each tile's query through `POST /api/projects/{id}/query/`; `verify_dashboards.py` re-runs the queries *as stored on the dashboards* after creation. Both are read-only.
+- **A headless browser is a bot, and PostHog drops bot events silently.** A Playwright
+  check that merely loads the site reads `Event "$pageview" was not captured because the
+  user agent looks like a bot` in the SDK's debug log — every row disappears, and the site
+  looks broken when it is not. Any live verification must pass a real `userAgent` **and**
+  neutralise `navigator.webdriver` (plus `--enable-automation` off), then read the rows back
+  with `?refresh=force_blocking`: without that flag a cached HogQL result keeps answering
+  "0 rows" for minutes after the row landed.
+- **Mark test traffic, do not guess it.** A verification run carries a unique
+  `utm_campaign=deploy_check_<timestamp>`, which lands as `visit_utm_campaign` on every
+  event of that session — so the rows can be excluded by one property filter if a tile ever
+  needs to read like a real one.
 - **One layer per metric.** A click on an external CTA emits a frozen `[data-analytics]` event **and** `outbound_click` **and** `$autocapture` — counting two layers double-counts.
 - **`visit_utm_source` / `first_utm_source`, not `utm_source`.** The plain auto-captured property reached only 801 of 949 `$pageview` rows in 90 days, and never reached a conversion event. Both site keys are super properties registered from `src/lib/analytics.ts`, so they are on every event: `visit_utm_*` is the campaign of the current tab, `first_utm_*` is the first visit ever. `$session_entry_utm_source` remains as the SDK's own duplicate and is no longer the reporting key.
 - **The homepage has three identities.** `/` (current), `/en/` (English), `/Personal_Projects.github.io/` (legacy base, still the top path in the data). Any home-scoped funnel must OR all three — the v1 funnel scope of `$pathname = "/"` silently dropped them.
