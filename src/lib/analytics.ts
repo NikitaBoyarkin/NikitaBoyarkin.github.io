@@ -15,6 +15,15 @@
 
 export type Locale = 'ru' | 'en';
 
+/**
+ * Признак сайта в общем проекте PostHog (`site` супер-свойство).
+ *
+ * Сестринский `mm-program-page` регистрирует `site: "mm-program-page"`; без
+ * такого же свойства на портфолио два сайта не разделить в общем проекте, и
+ * тайлы складывают их события в одну серию.
+ */
+export const SITE = 'portfolio';
+
 import { AUDIENCES, type Audience } from './projects';
 import { sendIngest } from './ingest';
 import { firstTouch, utmSuperProperties, visitUtm } from './attribution';
@@ -44,7 +53,14 @@ export interface AnalyticsEventMap {
   };
   random_post_click: { slug: string; path: string };
   section_viewed: { section: string; path: string };
-  outbound_click: { domain: string; url: string; surface: string; path: string };
+  outbound_click: {
+    domain: string;
+    url: string;
+    surface: string;
+    path: string;
+    /** host + path: общий с mm-program-page слаг, чтобы «топ внешних ссылок» сводился. */
+    link: string;
+  };
   // `surface` keeps the search inputs apart: the site-wide SearchBox (`header`),
   // the glossary filter (`glossary`), the Explorer (`explorer`), the homepage
   // hero (`hero`) and the programme panel on `/talks/` (`talks`) all emit these
@@ -84,6 +100,10 @@ export interface AnalyticsEventMap {
     locale: Locale;
     reason: 'validation' | 'rate_limited' | 'server' | 'network';
   };
+  // Шаг воронки «заявка»: страница контактов загрузилась. До него вход на
+  // `/contact/` был выводим только из `$pageview` (и то лишь по URL), поэтому
+  // воронка не отличала «открыл контакты» от «ушёл на любую другую страницу».
+  contact_page_view: { locale: Locale };
   // Props mirror the delegated [data-analytics] handler in Analytics.astro, which
   // attaches `{ path }` to every named CTA and adds `surface` when the element
   // carries `data-analytics-surface` — declaring `{ locale }` here would be a
@@ -138,8 +158,13 @@ export interface AnalyticsEventMap {
   // question the overview graph exists to answer: is the graph itself used, or
   // does everyone read the lists? `track` is the programme's own slug, null for
   // the ~30% of talks the source feed leaves untracked.
-  talk_opened: {
+  // Имя `talk_open`, а не `talk_opened`: сестринский `mm-program-page` шлёт
+  // своё событие под этим же именем. Общий ключ — `talk_id`, а для разбивки по
+  // трекам `track_id` (число из фида). `track` — подпись и на EN-страницах
+  // английская, поэтому склейка двух сайтов идёт не по ней.
+  talk_open: {
     talk_id: number;
+    track_id: number | null;
     track: string | null;
     source: 'program' | 'track' | 'theme' | 'graph' | 'deeplink' | 'other';
     locale: Locale;
@@ -329,9 +354,9 @@ export function writeAudience(audience: Audience): void {
  * lives in `./attribution` now that this module is the event registry. Every
  * name is re-exported, so callers and the unit tests keep importing from here.
  */
-export { classifyReferrer, computeFirstTouch, parseUtm } from './attribution';
+export { classifyReferrer, classifyReferrerUrl, computeFirstTouch, parseUtm } from './attribution';
 export { firstTouch, visitUtm };
-export type { FirstTouch, ReferrerClass, UtmKey, UtmParams } from './attribution';
+export type { FirstTouch, ReferrerClass, ReferrerInfo, UtmKey, UtmParams } from './attribution';
 /**
  * Register the super properties (PRD §4.2) exactly once per page load.
  * Called by `Analytics.astro` immediately after `posthog.init()`.
@@ -354,11 +379,15 @@ export function registerSuperProperties(): void {
 
   try {
     ph.register({
+      site: SITE,
       locale: localeFromPath(window.location.pathname),
       audience,
       theme: document.documentElement.getAttribute('data-theme') || 'dark',
       prefers_reduced_motion: reducedMotion,
       initial_referrer_class: touch.referrer_class,
+      // Путь на источнике: у перехода с сестринского проекта он называет
+      // страницу (`/mm-program-page/`), у внешнего и пустого — `null`.
+      initial_referrer_path: touch.referrer_path,
       landing_path: touch.landing_path,
       // Super properties, not per-event props: `booking_click`, `contact_submit`
       // and `telegram_*` have to carry the campaign too. PostHog's own

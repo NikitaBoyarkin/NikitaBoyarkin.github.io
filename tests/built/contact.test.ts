@@ -27,6 +27,32 @@ function page(path: string): string {
   return readFileSync(file, 'utf8');
 }
 
+/**
+ * Код всех JS-чанков, которые страница реально тянет: скрипты из HTML плюс их
+ * импорты (статические и динамические) в глубину.
+ *
+ * События живут не в HTML, а в лениво загружаемых модулях, поэтому искать имя
+ * события в разметке бессмысленно — только в достижимом графе чанков.
+ */
+function shippedJs(html: string): string {
+  const seen = new Set<string>();
+  const queue = [...html.matchAll(/src="(\/_astro\/[^"]+\.js)"/g)].map((m) => m[1]);
+  const out: string[] = [];
+  while (queue.length) {
+    const src = queue.shift()!;
+    if (seen.has(src)) continue;
+    seen.add(src);
+    const file = resolve(DIST, `.${src}`);
+    if (!existsSync(file)) continue;
+    const code = readFileSync(file, 'utf8');
+    out.push(code);
+    for (const m of code.matchAll(/["'`](\.\/([A-Za-z0-9_.-]+\.js))["'`]/g)) {
+      queue.push(`/_astro/${m[2]}`);
+    }
+  }
+  return out.join('\n');
+}
+
 const pages = [
   { label: 'RU', path: '/contact/index.html' },
   { label: 'EN', path: '/en/contact/index.html' },
@@ -88,4 +114,20 @@ describe.each(pages)('built contact page ($label)', ({ path }) => {
       expect(html).not.toContain('Other ways to reach me');
     });
   }
+});
+
+// Межсайтовая воронка: `/contact/` — шаг `contact_page_view`, а не «ещё одна
+// страница» в `$pageview`. Событие живёт в лениво загружаемом модуле аналитики
+// (`Analytics.astro` → `src/lib/analytics.ts`), которого в HTML нет, поэтому
+// проверяем достижимый граф чанков: страница обязана тянуть код, который его
+// шлёт. Там же держится атрибуция перехода: класс `own-site` для собственного
+// хоста и запись пути источника — иначе переход с сестринского проекта снова
+// читался бы как `github`.
+describe('built contact page ships the funnel step (cross-site funnel)', () => {
+  it('loads the analytics chunk that emits contact_page_view and the referrer path', () => {
+    const js = shippedJs(page('/contact/index.html'));
+    expect(js).toContain('contact_page_view');
+    expect(js).toContain('initial_referrer_path');
+    expect(js).toContain('own-site');
+  });
 });

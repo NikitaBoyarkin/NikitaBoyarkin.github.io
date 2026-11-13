@@ -27,6 +27,9 @@ export interface TalkCardItem {
    *  Analytics needs the stable key, not the label: `/talks/` and `/en/talks/`
    *  print two different names for the same track. */
   trackSlug: string | null;
+  /** Numeric track id from the programme feed — the key shared with
+   *  `mm-program-page`, and the only one that survives a language switch. */
+  trackId: number | null;
   day: string;
   lectors: { name: string; role: string }[];
   short: string;
@@ -76,6 +79,7 @@ export function buildTalkCards(
     // with `null` rather than printing an empty string next to the label.
     track: talk.trackName ? trackName(talk.trackName, lang, overlay) : null,
     trackSlug: talk.trackSlug || null,
+    trackId: talk.trackId ?? null,
     day: dayById.get(talk.dayId)?.name ?? '',
     lectors: talk.lectors.map((l) => ({ name: l.name, role: l.role })),
     short: talk.short ?? '',

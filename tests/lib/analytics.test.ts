@@ -2,12 +2,14 @@ import { describe, it, expect, beforeEach } from 'bun:test';
 import {
   attachPosthog,
   classifyReferrer,
+  classifyReferrerUrl,
   computeFirstTouch,
   firstTouch,
   localeFromPath,
   parseUtm,
   registerSuperProperties,
   resetAnalyticsForTests,
+  SITE,
   visitUtm,
   whenAnalyticsReady,
 } from '../../src/lib/analytics';
@@ -49,6 +51,50 @@ describe('classifyReferrer (REQ-A03)', () => {
     expect(classifyReferrer('news.ycombinator.com')).toBe('other');
     expect(classifyReferrer('example.com')).toBe('other');
   });
+
+  it('separates the owner host from github.com', () => {
+    // Собственный хост содержит подстроку `github.` — без отдельной проверки
+    // переход с сестринского проекта считался бы переходом с github.com.
+    expect(classifyReferrer('nikitaboyarkin.github.io')).toBe('own-site');
+    expect(classifyReferrer('www.nikitaboyarkin.github.io')).toBe('own-site');
+    expect(classifyReferrer('github.com')).toBe('github');
+    expect(classifyReferrer('gist.github.com')).toBe('github');
+  });
+});
+
+describe('classifyReferrerUrl', () => {
+  it('records the path of a transition from the sister project', () => {
+    expect(classifyReferrerUrl('https://nikitaboyarkin.github.io/mm-program-page/')).toEqual({
+      referrer_class: 'own-site',
+      referrer_path: '/mm-program-page/',
+    });
+  });
+
+  it('keeps the path of any other own-host page', () => {
+    expect(classifyReferrerUrl('https://nikitaboyarkin.github.io/portfolio/en/talks/').referrer_path).toBe(
+      '/portfolio/en/talks/',
+    );
+  });
+
+  it('records no path for an external referrer', () => {
+    expect(classifyReferrerUrl('https://www.linkedin.com/feed/')).toEqual({
+      referrer_class: 'linkedin',
+      referrer_path: null,
+    });
+    expect(classifyReferrerUrl('https://example.com/x/')).toEqual({
+      referrer_class: 'other',
+      referrer_path: null,
+    });
+  });
+
+  it('treats an empty or unparsable referrer as direct with no path', () => {
+    expect(classifyReferrerUrl('')).toEqual({ referrer_class: 'direct', referrer_path: null });
+    expect(classifyReferrerUrl(null)).toEqual({ referrer_class: 'direct', referrer_path: null });
+    expect(classifyReferrerUrl('not a url')).toEqual({
+      referrer_class: 'direct',
+      referrer_path: null,
+    });
+  });
 });
 
 describe('localeFromPath', () => {
@@ -67,6 +113,7 @@ describe('computeFirstTouch', () => {
   it('resolves the class from a full referrer URL and keeps the landing path', () => {
     expect(computeFirstTouch('https://www.linkedin.com/feed/', '/projects/')).toEqual({
       referrer_class: 'linkedin',
+      referrer_path: null,
       landing_path: '/projects/',
       utm: {},
     });
@@ -75,6 +122,7 @@ describe('computeFirstTouch', () => {
   it('does not crash on a malformed referrer', () => {
     expect(computeFirstTouch('not a url', '/about/')).toEqual({
       referrer_class: 'direct',
+      referrer_path: null,
       landing_path: '/about/',
       utm: {},
     });
@@ -85,8 +133,27 @@ describe('computeFirstTouch', () => {
       computeFirstTouch('https://www.linkedin.com/feed/', '/', '?utm_source=linkedin&utm_campaign=hr-screening'),
     ).toEqual({
       referrer_class: 'linkedin',
+      referrer_path: null,
       landing_path: '/',
       utm: { source: 'linkedin', campaign: 'hr-screening' },
+    });
+  });
+
+  it('keeps the source path of a transition from the sister project', () => {
+    // Переход размечен UTM-кой сестринского сайта, но путь источника нужен и
+    // сам по себе: без метки (вставка ссылки, back-navigation) он единственный
+    // признак того, откуда пришёл читатель.
+    expect(
+      computeFirstTouch(
+        'https://nikitaboyarkin.github.io/mm-program-page/',
+        '/',
+        '?utm_source=mm-program-page&utm_medium=referral&utm_campaign=mm_program_to_portfolio',
+      ),
+    ).toEqual({
+      referrer_class: 'own-site',
+      referrer_path: '/mm-program-page/',
+      landing_path: '/',
+      utm: { source: 'mm-program-page', medium: 'referral', campaign: 'mm_program_to_portfolio' },
     });
   });
 });
@@ -100,6 +167,7 @@ describe('firstTouch persistence', () => {
   it('returns the stored value on a second call instead of recomputing it', () => {
     const stored = {
       referrer_class: 'linkedin' as const,
+      referrer_path: null,
       landing_path: '/from-linkedin/',
       utm: { source: 'linkedin', campaign: 'hr-screening' },
     };
@@ -109,6 +177,25 @@ describe('firstTouch persistence', () => {
     // Re-running classifyReferrer over it used to collapse every class except
     // 'direct' to 'other', destroying attribution after the first page load.
     expect(firstTouch()).toEqual(stored);
+  });
+
+  it('reads a record written before `referrer_path` existed as null, not as a lost visit', () => {
+    // Обратная совместимость хранилища: старая запись без нового поля должна
+    // загрузиться, иначе первый заход обнулялся бы после деплоя.
+    window.localStorage.setItem(
+      FIRST_TOUCH_KEY,
+      JSON.stringify({
+        referrer_class: 'own-site',
+        landing_path: '/',
+        utm: { source: 'mm-program-page' },
+      }),
+    );
+    expect(firstTouch()).toEqual({
+      referrer_class: 'own-site',
+      referrer_path: null,
+      landing_path: '/',
+      utm: { source: 'mm-program-page' },
+    });
   });
 
   it('drops an unrecognized stored class to other rather than passing it through', () => {
@@ -123,7 +210,11 @@ describe('firstTouch persistence', () => {
     window.localStorage.setItem(FIRST_TOUCH_KEY, JSON.stringify({ referrer_class: 'github' }));
     const touch = firstTouch();
     expect(typeof touch.landing_path).toBe('string');
-    expect(['linkedin', 'github', 'google', 'direct', 'other']).toContain(touch.referrer_class);
+    // `landing_path` — признак целой записи: без него сохранённый класс
+    // отбрасывается и считается заново. В тестовом окружении `document.referrer`
+    // пуст, поэтому ожидаемое значение — `direct`, и оно точное. Список
+    // допустимых классов проходил бы и при полностью откаченной фиче.
+    expect(touch.referrer_class).toBe('direct');
   });
 });
 
@@ -187,7 +278,7 @@ describe('registerSuperProperties (PRD §4.2)', () => {
     document.documentElement.setAttribute('data-theme', 'cyberpunk');
   });
 
-  it('registers all sixteen super properties', () => {
+  it('registers all eighteen super properties', () => {
     resetAnalyticsForTests();
     const ph = makePh();
     attachPosthog(ph);
@@ -197,8 +288,10 @@ describe('registerSuperProperties (PRD §4.2)', () => {
     const props = lastRegistered as Record<string, unknown>;
     expect(Object.keys(props).sort()).toEqual(
       [
+        'site',
         'audience',
         'initial_referrer_class',
+        'initial_referrer_path',
         'landing_path',
         'locale',
         'prefers_reduced_motion',
@@ -209,9 +302,15 @@ describe('registerSuperProperties (PRD §4.2)', () => {
         ]),
       ].sort(),
     );
+    // Признак сайта в общем проекте PostHog: без него серии портфолио и
+    // сестринского `mm-program-page` слиты в одну.
+    expect(props.site).toBe(SITE);
+    expect(SITE).toBe('portfolio');
     expect(props.locale).toBe('ru');
     expect(props.theme).toBe('cyberpunk');
     expect(props.audience).toBeNull();
+    // Внешнего/пустого источника нет — путь источника пуст.
+    expect(props.initial_referrer_path).toBeNull();
     expect(typeof props.prefers_reduced_motion).toBe('boolean');
     expect(typeof props.landing_path).toBe('string');
     // All ten UTM keys are present and null on an untagged visit, so the

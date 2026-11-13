@@ -56,7 +56,7 @@
 
 > `telegram_header`, `linkedin_hero`, `github_hero`, `hero_projects`, `bento_graph`,
 > `value_viewed`, `whois_viewed`, `work-with-me_viewed` удалены из кода —
-> см. `analytics-events.md` §4. В отчётах их не искать.
+> см. `analytics-retired-events.md`. В отчётах их не искать.
 
 С 2026-09-08 все делегированные клики несут `path` (REQ-038) — контакт атрибутируется к странице, где кликнули. Если контакт пришёл с неожиданной страницы — понять, почему.
 

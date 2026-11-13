@@ -38,6 +38,8 @@ export const PROPS = [
   'tab',
   'group',
   'talk_id',
+  'track_id',
+  'link',
   'direction',
   'graph',
   'node_kind',

@@ -14,7 +14,9 @@
 //
 // Layering (documented in docs/analytics-events.md): a click on a talk node in
 // a ProjectGraph emits both `graph_node_click` (the graph instance) and
-// `talk_opened` (the content). Dashboards count one layer, never the sum.
+// `talk_open` (the content). Dashboards count one layer, never the sum.
+// Имя `talk_open` общее с сестринским `mm-program-page`: `talk_id` + `track` —
+// ключи, по которым один тайл «топ докладов» читает оба сайта.
 ---
 <script>
   import { localeFromPath, track } from '../lib/analytics';
@@ -22,7 +24,9 @@
   type TalkSource = 'program' | 'track' | 'theme' | 'graph' | 'deeplink' | 'other';
   interface Card {
     id: number;
+    track: string | null;
     trackSlug: string | null;
+    trackId: number | null;
   }
 
   const locale = () => localeFromPath(window.location.pathname);
@@ -133,7 +137,13 @@
   } catch {
     cards = [];
   }
-  const trackOf = (id: number) => cards.find((card) => card.id === id)?.trackSlug ?? null;
+  /** Трек доклада для события. `track_id` — ключ стыковки с mm-program-page
+   *  (число из фида, одинаковое в обеих локалях), `track` — подпись для чтения
+   *  глазами: на `/en/talks/` она английская, и склеивать по ней нельзя. */
+  const trackOf = (id: number) => {
+    const card = cards.find((item) => item.id === id);
+    return { track_id: card?.trackId ?? null, track: card?.track ?? null };
+  };
 
   /** Which placement a talk link was clicked from — the question the overview
    *  graph exists to answer: is the graph itself used, or are the lists? */
@@ -173,7 +183,7 @@
     const match = (link.getAttribute('href') || '').match(/#t(\d+)$/);
     if (!match) return;
     const id = Number(match[1]);
-    track('talk_opened', { talk_id: id, track: trackOf(id), source: sourceOf(link), locale: locale() });
+    track('talk_open', { talk_id: id, ...trackOf(id), source: sourceOf(link), locale: locale() });
   });
 
   // A shared `#t<id>` landing opens the dialog during parse, before this module
@@ -182,7 +192,7 @@
   if (dialog?.open) {
     const id = openTalkId();
     if (id != null) {
-      track('talk_opened', { talk_id: id, track: trackOf(id), source: 'deeplink', locale: locale() });
+      track('talk_open', { talk_id: id, ...trackOf(id), source: 'deeplink', locale: locale() });
     }
   }
 </script>

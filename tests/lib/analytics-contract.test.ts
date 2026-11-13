@@ -108,6 +108,9 @@ describe('retired events have no emitter', () => {
       'case_study_read',
       'project_view_rfm',
       'project_view_volta',
+      // Переименовано в `talk_open` 2026-11-13: имя общее с сестринским
+      // `mm-program-page`, чтобы один тайл «топ докладов» читал оба сайта.
+      'talk_opened',
     ];
     const live = retired.filter(
       (name) => src.includes(`track('${name}`) || src.includes(`data-analytics="${name}"`),

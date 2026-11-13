@@ -38,6 +38,8 @@ export interface TalksTalk {
   end: string;
   trackName: string;
   trackSlug: string;
+  /** Numeric track id from the feed — the key shared with `mm-program-page`. */
+  trackId: number;
   lectors: { name: string; role: string }[];
   short: string;
   themes: string[];

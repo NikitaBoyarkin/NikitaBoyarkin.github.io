@@ -142,6 +142,13 @@ import { INGEST_ENABLED } from '../lib/ingest';
         if (postMatch) {
           track('post_read', { slug: postMatch[1], locale });
         }
+        // Шаг воронки: страница контактов открыта. Раньше её приходилось
+        // выводить из `$pageview` по URL — воронка не отделяла «открыл
+        // контакты» от «ушёл на любую другую страницу». Один раз за загрузку:
+        // `start()` идемпотентен.
+        if (/^\/(?:en\/)?contact\/?$/.test(path)) {
+          track('contact_page_view', { locale });
+        }
 
         // Read depth (REQ-A09): one `read_depth` per threshold per page load, for
         // every content type. Replaces the case-study-only `case_study_read`.
@@ -275,10 +282,18 @@ import { INGEST_ENABLED } from '../lib/ingest';
           const anchor = target.closest<HTMLAnchorElement>('a[href]');
           if (anchor && isExternal(anchor.href)) {
             let domain = '';
+            let link = '';
             try {
-              domain = new URL(anchor.href).hostname;
+              const target = new URL(anchor.href);
+              domain = target.hostname;
+              // `link` — тот же стабильный слаг, что строит mm-program-page
+              // (host + path): оба сайта пишут `outbound_click` в один проект,
+              // и без общего ключа тайл «топ внешних ссылок» даёт две
+              // несводимые половины одной метрики.
+              link = `${target.hostname}${target.pathname}`;
             } catch {
               domain = '';
+              link = '';
             }
             track('outbound_click', {
               domain,
@@ -286,6 +301,7 @@ import { INGEST_ENABLED } from '../lib/ingest';
               surface:
                 anchor.closest('[data-analytics]')?.getAttribute('data-analytics') || 'content',
               path,
+              link,
             });
           }
         };

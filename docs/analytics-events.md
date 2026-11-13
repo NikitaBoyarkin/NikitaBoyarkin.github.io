@@ -21,7 +21,7 @@ allowlist and retention: `docs/supabase-analytics.md`.
 | `ask_me_used` | `{ matched_id, answer_matched, locale, question_source }` | a question is submitted in the Ask-me widget. `matched_id` is the corpus pair id or `null`; `question_source` is `typed` or `chip`. **No free text is sent** — the typed question stays in the browser | `AskMe.astro` |
 | `random_post_click` | `{ slug, path }` | the random-post button is clicked | `BlogFilter.astro` |
 | `section_viewed` | `{ section, path }` | an `/about` section enters the viewport at 50% (once per section), or is already above the mid-viewport when the lazy SDK init finishes (lazy-init credit). On `/about` the section now enters the viewport when its **tab becomes active** — including via a `#anchor` deep link — and sections inside inactive tabs are **not** emitted at page load | `Analytics.astro`, via `[data-analytics-section]` |
-| `outbound_click` | `{ domain, url, surface, path }` | a link leaving the site is clicked | `Analytics.astro` (delegated) |
+| `outbound_click` | `{ domain, url, surface, path, link }` | a link leaving the site is clicked. `link` is `host+path` (the sibling site narrows its own to `social:` / `cta:` / `portfolio:` slugs), so a cross-site tile groups on `domain` | `Analytics.astro` (delegated) |
 | `search_used` | `{ query, results_count, locale, surface }` | a search with ≥1 result (`surface ∈ {header, explorer, glossary, hero, talks}`) | `SearchBox.astro` (truncated to 100 chars, once per distinct query), `ExplorerApp.astro` (`surface:'explorer'`, once per distinct query), `GlossaryFilter.astro` (`surface:'glossary'`), `TalksAnalytics.astro` (`surface:'talks'`, once per settled query after 800 ms idle) |
 | `search_no_results` | `{ query, results_count: 0, locale, surface }` | a search with 0 results (`surface` as on `search_used`) | `SearchBox.astro`, `ExplorerApp.astro`, `GlossaryFilter.astro`, `TalksAnalytics.astro` |
 | `search_result_click` | `{ query, rank, href, type, locale, surface }` | a search result is opened (`surface ∈ {header, explorer}`; `rank` is 1-based; modified clicks — new tab, download — are not counted) | `SearchBox.astro`, `ExplorerApp.astro` |
@@ -30,6 +30,7 @@ allowlist and retention: `docs/supabase-analytics.md`.
 | `projects_track_filter` | `{ track, results_count, locale }` | a project category tab is selected (`track` is the taxonomy key or `all`) | `ProjectBoard.astro` and `ProjectList.astro` (the list carries the same tabs on `/colleague/`; the two never render together — one category means one series in PostHog) |
 | `contact_submit` | `{ locale }` | the contact form was submitted and the Edge Function accepted it | `ContactForm.astro` (only on `res.ok`). **Inert in production** until `PROJECT_REF` in `src/lib/contact.ts` is replaced (`CONTACT_FORM_ENABLED=false`, so the form is not rendered at all). This is the contact form, not the analytics ingest sink — that one is live (see `docs/supabase-analytics.md`) |
 | `contact_form_error` | `{ locale, reason }` | a contact-form submission failed (`reason ∈ {validation, rate_limited, server, network}`) | `ContactForm.astro`. **Inert in production** — same reason as `contact_submit` |
+| `contact_page_view` | `{ locale }` | `/contact/` or `/en/contact/` loads — the funnel step `$pageview` alone could not name | `Analytics.astro` (page-load dispatch, once per load) |
 | `booking_click` | `{ path, surface? }` | the booking CTA (`cal.com/lofinibo/bored-call-me`) is clicked. The contact page passes `surface:'contact_cta'` | `contact.astro` / `en/contact.astro`, via the delegated `[data-analytics]` handler in `Analytics.astro` |
 | `contact_page_click` | `{ path, surface? }` | a link that opens the **contact page** (not the booking page) is clicked. `surface` names the placement: `nav` (the drawer's contact button — the only non-footer entry on a closed drawer), `footer`, `about_links` (the link row under `/about`), `case_next_step` (end of a project case), `volta_part_next_step` (end of a Volta chapter), `post_next_step` (end of a post), `projects_index` / `writing_index` (end of a catalog page), `role_hr_contact` / `role_manager_contact` / `role_colleague_contact` (end of a role landing) | `Base.astro` (drawer CTA + footer button), `content/about/{ru,en}.mdx` (link row), `NextStep.astro` (mounted by `projects/[slug].astro`, `projects/volta/[part].astro`, `projects/index.astro`, `writing/[...page].astro`, `RoleLanding.astro`, their EN twins and `Post.astro`), via `[data-analytics]` |
 | `persona_selected` | `{ persona, lang, source }` | a persona is chosen (`source ∈ {gate, switch, header, menu}` — `header`/`menu` are `NavRoles`'s bar/drawer variants) | `NavRoles.astro`, `RoleSwitch.astro` |
@@ -40,12 +41,12 @@ allowlist and retention: `docs/supabase-analytics.md`.
 | `telegram_hero` | `{ path }` | the homepage hero's Telegram CTA is clicked | `HomeNewTab.astro` (hero, `/` and `/en/`), via `[data-analytics]` |
 | `bento_now` | `{ path }` | the «Сейчас»/«Now» bento cell's link to `/about/#now` is clicked — on the colleague landing (the homepage cell was removed 2026-11-04) | `NowCard.astro` (`variant="cell"`), via `[data-analytics]` |
 | `tab_selected` | `{ tab, group, locale }` | a section tab is opened by click, arrow keys or a hash deep link. `group` names the tablist, so `/talks/`'s page tabs (`talks`), its twelve track tabs (`talks:tracks`) and its eleven theme tabs (`talks:themes`) stay three series. The panel open at page load is the baseline, not a choice, and is never emitted | `TalksAnalytics.astro`, only for `SectionTabs` roots that carry `data-analytics-group` (`/talks/`, `/en/talks/`) |
-| `talk_opened` | `{ talk_id, track, source, locale }` | a talk detail opens — `source` is the placement the click came from: `program`, `track`, `theme`, `graph`, `deeplink` (a shared `#t<id>` landing) or `other`; `track` is the programme's own slug, `null` for untracked talks. Modified clicks (new tab) are not counted | `TalksAnalytics.astro`, driven by `TalkCard.astro`'s dialog |
+| `talk_open` | `{ talk_id, track_id, track, source, locale }` | a talk detail opens — `source` is the placement the click came from: `program`, `track`, `theme`, `graph`, `deeplink` (a shared `#t<id>` landing) or `other`. Modified clicks (new tab) are not counted. Name shared with the sister site `mm-program-page`. Join across sites on `talk_id`; break down tracks by `track_id` (the numeric id from the feed, identical in both languages). `track` is only a label and is English on `/en/talks/`, so it is not a key | `TalksAnalytics.astro`, driven by `TalkCard.astro`'s dialog |
 | `talk_card_nav` | `{ direction, talk_id, locale }` | prev/next inside the talk dialog; `talk_id` is the talk moved **to** | `TalksAnalytics.astro`, driven by `TalkCard.astro` |
 | `graph_node_click` | `{ graph, node_kind, node_id, locale }` | a node of a `ProjectGraph` instance that opted in is clicked or activated with Space. `graph` is the instance `idPrefix` (`talks-overview`, `talks-track-<slug>`), `node_id` the payload id (`talk:277`, `track:avito`, `theme:ai`, `event:program`), `node_kind` its prefix. A press that ended a drag is not counted; the external `event:program` node may lose its event when the browser navigates before the SDK attaches | `ProjectGraph.astro`, opt-in via the `analytics` prop (`/talks/`) |
 
 > **`/talks/` layering.** A click on a talk node in a graph emits both
-> `graph_node_click` (the graph was used) and `talk_opened` (the content was
+> `graph_node_click` (the graph was used) and `talk_open` (the content was
 > opened); a click on a *track* node emits `graph_node_click` plus **two**
 > `tab_selected` rows — the page tablist opens the tracks panel and the nested
 > track tablist selects that track. Count one layer per question and never sum
@@ -73,16 +74,24 @@ allowlist and retention: `docs/supabase-analytics.md`.
 
 | Property | Values |
 |---|---|
+| `site` | `portfolio`; сестринский `mm-program-page` регистрирует своё значение, так два сайта не складываются в одну серию |
 | `locale` | `ru` \| `en` |
 | `audience` | `hr` \| `manager` \| `colleague` \| `null` (read from `localStorage['audience']`; written by `HeroGate.astro`, `RoleSwitch.astro`, `NavRoles.astro`) |
 | `theme` | `dark` \| `light` \| `cyberpunk` |
 | `prefers_reduced_motion` | boolean |
-| `initial_referrer_class` | `linkedin` \| `github` \| `google` \| `direct` \| `other` |
+| `initial_referrer_class` | `linkedin` \| `github` \| `google` \| `direct` \| `other` \| `own-site` |
+| `initial_referrer_path` | string \| `null` — путь на источнике, только у `own-site` (переход с `/mm-program-page/`) |
 | `landing_path` | string |
 | `first_utm_{source,medium,campaign,content,term}` | string \| `null` (first-touch `?utm_*`; sessionStorage, fallback localStorage, written once) |
 | `visit_utm_{source,medium,campaign,content,term}` | string \| `null` (this tab's `?utm_*`; sessionStorage, first tagged page of the visit) |
 
 Values are captured verbatim — normalization belongs to link building, not to the client.
+
+> **Межсайтовая воронка (2026-11-13).** Два сайта в одном проекте: разделять
+> только по `site`. Переход из `mm-program-page` виден по `visit_utm_source`
+> либо по `own-site` + `initial_referrer_path` (вставленная ссылка, back-nav);
+> раньше второй случай читался как `github`. Тайлы — дашборд 07, см.
+> `monitoring/dashboards/README.md`.
 
 ## 2. Preserved CTA events (`data-analytics`, frozen names)
 
@@ -140,23 +149,7 @@ The SDK is lazy: it loads on the first `pointerdown` / `keydown` / `scroll` /
 
 ## 4. Retired / removed
 
-| Event | Status | Why |
-|---|---|---|
-| `headline_all_projects`, `headline_demo_<slug>`, `headline_github_<slug>`, `more_project_<slug>` | removed (never fired) | `HeadlineCases.astro` no longer exists in `src/` — the names were documented but had **no emitter**; they appear in PostHog only as historical rows |
-| `project_viewed { surface:'headline' }` | retired | same removal — no component sets that surface |
-| `bento_graph` | removed | emitted by the old homepage bento; `HomeBoard.astro` is imported by no page |
-| `value_viewed`, `whois_viewed`, `work-with-me_viewed` | removed | routes 308-redirect to `/about`; the events could never fire again (PRD §4.6). Historical rows stay in PostHog |
-| `project_view_<slug>` | retired | replaced by `project_viewed { slug, surface }` (PRD §4.5) |
-| `case_study_read` | retired | replaced by `read_depth { content_type:'case_study', depth:75 }` |
-| `telegram_board`, `github_board`, `linkedin_board` | removed | `HomeBoard.astro` is imported by no page (PRD §4.6) |
-| `hero_cta_click`, `hero_cta_exposure` | doc-only removal | A/B flag deactivated 2026-09-15; code already gone (PRD §4.6) |
-| `hero_projects`, `hero_contact` | removed | never wired; `HeroCta.astro` deleted with the A/B test (2026-09-27). Live hero CTAs: `featured_project`, `featured_demo`, `featured_github` |
-| `hero_cv`, `cv_footer`, `cv_pdf_footer`, `cv_source_github` | removed | CV unified into one "CV" download button → `cv_download_pdf` (2026-09-19); `/cv/` page deleted |
-| `cv_download_pdf`, `cta_exposure` | removed | the CV was removed from the site on 2026-10-24 (every link, the rail that carried it, the `/cv/` redirect and the robots `Disallow`). Historical rows stay in PostHog |
-| `cv_download`, `telegram_hero`, `telegram_header`, `flagship_case` | added, then `cv_download` removed same day | the CV came back on 2026-11-01 (site audit, wave 1) and the button was removed hours later on the owner's call, so `cv_download` is declared-and-retired in the same breath: never emitted in production, never accumulated a series. `telegram_hero` / `telegram_header` are live |
-| `flagship_case` | removed | the hero's Volta proof card left the homepage on 2026-11-08 on the owner's call, and the event left `AnalyticsEventMap` with it — a typed event with no emitter is what `tests/lib/analytics-contract.test.ts` fails on. Historical rows stay in PostHog |
-| `projects_shuffle` | removed | "Shuffle" button deleted with the category-view rewrite (2026-09-21); random order fought `PROJECT_ORDER` |
-| `writing_footer` | removed | the "Статьи" header chip was deleted 2026-10-11 on the owner's call. `/writing/` moved into the drawer's link list (no event, like the other five nav links) and stays reachable from the homepage bento (`bento_writing`) and from post pages |
-
-Historical rows for every retired/removed event stay in PostHog and must not be
-deleted (PRD §0 rule 3).
+The ledger of retired and renamed events moved to
+[`docs/analytics-retired-events.md`](analytics-retired-events.md), so this file
+stays a description of what the site emits now. Historical rows stay in PostHog
+and must not be deleted (PRD §0 rule 3).

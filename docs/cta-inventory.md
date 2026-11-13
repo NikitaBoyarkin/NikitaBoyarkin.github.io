@@ -46,7 +46,7 @@
 > (`src/layouts/Base.astro:806`); ниже 1400px drawer остаётся полным и единственным входом.
 
 > **«Статьи»: чип → навигация, 2026-10-11.** Чип убран из ряда бренд-чипов (вместе с ним ушёл
-> `writing_footer`, см. `analytics-events.md` §4) и вернулся ссылкой в боковую навигацию — рядом
+> `writing_footer`, см. `analytics-retired-events.md`) и вернулся ссылкой в боковую навигацию — рядом
 > с остальными внутренними разделами, без события. У всех шести ссылок drawer'а теперь иконка
 > (`nav ul.links .link-icon`).
 
@@ -162,6 +162,7 @@ Telegram, LinkedIn и GitHub остались как вторичные опци
 | Ссылка на звонок | `src/lib/contact.ts` | `CAL_BOOKING_URL` = `https://cal.com/lofinibo/bored-call-me` (обновлено 2026-10-31; запись 2026-09-26 со значением `…/30min` устарела, в коде её уже нет) |
 | Лимиты полей | `src/lib/contact.ts` | `CONTACT_LIMITS` — зеркало CHECK-констрейнтов `contact_messages` |
 | Honeypot | `src/components/ContactForm.astro` | поле `website`, off-screen (`position: absolute; left: -9999px`), `tabindex="-1"` |
+| Событие входа | `src/components/Analytics.astro` | `contact_page_view { locale }` — шаг воронки на загрузке `/contact/` и `/en/contact/` (до него вход читался только из `$pageview` по URL) |
 
 Оставшийся placeholder — `CONTACT_ENDPOINT` (и он же константа, а не env-переменная:
 env-переменная, не заведённая секретом в CI, падает **молча** — `PUBLIC_BEACON_ENDPOINT`

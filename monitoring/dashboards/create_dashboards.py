@@ -297,6 +297,97 @@ def _utm_coverage_sql() -> str:
 # Dashboard definitions
 # ---------------------------------------------------------------------------
 
+def _top_talks_sql() -> str:
+    """Открытия, медианное чтение и заходы в заметку — по каждому talk_id."""
+    return """
+        SELECT
+            toString(properties.talk_id) AS talk_id,
+            -- anyIf, а не any: портфолио открывает доклад без `talk_title`,
+            -- и `any()` вернул бы пустую подпись вместо заголовка из mm.
+            anyIf(toString(properties.talk_title),
+                  notEmpty(toString(properties.talk_title))) AS title,
+            anyIf(toString(properties.track),
+                  notEmpty(toString(properties.track))) AS track,
+            countIf(event = 'talk_open') AS opens,
+            countIf(event = 'talk_dwell') AS dwells,
+            round(median(toFloatOrNull(toString(properties.seconds))), 1) AS median_sec,
+            countIf(event = 'talk_note_view') AS note_views
+        FROM events
+        WHERE timestamp >= now() - INTERVAL 90 DAY
+          AND event IN ('talk_open', 'talk_dwell', 'talk_note_view')
+          AND notEmpty(toString(properties.talk_id))
+        GROUP BY talk_id
+        ORDER BY opens DESC, note_views DESC
+        LIMIT 40
+    """
+
+
+def _dwell_buckets_sql() -> str:
+    """Распределение времени чтения: медиана без распределения врёт."""
+    return """
+        SELECT multiIf(
+            toFloatOrNull(toString(properties.seconds)) <= 10, '1 · 0–10 с',
+            toFloatOrNull(toString(properties.seconds)) <= 30, '2 · 11–30 с',
+            toFloatOrNull(toString(properties.seconds)) <= 60, '3 · 31–60 с',
+            toFloatOrNull(toString(properties.seconds)) <= 180, '4 · 1–3 мин',
+            '5 · 3+ мин') AS bucket,
+            count() AS dwells
+        FROM events
+        WHERE event = 'talk_dwell' AND timestamp >= now() - INTERVAL 90 DAY
+        GROUP BY bucket
+        ORDER BY bucket
+    """
+
+
+def _cta_surfaces_sql() -> str:
+    """Показы против кликов по поверхностям авторского CTA."""
+    return """
+        SELECT
+            toString(properties.surface) AS surface,
+            countIf(event = 'cta_view') AS views,
+            countIf(event = 'cta_click') AS clicks,
+            round(100.0 * countIf(event = 'cta_click')
+                  / nullIf(countIf(event = 'cta_view'), 0), 1) AS ctr_pct
+        FROM events
+        WHERE event IN ('cta_view', 'cta_click') AND timestamp >= now() - INTERVAL 90 DAY
+        GROUP BY surface
+        ORDER BY views DESC
+    """
+
+
+def _mm_landings_sql() -> str:
+    """Страницы портфолио, куда приходят из mm-program-page (по UTM)."""
+    return """
+        SELECT
+            toString(properties.$pathname) AS landing,
+            count() AS views,
+            uniq(distinct_id) AS visitors
+        FROM events
+        WHERE event = '$pageview'
+          AND toString(properties.visit_utm_source) = 'mm-program-page'
+          AND timestamp >= now() - INTERVAL 90 DAY
+        GROUP BY landing
+        ORDER BY views DESC
+        LIMIT 25
+    """
+
+
+def _site_split_sql() -> str:
+    """Здоровье дискриминатора site: mm / портфолио / без метки."""
+    return """
+        SELECT
+            toStartOfWeek(timestamp) AS week,
+            countIf(event = '$pageview' AND toString(properties.site) = 'mm-program-page') AS mm_views,
+            countIf(event = '$pageview' AND toString(properties.site) = 'portfolio') AS portfolio_views,
+            countIf(event = '$pageview' AND empty(toString(properties.site))) AS unlabeled_views
+        FROM events
+        WHERE timestamp >= now() - INTERVAL 90 DAY
+        GROUP BY week
+        ORDER BY week DESC
+        LIMIT 12
+    """
+
+
 DASHBOARDS: list[dict] = [
     # (a) Content & engagement ----------------------------------------------
     {
@@ -1161,7 +1252,7 @@ DASHBOARDS_V2: list[dict] = [
                 ),
             ),
             tile(
-                "Первый источник посетителя (first-touch)",
+                "Первый источник посетителя",
                 "first_utm_campaign — кампания самого первого захода. Отвечает на «откуда "
                 "узнали впервые»; текущую кампанию смотреть в тайле «Кампании текущего "
                 "визита». Сумма здесь не равна трафику: считаются только новые посетители.",
@@ -1182,7 +1273,7 @@ DASHBOARDS_V2: list[dict] = [
                 ),
             ),
             tile(
-                "Конверсия по кампаниям (90д)",
+                "Конверсия по кампаниям",
                 "HogQL: по каждой кампании — посетители, просмотры проектов и контакты. "
                 "Список контактных событий берётся из CONTACT_EVENTS, поэтому таблица не "
                 "разъезжается с воронкой дашборда 02.",
@@ -1190,7 +1281,7 @@ DASHBOARDS_V2: list[dict] = [
                 dynamic=True,
             ),
             tile(
-                "Покрытие UTM (доля размеченных визитов)",
+                "Покрытие UTM",
                 "HogQL: сколько визитов пришло с utm_source и сколько без, по неделям. "
                 "Если доля падает при росте трафика — часть внешних ссылок публикуется "
                 "без разметки.",
@@ -1198,7 +1289,113 @@ DASHBOARDS_V2: list[dict] = [
                 dynamic=True,
             ),
         ],
+    },    {
+        "name": "07 · mm-program-page → CTA",
+        "description": "Сквозная воронка: доклады на /mm-program-page → авторский CTA → "
+        "контакт в портфолио. Отвечает на два вопроса: какие доклады читают и где рвётся "
+        "путь от интереса до разговора.",
+        "tiles": [
+            tile(
+                "Воронка mm: страница → доклад → CTA → контакт",
+                "Шесть шагов с двух доменов в одном проекте. Шаг 3 — OR: клик по "
+                "авторскому CTA или переход в портфолио по размеченной ссылке. Шаг 4 "
+                "опознаёт портфолио по visit_utm_source=mm-program-page, поэтому переход "
+                "без разметки сюда не попадёт — это ограничение метрики, а не баг тайла.",
+                funnel(
+                    [
+                        node("$pageview", properties=[prop_filter("site", "mm-program-page")]),
+                        node("talk_open", properties=[prop_filter("site", "mm-program-page")]),
+                        group(
+                            [
+                                node("cta_click"),
+                                node("outbound_click", properties=[prop_filter("kind", "portfolio")]),
+                            ],
+                            name="CTA или переход в портфолио",
+                        ),
+                        node(
+                            "$pageview",
+                            properties=[prop_filter("visit_utm_source", "mm-program-page")],
+                        ),
+                        node("contact_page_view"),
+                        group(
+                            [
+                                node("booking_click"),
+                                node("telegram_deeplink"),
+                                node("linkedin_contact"),
+                            ],
+                            name="Контакт",
+                        ),
+                    ]
+                ),
+            ),
+            tile(
+                "Воронка портфолио: визит → контакт → бронь",
+                "Портфолио отдельно от mm. Шаги фильтруются `site is_not mm-program-page`, "
+                "а не `site = portfolio`: до деплоя супер-свойства портфолио писало "
+                "события без него, и жёсткий фильтр обнулил бы всю воронку.",
+                funnel(
+                    [
+                        node(
+                            "$pageview",
+                            properties=[
+                                prop_filter("site", "mm-program-page", operator="is_not")
+                            ],
+                        ),
+                        node("contact_page_click"),
+                        node("contact_page_view"),
+                        group(
+                            [
+                                node("booking_click"),
+                                node("telegram_deeplink"),
+                                node("linkedin_contact"),
+                            ],
+                            name="Контакт",
+                        ),
+                    ]
+                ),
+            ),
+            tile(
+                "Топ докладов (90д)",
+                "HogQL-таблица на все 91 доклад: открытия модалки, медианное время чтения, "
+                "заходы на заметку. Breakdown в TrendsQuery упёрся бы в лимит 25 значений, "
+                "поэтому таблица.",
+                hogql_table(_top_talks_sql()),
+                dynamic=True,
+            ),
+            tile(
+                "Сколько читают доклад",
+                "Распределение talk_dwell по корзинам: две секунды и три минуты дают одно "
+                "и то же медианное число, а решение принимается по распределению.",
+                hogql_table(_dwell_buckets_sql()),
+                dynamic=True,
+            ),
+            tile(
+                "CTA: показы, клики, CTR по поверхностям",
+                "cta_view против cta_click по surface (сейчас только `footer`: карточку в "
+                "конце дня убрали). Показ — по "
+                "IntersectionObserver 50 %, то есть «реально увидел», а не «загрузил».",
+                hogql_table(_cta_surfaces_sql()),
+                dynamic=True,
+            ),
+            tile(
+                "Куда приходят из mm-program-page",
+                "HogQL по visit_utm_source=mm-program-page: конкретные страницы портфолио, "
+                "на которые ведут ссылки из шапки, подвала и графа докладов.",
+                hogql_table(_mm_landings_sql()),
+                dynamic=True,
+            ),
+            tile(
+                "Здоровье дискриминатора site",
+                "HogQL: просмотры по неделям в разрезе site. `unlabeled_views` — трафик "
+                "портфолио до деплоя супер-свойства; после деплоя столбец должен "
+                "обнулиться. Если он растёт снова — появился путь, шлющий события в обход "
+                "Analytics.astro.",
+                hogql_table(_site_split_sql()),
+                dynamic=True,
+            ),
+        ],
     },
+
 ]
 
 

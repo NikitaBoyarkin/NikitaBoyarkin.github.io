@@ -150,7 +150,7 @@ try {
 
   // --- (v) Space on a graph node goes through the anchor's click path -------
   // Regression guard for ProjectGraph's Space handler: a direct `navigateTo`
-  // would skip both `graph_node_click` and TalkCard's `talk_opened`. The
+  // would skip both `graph_node_click` and TalkCard's `talk_open`. The
   // overview graph lives in the panel step (i) left behind, so re-open it.
   await page.click('[data-talk-card-close]');
   await page.locator(`${rootSel} [role="tab"][data-tab]`).first().click();

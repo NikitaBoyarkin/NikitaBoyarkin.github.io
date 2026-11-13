@@ -25,6 +25,34 @@ Dashboard 06 was created **through the PostHog MCP server**, not by `create_dash
 - **The script and the live dashboard differ in one detail.** The script's HogQL tiles use a fixed `now() - INTERVAL 90 DAY`; the MCP-created ones use the `{filters}` placeholder with `source.filters.dateRange = -90d`, so the dashboard date picker actually moves them. Re-running `--apply` will not duplicate anything (it skips tiles by name), but it will not rewrite the stored SQL either.
 - **The `visit_utm_*` keys only start filling from the first visit after the `8abdf5e` deploy (2026-11-01 04:43 MSK).** Before that, the project had **zero** rows carrying `visit_utm_*` or `first_utm_*` in 90 days — the auto-captured `utm_*` reached only 176 of 2 891 `$pageview` rows and `$session_entry_utm_*` 898. Expect the five trend tiles to read «(без кампании)» until traffic arrives, and read the coverage tile for the honest baseline: **2–6 % of weekly visitors carried a UTM in October 2026**, down from 40–83 % in August.
 
+| [07 · mm-program-page → CTA](https://us.posthog.com/project/451732/dashboard/2350061) | 2350061 | mm funnel (pageview → talk_open → CTA/portfolio transition → portfolio landing → contact_page_view → contact); portfolio funnel; **top talks (HogQL, all 91)**; dwell distribution (HogQL); **CTA views/clicks/CTR by surface (HogQL)**; **landings from mm (HogQL)**; **site discriminator health (HogQL)** |
+
+### Dashboard 07 — the cross-site funnel (added 2026-11-13)
+
+Both sites report into this project, but they were not joinable: the portfolio registered no
+`site` super property at all, and `classifyReferrer` collapsed `nikitaboyarkin.github.io` into
+`github`. The instrumentation that fixes this ships with the same change as this dashboard
+(`talk_open` unified across both sites, `talk_dwell`, `talk_note_view`, `cta_view`/`cta_click`,
+`contact_page_view`, `site: "portfolio"`), so **the tiles that depend on the new events read
+zero until that deploy lands** — that is youth, not breakage:
+
+| Tile | Reads today (90 d, 2026-11-13) | After the deploy |
+|---|---|---|
+| mm funnel | 19 visitors → 1 opened a talk → 0 CTA | talk_open and step 3 start filling |
+| portfolio funnel | 458 → 4 `contact_page_click` → 0 | step 3 (`contact_page_view`) stops being 0 |
+| Top talks | 1 row (talk 267, 3 opens) | every opened talk, with median dwell |
+| Dwell / CTA / landings | empty | fill from the first visit |
+
+Honest baseline worth remembering: over 90 days the whole site produced **4 contact-intent
+clicks** and **2 `booking_click`** (last one 2026-09-28). A funnel at n=4 is a diagnostic of
+traffic, not a conversion rate — read the top of the funnel first. mm-program-page had
+**117 pageviews / 42 sessions** and **3 talk opens, all on talk 267**; 19 pageviews reached the
+portfolio tagged with `visit_utm_source=mm-program-page`, spread over `/`, `/talks/`,
+`/projects/`, `/contact/`, `/graph/`, `/projects/ab/`.
+
+Portfolio steps filter `site is_not "mm-program-page"` rather than `site = "portfolio"`, so the
+funnel keeps reading the pre-deploy rows instead of zeroing out.
+
 Design rules the v2 set follows:
 
 - **Every tile is verified against live data before it ships.** `verify_tiles.py` runs each tile's query through `POST /api/projects/{id}/query/`; `verify_dashboards.py` re-runs the queries *as stored on the dashboards* after creation. Both are read-only.

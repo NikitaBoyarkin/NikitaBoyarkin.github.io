@@ -399,9 +399,14 @@ Lighthouse CI работает отдельно — см. [CI/CD](#cicd).
 `post_read`, `lang_switched`, `theme_change`, `ask_me_used`,
 `random_post_click`, `section_viewed`, `outbound_click`, `search_used`,
 `search_no_results`, `read_depth`, `filter_applied`,
-`projects_track_filter`. Суперсвойства: `locale`, `theme`,
-`prefers_reduced_motion`, `initial_referrer_class`, `landing_path`.
-Класс первого касания считается один раз на посетителя и сохраняется.
+`projects_track_filter`, `contact_page_view`, `talk_open`,
+`graph_node_click`. Суперсвойства: `site` (`"portfolio"` — по нему тайлы
+отделяют этот сайт от `mm-program-page` в общем проекте PostHog), `locale`,
+`theme`, `prefers_reduced_motion`, `initial_referrer_class`,
+`initial_referrer_path` (путь на своём хосте-источнике, `null` у внешнего),
+`landing_path`, `first_utm_*`, `visit_utm_*`.
+Класс первого касания считается один раз на посетителя и сохраняется;
+`nikitaboyarkin.github.io` классифицируется как `own-site`, а не `github`.
 
 **Договорённость:** любой элемент с `data-analytics="<name>"` отправляет
 событие `<name>` по клику через делегированный слушатель в
