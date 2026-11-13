@@ -69,6 +69,10 @@ const open = lang === 'en' ? 'Open →' : 'Открыть →';
   .section-card-banner {
     display: block;
     width: 100%;
+    /* The `height="630"` attribute is a presentational hint that pins the box to
+       630px, and `aspect-ratio` only resolves a dimension that is `auto` — so
+       without this the banner renders 322×630. */
+    height: auto;
     aspect-ratio: 2 / 1;
     object-fit: cover;
     border-radius: var(--radius-sm);
