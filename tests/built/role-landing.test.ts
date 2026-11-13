@@ -16,12 +16,12 @@ import { resolve } from 'node:path';
 const DIST = resolve(__dirname, '../../dist');
 
 const PAGES = [
-  { file: 'manager/index.html', stack: false, lang: 'ru' },
-  { file: 'en/manager/index.html', stack: false, lang: 'en' },
-  { file: 'hr/index.html', stack: true, lang: 'ru' },
-  { file: 'en/hr/index.html', stack: true, lang: 'en' },
-  { file: 'colleague/index.html', stack: true, lang: 'ru' },
-  { file: 'en/colleague/index.html', stack: true, lang: 'en' },
+  { file: 'hire/manager/index.html', stack: false, lang: 'ru' },
+  { file: 'en/hire/manager/index.html', stack: false, lang: 'en' },
+  { file: 'hire/hr/index.html', stack: true, lang: 'ru' },
+  { file: 'en/hire/hr/index.html', stack: true, lang: 'en' },
+  { file: 'hire/colleague/index.html', stack: true, lang: 'ru' },
+  { file: 'en/hire/colleague/index.html', stack: true, lang: 'en' },
 ] as const;
 
 const html = new Map<string, string>();
@@ -54,7 +54,7 @@ describe('role landings — stack mosaic placement', () => {
   }
 
   it('the manager hero still carries the pitch and the board', () => {
-    const source = html.get('manager/index.html')!;
+    const source = html.get('hire/manager/index.html')!;
     expect(source).toContain('class="hero-pitch"');
     expect(source).toContain('id="project-list"');
   });
@@ -67,7 +67,7 @@ describe('role landings — project section shape', () => {
   const rows = (source: string) => (source.match(/class="project-row"/g) ?? []).length;
 
   it('colleague reads a flat list: rows, descriptions, no board', () => {
-    for (const file of ['colleague/index.html', 'en/colleague/index.html']) {
+    for (const file of ['hire/colleague/index.html', 'en/hire/colleague/index.html']) {
       const source = html.get(file)!;
       expect(source).not.toContain('id="project-list"');
       expect(rows(source)).toBe(31);
@@ -86,7 +86,7 @@ describe('role landings — project section shape', () => {
   // screening for an analyst (audit 2026-10-25, P1). The trade is deliberate:
   // this lane loses the year headings and gains the flagship case first.
   it('HR reads the curated strength order, flagship first', () => {
-    const source = html.get('hr/index.html')!;
+    const source = html.get('hire/hr/index.html')!;
     const firstHref = source.match(/class="project-row-title"[^>]*>\s*<a href="([^"]+)"/)?.[1];
     expect(firstHref).toBe('/projects/volta/');
     expect(source).not.toContain('class="project-year-heading"');
@@ -95,7 +95,7 @@ describe('role landings — project section shape', () => {
   });
 
   it('manager keeps the board, not the list', () => {
-    const source = html.get('manager/index.html')!;
+    const source = html.get('hire/manager/index.html')!;
     expect(source).toContain('id="project-list"');
     expect(source).not.toContain('class="project-row-description"');
   });
@@ -105,10 +105,10 @@ describe('role landings — project section shape', () => {
   // matchers. The manager keeps the board's own chips.
   it('both list lanes carry the category tabs and the tool chips', () => {
     for (const file of [
-      'hr/index.html',
-      'en/hr/index.html',
-      'colleague/index.html',
-      'en/colleague/index.html',
+      'hire/hr/index.html',
+      'en/hire/hr/index.html',
+      'hire/colleague/index.html',
+      'en/hire/colleague/index.html',
     ]) {
       const source = html.get(file)!;
       const tracks = source.match(/data-track-filter="[a-z]+"/g) ?? [];
@@ -125,7 +125,7 @@ describe('role landings — project section shape', () => {
   });
 
   it('manager keeps the board, with its own filter bar', () => {
-    const source = html.get('manager/index.html')!;
+    const source = html.get('hire/manager/index.html')!;
     expect(source).toContain('id="project-list"');
     expect(source).not.toContain('data-project-list');
   });

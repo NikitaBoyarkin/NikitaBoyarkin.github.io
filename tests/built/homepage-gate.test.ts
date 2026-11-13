@@ -42,7 +42,7 @@ beforeAll(() => {
 });
 
 /**
- * The header contract for `/` and `/en/`: the one inline link, and the drawer's
+ * The header contract for `/` and `/en/`: the two inline links, and the drawer's
  * full row set. Pinned literally because "the links go to the right pages" is
  * only checkable against an authority, and the nav array in `Base.astro` is
  * that authority — this is its built-output reflection.
@@ -52,11 +52,16 @@ beforeAll(() => {
  */
 const NAV = {
   ru: {
-    inline: { href: '/', label: 'Главная' },
+    inline: [
+      { href: '/', label: 'Главная' },
+      { href: '/navigation/', label: 'Навигация' },
+    ],
     drawer: [
       { href: '/', label: 'Главная' },
+      { href: '/navigation/', label: 'Навигация' },
       { href: '/projects/', label: 'Проекты' },
       { href: '/demos/', label: 'Демо' },
+      { href: '/hire/', label: 'Найм' },
       { href: '/about/', label: 'Обо мне' },
       { href: '/glossary/', label: 'Словарь' },
       { href: '/graph/', label: 'Граф' },
@@ -69,11 +74,16 @@ const NAV = {
     ],
   },
   en: {
-    inline: { href: '/en/', label: 'Home' },
+    inline: [
+      { href: '/en/', label: 'Home' },
+      { href: '/en/navigation/', label: 'Navigation' },
+    ],
     drawer: [
       { href: '/en/', label: 'Home' },
+      { href: '/en/navigation/', label: 'Navigation' },
       { href: '/en/projects/', label: 'Projects' },
       { href: '/en/demos/', label: 'Demos' },
+      { href: '/en/hire/', label: 'Hire' },
       { href: '/en/about/', label: 'About' },
       { href: '/en/glossary/', label: 'Glossary' },
       { href: '/en/graph/', label: 'Graph' },
@@ -157,11 +167,24 @@ describe('homepage new tab (built HTML)', () => {
       expect(match![1]).toContain(h1);
     });
 
-    it(`${file}: carries all three routes in the markup, not injected by script`, () => {
+    it(`${file}: carries the hiring route in the markup, not injected by script`, () => {
       const d = doc();
-      for (const suffix of ['hr/', 'manager/', 'colleague/']) {
-        expect(d, `${lang}: ${suffix}`).toContain(suffix);
-      }
+      const hireHref = lang === 'en' ? '/en/hire/' : '/hire/';
+      const eyebrow = lang === 'en' ? 'Hiring' : 'Найм';
+      // Scoped to the strip itself: «Найм» is also the drawer's label for the
+      // same page, so a page-wide `toContain` would pass with the strip gone.
+      const strip = d.match(/<a[^>]*class="nt-hire"[^>]*>([\s\S]*?)<\/a>/);
+      expect(strip, `${lang}: the hiring strip is gone from the homepage`).not.toBeNull();
+      expect(strip![0], `${lang}: the strip does not link the hiring hub`).toContain(
+        `href="${hireHref}"`,
+      );
+      expect(strip![1], `${lang}: the strip lost its eyebrow`).toContain(eyebrow);
+      // The three persona cards once pointed at the pre-`/hire/` top-level routes and
+      // the test still passed on the header's role links alone, so it greps for a
+      // link that leaves `/hire/` entirely rather than for the presence of the suffix.
+      expect(d, `${lang}: a retired top-level persona route is linked`).not.toMatch(
+        /href="\/(?:en\/)?(?:hr|manager|colleague)\//,
+      );
       expect(d, `${lang}: the retired booking button is back on the homepage`).not.toContain(
         'data-analytics="booking_click"',
       );
@@ -187,10 +210,13 @@ describe('homepage new tab (built HTML)', () => {
       expect(d, `${lang}: the tab strip is missing`).toContain('id="site-tabs"');
     });
 
-    it(`${file}: the inline bar is the single «Главная»/«Home» link, with an icon`, () => {
-      expect(rowsIn(doc(), 'class="nav-inline"')).toEqual([
-        { ...NAV[lang].inline, icon: true },
-      ]);
+    it(`${file}: the inline bar is «Главная»/«Home» then «Навигация»/«Navigation», each with an icon`, () => {
+      // `NAV` is `as const`, so the two locales' tuples are distinct types —
+      // widen to one shape first, or the union of array types is not callable.
+      const expected = (NAV[lang].inline as readonly { href: string; label: string }[]).map(
+        (row) => ({ ...row, icon: true }),
+      );
+      expect(rowsIn(doc(), 'class="nav-inline"')).toEqual(expected);
     });
 
     it(`${file}: the drawer carries every destination, each with an icon`, () => {

@@ -40,7 +40,7 @@ describe('lh board gates mirror the assert matrices', () => {
   });
 
   it('applies the 0.75 performance floor only where the matrix does', () => {
-    for (const path of ['/projects/volta/', '/colleague/', '/repo-audit/', '/404.html']) {
+    for (const path of ['/projects/volta/', '/hire/colleague/', '/repo-audit/', '/404.html']) {
       const row = rowsFromReport('lhr-1.json', report(path, { perf: 0.8, seo: 1 }));
       expect(row.perf_pass, `${path} at 0.80 must clear its own floor`).toBe(1);
     }

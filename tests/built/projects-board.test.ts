@@ -177,7 +177,7 @@ describe('/projects/ — four lenses', () => {
 
 describe('/projects/ — role landings are not the catalogue', () => {
   it('the manager board keeps its Task → Result cards and buys their width', () => {
-    const source = readFileSync(resolve(DIST, 'manager/index.html'), 'utf8');
+    const source = readFileSync(resolve(DIST, 'hire/manager/index.html'), 'utf8');
     // A role landing is one flat grid of a curated sequence — no track
     // headings, no catalogue sections.
     expect(source).toContain('project-track-grid');
@@ -191,7 +191,7 @@ describe('/projects/ — role landings are not the catalogue', () => {
   });
 
   it('the sphere facet stays off the role landings', () => {
-    const source = readFileSync(resolve(DIST, 'manager/index.html'), 'utf8');
+    const source = readFileSync(resolve(DIST, 'hire/manager/index.html'), 'utf8');
     expect(source).not.toContain('data-sphere-filter=');
   });
 });

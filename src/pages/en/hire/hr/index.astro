@@ -1,0 +1,21 @@
+---
+// `/en/hire/hr/` — thin wrapper, see `src/pages/hire/hr/index.astro`.
+import Base from '../../../../layouts/Base.astro';
+import RoleLanding from '../../../../components/RoleLanding.astro';
+import { ROLE_COPY } from '../../../../lib/projects';
+import { withBase } from '../../../../lib/path';
+
+const lang = 'en' as const;
+const copy = ROLE_COPY[lang].hr;
+---
+
+<Base
+  title={copy.title}
+  description={copy.description}
+  canonical={withBase('en/hire/hr/')}
+  activeNav="hire"
+  lang={lang}
+  counterpartHref={withBase('hire/hr/')}
+>
+  <RoleLanding role="hr" lang={lang} />
+</Base>

@@ -98,8 +98,9 @@ export interface AnalyticsEventMap {
   // header click. Added 2026-10-31: before it, 262 `/contact/` anchors shipped
   // with exactly one instrumented (a lang switch).
   contact_page_click: { path: string; surface?: string };
-  // `source` is the surface the choice came from. `header`/`menu` are
-  // `NavRoles.astro`'s two variants (bar vs drawer) — they were shipped before
+  // `source` is the surface the choice came from. `header`/`menu` were the bar
+  // and drawer variants of the role buttons (`NavRoles.astro`, since replaced by
+  // one «Найм» link) — they were shipped before
   // this union existed, so declaring only `gate | switch` made the map lie
   // about what reaches PostHog.
   persona_selected: {

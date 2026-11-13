@@ -127,12 +127,10 @@ export async function buildLlmsTxt(site: string): Promise<string> {
   add(`- [Knowledge graph (EN)](${abs("en/graph/")}): English domain map.`);
   add(`- [Explorer (RU)](${abs("explorer/")}): every project, article, glossary term, library source, Volta module and topic in one filterable list — with addressable filters and a relation panel.`);
   add(`- [Explorer (EN)](${abs("en/explorer/")}): the English content explorer.`);
-  add(`- [For hiring (RU)](${abs("hr/")}): role, stack and metrics — for screening against a vacancy.`);
-  add(`- [For hiring (EN)](${abs("en/hr/")}): English hiring page.`);
-  add(`- [For managers (RU)](${abs("manager/")}): cases with the decision and the result — what changed and why.`);
-  add(`- [For managers (EN)](${abs("en/manager/")}): English impact page.`);
-  add(`- [For colleagues (RU)](${abs("colleague/")}): how it was made — code, data, method and knowledge graph.`);
-  add(`- [For colleagues (EN)](${abs("en/colleague/")}): English deep-dive version.`);
+  add(`- [Navigation (RU)](${abs("navigation/")}): every section of the site in one grid.`);
+  add(`- [Navigation (EN)](${abs("en/navigation/")}): the English section index.`);
+  add(`- [Hiring (RU)](${abs("hire/")}): three ways in — HR screening, manager impact, colleague method.`);
+  add(`- [Hiring (EN)](${abs("en/hire/")}): the English hiring hub.`);
   add(`- [Contact (RU)](${abs("contact/")}): how to reach me.`);
   add(`- [Contact (EN)](${abs("en/contact/")}): English contact page.`);
   add(`- [Games (RU)](${abs("games/")}): playable analytics arcade — 10 zero-dependency SVG mini-games (A/B test, funnel drop, cohort catch, SQL, retention, metric match) + arcade (snake, pong, 2048). Phone + desktop.`);

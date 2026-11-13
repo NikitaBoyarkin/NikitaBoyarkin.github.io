@@ -17,7 +17,7 @@ import { resolve } from 'node:path';
 // locales are checked for parity so a section graph cannot go missing from one.
 
 const ROOT = resolve(__dirname, '..', '..');
-const PAGES = ['/colleague/index.html', '/graph/index.html', '/en/graph/index.html'];
+const PAGES = ['/hire/colleague/index.html', '/graph/index.html', '/en/graph/index.html'];
 
 interface Instance {
   key: string;
@@ -77,7 +77,7 @@ describe('graph payload carries data, not precomputed copy', () => {
       for (const inst of list) {
         expect(inst.rootTag, `${path}:${inst.key}`).toContain(`data-lang="${expectedLang}"`);
       }
-      if (path === '/colleague/index.html') {
+      if (path === '/hire/colleague/index.html') {
         expect(list.map((i) => i.key)).toEqual(['main']);
         expect(list[0].rootTag).not.toContain('data-analytics-graph');
       } else {
@@ -94,7 +94,7 @@ describe('graph payload carries data, not precomputed copy', () => {
     // returning early on a miss) let a section graph vanish with a green test;
     // now a missing instance fails here, naming the key that was expected.
     const EXPECTED: Record<string, string[]> = {
-      '/colleague/index.html': ['main'],
+      '/hire/colleague/index.html': ['main'],
       '/graph/index.html': ['projects', 'glossary', 'articles'],
       '/en/graph/index.html': ['projects', 'glossary', 'articles'],
     };

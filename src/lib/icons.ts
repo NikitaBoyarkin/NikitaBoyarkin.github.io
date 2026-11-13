@@ -3,7 +3,7 @@
  *
  * Why this module exists: before it, icon glyphs were hand-inlined in five
  * places (`Base.astro` nav rows, the two brand links, the four `.nav-chip`
- * logos, `NavRoles.astro`'s `ICONS`) with no shared name — so "add an icon to
+ * logos, the header's role buttons) with no shared name — so "add an icon to
  * every button" meant re-writing the same `<path d="…">` in every component and
  * letting them drift. This is the contract: components reference a NAME, never
  * a path.

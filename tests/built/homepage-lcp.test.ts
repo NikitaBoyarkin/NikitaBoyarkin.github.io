@@ -1,5 +1,5 @@
 // Landing LCP regression: the featured-case image is the largest-contentful
-// element on `/colleague/` and `/en/colleague/`, and it is fetched late unless a
+// element on `/hire/colleague/` and `/en/hire/colleague/`, and it is fetched late unless a
 // head preload names it. When the preload is dropped (or its href drifts from the
 // <img src>), the page silently falls back to a ~1 s FCP→LCP gap — no unit test and
 // no lint would catch it, only a Lighthouse run against production would.
@@ -16,7 +16,7 @@ import { resolve } from 'node:path';
 const DIST = resolve(__dirname, '../../dist');
 
 /** The role landings that carry the featured-case split (RU + EN). */
-const HOMEPAGES = ['colleague/index.html', 'en/colleague/index.html'];
+const HOMEPAGES = ['hire/colleague/index.html', 'en/hire/colleague/index.html'];
 
 const html = new Map<string, string>();
 

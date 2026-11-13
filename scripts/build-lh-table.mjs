@@ -25,7 +25,7 @@ const STRICT_MIN = 0.95;
 const SEO_OFF = new Set(["/repo-audit/", "/404.html"]);
 const PERF_FLOORS = new Map([
   ["/projects/volta/", 0.75],
-  ["/colleague/", 0.75],
+  ["/hire/colleague/", 0.75],
   ["/repo-audit/", 0.75],
   ["/404.html", 0.75],
 ]);

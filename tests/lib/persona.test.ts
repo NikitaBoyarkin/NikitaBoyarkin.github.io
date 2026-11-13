@@ -174,20 +174,49 @@ describe('wiring (PRD §6, §9, §10)', () => {
     // The three gate cards left the homepage on 2026-10-24 by the owner's call.
     // The guard moves with the surface rather than disappearing: the homepage
     // must mount the new-tab hero, and the persona landings it used to open must
-    // still be one tap away from the header.
+    // still be one tap away from the header. On 2026-11-13 the header's three
+    // role buttons were replaced by a single «Найм» entry point into the hiring
+    // hub, so the header assertion follows that anchor instead of the retired
+    // role-buttons component.
     expect(src('src/pages/index.astro')).toMatch(/HomeNewTab[^>]*lang="ru"/);
     expect(src('src/pages/en/index.astro')).toMatch(/HomeNewTab[^>]*lang="en"/);
-    expect(src('src/layouts/Base.astro')).toMatch(/<NavRoles lang=\{lang\}[^>]*active=\{activeRole\}/);
+
+    const base = src('src/layouts/Base.astro');
+    expect(base, 'the header lost its hiring entry point').toContain('class="nav-hire"');
+    expect(base, 'the header no longer links the RU hiring hub').toContain(
+      "withBase('hire/')",
+    );
+    expect(base, 'the header no longer links the EN hiring hub').toContain(
+      "withBase('en/hire/')",
+    );
+    expect(base, 'the hiring entry point never marks itself current').toMatch(
+      /nav-hire[\s\S]{0,400}?isNavCurrent\('hire'\)/,
+    );
+  });
+
+  it('keeps role-awareness on the landings after the header group left', () => {
+    // The binding the retired header role-buttons component carried: a page must
+    // still know which role it is. It now lives on the landings themselves —
+    // `RoleLanding` mounts `RoleSwitch`, which states the current role and links
+    // the two others — so dropping role-awareness from the site still fails here.
+    expect(
+      src('src/components/RoleLanding.astro'),
+      'the role landings stopped mounting RoleSwitch',
+    ).toContain('<RoleSwitch role={role} lang={lang} />');
+
+    const sw = src('src/components/RoleSwitch.astro');
+    expect(sw, 'RoleSwitch stopped stating the current role').toMatch(/\{LABELS\[role\]\}/);
+    expect(sw, 'RoleSwitch stopped linking the other roles').toContain('data-source="switch"');
   });
 
   it('ships all six role routes', () => {
     const routes = [
-      'src/pages/hr/index.astro',
-      'src/pages/manager/index.astro',
-      'src/pages/colleague/index.astro',
-      'src/pages/en/hr/index.astro',
-      'src/pages/en/manager/index.astro',
-      'src/pages/en/colleague/index.astro',
+      'src/pages/hire/hr/index.astro',
+      'src/pages/hire/manager/index.astro',
+      'src/pages/hire/colleague/index.astro',
+      'src/pages/en/hire/hr/index.astro',
+      'src/pages/en/hire/manager/index.astro',
+      'src/pages/en/hire/colleague/index.astro',
     ];
     for (const r of routes) {
       expect(existsSync(join(ROOT, r)), `missing route ${r}`).toBe(true);

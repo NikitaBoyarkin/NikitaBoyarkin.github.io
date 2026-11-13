@@ -206,6 +206,15 @@ export default defineConfig({
     "/guides/": "/notes/guides/",
     // 2026-11-01: there is no /posts/ index — the list of posts lives at
     // /writing/. The bare prefix is what a visitor types after trimming a slug.
+    // 2026-11-13: the three persona landings collapsed into one section
+    // (`/hire/`) with per-audience sub-pages. The old top-level URLs are linked
+    // from CVs and old chats, so each forwards instead of 404ing.
+    "/hr/": "/hire/hr/",
+    "/manager/": "/hire/manager/",
+    "/colleague/": "/hire/colleague/",
+    "/en/hr/": "/en/hire/hr/",
+    "/en/manager/": "/en/hire/manager/",
+    "/en/colleague/": "/en/hire/colleague/",
     "/posts/": "/writing/",
     "/en/posts/": "/en/writing/",
     // 2026-11-03: legacy base path from before the repo rename (S1.1). Every

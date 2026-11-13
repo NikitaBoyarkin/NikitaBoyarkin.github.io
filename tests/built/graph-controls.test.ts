@@ -22,7 +22,7 @@ const DIST = resolve(__dirname, '../../dist');
 
 // Same component, card variant — the controls must not diverge between the
 // board and the embedded graph.
-const PAGES = ['graph/index.html', 'en/graph/index.html', 'colleague/index.html'] as const;
+const PAGES = ['graph/index.html', 'en/graph/index.html', 'hire/colleague/index.html'] as const;
 
 const html = new Map<string, string>();
 
@@ -64,7 +64,7 @@ function instancesOf(doc: string): Instance[] {
 const KEYS: Record<string, string[]> = {
   'graph/index.html': ['projects', 'glossary', 'articles'],
   'en/graph/index.html': ['projects', 'glossary', 'articles'],
-  'colleague/index.html': ['main'],
+  'hire/colleague/index.html': ['main'],
 };
 
 /** The JSON payload an instance ships for its client — nodes and links. */
@@ -166,7 +166,7 @@ describe('graph controls (built HTML)', () => {
         // carry the full vocabulary literally; the section graphs may drop a
         // type they have no edges of, but only from that vocabulary.
         const VOCAB = ['related', 'children', 'topic', 'shared', 'core'];
-        if (file === 'colleague/index.html') {
+        if (file === 'hire/colleague/index.html') {
           expect([...present].sort(), `${file}:${key}: exactly five edge types`).toEqual(
             [...VOCAB].sort(),
           );

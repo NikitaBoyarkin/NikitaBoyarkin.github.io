@@ -1,0 +1,97 @@
+---
+// One card per section on `/navigation/`: the section's own OG banner doubles as
+// the preview, so a section's card image and its social preview can never show
+// two different designs.
+import Icon from './Icon.astro';
+import { withBase } from '../lib/path';
+import { sectionOgPath, type SectionDef } from '../lib/sections';
+
+interface Props {
+  section: SectionDef;
+  /** Locale-resolved, `withBase`-prefixed destination — the page owns that. */
+  href: string;
+  lang?: 'ru' | 'en';
+}
+const { section, href, lang = 'ru' } = Astro.props;
+const open = lang === 'en' ? 'Open →' : 'Открыть →';
+---
+
+<li class="section-card-item">
+  <a class="section-card" href={href}>
+    <img
+      class="section-card-banner"
+      src={withBase(sectionOgPath(section.key, lang))}
+      width="1200"
+      height="630"
+      loading="lazy"
+      decoding="async"
+      alt=""
+    />
+    <span class="section-card-head">
+      <Icon name={section.icon} size={18} />
+      <span class="section-card-label">{section.label[lang]}</span>
+    </span>
+    <span class="section-card-text">{section.description[lang]}</span>
+    <span class="section-card-more">{open}</span>
+  </a>
+</li>
+
+<style>
+  .section-card-item {
+    list-style: none;
+  }
+
+  .section-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--card-padding);
+    border: 1px solid var(--border-color);
+    border-radius: var(--card-radius);
+    background: var(--gradient-surface);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .section-card:hover {
+    border-color: var(--border-active);
+  }
+
+  .section-card:focus-visible {
+    outline: 2px solid var(--border-active);
+    outline-offset: 2px;
+  }
+
+  /* The banner is 1200×630; the card shows it as a 2:1 strip so twelve cards
+     stay scannable, and `object-fit: cover` crops rather than letterboxes. */
+  .section-card-banner {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    background: var(--card-background);
+  }
+
+  .section-card-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 600;
+  }
+
+  .section-card-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .section-card-more {
+    margin-top: auto;
+    color: var(--text-accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+</style>

@@ -1,0 +1,57 @@
+---
+// `/navigation/` — the index of every section, rendered straight from
+// `src/lib/sections.ts`. Nothing here is a second list: a new section appears on
+// this page, in the drawer and in the OG set from one registry entry.
+import Base from '../../layouts/Base.astro';
+import SectionCard from '../../components/SectionCard.astro';
+import { SECTIONS } from '../../lib/sections';
+import { withBase } from '../../lib/path';
+
+const lang = 'ru' as const;
+// The page never links to itself.
+const cards = SECTIONS.filter((section) => section.key !== 'navigation');
+---
+
+<Base
+  title="Навигация | Nikita Boyarkin"
+  description="Все разделы портфолио одной сеткой: проекты, демо, найм, граф знаний, библиотека, статьи, словарь."
+  canonical={withBase('navigation/')}
+  activeNav="navigation"
+  lang={lang}
+  counterpartHref={withBase('en/navigation/')}
+>
+  <section class="sections-index">
+    <h1>Навигация</h1>
+    <p class="sections-lead">
+      {cards.length} разделов сайта: что где лежит и с чего начать. Каждая карточка ведёт в свой раздел.
+    </p>
+    <ul class="sections-grid">
+      {
+        cards.map((section) => (
+          <SectionCard section={section} lang={lang} href={withBase(section.href.ru)} />
+        ))
+      }
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .sections-index {
+    max-width: var(--content-max, 72rem);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .sections-lead {
+    max-width: 60ch;
+    color: var(--text-secondary);
+  }
+
+  .sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-4);
+    margin: var(--space-6) 0 0;
+    padding: 0;
+  }
+</style>

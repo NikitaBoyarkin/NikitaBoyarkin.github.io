@@ -1,0 +1,114 @@
+---
+// `/en/hire/` — see `src/pages/hire/index.astro`.
+import Base from '../../../layouts/Base.astro';
+import { AUDIENCES, ROLE_COPY, type Audience } from '../../../lib/projects';
+import { withBase } from '../../../lib/path';
+
+const lang = 'en' as const;
+const copy = ROLE_COPY[lang];
+const LABELS: Record<Audience, string> = { hr: 'HR', manager: 'Manager', colleague: 'Colleague' };
+---
+
+<Base
+  title="Hiring | Nikita Boyarkin"
+  description="Three ways into the portfolio: HR matches a vacancy, a manager looks for impact, a colleague for method."
+  canonical={withBase('en/hire/')}
+  activeNav="hire"
+  lang={lang}
+  counterpartHref={withBase('hire/')}
+>
+  <section class="hire-hub">
+    <h1>Hiring</h1>
+    <p class="hire-lead">One portfolio, three ways in. Pick the one that matches your task.</p>
+    <ul class="hire-cards">
+      {
+        AUDIENCES.map((role) => (
+          <li>
+            <a class="hire-card" href={withBase(`en/hire/${role}/`)}>
+              <span class="hire-kind">{LABELS[role]}</span>
+              <h2>{copy[role].h1}</h2>
+              <p>{copy[role].lead}</p>
+              <span class="hire-more">Open →</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .hire-hub {
+    max-width: var(--content-max, 72rem);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .hire-lead {
+    max-width: 60ch;
+    color: var(--text-secondary);
+  }
+
+  .hire-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    gap: var(--space-4);
+    margin: var(--space-6) 0 0;
+    padding: 0;
+  }
+
+  .hire-cards li {
+    list-style: none;
+  }
+
+  .hire-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--card-padding);
+    border: 1px solid var(--border-color);
+    border-radius: var(--card-radius);
+    background: var(--gradient-surface);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .hire-card:hover,
+  .hire-card:focus-visible {
+    border-color: var(--border-active);
+  }
+
+  .hire-card:focus-visible {
+    outline: 2px solid var(--border-active);
+    outline-offset: 2px;
+  }
+
+  .hire-kind {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .hire-card h2 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .hire-card p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .hire-more {
+    margin-top: auto;
+    color: var(--text-accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+</style>

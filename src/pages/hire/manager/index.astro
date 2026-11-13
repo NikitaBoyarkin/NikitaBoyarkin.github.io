@@ -1,21 +1,21 @@
 ---
-// `/en/manager/` — thin wrapper, see `src/pages/hr/index.astro`.
+// `/hire/manager/` — thin wrapper, see `hr/index.astro`.
 import Base from '../../../layouts/Base.astro';
 import RoleLanding from '../../../components/RoleLanding.astro';
 import { ROLE_COPY } from '../../../lib/projects';
 import { withBase } from '../../../lib/path';
 
-const lang = 'en' as const;
+const lang = 'ru' as const;
 const copy = ROLE_COPY[lang].manager;
 ---
 
 <Base
   title={copy.title}
   description={copy.description}
-  canonical={withBase('en/manager/')}
-  activeNav="home"
+  canonical={withBase('hire/manager/')}
+  activeNav="hire"
   lang={lang}
-  counterpartHref={withBase('manager/')}
+  counterpartHref={withBase('en/hire/manager/')}
 >
   <RoleLanding role="manager" lang={lang} />
 </Base>

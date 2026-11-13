@@ -1,6 +1,6 @@
 ---
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import '../styles/global.css';
 // `blog.css`, `prose.css`, `reader.css` and KaTeX are NOT imported here: they
@@ -10,10 +10,10 @@ import '../styles/global.css';
 // which 15 render blog cards, 100 render `.prose` and 30 contain a formula.
 import { BRAND_ICON, ICON } from '../lib/icons';
 import { withBase } from '../lib/path';
+import { SECTIONS, sectionForPath, sectionOgPath } from '../lib/sections';
 import Analytics from '../components/Analytics.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import LangSwitch from '../components/LangSwitch.astro';
-import NavRoles from '../components/NavRoles.astro';
 import SearchBox from '../components/SearchBox.astro';
 import SiteTabs from '../components/SiteTabs.astro';
 import BeaconMetrics from '../components/BeaconMetrics.astro';
@@ -41,7 +41,9 @@ interface Props {
     | 'talks'
     | 'library'
     | 'explorer'
-    | 'topics';
+    | 'topics'
+    | 'navigation'
+    | 'hire';
   jsonLd?: Record<string, unknown>;
   lang?: 'ru' | 'en';
   counterpartHref?: string;
@@ -79,7 +81,7 @@ const {
   description = 'Nikita Boyarkin — Data Analyst / Product Analyst portfolio. SQL, Python, Visualization, A/B Testing.',
   keywords = [],
   ogType = 'website',
-  ogImage = '/images/og/portfolio-banner-v2.png',
+  ogImage: ogImageProp,
   ogImageAlt = 'Nikita Boyarkin — Product / Data Analyst. Portfolio.',
   canonical,
   relPrev,
@@ -97,6 +99,20 @@ const {
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
 const pageUrl = canonical ? `${siteUrl}${canonical}` : Astro.url.toString();
+/* A section route with no explicit banner falls back to its own section banner
+   (`bun run og:sections` writes `public/images/og/section-<key>.png`), so one
+   registry entry feeds both the `/navigation/` card and the social preview.
+   The existsSync guard is load-bearing: `assetVersion()` below hashes the file,
+   and a missing PNG would fail the build instead of degrading quietly. */
+const sectionKey = sectionForPath(Astro.url.pathname);
+const sectionBanner = sectionKey
+  ? sectionOgPath(sectionKey, lang === 'en' ? 'en' : 'ru')
+  : null;
+const ogImage =
+  ogImageProp ??
+  (sectionBanner && existsSync(path.join(process.cwd(), 'public', sectionBanner))
+    ? sectionBanner
+    : '/images/og/portfolio-banner-v2.png');
 /* Telegram, LinkedIn and the rest cache the preview by `og:image` URL, so a
    redrawn banner behind the same path would never reach them. The content hash
    makes every revision a new URL, which is the only signal those caches honour. */
@@ -131,36 +147,15 @@ const isEn = lang === 'en';
 // measured 2026-10-31). Only the EN copy carries the marker — the RU page is
 // the canonical default and keeps its SERP text unchanged.
 const displayTitle = isEn && counterpartHref ? `${title} · EN` : title;
-const homeHref = isEn ? withBase('en/') : withBase('/');
 const aboutHref = isEn ? withBase('en/about/') : withBase('about/');
-const projectsHref = isEn ? withBase('en/projects/') : withBase('projects/');
-// The boards hub has a real EN twin, unlike `/topics/` and `/repo-audit/`.
-const demosHref = isEn ? withBase('en/demos/') : withBase('demos/');
 const contactHref = isEn ? withBase('en/contact/') : withBase('contact/');
-// The CV download and its `navCv` label were removed on the owner's call
-// (2026-11-01): the PDF stays in `public/cv/` but nothing on the site offers it.
-const glossaryHref = isEn ? withBase('en/glossary/') : withBase('glossary/');
-const graphHref = isEn ? withBase('en/graph/') : withBase('graph/');
-// The conference programme graph: its own route pair, next to `/graph/` in the
-// drawer but a different subject — 91 talks, not the site's content graph.
-const talksHref = isEn ? withBase('en/talks/') : withBase('talks/');
-const libraryHref = isEn ? withBase('en/library/') : withBase('library/');
-const writingHref = isEn ? withBase('en/writing/') : withBase('writing/');
-const explorerHref = isEn ? withBase('en/explorer/') : withBase('explorer/');
-// Topics is RU-only — there is no /en/topics/ — so both locales point at the one
-// route, exactly as `repoAuditHref` below is shared across locales.
-const topicsHref = withBase('topics/');
-const repoAuditHref = withBase('repo-audit/');
-
-// Which role landing (if any) this page is, so NavRoles can mark it current
-// (`aria-current="page"`) the way the drawer's own links do. Derived from the
-// URL because the role routes pass `activeNav="home"`, not their own key.
-const activeRole = Astro.url.pathname.match(/^\/(?:en\/)?(hr|manager|colleague)\/?$/)?.[1];
+// Every other section href now comes from `src/lib/sections.ts` — see `navLinks`
+// below. Keeping a second copy here is exactly how the drawer, `/navigation/` and
+// the OG banner name drift apart.
 
 // Which inline/drawer entry the current URL belongs to. The topics and explorer
 // routes inherit `activeNav="home"`, so without this their own drawer row would
-// never mark itself current — the same reason `activeRole` above derives from
-// the pathname instead of trusting the passed prop. A URL-derived key wins over
+// never mark itself current. A URL-derived key wins over
 // the passed prop: `/talks/` passes `activeNav="graph"` so it inherits the
 // top-bar styling, and without precedence «Граф» would also claim
 // `aria-current` on a page that is not `/graph/`.
@@ -184,18 +179,6 @@ const isHome = /^\/(?:en\/)?$/.test(Astro.url.pathname);
 const t = {
   skip: isEn ? 'Skip to content' : 'Перейти к содержимому',
   roleTitle: isEn ? 'Product Analyst' : 'Продуктовый аналитик',
-  navHome: isEn ? 'Home' : 'Главная',
-  navProjects: isEn ? 'Projects' : 'Проекты',
-  navDemos: isEn ? 'Demos' : 'Демо',
-  navAbout: isEn ? 'About' : 'Обо мне',
-  navGlossary: isEn ? 'Glossary' : 'Словарь',
-  navGraph: isEn ? 'Graph' : 'Граф',
-  navTalks: isEn ? 'Talks graph' : 'Граф докладов',
-  navLibrary: isEn ? 'Library' : 'Библиотека',
-  navWriting: isEn ? 'Writing' : 'Статьи',
-  navRepoAudit: isEn ? 'Repo audit' : 'Аудит репозиториев',
-  navExplorer: isEn ? 'Explorer' : 'Обозреватель',
-  navTopics: isEn ? 'Topics' : 'Темы',
   navContact: isEn ? 'Contact' : 'Контакты',
   // The bar's visible action. «Написать» / «Message me» names the *act* the
   // button performs, not the destination shape: the chip next to it already
@@ -213,99 +196,26 @@ const t = {
   themeCycle: isEn ? '. Click to cycle.' : '. Нажмите для смены.',
 };
 
-// The drawer's links, in order, each with a 24×24 stroke glyph. `icon` holds
-// only the *inner* markup, so the rows share one <svg> scaffold in the template
-// instead of hand-rolled copies that could drift apart. The glyphs themselves
-// come from `src/lib/icons.ts` — a component references a NAME, never a path —
-// so `set:html` only ever receives a module literal, nothing a visitor controls.
-const allNavLinks = [
-  {
-    key: 'home',
-    href: homeHref,
-    label: t.navHome,
-    icon: ICON.home,
-  },
-  {
-    key: 'projects',
-    href: projectsHref,
-    label: t.navProjects,
-    icon: ICON.projects,
-  },
-  {
-    key: 'demos',
-    href: demosHref,
-    label: t.navDemos,
-    icon: ICON.demos,
-  },
-  {
-    key: 'about',
-    href: aboutHref,
-    label: t.navAbout,
-    icon: ICON.about,
-  },
-  {
-    key: 'glossary',
-    href: glossaryHref,
-    label: t.navGlossary,
-    icon: ICON.glossary,
-  },
-  {
-    key: 'graph',
-    href: graphHref,
-    label: t.navGraph,
-    icon: ICON.graph,
-  },
-  {
-    key: 'talks',
-    href: talksHref,
-    label: t.navTalks,
-    icon: ICON.talks,
-  },
-  {
-    key: 'library',
-    href: libraryHref,
-    label: t.navLibrary,
-    icon: ICON.library,
-  },
-  {
-    key: 'writing',
-    href: writingHref,
-    label: t.navWriting,
-    icon: ICON.writing,
-  },
-  {
-    key: 'explorer',
-    href: explorerHref,
-    label: t.navExplorer,
-    icon: ICON.explorer,
-  },
-  {
-    key: 'topics',
-    href: topicsHref,
-    label: t.navTopics,
-    icon: ICON.topics,
-  },
-  {
-    key: 'repo-audit',
-    href: repoAuditHref,
-    label: t.navRepoAudit,
-    icon: ICON['repo-audit'],
-  },
-] as const;
-
+// The drawer's links, in order, each with a 24×24 stroke glyph — straight from
+// the ONE section registry (`src/lib/sections.ts`). Adding a section is one entry
+// there; the drawer, `/navigation/`, the section's OG banner and the drawer
+// contract in `tests/built/homepage-gate.test.ts` all follow from it.
+//
 // Both locales carry every destination, `/topics/` and `/repo-audit/` included.
 // Those two are RU-only route pairs with no `/en/` twin, so an EN visitor
-// crosses to the one page that exists instead of landing on a 404. That choice
-// is the pinned header contract in `tests/built/homepage-gate.test.ts`, which
-// reflects this array in the built output.
-const navLinks = allNavLinks;
+// crosses to the one page that exists instead of landing on a 404.
+const navLinks = SECTIONS.map((section) => ({
+  key: section.key,
+  href: withBase(section.href[isEn ? 'en' : 'ru']),
+  label: section.label[lang],
+  icon: ICON[section.icon],
+}));
 
-// The destination rendered inline in the top bar. It used to be a measured
-// cutover over six links; the bar now surfaces exactly one — the way home — and
-// everything else lives in the drawer. The six that left the bar are still
-// `navLinks` rows, so the drawer keeps every destination reachable; only the
-// bar's width budget changed, which is why the breakpoint below dropped with it.
-const INLINE_NAV_KEYS = ['home'] as const;
+// The destinations rendered inline in the top bar. The bar used to surface one
+// (the way home) and leave the rest to the drawer; `/navigation/` earns a second
+// slot because it is the index of everything the drawer holds. Every other row
+// stays reachable in the drawer, so the bar's width budget is the only cost.
+const INLINE_NAV_KEYS = ['home', 'navigation'] as const;
 const inlineNavLinks = INLINE_NAV_KEYS.map((key) => navLinks.find((l) => l.key === key)!);
 
 const counterpartUrl = counterpartHref ? `${siteUrl}${counterpartHref}` : null;
@@ -549,13 +459,20 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           <span class="nav-brand-role">{t.roleTitle}</span>
         </span>
       </a>
-      {/* The three audience landings, one tap from the top bar. They read as a
-          left-hand cluster with the brand ("who" + "viewing as"); the outbound
-          chips stay pushed right by their own auto margin. */}
-      <NavRoles lang={lang} active={activeRole} />
+      {/* One hiring entry point in place of the three persona buttons
+          (2026-11-13, owner's call): the role landings are reached from the hub
+          and from each landing's own role switch, so the bar no longer carries
+          them. Sits where the role group was, beside the brand. */}
+      <a
+        class="nav-hire"
+        href={isEn ? withBase('en/hire/') : withBase('hire/')}
+        aria-current={isNavCurrent('hire') ? 'page' : undefined}
+      >
+        {isEn ? 'Hiring' : 'Найм'}
+      </a>
       {/* Inline site navigation, from the measured cutover (see the <style>
-          block). Below that the bar has no room for links *and* the persona group
-          *and* the chips, so the drawer stays the sole route and this list is
+          block). Below that the bar has no room for links *and* the outbound
+          chips, so the drawer stays the sole route and this list is
           `display: none` (out of the a11y tree and the tab order). It carries the
           same `aria-current` contract as the drawer's rows. */}
       <ul class="nav-inline">
@@ -666,9 +583,6 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           <span class="nav-brand-role">{t.roleTitle}</span>
         </span>
       </a>
-      {/* On phones the top bar yields the persona buttons to this copy (see
-          NavRoles.astro) — inside the drawer there is room for the full labels. */}
-      <NavRoles lang={lang} variant="menu" active={activeRole} />
       {/* Utilities sit above the primary links: the search dropdown opens
           downward from its toggle, and at the rail's bottom edge there was no
           room for it. Search + language share one row; the theme toggle now
@@ -705,9 +619,9 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
             alone. */}
       </div>
 
-      {/* Phones only: the top bar spends its first row on the identity block and
-          its second on the persona row, so the outbound chips move here, where
-          the drawer has room for the full labels. Same `data-analytics` names on
+      {/* Phones only: the top bar spends its row on the identity block, so the
+          outbound chips move here, where the drawer has room for the full
+          labels. Same `data-analytics` names on
           purpose — one PostHog series, and only the copy currently on screen is
           focusable. From 768px up the bar keeps the group and this one is hidden. */}
       <div class="nav-social">
@@ -1032,10 +946,9 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
          The threshold used to be 1400px — a measured one, for a six-link row
          whose widest pair were «Обозреватель» + «Темы». The bar now surfaces a
          single link (the way home), so that arithmetic pays for nothing and the
-         threshold drops to 1200px: the width at which the persona labels come
-         back from their own icon-only state (NavRoles.astro), i.e. where the bar
-         is at its densest and still has room for this one link. Below it the
-         drawer is the sole route. */
+         threshold drops to 1200px: the width at which the bar stops being
+         cramped and still has room for this one link. Below it the drawer is the
+         sole route. */
       .nav-inline {
         display: none;
       }
@@ -1103,6 +1016,52 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         }
       }
 
+      /* The single hiring entry point the bar carries in place of the three
+         persona buttons (2026-11-13). Same quiet outline as those chips: it is a
+         route, not an ask, so it must not compete with the filled Telegram
+         action at the row's right edge. */
+      .nav-hire {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-1) var(--space-3);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        font-weight: 500;
+        line-height: 1.2;
+        white-space: nowrap;
+        text-decoration: none;
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      }
+
+      .nav-hire:hover {
+        color: var(--text-accent);
+        border-color: var(--text-accent);
+      }
+
+      /* Inside `/hire/`, marked the same way the header links mark theirs:
+         accent ink + `aria-current`. */
+      .nav-hire[aria-current='page'] {
+        color: var(--text-accent);
+        border-color: var(--border-active);
+      }
+
+      .nav-hire:focus-visible {
+        outline: 2px solid var(--border-active);
+        outline-offset: 2px;
+      }
+
+      /* A 26px chip is a cramped thumb target on the phone bar. */
+      @media (pointer: coarse) {
+        .nav-hire {
+          min-height: 44px;
+          min-width: 44px;
+        }
+      }
+
       /* The row of outbound and download links. A flex group with a real gap, so
          no ` · ` separators in the markup. Compact on purpose, NOT `.button`:
          five full-padding buttons would wrap the drawer several rows deep. */
@@ -1154,8 +1113,8 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
          none` rather than a clipped label keeps it out of the tab order and the
          a11y tree, the same contract `.nav-inline` uses below its cutover.
          1024px is the bar's own gutter breakpoint (the gap tightens below it to
-         buy width); above it the personas are icon-only and the chips are the
-         only labelled group, so there is room for one filled button. */
+         buy width); above it the chips are icon-only, so there is room for one
+         filled button. */
       .nav-bar-cta {
         display: none;
       }
@@ -1238,13 +1197,6 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         display: none;
       }
 
-      /* The drawer covers 320 of the 390px, and the bar sits above the scrim so
-         the ☰ stays hittable — which left the bar's persona row peeking out
-         beside the open drawer while the drawer showed its own copy. The bar's
-         copy is the one that steps aside. Lives in the global block below
-         because `.nav-roles--bar` belongs to NavRoles, so a scoped selector
-         would carry Base's attribute and never match. */
-
       /* Wide bar: name and role share one baseline instead of stacking, so the
          two-line identity does not make the bar taller than the 65px token every
          sticky offset below it reads. */
@@ -1281,10 +1233,10 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         }
       }
 
-      /* Phone bar: two rows. Identity + theme toggle + drawer trigger cannot
-         share a line with three labelled persona chips at 390px, and the row
-         that holds the personas needs the full viewport to keep them equal.
-         The outbound chips move into the drawer (`.nav-social`) to pay for it. */
+      /* Phone bar: one row. Identity + theme toggle + drawer trigger share it;
+         the outbound chips move into the drawer (`.nav-social`) to pay for it,
+         and `flex-wrap` stays as the safety valve if a label ever outgrows the
+         row. */
       @media (max-width: 767px) {
         .nav-mobile {
           flex-wrap: wrap;
@@ -1311,9 +1263,9 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         }
       }
 
-      /* The chips need the wider cutover. With the persona group (≥768px) and the
-         theme toggle (every width) now sharing the bar, brand + three labelled
-         chips + two controls no longer fit below 1024px, so the chip labels go
+      /* The chips need the wider cutover. With the hiring entry point and the
+         theme toggle sharing the bar, brand + three labelled chips + two
+         controls no longer fit below 1024px, so the chip labels go
          icon-only there. Visually hidden, not `display: none`, so each anchor
          keeps its accessible name (the glyph beside it is `aria-hidden`). */
       @media (max-width: 1023px) {
@@ -1350,31 +1302,6 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       .footer-actions .button {
         font-size: 0.85rem;
         padding: var(--space-2) var(--space-4);
-      }
-    </style>
-
-    <style is:global>
-      /* While the drawer is open the bar's persona row is redundant — the drawer
-         carries its own copy — and it peeked out beside the 320px panel. */
-      body.nav-open .nav-mobile .nav-roles--bar {
-        visibility: hidden;
-      }
-
-      /* The phone bar carries two rows (identity, then the persona row), so it is
-         taller than the 65/77px token global.css pins the drawer, filter bar and
-         graph overlay to. Those offsets are read from this token, so it has to
-         track the measured bar height or the drawer slides under the bar. The
-         inline script above overwrites the token with the real height once the
-         bar is in the document; these two rules are the pre-JS fallback. */
-      @media (max-width: 767px) {
-        :root {
-          --nav-mobile-h: calc(107px + env(safe-area-inset-top));
-        }
-      }
-      @media (max-width: 767px) and (pointer: coarse) {
-        :root {
-          --nav-mobile-h: calc(129px + env(safe-area-inset-top));
-        }
       }
     </style>
   </body>

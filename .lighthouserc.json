@@ -12,7 +12,7 @@
         "http://localhost:4321/projects/",
         "http://localhost:4321/en/projects/",
         "http://localhost:4321/projects/volta/",
-        "http://localhost:4321/colleague/",
+        "http://localhost:4321/hire/colleague/",
         "http://localhost:4321/glossary/",
         "http://localhost:4321/notes/",
         "http://localhost:4321/posts/cohort-retention-guide/",
@@ -82,7 +82,7 @@
           }
         },
         {
-          "matchingUrlPattern": "(/colleague/)",
+          "matchingUrlPattern": "(/hire/colleague/)",
           "assertions": {
             "first-contentful-paint": ["warn", { "maxNumericValue": 2000 }],
             "largest-contentful-paint": ["warn", { "maxNumericValue": 2500 }],

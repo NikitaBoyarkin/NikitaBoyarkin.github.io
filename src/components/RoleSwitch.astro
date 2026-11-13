@@ -21,7 +21,7 @@ const LABELS: Record<Audience, string> = isEn
   : { hr: 'HR', manager: 'Менеджер', colleague: 'Коллега' };
 
 const href = (target: Audience): string =>
-  withBase(isEn ? `en/${target}/` : `${target}/`);
+  withBase(isEn ? `en/hire/${target}/` : `hire/${target}/`);
 
 const others = AUDIENCES.filter((audience) => audience !== role);
 ---

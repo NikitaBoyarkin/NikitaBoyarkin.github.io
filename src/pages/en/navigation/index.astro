@@ -1,0 +1,54 @@
+---
+// `/en/navigation/` — same registry, EN labels and EN hrefs.
+import Base from '../../../layouts/Base.astro';
+import SectionCard from '../../../components/SectionCard.astro';
+import { SECTIONS } from '../../../lib/sections';
+import { withBase } from '../../../lib/path';
+
+const lang = 'en' as const;
+const cards = SECTIONS.filter((section) => section.key !== 'navigation');
+---
+
+<Base
+  title="Navigation | Nikita Boyarkin"
+  description="Every section of the portfolio in one grid: projects, demos, hiring, knowledge graph, library, writing, glossary."
+  canonical={withBase('en/navigation/')}
+  activeNav="navigation"
+  lang={lang}
+  counterpartHref={withBase('navigation/')}
+>
+  <section class="sections-index">
+    <h1>Navigation</h1>
+    <p class="sections-lead">
+      {cards.length} sections: what lives where, and where to start. Every card opens its section.
+    </p>
+    <ul class="sections-grid">
+      {
+        cards.map((section) => (
+          <SectionCard section={section} lang={lang} href={withBase(section.href.en)} />
+        ))
+      }
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .sections-index {
+    max-width: var(--content-max, 72rem);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .sections-lead {
+    max-width: 60ch;
+    color: var(--text-secondary);
+  }
+
+  .sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-4);
+    margin: var(--space-6) 0 0;
+    padding: 0;
+  }
+</style>

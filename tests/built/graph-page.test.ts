@@ -21,7 +21,7 @@ const PAGES = [
   { file: 'en/graph/index.html', h1: 'Content graph', note: 'Built from the content collections' },
 ] as const;
 
-const CONTROL = 'colleague/index.html';
+const CONTROL = 'hire/colleague/index.html';
 
 const html = new Map<string, string>();
 
