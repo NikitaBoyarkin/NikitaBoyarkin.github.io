@@ -6,6 +6,7 @@
  * ponytail: naive LD; swap for a trie/FA only if the index grows large.
  * Works for Cyrillic too — it compares char codes, not ASCII words.
  */
+import { stemRu } from "./translit";
 
 /** Edit distance when it is `<= max`, `Infinity` past the budget. */
 export function distanceWithin(a: string, b: string, max = 2): number {
@@ -42,6 +43,21 @@ export function wordsOf(text: string): string[] {
     .toLowerCase()
     .split(/[^\p{L}\p{N}]+/u)
     .filter(Boolean);
+}
+
+/**
+ * Stems of `words`, de-duplicated. Scoring runs on every keystroke, so the
+ * index stems each entry once here instead of re-stemming its word list per
+ * query. Latin words come back unchanged (see `stemRu`), which is harmless:
+ * their stem comparison is then a plain string comparison.
+ */
+export function stemsOf(words: string[]): string[] {
+  const out: string[] = [];
+  for (const w of words) {
+    const stem = stemRu(w);
+    if (!out.includes(stem)) out.push(stem);
+  }
+  return out;
 }
 
 /**

@@ -149,6 +149,7 @@ const TELEGRAM_URL = 'https://t.me/lofinibo';
         aria-controls="nt-results"
         aria-autocomplete="list"
         role="combobox"
+        aria-keyshortcuts="/"
       />
     </form>
     <ul class="nt-results" id="nt-results" role="listbox" aria-label={t.searchLabel} hidden></ul>
@@ -174,6 +175,7 @@ const TELEGRAM_URL = 'https://t.me/lofinibo';
 
 <script>
   import {
+    highlightRanges,
     prepareIndex,
     rankEntries,
     tokenize,
@@ -253,6 +255,30 @@ const TELEGRAM_URL = 'https://t.me/lofinibo';
       active = -1;
     }
 
+    /** Marked result text as DOM nodes: `highlightRanges` returns code-unit
+     *  offsets into the untouched string, so case/`ё` folding never travels
+     *  through an HTML string. Index data is set as text nodes and can never be
+     *  parsed as markup. */
+    function markedFragment(text: string, tokens: string[]): DocumentFragment {
+      const frag = document.createDocumentFragment();
+      let at = 0;
+      for (const [rawStart, rawEnd] of highlightRanges(text, tokens)) {
+        // Contract: sorted and non-overlapping. The clamp only guards against
+        // duplicating or dropping text if that ever slips.
+        const start = Math.max(at, rawStart);
+        const end = Math.min(text.length, Math.max(start, rawEnd));
+        if (start > at) frag.append(document.createTextNode(text.slice(at, start)));
+        if (end > start) {
+          const mark = document.createElement('mark');
+          mark.append(document.createTextNode(text.slice(start, end)));
+          frag.append(mark);
+        }
+        at = end;
+      }
+      if (at < text.length) frag.append(document.createTextNode(text.slice(at)));
+      return frag;
+    }
+
     function render() {
       const raw = input!.value.trim();
       const tokens = tokenize(raw);
@@ -287,13 +313,13 @@ const TELEGRAM_URL = 'https://t.me/lofinibo';
 
           const title = document.createElement('span');
           title.className = 'nt-result-title';
-          title.textContent = r.title;
+          title.append(markedFragment(r.title, tokens));
           a.append(type, title);
 
           if (r.desc) {
             const desc = document.createElement('span');
             desc.className = 'nt-result-desc';
-            desc.textContent = r.desc;
+            desc.append(markedFragment(r.desc, tokens));
             a.append(desc);
           }
           li.append(a);
@@ -375,7 +401,10 @@ const TELEGRAM_URL = 'https://t.me/lofinibo';
         if (document.body.classList.contains('nav-open')) return;
         const el = document.activeElement;
         const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA');
-        const slash = e.key === '/' && !typing;
+        // `e.code` is the physical key: with a ЙЦУКЕН layout `e.key` reports the
+        // produced character (`ё`/`.`), so `e.key === '/'` alone never fired.
+        // Same rule as SearchBox's handler.
+        const slash = (e.code === 'Slash' || e.key === '/') && !typing;
         const cmdK = (e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey);
         if (!slash && !cmdK) return;
         e.preventDefault();

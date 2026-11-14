@@ -62,6 +62,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
     aria-label={i18n.toggleLabel}
     aria-expanded="false"
     aria-controls="search-panel"
+    aria-keyshortcuts="Control+K Meta+K /"
   >
     {/* Magnifier ↔ close, swapped by CSS on the button's own `aria-expanded`
         (see `.glyph` rules in global.css). Was a `morphicons` element, which
@@ -83,6 +84,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
       aria-controls="search-results"
       aria-autocomplete="list"
       aria-describedby="search-hint"
+      aria-keyshortcuts="Control+K Meta+K /"
     />
     <div class="search-facets" role="group" aria-label={i18n.facetsLabel}>
       <button class="search-facet is-active" data-facet="all" type="button" aria-pressed="true">
@@ -109,6 +111,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
 
 <script>
   import { bestWordDistance, typoBudget } from "../lib/fuzzy";
+  import { highlightRanges } from "../lib/search-rank";
   import { track, whenAnalyticsReady } from "../lib/analytics";
   import { ICON } from "../lib/icons";
 
@@ -180,6 +183,10 @@ const X_D = "M6 6l12 12M6 18L18 6";
       date?: string;
       /** Pagefind's highlighted excerpt — already `<mark>`ed, used as-is. */
       html?: string;
+      /** Page body excerpt from the JSON index — searched by the typo fallback. */
+      body?: string;
+      /** Latin transliteration, consumed by the matching library (not the UI). */
+      translit?: string;
     };
     let index: Entry[] | null = null;
     let activeIndex = -1;
@@ -247,15 +254,29 @@ const X_D = "M6 6l12 12M6 18L18 6";
       return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    function highlight(text: string, tokens: string[]): string {
-      const esc = escapeHtml(text);
-      const toks = tokens.filter(Boolean);
-      if (!toks.length) return esc;
-      const re = new RegExp(
-        "(" + toks.map((tk) => tk.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")",
-        "gi",
-      );
-      return esc.replace(re, "<mark>$1</mark>");
+    /** Marked result text as DOM nodes: `highlightRanges` returns code-unit
+     *  offsets into the untouched string, so the plain runs and the `ё`/case
+     *  folding never travel through an HTML string. Index data is set as text
+     *  nodes and can never be parsed as markup — the escaping hazard is gone
+     *  rather than being handled correctly. */
+    function markedFragment(text: string, tokens: string[]): DocumentFragment {
+      const frag = document.createDocumentFragment();
+      let at = 0;
+      for (const [rawStart, rawEnd] of highlightRanges(text, tokens)) {
+        // Contract: sorted and non-overlapping. The clamp only guards against
+        // duplicating or dropping text if that ever slips.
+        const start = Math.max(at, rawStart);
+        const end = Math.min(text.length, Math.max(start, rawEnd));
+        if (start > at) frag.append(document.createTextNode(text.slice(at, start)));
+        if (end > start) {
+          const mark = document.createElement("mark");
+          mark.append(document.createTextNode(text.slice(start, end)));
+          frag.append(mark);
+        }
+        at = end;
+      }
+      if (at < text.length) frag.append(document.createTextNode(text.slice(at)));
+      return frag;
     }
 
     // ── Pagefind (primary engine) ─────────────────────────────────────────
@@ -291,8 +312,12 @@ const X_D = "M6 6l12 12M6 18L18 6";
       const idx = await getIndex();
       const hits: { e: Entry; d: number }[] = [];
       for (const e of idx) {
-        if (e.locale !== lang || !inFacet(e.type, active)) continue;
-        const text = [e.title, e.desc, ...(e.tags || []), ...(e.tools || [])].join(" ");
+        // Same locale rule as `rankEntries`: topic hubs are RU-only pages, so
+        // they stay reachable from `/en/` rather than being filtered away.
+        if ((e.locale !== lang && e.type !== "topic") || !inFacet(e.type, active)) continue;
+        // `body` is the only text a shelf note carries, so without it a typo in
+        // a note's own words found nothing.
+        const text = [e.title, e.desc, ...(e.tags || []), ...(e.tools || []), e.body ?? ""].join(" ");
         let best = Infinity;
         for (const tk of tokens) {
           const budget = typoBudget(tk);
@@ -350,6 +375,18 @@ const X_D = "M6 6l12 12M6 18L18 6";
           block.appendChild(wrap);
         }
         resultsEl.insertAdjacentElement("afterend", block);
+        // A starved locale — every row filtered out by the `/en/` split — still
+        // has results on the Explorer surface, so the handoff has to survive
+        // the empty state. It was the one case the row existed for.
+        if (more && query) {
+          const moreBlock = document.createElement("div");
+          moreBlock.className = "search-result search-more search-sibling";
+          const moreLink = document.createElement("a");
+          moreLink.href = `${explorerUrl}?q=${encodeURIComponent(query)}`;
+          moreLink.textContent = t.allResults;
+          moreBlock.appendChild(moreLink);
+          block.insertAdjacentElement("afterend", moreBlock);
+        }
         input.setAttribute("aria-expanded", "false");
         activeIndex = -1;
         return;
@@ -392,7 +429,7 @@ const X_D = "M6 6l12 12M6 18L18 6";
 
         const title = document.createElement("span");
         title.className = "search-result-title";
-        title.innerHTML = highlight(r.title, tokens);
+        title.append(markedFragment(r.title, tokens));
 
         a.appendChild(type);
         a.appendChild(title);
@@ -403,7 +440,10 @@ const X_D = "M6 6l12 12M6 18L18 6";
           // The CSS clamps this to two lines; without a title the cut text is
           // unreachable without opening the result.
           d.title = r.desc;
-          d.innerHTML = r.html ?? highlight(r.desc, tokens);
+          // Pagefind's excerpt is already escaped and `<mark>`ed; only that
+          // branch may be assigned as HTML. Everything else is index data.
+          if (r.html) d.innerHTML = r.html;
+          else d.append(markedFragment(r.desc, tokens));
           a.appendChild(d);
         }
 
@@ -462,11 +502,18 @@ const X_D = "M6 6l12 12M6 18L18 6";
           const found = await engine.search(rawQuery, { filters });
           // Pagefind's own `lang` filter is not honoured through the JS API
           // here, so the locale is enforced on the returned URLs (it is the
-          // same signal the index was split by). Ask for a wider page first.
-          const data = await Promise.all(found.results.slice(0, 60).map((r) => r.data()));
+          // same signal the index was split by). Pagefind returns the whole
+          // result set, so load a wide 120-row window before that split: at 60,
+          // a RU-heavy query pushed every `/en/` row past the cut and the
+          // English results vanished.
+          const total = found.results.length;
+          const data = await Promise.all(found.results.slice(0, 120).map((r) => r.data()));
           const wantedEn = lang === "en";
           const local = data.filter((d) => /\/en\//.test(d.url) === wantedEn);
-          more = local.length > MAX_ROWS;
+          // `more` means rows were actually dropped: either the fetch window cut
+          // the set or the dropdown cap did. Deriving it from `local.length`
+          // alone hid the handoff row in exactly the starving-locale case.
+          more = total > data.length || local.length > MAX_ROWS;
           rows = local.slice(0, MAX_ROWS).map((d) => ({
             type: d.filters?.type?.[0] ?? "project",
             locale: /\/en\//.test(d.url) ? "en" : "ru",
@@ -573,7 +620,11 @@ const X_D = "M6 6l12 12M6 18L18 6";
     document.addEventListener("keydown", (e) => {
       const el = document.activeElement;
       const typing = el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
-      if (e.key === "/" && !typing) {
+      // `e.code` (the physical key) is the primary test: with a ЙЦУКЕН layout
+      // active, `e.key` reports the produced character (`.` where `/` sits on
+      // US), so `e.key === "/"` alone never fired. `e.key` stays as the fallback
+      // for layouts/environments that omit `code`.
+      if ((e.code === "Slash" || e.key === "/") && !typing) {
         e.preventDefault();
         // This panel lives inside the off-canvas drawer, which Base.astro keeps
         // `inert` and translated off-screen while closed. Focusing an input
