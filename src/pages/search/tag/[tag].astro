@@ -1,0 +1,17 @@
+---
+// Prerendered tag filters: `/search/tag/<slug>/`. The list comes from
+// `tagFacets`, which drops anything under three matches — a filter page has to
+// earn its URL, and the sitemap picks these up like any other route.
+import SearchPage from "../../../components/SearchPage.astro";
+import { buildSearchIndex } from "../../../lib/search-index";
+import { tagFacets } from "../../../lib/search-page";
+
+export async function getStaticPaths() {
+  const records = await buildSearchIndex();
+  return tagFacets(records, "ru").map((facet) => ({ params: { tag: facet.slug } }));
+}
+
+const { tag } = Astro.params;
+---
+
+<SearchPage locale="ru" filter={{ kind: "tag", value: tag! }} />

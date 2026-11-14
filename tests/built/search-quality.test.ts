@@ -119,6 +119,159 @@ describe('golden queries (RU index)', () => {
   });
 });
 
+// ── Index budget & shape ─────────────────────────────────────────────────
+// `src/pages/search-index.json.ts` states the budget in a comment: the whole
+// index is fetched on first focus, so `BODY_LIMIT = 600` keeps it under 1 MB.
+// A comment is not a mechanism — these assertions are. They read only
+// `dist/search-index.json` and the built pages it points at, so they need no
+// browser and no Pagefind.
+//
+// The truncation checks exist because `bodyOf()` is supposed to cut on a word
+// boundary (`slice(0, BODY_LIMIT).replace(/\s+\S*$/, "")`). Drop that
+// `replace`, or raise `BODY_LIMIT`, and the haystack ships a half-word that
+// Pagefind can never match — silently, since the index still parses.
+
+const INDEX_FILE = resolve(DIST, 'search-index.json');
+/** 1 MiB. The fetch happens on first focus of the search box. */
+const INDEX_LIMIT_BYTES = 1024 * 1024;
+/** Mirrors `BODY_LIMIT` in `src/pages/search-index.json.ts`. */
+const BODY_CHAR_LIMIT = 600;
+
+type SearchIndexEntry = {
+  type: string;
+  locale: string;
+  href: string;
+  title: string;
+  desc: string;
+  translit?: string;
+  body?: string;
+};
+
+/** `…/dist/posts/x/index.html` ← `/posts/x/`. The leading slash is dropped so
+ *  `resolve` cannot jump to the filesystem root. */
+function distPage(href: string): string {
+  return resolve(DIST, `${href.replace(/^\//, '')}index.html`);
+}
+
+/** Rendered text as a reader sees it: scripts and styles out, block boundaries
+ *  kept as newlines, and no space inserted for inline tags (a word split by
+ *  `<strong>` must stay one word). Entities become whitespace. */
+function pageText(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<\/(?:p|div|li|h[1-6]|tr|td|th|blockquote|section|article|figcaption)>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&[a-z]+;|&#\d+;/gi, ' ');
+}
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** The trailing token a mid-word cut leaves behind, or `null` when the body
+ *  ends on a boundary.
+ *
+ *  Heuristic: a body ending in whitespace or punctuation is a boundary; a body
+ *  ending in a word char is only a boundary if that last word appears on the
+ *  page as a whole word. A cut fragment never does — it only ever shows up
+ *  glued to the rest of the word it was sliced out of ("удержани" in
+ *  "удержание"). */
+function truncationFragment(body: string, text: string): string | null {
+  const tail = /[\p{L}\p{N}]+$/u.exec(body);
+  if (!tail) return null;
+  const token = tail[0];
+  const wholeWord = new RegExp(`(?<![\\p{L}\\p{N}])${escapeRe(token)}(?![\\p{L}\\p{N}])`, 'u');
+  return wholeWord.test(text) ? null : token;
+}
+
+describe('search index budget & shape', () => {
+  let raw: string;
+  let index: SearchIndexEntry[];
+
+  beforeAll(async () => {
+    const file = Bun.file(INDEX_FILE);
+    if (!(await file.exists())) {
+      throw new Error(`dist/search-index.json missing at ${INDEX_FILE} — run \`bun run build\` first`);
+    }
+    raw = await file.text();
+    index = JSON.parse(raw) as SearchIndexEntry[];
+    if (!Array.isArray(index) || index.length === 0) {
+      throw new Error('dist/search-index.json is not a non-empty JSON array — rebuild with `bun run build`');
+    }
+  });
+
+  it('is no thicker than 1 MB', () => {
+    const bytes = Buffer.byteLength(raw, 'utf8');
+    expect(
+      bytes,
+      `dist/search-index.json is ${bytes} bytes (${(bytes / 1024).toFixed(1)} KB, ${index.length} entries) — ` +
+        'over the 1 MiB budget fetched on first focus; shrink BODY_LIMIT in src/pages/search-index.json.ts or drop entries',
+    ).toBeLessThanOrEqual(INDEX_LIMIT_BYTES);
+  });
+
+  it('every entry carries a non-empty translit field', () => {
+    // The field is what lets a Latin-keyboard query reach a Cyrillic entry;
+    // an entry without it is simply unreachable that way.
+    const offenders = index
+      .filter((e) => typeof e.translit !== 'string' || e.translit.trim() === '')
+      .map((e) => e.href);
+    expect(
+      offenders,
+      `${offenders.length} of ${index.length} entries have no translit (missing or empty): ${offenders.slice(0, 10).join(', ')}`,
+    ).toEqual([]);
+  });
+
+  it('no body exceeds 600 characters', () => {
+    const lengths = index.map((e) => (e.body ?? '').length);
+    const longest = Math.max(...lengths);
+    const offenders = index
+      .filter((e) => (e.body ?? '').length > BODY_CHAR_LIMIT)
+      .map((e) => `${e.href} (${e.body!.length})`);
+    expect(
+      offenders,
+      `${offenders.length} bodies exceed ${BODY_CHAR_LIMIT} chars (longest is ${longest} at ${index[lengths.indexOf(longest)]?.href}): ` +
+        `${offenders.slice(0, 10).join(', ')} — BODY_LIMIT in src/pages/search-index.json.ts is the cap`,
+    ).toEqual([]);
+  });
+
+  it('every body ends on a whole word, not a truncation fragment', async () => {
+    const withBody = index.filter((e) => (e.body ?? '').length > 0);
+    const checked: string[] = [];
+    const offenders: string[] = [];
+
+    for (const entry of withBody) {
+      if (/^(?:[a-z][a-z\d+.-]*:)?\/\//i.test(entry.href)) continue; // external hub, no page in dist
+      const page = Bun.file(distPage(entry.href));
+      if (!(await page.exists())) {
+        offenders.push(`${entry.href} (no built page to check against)`);
+        continue;
+      }
+      checked.push(entry.href);
+      const fragment = truncationFragment(entry.body!, pageText(await page.text()));
+      if (fragment) offenders.push(`${entry.href} ends on "${fragment}"`);
+    }
+
+    // A floor, so a shrinking index cannot turn this test vacuous.
+    expect(checked.length, `verified ${checked.length} of ${withBody.length} bodies against their built page`).toBeGreaterThan(
+      50,
+    );
+    expect(
+      offenders,
+      `${offenders.length} bodies end mid-word: ${offenders.slice(0, 10).join(', ')} — ` +
+        'the `\\s+\\S*$` trim in bodyOf() (src/pages/search-index.json.ts) was lost',
+    ).toEqual([]);
+  });
+
+  it('the fragment heuristic itself: punctuation is a boundary, a cut is not', () => {
+    // Self-check of the predicate above, so a heuristic that can never fire
+    // cannot pass by accident.
+    const page = 'Пайплайн читает события и считает удержание по когортам';
+    expect(truncationFragment('Пайплайн читает события и считает удержание по', page)).toBeNull();
+    expect(truncationFragment('Пайплайн читает события и считает удержание.', page)).toBeNull();
+    expect(truncationFragment('Пайплайн читает события и считает удержани', page)).toBe('удержани');
+  });
+});
+
 // ── Client wiring ────────────────────────────────────────────────────────
 // Skipped rather than failed where no Chrome exists (CI runners), because the
 // regression it guards is client-side and cannot be seen from the index alone.

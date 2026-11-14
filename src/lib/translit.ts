@@ -195,6 +195,13 @@ const CYRILLIC = /[Ѐ-ӿ]/;
 export function stemRu(word: string): string {
   const w = word.toLowerCase().replace(/ё/g, "е");
   if (w.length < 5 || !CYRILLIC.test(w)) return w;
+  // A soft sign is never part of the stem, and dropping it IS the reduction:
+  // «модель» → «модел». Running the ending list on top of that cut a second
+  // time and merged unrelated roots («постель» → «пост», «спираль» → «спир»).
+  if (w.endsWith("ь")) return w.slice(0, -1);
+  // A plural in -ли drops only its final «и» («детали» → «детал», «модели» →
+  // «модел»); the ending list takes the whole «ли» and lands on «дета».
+  if (w.endsWith("ли")) return w.slice(0, -1);
   for (const ending of ENDINGS) {
     if (w.length - ending.length < 4) continue;
     if (w.endsWith(ending)) return w.slice(0, w.length - ending.length);

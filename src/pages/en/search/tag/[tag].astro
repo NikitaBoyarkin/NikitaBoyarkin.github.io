@@ -1,0 +1,17 @@
+---
+// EN tag filters. Generated from the EN facet list, which is smaller than the RU
+// one — the language switch on a tag page only links across when both exist
+// (see `counterpartHref` in SearchPage.astro).
+import SearchPage from "../../../../components/SearchPage.astro";
+import { buildSearchIndex } from "../../../../lib/search-index";
+import { tagFacets } from "../../../../lib/search-page";
+
+export async function getStaticPaths() {
+  const records = await buildSearchIndex();
+  return tagFacets(records, "en").map((facet) => ({ params: { tag: facet.slug } }));
+}
+
+const { tag } = Astro.params;
+---
+
+<SearchPage locale="en" filter={{ kind: "tag", value: tag! }} />

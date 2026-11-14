@@ -1,0 +1,532 @@
+---
+/**
+ * The addressable search page — `/search/`, `/en/search/` and their prerendered
+ * filter variants (`/search/tag/<tag>/`, `/search/collection/<type>/`).
+ *
+ * Why one component: the six route files differ only in a locale and an optional
+ * filter, and the head (title, canonical, hreflang twin, JSON-LD) is derived from
+ * exactly those two inputs. Two copies of that derivation would drift.
+ *
+ * What is server-rendered and what is not — stated plainly, because the
+ * difference is the whole design:
+ *
+ *   - The RESULT LIST is in the HTML before any script runs. `/search/` renders
+ *     the whole index (116 RU / 94 EN records) grouped by type; a filter variant
+ *     renders that filter's matches. A crawler, a `curl`, and a reader with
+ *     JavaScript off all see real links.
+ *   - A FREE-TEXT QUERY (`?q=когорты`) CANNOT be answered by a static host: the
+ *     query string never reaches the build, and GitHub Pages serves one file per
+ *     path. So the island re-ranks the list in the browser with the same
+ *     `runSearch` the build uses, and the server copy stays as the no-JS
+ *     fallback. Filters that must exist server-side are the prerendered URLs
+ *     above — they are what the filter links and the sitemap point at.
+ */
+import Base from "../layouts/Base.astro";
+import { withBase } from "../lib/path";
+import { buildSearchIndex } from "../lib/search-index";
+import {
+  COLLECTION_ORDER,
+  collectionFromSlug,
+  collectionLabel,
+  collectionSlug,
+  filterHref,
+  pluralResults,
+  runSearch,
+  tagFacets,
+  typeBadge,
+  type Locale,
+} from "../lib/search-page";
+
+interface Props {
+  locale: Locale;
+  filter?: { kind: "tag" | "collection"; value: string };
+}
+
+const { locale, filter } = Astro.props;
+const isEn = locale === "en";
+
+const records = await buildSearchIndex();
+
+const copy = isEn
+  ? {
+      h1: "Search",
+      lede: "Everything the site publishes — projects, case parts, posts, glossary terms and shelf notes — in one list. Type a query below, or narrow the list with a filter; every filter has its own link, so it can be shared and read without JavaScript.",
+      label: "Search the site",
+      placeholder: "cohorts, retention, A/B test…",
+      submit: "Search",
+      hint: "Filters: #retention or tag:retention, collection:projects (project, post, term, part, source, topic). Combine with words.",
+      facets: "Filters",
+      empty: "Nothing matched that query. Try a shorter word, or a filter link below.",
+      error: "The search index could not be loaded. The full list below still works.",
+      indexNote: "in the index",
+    }
+  : {
+      h1: "Поиск",
+      lede: "Всё, что опубликовано на сайте — проекты, разделы кейса, статьи, термины словаря и заметки полки — одним списком. Введите запрос ниже или сузьте список фильтром; у каждого фильтра есть свой адрес, поэтому им можно поделиться и прочитать его без JavaScript.",
+      label: "Поиск по сайту",
+      placeholder: "когорты, retention, A/B-тест…",
+      submit: "Найти",
+      hint: "Фильтры: #retention или tag:retention, collection:projects (project, post, term, part, source, topic). Складываются со словами.",
+      facets: "Фильтры",
+      empty: "По этому запросу ничего не нашлось. Попробуйте слово короче или фильтр из списка ниже.",
+      error: "Не удалось загрузить индекс поиска. Полный список ниже всё равно работает.",
+      indexNote: "в индексе",
+    };
+
+// --- filter resolution -------------------------------------------------------
+// A filter variant is generated from the same facet list the links come from,
+// so an unknown value here means a route file drifted. Fail the build loudly
+// instead of serving a page that silently shows everything.
+const facets = tagFacets(records, locale);
+let filterKind: "tag" | "collection" | null = null;
+let filterValue = "";
+if (filter) {
+  filterKind = filter.kind;
+  filterValue = filter.value;
+  if (filterKind === "collection" && !collectionFromSlug(filterValue)) {
+    throw new Error(`/search/collection/${filterValue}/ has no collection — see search-page.ts`);
+  }
+  if (filterKind === "tag" && !facets.some((f) => f.slug === filterValue)) {
+    throw new Error(`/search/tag/${filterValue}/ is below the facet threshold — see tagFacets()`);
+  }
+}
+
+const collectionType = filterKind === "collection" ? collectionFromSlug(filterValue)! : null;
+const tagFacet = filterKind === "tag" ? facets.find((f) => f.slug === filterValue)! : null;
+
+// The raw query the build runs. It is also handed to the island so a page
+// filter and a typed query compose instead of overwriting each other.
+const rawQuery =
+  filterKind === "collection"
+    ? `collection:${collectionSlug(collectionType!)}`
+    : filterKind === "tag"
+      ? `tag:${filterValue}`
+      : "";
+
+const run = runSearch(records, rawQuery, locale, 500);
+
+// Sectioned like the browse list; a ranked island result stays flat.
+const groups = COLLECTION_ORDER.map((type) => ({
+  type,
+  label: collectionLabel(type, locale),
+  items: run.items.filter((item) => item.type === type),
+})).filter((group) => group.items.length > 0);
+
+// --- head --------------------------------------------------------------------
+const routePath = `search/${filterKind ? `${filterKind}/${filterValue}/` : ""}`;
+const canonical = withBase(`${isEn ? "en/" : ""}${routePath}`);
+const siteUrl = (Astro.site?.toString() || "https://nikitaboyarkin.github.io").replace(/\/$/, "");
+
+// Tag pages are generated per locale, so the twin only exists on the other side
+// of the language switch when that locale's facet list carries the same slug.
+const twinFacetSlugs = new Set(tagFacets(records, isEn ? "ru" : "en").map((f) => f.slug));
+const counterpartHref =
+  filterKind === "tag" && !twinFacetSlugs.has(filterValue)
+    ? undefined
+    : withBase(`${isEn ? "" : "en/"}${routePath}`);
+
+const count = `${run.total} ${pluralResults(run.total, locale)}`;
+const heading = collectionType
+  ? collectionLabel(collectionType, locale)
+  : tagFacet
+    ? isEn
+      ? `Tag “${tagFacet.label}”`
+      : `Тег «${tagFacet.label}»`
+    : copy.h1;
+
+const title = collectionType
+  ? isEn
+    ? `${heading} — search | Nikita Boyarkin`
+    : `${heading} — поиск | Nikita Boyarkin`
+  : tagFacet
+    ? isEn
+      ? `Tag “${tagFacet.label}” — search | Nikita Boyarkin`
+      : `Тег «${tagFacet.label}» — поиск | Nikita Boyarkin`
+    : isEn
+      ? "Search — projects, posts, terms | Nikita Boyarkin"
+      : "Поиск по сайту — проекты, статьи, термины | Nikita Boyarkin";
+
+const description = collectionType
+  ? isEn
+    ? `${heading}: ${count} from the site index, each with a direct link. Filter pages are prerendered, so they load without JavaScript.`
+    : `${heading}: ${count} из индекса сайта, со ссылками на каждую страницу. Страницы фильтров собираются статически — работают без JavaScript.`
+  : tagFacet
+    ? isEn
+      ? `Everything tagged “${tagFacet.label}”: ${count}, prerendered from the site index — projects, posts, case parts and terms.`
+      : `Всё с тегом «${tagFacet.label}»: ${count} — проекты, статьи, разделы кейса и термины, собранные из индекса статически.`
+    : isEn
+      ? `Addressable search over the whole site: ${count} — projects, case parts, posts, glossary terms and notes, each with a direct link.`
+      : `Адресуемый поиск по всему сайту: ${count} — проекты, разделы кейса, статьи, термины словаря и заметки, со ссылками на каждую страницу.`;
+
+// `SearchResultsPage` is the type built for exactly this; the ItemList mirrors
+// what the server actually renders, so the markup can never claim an item the
+// page does not list.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SearchResultsPage",
+  name: title,
+  description,
+  url: `${siteUrl}${canonical}`,
+  inLanguage: isEn ? "en" : "ru",
+  isPartOf: { "@type": "WebSite", "@id": `${siteUrl}${withBase("/")}#website` },
+  mainEntity: {
+    "@type": "ItemList",
+    numberOfItems: run.items.length,
+    itemListElement: run.items.slice(0, 20).map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.title,
+      url: `${siteUrl}${item.href}`,
+    })),
+  },
+};
+---
+
+<Base
+  title={title}
+  description={description}
+  canonical={canonical}
+  counterpartHref={counterpartHref}
+  activeNav="home"
+  lang={locale}
+  jsonLd={jsonLd}
+>
+  <section
+    class="container srch"
+    data-search-page
+    data-locale={locale}
+    data-server-query={rawQuery}
+    data-index-url={withBase("search-index.json")}
+    data-copy={JSON.stringify({ empty: copy.empty, error: copy.error })}
+  >
+    <h1 class="page-title reveal">{heading}</h1>
+    <p class="srch-lede reveal">{copy.lede}</p>
+
+    <form
+      class="srch-form reveal"
+      role="search"
+      method="get"
+      action={withBase(`${isEn ? "en/" : ""}search/`)}
+    >
+      <label class="srch-label" for="search-page-q">{copy.label}</label>
+      <div class="srch-form-row">
+        <input
+          id="search-page-q"
+          class="srch-input"
+          type="search"
+          name="q"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder={copy.placeholder}
+        />
+        <button class="button button-secondary" type="submit">{copy.submit}</button>
+      </div>
+      <p class="srch-hint">{copy.hint}</p>
+    </form>
+
+    <p id="search-page-status" class="srch-status" role="status" aria-live="polite">
+      {run.total} {pluralResults(run.total, locale)} {copy.indexNote}
+    </p>
+
+    {/* Island output. Empty and hidden until a `?q=` is present. */}
+    <div id="search-page-hits" class="srch-hits" hidden></div>
+
+    <div id="search-page-browse" class="srch-browse">
+      <nav class="srch-facets" aria-label={copy.facets}>
+        {
+          COLLECTION_ORDER.map((type) => (
+            <a
+              class="srch-chip"
+              class:list={{ "is-active": collectionType === type }}
+              href={filterHref({ kind: "collection", value: collectionSlug(type) }, locale)}
+            >
+              {collectionLabel(type, locale)}
+            </a>
+          ))
+        }
+        {
+          facets.slice(0, 16).map((facet) => (
+            <a
+              class="srch-chip"
+              class:list={{ "is-active": tagFacet?.slug === facet.slug }}
+              href={filterHref({ kind: "tag", value: facet.slug }, locale)}
+            >
+              #{facet.label}
+            </a>
+          ))
+        }
+      </nav>
+
+      <div id="search-page-results" class="srch-results" data-search-results>
+        {
+          groups.map((group) => (
+            <section class="srch-group">
+              <h2 class="srch-group-title">
+                {group.label} <span class="srch-count">{group.items.length}</span>
+              </h2>
+              <ul class="srch-list">
+                {group.items.map((item) => (
+                  <li class="srch-hit">
+                    <a class="srch-hit-link" href={item.href}>
+                      {item.title}
+                    </a>
+                    <span class="srch-badge">{typeBadge(item.type, locale)}</span>
+                    {item.desc && <p class="srch-desc">{item.desc}</p>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
+        }
+      </div>
+    </div>
+
+    <p class="srch-foot">
+      {
+        isEn ? (
+          <a href={withBase("en/navigation/")}>All sections →</a>
+        ) : (
+          <a href={withBase("navigation/")}>Все разделы →</a>
+        )
+      }
+    </p>
+  </section>
+</Base>
+
+<script>
+  // Progressive enhancement only: the server copy above is the page. This adds
+  // what a static host cannot — ranking for an arbitrary `?q=`.
+  import { runSearch, pluralResults, typeBadge, type Locale } from "../lib/search-page";
+  import { highlightRanges, type SearchEntry } from "../lib/search-rank";
+
+  const root = document.querySelector<HTMLElement>("[data-search-page]");
+  if (root) {
+    const locale: Locale = root.dataset.locale === "en" ? "en" : "ru";
+    const serverQuery = root.dataset.serverQuery ?? "";
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as { empty?: string; error?: string };
+    const form = root.querySelector<HTMLFormElement>(".srch-form");
+    const input = root.querySelector<HTMLInputElement>("#search-page-q");
+    const status = root.querySelector<HTMLElement>("#search-page-status");
+    const hits = root.querySelector<HTMLElement>("#search-page-hits");
+    const browse = root.querySelector<HTMLElement>("#search-page-browse");
+
+    let loaded: Promise<SearchEntry[]> | null = null;
+    const loadIndex = (): Promise<SearchEntry[]> =>
+      (loaded ??= fetch(root.dataset.indexUrl ?? "")
+        .then((res) => {
+          if (!res.ok) throw new Error(`search index ${res.status}`);
+          return res.json() as Promise<SearchEntry[]>;
+        }));
+
+    /** `<mark>` from offsets — textContent only, never HTML. */
+    const appendMarked = (parent: HTMLElement, text: string, tokens: string[]) => {
+      let at = 0;
+      for (const [start, end] of highlightRanges(text, tokens)) {
+        if (start > at) parent.append(document.createTextNode(text.slice(at, start)));
+        const mark = document.createElement("mark");
+        mark.textContent = text.slice(start, end);
+        parent.append(mark);
+        at = end;
+      }
+      if (at < text.length) parent.append(document.createTextNode(text.slice(at)));
+    };
+
+    const hitNode = (item: SearchEntry, tokens: string[]): HTMLLIElement => {
+      const li = document.createElement("li");
+      li.className = "srch-hit";
+      const link = document.createElement("a");
+      link.className = "srch-hit-link";
+      link.href = item.href;
+      appendMarked(link, item.title, tokens);
+      const badge = document.createElement("span");
+      badge.className = "srch-badge";
+      badge.textContent = typeBadge(item.type, locale);
+      li.append(link, badge);
+      if (item.desc) {
+        const desc = document.createElement("p");
+        desc.className = "srch-desc";
+        appendMarked(desc, item.desc, tokens);
+        li.append(desc);
+      }
+      return li;
+    };
+
+    const render = async (rawQuery: string) => {
+      if (!hits || !status || !browse) return;
+      try {
+        const records = await loadIndex();
+        const result = runSearch(records, rawQuery, locale, 40);
+        const list = document.createDocumentFragment();
+        for (const item of result.items) list.append(hitNode(item, result.spec.terms));
+        hits.replaceChildren(list);
+        hits.hidden = false;
+        browse.hidden = true;
+        status.textContent = result.items.length
+          ? `${result.items.length} ${pluralResults(result.items.length, locale)}`
+          : (copy.empty ?? "");
+      } catch {
+        // The server copy is still on screen, so a failed fetch is a missing
+        // refinement, not a broken page. Say so instead of failing silently.
+        status.textContent = copy.error ?? "";
+      }
+    };
+
+    const query = new URLSearchParams(window.location.search).get("q") ?? "";
+    if (query.trim()) {
+      if (input) input.value = query;
+      void render([serverQuery, query.trim()].filter(Boolean).join(" "));
+    }
+
+    // A page filter and a typed query compose: keep the path, replace `q`.
+    form?.addEventListener("submit", (event) => {
+      if (!input) return;
+      event.preventDefault();
+      const value = input.value.trim();
+      const url = new URL(window.location.href);
+      if (value) url.searchParams.set("q", value);
+      else url.searchParams.delete("q");
+      window.history.replaceState(null, "", url.toString());
+      if (value) {
+        void render([serverQuery, value].filter(Boolean).join(" "));
+      } else {
+        // Back to the server-rendered list, and drop the island's output.
+        if (hits) {
+          hits.replaceChildren();
+          hits.hidden = true;
+        }
+        if (browse) browse.hidden = false;
+        if (status) status.textContent = "";
+      }
+    });
+  }
+</script>
+
+<style>
+  .srch-lede {
+    color: var(--text-muted);
+    max-width: 62ch;
+    margin-bottom: var(--space-8);
+  }
+  .srch-form {
+    margin-bottom: var(--space-6);
+    max-width: 46rem;
+  }
+  .srch-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: var(--space-2);
+  }
+  .srch-form-row {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+  .srch-input {
+    flex: 1 1 16rem;
+    min-width: 0;
+    padding: 0.55rem 0.75rem;
+    font: inherit;
+    color: var(--text-normal);
+    background: color-mix(in srgb, var(--text-normal) 6%, transparent);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+  }
+  .srch-input:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 1px;
+  }
+  .srch-hint {
+    margin-top: var(--space-2);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .srch-status {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: var(--space-4);
+  }
+  .srch-facets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-8);
+  }
+  .srch-chip {
+    font-size: 0.8rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+    color: var(--text-normal);
+    text-decoration: none;
+  }
+  .srch-chip:hover,
+  .srch-chip:focus-visible {
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+  }
+  .srch-chip.is-active {
+    background: color-mix(in srgb, var(--text-accent) 12%, transparent);
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+  }
+  .srch-group + .srch-group {
+    margin-top: var(--space-8);
+  }
+  .srch-group-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 1rem;
+    margin-bottom: var(--space-3);
+  }
+  .srch-count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-accent);
+    background: color-mix(in srgb, var(--text-accent) 10%, transparent);
+    padding: 0.05rem 0.5rem;
+    border-radius: var(--radius-full);
+  }
+  .srch-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .srch-hit {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-normal) 12%, transparent);
+  }
+  .srch-hit-link {
+    font-weight: 500;
+  }
+  .srch-badge {
+    margin-left: var(--space-2);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    border: 1px solid color-mix(in srgb, var(--text-normal) 20%, transparent);
+    border-radius: var(--radius-sm);
+    padding: 0 0.35rem;
+  }
+  .srch-desc {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+  .srch-hits[hidden],
+  .srch-browse[hidden] {
+    display: none;
+  }
+  .srch-hit-link mark,
+  .srch-desc mark {
+    background: color-mix(in srgb, var(--text-accent) 22%, transparent);
+    color: inherit;
+    border-radius: 2px;
+  }
+  .srch-foot {
+    margin-top: var(--space-10);
+  }
+</style>

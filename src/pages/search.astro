@@ -1,0 +1,8 @@
+---
+// Addressable search — `/search/`. See `src/components/SearchPage.astro` for what
+// is server-rendered (the whole index, grouped) and what a static host cannot do
+// (rank an arbitrary `?q=` at build time; the island does that in the browser).
+import SearchPage from "../components/SearchPage.astro";
+---
+
+<SearchPage locale="ru" />

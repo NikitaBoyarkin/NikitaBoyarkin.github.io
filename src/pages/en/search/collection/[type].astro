@@ -1,0 +1,13 @@
+---
+// EN collection filters — the twin of `/search/collection/<type>/`.
+import SearchPage from "../../../../components/SearchPage.astro";
+import { COLLECTION_ORDER, collectionSlug } from "../../../../lib/search-page";
+
+export function getStaticPaths() {
+  return COLLECTION_ORDER.map((type) => ({ params: { type: collectionSlug(type) } }));
+}
+
+const { type } = Astro.params;
+---
+
+<SearchPage locale="en" filter={{ kind: "collection", value: type! }} />

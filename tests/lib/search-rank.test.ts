@@ -73,6 +73,43 @@ describe("rankEntries", () => {
     expect(hrefs("когорт zzqqq")).toContain("/posts/ru");
   });
 
+  it("body match does not evict near-miss", () => {
+    const idx = prepareIndex([
+      {
+        type: "post",
+        locale: "ru",
+        title: "Заметка",
+        desc: "",
+        body: "когорты и выручка",
+        href: "/posts/body-and",
+      },
+      { type: "post", locale: "ru", title: "Когортный анализ", desc: "", href: "/posts/near-miss" },
+    ]);
+    const ranked = rankEntries(idx, tokenize("когорты выручка"), "ru", 6).map((e) => e.href);
+    expect(ranked).toContain("/posts/body-and");
+    expect(ranked).toContain("/posts/near-miss");
+  });
+
+  it("keeps a body-only single-token match reachable", () => {
+    // The native row is what made this a witness: with only the body-only entry
+    // the AND set and the ANY fallback produce the same list, so the test could
+    // not tell the two apart.
+    const idx = prepareIndex([
+      {
+        type: "post",
+        locale: "ru",
+        title: "Заметка",
+        desc: "",
+        body: "когорты и выручка",
+        href: "/posts/body-only",
+      },
+      { type: "post", locale: "ru", title: "Выручка", desc: "", href: "/posts/native" },
+    ]);
+    const ranked = rankEntries(idx, tokenize("выручка"), "ru", 6).map((e) => e.href);
+    expect(ranked).toContain("/posts/native");
+    expect(ranked).toContain("/posts/body-only");
+  });
+
   it("matches a tag by prefix, not only by exact equality", () => {
     expect(hrefs("cohort")).toContain("/topics/retention");
   });
@@ -124,6 +161,40 @@ describe("stemRu", () => {
     // "оса" would strip to "ос" — the length guard keeps the word whole.
     for (const w of ["оса", "уха", "эха", "выбросы", "когортный"]) {
       expect(stemRu(w).length).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  test("joins the nominative and genitive of one noun", () => {
+    expect(stemRu("решение")).toBe(stemRu("решения"));
+  });
+
+  test("joins a feminine -ь noun to its plural", () => {
+    expect(stemRu("модели")).toBe(stemRu("модель"));
+  });
+
+  test("joins the -ль plural family, not only -ели", () => {
+    expect(stemRu("детали")).toBe(stemRu("деталь"));
+    expect(stemRu("медали")).toBe(stemRu("медаль"));
+  });
+
+  test("does not strip a soft sign and an ending in one pass", () => {
+    // Double truncation merged unrelated roots: «постель» landed on «пост»,
+    // and a query for it surfaced the post titled "Пост о когортах".
+    expect(stemRu("постель")).toBe("постел");
+    expect(stemRu("спираль")).toBe("спирал");
+    expect(stemRu("постель")).not.toBe(stemRu("пост"));
+  });
+
+  test("keeps unrelated nouns apart", () => {
+    expect(stemRu("могила")).not.toBe(stemRu("могут"));
+  });
+
+  test("keeps the four-letter stem floor", () => {
+    // «могила» is the boundary: it lands exactly on four, and one more strip
+    // would collapse it onto «могут».
+    expect(stemRu("могила")).toBe("моги");
+    for (const w of ["решение", "решения", "модели", "модель", "могила"]) {
+      expect(stemRu(w).length).toBeGreaterThanOrEqual(4);
     }
   });
 });

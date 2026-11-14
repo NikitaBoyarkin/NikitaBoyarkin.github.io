@@ -1,0 +1,15 @@
+---
+// Prerendered collection filters: `/search/collection/<plural-type>/`. Six
+// routes, one per index type; `collectionFromSlug` is the single alias table
+// both this route and the `collection:` query syntax read.
+import SearchPage from "../../../components/SearchPage.astro";
+import { COLLECTION_ORDER, collectionSlug } from "../../../lib/search-page";
+
+export function getStaticPaths() {
+  return COLLECTION_ORDER.map((type) => ({ params: { type: collectionSlug(type) } }));
+}
+
+const { type } = Astro.params;
+---
+
+<SearchPage locale="ru" filter={{ kind: "collection", value: type! }} />

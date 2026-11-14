@@ -222,9 +222,16 @@ const counterpartUrl = counterpartHref ? `${siteUrl}${counterpartHref}` : null;
 const ruAltUrl = isEn ? counterpartUrl : pageUrl;
 const enAltUrl = isEn ? pageUrl : counterpartUrl;
 
-// Site-level JSON-LD, emitted on every page. No `SearchAction`: the search box
-// is a client-side filter over /search-index.json with no addressable query
-// URL, and advertising a template that 404s is worse than advertising none.
+// Site-level JSON-LD, emitted on every page.
+//
+// `SearchAction` points at `/search/?q=` — the addressable results page added in
+// 2026-11-14. This node used to carry none, on the grounds that the header box
+// was a client-side filter with no query URL and a template that 404s is worse
+// than no template. Both halves of that reasoning are gone: `/search/` is a real
+// static route, and a query string does not 404 on Pages — it is served the same
+// prerendered file, whose server copy is the full index and whose island ranks
+// the query. The template is honest even when the query is not ranked by the
+// server (see the note in `src/components/SearchPage.astro`).
 //
 // Stable `@id`s: the WebSite and Person nodes get absolute fragment ids so other
 // pages can reference the same entities instead of redeclaring them, and so a
@@ -239,6 +246,17 @@ const websiteLd = {
   name: 'Nikita Boyarkin',
   url: `${siteUrl}${withBase('/')}`,
   inLanguage: isEn ? 'en' : 'ru',
+  // The site's own search entry point, in the locale of the page it is emitted
+  // on: an EN page must not advertise the RU form, or a rich result hands an
+  // English reader a Russian results page.
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${siteUrl}${withBase(isEn ? 'en/search/' : 'search/')}?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
   author: {
     '@type': 'Person',
     '@id': personId,

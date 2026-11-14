@@ -111,7 +111,13 @@ const X_D = "M6 6l12 12M6 18L18 6";
 
 <script>
   import { bestWordDistance, typoBudget } from "../lib/fuzzy";
-  import { highlightRanges } from "../lib/search-rank";
+  import {
+    highlightRanges,
+    prepareIndex,
+    rankEntries,
+    tokenize,
+    type PreparedIndex,
+  } from "../lib/search-rank";
   import { track, whenAnalyticsReady } from "../lib/analytics";
   import { ICON } from "../lib/icons";
 
@@ -180,7 +186,9 @@ const X_D = "M6 6l12 12M6 18L18 6";
       tags?: string[];
       tools?: string[];
       href: string;
-      date?: string;
+      /** `null` for collections with no date (topics, terms) — the JSON index
+       *  emits null, Pagefind rows omit it. Both sort as "oldest". */
+      date?: string | null;
       /** Pagefind's highlighted excerpt — already `<mark>`ed, used as-is. */
       html?: string;
       /** Page body excerpt from the JSON index — searched by the typo fallback. */
@@ -189,6 +197,9 @@ const X_D = "M6 6l12 12M6 18L18 6";
       translit?: string;
     };
     let index: Entry[] | null = null;
+    // Folded/stemmed form of `index`. `rankEntries` runs per keystroke, and
+    // re-preparing thousands of entries on each one would not.
+    let prepared: PreparedIndex | null = null;
     let activeIndex = -1;
     let facet = "all";
     // Dropdown cap. When a query has more matches, the last row hands the whole
@@ -211,6 +222,13 @@ const X_D = "M6 6l12 12M6 18L18 6";
         }
       }
       return index;
+    }
+
+    /** The same index in the shape `rankEntries` expects — the identical
+     *  contract the homepage hero search (HomeNewTab) uses. Prepared once. */
+    async function getPrepared(): Promise<PreparedIndex> {
+      if (!prepared) prepared = prepareIndex(await getIndex());
+      return prepared;
     }
 
     function open() {
@@ -302,6 +320,12 @@ const X_D = "M6 6l12 12M6 18L18 6";
     let pf: Pagefind | null = null;
     async function getPagefind(): Promise<Pagefind> {
       if (!pf) {
+        // `astro dev` serves source, and `dist/pagefind/` is produced only by
+        // `pagefind --site dist` after a build — importing it there buys a 404
+        // console entry and nothing else. The JSON index answers in dev. Vite
+        // folds `DEV` to `false` in the bundle, so a built site still reaches
+        // Pagefind first.
+        if (import.meta.env.DEV) throw new Error("pagefind is built into dist/ only");
         pf = (await import(/* @vite-ignore */ `${pagefindUrl}pagefind.js`)) as Pagefind;
         await pf.init?.();
       }
@@ -332,6 +356,18 @@ const X_D = "M6 6l12 12M6 18L18 6";
         .sort((a, b) => a.d - b.d || (b.e.date ?? "").localeCompare(a.e.date ?? ""))
         .slice(0, MAX_ROWS)
         .map((h) => h.e);
+    }
+
+    /** Fallback engine for the two cases Pagefind cannot serve: `astro dev`,
+     *  where the index is built only into `dist/`, and a deployment where it
+     *  failed to initialise. Ranks the build-time JSON index with the shared
+     *  stem/prefix/translit ladder instead of the typo-only pass above. The
+     *  facet is applied *before* ranking, so the row cap is spent on entries
+     *  that can actually render. */
+    async function jsonFallback(tokens: string[], active: string): Promise<Entry[]> {
+      const idx = await getPrepared();
+      const pool = active === "all" ? idx : idx.filter((p) => inFacet(p.e.type, active));
+      return rankEntries(pool, tokens, lang, MAX_ROWS);
     }
 
     function render(rows: Entry[], tokens: string[], more: boolean, query: string) {
@@ -523,12 +559,19 @@ const X_D = "M6 6l12 12M6 18L18 6";
             href: d.url,
           }));
         } catch (err) {
-          // Never silent: a missing/failed index must be visible, or the box
-          // degrades to the fuzzy title fallback and looks like "no results".
-          console.error("[search] pagefind failed", err);
+          // In dev Pagefind is absent by construction (see `getPagefind`), so
+          // the JSON index below is the engine rather than a failure. In a
+          // built site a miss is real: warn, never degrade silently.
+          if (!import.meta.env.DEV) {
+            console.warn("[search] pagefind unavailable, ranking the JSON index", err);
+          }
           rows = [];
         }
-        // No typo tolerance in Pagefind — fuzzy word matching covers the miss.
+        // Pagefind ships no typo tolerance, and dev has no Pagefind at all —
+        // stem/prefix/translit ranking over the JSON index covers both. The
+        // typo-only pass below stays last: it is the widest, lowest-precision
+        // tier and must not pre-empt a real stem match.
+        if (!rows.length) rows = await jsonFallback(tokenize(rawQuery), facet);
         if (!rows.length) rows = await fuzzyFallback(tokens, facet);
       }
       render(rows, tokens, more, rawQuery);

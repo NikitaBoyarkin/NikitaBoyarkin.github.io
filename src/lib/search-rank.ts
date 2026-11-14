@@ -109,11 +109,13 @@ export function prepareIndex(entries: SearchEntry[]): PreparedIndex {
  * is what keeps "vozvratnost" below every Cyrillic hit.
  *
  * `matched` counts the tokens that landed somewhere, so the caller can fall
- * back from "all tokens" to "any token" without scoring twice.
+ * back from "all tokens" to "any token" without scoring twice. `native` counts
+ * the same tokens minus body-only hits, which is what the AND set is built on.
  */
 function scoreEntry(p: PreparedEntry, tokens: string[]) {
   let s = 0;
   let matched = 0;
+  let native = 0;
   for (const tk of tokens) {
     let add = 0;
     const stem = stemRu(tk);
@@ -169,10 +171,16 @@ function scoreEntry(p: PreparedEntry, tokens: string[]) {
         else if (p.translitHay.includes(lat)) add += 1;
       }
     }
-    if (add > 0) matched += 1;
+    if (add > 0) {
+      matched += 1;
+      // A body hit contributes only `metaAdd` (1); anything above that came
+      // from a native field, and `!bodyHit` means the token never touched the
+      // body at all.
+      if (!bodyHit || add > 1) native += 1;
+    }
     s += add;
   }
-  return { s, matched };
+  return { s, matched, native };
 }
 
 export function rankEntries(
@@ -188,10 +196,13 @@ export function rankEntries(
   const scored = pool.map((p) => ({ p, ...scoreEntry(p, tokens) }));
   // AND first; only when it comes back empty does a partial match count.
   // Multi-word queries used to return nothing the moment one token missed.
-  // AND over *native* fields only. A row that matches every token solely
-  // through its body still ranks — but it must not be the reason the ANY
-  // fallback never fires, so a body-only match cannot satisfy the AND set.
-  const strict = scored.filter((x) => x.matched === tokens.length);
+  // AND over *native* fields only. For a multi-token query a row that matches
+  // every token solely through its body must not be the reason the ANY
+  // fallback never fires — it reappears through that fallback. A single token
+  // has no AND to weaken, so there the body hit is the match itself.
+  const strict = scored.filter((x) =>
+    tokens.length === 1 ? x.matched === 1 : x.native === tokens.length,
+  );
   const hits = (strict.length ? strict : scored.filter((x) => x.matched > 0)).sort(
     (a, b) => b.s - a.s || b.p.ts - a.p.ts,
   );
