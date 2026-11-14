@@ -47,7 +47,6 @@ function cssOf(html: string): string {
 const CONTRACTS: { name: string; markup: RegExp; css: RegExp }[] = [
   { name: 'prose', markup: /class="prose/, css: /\.prose\{/ },
   { name: 'blog cards', markup: /class="blog-card/, css: /\.blog-card\{/ },
-  { name: 'reader track', markup: /reader-track/, css: /\.reader-track/ },
   { name: 'KaTeX', markup: /class="katex/, css: /\.katex/ },
 ];
 

@@ -12,9 +12,9 @@
  * Emits mdast `html` nodes, the way `katex-math.ts` emits inline math: raw HTML
  * inside a paragraph is already rendered on this site (inline `$…$` in the
  * glossary), whereas wrapping the run in a real element would mean replacing a
- * node the tree payload hands back as a copy — `reader-slides.ts` documents what
- * that costs. A figure token is digits plus at most a sign, a currency, a
- * decimal separator and a `%`/`×`, so the emitted tag never needs escaping.
+ * node the tree payload hands back as a copy. A figure token is digits plus at
+ * most a sign, a currency, a decimal separator and a `%`/`×`, so the emitted tag
+ * never needs escaping.
  *
  * Operational note: this plugin runs inside the markdown compile, and Astro
  * caches compiled content. A change here does NOT invalidate that cache, so
