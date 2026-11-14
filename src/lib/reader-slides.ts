@@ -2,7 +2,8 @@
  * Reader slides — a Sätteri mdast plugin that splits an article body into
  * `<section class="reader-slide" data-slide="N">` ranges at every top-level
  * `##` heading, so the reader layout can page over the article instead of
- * scrolling one long column.
+ * scrolling one long column. Articles only: a project case body is one
+ * vertical column (the case carousel was removed 2026-11-14).
  *
  * Why mdast `html` nodes rather than a hast `element` wrapper: an `<section>`
  * spans a *range* of siblings, and no tree API can hold unbalanced open/close
@@ -29,12 +30,7 @@
 import { fileURLToPath } from "node:url";
 
 /** Collections whose bodies are paged. Everything else compiles untouched. */
-const COLLECTION_PATH_MARKERS = [
-  "/src/content/posts/",
-  "/src/content/posts-en/",
-  "/src/content/projects/",
-  "/src/content/projects-en/",
-];
+const COLLECTION_PATH_MARKERS = ["/src/content/posts/", "/src/content/posts-en/"];
 
 export interface SlideNode {
   type: string;

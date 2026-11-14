@@ -9,7 +9,6 @@ import InlineTOC from '../../../components/InlineTOC.astro';
 import StarBlock from '../../../components/StarBlock.astro';
 import DecisionBlock from '../../../components/DecisionBlock.astro';
 import ProjectDemo from '../../../components/ProjectDemo.astro';
-import CarouselNav from '../../../components/CarouselNav.astro';
 import FigureText from '../../../components/FigureText.astro';
 import ProjectGraph from '../../../components/ProjectGraph.astro';
 import ChartsSection from '../../../components/charts/ChartsSection.astro';
@@ -18,7 +17,6 @@ import SectionPanel from '../../../components/SectionPanel.astro';
 import Backlinks from '../../../components/Backlinks.astro';
 import NextStep from '../../../components/NextStep.astro';
 import '../../../styles/prose.css';
-import '../../../styles/reader.css';
 import { withBase } from '../../../lib/path';
 import { getBacklinks } from '../../../lib/link-index-data';
 import { loadChartFile } from '../../../lib/charts';
@@ -346,18 +344,8 @@ const pageJsonLd = {
         <InlineTOC lang="en" headings={tocHeadings} />
 
         <article id="project-content" class="prose">
-          {/* Carousel track. The build plugin wraps each top-level block of the
-              rendered Markdown in `.reader-slide`, and CarouselNav pages over
-              this element. A new inner div rather than a class on
-              `#project-content`: the id is load-bearing (InnerTOC selector,
-              reading progress, deep anchors). The FAQ block stays outside the
-              track on purpose — it is rendered next to `<Content />` here and
-              would otherwise become a slide with no body styles. Mirrors the RU
-              template. */}
-          <div class="reader-track" data-carousel-track="reader">
-            <Content />
-          </div>
-          <CarouselNav track="reader" lang="en" label="Case sections" />
+          {/* One vertical column: the case body is not paged (no reader carousel). */}
+          <Content />
 
           {
             project.data.faq.length > 0 && (

@@ -48,8 +48,8 @@
 /* The Markdown body of every project opens with `# Title`, and the project
    page chrome renders no other visible h1 — this is the page's only heading.
    It had no rule at all before (UA default 2em), so it is styled here.
-   The second selector covers the reader carousel, which wraps that opening
-   block — title included — in `.reader-track > .reader-slide[data-slide='0']`;
+   The second selector covers the reader carousel on articles, which wraps that
+   opening block — title included — in `.reader-track > .reader-slide[data-slide='0']`;
    without it the h1 drops back to the UA 2em this rule exists to replace. The
    full chain is required: the track div sits between `.prose` and the slide, so
    `.prose > .reader-slide` matches nothing. */

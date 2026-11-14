@@ -4,7 +4,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSlideGroups, readerSlides } from '../../src/lib/reader-slides';
 
-// Reader carousel — the article/project body split into `.reader-slide` sections.
+// Reader carousel — the article body split into `.reader-slide` sections.
+// Project case pages are one vertical column and carry no track (removed
+// 2026-11-14); the negative assertions for them live in the wiring block.
 //
 // The defect this binds: the page templates wrap the rendered body in
 // `.reader-track`, and the stylesheet turns that track into a horizontal snap
@@ -15,7 +17,7 @@ import { buildSlideGroups, readerSlides } from '../../src/lib/reader-slides';
 //     one very wide slide — the layout still scrolls, so nothing looks broken
 //   - the intro block is dropped or merged into the first `##` slide, and the
 //     opening paragraph of every article disappears from its own page
-//   - the plugin starts firing outside the four paged collections, and the
+//   - the plugin starts firing outside the paged collections, and the
 //     glossary (whose h2s are navigational) loses its single-column layout
 //
 // The stylesheet guard is bound too: without `:has(> .reader-slide)` a body with
@@ -84,16 +86,17 @@ describe('readerSlides factory', () => {
   const activate = (path: string) =>
     readerSlides()({ fileURL: new URL(`file:///repo/${path}`) });
 
-  it('activates on the four paged collections only', () => {
-    for (const path of [
-      'src/content/posts/a.md',
-      'src/content/posts-en/a.md',
-      'src/content/projects/b.md',
-      'src/content/projects-en/b.md',
-    ]) {
+  it('activates on the paged article collections only', () => {
+    for (const path of ['src/content/posts/a.md', 'src/content/posts-en/a.md']) {
       expect(activate(path)).toBeTruthy();
     }
-    for (const path of ['src/content/glossary/c.md', 'src/content/volta-parts/d.md', 'src/pages/about.mdx']) {
+    for (const path of [
+      'src/content/projects/b.md',
+      'src/content/projects-en/b.md',
+      'src/content/glossary/c.md',
+      'src/content/volta-parts/d.md',
+      'src/pages/about.mdx',
+    ]) {
       expect(activate(path)).toBeFalsy();
     }
     expect(readerSlides()({ fileURL: undefined })).toBeFalsy();
@@ -124,11 +127,8 @@ describe('wiring', () => {
   const CONFIG = read('astro.config.mjs');
   const BASE = read('src/layouts/Base.astro');
   const CSS = read('src/styles/reader.css');
-  const TEMPLATES = [
-    'src/layouts/Post.astro',
-    'src/pages/projects/[slug].astro',
-    'src/pages/en/projects/[slug].astro',
-  ];
+  const POST = 'src/layouts/Post.astro';
+  const PROJECT_PAGES = ['src/pages/projects/[slug].astro', 'src/pages/en/projects/[slug].astro'];
 
   it('registers the plugins in the one order that is load-bearing', () => {
     // The array itself is what must be asserted — an index over the whole file
@@ -154,17 +154,16 @@ describe('wiring', () => {
     ]);
   });
 
-  it('imports the reader sheet after the prose layer, and only there', () => {
+  it('imports the reader sheet after the prose layer, and only on the article page', () => {
     // Both sheets left `Base.astro` on 2026-11-01 (they used to ride along on
-    // all 223 pages; 80 render a reader track). The order invariant survives in
-    // the templates that ship them.
+    // all 223 pages). The order invariant survives in the template that ships
+    // them; the case pages dropped the sheet on 2026-11-14 with their track.
     expect(BASE, 'reader.css is back in the every-page bundle').not.toContain('styles/reader.css');
-    const post = read('src/layouts/Post.astro');
+    const post = read(POST);
     expect(post.indexOf("styles/prose.css")).toBeGreaterThan(-1);
     expect(post.indexOf("styles/reader.css")).toBeGreaterThan(post.indexOf("styles/prose.css"));
-    for (const rel of ['src/pages/projects/[slug].astro', 'src/pages/en/projects/[slug].astro']) {
-      const file = read(rel);
-      expect(file.indexOf("styles/reader.css")).toBeGreaterThan(file.indexOf("styles/prose.css"));
+    for (const rel of PROJECT_PAGES) {
+      expect(read(rel), `${rel} still ships the reader sheet`).not.toContain('styles/reader.css');
     }
   });
 
@@ -173,16 +172,21 @@ describe('wiring', () => {
     expect(CSS).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
 
-  it('wires a track and its nav into all three body templates', () => {
-    for (const rel of TEMPLATES) {
+  it('wires a track and its nav into the article template', () => {
+    const file = read(POST);
+    expect(file).toMatch(/class="reader-track" data-carousel-track="reader"/);
+    expect(file).toMatch(/<CarouselNav\s+track="reader"/);
+    expect(file).toMatch(/import CarouselNav from '.*components\/CarouselNav\.astro';/);
+  });
+
+  it('keeps the case pages a single vertical column', () => {
+    for (const rel of PROJECT_PAGES) {
       const file = read(rel);
-      expect(file).toMatch(/class="reader-track" data-carousel-track="reader"/);
-      expect(file).toMatch(/<CarouselNav\s+track="reader"/);
-      expect(file).toMatch(/import CarouselNav from '.*components\/CarouselNav\.astro';/);
+      expect(file, `${rel} still pages the case body`).not.toMatch(/reader-track|CarouselNav/);
     }
   });
 
-  it('keeps the project h1 styled now that it sits inside slide 0', () => {
+  it('keeps the article h1 styled now that it sits inside slide 0', () => {
     // The chain must name the track: templates nest `.prose > .reader-track >
     // .reader-slide`, so `.prose > .reader-slide` selects nothing and the h1
     // silently falls back to the UA 2em / inherited line-height.

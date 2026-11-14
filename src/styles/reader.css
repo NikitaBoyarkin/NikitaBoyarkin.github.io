@@ -1,8 +1,9 @@
 /* ─────────────────────────────────────────────────────────────────────────
-   Reader carousel — the horizontal snap track that turns an article or project
-   body into slides. This sheet styles only the markup the mdast/hast plugin
-   already emits (`.reader-track > .reader-slide`); it adds no classes and
-   expects no other hook.
+   Reader carousel — the horizontal snap track that turns an article body into
+   slides (articles only; a project case body is a vertical column). This sheet
+   styles only the markup the mdast/hast plugin already emits
+   (`.reader-track > .reader-slide`); it adds no classes and expects no other
+   hook.
 
    Two failure modes this file exists to prevent:
 
