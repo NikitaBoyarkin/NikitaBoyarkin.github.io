@@ -36,7 +36,7 @@ related:
 
 # TaskFlow — PostHog Product Analytics Pipeline
 
-**▶ [Data-flow diagram](/diagrams/posthog-saas-analytics.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Data-flow diagram](/diagrams/posthog-saas-analytics.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 

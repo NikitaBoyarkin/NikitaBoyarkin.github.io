@@ -35,7 +35,7 @@ related:
 
 # RAG Evaluation Harness — retrieval and generation metrics
 
-**▶ [Схема потока данных](/diagrams/rag-eval-harness.html)** — самодостаточный HTML, открывается в браузере — без установки и сборки
+▶ [Схема потока данных](/diagrams/rag-eval-harness.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация
 

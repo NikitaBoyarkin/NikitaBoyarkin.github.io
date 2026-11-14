@@ -37,7 +37,7 @@ related:
 
 # Causal / Uplift — CUPED and Individual Treatment Effects
 
-**▶ [Data-flow diagram](/diagrams/causal-uplift.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Data-flow diagram](/diagrams/causal-uplift.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 

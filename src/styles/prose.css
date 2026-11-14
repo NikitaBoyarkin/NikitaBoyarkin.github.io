@@ -141,15 +141,18 @@
   text-align: left;
 }
 
-/* Justification needs a wide-enough column: on a phone the word gaps outweigh
-   the even right edge, so fall back to ragged right and drop the indent. */
+/* Justification stays on at phone width by request; the indent goes, because
+   at 320–640px a красная строка costs more line length than it buys clarity.
+   `hyphens: auto` on `.prose p` is what keeps the narrower column from
+   developing rivers — with it off, this breakpoint would read worse than
+   ragged right. */
 @media (max-width: 640px) {
   .prose {
     --prose-indent: 0;
   }
 
   .prose p {
-    text-align: left;
+    text-align: justify;
   }
 }
 

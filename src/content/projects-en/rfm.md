@@ -28,7 +28,7 @@ related:
 
 # RFM Analysis of Bank Clients
 
-**▶ [Data-flow diagram](/diagrams/rfm-analysis.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Data-flow diagram](/diagrams/rfm-analysis.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 

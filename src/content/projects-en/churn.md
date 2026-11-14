@@ -48,7 +48,7 @@ sources:
 
 # Churn Prediction — Leakage-Free Retention Model
 
-**▶ [Data-flow diagram](/diagrams/churn-prediction.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Data-flow diagram](/diagrams/churn-prediction.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 

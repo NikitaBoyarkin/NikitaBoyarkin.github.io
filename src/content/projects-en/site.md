@@ -34,7 +34,7 @@ related:
 
 # This Portfolio Site
 
-**▶ [Architecture diagram](/diagrams/portfolio-site.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Architecture diagram](/diagrams/portfolio-site.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 

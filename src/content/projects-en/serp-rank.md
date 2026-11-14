@@ -57,7 +57,7 @@ faq:
 
 # SERP Rank Lab
 
-**▶ [Data-flow diagram](/diagrams/serp-rank-lab.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Data-flow diagram](/diagrams/serp-rank-lab.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 

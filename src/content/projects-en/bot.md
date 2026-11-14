@@ -45,7 +45,7 @@ faq:
 
 # Data Analyst Telegram Bot
 
-**▶ [Diagram: A/B test from a CSV](/diagrams/telegram-bot.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Diagram: A/B test from a CSV](/diagrams/telegram-bot.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 

@@ -53,7 +53,7 @@ faq:
 
 # Promo Margin Lab
 
-**▶ [Static render of the dashboard](/demos/promo/)** — built from the same SQL marts as the live Superset; the footer says it is a render
+▶ [Static render of the dashboard](/demos/promo/) — built from the same SQL marts as the live Superset; the footer says it is a render
 
 ## Situation
 

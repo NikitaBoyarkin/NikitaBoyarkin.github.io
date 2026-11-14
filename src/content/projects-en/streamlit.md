@@ -31,7 +31,7 @@ related:
 
 # Product Analytics Dashboard (Streamlit)
 
-**▶ [Architecture diagram](/diagrams/streamlit-app.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Architecture diagram](/diagrams/streamlit-app.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 

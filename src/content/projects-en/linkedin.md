@@ -37,7 +37,7 @@ related:
 
 # LinkedIn Content Analytics
 
-**▶ [Data-flow diagram](/diagrams/linkedin-analytics.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Data-flow diagram](/diagrams/linkedin-analytics.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 

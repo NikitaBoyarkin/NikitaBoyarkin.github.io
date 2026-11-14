@@ -35,7 +35,7 @@ related:
 
 # Browser Mini-Games — Analytics Arcade
 
-**▶ [Architecture diagram](/diagrams/browser-mini-games.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Architecture diagram](/diagrams/browser-mini-games.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 

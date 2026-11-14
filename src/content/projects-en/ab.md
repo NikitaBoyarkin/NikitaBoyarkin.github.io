@@ -51,7 +51,7 @@ sources:
 
 # A/B Testing Methodology Toolkit
 
-**▶ [Architecture diagram](/diagrams/ab-test.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Architecture diagram](/diagrams/ab-test.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 

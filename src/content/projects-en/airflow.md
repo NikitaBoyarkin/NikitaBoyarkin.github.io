@@ -48,7 +48,7 @@ faq:
 
 # Airflow DAG Platform
 
-**▶ [Data-flow diagram](/diagrams/airflow.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Data-flow diagram](/diagrams/airflow.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 

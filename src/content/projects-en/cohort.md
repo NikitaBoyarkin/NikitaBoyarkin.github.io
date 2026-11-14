@@ -40,7 +40,7 @@ faq:
 
 # Cohort Analysis Dashboard
 
-**▶ [Data-flow diagram](/diagrams/tableau-cohort-analysis.html)** — self-contained HTML, opens in a browser — no install, no build
+▶ [Data-flow diagram](/diagrams/tableau-cohort-analysis.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation
 
