@@ -624,7 +624,6 @@ html[data-hire-tab='colleague'] [data-role-panel]:not([data-role-panel='colleagu
 }
 
 
-
 @media (min-width: 1100px) {
   #page-board {
     padding-top: var(--space-8);
@@ -910,12 +909,10 @@ nav ul.links a[aria-current="page"] {
   position: relative;
   z-index: 1;
   display: grid;
-  /* One column by default. The two-column editorial split belongs to
-     `.hero-editorial` below, which only the colleague landing carries — `/hr/`
-     and `/manager/` render `.hero-body` alone, so the old unconditional
-     `1.2fr 0.8fr` here reserved an empty 40% track beside a hero that filled
-     60% of the content column (measured: hero 1 100px wide in a 1 180px frame
-     at 1440px, nothing in the trailing track). */
+  /* One column: every landing renders `.hero-body` alone, so the old
+     unconditional `1.2fr 0.8fr` here reserved an empty 40% track beside a hero
+     that filled 60% of the content column (measured: hero 1 100px wide in a
+     1 180px frame at 1440px, nothing in the trailing track). */
   grid-template-columns: 1fr;
   gap: 3rem;
   align-items: center;
@@ -1111,27 +1108,8 @@ nav ul.links a[aria-current="page"] {
 }
 
 /* ============================================================
-   Editorial hero (pilot redesign) — split layout with the
-   identity column on the left and a dataviz panel on the right.
+   Hero — the single identity column every landing opens on.
    ============================================================ */
-.intro-section:has(.hero-editorial) {
-  /* Homepage hero must fit one 800px viewport unscrolled. The footer's own
-     margin-top (32px) collapses with this section's margin, so the bottom
-     padding is the only lever that actually moves page height. */
-  padding: var(--space-8) 0 var(--space-2);
-  margin-bottom: var(--space-8);
-}
-.intro-section:has(.hero-editorial)::before {
-  display: none;
-}
-
-.hero-editorial {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: var(--space-8);
-  align-items: center;
-}
-
 .hero-body {
   display: flex;
   flex-direction: column;
@@ -1201,33 +1179,7 @@ nav ul.links a[aria-current="page"] {
   max-width: 52ch;
 }
 
-/* Inter-block rhythm: the lede opens after the identity cluster, the proof
-   strip after the lede, the CTA row after the proof. Each gap is larger than
-   the intra-block gap in .hero-body so the blocks separate visually. */
-.hero-editorial .hero-pitch {
-  margin-top: var(--space-4);
-}
-
-.hero-editorial .cta-row {
-  margin-top: var(--space-5);
-}
-
-.hero-visual {
-  position: relative;
-  min-height: 360px;
-  height: 100%;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-color);
-  overflow: hidden;
-  background: var(--background-secondary);
-  box-shadow: 0 20px 60px var(--shadow-color);
-}
-
 @media (max-width: 900px) {
-  .hero-editorial {
-    grid-template-columns: 1fr;
-    gap: var(--space-6);
-  }
   .hero-body {
     align-items: center;
     text-align: center;
@@ -1237,16 +1189,6 @@ nav ul.links a[aria-current="page"] {
   }
   .hero-phd {
     max-width: 48ch;
-  }
-  .hero-visual {
-    min-height: 280px;
-    order: -1;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-visual {
-    min-height: 220px;
   }
 }
 
@@ -1434,142 +1376,6 @@ nav ul.links a[aria-current="page"] {
   background: color-mix(in srgb, var(--text-accent) 8%, transparent);
   color: var(--text-accent);
   border: 1px solid color-mix(in srgb, var(--text-accent) 20%, transparent);
-}
-
-/* Featured project card — editorial spotlight. */
-.featured-card {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: var(--space-6);
-  padding: var(--space-6);
-  background: var(--gradient-surface);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.25s ease, box-shadow 0.25s ease;
-}
-
-.featured-card:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--text-accent) 35%, transparent);
-  box-shadow: 0 14px 36px var(--shadow-color);
-}
-
-.featured-card-image {
-  width: 100%;
-  height: 100%;
-  max-height: 220px;
-  object-fit: contain;
-  border-radius: var(--radius-lg);
-  background: var(--background-tertiary);
-  padding: var(--space-4);
-}
-
-.featured-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  align-items: flex-start;
-}
-
-.featured-card-title {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin: 0;
-  color: var(--text-normal);
-  line-height: 1.2;
-}
-
-.featured-card-description {
-  font-size: var(--text-body);
-  line-height: 1.5;
-  color: var(--text-normal);
-  margin: 0;
-  max-width: 66ch;
-}
-
-.featured-card-link {
-  margin-top: auto;
-  color: var(--text-accent);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.featured-card-link:hover {
-  color: var(--text-accent-hover);
-}
-
-.featured-card-eyebrow {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-accent);
-  margin: 0;
-}
-
-.featured-card-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  margin-top: auto;
-}
-
-.featured-card-chip {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  text-decoration: none;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
-  padding: 0.15rem 0.6rem;
-}
-
-.featured-card-chip:hover {
-  color: var(--text-normal);
-  border-color: var(--text-accent);
-}
-
-/* Featured case placed inside the hero visual panel. */
-.hero-visual .featured-card-hero {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: var(--space-6);
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
-}
-
-.hero-visual .featured-card-hero .featured-card-image {
-  width: 100%;
-  max-height: 170px;
-  object-fit: contain;
-  margin-bottom: var(--space-4);
-  background: var(--background-tertiary);
-}
-
-.hero-visual .featured-card-hero .featured-card-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  justify-content: flex-start;
-}
-
-/* No line clamp here. This is the hero, not a level board row: the clamp cut
-   20 of 185 characters at 320px (and 94 of 118 at 1024px) with no way to read
-   the rest. The card is a flex column, so the sentence takes its natural
-   height and the panel grows instead of hiding it. */
-
-@media (max-width: 768px) {
-  .featured-card {
-    grid-template-columns: 1fr;
-  }
-  .featured-card-image {
-    max-height: 160px;
-  }
 }
 
 @media (max-width: 1024px) {
@@ -2477,11 +2283,6 @@ footer p {
     background-position: -200% 0;
   }
 }
-
-
-
-
-
 
 
 /* Prefers reduced motion */
@@ -3596,7 +3397,6 @@ textarea::placeholder {
 }
 
 
-
 @media (min-width: 1100px) {
   #page-board {
     overflow-x: visible;
@@ -3616,14 +3416,6 @@ textarea::placeholder {
   border-color: color-mix(in srgb, var(--text-accent) 30%, transparent);
   box-shadow: 0 8px 20px var(--shadow-color);
 }
-
-
-
-
-
-
-
-
 
 
 /* Slim homepage hero (photo + long text moved into the kanban Profile column). */

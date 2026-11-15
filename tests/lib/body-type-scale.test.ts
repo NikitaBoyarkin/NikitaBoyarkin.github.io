@@ -51,7 +51,6 @@ function blockOf(source: string, selector: string): string {
 /** Prose roles outside `.prose` — sentences, not labels. */
 const ROLES: Array<[file: string, selector: string]> = [
   ['src/styles/global.css', '.bento-cell-text'],
-  ['src/styles/global.css', '.featured-card-description'],
   ['src/styles/global.css', '.project p'],
   ['src/styles/global.css', '.search-result-desc'],
   ['src/styles/global.css', '.graph-legend-item dd'],
