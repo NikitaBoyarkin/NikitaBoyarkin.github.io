@@ -19,12 +19,17 @@
  * Phase 1 rewrites descriptions to a 120-200 char result-first spec, which
  * necessarily changes which narrative numbers appear there. `star:` is excluded for
  * the same reason (D21): it is the body skeleton — its Result included — restated on
- * the card, so every number in it is a copy of a frozen one. Everything else —
- * bodies, `impact`, `faq`, titles, `excerpt` — stays frozen.
+ * the card, so every number in it is a copy of a frozen one. `proof:` is excluded on
+ * the same grounds (D25): the strip at the top of a case restates up to three numbers
+ * already frozen in that file's body, and counting them again turned every flagship
+ * case red the moment the strip shipped. Everything else — bodies, `impact`, `faq`,
+ * titles, `excerpt` — stays frozen.
  *
- * That copy is not left to trust: tests/lib/star-frontmatter.test.ts asserts every
+ * Those copies are not left to trust: tests/lib/star-frontmatter.test.ts asserts every
  * `star` token already exists in the file's own baseline (or its `description`), and
- * that `star.result` comes from the file's own Result section.
+ * that `star.result` comes from the file's own Result section;
+ * tests/lib/proof-frontmatter.test.ts does the same for `proof` and requires each
+ * claim to have a locale twin.
  *
  * Markdown ordered-list markers (`1.`, `2)`) are stripped as formatting, not
  * content: converting a numbered list to bullets is a valid readability edit.
@@ -74,12 +79,16 @@ function stripFrontmatterField(md, field) {
 }
 
 function numericTokens(md) {
-  // `description:` (D20) and `star:` (D21) are narrative restatements of the frozen
-  // body numbers — the card is the hoisted Result — so both are excluded. Bodies,
-  // `impact`, `faq`, titles and `excerpt` stay frozen.
+  // `description:` (D20), `star:` (D21) and `proof:` (D25) are narrative restatements
+  // of the frozen body numbers — the card is the hoisted Result, the proof strip is
+  // its receipts — so all three are excluded. Bodies, `impact`, `faq`, titles and
+  // `excerpt` stay frozen.
   const text = stripFrontmatterField(
-    stripFrontmatterField(stripFencedCode(md), 'description'),
-    'star',
+    stripFrontmatterField(
+      stripFrontmatterField(stripFencedCode(md), 'description'),
+      'star',
+    ),
+    'proof',
   ).replace(/^[ \t]*\d+[.)][ \t]+/gm, '');
   const raw = text.match(/\d(?:[\d\s.,_]*\d)?/g) || [];
   return raw.map((token) => token.replace(/[\s,_]/g, '')).filter((token) => /\d/.test(token));

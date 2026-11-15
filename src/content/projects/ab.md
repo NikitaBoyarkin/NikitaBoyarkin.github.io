@@ -18,10 +18,10 @@ impact:
   - "CUPED на прогоне пайплайна: дисперсия −17.7%, SE 0.00360 → 0.00327"
   - "Delta-method CTR: лифт +0.51 pp при p < 0.0001; SRM p = 0.8376 — бакеты чистые"
 proof:
-  - value: "17,7%"
+  - value: "17.7%"
     label: среза дисперсии CUPED
     kind: measured
-  - value: "+0,51 п.п."
+  - value: "+0.51 п.п."
     label: лифта CTR (delta-method)
     kind: measured
   - value: "18"
