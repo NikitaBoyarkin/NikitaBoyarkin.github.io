@@ -1,0 +1,144 @@
+---
+// «Связи» as a board, not a list — the shape the owner's program page uses for
+// related talks (`talk-note__related-board`): the same relation set arranged in
+// columns by material kind, each card carrying the target's own one-line
+// description. A bare title makes the reader open the page to learn whether it
+// is the same thread; the description answers that on the card.
+interface Item {
+  href: string;
+  title: string;
+  brief?: string;
+}
+
+interface Props {
+  heading: string;
+  lead?: string;
+  groups: { label: string; items: Item[] }[];
+  /** Reveal delay class, so the board can follow other blocks on the page. */
+  delay?: string;
+}
+
+const { heading, lead, groups, delay = 'reveal-delay-2' } = Astro.props;
+---
+
+{
+  groups.length > 0 && (
+    <section class:list={['post-related related-board-block', 'reveal', delay]} aria-label={heading}>
+      <h2>{heading}</h2>
+      {lead && <p class="related-board-lead">{lead}</p>}
+      <div class="related-board-scroll">
+        <div class="related-board">
+          {groups.map((group) => (
+            <section class="related-board-col" aria-label={group.label}>
+              <h3 class="related-board-label">{group.label}</h3>
+              <ul class="related-board-cards">
+                {group.items.map((item) => (
+                  <li class="related-board-card">
+                    <a class="related-board-title" href={item.href}>{item.title}</a>
+                    {item.brief && <p class="related-board-line">{item.brief}</p>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .related-board-lead {
+    margin: 0 0 var(--space-4);
+    max-width: 65ch;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  /* Columns scroll sideways on a wide viewport, the way the program page's
+     related board does: containment keeps the scroll from dragging the page. */
+  .related-board-scroll {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    padding-block-end: var(--space-2);
+  }
+
+  .related-board {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(13rem, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+  }
+
+  /* Under 45rem a triple column is unreadable; the board stacks into one
+     column per kind and there is nothing left to scroll. */
+  @media (max-width: 45rem) {
+    .related-board {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+    }
+
+    .related-board-scroll {
+      overflow-x: visible;
+    }
+  }
+
+  .related-board-label {
+    margin: 0 0 var(--space-2);
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .related-board-cards {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .related-board-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--space-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--gradient-surface);
+  }
+
+  .related-board-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--text-accent);
+    text-decoration: none;
+    text-wrap: pretty;
+  }
+
+  .related-board-title:hover {
+    color: var(--text-accent-hover);
+    text-decoration: underline;
+  }
+
+  /* Descriptions run up to 200 characters; three clamped lines keep every card
+     in a column the same height without hiding which source it is. */
+  .related-board-line {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+  }
+</style>

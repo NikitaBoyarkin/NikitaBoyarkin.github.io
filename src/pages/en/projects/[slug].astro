@@ -11,6 +11,7 @@ import DecisionBlock from '../../../components/DecisionBlock.astro';
 import ProofStrip from '../../../components/ProofStrip.astro';
 import ProjectDemo from '../../../components/ProjectDemo.astro';
 import FigureText from '../../../components/FigureText.astro';
+import RelatedBoard from '../../../components/RelatedBoard.astro';
 import ProjectGraph from '../../../components/ProjectGraph.astro';
 import ChartsSection from '../../../components/charts/ChartsSection.astro';
 import SectionTabs from '../../../components/SectionTabs.astro';
@@ -78,16 +79,37 @@ const SEGMENT = {
 } as const;
 type Relatable = keyof typeof SEGMENT;
 
-const lookup = new Map<string, { kind: Relatable; title: string }>();
-const register = (items: { id: string; data: { title: string } }[], kind: Relatable) => {
+const lookup = new Map<string, { kind: Relatable; title: string; brief?: string }>();
+
+// Relations render as board cards, so each one carries the target's own brief
+// line: a bare title makes the reader open the page to check whether it is the
+// same thread. The line lives in a different field per collection — posts keep
+// it in `excerpt`, a library entry has only its author.
+type Brief = { description?: string; excerpt?: string; author?: string };
+const KIND_LABELS: Record<Relatable, string> = {
+  projects: 'Projects',
+  posts: 'Posts',
+  glossary: 'Glossary',
+  library: 'Library',
+};
+
+const register = (
+  items: { id: string; data: Brief & { title: string } }[],
+  kind: Relatable,
+  pick: (data: Brief) => string | undefined,
+) => {
   for (const x of items) {
-    lookup.set(`${kind}:${x.id.replace(/\.mdx?$/, '')}`, { kind, title: x.data.title });
+    lookup.set(`${kind}:${x.id.replace(/\.mdx?$/, '')}`, {
+      kind,
+      title: x.data.title,
+      brief: pick(x.data),
+    });
   }
 };
-register(allProjects, 'projects');
-register(allPosts, 'posts');
-register(allGlossary, 'glossary');
-register(allLibrary, 'library');
+register(allProjects, 'projects', (d) => d.description);
+register(allPosts, 'posts', (d) => d.excerpt);
+register(allGlossary, 'glossary', (d) => d.description);
+register(allLibrary, 'library', (d) => d.author);
 
 const related = (project.data.related ?? [])
   .map((p) => {
@@ -99,9 +121,28 @@ const related = (project.data.related ?? [])
       : (Object.keys(SEGMENT) as Relatable[]).find((k) => lookup.has(`${k}:${slugPart}`));
     if (!kind) return null;
     const found = lookup.get(`${kind}:${slugPart}`);
-    return found ? { href: withBase(`${SEGMENT[kind]}/${slugPart}/`), title: found.title } : null;
+    return found
+      ? {
+          href: withBase(`${SEGMENT[kind]}/${slugPart}/`),
+          title: found.title,
+          kind,
+          brief: found.brief,
+        }
+      : null;
   })
-  .filter((x): x is { href: string; title: string } => x !== null);
+  .filter(
+    (x): x is { href: string; title: string; kind: Relatable; brief: string | undefined } =>
+      x !== null,
+  );
+
+// One column per material kind, in the order a reader is likeliest to want:
+// cases, then articles, then the definition, then the source.
+const relatedGroups = (Object.keys(SEGMENT) as Relatable[])
+  .map((kind) => ({
+    label: KIND_LABELS[kind],
+    items: related.filter((r) => r.kind === kind),
+  }))
+  .filter((group) => group.items.length > 0);
 
 const backlinks = await getBacklinks('en', 'project', slug);
 
@@ -393,14 +434,11 @@ const pageJsonLd = {
         hasConnections && (
           <SectionPanel id="connections" tabbed={tabbed}>
             {related.length > 0 && (
-              <section class="post-related reveal reveal-delay-2" aria-label="See also">
-                <h2>See also</h2>
-                <ul>
-                  {related.map((r) => (
-                    <li><a href={r.href}>{r.title}</a></li>
-                  ))}
-                </ul>
-              </section>
+              <RelatedBoard
+                heading="See also"
+                lead="Site material this case shares its data, method or conclusion with."
+                groups={relatedGroups}
+              />
             )}
 
             <Backlinks items={backlinks} label="Linked from" lang="en" />

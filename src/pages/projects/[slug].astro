@@ -11,6 +11,7 @@ import DecisionBlock from '../../components/DecisionBlock.astro';
 import ProofStrip from '../../components/ProofStrip.astro';
 import ProjectDemo from '../../components/ProjectDemo.astro';
 import FigureText from '../../components/FigureText.astro';
+import RelatedBoard from '../../components/RelatedBoard.astro';
 
 import ProjectGraph from '../../components/ProjectGraph.astro';
 import ChartsSection from '../../components/charts/ChartsSection.astro';
@@ -72,16 +73,37 @@ const allGlossary = await getCollection('glossary', (g) => !g.data.draft);
 const allLibrary = await getCollection('library', (l) => !l.data.draft);
 
 const RELATABLE = ['projects', 'posts', 'glossary', 'library'] as const;
-const lookup = new Map<string, { kind: string; title: string }>();
-const register = (items: { id: string; data: { title: string } }[], kind: string) => {
+
+// Relations render as board cards, so each one carries the target's own brief
+// line: a bare title makes the reader open the page to check whether it is the
+// same thread. The line lives in a different field per collection — posts keep
+// it in `excerpt`, a library entry has only its author.
+type Brief = { description?: string; excerpt?: string; author?: string };
+const KIND_LABELS: Record<(typeof RELATABLE)[number], string> = {
+  projects: 'Проекты',
+  posts: 'Посты',
+  glossary: 'Глоссарий',
+  library: 'Библиотека',
+};
+
+const lookup = new Map<string, { kind: string; title: string; brief?: string }>();
+const register = (
+  items: { id: string; data: Brief & { title: string } }[],
+  kind: string,
+  pick: (data: Brief) => string | undefined,
+) => {
   for (const x of items) {
-    lookup.set(`${kind}:${x.id.replace(/\.mdx?$/, '')}`, { kind, title: x.data.title });
+    lookup.set(`${kind}:${x.id.replace(/\.mdx?$/, '')}`, {
+      kind,
+      title: x.data.title,
+      brief: pick(x.data),
+    });
   }
 };
-register(allProjects, 'projects');
-register(allPosts, 'posts');
-register(allGlossary, 'glossary');
-register(allLibrary, 'library');
+register(allProjects, 'projects', (d) => d.description);
+register(allPosts, 'posts', (d) => d.excerpt);
+register(allGlossary, 'glossary', (d) => d.description);
+register(allLibrary, 'library', (d) => d.author);
 
 const related = (project.data.related ?? [])
   .map((p) => {
@@ -91,9 +113,20 @@ const related = (project.data.related ?? [])
     const kind = match ? match[1] : RELATABLE.find((k) => lookup.has(`${k}:${slugPart}`));
     if (!kind) return null;
     const found = lookup.get(`${kind}:${slugPart}`);
-    return found ? { href: withBase(`${kind}/${slugPart}/`), title: found.title } : null;
+    return found
+      ? { href: withBase(`${kind}/${slugPart}/`), title: found.title, kind, brief: found.brief }
+      : null;
   })
-  .filter((x): x is { href: string; title: string } => x !== null);
+  .filter(
+    (x): x is { href: string; title: string; kind: string; brief: string | undefined } => x !== null,
+  );
+
+// One column per material kind, in the order a reader is likeliest to want:
+// cases, then articles, then the definition, then the source.
+const relatedGroups = RELATABLE.map((kind) => ({
+  label: KIND_LABELS[kind],
+  items: related.filter((r) => r.kind === kind),
+})).filter((group) => group.items.length > 0);
 
 const backlinks = await getBacklinks('ru', 'project', slug);
 
@@ -387,14 +420,11 @@ const pageJsonLd = {
         hasConnections && (
           <SectionPanel id="connections" tabbed={tabbed}>
             {related.length > 0 && (
-              <section class="post-related reveal reveal-delay-2" aria-label="Связанные материалы">
-                <h2>Смотрите также</h2>
-                <ul>
-                  {related.map((r) => (
-                    <li><a href={r.href}>{r.title}</a></li>
-                  ))}
-                </ul>
-              </section>
+              <RelatedBoard
+                heading="Смотрите также"
+                lead="Материалы сайта, с которыми кейс делит данные, метод или вывод."
+                groups={relatedGroups}
+              />
             )}
 
             <Backlinks items={backlinks} label="Ссылаются сюда" lang="ru" />
