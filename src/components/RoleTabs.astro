@@ -45,7 +45,7 @@ const HINTS: Record<Audience, string> = isEn
           type="button"
           role="tab"
           id={`role-tab-${role}`}
-          aria-controls={`role-panel-${role}`}
+          aria-controls={role}
           aria-selected={role === DEFAULT_AUDIENCE ? 'true' : 'false'}
           tabindex={role === DEFAULT_AUDIENCE ? 0 : -1}
           data-role-tab={role}
