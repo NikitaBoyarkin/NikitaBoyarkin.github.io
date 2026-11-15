@@ -39,10 +39,11 @@ describe('colleague landing — project list', () => {
   });
 
   it('keeps the manager on the board and HR on a year-grouped board', () => {
-    // HR left the list on 2026-11-15: the same four STAR rows, on cards grouped
-    // by publication year. The list is the colleague's alone.
+    // HR left the list on 2026-11-15: cards grouped by publication year, cover
+    // and `description` only — the STAR skeleton stays on the case page. The list
+    // is the colleague's alone.
     expect(landing).toMatch(
-      /\) : role === 'hr' \? \(\s*<ProjectBoard[\s\S]*?groupByYear[\s\S]*?starPreview="full"/,
+      /\) : role === 'hr' \? \(\s*<ProjectBoard[\s\S]*?groupByYear[\s\S]*?starPreview="none"/,
     );
     expect(landing).not.toMatch(/<ProjectList[\s\S]{0,200}?variant="star"/);
   });

@@ -53,11 +53,6 @@ const KEYS = ['situation', 'task', 'action', 'result'] as const;
 const PREVIEW_KEYS: Record<Exclude<StarPreview, 'none'>, readonly (typeof KEYS)[number][]> = {
   result: ['result'],
   'task-result': ['task', 'result'],
-  // The HR board is the one compact surface that keeps the whole skeleton: that
-  // reader is judging the reasoning, and the card there is the case, not an entry
-  // in an index. The rows clamp (see `.star-compact`), so "full" costs height,
-  // not length.
-  full: KEYS,
 };
 const keys = compact && preview !== 'none' ? PREVIEW_KEYS[preview] : KEYS;
 ---

@@ -169,9 +169,9 @@ export const ROLE_CURATION: Record<'hr' | 'manager' | 'colleague', string[]> = {
 | Блок | HR | Менеджер | Коллега |
 |---|---|---|---|
 | Компакт-hero + кнопка **CV/скачать** | ✅ сразу | — | — |
-| Кейсы STAR (`star{}`, `impact[]`) — `StarBlock` | ✅ полные четыре строки на карточке (`starPreview="full"`) | ✅ Задача → Результат на карточке (`starPreview="task-result"`) | — (одна строка `description` вместо STAR) |
+| Кейсы STAR (`star{}`, `impact[]`) — `StarBlock` | — (STAR на странице кейса; карточка доски — обложка + `description`) | ✅ Задача → Результат на карточке (`starPreview="task-result"`) | — (одна строка `description` вместо STAR) |
 | Метрики — `HeroMetrics` | ✅ | ✅ | ✅ |
-| Проекты | весь каталог — доска по годам (2026, 2025…), карточки с обложкой и четырьмя STAR-строками, фильтры категорий/инструментов (`ProjectBoard groupByYear starPreview="full"`) | весь каталог — плоская доска в курированном порядке (`ProjectBoard`) | весь каталог — плоский список в порядке метода, по строке `description`, с теми же фильтрами (`ProjectList variant="summary" filterable`) |
+| Проекты | весь каталог — доска по годам (2026, 2025…), карточки с обложкой и `description`, фильтры категорий/инструментов (`ProjectBoard groupByYear starPreview="none"`) | весь каталог — плоская доска в курированном порядке (`ProjectBoard`) | весь каталог — плоский список в порядке метода, по строке `description`, с теми же фильтрами (`ProjectList variant="summary" filterable`) |
 | Стек / инструменты (bento) | ✅ | — (сразу к кейсам) | ✅ |
 | Граф знаний — `KnowledgeGraph`, GitHub — `GithubActivity` | — | — | ✅ |
 | Библиография / notes / library | — | — | ✅ |

@@ -120,9 +120,9 @@ describe('hiring page — stack mosaic placement', () => {
 });
 
 // Colleague: a list of one-line descriptions. HR: a board, grouped by year, each
-// card carrying the full STAR skeleton. The two lanes render different components
-// (`ProjectList` vs `ProjectBoard`), so the difference is grouping axis, card
-// markup and the teaser depth — not a `variant` flag.
+// card a cover + `description`. The two lanes render different components
+// (`ProjectList` vs `ProjectBoard`), so the difference is grouping axis and card
+// markup — not a `variant` flag.
 describe('hiring page — project section shape', () => {
   const rows = (source: string) => (source.match(/class="project-row"/g) ?? []).length;
   const cards = (source: string) => (source.match(/class="project reveal compact"/g) ?? []).length;
@@ -140,13 +140,12 @@ describe('hiring page — project section shape', () => {
     }
   });
 
-  // HR became a board on 2026-11-15: the recruiter's question ("does the reasoning
-  // hold up?") is answered by the same four STAR rows, but on cards under year
-  // headings, with the cover, the track badge and the filter bar the board owns.
-  // Before that the lane was a chronological list: the year grouping now says
-  // "what shipped when" once per group, and `ROLE_CURATION.hr` is membership only —
-  // the year groups own the order, so the strength sequence is no longer visible.
-  it('HR reads a board grouped by year, with the whole skeleton on every card', () => {
+  // HR became a board on 2026-11-15: the lane groups by publication year, so the
+  // year heading carries "what shipped when" and the card carries cover, track
+  // badge, title and `description`. The STAR skeleton is not on the card — it
+  // lives on the case page, where the reader has committed to the case.
+  // `ROLE_CURATION.hr` is membership only; the year groups own the order.
+  it('HR reads a board grouped by year, no STAR on the cards', () => {
     for (const page of PAGES) {
       const source = panel(page.file, 'hr');
       const years = source.match(/class="project-group-heading">\s*(\d{4})/g) ?? [];
@@ -158,9 +157,8 @@ describe('hiring page — project section shape', () => {
       expect(source).toContain('data-board-grid');
       expect(source).not.toContain('data-project-list');
       expect(cards(source)).toBe(31);
-      // All four rows, every card.
-      expect((source.match(/data-star="situation"/g) ?? [])).toHaveLength(31);
-      expect((source.match(/data-star="result"/g) ?? [])).toHaveLength(31);
+      // No STAR rows on any card.
+      expect(source).not.toMatch(/data-star=/);
     }
   });
 

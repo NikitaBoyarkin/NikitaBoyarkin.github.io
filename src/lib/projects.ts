@@ -34,8 +34,8 @@ export const DEFAULT_AUDIENCE: Audience = 'colleague';
  * then all three roles read `PROJECT_ORDER`, so `/manager/` and `/colleague/`
  * were the same board behind two different headings — a reader switching
  * versions saw the same first card. Now:
- *   - `hr`       reads the year board (`ProjectBoard groupByYear`, whole STAR on
- *                the card) — chronology is the order, strength is not shown;
+ *   - `hr`       reads the year board (`ProjectBoard groupByYear`) — chronology is
+ *                the order, strength is not shown;
  *   - `manager`  reads results first: the cases with a number to show lead;
  *   - `colleague` reads method first: the toolkits and the causal work lead.
  * `RoleLanding` passes the sequence to `ProjectBoard` with `ordered`, which
@@ -136,15 +136,13 @@ export function curatedSlugs(role: Audience): readonly string[] {
  *                     case as "what was asked → what moved", so the card has to
  *                     state the brief before the number or the number is just a
  *                     claim. `tests/lib/manager-card-star.test.ts` binds it.
- *   - `full`        — all four rows. The HR board: that lane's reader judges the
- *                     reasoning, so there the card *is* the case rather than an
- *                     index entry, and the teaser is the whole skeleton.
  *   - `none`        — no STAR rows; the card falls back to the file's
- *                     `description`. The catalogue board (`/projects/`) uses it:
- *                     with the cover shown, the card is a preview of the work,
- *                     not a verdict on it, and the Result belongs to the case.
+ *                     `description`. The catalogue board (`/projects/`) and the
+ *                     HR board use it: with the cover shown, the card is a
+ *                     preview of the work, not a verdict on it, and the STAR
+ *                     skeleton belongs to the case page.
  */
-export type StarPreview = 'result' | 'task-result' | 'full' | 'none';
+export type StarPreview = 'result' | 'task-result' | 'none';
 
 export interface RoleCopy {
   /** `<title>` — the visible page title. */

@@ -9,8 +9,9 @@ import { fileURLToPath } from 'node:url';
 // (`StarBlock compact`), so on the one landing whose reader asks "what was
 // asked, and what moved?" a number appeared with no brief in front of it — the
 // reader had to open the case to find out what the number was even a result of.
-// `/manager/` now previews Task + Result; `/projects/` and `/colleague/` keep the
-// outcome-only teaser, because there the card is an index entry.
+// `/manager/` now previews Task + Result; `/projects/`, `/colleague/` and the HR
+// board keep the outcome-only teaser or no teaser at all, because there the card
+// is an index entry.
 //
 // What fails when the claim stops being true:
 //   - `RoleLanding` stops passing `starPreview`, and every board silently falls
@@ -41,11 +42,11 @@ describe('manager landing — card previews Task + Result', () => {
   });
 
   it('gives each board its own teaser, and the list none', () => {
-    // The manager and the HR lane are both boards now; they differ in the teaser
-    // (Task → Result vs the whole skeleton) and in the grouping axis (flat
-    // curated vs year). The colleague lane is the list, with no STAR.
+    // The manager and the HR lane are both boards now; the manager previews
+    // Task → Result, the HR board shows no STAR at all (the year groups are its
+    // only framing — see 2026-11-15), and the colleague lane is the list.
     expect(landing).toMatch(/<ProjectBoard[\s\S]*?starPreview="task-result"/);
-    expect(landing).toMatch(/<ProjectBoard[\s\S]*?starPreview="full"/);
+    expect(landing).toMatch(/<ProjectBoard[\s\S]*?starPreview="none"/);
     expect(landing).toMatch(/<ProjectList[\s\S]*?variant="summary"/);
     expect(landing).not.toMatch(/<ProjectList[^>]*starPreview/);
   });
@@ -62,11 +63,12 @@ describe('manager landing — card previews Task + Result', () => {
     expect(card).toMatch(/<StarBlock star=\{star\} lang=\{lang\} compact preview=\{starPreview\} \/>/);
   });
 
-  it('maps `task-result` to the task and result rows, `full` to all four', () => {
-    expect(lib).toMatch(/export type StarPreview = 'result' \| 'task-result' \| 'full' \| 'none';/);
+  it('maps `task-result` to the task and result rows, and has no four-row mode', () => {
+    expect(lib).toMatch(/export type StarPreview = 'result' \| 'task-result' \| 'none';/);
     expect(star).toMatch(/'task-result': \['task', 'result'\],/);
     expect(star).toMatch(/result: \['result'\],/);
-    expect(star).toMatch(/full: KEYS,/);
+    // No card carries the whole skeleton; the four rows live on the case page.
+    expect(star).not.toMatch(/full:/);
   });
 
   it('defaults to the outcome-only teaser everywhere else', () => {

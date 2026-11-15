@@ -168,15 +168,11 @@ const nextStepSurface = {
 </section>
 
 {/* Two readers, two shapes:
-      - HR reads a board grouped by publication year, each card carrying the full
-        STAR skeleton (Situation → Task → Actions → Result). The lane used to be a
-        chronological *list*: the year grouping already said "what shipped when",
-        so the list's only advantage was row density — and the recruiter's question
-        ("does the reasoning hold up?") was answered by four rows in a 66ch column
-        with no cover and no track badge. The board keeps the four rows and gains
-        the card's badges, and the year heading replaces the date the list never
-        printed anyway. `ROLE_CURATION.hr` still names the membership, in strength
-        order — the year groups own the order now, so the sequence is not visible.
+      - HR reads a board grouped by publication year: cover, track badge, title
+        and the file's `description` on each card — the STAR skeleton lives on
+        the case page, where the reader has committed to the case. The year
+        grouping says "what shipped when" once per group. `ROLE_CURATION.hr`
+        names the membership; the year groups own the order.
       - The colleague reads a flat list in the curated method-first order, each
         row one `description` line, with the same filter bar over it.
       - The manager reads the board, each card previewing Task → Result.
@@ -198,7 +194,7 @@ const nextStepSurface = {
     slugs={ROLE_CURATION.hr}
     ordered
     groupByYear
-    starPreview="full"
+    starPreview="none"
     idPrefix={idPrefix}
   />
 ) : (

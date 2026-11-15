@@ -64,7 +64,7 @@ describe('/projects/ catalogue — cover on, Result off, grouped by track', () =
     expect(CARD).toMatch(/\) : \(\s*<p title=\{description\}>\{description\}<\/p>/);
     expect(STAR).toMatch(/star && preview !== 'none' && \(/);
     expect(read('src/lib/projects.ts')).toMatch(
-      /export type StarPreview = 'result' \| 'task-result' \| 'full' \| 'none';/,
+      /export type StarPreview = 'result' \| 'task-result' \| 'none';/,
     );
   });
 
