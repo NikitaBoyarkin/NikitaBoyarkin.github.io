@@ -14,6 +14,16 @@ impact:
   - "Revenue concentration measured, not asserted: the top 20% of clients hold 38.2% of revenue (Gini 0.324)"
   - At Risk + Hibernating ≈ 50% of the base — the main reactivation pool
   - Marketing got clear personas for targeting
+proof:
+  - value: "38.2%"
+    label: revenue held by the top 20%
+    kind: measured
+  - value: "0.324"
+    label: Gini of revenue concentration
+    kind: measured
+  - value: "6"
+    label: RFM segments
+    kind: derived
 tools:
   - Python
   - SQL

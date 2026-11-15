@@ -8,6 +8,7 @@ import InnerTOC from '../../components/InnerTOC.astro';
 import InlineTOC from '../../components/InlineTOC.astro';
 import StarBlock from '../../components/StarBlock.astro';
 import DecisionBlock from '../../components/DecisionBlock.astro';
+import ProofStrip from '../../components/ProofStrip.astro';
 import ProjectDemo from '../../components/ProjectDemo.astro';
 import FigureText from '../../components/FigureText.astro';
 
@@ -253,6 +254,15 @@ const pageJsonLd = {
         />
       )
     }
+
+    <ProofStrip
+      proof={project.data.proof}
+      dataset={project.data.dataset}
+      demo={hasDemo ? demoRaw : undefined}
+      repo={project.data.github}
+      tools={project.data.tools}
+      lang="ru"
+    />
 
     <DecisionBlock
       bet={project.data.bet}

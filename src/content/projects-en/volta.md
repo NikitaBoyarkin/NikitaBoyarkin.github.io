@@ -17,6 +17,16 @@ impact:
   - "DiD check: the KYC fix causally lifted M3 retention by +9.09pp (95% CI [+6.21, +11.96])"
   - "RAT v2: 5 audit risks priced in money — 3 confirmed, 1 refuted by mechanism, 1 refined"
   - "23 projects: 12 analytical domains + Market & Jobs (JTBD) + the RAT v2 validation layer + causal"
+proof:
+  - value: "+5.72 pp"
+    label: KYC conversion
+    kind: measured
+  - value: "€208.5K"
+    label: revenue over 12 months
+    kind: derived
+  - value: "13.9×"
+    label: ROI
+    kind: derived
 tools:
   - Python
   - pandas / NumPy

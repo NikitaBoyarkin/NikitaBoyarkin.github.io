@@ -25,6 +25,22 @@ const projectSchema = z.object({
   description: z.string().min(120).max(200),
   hero: z.string(),
   impact: z.array(z.string()).default([]),
+  /**
+   * Scannable receipts for the top of a case, rendered by `ProofStrip`: the
+   * headline numbers plus what each one *is* — measured on the data, cited from
+   * a source, or derived from a model. Optional, because a number that exists
+   * only to fill the strip is worse than an honest absence; a case without it
+   * falls back to structural facts (dataset, demo, code, stack).
+   */
+  proof: z
+    .array(
+      z.object({
+        value: z.string().min(1),
+        label: z.string().min(1),
+        kind: z.enum(['measured', 'cited', 'derived']).default('measured'),
+      }),
+    )
+    .default([]),
   star: starSchema,
   tools: z.array(z.string()).default([]),
   /**

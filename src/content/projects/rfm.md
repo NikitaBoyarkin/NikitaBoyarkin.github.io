@@ -14,6 +14,16 @@ impact:
   - "Концентрация дохода измерена, а не заявлена: топ-20% клиентов держат 38,2% выручки (Gini 0,324)"
   - At Risk + Hibernating ≈ 50% базы — основной пул для реактивации
   - Маркетинг получил понятные персоны для таргетинга
+proof:
+  - value: "38,2%"
+    label: выручки у топ-20% клиентов
+    kind: measured
+  - value: "0,324"
+    label: Gini концентрации дохода
+    kind: measured
+  - value: "6"
+    label: RFM-сегментов
+    kind: derived
 tools:
   - Python
   - SQL

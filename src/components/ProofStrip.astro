@@ -1,0 +1,186 @@
+---
+// The case's receipts, before its narrative: three or four numbers a reader can
+// scan in as many seconds, each tagged with what it IS — measured on the data,
+// cited from a source, or derived from a model. The tag is the point: an
+// untagged number is a claim, and the portfolio's whole argument is that a
+// claim ships with its provenance.
+//
+// Numbers are authored per project in `proof` (see `content.config.ts`) and
+// never parsed out of prose. A case that has not authored them still gets a
+// strip — from structural facts only (dataset, demo, code, stack), which say
+// how verifiable the work is without inventing a figure for it.
+interface Chip {
+  value: string;
+  label: string;
+  kind?: 'measured' | 'cited' | 'derived';
+}
+
+interface Props {
+  proof?: Chip[];
+  dataset?: 'synthetic' | 'real' | 'mixed';
+  demo?: string;
+  repo?: string;
+  tools?: string[];
+  lang?: 'ru' | 'en';
+}
+
+const { proof = [], dataset = 'synthetic', demo, repo, tools = [], lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+const t = isEn
+  ? {
+      heading: 'What the case measured',
+      kinds: { measured: 'measured', cited: 'cited', derived: 'derived' },
+      data: 'data',
+      demo: 'demo',
+      code: 'code',
+      stack: 'stack',
+      dataset: {
+        real: 'Real data',
+        mixed: 'Real + synthetic',
+        synthetic: 'Synthetic data',
+      },
+      demoValue: 'Live',
+      codeValue: 'Open',
+      tools: (n: number) => `${n} tool${new Intl.PluralRules('en').select(n) === 'one' ? '' : 's'} in the stack`,
+    }
+  : {
+      heading: 'Что измерил кейс',
+      kinds: { measured: 'замерено', cited: 'цитата', derived: 'расчёт' },
+      data: 'данные',
+      demo: 'демо',
+      code: 'код',
+      stack: 'стек',
+      dataset: {
+        real: 'Реальные данные',
+        mixed: 'Реальные + синтетика',
+        synthetic: 'Синтетика',
+      },
+      demoValue: 'Живое',
+      codeValue: 'Открыт',
+      // Intl.PluralRules is the stdlib answer to Russian's one/few/many — no
+      // hand-rolled modulo table to get wrong.
+      tools: (n: number) => {
+        const word = { one: 'инструмент', few: 'инструмента', many: 'инструментов' }[
+          new Intl.PluralRules('ru').select(n) as 'one' | 'few' | 'many'
+        ];
+        return `${n} ${word} в стеке`;
+      },
+    };
+
+// Authored numbers first, then the verifiability facts. Authored chips carry a
+// provenance tag; the structural ones carry a kind label instead, so the two
+// families never look identical.
+const chips: Chip[] = [
+  ...proof,
+  { value: t.dataset[dataset], label: t.data },
+  ...(demo ? [{ value: t.demoValue, label: t.demo }] : []),
+  ...(repo ? [{ value: t.codeValue, label: t.code }] : []),
+  ...(tools.length ? [{ value: t.tools(tools.length), label: t.stack }] : []),
+];
+
+const PROVENANCE = new Set(['measured', 'cited', 'derived']);
+---
+
+<section class="proof-strip" aria-labelledby="proof-strip-title">
+  <h2 class="ps-title" id="proof-strip-title">{t.heading}</h2>
+  <ul class="ps-grid" role="list">
+    {
+      chips.map((chip) => (
+        <li class="ps-item">
+          <span class="ps-value">{chip.value}</span>
+          <span class="ps-label">
+            {chip.label}
+            {chip.kind && PROVENANCE.has(chip.kind) && (
+              <span class="ps-kind">{t.kinds[chip.kind]}</span>
+            )}
+          </span>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .proof-strip {
+    margin-block: var(--space-6) var(--space-8);
+  }
+
+  .ps-title {
+    margin: 0 0 var(--space-3);
+    font-family: var(--font-display);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* `minmax(0, 1fr)` keeps a long value ("Реальные + синтетика") from widening
+     its own track and overflowing the 390px viewport. Columns are explicit, not
+     `auto-fit`: at phone width auto-fit packed seven chips into 60px columns and
+     the labels clipped mid-word. */
+  .ps-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 560px) {
+    .ps-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 860px) {
+    .ps-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .ps-item {
+    min-inline-size: 0;
+    display: grid;
+    gap: var(--space-1);
+    align-content: start;
+    padding: var(--space-3) var(--space-4) var(--space-4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--card-background);
+  }
+
+  .ps-value {
+    font-family: var(--font-display);
+    font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-accent-figure);
+    overflow-wrap: break-word;
+  }
+
+  .ps-label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--space-2);
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+
+  /* The provenance tag: small, uppercase, and never accent-coloured — it
+     qualifies a number, it is not one. */
+  .ps-kind {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+</style>

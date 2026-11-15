@@ -17,6 +17,16 @@ impact:
   - "End-to-end pipeline: SRM → CUPED → delta-method CTR → per-segment ATE + BH → novelty check"
   - "CUPED on the pipeline run: variance −17.7%, SE 0.00360 → 0.00327"
   - "Delta-method CTR: +0.51 pp lift at p < 0.0001; SRM p = 0.8376 — clean buckets"
+proof:
+  - value: "17.7%"
+    label: CUPED variance cut
+    kind: measured
+  - value: "+0.51 pp"
+    label: CTR lift (delta method)
+    kind: measured
+  - value: "18"
+    label: modules, each calibrated
+    kind: measured
 tools:
   - Python
   - NumPy / SciPy
