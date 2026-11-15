@@ -1022,6 +1022,9 @@ nav ul.links a[aria-current="page"] {
 }
 
 .skill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
   background: color-mix(in srgb, var(--text-accent) 8%, transparent);
   color: var(--text-accent);
   padding: var(--space-2) var(--space-4);
@@ -1031,6 +1034,16 @@ nav ul.links a[aria-current="page"] {
   border: 1px solid color-mix(in srgb, var(--text-accent) 20%, transparent);
   transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   cursor: default;
+}
+
+/* Tool logo inside a badge or a bento chip. Sized in `em`, so one class serves
+   the badge (0.875rem) and the smaller chip (0.78rem) without changing either
+   one's line box — the chip row's height must stay what the text alone sets. */
+.skill-badge-icon {
+  inline-size: 1em;
+  block-size: 1em;
+  flex: none;
+  opacity: 0.85;
 }
 
 .skill-badge:hover {
@@ -1411,6 +1424,9 @@ nav ul.links a[aria-current="page"] {
 }
 
 .bento-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
   font-size: 0.78rem;
   font-weight: 500;
   padding: 0.25rem 0.6rem;

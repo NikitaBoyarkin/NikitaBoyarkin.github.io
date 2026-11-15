@@ -35,19 +35,19 @@ function branch(lang: Lang): string {
 }
 
 /**
- * The card renders the chip list as literal spans. The `[^<{]+` body match takes
- * the literals and skips interpolated ones, so no scoping to a parent element is
- * needed.
+ * The card renders the chip list as literal spans — an optional icon `<svg>`
+ * precedes the label. The `[^<{]+` body match takes the literals and skips
+ * interpolated ones, so no scoping to a parent element is needed.
  */
 function chipsIn(lang: Lang): string[] {
-  return [...branch(lang).matchAll(/class="bento-chip">([^<{]+)<\/span>/g)].map((m) =>
-    m[1].trim()
+  return [...branch(lang).matchAll(/class="bento-chip">(?:<svg\b[\s\S]*?<\/svg>)?([^<{]+)<\/span>/g)].map(
+    (m) => m[1].trim()
   );
 }
 
 function badgesIn(rel: string): string[] {
-  return [...read(rel).matchAll(/class="skill-badge">([^<{]+)<\/span>/g)].map((m) =>
-    m[1].trim()
+  return [...read(rel).matchAll(/class="skill-badge">(?:<svg\b[\s\S]*?<\/svg>)?([^<{]+)<\/span>/g)].map(
+    (m) => m[1].trim()
   );
 }
 

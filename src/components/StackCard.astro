@@ -22,6 +22,7 @@
 // which is why the parity test carries an explicit pair map rather than a plain
 // set comparison.
 import { withBase } from '../lib/path';
+import SkillIcon from './SkillIcon.astro';
 
 interface Props {
   lang?: 'ru' | 'en';
@@ -39,20 +40,23 @@ const isEn = lang === 'en';
           <h2 class="bento-cell-title">Analysis</h2>
           <div class="bento-chip-list">
             <span class="bento-chip">SQL</span>
-            <span class="bento-chip">Python</span>
-            <span class="bento-chip">pandas</span>
-            <span class="bento-chip">scikit-learn</span>
-            <span class="bento-chip">DuckDB</span>
+            <span class="bento-chip"><SkillIcon name="Python" />Python</span>
+            <span class="bento-chip"><SkillIcon name="pandas" />pandas</span>
+            <span class="bento-chip"><SkillIcon name="NumPy" />NumPy</span>
+            <span class="bento-chip"><SkillIcon name="scikit-learn" />scikit-learn</span>
+            <span class="bento-chip"><SkillIcon name="DuckDB" />DuckDB</span>
             <span class="bento-chip">visualization</span>
           </div>
         </div>
         <div class="bento-cell bento-cell-compact">
           <h2 class="bento-cell-title">Visualization</h2>
           <div class="bento-chip-list">
-            <span class="bento-chip">Plotly</span>
-            <span class="bento-chip">Tableau</span>
-            <span class="bento-chip">Superset</span>
-            <span class="bento-chip">Astro</span>
+            <span class="bento-chip"><SkillIcon name="Plotly" />Plotly</span>
+            <span class="bento-chip"><SkillIcon name="Tableau" />Tableau</span>
+            <span class="bento-chip"><SkillIcon name="Superset" />Superset</span>
+            <span class="bento-chip"><SkillIcon name="Streamlit" />Streamlit</span>
+            <span class="bento-chip"><SkillIcon name="Astro" />Astro</span>
+            <span class="bento-chip"><SkillIcon name="D3" />D3</span>
           </div>
         </div>
         <div class="bento-cell bento-cell-compact">
@@ -74,11 +78,13 @@ const isEn = lang === 'en';
         <div class="bento-cell bento-cell-wide bento-cell-compact">
           <h2 class="bento-cell-title">Infra</h2>
           <div class="bento-chip-list">
-            <span class="bento-chip">GitHub Actions</span>
-            <span class="bento-chip">Docker</span>
-            <span class="bento-chip">Airflow</span>
-            <span class="bento-chip">Supabase</span>
-            <span class="bento-chip">PostHog</span>
+            <span class="bento-chip"><SkillIcon name="PostgreSQL" />PostgreSQL</span>
+            <span class="bento-chip"><SkillIcon name="dbt" />dbt</span>
+            <span class="bento-chip"><SkillIcon name="GitHub Actions" />GitHub Actions</span>
+            <span class="bento-chip"><SkillIcon name="Docker" />Docker</span>
+            <span class="bento-chip"><SkillIcon name="Airflow" />Airflow</span>
+            <span class="bento-chip"><SkillIcon name="Supabase" />Supabase</span>
+            <span class="bento-chip"><SkillIcon name="PostHog" />PostHog</span>
           </div>
         </div>
         {/* stack:en:end */}
@@ -90,20 +96,23 @@ const isEn = lang === 'en';
           <h2 class="bento-cell-title">Анализ</h2>
           <div class="bento-chip-list">
             <span class="bento-chip">SQL</span>
-            <span class="bento-chip">Python</span>
-            <span class="bento-chip">pandas</span>
-            <span class="bento-chip">scikit-learn</span>
-            <span class="bento-chip">DuckDB</span>
+            <span class="bento-chip"><SkillIcon name="Python" />Python</span>
+            <span class="bento-chip"><SkillIcon name="pandas" />pandas</span>
+            <span class="bento-chip"><SkillIcon name="NumPy" />NumPy</span>
+            <span class="bento-chip"><SkillIcon name="scikit-learn" />scikit-learn</span>
+            <span class="bento-chip"><SkillIcon name="DuckDB" />DuckDB</span>
             <span class="bento-chip">визуализация</span>
           </div>
         </div>
         <div class="bento-cell bento-cell-compact">
           <h2 class="bento-cell-title">Визуализация</h2>
           <div class="bento-chip-list">
-            <span class="bento-chip">Plotly</span>
-            <span class="bento-chip">Tableau</span>
-            <span class="bento-chip">Superset</span>
-            <span class="bento-chip">Astro</span>
+            <span class="bento-chip"><SkillIcon name="Plotly" />Plotly</span>
+            <span class="bento-chip"><SkillIcon name="Tableau" />Tableau</span>
+            <span class="bento-chip"><SkillIcon name="Superset" />Superset</span>
+            <span class="bento-chip"><SkillIcon name="Streamlit" />Streamlit</span>
+            <span class="bento-chip"><SkillIcon name="Astro" />Astro</span>
+            <span class="bento-chip"><SkillIcon name="D3" />D3</span>
           </div>
         </div>
         <div class="bento-cell bento-cell-compact">
@@ -125,11 +134,13 @@ const isEn = lang === 'en';
         <div class="bento-cell bento-cell-wide bento-cell-compact">
           <h2 class="bento-cell-title">Инфра</h2>
           <div class="bento-chip-list">
-            <span class="bento-chip">GitHub Actions</span>
-            <span class="bento-chip">Docker</span>
-            <span class="bento-chip">Airflow</span>
-            <span class="bento-chip">Supabase</span>
-            <span class="bento-chip">PostHog</span>
+            <span class="bento-chip"><SkillIcon name="PostgreSQL" />PostgreSQL</span>
+            <span class="bento-chip"><SkillIcon name="dbt" />dbt</span>
+            <span class="bento-chip"><SkillIcon name="GitHub Actions" />GitHub Actions</span>
+            <span class="bento-chip"><SkillIcon name="Docker" />Docker</span>
+            <span class="bento-chip"><SkillIcon name="Airflow" />Airflow</span>
+            <span class="bento-chip"><SkillIcon name="Supabase" />Supabase</span>
+            <span class="bento-chip"><SkillIcon name="PostHog" />PostHog</span>
           </div>
         </div>
         {/* stack:ru:end */}
