@@ -45,9 +45,9 @@ const [postsEn, projectsEn, partsEn, postsRu, glossaryEn] = await Promise.all([
 ]);
 
 const related = resolveRelated(entry.data.related, lang, {
-  glossary: allTerms.map((t) => ({ slug: slugOf(t.id), title: t.data.title })),
-  posts: postsEn.map((p) => ({ slug: slugOf(p.id), title: p.data.title })),
-  projects: projectsEn.map((p) => ({ slug: slugOf(p.id), title: p.data.title })),
+  glossary: allTerms.map((t) => ({ slug: slugOf(t.id), title: t.data.title, brief: t.data.description })),
+  posts: postsEn.map((p) => ({ slug: slugOf(p.id), title: p.data.title, brief: p.data.excerpt })),
+  projects: projectsEn.map((p) => ({ slug: slugOf(p.id), title: p.data.title, brief: p.data.description })),
 }).map((r) => ({ ...r, href: withBase(r.href) }));
 
 const sources: BacklinkSource[] = [
@@ -56,6 +56,7 @@ const sources: BacklinkSource[] = [
     slug: slugOf(p.id),
     href: `/en/posts/${slugOf(p.id)}/`,
     title: p.data.title,
+    brief: p.data.excerpt,
     body: p.body ?? '',
   })),
   ...projectsEn.map((p) => ({
@@ -63,6 +64,7 @@ const sources: BacklinkSource[] = [
     slug: slugOf(p.id),
     href: `/en/projects/${slugOf(p.id)}/`,
     title: p.data.title,
+    brief: p.data.description,
     body: p.body ?? '',
   })),
 ];
@@ -74,6 +76,7 @@ const backlinks = (backlinkMap[slug] ?? []).map((s) => ({
   title: s.title,
   href: withBase(s.href),
   kind: s.kind,
+  brief: s.brief,
 }));
 
 const ordered = [...allTerms].sort((a, b) => a.data.title.localeCompare(b.data.title, 'en'));

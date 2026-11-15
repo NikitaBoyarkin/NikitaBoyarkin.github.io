@@ -45,9 +45,9 @@ const [posts, projects, parts, glossary] = await Promise.all([
 
 // Related: resolve /glossary|/posts|/projects paths against real entries.
 const related = resolveRelated(entry.data.related, lang, {
-  glossary: allTerms.map((t) => ({ slug: slugOf(t.id), title: t.data.title })),
-  posts: posts.map((p) => ({ slug: slugOf(p.id), title: p.data.title })),
-  projects: projects.map((p) => ({ slug: slugOf(p.id), title: p.data.title })),
+  glossary: allTerms.map((t) => ({ slug: slugOf(t.id), title: t.data.title, brief: t.data.description })),
+  posts: posts.map((p) => ({ slug: slugOf(p.id), title: p.data.title, brief: p.data.excerpt })),
+  projects: projects.map((p) => ({ slug: slugOf(p.id), title: p.data.title, brief: p.data.description })),
 }).map((r) => ({ ...r, href: withBase(r.href) }));
 
 // Backlinks: posts + projects whose title/body mentions this term or an alias.
@@ -57,6 +57,7 @@ const sources: BacklinkSource[] = [
     slug: slugOf(p.id),
     href: `/posts/${slugOf(p.id)}/`,
     title: p.data.title,
+    brief: p.data.excerpt,
     body: p.body ?? '',
   })),
   ...projects.map((p) => ({
@@ -64,6 +65,7 @@ const sources: BacklinkSource[] = [
     slug: slugOf(p.id),
     href: `/projects/${slugOf(p.id)}/`,
     title: p.data.title,
+    brief: p.data.description,
     body: p.body ?? '',
   })),
 ];
@@ -75,6 +77,7 @@ const backlinks = (backlinkMap[slug] ?? []).map((s) => ({
   title: s.title,
   href: withBase(s.href),
   kind: s.kind,
+  brief: s.brief,
 }));
 
 // Prev / next alphabetical by title.

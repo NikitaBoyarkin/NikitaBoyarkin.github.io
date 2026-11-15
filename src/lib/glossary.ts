@@ -27,6 +27,8 @@ export interface RelatedTarget {
   slug: string;
   href: string; // locale-aware, e.g. '/glossary/cuped/' or '/en/glossary/cuped/'
   title: string;
+  /** Target's own one-line description, so its board card says what it is. */
+  brief?: string;
 }
 
 export interface BacklinkSource {
@@ -34,6 +36,8 @@ export interface BacklinkSource {
   slug: string;
   href: string;
   title: string;
+  /** Same purpose as on `RelatedTarget`: the card's one-line description. */
+  brief?: string;
   body: string;
 }
 
@@ -113,27 +117,31 @@ export function resolveRelated(
   related: string[],
   lang: GlossaryLang,
   lookups: {
-    glossary: { slug: string; title: string }[];
-    posts: { slug: string; title: string }[];
-    projects: { slug: string; title: string }[];
+    glossary: { slug: string; title: string; brief?: string }[];
+    posts: { slug: string; title: string; brief?: string }[];
+    projects: { slug: string; title: string; brief?: string }[];
   },
 ): RelatedTarget[] {
-  const titles: Record<'glossary' | 'post' | 'project', Map<string, string>> = {
-    glossary: new Map(lookups.glossary.map((t) => [t.slug, t.title])),
-    post: new Map(lookups.posts.map((t) => [t.slug, t.title])),
-    project: new Map(lookups.projects.map((t) => [t.slug, t.title])),
+  const targets: Record<
+    'glossary' | 'post' | 'project',
+    Map<string, { title: string; brief?: string }>
+  > = {
+    glossary: new Map(lookups.glossary.map((t) => [t.slug, { title: t.title, brief: t.brief }])),
+    post: new Map(lookups.posts.map((t) => [t.slug, { title: t.title, brief: t.brief }])),
+    project: new Map(lookups.projects.map((t) => [t.slug, { title: t.title, brief: t.brief }])),
   };
   const out: RelatedTarget[] = [];
   for (const raw of related) {
     const parsed = parseRelatedPath(raw);
     if (!parsed) continue;
-    const title = titles[parsed.kind].get(parsed.slug);
-    if (title === undefined) continue;
+    const target = targets[parsed.kind].get(parsed.slug);
+    if (target === undefined) continue;
     out.push({
       kind: parsed.kind,
       slug: parsed.slug,
       href: relatedHref(parsed.kind, parsed.slug, lang),
-      title,
+      title: target.title,
+      brief: target.brief,
     });
   }
   return out;

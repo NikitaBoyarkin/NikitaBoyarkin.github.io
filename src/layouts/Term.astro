@@ -9,6 +9,8 @@
 import Base from './Base.astro';
 import InnerTOC from '../components/InnerTOC.astro';
 import InlineTOC from '../components/InlineTOC.astro';
+import RelatedBoard from '../components/RelatedBoard.astro';
+import Backlinks from '../components/Backlinks.astro';
 import { formatDate, estimateReadTime } from '../lib/date';
 import { withBase } from '../lib/path';
 import { CATEGORY_LABELS, type GlossaryCategory, type RelatedTarget } from '../lib/glossary';
@@ -21,7 +23,7 @@ interface Props {
   aka?: string[];
   updated?: Date;
   related?: RelatedTarget[];
-  backlinks?: { title: string; href: string; kind: string }[];
+  backlinks?: { title: string; href: string; kind: string; brief?: string }[];
   keywords?: string[];
   prev?: { href: string; title: string } | null;
   next?: { href: string; title: string } | null;
@@ -56,6 +58,20 @@ const akaLabel = isEn ? 'Also' : 'Также';
 const backLabel = isEn ? '← All terms' : '← Все понятия';
 const relatedLabel = isEn ? 'Related terms' : 'Связанные понятия';
 const backlinksLabel = isEn ? 'Mentioned in' : 'Упоминается в';
+
+// Same board shape as «Смотрите также»: one column per kind of target, so a
+// term's cross-references read by material type instead of one flat list.
+const RELATED_KINDS = ['glossary', 'post', 'project'] as const;
+const RELATED_LABELS: Record<'ru' | 'en', Record<(typeof RELATED_KINDS)[number], string>> = {
+  ru: { glossary: 'Понятия', post: 'Посты', project: 'Проекты' },
+  en: { glossary: 'Terms', post: 'Posts', project: 'Projects' },
+};
+const relatedGroups = RELATED_KINDS.map((kind) => ({
+  label: RELATED_LABELS[lang][kind],
+  items: related
+    .filter((r) => r.kind === kind)
+    .map((r) => ({ href: r.href, title: r.title, brief: r.brief })),
+})).filter((group) => group.items.length > 0);
 const prevLabel = isEn ? '← Previous' : '← Предыдущий';
 const nextLabel = isEn ? 'Next →' : 'Следующий →';
 
@@ -118,30 +134,21 @@ const pageJsonLd = { '@context': 'https://schema.org', '@graph': [termJsonLd, br
       <slot />
     </div>
 
-    {related.length > 0 && (
-      <section class="post-related reveal reveal-delay-2" aria-label={relatedLabel}>
-        <h2>{relatedLabel}</h2>
-        <ul>
-          {related.map((r) => (
-            <li>
-              <a href={r.href}>{r.title}</a>
-            </li>
-          ))}
-        </ul>
-      </section>
+    {relatedGroups.length > 0 && (
+      <RelatedBoard heading={relatedLabel} groups={relatedGroups} />
     )}
 
     {backlinks.length > 0 && (
-      <section class="post-related reveal reveal-delay-2" aria-label={backlinksLabel}>
-        <h2>{backlinksLabel}</h2>
-        <ul>
-          {backlinks.map((b) => (
-            <li>
-              <a href={b.href}>{b.title}</a>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <Backlinks
+        items={backlinks.map((b) => ({
+          path: b.href,
+          title: b.title,
+          kind: b.kind,
+          brief: b.brief,
+        }))}
+        label={backlinksLabel}
+        lang={lang}
+      />
     )}
 
     <slot name="graph" />
