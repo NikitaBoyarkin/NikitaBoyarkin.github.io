@@ -63,7 +63,7 @@ const trackLabels = projectTrackLabels(lang);
 const real = projects.filter((project) => isRealDataset(project.data.dataset));
 
 // `freshProjects` expects the dates at the top level, while a collection entry
-// carries them under `data` — the same lift `ProjectList` does for `groupByYear`.
+// carries them under `data` — the same lift `ProjectBoard` does for `groupByYear`.
 const fresh = freshProjects(
   projects.map((project) => ({
     ...project,

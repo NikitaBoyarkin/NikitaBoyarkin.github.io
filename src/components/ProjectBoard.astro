@@ -8,6 +8,7 @@ import ProjectTrackFilter from './ProjectTrackFilter.astro';
 import {
   flattenByTrack,
   groupByTrack,
+  groupByYear,
   projectSphere,
   projectSphereFilters,
   projectTracks,
@@ -36,6 +37,12 @@ interface Props {
    *  landings keep the flat grid — they are curated sequences, and a heading
    *  would slice the sequence they exist to show. */
   grouped?: boolean;
+  /** Group the cards under a heading per publication year, newest year first
+   *  (`groupByYear`). The HR lane opts in: a screening reader starts from "what
+   *  has shipped lately", and a year heading answers that once per group instead
+   *  of a date on every card. Mutually exclusive with `grouped` — a board has one
+   *  grouping axis. */
+  groupByYear?: boolean;
   /** Render the sphere (business domain) chips. The catalogue opts in; role
    *  landings do not — they are curated sequences, not a browse surface. */
   sphereFilter?: boolean;
@@ -43,7 +50,7 @@ interface Props {
    *  with two filtered lists on `/hire/`. Empty on the catalogue pages. */
   idPrefix?: string;
 }
-const { collection = 'projects', linkPrefix = '', slugs, ordered = false, starPreview = 'result', grouped = false, sphereFilter = false, idPrefix = '' } = Astro.props;
+const { collection = 'projects', linkPrefix = '', slugs, ordered = false, starPreview = 'result', grouped = false, groupByYear: yearGrouped = false, sphereFilter = false, idPrefix = '' } = Astro.props;
 const p = idPrefix ? `${idPrefix}-` : '';
 const lang: 'ru' | 'en' = linkPrefix.startsWith('en/') ? 'en' : 'ru';
 
@@ -72,16 +79,32 @@ const entries =
         projects.map((project) => ({ ...project, track: project.data.track })),
         lang,
       );
-// Grouped catalogue: one section per non-empty track, in taxonomy order. The
-// board's cards are already ordered track-by-track by `flattenByTrack`; grouping
-// makes that order visible instead of implied by a badge repeated on every card.
-// A role landing never opts in — its sequence is curated, not taxonomic.
-const sections = grouped
-  ? groupByTrack(
-      projects.map((project) => ({ ...project, track: project.data.track })),
-      lang,
-    )
-  : [];
+// Sectioned boards: one section per group, keyed so the controller can find the
+// grid that owns a group's cards. Two axes exist — track (the catalogue's
+// taxonomy) and year (the HR lane's timeline) — and a board has exactly one.
+// `sectioned` is what the layout asks: it drops the carousel, the hidden section
+// heading and the sort control, because a group heading carries the structure
+// and the year is already an order.
+const sectioned = grouped || yearGrouped;
+const sections: { key: string; label: string; projects: readonly (typeof projects)[number][] }[] =
+  grouped
+    ? groupByTrack(
+        projects.map((project) => ({ ...project, track: project.data.track })),
+        lang,
+      )
+    : yearGrouped
+      ? groupByYear(
+          projects.map((project) => ({
+            ...project,
+            date: project.data.date,
+            updated: project.data.updated,
+          })),
+        ).map((group) => ({
+          key: String(group.year),
+          label: String(group.year),
+          projects: group.projects,
+        }))
+      : [];
 
 // One props object for a card, used by both layouts. The catalogue renders the
 // same card in the grouped grid and (before this change) in the flat row; a
@@ -132,10 +155,10 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
 >
   {/* The cards are h3, so the section needs its own h2: without one the outline
       jumps h1 (page title) -> h3 and the Lighthouse heading-order audit fails.
-      The grouped catalogue is the exception — its track headings ARE the h2
+      The sectioned boards are the exception — their group headings ARE the h2
       level, so an extra "Все проекты" h2 would put the cards a level too deep
       and say the same thing twice. */}
-  {!grouped && (
+  {!sectioned && (
     <h2 id={`${p}projects-heading`} class="visually-hidden">
       {lang === 'en' ? 'All projects' : 'Все проекты'}
     </h2>
@@ -152,12 +175,12 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
       {sphereFilter && <ProjectSphereFilter slot="facets" lang={lang} spheres={sphereChips} />}
       <span slot="controls" class="board-controls">
         {
-          /* Ordering is the catalogue's alone. A role landing renders a curated
-             reading sequence (`ordered`), so it has neither the select nor its
-             undo: a control that cannot change anything is worse than no
-             control, and `?sort=new` on such a board used to scramble the
-             interleaved order the page exists to show. */
-          !ordered && (
+          /* Ordering is the catalogue's alone. A curated role landing renders a
+             fixed reading sequence (`ordered`), and the HR board is ordered by its
+             year headings — neither has an order a select could change. A control
+             that cannot change anything is worse than no control, and `?sort=new`
+             on such a board used to scramble the order the page exists to show. */
+          !ordered && !yearGrouped && (
             <>
               <span class="board-sort">
                 <label class="visually-hidden" for={`${p}board-sort`}>
@@ -201,25 +224,25 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
       nav at all. A short row that fits needs none either: the module measures
       the overflow and keeps itself `hidden`. Rendered *before* the list, or the
       controls sit behind every card's tab stops. */}
-  {!grouped && <CarouselNav track="projects" label={lang === 'en' ? 'Projects' : 'Проекты'} lang={lang} />}
+  {!sectioned && <CarouselNav track="projects" label={lang === 'en' ? 'Projects' : 'Проекты'} lang={lang} />}
 
   {
-    /* `project-list` keeps its unprefixed id on purpose: only one board renders
-       per document (the `/hire/` manager panel, or `/projects/`), and the global
-       CSS keys the grid on `#project-list`. The controller no longer reads the id
-       — `data-board-grid` is the hook. */
-    grouped ? (
-      <div id="project-list" class="project-catalog" data-board-grid>
+    /* The grid id is namespaced. `/hire/` renders two boards (the HR lane's
+       year groups and the manager's flat grid) in one document, so an id is not
+       unique by construction any more — `hr-project-list` / `manager-project-list`.
+       The controller does not read it: `data-board-grid` is the hook. */
+    sectioned ? (
+      <div id={`${p}project-list`} class="project-catalog" data-board-grid>
         {sections.map((section) => (
           <section
             class="project-group"
             data-group={section.key}
-            aria-labelledby={`project-group-${section.key}`}
+            aria-labelledby={`${p}project-group-${section.key}`}
           >
             {/* h2, not h3: the card titles are h3, and a group heading at the
                 same level as its own cards says "this is a sibling of the
                 thing it contains". */}
-            <h2 id={`project-group-${section.key}`} class="project-group-heading">
+            <h2 id={`${p}project-group-${section.key}`} class="project-group-heading">
               {section.label}
               <span class="filter-count">{section.projects.length}</span>
             </h2>
@@ -232,7 +255,7 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
         ))}
       </div>
     ) : (
-      <div id="project-list" data-board-grid data-carousel-track="projects" class="project-track-grid">
+      <div id={`${p}project-list`} data-board-grid data-carousel-track="projects" class="project-track-grid">
         {entries.map(({ project }, index) => (
           <ProjectCard {...cardProps(project, index)} />
         ))}

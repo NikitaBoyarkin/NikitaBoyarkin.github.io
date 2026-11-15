@@ -40,10 +40,12 @@ describe('manager landing — card previews Task + Result', () => {
     expect(landing).toMatch(/\{role === 'manager' \? \(\s*<ProjectBoard/);
   });
 
-  it('keeps the HR and colleague lanes off the board', () => {
-    // Both read `ProjectList`; the manager is the only board (`data-track-filter`,
-    // drag reorder). The two list lanes must not receive the teaser at all.
-    expect(landing).toMatch(/\) : role === 'hr' \? \(\s*<ProjectList/);
+  it('gives each board its own teaser, and the list none', () => {
+    // The manager and the HR lane are both boards now; they differ in the teaser
+    // (Task → Result vs the whole skeleton) and in the grouping axis (flat
+    // curated vs year). The colleague lane is the list, with no STAR.
+    expect(landing).toMatch(/<ProjectBoard[\s\S]*?starPreview="task-result"/);
+    expect(landing).toMatch(/<ProjectBoard[\s\S]*?starPreview="full"/);
     expect(landing).toMatch(/<ProjectList[\s\S]*?variant="summary"/);
     expect(landing).not.toMatch(/<ProjectList[^>]*starPreview/);
   });
@@ -60,10 +62,11 @@ describe('manager landing — card previews Task + Result', () => {
     expect(card).toMatch(/<StarBlock star=\{star\} lang=\{lang\} compact preview=\{starPreview\} \/>/);
   });
 
-  it('maps `task-result` to the task and result rows', () => {
-    expect(lib).toMatch(/export type StarPreview = 'result' \| 'task-result' \| 'none';/);
+  it('maps `task-result` to the task and result rows, `full` to all four', () => {
+    expect(lib).toMatch(/export type StarPreview = 'result' \| 'task-result' \| 'full' \| 'none';/);
     expect(star).toMatch(/'task-result': \['task', 'result'\],/);
     expect(star).toMatch(/result: \['result'\],/);
+    expect(star).toMatch(/full: KEYS,/);
   });
 
   it('defaults to the outcome-only teaser everywhere else', () => {

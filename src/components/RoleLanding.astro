@@ -168,19 +168,20 @@ const nextStepSurface = {
 </section>
 
 {/* Two readers, two shapes:
-      - HR reads a flat list in the declared `ROLE_CURATION.hr` order — strength
-        order, flagship first. Until 2026-11-04 this branch passed no `order`, so
-        the declared curation was dead code and the list fell back to chronology:
-        the first card a recruiter met was whichever case had the newest date,
-        which happened to be a CSS pixel-clone of a conference programme. Each
-        row still carries the full STAR skeleton (Situation → Task → Actions →
-        Result), because that reader is judging the reasoning; the category and
-        tool filters let that reader narrow the list to a vacancy.
+      - HR reads a board grouped by publication year, each card carrying the full
+        STAR skeleton (Situation → Task → Actions → Result). The lane used to be a
+        chronological *list*: the year grouping already said "what shipped when",
+        so the list's only advantage was row density — and the recruiter's question
+        ("does the reasoning hold up?") was answered by four rows in a 66ch column
+        with no cover and no track badge. The board keeps the four rows and gains
+        the card's badges, and the year heading replaces the date the list never
+        printed anyway. `ROLE_CURATION.hr` still names the membership, in strength
+        order — the year groups own the order now, so the sequence is not visible.
       - The colleague reads a flat list in the curated method-first order, each
         row one `description` line, with the same filter bar over it.
       - The manager reads the board, each card previewing Task → Result.
-    The board is the manager's alone now; the list is shared by the two lanes
-    that read a sequence (`ProjectList`). */}
+    Both boards are `ProjectBoard` (different grouping axis, different teaser);
+    the list is the colleague's alone (`ProjectList`). */}
 {role === 'manager' ? (
   <ProjectBoard
     collection={collection as 'projects' | 'projects-en'}
@@ -191,11 +192,13 @@ const nextStepSurface = {
     idPrefix={idPrefix}
   />
 ) : role === 'hr' ? (
-  <ProjectList
+  <ProjectBoard
     collection={collection as 'projects' | 'projects-en'}
     linkPrefix={linkPrefix}
-    order={ROLE_CURATION.hr}
-    filterable
+    slugs={ROLE_CURATION.hr}
+    ordered
+    groupByYear
+    starPreview="full"
     idPrefix={idPrefix}
   />
 ) : (

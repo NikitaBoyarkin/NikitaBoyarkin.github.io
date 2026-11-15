@@ -32,13 +32,13 @@ const landing = read('src/components/RoleLanding.astro');
 const list = read('src/components/ProjectList.astro');
 
 describe('project list — filter bar', () => {
-  it('is opt-in, and both list lanes opt in', () => {
+  it('is opt-in, and the colleague lane opts in', () => {
     expect(list).toMatch(/filterable\?: boolean;/);
     expect(list).toMatch(/filterable = false/);
-    // HR
-    expect(landing).toMatch(/\) : role === 'hr' \? \(\s*<ProjectList[\s\S]*?filterable/);
-    // Colleague
+    // The colleague lane. HR reads the board (`ProjectBoard groupByYear`), whose
+    // filter bar is unconditional — `ProjectList` has one caller left.
     expect(landing).toMatch(/variant="summary"[\s\S]*?filterable/);
+    expect(landing).not.toMatch(/<ProjectList[^>]*\n?[\s\S]{0,60}order=\{ROLE_CURATION\.hr\}/);
   });
 
   it('renders both filters, in the board’s own bar', () => {

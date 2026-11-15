@@ -1605,7 +1605,11 @@ nav ul.links a[aria-current="page"] {
   margin-bottom: var(--space-16);
 }
 
-#projects h2 {
+/* Direct child, not every h2 in the section: the sectioned boards put their
+   group headings (`.project-group-heading`) inside a grid, and this recipe is the
+   page title's alone — a track or year heading that inherited the 2rem centred
+   treatment would read as a second page title. */
+#projects > h2 {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: var(--space-8);
@@ -1616,7 +1620,7 @@ nav ul.links a[aria-current="page"] {
   letter-spacing: -0.01em;
 }
 
-#projects h2::after {
+#projects > h2::after {
   content: "";
   position: absolute;
   bottom: 0;
@@ -1628,8 +1632,9 @@ nav ul.links a[aria-current="page"] {
   border-radius: var(--radius-full);
 }
 
-/* Stacked card list — the topic pages render their cards under this id. The
-   board overrides it with its own grid (`#project-list.project-track-grid`). */
+/* Stacked card list — the topic pages render their cards under this id. A board's
+   grid carries its own class (`.project-track-grid` / `.project-catalog`), so a
+   board shares nothing with this rule. */
 #project-list {
   display: flex;
   flex-direction: column;
@@ -3269,11 +3274,6 @@ textarea::placeholder {
   color: var(--text-accent);
 }
 
-/* Newest-first owns the order, so the grip would promise a drag that is gone. */
-#project-list.is-date-sorted .project-grip {
-  display: none;
-}
-
 /* Counts are metadata, not actions — inherit the chip's own ink instead of
    painting a second accent pill inside it. Full strength on purpose: the
    count is 11.5px, so a reduced opacity drops the active chip's `--text-accent`
@@ -3318,7 +3318,7 @@ textarea::placeholder {
    so the plain value forced 540px columns on a 350px phone and overflowed the
    page by 165px horizontally (measured at 390px). `min()` lets the track shrink
    to the container when the container is smaller than the target. */
-#project-list.project-track-grid {
+.project-track-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 540px), 1fr));
   gap: var(--space-5);
@@ -3344,11 +3344,11 @@ textarea::placeholder {
   display: none;
 }
 
-/* Same label-plus-rule recipe as the HR year headings: a group marker, not a
-   value. `#project-list` is load-bearing — `#projects h2` owns the section-title
-   recipe (2rem, centred, with a decorative rule under it) at id weight, and a
-   plain class selector loses to it. Two ids tie, the class breaks the tie. */
-#project-list .project-group-heading {
+/* Same label-plus-rule recipe as the list's year headings: a group marker, not a
+   value. A plain class is enough — the section-title recipe is scoped to
+   `#projects > h2`, so nothing at id weight competes with this heading, and both
+   the catalogue's track groups and the HR lane's year groups get it. */
+.project-group-heading {
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
@@ -3363,7 +3363,7 @@ textarea::placeholder {
 
 /* No decorative rule under a track heading: the section title wears one, and
    four of them down the page would read as four section titles. */
-#project-list .project-group-heading::after {
+.project-group-heading::after {
   content: none;
 }
 
@@ -3419,7 +3419,7 @@ textarea::placeholder {
    this is a static build. The `<img>` is `loading="lazy"`, and a lazy image with
    no layout box is never fetched, so desktop pays nothing for it. */
 @media (min-width: 1140px) {
-  #project-list.project-track-grid .project.compact img {
+  .project-track-grid .project.compact img {
     display: none;
   }
   /* Uniform CTA block. At half width the demo/GitHub links only *sometimes*
@@ -3427,7 +3427,7 @@ textarea::placeholder {
      above wrapped — so two cards in the same row ended at different heights
      (468px vs 430px measured). A full-basis link group forces its own line and
      makes every card in the grid identical, which is the point of a board. */
-  #project-list.project-track-grid .project.compact .project-action-links {
+  .project-track-grid .project.compact .project-action-links {
     flex-basis: 100%;
   }
 }
@@ -3482,7 +3482,7 @@ textarea::placeholder {
 }
 
 /* Category switch: a short fade, opacity only (no layout shift). */
-#project-list.is-filtering .project:not(.is-hidden) {
+[data-project-board].is-filtering .project:not(.is-hidden) {
   animation: project-card-fade 0.15s ease-out;
 }
 
@@ -3496,7 +3496,7 @@ textarea::placeholder {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #project-list.is-filtering .project {
+  [data-project-board].is-filtering .project {
     animation: none;
   }
 }

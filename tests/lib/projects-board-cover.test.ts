@@ -40,14 +40,18 @@ describe('/projects/ catalogue — cover on, Result off, grouped by track', () =
     expect(EN).toMatch(/<ProjectBoard[^>]*starPreview="none" grouped sphereFilter \/>/);
   });
 
-  it('scopes grouping to the catalogue, never to a role landing', () => {
+  it('scopes track grouping to the catalogue, and never hands a role board both axes', () => {
     expect(BOARD).toMatch(/grouped\?: boolean;/);
-    expect(BOARD).toMatch(/const sections = grouped/);
+    expect(BOARD).toMatch(/const sectioned = grouped \|\| yearGrouped;/);
     expect(BOARD).toMatch(/class="project-group"/);
     expect(BOARD).toMatch(/class="project-grid"/);
-    // The role boards render the flat grid and must not turn grouping on.
-    expect(read('src/components/RoleLanding.astro')).not.toMatch(/<ProjectBoard[\s\S]*?\bgrouped\b/);
-    // `ProjectList` (the HR list) is a different component and stays a list.
+    // Track grouping stays the catalogue's. The HR lane renders a board too
+    // (2026-11-15), but it groups by year — one axis per board, so the `grouped`
+    // prop must not reach a role landing. `[^>]*` matches the prop, not the word:
+    // the body comment says "grouped by publication year" about the HR lane.
+    expect(read('src/components/RoleLanding.astro')).not.toMatch(/<ProjectBoard[^>]*\bgrouped\b/);
+    expect(read('src/components/RoleLanding.astro')).toMatch(/<ProjectBoard[^>]*\bgroupByYear\b/);
+    // `ProjectList` is a different component and stays a list.
     expect(read('src/components/ProjectList.astro')).not.toMatch(/\bgrouped=/);
   });
 
@@ -60,7 +64,7 @@ describe('/projects/ catalogue — cover on, Result off, grouped by track', () =
     expect(CARD).toMatch(/\) : \(\s*<p title=\{description\}>\{description\}<\/p>/);
     expect(STAR).toMatch(/star && preview !== 'none' && \(/);
     expect(read('src/lib/projects.ts')).toMatch(
-      /export type StarPreview = 'result' \| 'task-result' \| 'none';/,
+      /export type StarPreview = 'result' \| 'task-result' \| 'full' \| 'none';/,
     );
   });
 

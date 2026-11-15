@@ -14,7 +14,7 @@ allowlist and retention: `docs/supabase-analytics.md`.
 
 | Event | Properties | Fires when | Where |
 |---|---|---|---|
-| `project_viewed` | `{ slug, locale, surface? }` | a project page loads, or a project link is clicked | `Analytics.astro` (page, `surface:'page'`), `ProjectCard.astro` (`surface:'card'`), `ProjectList.astro` (`surface:'list'`), `ProjectTable.astro` (`surface:'table'`), `ProjectViews.astro`'s fresh lens (`surface:'fresh'`); an unscoped `[data-analytics-project]` click falls back to `surface:'unknown'`. `surface:'headline'` is retired — see §4 |
+| `project_viewed` | `{ slug, locale, surface? }` | a project page loads, or a project link is clicked | `Analytics.astro` (page, `surface:'page'`), `ProjectCard.astro` (`surface:'card'`), `ProjectList.astro` (`surface:'list'`), `ProjectTable.astro` (`surface:'table'`), `ProjectViews.astro`'s fresh lens (`surface:'fresh'`); an unscoped `[data-analytics-project]` click falls back to `surface:'unknown'`. `surface:'headline'` is retired — see §4. **2026-11-15:** панель `hr` перешла с `ProjectList` на доску, поэтому её клики дают `surface:'card'`, а не `'list'`; `'list'` теперь только `/colleague/` |
 | `post_read` | `{ slug, locale }` | a blog post page loads | `Analytics.astro` |
 | `lang_switched` | `{ from, to, path }` | the RU/EN switch is clicked | `Analytics.astro` (special-cases `data-analytics="lang_switch_*"`) |
 | `theme_change` | `{ theme }` | the theme toggle is clicked | `Base.astro` (bundled script) |
