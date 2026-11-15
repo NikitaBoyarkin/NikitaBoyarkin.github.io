@@ -31,6 +31,9 @@ export interface LinkEntry {
   id: string;
   collection: CollectionName;
   title: string;
+  /** One-line self-description, carried so a backlink card can say what the
+   *  linking page is instead of only naming it. */
+  brief?: string;
   related?: string[];
   children?: string[];
   sources?: string[];
@@ -90,6 +93,7 @@ export interface LinkRef {
   /** Locale of the target note, which is not always the reader's locale. */
   locale: Locale;
   type: EdgeType;
+  brief?: string;
 }
 
 export interface UnresolvedLink {
@@ -105,6 +109,7 @@ export interface LinkNode {
   kind: NodeKind;
   locale: Locale;
   collection: CollectionName;
+  brief?: string;
 }
 
 export interface LinkIndex {
@@ -171,6 +176,7 @@ function buildRegistry(entries: LinkEntry[]): Registry {
       kind,
       locale,
       collection: entry.collection,
+      brief: entry.brief,
     };
     byId[node.id] = node;
     const key = `${kind}:${slug}`;
@@ -247,6 +253,7 @@ export function buildLinkIndex({ locale, entries, terms = [] }: BuildLinkIndexOp
       kind: to.kind,
       locale: to.locale,
       type,
+      brief: to.brief,
     };
     const back: LinkRef = {
       id: from.id,
@@ -255,6 +262,7 @@ export function buildLinkIndex({ locale, entries, terms = [] }: BuildLinkIndexOp
       kind: from.kind,
       locale: from.locale,
       type,
+      brief: from.brief,
     };
     outgoing[from.id] = [...(outgoing[from.id] ?? []).filter((r) => r.id !== to.id), ref];
     incoming[to.id] = [...(incoming[to.id] ?? []).filter((r) => r.id !== from.id), back];

@@ -1,22 +1,49 @@
 ---
-// Renders the incoming-link list for a note. Reuses the global `.post-related`
-// block from `src/styles/blog.css`; renders nothing when there is no backlink.
+// Incoming links, rendered on the same board as «Смотрите также»: one column
+// per kind, each card carrying the linking page's own one-line description.
+// A bare title would make the reader open the page to find out whether it is
+// the same thread.
+import RelatedBoard from './RelatedBoard.astro';
+
 interface Props {
-  items: { path: string; title: string; kind: string }[];
+  items: { path: string; title: string; kind: string; brief?: string }[];
   label: string;
   lang?: 'ru' | 'en';
 }
 
-const { items, label } = Astro.props;
+const { items, label, lang = 'ru' } = Astro.props;
+
+const ORDER = ['project', 'post', 'glossary', 'library', 'part'] as const;
+type Kind = (typeof ORDER)[number];
+
+const KIND_LABELS: Record<'ru' | 'en', Record<Kind, string>> = {
+  ru: {
+    project: 'Проекты',
+    post: 'Посты',
+    glossary: 'Глоссарий',
+    library: 'Библиотека',
+    part: 'Разборы',
+  },
+  en: {
+    project: 'Projects',
+    post: 'Posts',
+    glossary: 'Glossary',
+    library: 'Library',
+    part: 'Write-ups',
+  },
+};
+
+const LEAD = {
+  ru: 'Материалы сайта, которые ссылаются на эту страницу.',
+  en: 'Site material that links to this page.',
+};
+
+const groups = ORDER.map((kind) => ({
+  label: KIND_LABELS[lang][kind],
+  items: items
+    .filter((item) => item.kind === kind)
+    .map((item) => ({ href: item.path, title: item.title, brief: item.brief })),
+})).filter((group) => group.items.length > 0);
 ---
 
-{items.length > 0 && (
-  <section class="post-related" aria-label={label}>
-    <h2>{label}</h2>
-    <ul>
-      {items.map((item) => (
-        <li><a href={item.path}>{item.title}</a></li>
-      ))}
-    </ul>
-  </section>
-)}
+{groups.length > 0 && <RelatedBoard heading={label} lead={LEAD[lang]} groups={groups} />}

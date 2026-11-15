@@ -35,13 +35,22 @@ async function loadEntries(collections: CollectionName[]): Promise<LinkEntry[]> 
       return (entries as unknown as {
         id: string;
         body?: string;
-        data: Partial<LinkEntry> & { draft?: boolean };
+        data: Partial<LinkEntry> & {
+          draft?: boolean;
+          description?: string;
+          excerpt?: string;
+          author?: string;
+        };
       }[])
         .filter((entry) => !entry.data.draft)
         .map((entry) => ({
           id: entry.id,
           collection,
           title: entry.data.title ?? slugOf(entry.id),
+          // The one-line description lives in a different field per collection:
+          // cases and terms in `description`, posts in `excerpt`, a shelf note
+          // has only its author.
+          brief: entry.data.description ?? entry.data.excerpt ?? entry.data.author,
           related: entry.data.related,
           children: entry.data.children,
           sources: entry.data.sources,

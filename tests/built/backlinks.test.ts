@@ -18,9 +18,11 @@ interface Problem {
   href?: string;
 }
 
-/** The first `post-related` section whose aria-label is `label`, or null. */
+/** The first `post-related` section whose aria-label is `label`, or null. The
+ *  block is a board, so the class list carries extra state classes, and the
+ *  columns inside are divs — which keeps `</section>` the block's real end. */
 function backlinksBlock(html: string, label: string): string | null {
-  for (const match of html.matchAll(/<section class="post-related" aria-label="([^"]*)">([\s\S]*?)<\/section>/g)) {
+  for (const match of html.matchAll(/<section class="post-related[^"]*" aria-label="([^"]*)"[^>]*>([\s\S]*?)<\/section>/g)) {
     if (match[1] === label) return match[2];
   }
   return null;
@@ -86,14 +88,14 @@ suite("built backlink blocks", () => {
       // The block exists and is non-empty — the assertion above would still
       // pass if `problems` treated an absent block as fine.
       expect(block).not.toBeNull();
-      expect([...block!.matchAll(/<h2>([^<]*)<\/h2>/g)].map((m) => m[1])).toEqual([LABEL[locale]]);
+      expect([...block!.matchAll(/<h2[^>]*>([^<]*)<\/h2>/g)].map((m) => m[1])).toEqual([LABEL[locale]]);
     });
   }
 
   it("the gate can fail when the block is absent (mutation control)", () => {
     const { html } = pages.ru;
     const stripped = html.replace(
-      /<section class="post-related" aria-label="Ссылаются сюда">[\s\S]*?<\/section>/,
+      /<section class="post-related[^"]*" aria-label="Ссылаются сюда"[^>]*>[\s\S]*?<\/section>/,
       "",
     );
     expect(stripped).not.toBe(html);
@@ -103,7 +105,7 @@ suite("built backlink blocks", () => {
   it("the gate can fail when a backlink points at an unbuilt page (mutation control)", () => {
     const { html } = pages.ru;
     const broken = html.replace(
-      /(<section class="post-related" aria-label="Ссылаются сюда">[\s\S]*?<a href=")[^"]+(")/,
+      /(<section class="post-related[^"]*" aria-label="Ссылаются сюда"[^>]*>[\s\S]*?<a[^>]+href=")[^"]+(")/,
       "$1/definitely-not-built/$2",
     );
     expect(broken).not.toBe(html);

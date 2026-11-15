@@ -29,7 +29,7 @@ const { heading, lead, groups, delay = 'reveal-delay-2' } = Astro.props;
       <div class="related-board-scroll">
         <div class="related-board">
           {groups.map((group) => (
-            <section class="related-board-col" aria-label={group.label}>
+            <div class="related-board-col" role="group" aria-label={group.label}>
               <h3 class="related-board-label">{group.label}</h3>
               <ul class="related-board-cards">
                 {group.items.map((item) => (
@@ -39,7 +39,7 @@ const { heading, lead, groups, delay = 'reveal-delay-2' } = Astro.props;
                   </li>
                 ))}
               </ul>
-            </section>
+            </div>
           ))}
         </div>
       </div>
