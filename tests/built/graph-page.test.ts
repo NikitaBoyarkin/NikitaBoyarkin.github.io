@@ -21,14 +21,11 @@ const PAGES = [
   { file: 'en/graph/index.html', h1: 'Content graph', note: 'Built from the content collections' },
 ] as const;
 
-const CONTROL = 'hire/index.html';
-
 const html = new Map<string, string>();
 
-/** One rendered `<KnowledgeGraph>` instance. `/graph/` now draws three in a row
- *  (projects, glossary, articles), each with its own controls, SVG and payload;
- *  `/colleague/` and the project dashboards still draw one, keyed `main`. The
- *  slice runs from a root to the next root, so every per-instance assertion
+/** One rendered `<KnowledgeGraph>` instance. `/graph/` draws three in a row
+ *  (projects, glossary, articles), each with its own controls, SVG and payload.
+ *  The slice runs from a root to the next root, so every per-instance assertion
  *  below stays inside the instance it claims to talk about. */
 interface Instance {
   key: string;
@@ -62,7 +59,7 @@ beforeAll(() => {
   if (!existsSync(resolve(DIST, 'index.html'))) {
     throw new Error('dist/ missing — run `bun run build` first');
   }
-  for (const p of [...PAGES.map((p) => p.file), CONTROL]) {
+  for (const p of PAGES.map((p) => p.file)) {
     const path = resolve(DIST, p);
     if (!existsSync(path)) throw new Error(`built page missing: ${p}`);
     html.set(p, readFileSync(path, 'utf8'));
@@ -140,15 +137,12 @@ describe('graph page board (built HTML)', () => {
     });
   }
 
-  it(`${CONTROL}: the embedded graph keeps its card`, () => {
-    const doc = html.get(CONTROL)!;
-    const roots = instancesOf(doc);
-    // One instance, the combined graph, keyed `main` — the control for the
-    // three-instance board above.
-    expect(roots.map((r) => r.key)).toEqual(['main']);
+  it('each board draws exactly three instances, one root apiece', () => {
     // `data-kg="root"` is the marker `instancesOf` filters on, so asserting it
     // on one root proves nothing. The real shape: /graph/ draws exactly three
-    // instances and each has exactly one root; the control draws exactly one.
+    // instances and each has exactly one root. The single-instance control that
+    // used to live on `/hire/` (keyed `main`) left with the colleague lane's
+    // graph on 2026-11-16, so `/graph/` is the only host now.
     for (const { file } of PAGES) {
       const doc = html.get(file)!;
       const roots = instancesOf(doc);
@@ -158,8 +152,6 @@ describe('graph page board (built HTML)', () => {
         expect((r.rootTag.match(/data-kg="root"/g) ?? []).length, `${file}:${r.key}`).toBe(1);
       }
     }
-    expect(doc).not.toContain('kg-bare');
-    expect(doc).not.toContain('class="graph-board');
   });
   it('every node ships as an empty ring, coloured only through --kg-ring', () => {
     // The whole drawing is contour at rest: a node paints nothing until it is

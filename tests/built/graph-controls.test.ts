@@ -20,9 +20,10 @@ import { resolve } from 'node:path';
 
 const DIST = resolve(__dirname, '../../dist');
 
-// Same component, card variant — the controls must not diverge between the
-// board and the embedded graph.
-const PAGES = ['graph/index.html', 'en/graph/index.html', 'hire/index.html'] as const;
+// The same component in both locales. The card variant that used to sit on
+// `/hire/` (keyed `main`) left with the colleague lane's graph on 2026-11-16, so
+// `/graph/` is now the only host and the board is the only variant.
+const PAGES = ['graph/index.html', 'en/graph/index.html'] as const;
 
 const html = new Map<string, string>();
 
@@ -43,10 +44,9 @@ function actionButtons(doc: string): string[] {
 }
 
 /** One rendered `<KnowledgeGraph>` instance. `/graph/` draws three (projects,
- *  glossary, articles), each with its own control bar; `/colleague/` draws the
- *  one combined graph, keyed `main`. Controls are asserted per instance so a
- *  section graph that lost its toolbar cannot hide behind a sibling that kept
- *  one. */
+ *  glossary, articles), each with its own control bar. Controls are asserted per
+ *  instance so a section graph that lost its toolbar cannot hide behind a sibling
+ *  that kept one. */
 interface Instance {
   key: string;
   html: string;
@@ -64,7 +64,6 @@ function instancesOf(doc: string): Instance[] {
 const KEYS: Record<string, string[]> = {
   'graph/index.html': ['projects', 'glossary', 'articles'],
   'en/graph/index.html': ['projects', 'glossary', 'articles'],
-  'hire/index.html': ['main'],
 };
 
 /** The JSON payload an instance ships for its client — nodes and links. */
@@ -162,19 +161,14 @@ describe('graph controls (built HTML)', () => {
         expect(new Set(types).size, `${file}:${key}: unique types`).toBe(rows.length);
         expect(types.sort(), `${file}:${key}: types`).toEqual([...present].sort());
         // Consistency with the payload alone lets an edge type vanish from the
-        // payload without a word. `/colleague/` is the combined graph and must
-        // carry the full vocabulary literally; the section graphs may drop a
-        // type they have no edges of, but only from that vocabulary.
+        // payload without a word. A section graph may drop a type it has no
+        // edges of, but never invent one: the vocabulary is fixed. The combined
+        // graph that had to carry all five literally was the `/hire/` card
+        // variant, removed 2026-11-16.
         const VOCAB = ['related', 'children', 'topic', 'shared', 'core'];
-        if (file === 'hire/index.html') {
-          expect([...present].sort(), `${file}:${key}: exactly five edge types`).toEqual(
-            [...VOCAB].sort(),
-          );
-        } else {
-          expect(present.size, `${file}:${key}: edge types present`).toBeGreaterThan(0);
-          for (const t of present) {
-            expect(VOCAB, `${file}:${key}: unknown edge type "${t}"`).toContain(t);
-          }
+        expect(present.size, `${file}:${key}: edge types present`).toBeGreaterThan(0);
+        for (const t of present) {
+          expect(VOCAB, `${file}:${key}: unknown edge type "${t}"`).toContain(t);
         }
         for (const row of rows) {
           expect(row, `${file}:${key}`).toMatch(/data-kg-type="[a-z]+"/);

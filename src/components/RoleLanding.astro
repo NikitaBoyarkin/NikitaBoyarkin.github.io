@@ -4,18 +4,11 @@
 // differences are a role's curation and which optional blocks render. The route
 // files stay thin wrappers so the head (`<title>`, canonical, `preloadImage`)
 // and the body cannot drift.
-import { getCollection } from 'astro:content';
 import HeroAvatar from './HeroAvatar.astro';
-import GithubActivity from './GithubActivity.astro';
-import KnowledgeGraph from './KnowledgeGraph.astro';
 import NextStep from './NextStep.astro';
-import NowCard from './NowCard.astro';
 import ProjectBoard from './ProjectBoard.astro';
 import SectionGrid from './SectionGrid.astro';
-import ReadingBlock from './ReadingBlock.astro';
 import StackCard from './StackCard.astro';
-import { withBase } from '../lib/path';
-import { loadFeaturedSources, shelfHref } from '../lib/library';
 import { ROLE_COPY, ROLE_CURATION, type Audience } from '../lib/projects';
 import type { SectionKey } from '../lib/sections';
 
@@ -35,10 +28,9 @@ const Heading = headingLevel === 2 ? 'h2' : 'h1';
 const isEn = lang === 'en';
 const copy = ROLE_COPY[lang][role];
 
-// Only the colleague version carries the full editorial hero — the avatar, the
-// featured case and (via the wrapper) the image preload. HR and the manager get
-// the compact identity block: a screening reader and a hiring manager both came
-// for the work, not the portrait.
+// Only the colleague version carries the avatar. HR and the manager get the
+// compact identity block: a screening reader and a hiring manager both came for
+// the work, not the portrait.
 const isColleague = role === 'colleague';
 
 /** The colleague lane's five doors, in reading order: the catalogue first, then
@@ -54,20 +46,6 @@ const COLLEAGUE_SECTIONS: readonly SectionKey[] = [
 
 const collection = isEn ? 'projects-en' : 'projects';
 const linkPrefix = isEn ? 'en/' : '';
-const allProjects = await getCollection(collection, (p) => !p.data.draft);
-const featured = allProjects.find((p) => p.id === 'volta') ?? allProjects[0];
-
-const shelf = isColleague ? await loadFeaturedSources(lang, 3) : [];
-
-const t = {
-  shelfHeading: isEn ? 'Library' : 'Библиотека',
-  shelfLink: isEn ? 'All sources →' : 'Все источники →',
-  writing: isEn ? 'Writing' : 'Статьи',
-  notes: isEn ? 'Notes' : 'Заметки',
-  featuredEyebrow: isEn ? 'Featured case' : 'Избранный кейс',
-  caseStudy: isEn ? 'Read the case →' : 'Разбор проекта →',
-  demo: isEn ? 'Demo' : 'Демо',
-};
 
 // The closing ask. Same block, three audiences: HR is asked for a vacancy, the
 // manager for a task, the colleague for a conversation. The copy is the only
@@ -103,79 +81,24 @@ const nextStepSurface = {
 } as const;
 ---
 
-<!-- HERO — editorial split on the colleague version, compact identity otherwise -->
+<!-- HERO — the identity block. The colleague version adds the avatar; the
+     featured-case panel that used to sit beside it was removed on 2026-11-16,
+     together with the colleague lane's graph, activity strip and library cell —
+     the lane now opens straight onto its section cards. -->
 <section id={`${p}intro`} class="intro-section">
-  <div class={`intro-container ${isColleague ? 'hero-editorial' : ''}`}>
+  <div class="intro-container">
     <div class="hero-body">
       {isColleague && <HeroAvatar lang={lang} />}
       <Heading class="hero-name">{copy.h1}</Heading>
       <p class="hero-pitch">{copy.lead}</p>
 
-      {/* The stack mosaic is a screening signal — the HR reader matches it against
-          a vacancy, and the colleague reader wants the toolchain. A manager reads
-          impact and decisions (`ROLE_COPY.manager`), so `/manager/` opens straight
-          from the pitch into the cases: the mosaic plus its "All projects →" exit
-          were a detour between the promise and the proof. */}
-      {role !== 'manager' && <StackCard lang={lang} />}
+      {/* The stack mosaic is a screening signal: the HR reader matches it against
+          a vacancy. The colleague lane stopped carrying it on 2026-11-16 — its
+          reader now gets the section cards, which lead to the stack on /about.
+          A manager reads impact and decisions (`ROLE_COPY.manager`), so
+          `/manager/` opens straight from the pitch into the cases. */}
+      {role === 'hr' && <StackCard lang={lang} />}
     </div>
-
-    {isColleague && (
-      <div class="hero-visual">
-        <article class="featured-card featured-card-hero">
-          {/* LCP element for the colleague landing (Lighthouse
-              largest-contentful-paint-element). It is in the first viewport, so
-              it must not be deferred. */}
-          <img
-            class="featured-card-image"
-            src={withBase(featured.data.hero)}
-            alt=""
-            loading="eager"
-            fetchpriority="high"
-          />
-          <div class="featured-card-body">
-            <p class="featured-card-eyebrow">{t.featuredEyebrow}</p>
-            <h2 class="featured-card-title">{featured.data.title}</h2>
-            <p class="featured-card-description">{featured.data.description}</p>
-            <div class="bento-chip-list">
-              {featured.data.tools?.slice(0, 5).map((tool: string) => (
-                <span class="bento-chip">{tool}</span>
-              ))}
-            </div>
-            <div class="featured-card-actions">
-              <a
-                class="featured-card-link"
-                href={withBase(`${linkPrefix}projects/${featured.id.replace(/\.md$/, '')}/`)}
-                data-analytics="featured_project"
-              >
-                {t.caseStudy}
-              </a>
-              {featured.data.demo && (
-                <a
-                  class="featured-card-chip"
-                  href={featured.data.demo.startsWith('http') ? featured.data.demo : withBase(featured.data.demo)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-analytics="featured_demo"
-                >
-                  {t.demo}
-                </a>
-              )}
-              {featured.data.github && !featured.data.private && (
-                <a
-                  class="featured-card-chip"
-                  href={featured.data.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-analytics="featured_github"
-                >
-                  GitHub
-                </a>
-              )}
-            </div>
-          </div>
-        </article>
-      </div>
-    )}
   </div>
 </section>
 
@@ -215,39 +138,6 @@ const nextStepSurface = {
   <section id={`${p}projects`} class="reveal" aria-label={isEn ? 'Sections' : 'Разделы'}>
     <SectionGrid keys={COLLEAGUE_SECTIONS} lang={lang} />
   </section>
-)}
-
-{isColleague && (
-  <>
-    <KnowledgeGraph lang={lang} />
-    <GithubActivity lang={lang} />
-
-    <section id={`${p}library`} class="reveal">
-      <div class="bento-grid bento-spaced">
-        <div class="bento-cell bento-cell-wide bento-cell-compact">
-          <h2 class="bento-cell-title">{t.shelfHeading}</h2>
-          <ReadingBlock sources={shelf} lang={lang} variant="cell" />
-          <p class="bento-cell-link-row">
-            <a class="bento-cell-link" href={shelfHref(lang)} data-analytics="bento_shelf">
-              {t.shelfLink}
-            </a>
-            <a class="bento-cell-link" href={withBase(`${linkPrefix}writing/`)} data-analytics="bento_writing">
-              {t.writing}
-            </a>
-            {!isEn && (
-              <a class="bento-cell-link" href={withBase('notes/')} data-analytics="bento_notes">
-                {t.notes}
-              </a>
-            )}
-          </p>
-        </div>
-        {/* The same "now" cell the homepage carries: on this page the reader is
-            a colleague, and "what is in progress" is the one signal a portfolio
-            usually omits. Content comes from `src/lib/now.ts`. */}
-        <NowCard lang={lang} variant="cell" />
-      </div>
-    </section>
-  </>
 )}
 
 {/* The closing ask. Before 2026-11-04 all three lanes ended on the project list

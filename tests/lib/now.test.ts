@@ -60,14 +60,17 @@ describe('«Сейчас» — one list, two surfaces', () => {
     expect(card).toMatch(/from '\.\.\/lib\/now'/);
   });
 
-  it('is mounted on the colleague landing, and no longer on either homepage', () => {
-    // The colleague grid only — the HR and manager boards are catalogues, and a
-    // "what I am working on" cell there would compete with the screening path.
-    const landing = read('src/components/RoleLanding.astro');
-    expect(landing).toContain('<NowCard lang={lang} variant="cell" />');
-    // The cell left `/` and `/en/` on 2026-11-04: the homepage is the new-tab
-    // surface. Guard the removal so it cannot quietly return there.
-    for (const file of ['src/pages/index.astro', 'src/pages/en/index.astro']) {
+  it('lives on /about only — not on the hiring lanes, not on either homepage', () => {
+    // The card's one surface is `/about`, mounted from the MDX (asserted above).
+    // It came off `/` and `/en/` on 2026-11-04 (the homepage is the new-tab
+    // surface) and off the colleague lane on 2026-11-16, when that lane dropped
+    // its library/now cell along with the graph and the featured case — the
+    // guard is here so neither removal can quietly revert.
+    for (const file of [
+      'src/components/RoleLanding.astro',
+      'src/pages/index.astro',
+      'src/pages/en/index.astro',
+    ]) {
       expect(read(file), `${file} carries the now cell again`).not.toContain('<NowCard');
     }
   });

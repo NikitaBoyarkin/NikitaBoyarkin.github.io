@@ -3,9 +3,10 @@
 // Why this exists: `RoleLanding.astro` renders one body for all three personas,
 // so every difference between the lanes is a `role` condition inside one file —
 // exactly the shape that regresses silently. The manager lane dropped
-// `StackCard` (five category cards + its "Все проекты →" exit); a reverted or
-// inverted condition would put the mosaic back on the body whose reader came for
-// impact, or take it off the two that still ask for it.
+// `StackCard` (five category cards + its "Все проекты →" exit); the colleague lane
+// dropped it too on 2026-11-16, so HR is the only lane that still asks for it. A
+// reverted or inverted condition would put the mosaic back on a body whose reader
+// came for something else, or take it off the one that does.
 //
 // Until 2026-11-15 each lane was its own route (`/hire/{hr,manager,colleague}/`)
 // and the whole page was the body. Now the three are `role="tabpanel"` sections of
@@ -99,7 +100,10 @@ describe('hiring page — three bodies, one document', () => {
 describe('hiring page — stack mosaic placement', () => {
   for (const page of PAGES) {
     for (const role of ROLES) {
-      const stack = role !== 'manager';
+      // Only the HR lane carries the mosaic since 2026-11-16: the colleague lane
+      // opens onto section cards instead, and a manager reads impact, not a
+      // stack list.
+      const stack = role === 'hr';
       const label = stack ? 'renders' : 'does not render';
 
       it(`${page.file} ${role} panel ${label} the stack card`, () => {

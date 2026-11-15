@@ -11,13 +11,14 @@ import { resolve } from 'node:path';
 // The failure mode is quiet: dropping the builder call would still render a
 // graph — the tooltips would just be `undefined` until someone hovered a node.
 //
-// `/graph/` now renders three instances (projects, glossary, articles), each
-// with its own payload inside its own root; `/colleague/` still renders one,
-// keyed `main`. Every payload is parsed from its instance's slice, and the two
-// locales are checked for parity so a section graph cannot go missing from one.
+// `/graph/` renders three instances (projects, glossary, articles), each with its
+// own payload inside its own root — the only host since the colleague lane's graph
+// left `/hire/` on 2026-11-16. Every payload is parsed from its instance's slice,
+// and the two locales are checked for parity so a section graph cannot go missing
+// from one.
 
 const ROOT = resolve(__dirname, '..', '..');
-const PAGES = ['/hire/index.html', '/graph/index.html', '/en/graph/index.html'];
+const PAGES = ['/graph/index.html', '/en/graph/index.html'];
 
 interface Instance {
   key: string;
@@ -77,16 +78,11 @@ describe('graph payload carries data, not precomputed copy', () => {
       for (const inst of list) {
         expect(inst.rootTag, `${path}:${inst.key}`).toContain(`data-lang="${expectedLang}"`);
       }
-      if (path === '/hire/index.html') {
-        expect(list.map((i) => i.key)).toEqual(['main']);
-        expect(list[0].rootTag).not.toContain('data-analytics-graph');
-      } else {
-        expect(list.map((i) => i.key)).toEqual(['projects', 'glossary', 'articles']);
-        for (const inst of list) {
-          expect(inst.rootTag, `${path}:${inst.key}`).toContain(`data-analytics-graph="${inst.key}"`);
-          expect(inst.data.key).toBe(inst.key);
-          expect(inst.data.section).toBe(inst.key);
-        }
+      expect(list.map((i) => i.key)).toEqual(['projects', 'glossary', 'articles']);
+      for (const inst of list) {
+        expect(inst.rootTag, `${path}:${inst.key}`).toContain(`data-analytics-graph="${inst.key}"`);
+        expect(inst.data.key).toBe(inst.key);
+        expect(inst.data.section).toBe(inst.key);
       }
     });
 
@@ -94,7 +90,6 @@ describe('graph payload carries data, not precomputed copy', () => {
     // returning early on a miss) let a section graph vanish with a green test;
     // now a missing instance fails here, naming the key that was expected.
     const EXPECTED: Record<string, string[]> = {
-      '/hire/index.html': ['main'],
       '/graph/index.html': ['projects', 'glossary', 'articles'],
       '/en/graph/index.html': ['projects', 'glossary', 'articles'],
     };

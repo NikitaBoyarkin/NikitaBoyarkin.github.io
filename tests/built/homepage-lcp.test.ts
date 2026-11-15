@@ -1,13 +1,16 @@
-// Landing LCP regression: the featured-case image is the largest-contentful
-// element on `/hire/` and `/en/hire/`, and it is fetched late unless a
-// head preload names it. When the preload is dropped (or its href drifts from the
-// <img src>), the page silently falls back to a ~1 s FCP→LCP gap — no unit test and
-// no lint would catch it, only a Lighthouse run against production would.
+// Case-page LCP regression: the hero image is the largest-contentful element on a
+// case page, and it is fetched late unless a head preload names it. When the
+// preload is dropped (or its href drifts from the <img src>), the page silently
+// falls back to a ~1 s FCP→LCP gap — no unit test and no lint would catch it, only
+// a Lighthouse run against production would.
 //
-// The pages moved twice: `/` is now the persona gate, which carries no hero image,
-// so the editorial hero — and this claim with it — moved to the colleague version;
-// on 2026-11-15 the colleague version became a tab panel of `/hire/`, which is why
-// the page named here is the merged one.
+// The claim has moved twice. `/` became the persona gate, so the editorial hero —
+// and this claim with it — moved to the colleague version; on 2026-11-15 that became
+// a tab panel of `/hire/`. On 2026-11-16 the colleague lane dropped its featured
+// case entirely (the lane opens onto section cards), which left the preload naming
+// an image the merged page no longer renders. The largest such image that is still
+// preloaded is the case-page hero, so the claim lives here now: same equivalence
+// (preload href === hero <img> src), one host instead of a dead one.
 //
 // Requires `bun run build` first (reads dist/).
 
@@ -17,8 +20,8 @@ import { resolve } from 'node:path';
 
 const DIST = resolve(__dirname, '../../dist');
 
-/** The role landings that carry the featured-case split (RU + EN). */
-const HOMEPAGES = ['hire/index.html', 'en/hire/index.html'];
+/** The case page whose head preloads its own hero image (RU + EN). */
+const PAGES = ['projects/volta/index.html', 'en/projects/volta/index.html'];
 
 const html = new Map<string, string>();
 
@@ -26,13 +29,15 @@ beforeAll(() => {
   if (!existsSync(resolve(DIST, 'index.html'))) {
     throw new Error('dist/ missing — run `bun run build` first');
   }
-  for (const file of HOMEPAGES) {
-    html.set(file, readFileSync(resolve(DIST, file), 'utf8'));
+  for (const file of PAGES) {
+    const path = resolve(DIST, file);
+    if (!existsSync(path)) throw new Error(`built page missing: ${file}`);
+    html.set(file, readFileSync(path, 'utf8'));
   }
 });
 
-describe('homepage hero preload', () => {
-  for (const file of HOMEPAGES) {
+describe('case page hero preload', () => {
+  for (const file of PAGES) {
     it(`${file} preloads the LCP image with high priority`, () => {
       const doc = html.get(file)!;
       const preload = doc.match(/<link rel="preload" as="image"[^>]*>/)?.[0];
@@ -43,7 +48,7 @@ describe('homepage hero preload', () => {
       // browser fetch the image twice instead of once.
       const href = /href="([^"]+)"/.exec(preload!)?.[1];
       expect(href).toBeDefined();
-      const imgSrc = doc.match(/class="featured-card-image"[^>]*>/)?.[0];
+      const imgSrc = doc.match(/class="hero-image"[^>]*>/)?.[0];
       expect(imgSrc).toContain(`src="${href}"`);
     });
   }
