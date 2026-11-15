@@ -1,0 +1,43 @@
+---
+// A grid of section cards, the same shape `/navigation/` renders: one
+// `SectionCard` per registry entry, in the order the caller names. `/navigation/`
+// keeps its own inline list because it maps the whole registry minus itself; this
+// component exists for surfaces that show a hand-picked subset.
+//
+// The grid CSS is duplicated from `/navigation/` rather than lifted into
+// `global.css`: the navigation page's copy is scoped to that page, and a shared
+// rule would silently restyle it from here.
+import SectionCard from './SectionCard.astro';
+import { withBase } from '../lib/path';
+import { SECTIONS, type SectionDef, type SectionKey } from '../lib/sections';
+
+interface Props {
+  /** Registry keys, in display order. Unknown keys are dropped silently. */
+  keys: readonly SectionKey[];
+  lang?: 'ru' | 'en';
+}
+const { keys, lang = 'ru' } = Astro.props;
+
+const byKey = new Map(SECTIONS.map((section) => [section.key, section]));
+const cards = keys
+  .map((key) => byKey.get(key))
+  .filter((section): section is SectionDef => section !== undefined);
+---
+
+<ul class="sections-grid" data-section-grid>
+  {
+    cards.map((section) => (
+      <SectionCard section={section} lang={lang} href={withBase(section.href[lang])} />
+    ))
+  }
+</ul>
+
+<style>
+  .sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-4);
+    margin: var(--space-6) 0 0;
+    padding: 0;
+  }
+</style>

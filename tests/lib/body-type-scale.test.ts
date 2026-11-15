@@ -61,7 +61,6 @@ const ROLES: Array<[file: string, selector: string]> = [
   ['src/components/CareerSnapshot.astro', '.career-list li'],
   ['src/components/charts/ChartCard.astro', '.chart-description'],
   ['src/components/charts/ChartCard.astro', '.chart-conclusions li'],
-  ['src/components/ProjectList.astro', '.project-row-description'],
   ['src/components/ExplorerApp.astro', '.xp-item > a > p'],
   ['src/pages/glossary/index.astro', '.term-blurb'],
   ['src/pages/en/glossary/index.astro', '.term-blurb'],

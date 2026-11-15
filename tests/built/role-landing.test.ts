@@ -85,13 +85,12 @@ describe('hiring page — three bodies, one document', () => {
     });
   }
 
-  it('namespaces the list ids per panel', () => {
+  it('namespaces the board ids per panel', () => {
     const source = html.get('hire/index.html')!;
     expect(source).toContain('id="hr-projects"');
     expect(source).toContain('id="manager-projects"');
     expect(source).toContain('id="colleague-projects"');
     expect(source).toContain('id="hr-project-filter-status"');
-    expect(source).toContain('id="colleague-list-filter-empty"');
     expect(source).toContain('id="hr-project-list"');
     expect(source).toContain('id="manager-project-list"');
   });
@@ -119,24 +118,34 @@ describe('hiring page — stack mosaic placement', () => {
   });
 });
 
-// Colleague: a list of one-line descriptions. HR: a board, grouped by year, each
-// card a cover + `description`. The two lanes render different components
-// (`ProjectList` vs `ProjectBoard`), so the difference is grouping axis and card
-// markup — not a `variant` flag.
+// Colleague: a grid of section cards, the same cards `/navigation/` renders.
+// HR and the manager: boards. The three lanes render two components
+// (`SectionGrid` vs `ProjectBoard`), so the difference is what the lane is for.
 describe('hiring page — project section shape', () => {
-  const rows = (source: string) => (source.match(/class="project-row"/g) ?? []).length;
   const cards = (source: string) => (source.match(/class="project reveal compact"/g) ?? []).length;
+  const sectionCards = (source: string) => (source.match(/class="section-card"/g) ?? []).length;
 
-  it('colleague reads a flat list: rows, descriptions, no board', () => {
+  // The colleague lane left the catalogue on 2026-11-16. It used to print 31 rows
+  // in the curated method-first order; the reader who comes to see how the work is
+  // put together now gets the five doors to the sections that carry it, so the
+  // list's density bought nothing and its filters filtered a page that was
+  // already the whole catalogue.
+  it('colleague reads five section cards, not the catalogue', () => {
     for (const page of PAGES) {
       const source = panel(page.file, 'colleague');
-      expect(source).not.toContain('project-list"');
-      expect(rows(source)).toBe(31);
-      expect(source).toContain('class="project-row-description"');
-      // A curated order owns the sequence, so no year headings are printed.
-      expect(source).not.toContain('class="project-year-heading"');
-      // The four-row skeleton belongs to the HR lane.
-      expect(source).not.toMatch(/data-star="situation"/);
+      expect(sectionCards(source)).toBe(5);
+      // Registry hrefs, locale-resolved: the EN panel must not link to RU pages.
+      const prefix = page.lang === 'en' ? '/en/' : '/';
+      for (const section of ['projects', 'demos', 'glossary', 'writing', 'library']) {
+        expect(source, `${page.file} colleague lost the ${section} card`).toContain(
+          `href="${prefix}${section}/"`,
+        );
+      }
+      // No catalogue on this lane, and therefore no filters over it.
+      expect(source).not.toContain('class="project-row"');
+      expect(cards(source)).toBe(0);
+      expect(source).not.toMatch(/data-track-filter=/);
+      expect(source).not.toMatch(/data-star=/);
     }
   });
 
@@ -170,16 +179,12 @@ describe('hiring page — project section shape', () => {
     }
   });
 
-  // Both filtered lanes carry five category tabs (all + four tracks) and six tool
-  // chips (all + five tools), with every item tagged for both matchers. The board
-  // reports through `data-filter-status`, the list through `data-list-status` —
-  // two controllers, one vocabulary.
-  it('the colleague list and the HR board both carry the two filters', () => {
+  // Both boards carry five category tabs (all + four tracks) and six tool chips
+  // (all + five tools), with every card tagged for both matchers. The colleague
+  // lane carries neither: it has no catalogue to filter.
+  it('the HR and manager boards carry the two filters, the colleague grid none', () => {
     for (const page of PAGES) {
-      for (const [role, statusAttr] of [
-        ['hr', 'data-filter-status'],
-        ['colleague', 'data-list-status'],
-      ] as const) {
+      for (const role of ['hr', 'manager'] as const) {
         const source = panel(page.file, role);
         const tracks = source.match(/data-track-filter="[a-z]+"/g) ?? [];
         const tools = source.match(/data-tool-filter="[a-z]+"/g) ?? [];
@@ -187,11 +192,14 @@ describe('hiring page — project section shape', () => {
         expect(tools, `${page.file} ${role} lost its tool chips`).toHaveLength(6);
         expect(tracks[0]).toContain('all');
         expect(tools[0]).toContain('all');
-        // Every card and every row must be matchable by both filters.
+        // Every card must be matchable by both filters.
         expect(source.match(/data-track="[a-z]+"/g) ?? []).toHaveLength(31);
         expect(source.match(/data-tools="/g) ?? []).toHaveLength(31);
-        expect(source).toContain(statusAttr);
+        expect(source).toContain('data-filter-status');
       }
+      const colleague = panel(page.file, 'colleague');
+      expect(colleague).not.toMatch(/data-tool-filter=/);
+      expect(colleague).not.toContain('data-filter-status');
     }
   });
 

@@ -11,12 +11,13 @@ import KnowledgeGraph from './KnowledgeGraph.astro';
 import NextStep from './NextStep.astro';
 import NowCard from './NowCard.astro';
 import ProjectBoard from './ProjectBoard.astro';
-import ProjectList from './ProjectList.astro';
+import SectionGrid from './SectionGrid.astro';
 import ReadingBlock from './ReadingBlock.astro';
 import StackCard from './StackCard.astro';
 import { withBase } from '../lib/path';
 import { loadFeaturedSources, shelfHref } from '../lib/library';
 import { ROLE_COPY, ROLE_CURATION, type Audience } from '../lib/projects';
+import type { SectionKey } from '../lib/sections';
 
 interface Props {
   role: Audience;
@@ -39,6 +40,17 @@ const copy = ROLE_COPY[lang][role];
 // the compact identity block: a screening reader and a hiring manager both came
 // for the work, not the portrait.
 const isColleague = role === 'colleague';
+
+/** The colleague lane's five doors, in reading order: the catalogue first, then
+ *  the places the method itself lives. Registry keys — an unregistered entry
+ *  renders nothing rather than a dead link. */
+const COLLEAGUE_SECTIONS: readonly SectionKey[] = [
+  'projects',
+  'demos',
+  'glossary',
+  'writing',
+  'library',
+];
 
 const collection = isEn ? 'projects-en' : 'projects';
 const linkPrefix = isEn ? 'en/' : '';
@@ -167,17 +179,19 @@ const nextStepSurface = {
   </div>
 </section>
 
-{/* Two readers, two shapes:
+{/* Three readers, two shapes:
       - HR reads a board grouped by publication year: cover, track badge, title
         and the file's `description` on each card — the STAR skeleton lives on
         the case page, where the reader has committed to the case. The year
         grouping says "what shipped when" once per group. `ROLE_CURATION.hr`
         names the membership; the year groups own the order.
-      - The colleague reads a flat list in the curated method-first order, each
-        row one `description` line, with the same filter bar over it.
       - The manager reads the board, each card previewing Task → Result.
-    Both boards are `ProjectBoard` (different grouping axis, different teaser);
-    the list is the colleague's alone (`ProjectList`). */}
+      - The colleague gets a grid of section cards (the same cards `/navigation/`
+        renders), not the catalogue: that reader comes to see how the work is put
+        together, and 31 rows in one lane hid the sections that carry the method —
+        glossary, writing, library, demos. `COLLEAGUE_SECTIONS` fixes the five.
+    Both catalogued lanes are `ProjectBoard` (different grouping axis, different
+    teaser). The colleague lane left the list on 2026-11-16. */}
 {role === 'manager' ? (
   <ProjectBoard
     collection={collection as 'projects' | 'projects-en'}
@@ -198,14 +212,9 @@ const nextStepSurface = {
     idPrefix={idPrefix}
   />
 ) : (
-  <ProjectList
-    collection={collection as 'projects' | 'projects-en'}
-    linkPrefix={linkPrefix}
-    variant="summary"
-    order={ROLE_CURATION.colleague}
-    filterable
-    idPrefix={idPrefix}
-  />
+  <section id={`${p}projects`} class="reveal" aria-label={isEn ? 'Sections' : 'Разделы'}>
+    <SectionGrid keys={COLLEAGUE_SECTIONS} lang={lang} />
+  </section>
 )}
 
 {isColleague && (

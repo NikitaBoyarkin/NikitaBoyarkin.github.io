@@ -51,8 +51,6 @@ describe('/projects/ catalogue — cover on, Result off, grouped by track', () =
     // the body comment says "grouped by publication year" about the HR lane.
     expect(read('src/components/RoleLanding.astro')).not.toMatch(/<ProjectBoard[^>]*\bgrouped\b/);
     expect(read('src/components/RoleLanding.astro')).toMatch(/<ProjectBoard[^>]*\bgroupByYear\b/);
-    // `ProjectList` is a different component and stays a list.
-    expect(read('src/components/ProjectList.astro')).not.toMatch(/\bgrouped=/);
   });
 
   it('renders the description when the preview is `none`', () => {

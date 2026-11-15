@@ -41,14 +41,15 @@ describe('manager landing — card previews Task + Result', () => {
     expect(landing).toMatch(/\{role === 'manager' \? \(\s*<ProjectBoard/);
   });
 
-  it('gives each board its own teaser, and the list none', () => {
-    // The manager and the HR lane are both boards now; the manager previews
+  it('gives each board its own teaser, and the colleague no card at all', () => {
+    // The manager and the HR lane are both boards; the manager previews
     // Task → Result, the HR board shows no STAR at all (the year groups are its
-    // only framing — see 2026-11-15), and the colleague lane is the list.
+    // only framing — see 2026-11-15). The colleague lane left the catalogue on
+    // 2026-11-16 for a grid of section cards, so no STAR prop reaches it.
     expect(landing).toMatch(/<ProjectBoard[\s\S]*?starPreview="task-result"/);
     expect(landing).toMatch(/<ProjectBoard[\s\S]*?starPreview="none"/);
-    expect(landing).toMatch(/<ProjectList[\s\S]*?variant="summary"/);
-    expect(landing).not.toMatch(/<ProjectList[^>]*starPreview/);
+    expect(landing).toMatch(/\) : \(\s*<section[\s\S]*?<SectionGrid keys=\{COLLEAGUE_SECTIONS\}/);
+    expect(landing).not.toMatch(/starPreview[\s\S]{0,200}?colleague/);
   });
 
   it('threads the prop board → card → block', () => {

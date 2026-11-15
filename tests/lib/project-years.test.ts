@@ -2,7 +2,7 @@ import { describe, it, expect } from 'bun:test';
 import { groupByYear } from '../../src/lib/projects';
 
 /**
- * Binds the HR landing's list order (`ProjectList.astro`): years newest first,
+ * Binds the HR landing's board order (`ProjectBoard groupByYear`): years newest first,
  * projects newest first inside a year, `PROJECT_ORDER` breaking date ties. The
  * tie-break is not cosmetic — four projects carry the same 2026-08-11 date, so
  * without it the order would follow `getCollection`'s filesystem order and
