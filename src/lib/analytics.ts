@@ -126,7 +126,7 @@ export interface AnalyticsEventMap {
   persona_selected: {
     persona: Audience;
     lang: Locale;
-    source: 'gate' | 'switch' | 'header' | 'menu';
+    source: 'gate' | 'switch' | 'header' | 'menu' | 'tab';
   };
   // Library + contact surfaces that were already shipping through the delegated
   // `[data-analytics]` handler but were never declared here (docs §2 drift).

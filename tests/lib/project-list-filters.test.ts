@@ -44,7 +44,7 @@ describe('project list — filter bar', () => {
   it('renders both filters, in the board’s own bar', () => {
     expect(list).toMatch(/import ProjectFilter from '\.\/ProjectFilter\.astro';/);
     expect(list).toMatch(/import ProjectTrackFilter from '\.\/ProjectTrackFilter\.astro';/);
-    expect(list).toMatch(/<div class="project-filter-bar">[\s\S]*?<ProjectTrackFilter[\s\S]*?<ProjectFilter lang=\{lang\} \/>/);
+    expect(list).toMatch(/<div class="project-filter-bar">[\s\S]*?<ProjectTrackFilter[\s\S]*?<ProjectFilter lang=\{lang\} idPrefix=\{idPrefix\} \/>/);
   });
 
   it('counts the tabs over the rows the section renders', () => {
@@ -91,6 +91,9 @@ describe('project list — filter bar', () => {
     // built client-side, so a JS-off reader still sees every project.
     expect(list).not.toMatch(/createElement\('li'\)/);
     expect(list).toMatch(/aria-live="polite"/);
-    expect(list).toMatch(/id="list-filter-empty"/);
+    // The empty state is server-rendered too. Asserted through its `data-*` hook,
+    // not the literal id: `/hire/` renders this list twice in one document, so the
+    // id is namespaced now.
+    expect(list).toMatch(/data-list-empty/);
   });
 });

@@ -1,0 +1,208 @@
+---
+// The `/hire/` tab bar. It replaces the per-landing `RoleSwitch`: instead of
+// linking the two other roles — which was a page navigation — it switches the
+// panel in place, and it is the section's only control that writes the persona.
+//
+// Every panel is server-rendered and visible in the HTML, so a crawler and a
+// reader with scripting off get all three bodies. The controller only hides the
+// two inactive panels, through `html[data-hire-tab]` — an inline pre-paint script
+// in the page sets that attribute before the panels are parsed, so the wrong
+// panel never paints. Without JS the tab bar is hidden (`noscript`) and the three
+// bodies read as one stacked page.
+import { AUDIENCES, DEFAULT_AUDIENCE, type Audience } from '../lib/projects';
+
+interface Props {
+  lang?: 'ru' | 'en';
+}
+const { lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+const LABELS: Record<Audience, string> = isEn
+  ? { hr: 'HR', manager: 'Manager', colleague: 'Colleague' }
+  : { hr: 'HR', manager: 'Менеджер', colleague: 'Коллега' };
+
+// The tab's own one-liner: a tab strip that says only "HR" asks the reader to
+// know what the lane contains.
+const HINTS: Record<Audience, string> = isEn
+  ? {
+      hr: 'Role, stack and metrics — to match a vacancy',
+      manager: 'Cases with a result: what changed, and why',
+      colleague: 'Code, data, method and the knowledge graph',
+    }
+  : {
+      hr: 'Роль, стек и метрики — сверить с вакансией',
+      manager: 'Кейсы с результатом: что изменилось и почему',
+      colleague: 'Код, данные, метод и граф знаний',
+    };
+---
+
+<div class="role-tabs" data-role-tabs>
+  <div class="role-tabs-list" role="tablist" aria-label={isEn ? 'Ways into the portfolio' : 'Входы в портфолио'}>
+    {
+      AUDIENCES.map((role) => (
+        <button
+          class="role-tab"
+          type="button"
+          role="tab"
+          id={`role-tab-${role}`}
+          aria-controls={`role-panel-${role}`}
+          aria-selected={role === DEFAULT_AUDIENCE ? 'true' : 'false'}
+          tabindex={role === DEFAULT_AUDIENCE ? 0 : -1}
+          data-role-tab={role}
+        >
+          <span class="role-tab-label">{LABELS[role]}</span>
+          <span class="role-tab-hint">{HINTS[role]}</span>
+        </button>
+      ))
+    }
+  </div>
+</div>
+
+<noscript>
+  <style>
+    .role-tabs {
+      display: none;
+    }
+  </style>
+</noscript>
+
+<script>
+  import { track, readAudience, writeAudience } from '../lib/analytics';
+  import { AUDIENCES, DEFAULT_AUDIENCE, type Audience } from '../lib/projects';
+
+  const bar = document.querySelector<HTMLElement>('[data-role-tabs]');
+  if (bar) {
+    const lang: 'ru' | 'en' = document.documentElement.lang === 'en' ? 'en' : 'ru';
+    const tabs = Array.from(bar.querySelectorAll<HTMLButtonElement>('[data-role-tab]'));
+    const isRole = (value: string | null): value is Audience =>
+      value !== null && (AUDIENCES as readonly string[]).includes(value);
+
+    /** The role named by the URL. A `#track-…` hash belongs to the list filters. */
+    const hashRole = (): Audience | null => {
+      const hash = location.hash.replace(/^#/, '');
+      return isRole(hash) ? hash : null;
+    };
+
+    function show(role: Audience, move: boolean): void {
+      document.documentElement.setAttribute('data-hire-tab', role);
+      for (const tab of tabs) {
+        const active = tab.dataset.roleTab === role;
+        tab.setAttribute('aria-selected', String(active));
+        tab.tabIndex = active ? 0 : -1;
+        if (active && move) tab.focus();
+      }
+      // A panel that was `display: none` had no width: the graph measured 0 and
+      // the carousel skipped its track. Both listen for their own re-measure hook.
+      document.dispatchEvent(new CustomEvent('carousel:refresh'));
+      document.dispatchEvent(new CustomEvent('rolepanel:shown', { detail: { role } }));
+    }
+
+    function select(role: Audience, source: 'click' | 'restore'): void {
+      if (source === 'restore') {
+        show(role, false);
+        return;
+      }
+      writeAudience(role);
+      // Not `data-analytics="persona_selected"`: the delegated handler would send
+      // a second event with no `persona`/`source` on it.
+      track('persona_selected', { persona: role, lang, source: 'tab' });
+      history.replaceState(null, '', `#${role}`);
+      show(role, false);
+    }
+
+    for (const tab of tabs) {
+      const role = tab.dataset.roleTab as Audience;
+      tab.addEventListener('click', () => select(role, 'click'));
+    }
+
+    // Roving tabindex: arrows move along the strip, Home/End jump to its ends.
+    bar.addEventListener('keydown', (event) => {
+      const index = tabs.findIndex((tab) => tab.getAttribute('aria-selected') === 'true');
+      if (index === -1) return;
+      let next = index;
+      if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+      else if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = tabs.length - 1;
+      else return;
+      event.preventDefault();
+      select(tabs[next].dataset.roleTab as Audience, 'click');
+      // `select` hands the panel over without moving focus (a click keeps it on
+      // the button anyway); a keyboard reader is already on the strip, so the
+      // roving tabindex has to take the focus with it.
+      tabs[next].focus();
+    });
+
+    // A back/forward step or a pasted `#manager` both land here.
+    window.addEventListener('hashchange', () => {
+      const role = hashRole();
+      if (role) select(role, 'restore');
+    });
+
+    select(hashRole() ?? readAudience() ?? DEFAULT_AUDIENCE, 'restore');
+  }
+</script>
+
+<style>
+  /* Deliberately not `.audience-bar`: that class carries its own gutter and
+     content frame, and `<body>` here already owns both — the strip would sit
+     inset from the hero it belongs to. All it keeps from the bar is the hairline. */
+  .role-tabs {
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--space-4);
+  }
+
+  .role-tabs-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .role-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-inline-size: 0;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--card-radius);
+    background: var(--gradient-surface);
+    color: var(--text-primary);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .role-tab:hover,
+  .role-tab:focus-visible {
+    border-color: var(--border-active);
+  }
+
+  .role-tab:focus-visible {
+    outline: 2px solid var(--border-active);
+    outline-offset: 2px;
+  }
+
+  .role-tab[aria-selected='true'] {
+    border-color: var(--border-active);
+    background: var(--surface-secondary);
+  }
+
+  .role-tab-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .role-tab-hint {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  @media (max-width: 640px) {
+    .role-tabs-list {
+      flex-direction: column;
+    }
+  }
+</style>

@@ -42,6 +42,11 @@ interface Props {
   /** Category tabs above the rows (track filter). Off by default: a timeline
    *  should not open with a query. */
   filterable?: boolean;
+  /** Namespace for every id this section writes. Two lists can share one
+   *  document (`/hire/` renders the HR and the colleague lane as sibling tab
+   *  panels), and an id is unique per document, not per component. Empty on the
+   *  single-list pages, so their markup is unchanged. */
+  idPrefix?: string;
 }
 
 const {
@@ -50,7 +55,10 @@ const {
   variant = 'star',
   order,
   filterable = false,
+  idPrefix = '',
 } = Astro.props;
+/** `hr-` / `colleague-` / `''` — the id namespace, dash included. */
+const p = idPrefix ? `${idPrefix}-` : '';
 const lang: 'ru' | 'en' = linkPrefix.startsWith('en/') ? 'en' : 'ru';
 
 const trackLabels = projectTrackLabels(lang);
@@ -112,27 +120,33 @@ const tracks = projectTracks(lang).map((track) => ({
 ---
 
 <section
-  id="projects"
+  id={`${p}projects`}
   class="reveal reveal-delay-2"
-  aria-labelledby="projects-heading"
+  aria-labelledby={`${p}projects-heading`}
   data-project-list
 >
   {/* Mirrors `ProjectBoard.astro`: the rows sit under a year `<h3>`, so the
       section needs its own h2 or the outline jumps h1 -> h3 and the Lighthouse
       heading-order audit fails. Kept visually hidden — the year headings carry
       the visible structure. */}
-  <h2 id="projects-heading" class="visually-hidden">{t.heading}</h2>
+  <h2 id={`${p}projects-heading`} class="visually-hidden">{t.heading}</h2>
 
   {
     filterable && (
       <div class="project-filter-bar">
         <ProjectTrackFilter lang={lang} tracks={tracks} total={visibleProjects.length} />
-        <ProjectFilter lang={lang} />
+        <ProjectFilter lang={lang} idPrefix={idPrefix} />
       </div>
     )
   }
-  <span class="visually-hidden" role="status" aria-live="polite" id="list-filter-status" />
-  <p id="list-filter-empty" class="project-empty" hidden>
+  <span
+    class="visually-hidden"
+    role="status"
+    aria-live="polite"
+    id={`${p}list-filter-status`}
+    data-list-status
+  />
+  <p id={`${p}list-filter-empty`} class="project-empty" data-list-empty hidden>
     {t.empty}
   </p>
 
@@ -142,10 +156,10 @@ const tracks = projectTracks(lang).map((track) => ({
       return (
         <section
           class="project-year"
-          aria-labelledby={year === null ? undefined : `project-year-${year}`}
+          aria-labelledby={year === null ? undefined : `${p}project-year-${year}`}
         >
           {year !== null && (
-            <h3 id={`project-year-${year}`} class="project-year-heading">
+            <h3 id={`${p}project-year-${year}`} class="project-year-heading">
               {year}
             </h3>
           )}
@@ -202,10 +216,12 @@ const tracks = projectTracks(lang).map((track) => ({
       //
       // A filtered-out year group is hidden whole, otherwise the reader sees
       // "2026" followed by nothing.
-      const section = document.querySelector<HTMLElement>('[data-project-list]');
-      if (section) {
-        // Bound once: `section` is `HTMLElement | null`, and the hoisted
-        // `function apply()` below cannot rely on the narrowing at the guard.
+      // One controller per list. `/hire/` renders the HR and the colleague lane
+      // as sibling tab panels, so a document-wide `querySelector` would wire the
+      // first list twice and leave the second inert.
+      for (const section of Array.from(
+        document.querySelectorAll<HTMLElement>('[data-project-list]'),
+      )) {
         const root: HTMLElement = section;
         const lang: 'ru' | 'en' = document.documentElement.lang === 'en' ? 'en' : 'ru';
         const trackButtons = Array.from(
@@ -216,8 +232,8 @@ const tracks = projectTracks(lang).map((track) => ({
         );
 
         if (trackButtons.length || toolButtons.length) {
-          const statusEl = document.getElementById('list-filter-status');
-          const emptyEl = document.getElementById('list-filter-empty');
+          const statusEl = root.querySelector<HTMLElement>('[data-list-status]');
+          const emptyEl = root.querySelector<HTMLElement>('[data-list-empty]');
           let activeTrack = ALL_TRACKS;
           let activeTool = ALL_TOOLS;
 

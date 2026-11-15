@@ -39,8 +39,12 @@ interface Props {
   /** Render the sphere (business domain) chips. The catalogue opts in; role
    *  landings do not — they are curated sequences, not a browse surface. */
   sphereFilter?: boolean;
+  /** Namespace for every id the board writes — the board can share its document
+   *  with two filtered lists on `/hire/`. Empty on the catalogue pages. */
+  idPrefix?: string;
 }
-const { collection = 'projects', linkPrefix = '', slugs, ordered = false, starPreview = 'result', grouped = false, sphereFilter = false } = Astro.props;
+const { collection = 'projects', linkPrefix = '', slugs, ordered = false, starPreview = 'result', grouped = false, sphereFilter = false, idPrefix = '' } = Astro.props;
+const p = idPrefix ? `${idPrefix}-` : '';
 const lang: 'ru' | 'en' = linkPrefix.startsWith('en/') ? 'en' : 'ru';
 
 const all = sortByProjectOrder(await getCollection(collection, (p) => !p.data.draft));
@@ -120,14 +124,19 @@ const tracks = projectTracks(lang).map((track) => ({ ...track, count: counts[tra
 const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) => ({ id })), lang) : [];
 ---
 
-<section id="projects" class="reveal reveal-delay-2" aria-labelledby="projects-heading">
+<section
+  id={`${p}projects`}
+  class="reveal reveal-delay-2"
+  aria-labelledby={`${p}projects-heading`}
+  data-project-board
+>
   {/* The cards are h3, so the section needs its own h2: without one the outline
       jumps h1 (page title) -> h3 and the Lighthouse heading-order audit fails.
       The grouped catalogue is the exception — its track headings ARE the h2
       level, so an extra "Все проекты" h2 would put the cards a level too deep
       and say the same thing twice. */}
   {!grouped && (
-    <h2 id="projects-heading" class="visually-hidden">
+    <h2 id={`${p}projects-heading`} class="visually-hidden">
       {lang === 'en' ? 'All projects' : 'Все проекты'}
     </h2>
   )}
@@ -139,7 +148,7 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
       above the catalogue put ~20 chips between the reader and the first case. */}
   <div class="project-filter-bar">
     <ProjectTrackFilter lang={lang} tracks={tracks} total={projects.length} />
-    <ProjectFilter lang={lang}>
+    <ProjectFilter lang={lang} idPrefix={idPrefix}>
       {sphereFilter && <ProjectSphereFilter slot="facets" lang={lang} spheres={sphereChips} />}
       <span slot="controls" class="board-controls">
         {
@@ -151,37 +160,38 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
           !ordered && (
             <>
               <span class="board-sort">
-                <label class="visually-hidden" for="board-sort">
+                <label class="visually-hidden" for={`${p}board-sort`}>
                   {lang === 'en' ? 'Project order' : 'Порядок проектов'}
                 </label>
-                <select id="board-sort" class="board-sort-select">
+                <select id={`${p}board-sort`} class="board-sort-select" data-board-sort>
                   <option value="curated">
                     {lang === 'en' ? 'Curated order' : 'Кураторский порядок'}
                   </option>
                   <option value="new">{lang === 'en' ? 'Newest first' : 'Сначала новые'}</option>
                 </select>
               </span>
-              <button class="filter-tag" id="board-reset" data-analytics="projects_reset" type="button">
+              <button class="filter-tag" id={`${p}board-reset`} data-board-reset data-analytics="projects_reset" type="button">
                 {lang === 'en' ? 'Reset order' : 'Сбросить порядок'}
               </button>
             </>
           )
         }
         <span
-          id="board-hint"
+          id={`${p}board-hint`}
           class="board-hint"
           role="status"
           aria-live="polite"
+          data-board-hint
           data-saved={lang === 'en' ? 'Order saved' : 'Порядок сохранён'}
           data-reset={lang === 'en' ? 'Reset to default' : 'Порядок сброшен'}></span>
       </span>
     </ProjectFilter>
   </div>
 
-  <span class="visually-hidden" role="status" id="project-filter-status"></span>
-  <p id="project-empty" class="project-empty" hidden>
+  <span class="visually-hidden" role="status" id={`${p}project-filter-status`} data-filter-status></span>
+  <p id={`${p}project-empty`} class="project-empty" data-project-empty hidden>
     {lang === 'en' ? 'No projects match these filters.' : 'Под выбранные фильтры нет проектов.'}{' '}
-    <button class="filter-tag" id="project-empty-reset" type="button">
+    <button class="filter-tag" id={`${p}project-empty-reset`} data-empty-reset type="button">
       {lang === 'en' ? 'Reset filters' : 'Сбросить фильтры'}
     </button>
   </p>
@@ -194,8 +204,12 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
   {!grouped && <CarouselNav track="projects" label={lang === 'en' ? 'Projects' : 'Проекты'} lang={lang} />}
 
   {
+    /* `project-list` keeps its unprefixed id on purpose: only one board renders
+       per document (the `/hire/` manager panel, or `/projects/`), and the global
+       CSS keys the grid on `#project-list`. The controller no longer reads the id
+       — `data-board-grid` is the hook. */
     grouped ? (
-      <div id="project-list" class="project-catalog">
+      <div id="project-list" class="project-catalog" data-board-grid>
         {sections.map((section) => (
           <section
             class="project-group"
@@ -218,7 +232,7 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
         ))}
       </div>
     ) : (
-      <div id="project-list" data-carousel-track="projects" class="project-track-grid">
+      <div id="project-list" data-board-grid data-carousel-track="projects" class="project-track-grid">
         {entries.map(({ project }, index) => (
           <ProjectCard {...cardProps(project, index)} />
         ))}
@@ -252,29 +266,31 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
   // No analytics event for the sphere or tool facet: `docs/analytics-dead-events.md`
   // rules out new events at this traffic, and `$autocapture` already shows the
   // chip clicks.
-  const board = document.getElementById('project-list');
-  if (board) {
-    const root = board as HTMLElement;
+  // One controller per board. The board can share its document with the two
+  // filtered lists on `/hire/`, so every lookup is scoped to its own section —
+  // a document-wide one would hand the board the first list's chips.
+  for (const board of Array.from(document.querySelectorAll<HTMLElement>('[data-project-board]'))) {
+    const root: HTMLElement = board;
     const lang: 'ru' | 'en' = document.documentElement.lang === 'en' ? 'en' : 'ru';
     const noToolInTrack =
       lang === 'en'
         ? 'No projects use this tool in this category'
         : 'Нет проектов с этим инструментом в этой категории';
-    const hintEl = document.getElementById('board-hint');
-    const resetBtn = document.getElementById('board-reset');
-    const emptyEl = document.getElementById('project-empty');
-    const emptyResetBtn = document.getElementById('project-empty-reset');
-    const statusEl = document.getElementById('project-filter-status');
-    const sortSelect = document.getElementById('board-sort') as HTMLSelectElement | null;
+    const hintEl = root.querySelector<HTMLElement>('[data-board-hint]');
+    const resetBtn = root.querySelector<HTMLElement>('[data-board-reset]');
+    const emptyEl = root.querySelector<HTMLElement>('[data-project-empty]');
+    const emptyResetBtn = root.querySelector<HTMLElement>('[data-empty-reset]');
+    const statusEl = root.querySelector<HTMLElement>('[data-filter-status]');
+    const sortSelect = root.querySelector<HTMLSelectElement>('[data-board-sort]');
 
     const trackBtns = Array.from(
-      document.querySelectorAll<HTMLButtonElement>('.project-track-filter [data-track-filter]'),
+      root.querySelectorAll<HTMLButtonElement>('.project-track-filter [data-track-filter]'),
     );
     const sphereBtns = Array.from(
-      document.querySelectorAll<HTMLButtonElement>('.project-sphere-filter [data-sphere-filter]'),
+      root.querySelectorAll<HTMLButtonElement>('.project-sphere-filter [data-sphere-filter]'),
     );
     const toolBtns = Array.from(
-      document.querySelectorAll<HTMLButtonElement>('.project-filter [data-tool-filter]'),
+      root.querySelectorAll<HTMLButtonElement>('.project-filter [data-tool-filter]'),
     );
 
     // Read fresh every time: reordering moves nodes, so a cached list goes stale.
@@ -293,7 +309,7 @@ const sphereChips = sphereFilter ? projectSphereFilters(projects.map(({ id }) =>
     const isGrouped = groups.length > 0;
     /** The element that owns one track's cards — the group's grid, or the root. */
     function gridOf(key: string): HTMLElement {
-      if (!isGrouped) return root;
+      if (!isGrouped) return root.querySelector<HTMLElement>('[data-board-grid]') ?? root;
       const found = root.querySelector<HTMLElement>(`.project-group[data-group="${key}"] .project-grid`);
       return found ?? root;
     }

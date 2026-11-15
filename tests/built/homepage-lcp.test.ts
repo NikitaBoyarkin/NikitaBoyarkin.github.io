@@ -1,11 +1,13 @@
 // Landing LCP regression: the featured-case image is the largest-contentful
-// element on `/hire/colleague/` and `/en/hire/colleague/`, and it is fetched late unless a
+// element on `/hire/` and `/en/hire/`, and it is fetched late unless a
 // head preload names it. When the preload is dropped (or its href drifts from the
 // <img src>), the page silently falls back to a ~1 s FCP→LCP gap — no unit test and
 // no lint would catch it, only a Lighthouse run against production would.
 //
-// The pages moved: `/` is now the persona gate, which carries no hero image, so
-// the editorial hero — and this claim with it — lives on the colleague version.
+// The pages moved twice: `/` is now the persona gate, which carries no hero image,
+// so the editorial hero — and this claim with it — moved to the colleague version;
+// on 2026-11-15 the colleague version became a tab panel of `/hire/`, which is why
+// the page named here is the merged one.
 //
 // Requires `bun run build` first (reads dist/).
 
@@ -16,7 +18,7 @@ import { resolve } from 'node:path';
 const DIST = resolve(__dirname, '../../dist');
 
 /** The role landings that carry the featured-case split (RU + EN). */
-const HOMEPAGES = ['hire/colleague/index.html', 'en/hire/colleague/index.html'];
+const HOMEPAGES = ['hire/index.html', 'en/hire/index.html'];
 
 const html = new Map<string, string>();
 

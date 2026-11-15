@@ -24,13 +24,17 @@ import Icon from './Icon.astro';
 
 interface Props {
   lang?: 'ru' | 'en';
+  /** Namespace for the disclosure's two ids — three of these panels can share
+   *  one document on `/hire/`. Empty on the single-bar pages. */
+  idPrefix?: string;
 }
-const { lang = 'ru' } = Astro.props;
+const { lang = 'ru', idPrefix = '' } = Astro.props;
+const p = idPrefix ? `${idPrefix}-` : '';
 const tools = projectToolFilters(lang);
 const moreLabel = lang === 'en' ? 'More' : 'Ещё';
 ---
 
-<div class="filter-row project-filter-row">
+<div class="filter-row project-filter-row" data-filter-more>
   {
     /* A real button, not `<details>`: the panel also carries the sort control
        and the "Reset order" undo, and a `<summary>` cannot drop its native
@@ -40,16 +44,16 @@ const moreLabel = lang === 'en' ? 'More' : 'Ещё';
   }
   <button
     class="filter-tag filter-more"
-    id="project-more-toggle"
+    id={`${p}project-more-toggle`}
     type="button"
     aria-expanded="false"
-    aria-controls="project-more-filters"
+    aria-controls={`${p}project-more-filters`}
   >
     <span class="filter-more-label">{moreLabel}</span>
     <Icon name="chevron-down" size={14} class="pill-icon filter-more-icon" />
   </button>
 
-  <div class="project-more-panel" id="project-more-filters" hidden>
+  <div class="project-more-panel" id={`${p}project-more-filters`} hidden>
     <slot name="facets" />
 
     <div
@@ -80,9 +84,12 @@ const moreLabel = lang === 'en' ? 'More' : 'Ещё';
   // The disclosure. State is `aria-expanded` on the button plus the panel's
   // `hidden` attribute — no framework, no dependency, one source of truth.
   // A JS-off reader gets no reveal; see the header note on why that is accepted.
-  const toggleEl = document.getElementById('project-more-toggle');
-  const panelEl = document.getElementById('project-more-filters');
-  if (toggleEl && panelEl) {
+  // One disclosure per bar: `/hire/` mounts three of them in one document, so an
+  // id lookup would give every bar the first bar's toggle.
+  for (const bar of Array.from(document.querySelectorAll<HTMLElement>('[data-filter-more]'))) {
+    const toggleEl = bar.querySelector<HTMLElement>('button.filter-more');
+    const panelEl = bar.querySelector<HTMLElement>('.project-more-panel');
+    if (!toggleEl || !panelEl) continue;
     // Bound once: the hoisted helpers below cannot rely on the narrowing at the
     // guard (`getElementById` returns `HTMLElement | null`).
     const toggle: HTMLElement = toggleEl;

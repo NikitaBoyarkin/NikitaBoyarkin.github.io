@@ -203,12 +203,22 @@ export default defineConfig({
     // 2026-11-13: the three persona landings collapsed into one section
     // (`/hire/`) with per-audience sub-pages. The old top-level URLs are linked
     // from CVs and old chats, so each forwards instead of 404ing.
-    "/hr/": "/hire/hr/",
-    "/manager/": "/hire/manager/",
-    "/colleague/": "/hire/colleague/",
-    "/en/hr/": "/en/hire/hr/",
-    "/en/manager/": "/en/hire/manager/",
-    "/en/colleague/": "/en/hire/colleague/",
+    // 2026-11-15: the sub-pages merged too — the three bodies are tab panels on
+    // one page, so every old URL points at its panel's hash. Astro's redirect
+    // pages carry the fragment through (`/whois/` above is the precedent), and
+    // the pre-paint script on `/hire/` reads it before the first paint.
+    "/hr/": "/hire/#hr",
+    "/manager/": "/hire/#manager",
+    "/colleague/": "/hire/#colleague",
+    "/hire/hr/": "/hire/#hr",
+    "/hire/manager/": "/hire/#manager",
+    "/hire/colleague/": "/hire/#colleague",
+    "/en/hr/": "/en/hire/#hr",
+    "/en/manager/": "/en/hire/#manager",
+    "/en/colleague/": "/en/hire/#colleague",
+    "/en/hire/hr/": "/en/hire/#hr",
+    "/en/hire/manager/": "/en/hire/#manager",
+    "/en/hire/colleague/": "/en/hire/#colleague",
     "/posts/": "/writing/",
     "/en/posts/": "/en/writing/",
     // 2026-11-03: legacy base path from before the repo rename (S1.1). Every

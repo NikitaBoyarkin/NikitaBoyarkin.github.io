@@ -24,6 +24,15 @@ function panel(source: string, key: string): string {
   return source.slice(start, next === -1 ? undefined : next);
 }
 
+/** One persona body of the merged `/hire/` page (2026-11-15). */
+function rolePanel(source: string, key: string): string {
+  const start = source.indexOf(`data-role-panel="${key}"`);
+  if (start === -1) return '';
+  const next = source.indexOf('data-role-panel="', start + 'data-role-panel="'.length);
+  const mainEnd = source.indexOf('</main>', start);
+  return source.slice(start, next === -1 ? (mainEnd === -1 ? undefined : mainEnd) : next);
+}
+
 const count = (source: string, re: RegExp): number => source.match(re)?.length ?? 0;
 
 beforeAll(() => {
@@ -177,7 +186,7 @@ describe('/projects/ — four lenses', () => {
 
 describe('/projects/ — role landings are not the catalogue', () => {
   it('the manager board keeps its Task → Result cards and buys their width', () => {
-    const source = readFileSync(resolve(DIST, 'hire/manager/index.html'), 'utf8');
+    const source = rolePanel(readFileSync(resolve(DIST, 'hire/index.html'), 'utf8'), 'manager');
     // A role landing is one flat grid of a curated sequence — no track
     // headings, no catalogue sections.
     expect(source).toContain('project-track-grid');
@@ -191,7 +200,7 @@ describe('/projects/ — role landings are not the catalogue', () => {
   });
 
   it('the sphere facet stays off the role landings', () => {
-    const source = readFileSync(resolve(DIST, 'hire/manager/index.html'), 'utf8');
+    const source = rolePanel(readFileSync(resolve(DIST, 'hire/index.html'), 'utf8'), 'manager');
     expect(source).not.toContain('data-sphere-filter=');
   });
 });

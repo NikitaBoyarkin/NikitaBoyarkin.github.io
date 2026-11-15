@@ -1952,7 +1952,11 @@ function initGraph(root: HTMLElement, data: any) {
     renderLegend();
     syncEdgePanel();
     applyFilter();
-    resetViewport();
+    // `/hire/` mounts this graph inside a tab panel that starts hidden, so the
+    // SVG measures 0 at boot and `initialZoom` would size the view for a
+    // zero-width frame. Reset once the panel is really shown instead.
+    if (svg.getBoundingClientRect().width > 0) resetViewport();
+    else document.addEventListener('rolepanel:shown', () => resetViewport(), { once: true });
     // Announcements start only after the first filter pass — the opening state is
     // not a change, and a live region that speaks on load is noise.
     booted = true;

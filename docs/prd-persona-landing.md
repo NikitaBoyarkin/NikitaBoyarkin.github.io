@@ -64,7 +64,7 @@
 |---|---|---|
 | Q1 | Гейт: один раз или каждый вход | Выбор запоминается; переключатель роли всегда доступен на страницах ролей |
 | Q2 | Что отличается между версиями | Три слоя: (a) набор/порядок проектов, (b) формулировки под роль, (c) набор секций |
-| Q3 | URL-стратегия | Отдельные роуты: `/` = гейт, `/<role>/` = версия. Глубокие ссылки (`/projects/`) живут по прямому URL |
+| Q3 | URL-стратегия | ~~Отдельные роуты: `/` = гейт, `/<role>/` = версия.~~ **Отменено 2026-11-15:** один роут `/hire/` (+ `/en/hire/`), три тела — табы. Глубокие ссылки — `#hr` / `#manager` / `#colleague`; старые шесть URL отдают редирект на них. Гейт `/` и прямые URL каталога (`/projects/`) не менялись |
 | Q4 | Границы PRD | Гейт + 3 версии + RU/EN; PRD в репо сайта |
 | Q5 | Аналитика выбора | Да: `persona_gate_view` + `persona_selected` |
 | Q6 | Таксономия | Переиспользуем ключ `audience` + super-property + `data-audience` + `.audience-bar` CSS; **значения меняем** на `hr \| manager \| colleague` |
@@ -106,7 +106,7 @@
 
 ```
 src/components/PersonaGate.astro        # 3 карточки выбора пути + компактный hero
-src/components/RoleSwitch.astro         # полоса под навигацией; оживляет .audience-bar
+src/components/RoleTabs.astro            # таб-полоса на /hire/; единственный писатель выбора
 src/pages/hr/index.astro
 src/pages/manager/index.astro
 src/pages/colleague/index.astro
@@ -207,15 +207,36 @@ export const ROLE_CURATION: Record<'hr' | 'manager' | 'colleague', string[]> = {
 
 ---
 
-## 10. Переключатель роли (`RoleSwitch`)
+## 10. Переключатель роли (`RoleTabs`)
 
-- Место: полоса сразу под навигацией, на всех страницах ролей (`/hr|manager|colleague/`, EN-зеркало).
-- На гейте `/` **скрыт**.
-- Визуал: оживляем `.audience-bar` / `.audience-note` из `global.css:357-419`; если селектор
-  `#intro + .audience-bar` не подходит новой вёрстке — правим селектор, а не дублируем стили.
-- Содержимое: текущая роль + ссылки на две другие.
-- Клик по другой роли: пишет `localStorage['audience']`, обновляет `data-audience`, шлёт
-  `persona_selected`, ведёт на соответствующий роут.
+> **Решение 2026-11-15 — табы вместо роутов.** Владелец объединил три входа в один экран:
+> `/hire/` (+ `/en/hire/`) рендерит все три тела как панели `role="tabpanel"` и переключает их
+> без перехода. `RoleSwitch` (полоса со ссылками на два других роута) удалён, шесть роутов
+> `/hire/{hr,manager,colleague}/` удалены и отдают редирект на `/hire/#<role>`. Причина —
+> читатель не должен уходить со страницы, чтобы сменить угол зрения; цена измерена и принята:
+> ~820 КБ HTML на `/hire/` (три тела в одном документе).
+>
+> Что это изменило механически:
+> - **Пространство id.** Три тела в одном документе сталкивались на `intro`, `projects`,
+>   `projects-heading`, `board-sort`, `project-more-toggle`. Решение — проп `idPrefix` в
+>   `RoleLanding` / `ProjectList` / `ProjectBoard` / `ProjectFilter`; контроллеры ищут свои
+>   элементы внутри `[data-project-list]` / `[data-project-board]`, а не в документе.
+> - **Первый кадр.** Атрибут `html[data-hire-tab]` выставляет `is:inline`-скрипт **до** разбора
+>   панелей; CSS по нему скрывает две неактивные. `hidden` сервером не ставится: без JS все три
+>   тела видны подряд, и таб-полоса скрыта через `noscript`.
+> - **`<h1>` один.** Заголовок страницы — «Найм»; заголовки ролей — `<h2>` внутри панели.
+> - **Скрытая панель = нулевая ширина.** Граф знаний (`KnowledgeGraph`) и карусель доски
+>   пересчитываются по событиям `rolepanel:shown` / `carousel:refresh`, которые диспатчит
+>   контроллер табов.
+
+- Место: полоса сразу под `<h1>`, только на `/hire/` и `/en/hire/`.
+- Визуал: собственные правила `RoleTabs.astro`; `.audience-bar` из `global.css` больше не носится
+  табами (класс остался для `[data-theme="cyberpunk"] .audience-bar + .audience-note`, правило
+  по-прежнему инертно).
+- Содержимое: три `role="tab"`, у каждого ярлык и однострочная подсказка «что внутри».
+- Клик / стрелки / Home / End: `writeAudience(role)`, `data-hire-tab`, `track('persona_selected',
+  { source: 'tab' })`, `history.replaceState(null, '', '#<role>')`. Восстановление при загрузке:
+  `location.hash` → `localStorage['audience']` → `colleague`.
 
 > **Правка селектора 2026-10-11.** Полоса унаследовала правила 60-30-10, рассчитанные на
 > размещение, которого у неё больше нет: full-bleed `--surface-secondary` и `padding-block:
@@ -237,7 +258,7 @@ export const ROLE_CURATION: Record<'hr' | 'manager' | 'colleague', string[]> = {
 | `persona_gate_view` | Показ гейта `/` или `/en/` | `{ lang, has_stored_choice }` |
 | `persona_selected` | Клик по карточке гейта **или** переключателю роли | `{ persona, lang, source }` |
 
-`source`: `'gate'` (карточка) \| `'switch'` (переключатель).
+`source`: `'gate'` (карточка) \| `'tab'` (таб-полоса `/hire/`, с 2026-11-15; `'switch'` выведен).
 Super-property `audience` (из `analytics.ts:240-257`) продолжает регистрироваться после выбора —
 дополнительных правок не требует, кроме смены набора значений.
 
@@ -252,7 +273,7 @@ Super-property `audience` (из `analytics.ts:240-257`) продолжает р�
 |---|---|---|
 | **Ф1** | Смена значений таксономии (`analytics.ts`, `Base.astro`) + `ROLE_CURATION` (`projects.ts`) + `PersonaGate` + 3 RU-роута | RU-сайт целиком: гейт + 3 версии работают |
 | **Ф2** | EN-зеркало: 3 роута + `en/index.astro` | `/en/*` полностью дублирует `/` |
-| **Ф3** | `RoleSwitch` + `.audience-bar` CSS + PostHog-ивенты + `data-analytics` | Выбор запоминается, трекается, переключается |
+| **Ф3** | `RoleTabs` + `.audience-bar` CSS + PostHog-ивенты + `data-analytics` | Выбор запоминается, трекается, переключается |
 
 Ф1 даёт работающий RU-результат до того, как тратить силы на ручное дублирование EN.
 

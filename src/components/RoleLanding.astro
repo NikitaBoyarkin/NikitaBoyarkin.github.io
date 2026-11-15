@@ -13,7 +13,6 @@ import NowCard from './NowCard.astro';
 import ProjectBoard from './ProjectBoard.astro';
 import ProjectList from './ProjectList.astro';
 import ReadingBlock from './ReadingBlock.astro';
-import RoleSwitch from './RoleSwitch.astro';
 import StackCard from './StackCard.astro';
 import { withBase } from '../lib/path';
 import { loadFeaturedSources, shelfHref } from '../lib/library';
@@ -22,8 +21,16 @@ import { ROLE_COPY, ROLE_CURATION, type Audience } from '../lib/projects';
 interface Props {
   role: Audience;
   lang?: 'ru' | 'en';
+  /** Namespace for every id this body writes. `/hire/` renders all three bodies
+   *  as sibling tab panels, so two lists would otherwise collide on `projects`. */
+  idPrefix?: string;
+  /** Panel headings are `<h2>` (the page owns one `<h1>`); the standalone
+   *  landings were `<h1>`. */
+  headingLevel?: 1 | 2;
 }
-const { role, lang = 'ru' } = Astro.props;
+const { role, lang = 'ru', idPrefix = '', headingLevel = 1 } = Astro.props;
+const p = idPrefix ? `${idPrefix}-` : '';
+const Heading = headingLevel === 2 ? 'h2' : 'h1';
 const isEn = lang === 'en';
 const copy = ROLE_COPY[lang][role];
 
@@ -84,14 +91,12 @@ const nextStepSurface = {
 } as const;
 ---
 
-<RoleSwitch role={role} lang={lang} />
-
 <!-- HERO — editorial split on the colleague version, compact identity otherwise -->
-<section id="intro">
+<section id={`${p}intro`} class="intro-section">
   <div class={`intro-container ${isColleague ? 'hero-editorial' : ''}`}>
     <div class="hero-body">
       {isColleague && <HeroAvatar lang={lang} />}
-      <h1 class="hero-name">{copy.h1}</h1>
+      <Heading class="hero-name">{copy.h1}</Heading>
       <p class="hero-pitch">{copy.lead}</p>
 
       {/* The stack mosaic is a screening signal — the HR reader matches it against
@@ -183,6 +188,7 @@ const nextStepSurface = {
     slugs={ROLE_CURATION.manager}
     ordered
     starPreview="task-result"
+    idPrefix={idPrefix}
   />
 ) : role === 'hr' ? (
   <ProjectList
@@ -190,6 +196,7 @@ const nextStepSurface = {
     linkPrefix={linkPrefix}
     order={ROLE_CURATION.hr}
     filterable
+    idPrefix={idPrefix}
   />
 ) : (
   <ProjectList
@@ -198,6 +205,7 @@ const nextStepSurface = {
     variant="summary"
     order={ROLE_CURATION.colleague}
     filterable
+    idPrefix={idPrefix}
   />
 )}
 
@@ -206,7 +214,7 @@ const nextStepSurface = {
     <KnowledgeGraph lang={lang} />
     <GithubActivity lang={lang} />
 
-    <section id="library" class="reveal">
+    <section id={`${p}library`} class="reveal">
       <div class="bento-grid bento-spaced">
         <div class="bento-cell bento-cell-wide bento-cell-compact">
           <h2 class="bento-cell-title">{t.shelfHeading}</h2>

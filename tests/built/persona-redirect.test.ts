@@ -20,13 +20,26 @@ const ROOT = resolve(__dirname, '../..');
 const DIST = resolve(ROOT, 'dist');
 const CONFIG = resolve(ROOT, 'astro.config.mjs');
 
+// Two generations of URL forward here. The top-level six (`/hr/`, `/manager/`,
+// `/colleague/` + EN) were the original persona pages; the `/hire/{role}/` six
+// were the 2026-11-13 sub-pages. On 2026-11-15 the bodies became tab panels of
+// one page, so both generations now point at that page's per-role hash — a
+// single hop, never a chain.
 const RULES = [
-  { from: '/hr/', to: '/hire/hr/', file: 'hr/index.html' },
-  { from: '/manager/', to: '/hire/manager/', file: 'manager/index.html' },
-  { from: '/colleague/', to: '/hire/colleague/', file: 'colleague/index.html' },
-  { from: '/en/hr/', to: '/en/hire/hr/', file: 'en/hr/index.html' },
-  { from: '/en/manager/', to: '/en/hire/manager/', file: 'en/manager/index.html' },
-  { from: '/en/colleague/', to: '/en/hire/colleague/', file: 'en/colleague/index.html' },
+  { from: '/hr/', to: '/hire/#hr', file: 'hr/index.html' },
+  { from: '/manager/', to: '/hire/#manager', file: 'manager/index.html' },
+  { from: '/colleague/', to: '/hire/#colleague', file: 'colleague/index.html' },
+  { from: '/en/hr/', to: '/en/hire/#hr', file: 'en/hr/index.html' },
+  { from: '/en/manager/', to: '/en/hire/#manager', file: 'en/manager/index.html' },
+  { from: '/en/colleague/', to: '/en/hire/#colleague', file: 'en/colleague/index.html' },
+  // The retired 2026-11-13 sub-pages. Their built output is a redirect stub, so
+  // `builds …` below still fails if one of them starts rendering a real page again.
+  { from: '/hire/hr/', to: '/hire/#hr', file: 'hire/hr/index.html' },
+  { from: '/hire/manager/', to: '/hire/#manager', file: 'hire/manager/index.html' },
+  { from: '/hire/colleague/', to: '/hire/#colleague', file: 'hire/colleague/index.html' },
+  { from: '/en/hire/hr/', to: '/en/hire/#hr', file: 'en/hire/hr/index.html' },
+  { from: '/en/hire/manager/', to: '/en/hire/#manager', file: 'en/hire/manager/index.html' },
+  { from: '/en/hire/colleague/', to: '/en/hire/#colleague', file: 'en/hire/colleague/index.html' },
 ] as const;
 
 /**

@@ -29,12 +29,14 @@ const PAGES = [
   { file: 'en/projects/index.html', surface: 'projects_index', contact: '/en/contact/' },
   { file: 'writing/index.html', surface: 'writing_index', contact: '/contact/' },
   { file: 'en/writing/index.html', surface: 'writing_index', contact: '/en/contact/' },
-  { file: 'hire/hr/index.html', surface: 'role_hr_contact', contact: '/contact/' },
-  { file: 'en/hire/hr/index.html', surface: 'role_hr_contact', contact: '/en/contact/' },
-  { file: 'hire/manager/index.html', surface: 'role_manager_contact', contact: '/contact/' },
-  { file: 'en/hire/manager/index.html', surface: 'role_manager_contact', contact: '/en/contact/' },
-  { file: 'hire/colleague/index.html', surface: 'role_colleague_contact', contact: '/contact/' },
-  { file: 'en/hire/colleague/index.html', surface: 'role_colleague_contact', contact: '/en/contact/' },
+  // All three persona asks now live in the panels of one page (2026-11-15), so
+  // each row names the same file and a different surface.
+  { file: 'hire/index.html', surface: 'role_hr_contact', contact: '/contact/' },
+  { file: 'hire/index.html', surface: 'role_manager_contact', contact: '/contact/' },
+  { file: 'hire/index.html', surface: 'role_colleague_contact', contact: '/contact/' },
+  { file: 'en/hire/index.html', surface: 'role_hr_contact', contact: '/en/contact/' },
+  { file: 'en/hire/index.html', surface: 'role_manager_contact', contact: '/en/contact/' },
+  { file: 'en/hire/index.html', surface: 'role_colleague_contact', contact: '/en/contact/' },
 ] as const;
 
 const html = new Map<string, string>();

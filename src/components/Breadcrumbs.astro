@@ -124,9 +124,10 @@ switch (section) {
     break;
   }
   case 'hire': {
-    // Persona sub-pages (`hire/hr/`, `hire/manager/`, `hire/colleague/`).
+    // One page since 2026-11-15 — the three personas are tab panels, not routes,
+    // so there is no `second` segment to render.
     const hub: Crumb = { label: t.hire, href: href('hire/') };
-    crumbs = second ? [home, hub, { label: humanize(second) }] : [home, hub];
+    crumbs = [home, hub];
     break;
   }
   case 'talks': {

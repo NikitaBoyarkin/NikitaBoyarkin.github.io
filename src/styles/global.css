@@ -603,6 +603,18 @@ p {
   border-bottom-color: currentColor;
 }
 
+/* `/hire/` tab panels (2026-11-15). All three bodies ship in the HTML, so a
+   crawler and a JS-off reader get the whole page stacked and the tab strip hides
+   itself under `noscript`. With JS, an inline pre-paint script in the page writes
+   `html[data-hire-tab]` before the panels are parsed, so the wrong body never
+   paints. `hidden` is never set server-side: a hidden panel would be content the
+   no-JS reader cannot reach. */
+html[data-hire-tab='hr'] [data-role-panel]:not([data-role-panel='hr']),
+html[data-hire-tab='manager'] [data-role-panel]:not([data-role-panel='manager']),
+html[data-hire-tab='colleague'] [data-role-panel]:not([data-role-panel='colleague']) {
+  display: none;
+}
+
 /* "Continue as HR →" / stored-choice hint on the gate, and the gate's
    secondary "show everything" link. */
 .audience-note {
@@ -872,15 +884,17 @@ nav ul.links a[aria-current="page"] {
   color: var(--text-normal);
 }
 
-/* Intro Section */
-#intro {
+/* Intro Section. A class, not `#intro`: `/hire/` renders three of these in one
+   document as tab panels, so the id is namespaced (`hr-intro`) and only the
+   class can reach all three. */
+.intro-section {
   margin-bottom: var(--space-8);
   padding: var(--space-6) 0;
   position: relative;
   overflow: hidden;
 }
 
-#intro::before {
+.intro-section::before {
   content: "";
   position: absolute;
   top: -100px;
@@ -1087,14 +1101,14 @@ nav ul.links a[aria-current="page"] {
    Editorial hero (pilot redesign) — split layout with the
    identity column on the left and a dataviz panel on the right.
    ============================================================ */
-#intro:has(.hero-editorial) {
+.intro-section:has(.hero-editorial) {
   /* Homepage hero must fit one 800px viewport unscrolled. The footer's own
      margin-top (32px) collapses with this section's margin, so the bottom
      padding is the only lever that actually moves page height. */
   padding: var(--space-8) 0 var(--space-2);
   margin-bottom: var(--space-8);
 }
-#intro:has(.hero-editorial)::before {
+.intro-section:has(.hero-editorial)::before {
   display: none;
 }
 
@@ -1580,6 +1594,14 @@ nav ul.links a[aria-current="page"] {
 
 /* Projects Section */
 #projects {
+  margin-bottom: var(--space-16);
+}
+
+/* `/hire/` renders the body as a tab panel, so the section id is namespaced
+   (`hr-projects`) and the id above cannot reach it. The spacing is the only
+   part of this block the panels need — their `<h2>` is `visually-hidden`. */
+[data-project-list],
+[data-project-board] {
   margin-bottom: var(--space-16);
 }
 

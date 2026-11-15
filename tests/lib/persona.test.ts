@@ -176,11 +176,14 @@ describe('audience storage (AC2)', () => {
 // nothing else fails if the component stops tracking.
 // ---------------------------------------------------------------------------
 describe('wiring (PRD §6, §9, §10)', () => {
-  it('RoleSwitch tracks a switch-sourced selection', () => {
-    const s = src('src/components/RoleSwitch.astro');
+  it('RoleTabs tracks a tab-sourced selection and stores it', () => {
+    // 2026-11-15: the three bodies merged onto `/hire/`, so the surface that owns
+    // the choice is the tab strip. It must do what `RoleSwitch` did — write the
+    // choice and emit the event — and it is the only place that may.
+    const s = src('src/components/RoleTabs.astro');
     expect(s).toContain("track('persona_selected'");
-    expect(s).toMatch(/source:\s*'switch'/);
-    expect(s, 'RoleSwitch must write the choice').toContain('writeAudience');
+    expect(s).toMatch(/source:\s*'tab'/);
+    expect(s, 'the tab strip must write the choice').toContain('writeAudience');
   });
 
   it('mounts the new-tab surface on / and /en/, and keeps the landings linked', () => {
@@ -235,32 +238,60 @@ describe('wiring (PRD §6, §9, §10)', () => {
     }
   });
 
-  it('keeps role-awareness on the landings after the header group left', () => {
+  it('keeps role-awareness on the merged hiring page', () => {
     // The binding the retired header role-buttons component carried: a page must
-    // still know which role it is. It now lives on the landings themselves —
-    // `RoleLanding` mounts `RoleSwitch`, which states the current role and links
-    // the two others — so dropping role-awareness from the site still fails here.
-    expect(
-      src('src/components/RoleLanding.astro'),
-      'the role landings stopped mounting RoleSwitch',
-    ).toContain('<RoleSwitch role={role} lang={lang} />');
+    // still know which role it is. It now lives in `RoleTabs`, mounted by `/hire/`
+    // and its EN twin, which names all three roles and marks the active one, so
+    // dropping role-awareness from the site still fails here.
+    for (const page of ['src/pages/hire/index.astro', 'src/pages/en/hire/index.astro']) {
+      expect(src(page), `${page} stopped mounting the tab strip`).toContain('<RoleTabs lang={lang} />');
+      expect(src(page), `${page} stopped rendering the panel per role`).toMatch(
+        /AUDIENCES\.map\(\(role\) => \(\s*<section[\s\S]*?data-role-panel=\{role\}/,
+      );
+    }
 
-    const sw = src('src/components/RoleSwitch.astro');
-    expect(sw, 'RoleSwitch stopped stating the current role').toMatch(/\{LABELS\[role\]\}/);
-    expect(sw, 'RoleSwitch stopped linking the other roles').toContain('data-source="switch"');
+    const tabs = src('src/components/RoleTabs.astro');
+    expect(tabs, 'the tab strip stopped naming every role').toMatch(/AUDIENCES\.map/);
+    expect(tabs, 'the tab strip stopped publishing the selection').toContain("'aria-selected'");
+    // The role survives a reload and a shared link in two places: `localStorage`
+    // (via `writeAudience`) and the hash.
+    expect(tabs).toContain('readAudience');
+    expect(tabs).toMatch(/history\.replaceState\(null, '', `#\$\{role\}`\)/);
   });
 
-  it('ships all six role routes', () => {
-    const routes = [
+  it('ships one merged hiring page and forwards the six old routes', () => {
+    // 2026-11-15: the three persona routes merged into `/hire/` (and its EN twin),
+    // where the bodies are tab panels. The old URLs are linked from CVs and old
+    // chats, so they cannot 404 — the redirect map has to name each one, and it
+    // has to point at the panel's hash rather than at the merged page's top.
+    for (const r of ['src/pages/hire/index.astro', 'src/pages/en/hire/index.astro']) {
+      expect(existsSync(join(ROOT, r)), `missing route ${r}`).toBe(true);
+    }
+
+    const retired = [
       'src/pages/hire/hr/index.astro',
       'src/pages/hire/manager/index.astro',
       'src/pages/hire/colleague/index.astro',
       'src/pages/en/hire/hr/index.astro',
       'src/pages/en/hire/manager/index.astro',
       'src/pages/en/hire/colleague/index.astro',
+      'src/components/RoleSwitch.astro',
     ];
-    for (const r of routes) {
-      expect(existsSync(join(ROOT, r)), `missing route ${r}`).toBe(true);
+    for (const r of retired) {
+      expect(existsSync(join(ROOT, r)), `${r} came back`).toBe(false);
+    }
+
+    const config = src('astro.config.mjs');
+    for (const [from, to] of [
+      ['/hr/', '/hire/#hr'],
+      ['/manager/', '/hire/#manager'],
+      ['/colleague/', '/hire/#colleague'],
+      ['/hire/hr/', '/hire/#hr'],
+      ['/hire/manager/', '/hire/#manager'],
+      ['/hire/colleague/', '/hire/#colleague'],
+      ['/en/hire/colleague/', '/en/hire/#colleague'],
+    ]) {
+      expect(config, `${from} no longer forwards to ${to}`).toContain(`"${from}": "${to}"`);
     }
   });
 
