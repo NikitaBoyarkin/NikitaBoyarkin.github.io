@@ -2050,12 +2050,75 @@ footer p {
   display: none;
 }
 
+#inner-toc .toc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
 #inner-toc .toc-title {
   font-size: 0.75rem;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: 8px;
   letter-spacing: 0.5px;
+}
+
+/* Dismiss control for the rail. Text-only, muted like the rail itself: the
+   accent is a signal on hover/focus only, never a resting fill. */
+.toc-toggle {
+  appearance: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.toc-toggle:hover {
+  color: var(--text-accent);
+  background: var(--background-secondary);
+}
+
+.toc-toggle:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 2px;
+}
+
+/* The way back once the rail is collapsed. Sits where the rail's title was, so
+   both states occupy the same spot on the page. */
+#toc-restore {
+  display: none;
+  position: fixed;
+  top: 120px;
+  left: max(var(--toc-rail-gap), env(safe-area-inset-left));
+  appearance: none;
+  cursor: pointer;
+  padding: 6px 10px;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+#toc-restore:hover {
+  color: var(--text-accent);
+  border-color: var(--border-active);
+}
+
+#toc-restore:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 2px;
 }
 
 #inner-toc ul {
@@ -3568,6 +3631,26 @@ nav .search-panel {
      in-flow duplicate steps aside. It is the only TOC below this breakpoint. */
   body:has(main > #inner-toc:not([hidden])) .inline-toc {
     display: none;
+  }
+
+  /* The reader dismissed the rail (InnerTOC's «Скрыть»): put the page back on
+     the full viewport — the reserved strip goes, and the nav keeps only the
+     page gutter again. Keyed on <html> so the tab controller's own `hidden`
+     toggling of the rail stays independent of this choice. */
+  html.toc-collapsed #inner-toc {
+    display: none;
+  }
+
+  html.toc-collapsed body:has(main > #inner-toc:not([hidden])) {
+    padding-inline-start: var(--page-pad);
+  }
+
+  html.toc-collapsed body:has(main > #inner-toc:not([hidden])) .nav-mobile {
+    margin-inline-start: calc(-1 * var(--page-pad));
+  }
+
+  html.toc-collapsed #toc-restore {
+    display: inline-flex;
   }
 
   /* The reading column keeps its 960px measure, centred in the full viewport

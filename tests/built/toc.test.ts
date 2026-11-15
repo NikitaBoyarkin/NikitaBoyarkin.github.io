@@ -38,10 +38,15 @@ function extractTocScript(html: string): string {
   return end === -1 ? '' : html.slice(start, end + 5);
 }
 
-function tocOf(file: string): Document {
+function tocOf(file: string, opts: { tocHidden?: boolean } = {}): Document {
   const html = readFileSync(resolve(DIST, file), 'utf8');
   const dom = new JSDOM(html, { url: 'https://example.com/', runScripts: 'outside-only' });
   const { window } = dom;
+
+  // A fresh JSDOM per call shares no storage, so the remembered choice has to
+  // be planted before the page's own script runs — that is the order a real
+  // second visit has.
+  if (opts.tocHidden) window.localStorage.setItem('toc-hidden', '1');
 
   // jsdom ships no matchMedia; the script reads it for reduced-motion and for
   // the ≤1100px collapse. Stub it rather than let init throw.
@@ -90,4 +95,34 @@ describe('TOC (built HTML, real inline script)', () => {
       }
     });
   }
+});
+
+// «Скрыть» releases the fixed rail's reserved strip — `html.toc-collapsed` is
+// what both the rail's display and the body padding key on, so the class is the
+// observable behaviour, not a proxy for it.
+describe('the rail can be dismissed and restored (built inline script)', () => {
+  const file = 'posts/bayesian-ab-testing/index.html';
+
+  it('hide collapses, restore brings the rail back', () => {
+    if (!existsSync(resolve(DIST, file))) return; // needs `bun run build`
+    const doc = tocOf(file);
+    const root = doc.documentElement;
+    const hide = doc.getElementById('toc-hide')!;
+    const restore = doc.getElementById('toc-restore')!;
+
+    expect(root.classList.contains('toc-collapsed')).toBe(false);
+    hide.click();
+    expect(root.classList.contains('toc-collapsed')).toBe(true);
+    expect(hide.getAttribute('aria-expanded')).toBe('false');
+    restore.click();
+    expect(root.classList.contains('toc-collapsed')).toBe(false);
+    expect(hide.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('a remembered choice is applied on load', () => {
+    if (!existsSync(resolve(DIST, file))) return;
+    const doc = tocOf(file, { tocHidden: true });
+    expect(doc.documentElement.classList.contains('toc-collapsed')).toBe(true);
+    expect(doc.getElementById('toc-hide')!.getAttribute('aria-expanded')).toBe('false');
+  });
 });

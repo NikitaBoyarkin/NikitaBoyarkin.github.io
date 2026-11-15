@@ -9,9 +9,17 @@ const isEn = lang === 'en';
 ---
 
 <aside id="inner-toc" aria-label={isEn ? 'Table of contents' : 'Содержание'} data-pagefind-ignore>
-  <div class="toc-title">{isEn ? 'On this page' : 'На этой странице'}</div>
+  <div class="toc-head">
+    <div class="toc-title">{isEn ? 'On this page' : 'На этой странице'}</div>
+    <button type="button" id="toc-hide" class="toc-toggle" aria-controls="inner-toc" aria-expanded="true">
+      {isEn ? 'Hide' : 'Скрыть'}
+    </button>
+  </div>
   <ul id="inner-toc-list"></ul>
 </aside>
+<button type="button" id="toc-restore" class="toc-restore" aria-controls="inner-toc" aria-label={isEn ? 'Show on this page' : 'Показать содержание'}>
+  {isEn ? 'Contents' : 'Содержание'}
+</button>
 
 <script is:inline define:vars={{ selector }}>
   function slugify(text) {
@@ -24,6 +32,39 @@ const isEn = lang === 'en';
       .replace(/-+/g, '-')
       .replace(/^-+|-+$/g, '');
   }
+
+  // The rail is a fixed column that reserves page width on the body. A reader
+  // who does not want it gets the whole viewport back; the choice persists
+  // because the rail rides on every post/project/term page and re-showing it on
+  // each navigation would make the button pointless.
+  const TOC_HIDDEN_KEY = 'toc-hidden';
+  function setTocHidden(hidden, focus) {
+    document.documentElement.classList.toggle('toc-collapsed', hidden);
+    const hide = document.getElementById('toc-hide');
+    if (hide) hide.setAttribute('aria-expanded', String(!hidden));
+    if (focus) (hidden ? document.getElementById('toc-restore') : hide)?.focus();
+  }
+  function readTocHidden() {
+    try {
+      return localStorage.getItem(TOC_HIDDEN_KEY) === '1';
+    } catch {
+      // Private mode / blocked storage: start expanded, the button still works.
+      return false;
+    }
+  }
+  setTocHidden(readTocHidden(), false);
+  document.getElementById('toc-hide')?.addEventListener('click', () => {
+    try {
+      localStorage.setItem(TOC_HIDDEN_KEY, '1');
+    } catch {}
+    setTocHidden(true, true);
+  });
+  document.getElementById('toc-restore')?.addEventListener('click', () => {
+    try {
+      localStorage.removeItem(TOC_HIDDEN_KEY);
+    } catch {}
+    setTocHidden(false, true);
+  });
 
   function initTOC() {
     const tocList = document.getElementById('inner-toc-list');
@@ -38,6 +79,9 @@ const isEn = lang === 'en';
     if (!headers.length) {
       if (tocWrap) tocWrap.style.display = 'none';
       inlineWrap?.remove();
+      // Nothing to show means nothing to restore: a "Содержание" button that
+      // opens an empty rail is worse than no button.
+      document.getElementById('toc-restore')?.remove();
       return;
     }
 
