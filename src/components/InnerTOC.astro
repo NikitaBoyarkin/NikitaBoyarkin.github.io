@@ -42,7 +42,26 @@ const isEn = lang === 'en';
     document.documentElement.classList.toggle('toc-collapsed', hidden);
     const hide = document.getElementById('toc-hide');
     if (hide) hide.setAttribute('aria-expanded', String(!hidden));
-    if (focus) (hidden ? document.getElementById('toc-restore') : hide)?.focus();
+    // preventScroll: the restore button sits at the top of the page, and letting
+    // focus bring it into view threw a reader scrolled mid-article back to it.
+    if (focus) (hidden ? document.getElementById('toc-restore') : hide)?.focus({ preventScroll: true });
+  }
+
+  // Hiding the rail widens the text, which rewraps every line above the reader
+  // and lands the paragraph they were in hundreds of px higher. Pin the block
+  // crossing the viewport's top edge and put it back after the reflow.
+  function withScrollAnchor(apply) {
+    const anchor = [...document.querySelectorAll('main p, main h2, main h3')].find(
+      (el) => el.getBoundingClientRect().bottom > 0,
+    );
+    const top = anchor?.getBoundingClientRect().top;
+    const y0 = window.scrollY;
+    apply();
+    // At the top the reader is looking at the page's start, not at a paragraph:
+    // compensating there would scroll the breadcrumbs away to hold a heading.
+    if (anchor && top != null && y0 > 0) {
+      window.scrollBy(0, anchor.getBoundingClientRect().top - top);
+    }
   }
   function readTocHidden() {
     try {
@@ -57,13 +76,13 @@ const isEn = lang === 'en';
     try {
       localStorage.setItem(TOC_HIDDEN_KEY, '1');
     } catch {}
-    setTocHidden(true, true);
+    withScrollAnchor(() => setTocHidden(true, true));
   });
   document.getElementById('toc-restore')?.addEventListener('click', () => {
     try {
       localStorage.removeItem(TOC_HIDDEN_KEY);
     } catch {}
-    setTocHidden(false, true);
+    withScrollAnchor(() => setTocHidden(false, true));
   });
 
   function initTOC() {

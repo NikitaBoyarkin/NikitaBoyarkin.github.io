@@ -3651,6 +3651,22 @@ nav .search-panel {
 
   html.toc-collapsed #toc-restore {
     display: inline-flex;
+    /* In the flow while collapsed: pinned to the start edge it would sit on the
+       text now that the text reaches that edge. */
+    position: static;
+    margin: 0 0 var(--space-4);
+  }
+
+  /* Releasing the rail's strip alone does not widen the reading column: the
+     frame caps at --content-max and the prose at --prose-measure, so the text
+     only slid left by the rail's width. Both caps go while the rail is away —
+     full width is what dismissing it is asking for. */
+  html.toc-collapsed main,
+  html.toc-collapsed footer,
+  html.toc-collapsed .container,
+  html.toc-collapsed .post-content,
+  html.toc-collapsed .prose {
+    max-width: none;
   }
 
   /* The reading column keeps its 960px measure, centred in the full viewport
