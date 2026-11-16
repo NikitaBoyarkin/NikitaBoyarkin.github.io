@@ -24,7 +24,7 @@ tools:
   - pytest
   - uv
 github: https://github.com/NikitaBoyarkin/causal-uplift
-updated: 2026-11-01
+updated: 2026-11-06
 date: 2026-09-18
 demo: demos/causal/index.html
 related:

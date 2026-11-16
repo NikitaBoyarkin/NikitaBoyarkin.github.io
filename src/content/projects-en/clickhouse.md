@@ -25,7 +25,7 @@ tools:
   - pytest
   - uv + ruff
 date: 2026-11-01
-updated: 2026-11-01
+updated: 2026-11-06
 github: https://github.com/NikitaBoyarkin/clickhouse-analytics
 bet: "The bottleneck is not syntax: the same SQL on a projection reads a key range instead of a full scan, so the win can be attributed to the schema rather than to a rewritten query."
 failureBar: "A case is accepted only if the snapshot, the SQL file and an independent DuckDB twin agree, and the slow and fast SQL are byte-identical — otherwise it measures rewriting, not the schema."
