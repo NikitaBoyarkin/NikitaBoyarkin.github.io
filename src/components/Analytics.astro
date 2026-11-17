@@ -83,6 +83,7 @@ import { INGEST_ENABLED } from '../lib/ingest';
             flushAnalyticsQueue,
             localeFromPath,
             registerSuperProperties,
+            stripFeedbackParams,
             track,
           },
           { contentInfo, READ_DEPTH_THRESHOLDS, scrollDepthPct },
@@ -105,6 +106,14 @@ import { INGEST_ENABLED } from '../lib/ingest';
               autocapture: true,
               capture_exceptions: true,
               session_recording: { maskAllInputs: true },
+              // The survey's invite token rides in `?t=`; `$current_url` would
+              // carry it into every pageview of that visit.
+              sanitize_properties: (props: Record<string, unknown>) => {
+                if (typeof props.$current_url === 'string') {
+                  props.$current_url = stripFeedbackParams(props.$current_url);
+                }
+                return props;
+              },
             });
 
             // Hand the instance to the canonical module, register super

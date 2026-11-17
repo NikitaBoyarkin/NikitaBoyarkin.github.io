@@ -118,6 +118,15 @@ export interface AnalyticsEventMap {
   // header click. Added 2026-10-31: before it, 262 `/contact/` anchors shipped
   // with exactly one instrumented (a lang switch).
   contact_page_click: { path: string; surface?: string };
+  // The anonymous survey. `source` separates invited answers from open ones, so
+  // the invite funnel can be read without ever capturing the token itself.
+  feedback_page_view: { locale: Locale; source: 'open' | 'invited' };
+  feedback_submit: { locale: Locale; source: 'open' | 'invited' };
+  feedback_form_error: {
+    locale: Locale;
+    reason: 'validation' | 'rate_limited' | 'server' | 'network';
+  };
+  feedback_invite_opened: { locale: Locale };
   // `source` is the surface the choice came from. `header`/`menu` were the bar
   // and drawer variants of the role buttons (`NavRoles.astro`, since replaced by
   // one «Найм» link) — they were shipped before
@@ -186,6 +195,26 @@ export interface AnalyticsEventMap {
 }
 
 export type KnownEventName = keyof AnalyticsEventMap;
+
+/**
+ * Drop an invite token from a URL before it reaches PostHog.
+ *
+ * The survey takes `?t=<token>&r=<role>`; `$current_url` is captured on every
+ * pageview, so without this the raw token would live in the analytics project.
+ * Only `/feedback` URLs are rewritten — everything else is returned as given.
+ */
+export function stripFeedbackParams(url: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return url;
+  }
+  if (!parsed.pathname.startsWith('/feedback')) return url;
+  parsed.searchParams.delete('t');
+  parsed.searchParams.delete('r');
+  return parsed.toString();
+}
 
 const DEV =
   typeof import.meta !== 'undefined' &&
