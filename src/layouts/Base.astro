@@ -463,6 +463,21 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <a href="#main" class="skip-link">{t.skip}</a>
 
     {
+      /* Decorative glow, homepage only. It needs real children (one per orb)
+         because each drifts on its own clock; two body pseudo-elements are
+         already spoken for by the lattice and the rest of the page. */
+      isHome && (
+        <div class="orbs" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
+      )
+    }
+
+    {
       /* The navigation is an off-canvas drawer, so the trigger has to live
          outside it — a control inside a translated panel scrolls away with the
          panel. The bar carries the brand for the closed state and the drawer

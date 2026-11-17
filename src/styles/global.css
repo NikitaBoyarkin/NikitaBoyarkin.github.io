@@ -2438,6 +2438,137 @@ body::before {
   mask-position: center;
 }
 
+/* Soft orbs: five out-of-focus colour fields drifting on the homepage. They sit
+   *under* `body::before`, so the honeycomb hairlines still read over the glow —
+   the same reason the crest before them borrowed `--wallpaper-tile` instead of
+   drawing its own hexagons.
+   Seam: every drift is a closed diamond (0% and 100% are the same transform) and
+   every duration divides the 12 s house loop (12, 6, 4, 3), so the field returns
+   to its opening pose and a recording of it loops with no crossfade.
+   Only `transform` animates — composited and rasterised once. Animating
+   `background-position` here would repaint five viewport-sized gradients per
+   frame, which is the cost the lattice comment above already avoids. */
+.orbs {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-decor) - 1);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Falloff from gradient stops, not `filter: blur()`: a gradient is painted once,
+   a blur filter is re-rasterised whenever the orb scales. */
+.orbs i {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+  animation: orb-drift var(--dur, 12s) ease-in-out var(--delay, 0s) infinite;
+}
+
+.orbs i:nth-child(1) {
+  --dx: 16vmax;
+  --dy: -12vmax;
+  --dur: 12s;
+  top: -20vmax;
+  left: -16vmax;
+  width: 68vmax;
+  height: 68vmax;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--text-accent) 62%, transparent),
+    color-mix(in srgb, var(--text-accent) 22%, transparent) 48%,
+    transparent 74%
+  );
+}
+
+.orbs i:nth-child(2) {
+  --dx: -14vmax;
+  --dy: 10vmax;
+  --dur: 6s;
+  --delay: -2s;
+  top: 8vmax;
+  right: -18vmax;
+  width: 52vmax;
+  height: 52vmax;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--text-accent-dataviz) 50%, transparent),
+    transparent 70%
+  );
+}
+
+.orbs i:nth-child(3) {
+  --dx: 10vmax;
+  --dy: 8vmax;
+  --dur: 4s;
+  --delay: -1s;
+  bottom: -12vmax;
+  left: 4vmax;
+  width: 34vmax;
+  height: 34vmax;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--text-accent) 54%, transparent),
+    transparent 68%
+  );
+}
+
+.orbs i:nth-child(4) {
+  --dx: -12vmax;
+  --dy: -14vmax;
+  --dur: 12s;
+  --delay: -5s;
+  top: -10vmax;
+  left: 38%;
+  width: 22vmax;
+  height: 22vmax;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--cream-surface) 42%, transparent),
+    transparent 66%
+  );
+}
+
+.orbs i:nth-child(5) {
+  --dx: 12vmax;
+  --dy: -8vmax;
+  --dur: 3s;
+  --delay: -0.5s;
+  bottom: -10vmax;
+  right: 6vmax;
+  width: 26vmax;
+  height: 26vmax;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--text-accent-dataviz) 44%, transparent),
+    transparent 66%
+  );
+}
+
+@keyframes orb-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  25% {
+    transform: translate3d(var(--dx), calc(var(--dy) * -1), 0) scale(1.06);
+  }
+  50% {
+    transform: translate3d(0, var(--dy), 0) scale(0.96);
+  }
+  75% {
+    transform: translate3d(calc(var(--dx) * -1), 0, 0) scale(1.04);
+  }
+}
+
+/* Drifting is what this preference asks not to have; the glow stays still
+   rather than disappearing. */
+@media (prefers-reduced-motion: reduce) {
+  .orbs i {
+    animation: none;
+  }
+}
+
 /* The page ground ramp (--gradient-page) is applied to `html`, not to a fixed
    overlay: it is opaque now, so a layer above the lattice would paint the
    honeycomb out. */
@@ -2446,13 +2577,15 @@ body::before {
    a user-chosen high-contrast palette is noise, so opt out entirely. The same
    reasoning covers a user who asked the OS for stronger contrast directly. */
 @media (forced-colors: active) {
-  body::before {
+  body::before,
+  .orbs {
     display: none;
   }
 }
 
 @media (prefers-contrast: more) {
-  body::before {
+  body::before,
+  .orbs {
     display: none;
   }
 }
