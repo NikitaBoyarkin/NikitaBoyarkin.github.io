@@ -17,7 +17,7 @@ Deno.test('responses: RLS on, zero policies, no user_agent column', () => {
 
 Deno.test('invites: RLS on, zero policies, token stored as hash', () => {
   assert(/alter table public\.feedback_invites enable row level security/.test(sql), 'RLS missing');
-  assert(/token_hash text not null unique/.test(sql), 'token_hash missing');
+  assert(/token_hash\s+text not null unique/.test(sql), 'token_hash missing');
   assert(!/token text/.test(sql), 'raw token column found');
 });
 
