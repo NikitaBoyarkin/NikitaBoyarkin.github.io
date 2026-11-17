@@ -127,6 +127,9 @@ export interface AnalyticsEventMap {
     reason: 'validation' | 'rate_limited' | 'server' | 'network';
   };
   feedback_invite_opened: { locale: Locale };
+  // Click on the survey CTA in `/hire/`. The delegated handler sends `path`,
+  // so the reader's entry page is attributable without a bespoke emitter.
+  feedback_page_click: { path: string };
   // `source` is the surface the choice came from. `header`/`menu` were the bar
   // and drawer variants of the role buttons (`NavRoles.astro`, since replaced by
   // one «Найм» link) — they were shipped before

@@ -61,6 +61,13 @@ const DEFAULT = 'colleague';
 
   <RoleTabs lang={lang} />
 
+  <aside class="hire-feedback">
+    <p>Работали со мной? Пять вопросов о том, где я полезен и где мешаю.</p>
+    <a class="button" href={withBase('feedback/')} data-analytics="feedback_page_click">
+      Ответить на пять вопросов
+    </a>
+  </aside>
+
   {
     AUDIENCES.map((role) => (
       <section
@@ -92,6 +99,23 @@ const DEFAULT = 'colleague';
   .hire-lead {
     max-width: 60ch;
     margin: var(--space-2) 0 0;
+    color: var(--text-secondary);
+  }
+
+  .hire-feedback {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+  }
+
+  .hire-feedback p {
+    margin: 0;
     color: var(--text-secondary);
   }
 </style>

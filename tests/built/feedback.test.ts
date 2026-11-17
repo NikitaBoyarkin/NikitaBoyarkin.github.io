@@ -52,3 +52,15 @@ describe('feedback form works without javascript', () => {
     expect(page(EN)).toContain('What task would you call me for tomorrow?');
   });
 });
+
+describe('hire links to feedback', () => {
+  it('the RU page offers the survey and tags the click', () => {
+    const html = page('/hire/index.html');
+    expect(html).toContain('href="/feedback/"');
+    expect(html).toContain('data-analytics="feedback_page_click"');
+  });
+
+  it('the EN page points at its own locale route', () => {
+    expect(page('/en/hire/index.html')).toContain('href="/en/feedback/"');
+  });
+});
