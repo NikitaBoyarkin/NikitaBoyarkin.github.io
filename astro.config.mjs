@@ -247,7 +247,7 @@ export default defineConfig({
       },
       // `/r/<target>/` is a click-tracking hop, not a page: it forwards
       // immediately and carries `noindex`, so it must not be crawled.
-      filter: (page) => !page.includes("/404/") && !page.includes("/r/"),
+      filter: (page) => !page.includes("/404/") && !page.includes("/r/") && !page.includes("/feedback/"),
     }),
   ],
 });

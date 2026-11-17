@@ -1,0 +1,37 @@
+---
+import Base from '../../layouts/Base.astro';
+import FeedbackForm from '../../components/FeedbackForm.astro';
+import { withBase } from '../../lib/path';
+---
+
+<Base
+  title="Обратная связь | Nikita Boyarkin"
+  description="Пять вопросов о том, где я полезен и где создаю трение. Анонимно, если хотите."
+  activeNav="hire"
+  noindex
+  canonical={withBase('feedback/')}
+  lang="ru"
+  counterpartHref={withBase('en/feedback/')}
+>
+  <section class="container reveal">
+    <h1>Пять вопросов</h1>
+    <p>
+      Если вы работали со мной — HR, руководителем или коллегой — мне важнее ваш отзыв, чем любая вакансия.
+      Три-пять минут, подпись необязательна. Ответы нигде не публикуются.
+    </p>
+
+    <FeedbackForm locale="ru" />
+  </section>
+</Base>
+
+<style>
+  h1 {
+    margin-bottom: var(--space-3);
+  }
+
+  section > p {
+    max-width: 60ch;
+    margin-bottom: var(--space-6);
+    color: var(--text-muted);
+  }
+</style>

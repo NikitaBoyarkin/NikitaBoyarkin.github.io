@@ -1,0 +1,370 @@
+---
+// Feedback survey island — the same shape as ContactForm.astro: a real
+// `<form method="post">` so a browser without JS posts natively and gets the
+// function's HTML answer, and a bundled script that only enhances (inline
+// validation, JSON submit, analytics).
+//
+// The invite token and role arrive in the URL (`?t=…&r=…`) because the page is
+// static: the script, not the build, fills the hidden token field.
+import {
+  FEEDBACK_ENDPOINT,
+  FEEDBACK_HONEYPOT_FIELD,
+  FEEDBACK_QUESTIONS_EN,
+  FEEDBACK_QUESTIONS_RU,
+  FEEDBACK_ROLES,
+  FEEDBACK_SIGNATURE_MAX,
+  validateFeedback,
+} from '../lib/feedback';
+
+interface Props {
+  locale: 'ru' | 'en';
+}
+
+const { locale } = Astro.props;
+const isEn = locale === 'en';
+const questions = isEn ? FEEDBACK_QUESTIONS_EN : FEEDBACK_QUESTIONS_RU;
+
+const t = {
+  role: isEn ? 'How do you know my work?' : 'Откуда вы знаете мою работу?',
+  signature: isEn ? 'Name or @handle' : 'Имя или @ник',
+  optional: isEn ? 'optional' : 'необязательно',
+  submit: isEn ? 'Send feedback' : 'Отправить отзыв',
+  sending: isEn ? 'Sending…' : 'Отправляем…',
+  roleNames: {
+    hr: isEn ? 'HR' : 'HR',
+    manager: isEn ? 'Manager' : 'Руководитель',
+    colleague: isEn ? 'Colleague' : 'Коллега',
+    other: isEn ? 'Other' : 'Другое',
+  },
+};
+
+const clientI18n = {
+  submit: t.submit,
+  sending: t.sending,
+  errValidation: isEn ? 'Please check the highlighted fields.' : 'Проверьте выделенные поля.',
+  errRate: isEn ? 'Too many answers — please try again later.' : 'Слишком много ответов, попробуйте позже.',
+  errServer: isEn ? 'Something went wrong on my side — please try again.' : 'Что-то сломалось на моей стороне — попробуйте ещё раз.',
+  errNetwork: isEn ? 'No connection. Check your network and try again.' : 'Нет связи. Проверьте сеть и попробуйте снова.',
+};
+---
+
+<div class="fb-block" data-i18n={JSON.stringify(clientI18n)}>
+  <form
+    class="fb-form board-card"
+    id="feedback-form"
+    method="post"
+    action={FEEDBACK_ENDPOINT}
+    data-endpoint={FEEDBACK_ENDPOINT}
+    data-locale={locale}
+  >
+    {
+      questions.map((question) => (
+        <div class="fb-field">
+          <label class="fb-label" for={`fb-${question.key}`}>
+            {question.label} {!question.required && <span class="fb-flag">{t.optional}</span>}
+          </label>
+          <textarea
+            class="fb-input fb-textarea"
+            id={`fb-${question.key}`}
+            name={`q_${question.key}`}
+            rows="3"
+            required={question.required}
+            maxlength={question.cap}></textarea>
+          <p class="fb-error" id={`fb-${question.key}-error`} aria-live="polite"></p>
+        </div>
+      ))
+    }
+
+    <div class="fb-field">
+      <label class="fb-label" for="fb-role">{t.role}</label>
+      <select class="fb-input" id="fb-role" name="role">
+        {FEEDBACK_ROLES.map((role) => <option value={role}>{t.roleNames[role]}</option>)}
+      </select>
+    </div>
+
+    <div class="fb-field">
+      <label class="fb-label" for="fb-signature">
+        {t.signature} <span class="fb-flag">{t.optional}</span>
+      </label>
+      <input class="fb-input" id="fb-signature" name="signature" type="text" maxlength={FEEDBACK_SIGNATURE_MAX} />
+    </div>
+
+    <input type="hidden" name="locale" value={locale} />
+    <input type="hidden" name="source" value="open" />
+    <input type="hidden" name="token" value="" />
+
+    <div class="fb-honeypot" aria-hidden="true">
+      <label for="fb-website">Website</label>
+      <input id="fb-website" name={FEEDBACK_HONEYPOT_FIELD} type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <button class="button fb-submit" id="feedback-submit" type="submit">{t.submit}</button>
+    <p class="fb-status" id="feedback-status" role="status" aria-live="polite"></p>
+  </form>
+
+  <p class="fb-success" id="feedback-success" role="status" tabindex="-1" hidden>
+    {isEn
+      ? 'Thank you. The answer is recorded and never published — only I read it.'
+      : 'Спасибо. Отзыв записан и нигде не публикуется — его читаю только я.'}
+  </p>
+</div>
+
+<style>
+  .fb-form {
+    display: flex;
+    flex-direction: column;
+    max-width: 60ch;
+    padding: var(--space-6);
+  }
+
+  .fb-form[hidden] {
+    display: none;
+  }
+
+  .fb-form.board-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .fb-field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fb-field + .fb-field {
+    margin-top: var(--space-4);
+  }
+
+  .fb-label {
+    margin-bottom: var(--space-2);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-normal);
+  }
+
+  .fb-flag {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .fb-input {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--background-tertiary);
+    color: var(--text-normal);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .fb-input:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+    border-color: var(--border-active);
+  }
+
+  .fb-input[aria-invalid='true'] {
+    border-color: var(--text-accent);
+  }
+
+  .fb-textarea {
+    resize: vertical;
+    min-height: 4.5rem;
+  }
+
+  .fb-error {
+    margin: 0;
+  }
+
+  .fb-error:not(:empty) {
+    margin-top: var(--space-2);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--text-accent);
+  }
+
+  .fb-submit {
+    align-self: flex-start;
+    margin-top: var(--space-5);
+  }
+
+  .fb-submit[aria-disabled='true'] {
+    opacity: 0.6;
+    cursor: progress;
+    transform: none;
+  }
+
+  .fb-status:not(:empty) {
+    margin-top: var(--space-3);
+    font-size: 0.9rem;
+    color: var(--text-accent);
+  }
+
+  .fb-success {
+    margin: 0;
+    padding: var(--space-6);
+    max-width: 60ch;
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    font-size: 1.05rem;
+    color: var(--text-normal);
+  }
+
+  .fb-success[hidden] {
+    display: none;
+  }
+
+  .fb-honeypot {
+    position: absolute;
+    top: auto;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  import { track } from '../lib/analytics';
+  import { FEEDBACK_QUESTION_KEYS, validateFeedback } from '../lib/feedback';
+
+  function init() {
+    const found = document.getElementById('feedback-form') as HTMLFormElement | null;
+    if (!found) return;
+    const form: HTMLFormElement = found;
+
+    const block = form.closest('.fb-block') as HTMLElement | null;
+    const locale: 'ru' | 'en' = form.dataset.locale === 'en' ? 'en' : 'ru';
+    const endpoint = form.dataset.endpoint || form.action;
+    const i18n = JSON.parse(block?.dataset.i18n || '{}') as Record<string, string>;
+
+    const submit = document.getElementById('feedback-submit') as HTMLButtonElement | null;
+    const status = document.getElementById('feedback-status');
+    const success = document.getElementById('feedback-success');
+    const tokenField = form.querySelector<HTMLInputElement>('[name="token"]');
+    const roleField = form.querySelector<HTMLSelectElement>('[name="role"]');
+
+    // The invite lives in the URL: this page is static, so only the browser can
+    // read the token. A forwarded or stale link still opens the form — it just
+    // becomes an open answer.
+    const params = new URLSearchParams(location.search);
+    const token = params.get('t') ?? '';
+    const invitedRole = params.get('r') ?? '';
+    const source: 'open' | 'invited' = token === '' ? 'open' : 'invited';
+    if (tokenField) tokenField.value = token;
+    if (invitedRole !== '' && roleField) {
+      const option = [...roleField.options].find((o) => o.value === invitedRole);
+      if (option) roleField.value = invitedRole;
+    }
+
+    track('feedback_page_view', { locale, source });
+    if (source === 'invited') track('feedback_invite_opened', { locale });
+
+    form.noValidate = true;
+
+    const fieldEl = (key: string) =>
+      form.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[name="q_${key}"]`);
+    const errorEl = (key: string) => document.getElementById(`fb-${key}-error`);
+
+    function clearError(key: string): void {
+      const el = errorEl(key);
+      if (el) el.textContent = '';
+      const input = fieldEl(key);
+      input?.removeAttribute('aria-describedby');
+      input?.removeAttribute('aria-invalid');
+    }
+
+    function setError(key: string, message: string): void {
+      const el = errorEl(key);
+      if (el) el.textContent = message;
+      const input = fieldEl(key);
+      if (input) {
+        input.setAttribute('aria-describedby', `fb-${key}-error`);
+        input.setAttribute('aria-invalid', 'true');
+      }
+    }
+
+    function setBusy(busy: boolean): void {
+      if (submit) {
+        submit.setAttribute('aria-disabled', busy ? 'true' : 'false');
+        submit.textContent = busy ? i18n.sending : i18n.submit;
+      }
+      form.setAttribute('aria-busy', busy ? 'true' : 'false');
+    }
+
+    function showFailure(reason: 'rate_limited' | 'server' | 'network'): void {
+      if (!status) return;
+      status.textContent =
+        reason === 'rate_limited' ? i18n.errRate : reason === 'network' ? i18n.errNetwork : i18n.errServer;
+    }
+
+    function showSuccess(): void {
+      form.hidden = true;
+      if (success) {
+        success.hidden = false;
+        success.focus();
+      }
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (submit?.getAttribute('aria-disabled') === 'true') return;
+
+      const data = new FormData(form);
+      const input: Record<string, string> = { signature: String(data.get('signature') ?? ''), role: String(data.get('role') ?? '') };
+      for (const key of FEEDBACK_QUESTION_KEYS) input[key] = String(data.get(`q_${key}`) ?? '');
+
+      for (const key of FEEDBACK_QUESTION_KEYS) clearError(key);
+      const result = validateFeedback(input);
+
+      if (!result.ok) {
+        for (const key of result.fields) setError(key, i18n.errValidation);
+        if (status) status.textContent = i18n.errValidation;
+        fieldEl(result.fields[0])?.focus();
+        track('feedback_form_error', { locale, reason: 'validation' });
+        return;
+      }
+
+      setBusy(true);
+      if (status) status.textContent = '';
+
+      const payload = {
+        role: result.value.role,
+        answers: result.value.answers,
+        signature: result.value.signature,
+        locale,
+        source,
+        token,
+        website: String(data.get('website') ?? ''),
+      };
+
+      void fetch(endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => {
+          if (res.ok) {
+            showSuccess();
+            track('feedback_submit', { locale, source });
+            return;
+          }
+          const reason = res.status === 429 ? 'rate_limited' : 'server';
+          showFailure(reason);
+          track('feedback_form_error', { locale, reason });
+        })
+        .catch(() => {
+          showFailure('network');
+          track('feedback_form_error', { locale, reason: 'network' });
+        })
+        .finally(() => setBusy(false));
+    });
+  }
+
+  init();
+</script>
