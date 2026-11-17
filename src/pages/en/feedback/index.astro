@@ -1,0 +1,37 @@
+---
+import Base from '../../../layouts/Base.astro';
+import FeedbackForm from '../../../components/FeedbackForm.astro';
+import { withBase } from '../../../lib/path';
+---
+
+<Base
+  title="Feedback | Nikita Boyarkin"
+  description="Five questions about where I am useful and where I create friction. Anonymous if you like."
+  activeNav="hire"
+  noindex
+  canonical={withBase('en/feedback/')}
+  lang="en"
+  counterpartHref={withBase('feedback/')}
+>
+  <section class="container reveal">
+    <h1>Five questions</h1>
+    <p>
+      If we have worked together — as HR, as my manager, or as a colleague — your answer matters to me more than
+      any job posting. Three to five minutes, signature optional. Answers are never published.
+    </p>
+
+    <FeedbackForm locale="en" />
+  </section>
+</Base>
+
+<style>
+  h1 {
+    margin-bottom: var(--space-3);
+  }
+
+  section > p {
+    max-width: 60ch;
+    margin-bottom: var(--space-6);
+    color: var(--text-muted);
+  }
+</style>
