@@ -2445,6 +2445,9 @@ body::before {
    Seam: every drift is a closed diamond (0% and 100% are the same transform) and
    every duration divides the 12 s house loop (12, 6, 4, 3), so the field returns
    to its opening pose and a recording of it loops with no crossfade.
+   The travel alone was too slow to read on 60vmax gradients (a soft blob moving
+   90px/s shows no edge), so each orb also breathes in density — opacity and
+   scale carry the motion the eye actually catches.
    Only `transform` animates — composited and rasterised once. Animating
    `background-position` here would repaint five viewport-sized gradients per
    frame, which is the cost the lattice comment above already avoids. */
@@ -2548,16 +2551,20 @@ body::before {
 @keyframes orb-drift {
   0%,
   100% {
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0) scale(0.94);
+    opacity: 0.45;
   }
   25% {
-    transform: translate3d(var(--dx), calc(var(--dy) * -1), 0) scale(1.06);
+    transform: translate3d(var(--dx), calc(var(--dy) * -1), 0) scale(1.16);
+    opacity: 1;
   }
   50% {
-    transform: translate3d(0, var(--dy), 0) scale(0.96);
+    transform: translate3d(0, var(--dy), 0) scale(0.92);
+    opacity: 0.55;
   }
   75% {
-    transform: translate3d(calc(var(--dx) * -1), 0, 0) scale(1.04);
+    transform: translate3d(calc(var(--dx) * -1), 0, 0) scale(1.12);
+    opacity: 0.9;
   }
 }
 
