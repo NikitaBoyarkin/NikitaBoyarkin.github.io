@@ -13,8 +13,6 @@
     "test": "bun test tests/lib",
     "test:monitoring": "bun test monitoring/exporter/tests",
     "test:built": "bun test tests/built",
-    "feedback:invite": "node scripts/feedback-invite.mjs",
-    "feedback:export": "node scripts/feedback-export.mjs",
     "coverage": "bun test tests/lib --coverage",
     "serve-dist": "bun run scripts/serve-dist.mjs",
     "verify:writing-filter": "bun run scripts/verify-writing-filter.mjs",
@@ -44,13 +42,13 @@
     "export:projects": "bun run scripts/export-projects-registry.mjs"
   },
   "dependencies": {
-    "@astrojs/markdown-satteri": "^0.4.10",
-    "@astrojs/mdx": "^8.1.6",
+    "@astrojs/markdown-satteri": "0.4.2",
+    "@astrojs/mdx": "^8.0.2",
     "@astrojs/rss": "^4.0.19",
-    "@astrojs/sitemap": "3.7.5",
+    "@astrojs/sitemap": "^3.7.3",
     "@oneworks/avatar": "1.0.0-rc.9",
     "@oneworks/avatar-web": "1.0.0-rc.9",
-    "astro": "7.4.12",
+    "astro": "^7.2.9",
     "katex": "^0.19.0",
     "morphicons": "^1.7.0",
     "posthog-js": "^1.422.5",
@@ -58,7 +56,7 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@astrojs/check": "0.9.12",
+    "@astrojs/check": "^0.9.10",
     "@happy-dom/global-registrator": "^20.14.5",
     "@types/bun": "^1.4.2",
     "@types/jsdom": "^30.0.0",
