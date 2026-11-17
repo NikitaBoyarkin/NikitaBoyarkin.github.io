@@ -6,6 +6,6 @@
   },
   "test": {
     // Relative to this file's directory: `deno test` runs from `supabase/`.
-    "include": ["functions/ingest/"]
+    "include": ["functions/ingest/", "functions/feedback/"]
   }
 }

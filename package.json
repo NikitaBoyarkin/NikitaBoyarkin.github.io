@@ -13,6 +13,8 @@
     "test": "bun test tests/lib",
     "test:monitoring": "bun test monitoring/exporter/tests",
     "test:built": "bun test tests/built",
+    "feedback:invite": "node scripts/feedback-invite.mjs",
+    "feedback:export": "node scripts/feedback-export.mjs",
     "coverage": "bun test tests/lib --coverage",
     "serve-dist": "bun run scripts/serve-dist.mjs",
     "verify:writing-filter": "bun run scripts/verify-writing-filter.mjs",

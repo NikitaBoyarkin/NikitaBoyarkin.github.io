@@ -7,3 +7,9 @@ project_id = "nikitaboyarkin-analytics"
 # security boundary is RLS with zero policies on public.analytics_events;
 # this function writes as service_role, and nothing else can.
 verify_jwt = false
+
+[functions.feedback]
+# The feedback form posts from the browser with no JWT. RLS with zero policies
+# on feedback_responses / feedback_invites is the boundary; only service_role
+# inside this function can read invites or write a response.
+verify_jwt = false
