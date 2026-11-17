@@ -40,9 +40,10 @@ jobs:
       # A glob, not `index.ts`: the entry point reaches handler.ts and limits.ts,
       # but the three test files are not importable from it — `deno check
       # index.ts` would leave them unchecked while looking like full coverage.
-      - run: deno check functions/ingest/*.ts
+      - run: deno check functions/ingest/*.ts functions/feedback/*.ts
 
-      # No path argument: deno.json sets test.include = supabase/functions/ingest/.
-      # --allow-read lets the drift test compare the migrations' CHECK constraints
-      # with limits.ts; without it that comparison is skipped silently.
+      # No path argument: deno.json sets test.include to every function dir.
+      # --allow-read lets the drift tests compare the migrations' CHECK
+      # constraints with the functions' constants; without it that comparison
+      # is skipped silently.
       - run: deno test --allow-read
