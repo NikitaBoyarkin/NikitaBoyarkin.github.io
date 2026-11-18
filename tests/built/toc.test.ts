@@ -21,12 +21,16 @@ const DIST = resolve(__dirname, '../../dist');
 
 // One page per template that renders a TOC: posts and projects (RU), projects
 // (EN), and the Volta part pages, which gained the rail in the same change.
+// A hub project page ships the rail only: its case body is a tabbed dashboard,
+// so the in-flow inline list (`InlineTOC`) was dropped there — the section tabs
+// cover the same jump targets. The Volta part template has no nested tabs, so it
+// keeps both.
 const PAGES = [
-  { file: 'posts/bayesian-ab-testing/index.html', container: '#post-content' },
-  { file: 'projects/site/index.html', container: '#project-content' },
-  { file: 'en/projects/site/index.html', container: '#project-content' },
-  { file: 'projects/volta/ab/index.html', container: '#project-content' },
-  { file: 'en/projects/volta/ab/index.html', container: '#project-content' },
+  { file: 'posts/bayesian-ab-testing/index.html', container: '#post-content', inline: true },
+  { file: 'projects/site/index.html', container: '#project-content', inline: false },
+  { file: 'en/projects/site/index.html', container: '#project-content', inline: false },
+  { file: 'projects/volta/ab/index.html', container: '#project-content', inline: true },
+  { file: 'en/projects/volta/ab/index.html', container: '#project-content', inline: true },
 ];
 
 // The minifier strips whitespace but keeps the `define:vars` wrapper, so the
@@ -72,8 +76,8 @@ function tocOf(file: string, opts: { tocHidden?: boolean } = {}): Document {
 }
 
 describe('TOC (built HTML, real inline script)', () => {
-  for (const { file, container } of PAGES) {
-    it(`${file} fills the rail and the inline list from one heading scan`, () => {
+  for (const { file, container, inline: hasInline } of PAGES) {
+    it(`${file} fills the rail${hasInline ? ' and the inline list' : ''} from one heading scan`, () => {
       if (!existsSync(resolve(DIST, file))) return; // needs `bun run build`
       const doc = tocOf(file);
 
@@ -83,11 +87,16 @@ describe('TOC (built HTML, real inline script)', () => {
 
       expect(headings.length).toBeGreaterThan(0);
       expect(rail.length).toBe(headings.length);
-      expect(inline.length).toBe(headings.length);
 
-      // Both lists must point at the same anchors, or the two renderings of the
-      // same scan have drifted.
-      expect(inline.map((a) => a.getAttribute('href'))).toEqual(rail.map((a) => a.getAttribute('href')));
+      if (hasInline) {
+        expect(inline.length).toBe(headings.length);
+
+        // Both lists must point at the same anchors, or the two renderings of the
+        // same scan have drifted.
+        expect(inline.map((a) => a.getAttribute('href'))).toEqual(rail.map((a) => a.getAttribute('href')));
+      } else {
+        expect(doc.getElementById('inline-toc-list')).toBeNull();
+      }
 
       // And every anchor must land on a heading the scan gave an id.
       for (const a of rail) {
@@ -95,6 +104,25 @@ describe('TOC (built HTML, real inline script)', () => {
       }
     });
   }
+});
+
+describe('the rail starts where its template says', () => {
+  it('is collapsed on first visit to a project page, expanded on a post', () => {
+    if (!existsSync(resolve(DIST, 'projects/site/index.html'))) return; // needs `bun run build`
+    // Project pages pass `defaultHidden`: their case body is tabbed, so an open
+    // rail competes with the section tabs for the same right edge.
+    expect(tocOf('projects/site/index.html').documentElement.classList.contains('toc-collapsed')).toBe(true);
+    expect(tocOf('posts/bayesian-ab-testing/index.html').documentElement.classList.contains('toc-collapsed')).toBe(false);
+  });
+
+  it('remembers an explicit reveal on a page that starts collapsed', () => {
+    if (!existsSync(resolve(DIST, 'projects/site/index.html'))) return;
+    const doc = tocOf('projects/site/index.html');
+    doc.getElementById('toc-restore')!.click();
+    // `'0'`, not a cleared key: with `defaultHidden`, "no key" means collapsed
+    // again, so the reveal would not survive the next navigation.
+    expect(doc.defaultView!.localStorage.getItem('toc-hidden')).toBe('0');
+  });
 });
 
 // «Скрыть» releases the fixed rail's reserved strip — `html.toc-collapsed` is

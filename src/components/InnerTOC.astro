@@ -2,16 +2,18 @@
 interface Props {
   selector?: string;
   lang?: 'ru' | 'en';
+  /** Start collapsed. An explicit hide/show choice still wins on later visits. */
+  defaultHidden?: boolean;
 }
 
-const { selector = '#project-content', lang = 'ru' } = Astro.props;
+const { selector = '#project-content', lang = 'ru', defaultHidden = false } = Astro.props;
 const isEn = lang === 'en';
 ---
 
 <aside id="inner-toc" aria-label={isEn ? 'Table of contents' : 'Содержание'} data-pagefind-ignore>
   <div class="toc-head">
     <div class="toc-title">{isEn ? 'On this page' : 'На этой странице'}</div>
-    <button type="button" id="toc-hide" class="toc-toggle" aria-controls="inner-toc" aria-expanded="true">
+    <button type="button" id="toc-hide" class="toc-toggle" aria-controls="inner-toc" aria-expanded={defaultHidden ? 'false' : 'true'}>
       {isEn ? 'Hide' : 'Скрыть'}
     </button>
   </div>
@@ -21,7 +23,7 @@ const isEn = lang === 'en';
   {isEn ? 'Contents' : 'Содержание'}
 </button>
 
-<script is:inline define:vars={{ selector }}>
+<script is:inline define:vars={{ selector, defaultHidden }}>
   function slugify(text) {
     return text
       .toString()
@@ -65,10 +67,15 @@ const isEn = lang === 'en';
   }
   function readTocHidden() {
     try {
-      return localStorage.getItem(TOC_HIDDEN_KEY) === '1';
+      const stored = localStorage.getItem(TOC_HIDDEN_KEY);
+      // `defaultHidden` is the page template's answer for a first visit — the
+      // project pages ship collapsed because the rail would otherwise compete
+      // with the case dashboard's section tabs. A reader's choice outranks it.
+      return stored === null ? defaultHidden : stored === '1';
     } catch {
-      // Private mode / blocked storage: start expanded, the button still works.
-      return false;
+      // Private mode / blocked storage: fall back to the template default, the
+      // button still works.
+      return defaultHidden;
     }
   }
   setTocHidden(readTocHidden(), false);
@@ -80,7 +87,10 @@ const isEn = lang === 'en';
   });
   document.getElementById('toc-restore')?.addEventListener('click', () => {
     try {
-      localStorage.removeItem(TOC_HIDDEN_KEY);
+      // An explicit `'0'`, not `removeItem`: on a page whose template default is
+      // collapsed (`/projects/*`), "no key" means collapsed again, so showing the
+      // rail once would be undone by the next navigation.
+      localStorage.setItem(TOC_HIDDEN_KEY, '0');
     } catch {}
     withScrollAnchor(() => setTocHidden(false, true));
   });
