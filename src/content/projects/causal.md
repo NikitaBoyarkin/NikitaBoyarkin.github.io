@@ -35,8 +35,6 @@ related:
   - /glossary/correlation-causation/
 ---
 
-# Causal / Uplift — CUPED and Individual Treatment Effects
-
 ▶ [Схема потока данных](/diagrams/causal-uplift.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

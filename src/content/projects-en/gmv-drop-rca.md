@@ -37,8 +37,6 @@ related:
   - /posts/analyst-interview-cases/
 ---
 
-# GMV Drop RCA — root cause on real data
-
 ## Situation
 
 The alert said "GMV dropped 10% month over month", on real UCI Online Retail II transactions.

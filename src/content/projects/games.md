@@ -33,8 +33,6 @@ related:
   - /projects/scrolly/
 ---
 
-# Browser Mini-Games — Analytics Arcade
-
 ▶ [Схема архитектуры](/diagrams/browser-mini-games.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

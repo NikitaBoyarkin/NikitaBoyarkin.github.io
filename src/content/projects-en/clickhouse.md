@@ -35,8 +35,6 @@ related:
   - /projects/airflow/
 ---
 
-# ClickHouse — ten SQL cases on 50M rows
-
 ## Situation
 
 ClickHouse shows a pretty query plan and misleads just as easily: the dialect differs from familiar SQL, `uniq` returns an estimate, and `avg(amount)` over an event table is not an average order value. Cases assembled by eye look convincing and disagree with the data on the first recount.

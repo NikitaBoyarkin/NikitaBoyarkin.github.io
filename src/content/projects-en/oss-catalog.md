@@ -35,8 +35,6 @@ related:
   - /projects/garden/
 ---
 
-# OSS catalog — 47 projects from one source
-
 ## Situation
 
 An open-source project catalog assembled by hand ages faster than it can be updated. Stars, releases and languages change on GitHub while the site keeps numbers from a month ago. Worse, the same card exists in two places — a data table and the markup — and disagrees with itself.

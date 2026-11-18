@@ -30,8 +30,6 @@ related:
   - /projects/games/
 ---
 
-# Scrolly English Speaking
-
 ▶ [Схема архитектуры](/diagrams/scrolly-english-speaking.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

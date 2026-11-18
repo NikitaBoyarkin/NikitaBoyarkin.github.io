@@ -33,8 +33,6 @@ related:
   - /projects/python/
 ---
 
-# RAG Evaluation Harness — retrieval and generation metrics
-
 ▶ [Data-flow diagram](/diagrams/rag-eval-harness.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation

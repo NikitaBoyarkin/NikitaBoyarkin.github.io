@@ -34,8 +34,6 @@ related:
   - /projects/supabase/
 ---
 
-# TaskFlow — PostHog Product Analytics Pipeline
-
 ▶ [Схема потока данных](/diagrams/posthog-saas-analytics.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

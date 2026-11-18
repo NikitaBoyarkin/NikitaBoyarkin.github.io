@@ -38,8 +38,6 @@ faq:
     answer: "As a CSV and a .hyper extract export; the pipeline reproduces from a fixed seed=42."
 ---
 
-# Cohort Analysis Dashboard
-
 ▶ [Data-flow diagram](/diagrams/tableau-cohort-analysis.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation

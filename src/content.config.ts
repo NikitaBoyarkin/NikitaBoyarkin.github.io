@@ -81,6 +81,12 @@ const projectSchema = z.object({
    *  decision, and a fabricated bet is worse than an absent one. See
    *  `src/components/DecisionBlock.astro` for the four labels. */
   bet: z.string().optional(),
+  /** The two lines a reader needs before the narrative — what the data shows and
+   *  what it says to do — rendered beside the hero by `CaseLead`. Optional on
+   *  purpose: the page falls back to `star.result` and `bet`, so a case that has
+   *  not authored them renders as it did before this block existed. */
+  insight: z.string().optional(),
+  recommendation: z.string().optional(),
   failureBar: z.string().optional(),
   rejected: z
     .array(z.object({ option: z.string(), why: z.string(), cost: z.string() }))

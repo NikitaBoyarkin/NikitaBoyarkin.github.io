@@ -46,8 +46,6 @@ faq:
     answer: "On the shared-module reuse template: a new DAG is assembled from the same config, dq, alerts, metrics and windows, with no logic copied."
 ---
 
-# Airflow DAG Platform
-
 ▶ [Data-flow diagram](/diagrams/airflow.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation

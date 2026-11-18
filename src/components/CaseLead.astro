@@ -1,0 +1,68 @@
+---
+// The top of a case, before its narrative: the title, the chart, and the two
+// lines that say what the data shows and what it argues to do. Text is resolved
+// by the page (it owns the `star.result` / `bet` fallback), so the component
+// renders what it is given and nothing when given nothing.
+interface Props {
+  title: string;
+  hero?: string;
+  insight?: string;
+  recommendation?: string;
+  lang?: 'ru' | 'en';
+}
+
+const { title, hero, insight, recommendation, lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+const t = isEn
+  ? {
+      region: 'Case summary',
+      insight: 'Insight',
+      recommendation: 'Business recommendation',
+    }
+  : {
+      region: 'Кратко о кейсе',
+      insight: 'Инсайт',
+      recommendation: 'Рекомендация бизнесу',
+    };
+
+const notes = [
+  insight ? { label: t.insight, text: insight } : null,
+  recommendation ? { label: t.recommendation, text: recommendation } : null,
+].filter((note) => note !== null);
+
+const split = Boolean(hero) && notes.length > 0;
+---
+
+<section class="case-lead" aria-label={t.region}>
+  <h1 class="case-lead-title">{title}</h1>
+  <div class:list={['case-lead-grid', split && 'case-lead-grid--split']}>
+    {
+      hero && (
+        <div class="case-lead-media">
+          <img
+            id="project-image"
+            class="hero-image"
+            src={hero}
+            alt={isEn ? `${title} preview` : `${title} — превью кейса`}
+            width="1200"
+            height="600"
+            fetchpriority="high"
+          />
+        </div>
+      )
+    }
+    {
+      notes.length > 0 && (
+        <div class="case-lead-notes">
+          {notes.map((note) => (
+            <div class="case-note">
+              <p class="case-note-label">{note.label}</p>
+              <p class="case-note-text">{note.text}</p>
+            </div>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</section>

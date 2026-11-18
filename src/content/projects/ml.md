@@ -35,8 +35,6 @@ sources:
   - designing-machine-learning-systems
 ---
 
-# ML Fundamentals — scikit-learn Pipeline
-
 ▶ [Схема потока данных](/diagrams/ml.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

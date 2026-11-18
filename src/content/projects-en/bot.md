@@ -43,8 +43,6 @@ faq:
     answer: "Long polling needs an always-on process: a Fly.io worker built from the Dockerfile or a local docker run. CI runs pytest + ruff + mypy."
 ---
 
-# Data Analyst Telegram Bot
-
 ▶ [Diagram: A/B test from a CSV](/diagrams/telegram-bot.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation

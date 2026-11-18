@@ -44,8 +44,6 @@ related:
   - /posts/sql-window-functions/
 ---
 
-# SQL Analytics Case Study
-
 ▶ [Data-layer diagram](/diagrams/sql-analytics.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation

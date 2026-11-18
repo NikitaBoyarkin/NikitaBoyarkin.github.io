@@ -35,8 +35,6 @@ related:
   - /glossary/bootstrap/
 ---
 
-# LinkedIn Content Analytics
-
 ▶ [Схема потока данных](/diagrams/linkedin-analytics.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

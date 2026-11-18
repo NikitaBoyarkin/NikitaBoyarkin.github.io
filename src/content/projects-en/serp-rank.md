@@ -55,8 +55,6 @@ faq:
     answer: "No: the policy at NDCG 0.985 earns less than the one at 0.883, and the trained ranker at 826.56 loses to sorting by price at 843.91. The offline metric and the money move in opposite directions."
 ---
 
-# SERP Rank Lab
-
 ▶ [Data-flow diagram](/diagrams/serp-rank-lab.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation

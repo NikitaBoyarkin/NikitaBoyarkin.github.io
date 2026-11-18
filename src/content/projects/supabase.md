@@ -28,8 +28,6 @@ related:
   - /projects/streamlit/
 ---
 
-# Product Analytics + A/B on Supabase
-
 ▶ [Схема архитектуры](/diagrams/supabase-product-analytics.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

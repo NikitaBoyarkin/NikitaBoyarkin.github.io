@@ -28,8 +28,6 @@ related:
   - /posts/streamlit-dashboard-prototype/
 ---
 
-# Sales Calls Analytics Dashboard
-
 ## Situation
 
 An AI call flow is a funnel: greeting → offer → meeting → qualification. The production export stores the calls but does not say which step the bot loses the client on. The goal is to turn the raw export into an answer in a minute: where the drop-off is, for what reasons, when to call, and what to fix — the script, the timing, or bot quality.

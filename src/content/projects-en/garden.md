@@ -29,8 +29,6 @@ related:
   - /projects/scrolly/
 ---
 
-# Digital Garden — EQ in IT
-
 ## Situation
 
 Knowledge as chronological posts ages quickly and loses connections. A digital garden is the opposite of a blog: notes are not ordered by date but linked with `[[wikilinks]]`, have maturity stages (seedling → evergreen), and evolve over time.

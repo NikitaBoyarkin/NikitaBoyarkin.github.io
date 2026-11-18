@@ -6,6 +6,7 @@ import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import InnerTOC from '../../components/InnerTOC.astro';
 import InlineTOC from '../../components/InlineTOC.astro';
+import CaseLead from '../../components/CaseLead.astro';
 import StarBlock from '../../components/StarBlock.astro';
 import DecisionBlock from '../../components/DecisionBlock.astro';
 import ProofStrip from '../../components/ProofStrip.astro';
@@ -274,19 +275,13 @@ const pageJsonLd = {
          that had no breadcrumbs. One route back, at the top, is the rule. */
     }
 
-    {
-      project.data.hero && (
-        <img
-          id="project-image"
-          class="hero-image"
-          src={withBase(project.data.hero)}
-          alt={`${project.data.title} preview`}
-          width="1200"
-          height="600"
-          fetchpriority="high"
-        />
-      )
-    }
+    <CaseLead
+      title={project.data.title}
+      hero={project.data.hero ? withBase(project.data.hero) : undefined}
+      insight={project.data.insight ?? project.data.star?.result}
+      recommendation={project.data.recommendation ?? project.data.bet}
+      lang="ru"
+    />
 
     <ProofStrip
       proof={project.data.proof}

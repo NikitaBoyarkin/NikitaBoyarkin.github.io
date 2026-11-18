@@ -36,8 +36,6 @@ related:
   - /posts/rfm-segmentation-practical/
 ---
 
-# RFM Analysis of Bank Clients
-
 ▶ [Схема потока данных](/diagrams/rfm-analysis.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

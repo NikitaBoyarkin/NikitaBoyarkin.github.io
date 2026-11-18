@@ -30,8 +30,6 @@ related:
   - /projects/games/
 ---
 
-# Scrolly English Speaking
-
 ▶ [Architecture diagram](/diagrams/scrolly-english-speaking.html) — self-contained HTML, opens in a browser — no install, no build
 
 ## Situation

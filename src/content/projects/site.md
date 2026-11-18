@@ -32,8 +32,6 @@ related:
   - /projects/oss-catalog/
 ---
 
-# This Portfolio Site
-
 ▶ [Схема архитектуры](/diagrams/portfolio-site.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

@@ -43,8 +43,6 @@ faq:
     answer: "No: the data are synthetic (seed 42) and the variant's effect is built into the generator. The case demonstrates the method and the decision, not a property of a real service."
 ---
 
-# Product A/B & Funnel Analytics — Conversion versus Retention
-
 ## Situation
 
 A subscription B2C service spends on acquisition, but revenue hits a bottleneck. The data live on three grains — user, event, transaction — and 8 616 of 12 000 signups never pay at all. Any monetary metric must declare its denominator explicitly, or numbers across cuts diverge by multiples.

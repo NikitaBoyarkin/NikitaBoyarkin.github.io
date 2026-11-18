@@ -51,8 +51,6 @@ faq:
     answer: "At 20% capacity ranking by score loses −55 396 ₽, while a threshold of positive expected margin earns +54 361 ₽ and spends on 3.7% of cells."
 ---
 
-# Promo Margin Lab
-
 ▶ [Static render of the dashboard](/demos/promo/) — built from the same SQL marts as the live Superset; the footer says it is a render
 
 ## Situation

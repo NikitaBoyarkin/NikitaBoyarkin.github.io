@@ -44,8 +44,6 @@ related:
   - /posts/sql-window-functions/
 ---
 
-# SQL Analytics Case Study
-
 ▶ [Схема слоёв данных](/diagrams/sql-analytics.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

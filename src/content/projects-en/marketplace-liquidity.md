@@ -35,8 +35,6 @@ related:
   - /projects/rfm/
 ---
 
-# Classifieds liquidity — a measurability audit
-
 ## Situation
 
 A classifieds marketplace where the transaction closes off-platform. The platform logs searches, impressions, views, contacts and removals — but never the sale itself. Liquidity is counted from the seller's self-report: `removal_reason == "sold"`.

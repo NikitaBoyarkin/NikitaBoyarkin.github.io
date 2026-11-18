@@ -59,8 +59,6 @@ sources:
   - trustworthy-online-controlled-experiments
 ---
 
-# A/B Testing Methodology Toolkit
-
 ▶ [Схема архитектуры](/diagrams/ab-test.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

@@ -31,8 +31,6 @@ related:
   - /projects/rag/
 ---
 
-# Python Analytics Playground
-
 ▶ [Схема потока данных](/diagrams/python.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

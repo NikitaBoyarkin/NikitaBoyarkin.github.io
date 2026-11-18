@@ -40,8 +40,6 @@ faq:
     answer: "The cost field is a money metric in unconfirmed source units: its currency is undocumented. avg_price does not reconcile with cost (221.8 vs 138.9) and is not used in any calculation."
 ---
 
-# Delivery Control Tower
-
 ## Situation
 
 Delivery is usually measured as one number — the average time. That is not enough to see where the process loses time: the split by category, channel and city shows different causes, and an order forecast is needed to plan capacity in advance.

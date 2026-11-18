@@ -29,8 +29,6 @@ related:
   - /posts/streamlit-dashboard-prototype/
 ---
 
-# Product Analytics Dashboard (Streamlit)
-
 ▶ [Схема архитектуры](/diagrams/streamlit-app.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация

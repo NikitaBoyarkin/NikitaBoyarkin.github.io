@@ -435,6 +435,7 @@ h4 {
    component-scoped styles must not restate a font-size for these selectors.
    Section <h2> take `--type-section-h2` where they are declared. */
 .page-title,
+.case-lead-title,
 .post-title,
 .contact-title,
 .hero-name,
@@ -1995,18 +1996,86 @@ footer p {
    desktop container and clipped 79px off the top and bottom — 85 SVG units,
    enough to cut the axis labels off ten of the corners (ml, serp-rank, rfm,
    cohort, volta, ab, sales-calls, linkedin, supabase, scrolly). Capping the
-   width instead keeps the art's real ratio and puts the same 400–450px ceiling
-   on the height without losing a pixel. */
+   width instead keeps the art's real ratio and puts a 360px ceiling on the
+   height without losing a pixel. The cap matches the prose measure (66ch), so
+   the hero sits in the same column as the text below it. */
 .hero-image {
   display: block;
   width: 100%;
-  max-width: 900px;
+  max-width: 720px;
   height: auto;
   aspect-ratio: 2 / 1;
   object-fit: contain;
   margin: 0 auto 2rem;
   border-radius: 12px;
   border: 1px solid var(--border-color);
+}
+
+/* The case lead: title, chart, and the two lines read before the narrative.
+   The split exists only when both sides have content — a case with no insight
+   keeps the single column it had before. Below 1025px the columns stack, so the
+   chart never shrinks under a third of the frame. */
+.case-lead {
+  margin-block: 0 var(--space-8);
+}
+
+.case-lead-title {
+  margin: 0 0 var(--space-5);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-normal);
+  text-wrap: balance;
+}
+
+.case-lead-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (min-width: 1025px) {
+  .case-lead-grid--split {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}
+
+/* Inside the grid the hero takes its track: the 720px prose-measure cap would
+   leave the chart narrower than the column it sits in. */
+.case-lead-media .hero-image {
+  max-width: 100%;
+  margin: 0;
+}
+
+.case-lead-notes {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+
+.case-note {
+  padding: var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--card-background);
+}
+
+.case-note-label {
+  margin: 0 0 var(--space-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.case-note-text {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: 1.55;
+  color: var(--text-normal);
+  text-wrap: pretty;
 }
 
 /* Inner TOC for project and post pages.

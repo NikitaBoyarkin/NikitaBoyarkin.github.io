@@ -37,8 +37,6 @@ related:
   - /posts/analyst-interview-cases/
 ---
 
-# GMV Drop RCA — разбор падения на реальных данных
-
 ## Ситуация
 
 Алерт: «GMV упал на 10% месяц к месяцу». На реальных транзакциях UCI Online Retail II.

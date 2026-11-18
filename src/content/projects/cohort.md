@@ -38,8 +38,6 @@ faq:
     answer: "Экспортом CSV и .hyper-экстракта; пайплайн воспроизводится с фиксированным seed=42."
 ---
 
-# Cohort Analysis Dashboard
-
 ▶ [Схема потока данных](/diagrams/tableau-cohort-analysis.html) — самодостаточный HTML, открывается в браузере — без установки и сборки
 
 ## Ситуация
