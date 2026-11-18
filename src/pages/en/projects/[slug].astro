@@ -5,8 +5,8 @@ import path from 'node:path';
 import { getCollection, render } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import InnerTOC from '../../../components/InnerTOC.astro';
-import InlineTOC from '../../../components/InlineTOC.astro';
 import CaseLead from '../../../components/CaseLead.astro';
+import { caseTabs } from '../../../lib/case-sections';
 import StarBlock from '../../../components/StarBlock.astro';
 import DecisionBlock from '../../../components/DecisionBlock.astro';
 import ProofStrip from '../../../components/ProofStrip.astro';
@@ -184,14 +184,18 @@ const projectTabs = [
 ];
 const tabbed = projectTabs.length > 1;
 
+// Second level inside "Case study" — same groups as the RU page, English labels
+// (`lib/case-sections`); the markdown plugin cuts the matching panels.
+const caseTabList = caseTabs(
+  headings.filter((h) => h.depth === 2).map((h) => ({ text: h.text })),
+  'en',
+);
+const caseTabbed = caseTabList.length > 1;
+
 // Mirrors the RU template: the authored `faq:` block is what the FAQPage
-// JSON-LD advertises, so it renders below the case rather than living only in
-// the graph, and its heading joins the TOC.
+// JSON-LD advertises, so it renders below the case tabs rather than living only
+// in the graph.
 const faqHeading = { id: 'project-faq', text: 'Frequently asked', level: 2 };
-const tocHeadings = [
-  ...headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth })),
-  ...(project.data.faq.length > 0 ? [faqHeading] : []),
-];
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
 const pageUrl = `${siteUrl}${withBase(`en/projects/${slug}/`)}`;
@@ -387,11 +391,13 @@ const pageJsonLd = {
 
     <SectionTabs tabs={projectTabs} label="Sections" railId="inner-toc" single={!tabbed}>
       <SectionPanel id="case" active ownsRail tabbed={tabbed}>
-        <InlineTOC lang="en" headings={tocHeadings} />
-
         <article id="project-content" class="prose">
-          {/* One vertical column: the case body is not paged (no reader carousel). */}
-          <Content />
+          {/* One vertical column inside each tab; the panels are cut by
+              `lib/case-sections-hast.ts`, so `<Content />` stays the only child
+              of this dashboard. */}
+          <SectionTabs tabs={caseTabList} label="Case sections" size="sm" single={!caseTabbed}>
+            <Content />
+          </SectionTabs>
 
           {
             project.data.faq.length > 0 && (

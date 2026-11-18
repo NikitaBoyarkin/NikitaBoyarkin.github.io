@@ -26,12 +26,14 @@ const DIST = resolve(__dirname, '../../dist');
 // project without charts has no "charts" panel), so assertions below are
 // structural, not fixed counts.
 const PAGES = [
-  { label: 'RU project (charts + connections)', path: '/projects/cohort/index.html' },
-  { label: 'RU project (connections only)', path: '/projects/site/index.html' },
-  { label: 'EN project (charts + connections)', path: '/en/projects/cohort/index.html' },
-  { label: 'EN project (connections only)', path: '/en/projects/site/index.html' },
-  { label: 'RU Volta part', path: '/projects/volta/ab/index.html' },
-  { label: 'EN Volta part', path: '/en/projects/volta/ab/index.html' },
+  { label: 'RU project (charts + connections)', path: '/projects/cohort/index.html', nested: true },
+  { label: 'RU project (connections only)', path: '/projects/site/index.html', nested: true },
+  { label: 'EN project (charts + connections)', path: '/en/projects/cohort/index.html', nested: true },
+  { label: 'EN project (connections only)', path: '/en/projects/site/index.html', nested: true },
+  // A Volta part renders its own body, not a `projects` entry, so it has the
+  // page-level dashboard only.
+  { label: 'RU Volta part', path: '/projects/volta/ab/index.html', nested: false },
+  { label: 'EN Volta part', path: '/en/projects/volta/ab/index.html', nested: false },
 ];
 
 function readOrSkip(path: string): string | null {
@@ -39,7 +41,7 @@ function readOrSkip(path: string): string | null {
   return existsSync(file) ? readFileSync(file, 'utf8') : null;
 }
 
-describe.each(PAGES)('project dashboard contract ($label)', ({ path }) => {
+describe.each(PAGES)('project dashboard contract ($label)', ({ path, nested }) => {
   let html = '';
 
   beforeAll(() => {
@@ -52,22 +54,32 @@ describe.each(PAGES)('project dashboard contract ($label)', ({ path }) => {
     if (!html) throw new Error(`dist${path} missing — run \`bun run build\` first`);
   });
 
-  it('mounts exactly one dashboard root with one tablist', () => {
+  it('mounts one page-level dashboard root plus the nested case-sections one', () => {
     // The bare `data-section-tabs` string also appears in the inlined
     // controller (`querySelector('[data-section-tabs]')`), so count the wrapper
     // element, not the token.
-    const roots = [...html.matchAll(/<div class="section-tabs"[^>]*>/g)].map((m) => m[0]);
-    expect(roots.length).toBe(1);
-    // The rail sync is driven from the root, not the tablist.
-    expect(/(?:^|\s)data-rail-id="inner-toc"/.test(roots[0])).toBe(true);
+    const roots = [...html.matchAll(/<div class="section-tabs[^"]*"[^>]*>/g)].map((m) => m[0]);
+    expect(roots.length).toBe(nested ? 2 : 1);
+    // The rail sync is driven from the page-level root, not the nested one.
+    const pageRoots = roots.filter((r) => /data-rail-id="inner-toc"/.test(r));
+    expect(pageRoots.length).toBe(1);
+    const nestedRoots = roots.filter((r) => !/data-rail-id=/.test(r));
+    expect(nestedRoots.length).toBe(nested ? 1 : 0);
+    if (nested) expect(/section-tabs--sm/.test(nestedRoots[0])).toBe(true);
 
     const tablists = [...html.matchAll(/<[a-z][^>]*\brole="tablist"[^>]*>/g)].map((m) => m[0]);
-    expect(tablists.length).toBe(1);
-    expect(/(?:^|\s)aria-label="[^"]+"/.test(tablists[0])).toBe(true);
+    expect(tablists.length).toBe(nested ? 2 : 1);
+    for (const tablist of tablists) {
+      expect(/(?:^|\s)aria-label="[^"]+"/.test(tablist)).toBe(true);
+    }
   });
 
-  it('wires every tab to a real panel', () => {
-    const tabs = [...html.matchAll(/<button\b[^>]*\brole="tab"[^>]*>/g)].map((m) => m[0]);
+  it('wires every page-level tab to a real panel', () => {
+    const tabs = [...html.matchAll(/<button\b[^>]*\brole="tab"[^>]*>/g)]
+      .map((m) => m[0])
+      // Nested case-sections tabs are `case-*`; this block is about the page
+      // dashboard (case / dashboard / analytics / connections).
+      .filter((tab) => !/(?:^|\s)data-tab="case-/.test(tab));
     expect(tabs.length).toBeGreaterThanOrEqual(2);
 
     const ids: string[] = [];
@@ -87,11 +99,15 @@ describe.each(PAGES)('project dashboard contract ($label)', ({ path }) => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('renders one tabpanel per tab, with only the case study revealed', () => {
-    const panels = [...html.matchAll(/<section\b[^>]*\brole="tabpanel"[^>]*>/g)].map((m) => m[0]);
+  it('renders one panel per page-level tab, with only the case study revealed', () => {
+    const panels = [...html.matchAll(/<section\b[^>]*\brole="tabpanel"[^>]*>/g)]
+      .map((m) => m[0])
+      .filter((panel) => !/(?:^|\s)data-panel="case-/.test(panel));
     expect(panels.length).toBeGreaterThanOrEqual(2);
 
-    const tabIds = [...html.matchAll(/<button\b[^>]*data-tab="([^"]+)"/g)].map((m) => m[1]);
+    const tabIds = [...html.matchAll(/<button\b[^>]*data-tab="([^"]+)"/g)]
+      .map((m) => m[1])
+      .filter((id) => !id.startsWith('case-'));
     expect(panels.length).toBe(tabIds.length);
 
     let visible = 0;
@@ -111,6 +127,34 @@ describe.each(PAGES)('project dashboard contract ($label)', ({ path }) => {
     }
     expect(visible).toBe(1);
     expect(visibleId).toBe('case');
+  });
+
+  it('cuts the case body into case-sections panels behind their own tablist', () => {
+    if (!nested) return;
+    const nestedRoot = html.indexOf('class="section-tabs section-tabs--sm"');
+    const casePanel = html.indexOf('data-panel="case"');
+    expect(nestedRoot).toBeGreaterThan(casePanel);
+    expect(html.indexOf('data-panel="case-context"')).toBeGreaterThan(nestedRoot);
+
+    const nestedTabs = [...html.matchAll(/<button\b[^>]*data-tab="(case-[a-z]+)"/g)].map((m) => m[1]);
+    const nestedPanels = [...html.matchAll(/<section\b[^>]*data-panel="(case-[a-z]+)"[^>]*>/g)].map(
+      (m) => m[1],
+    );
+    expect(nestedTabs.length).toBeGreaterThanOrEqual(4);
+    // Same order on both sides, and one panel per group: a group the body
+    // returns to later (`volta`'s `Ограничения` … `Документация`) must not emit
+    // its panel twice.
+    expect(nestedPanels).toEqual(nestedTabs);
+    expect(new Set(nestedTabs).size).toBe(nestedTabs.length);
+    expect(nestedTabs[0]).toBe('case-context');
+
+    // Only the first section is revealed server-side; the rest are `hidden`, and
+    // the noscript rule re-reveals them for a reader without JS.
+    for (const id of nestedPanels) {
+      const tag = new RegExp(`<section\\b[^>]*data-panel="${id}"[^>]*>`).exec(html)?.[0] ?? '';
+      expect(/(?:^|\s)aria-labelledby="tab-/.test(tag)).toBe(true);
+      expect(tag.includes(' hidden')).toBe(id !== 'case-context');
+    }
   });
 
   it('marks only the case-study panel as owning the TOC rail', () => {

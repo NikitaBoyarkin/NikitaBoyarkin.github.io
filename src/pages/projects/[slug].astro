@@ -5,8 +5,8 @@ import path from 'node:path';
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import InnerTOC from '../../components/InnerTOC.astro';
-import InlineTOC from '../../components/InlineTOC.astro';
 import CaseLead from '../../components/CaseLead.astro';
+import { caseTabs } from '../../lib/case-sections';
 import StarBlock from '../../components/StarBlock.astro';
 import DecisionBlock from '../../components/DecisionBlock.astro';
 import ProofStrip from '../../components/ProofStrip.astro';
@@ -165,16 +165,20 @@ const projectTabs = [
 ];
 const tabbed = projectTabs.length > 1;
 
+// Second level inside "Кейс": the body's H2 sections are folded into the groups
+// in `lib/case-sections`, which the markdown plugin uses to cut the same panels.
+// Two sources of truth would let a tab open onto nothing.
+const caseTabList = caseTabs(
+  headings.filter((h) => h.depth === 2).map((h) => ({ text: h.text })),
+  'ru',
+);
+const caseTabbed = caseTabList.length > 1;
+
 // The authored `faq:` block is what the FAQPage JSON-LD advertises. Google
 // requires marked-up content to be visible on the page, and a `faq:` block is
-// written for rich results *and* for the reader — so it renders below the case,
-// not only in the graph. The heading joins the TOC so the in-page nav stays
-// honest about the section it adds.
+// written for rich results *and* for the reader — so it renders below the case
+// tabs, not only in the graph.
 const faqHeading = { id: 'project-faq', text: 'Частые вопросы', level: 2 };
-const tocHeadings = [
-  ...headings.map((h) => ({ id: h.slug, text: h.text, level: h.depth })),
-  ...(project.data.faq.length > 0 ? [faqHeading] : []),
-];
 
 const siteUrl = (Astro.site?.toString() || 'https://nikitaboyarkin.github.io').replace(/\/$/, '');
 const pageUrl = `${siteUrl}${withBase(`projects/${slug}/`)}`;
@@ -373,11 +377,15 @@ const pageJsonLd = {
 
     <SectionTabs tabs={projectTabs} label="Разделы проекта" railId="inner-toc" single={!tabbed}>
       <SectionPanel id="case" active ownsRail tabbed={tabbed}>
-        <InlineTOC lang="ru" headings={tocHeadings} />
-
         <article id="project-content" class="prose">
-          {/* One vertical column: the case body is not paged (no reader carousel). */}
-          <Content />
+          {/* One vertical column inside each tab: the case body is not paged
+              (no reader carousel), only grouped. The panels are cut by
+              `lib/case-sections-hast.ts`, so `<Content />` must stay the sole
+              child of this dashboard — wrapping it would move the panels out of
+              `.section-panels`. */}
+          <SectionTabs tabs={caseTabList} label="Разделы кейса" size="sm" single={!caseTabbed}>
+            <Content />
+          </SectionTabs>
 
           {
             project.data.faq.length > 0 && (

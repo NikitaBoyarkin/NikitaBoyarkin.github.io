@@ -62,9 +62,21 @@ function init(root: HTMLElement): void {
     }
   }
 
+  // `location.hash` comes back percent-encoded, and every RU case heading id is
+  // Cyrillic (`#документация` arrives as `#%D0%B4…`), so an undecoded hash never
+  // matches an anchor key and the deep link silently falls back to the first
+  // panel. ASCII anchors (`#case-review`) hid the bug.
+  function currentHash(): string {
+    const raw = (location.hash || '').replace(/^#/, '');
+    try {
+      return decodeURIComponent(raw);
+    } catch {
+      return raw;
+    }
+  }
+
   function fromHash(): string {
-    const hash = (location.hash || '').replace(/^#/, '');
-    return anchors[hash] || first;
+    return anchors[currentHash()] || first;
   }
 
   function activate(id: string | null | undefined, focus: boolean): void {
@@ -135,7 +147,7 @@ function init(root: HTMLElement): void {
     }
   }
 
-  const initial = (location.hash || '').replace(/^#/, '');
+  const initial = currentHash();
   activate(fromHash(), false);
   if (initial) {
     requestAnimationFrame(() => {
@@ -184,9 +196,13 @@ function init(root: HTMLElement): void {
   });
 
   window.addEventListener('hashchange', () => {
-    const hash = (location.hash || '').replace(/^#/, '');
+    const hash = currentHash();
     activate(fromHash(), false);
-    scrollToAnchor(hash);
+    // Deferred one frame because a nested dashboard reveals its own panel in a
+    // separate `hashchange` listener on the same event: scrolling here and now
+    // would target a heading that is still inside a hidden panel (the outer root
+    // boots first, so its listener runs first).
+    requestAnimationFrame(() => scrollToAnchor(hash));
   });
 }
 

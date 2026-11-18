@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import githubDark from "shiki/themes/github-dark.mjs";
 import { parse as parseYaml } from "yaml";
+import { caseSections } from "./src/lib/case-sections-hast.ts";
 import { figures } from "./src/lib/figures-mdast.ts";
 import { glossaryLinker } from "./src/lib/glossary-linker.ts";
 import { katexMath } from "./src/lib/katex-math.ts";
@@ -130,6 +131,9 @@ export default defineConfig({
     //    never turn orange.
     processor: satteri({
       mdastPlugins: [katexMath(), wikilinks(), glossaryLinker(), figures()],
+      // Wraps a project case body's H2 runs into the panels of the nested
+      // dashboard on the project page; a no-op on every other collection.
+      hastPlugins: [caseSections()],
     }),
   },
   // Keep the OneWorks 3D hero out of the default page load.
