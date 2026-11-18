@@ -156,10 +156,16 @@ const demoRaw = project.data.demo;
 const demoExternal = Boolean(demoRaw && /^https?:/.test(demoRaw));
 const demoHref = demoRaw ? (demoExternal ? demoRaw : withBase(demoRaw)) : null;
 const hasDemo = Boolean(demoHref);
+// The lead's media slot is the board, not the hero art, whenever the board is
+// same-origin and can be framed. Two consequences follow from that one flag:
+// the hero is not rendered (so its preload is dropped), and the "Дашборд" tab
+// is not opened (it would frame the same board a second time).
+const hasInlineDemo = hasDemo && !demoExternal;
+const showHero = Boolean(project.data.hero) && !hasInlineDemo;
 
 const projectTabs = [
   { id: 'case', label: 'Кейс' },
-  ...(hasDemo ? [{ id: 'demo', label: 'Дашборд' }] : []),
+  ...(hasDemo && demoExternal ? [{ id: 'demo', label: 'Дашборд' }] : []),
   ...(hasCharts ? [{ id: 'charts', label: 'Аналитика' }] : []),
   ...(hasConnections ? [{ id: 'connections', label: 'Связи' }] : []),
 ];
@@ -266,7 +272,7 @@ const pageJsonLd = {
   searchType="project"
   counterpartHref={withBase(`en/projects/${slug}/`)}
   ogImage={project.data.ogImage}
-  preloadImage={project.data.hero ? withBase(project.data.hero) : undefined}
+  preloadImage={showHero ? withBase(project.data.hero!) : undefined}
   jsonLd={pageJsonLd}
 >
   <InnerTOC lang="ru" defaultHidden />
@@ -281,11 +287,19 @@ const pageJsonLd = {
 
     <CaseLead
       title={project.data.title}
-      hero={project.data.hero ? withBase(project.data.hero) : undefined}
+      hero={showHero ? withBase(project.data.hero!) : undefined}
       insight={project.data.insight ?? project.data.star?.result}
       recommendation={project.data.recommendation ?? project.data.bet}
       lang="ru"
     />
+
+    {
+      /* The board sits where the hero art used to: the case is a dashboard,
+         so the first thing under the title is the thing the case argues about,
+         not an illustration of it. Full width — the split grid would squeeze a
+         five-tab board into the notes column's neighbour. */
+      hasInlineDemo && <ProjectDemo href={demoHref!} lang="ru" />
+    }
 
     <ProofStrip
       proof={project.data.proof}
@@ -404,7 +418,7 @@ const pageJsonLd = {
       </SectionPanel>
 
       {
-        hasDemo && (
+        hasDemo && demoExternal && (
           <SectionPanel id="demo" tabbed={tabbed}>
             <ProjectDemo href={demoHref!} external={demoExternal} lang="ru" />
           </SectionPanel>

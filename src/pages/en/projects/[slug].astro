@@ -175,10 +175,14 @@ const demoRaw = project.data.demo;
 const demoExternal = Boolean(demoRaw && /^https?:/.test(demoRaw));
 const demoHref = demoRaw ? (demoExternal ? demoRaw : withBase(demoRaw)) : null;
 const hasDemo = Boolean(demoHref);
+// Mirrors the RU page: a frameable board replaces the hero art in the lead and
+// needs no second copy in a "Dashboard" tab.
+const hasInlineDemo = hasDemo && !demoExternal;
+const showHero = Boolean(project.data.hero) && !hasInlineDemo;
 
 const projectTabs = [
   { id: 'case', label: 'Case study' },
-  ...(hasDemo ? [{ id: 'demo', label: 'Dashboard' }] : []),
+  ...(hasDemo && demoExternal ? [{ id: 'demo', label: 'Dashboard' }] : []),
   ...(hasCharts ? [{ id: 'charts', label: 'Analytics' }] : []),
   ...(hasConnections ? [{ id: 'connections', label: 'Connections' }] : []),
 ];
@@ -283,7 +287,7 @@ const pageJsonLd = {
   lang="en"
   searchType="project"
   counterpartHref={withBase(`projects/${slug}/`)}
-  preloadImage={project.data.hero ? withBase(project.data.hero) : undefined}
+  preloadImage={showHero ? withBase(project.data.hero!) : undefined}
   jsonLd={pageJsonLd}
 >
   <InnerTOC lang="en" defaultHidden />
@@ -295,11 +299,14 @@ const pageJsonLd = {
 
     <CaseLead
       title={project.data.title}
-      hero={project.data.hero ? withBase(project.data.hero) : undefined}
+      hero={showHero ? withBase(project.data.hero!) : undefined}
       insight={project.data.insight ?? project.data.star?.result}
       recommendation={project.data.recommendation ?? project.data.bet}
       lang="en"
     />
+
+    {/* Mirrors the RU page: the frameable board takes the lead's media slot. */}
+    {hasInlineDemo && <ProjectDemo href={demoHref!} lang="en" />}
 
     <ProofStrip
       proof={project.data.proof}
@@ -416,7 +423,7 @@ const pageJsonLd = {
       </SectionPanel>
 
       {
-        hasDemo && (
+        hasDemo && demoExternal && (
           <SectionPanel id="demo" tabbed={tabbed}>
             <ProjectDemo href={demoHref!} external={demoExternal} lang="en" />
           </SectionPanel>
