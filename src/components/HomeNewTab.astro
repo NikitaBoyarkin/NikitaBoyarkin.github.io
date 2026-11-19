@@ -481,12 +481,11 @@ const TELEGRAM_URL = 'https://t.me/lofinibo';
      `--gradient-page` is the page ground itself, so drifting a copy of it
      slides the ground's own diagonal across the fold instead of adding a
      foreign colour: no new token, no new stop, nothing the contrast pass has
-     not already sampled. It sits at `z-index: -2`, i.e. under the honeycomb
-     lattice (`body::before`, `--z-decor: -1`) and above the static ground on
+     not already sampled. It sits at `z-index: -2`, above the static ground on
      `html` it covers. The motion is a `transform` on an oversized layer,
      compositor-only: animating `background-position` instead would repaint the
-     viewport every frame — the trap the lattice layer avoids by not using
-     `background-attachment: fixed`. */
+     viewport every frame — the trap the retired lattice layer avoided by not
+     using `background-attachment: fixed`. */
   .newtab::before {
     content: "";
     position: fixed;
@@ -669,11 +668,20 @@ const TELEGRAM_URL = 'https://t.me/lofinibo';
   }
 
   /* The role is the one line the built gate greps for — kept as real text in
-     the <h1>, in accent ink, at a size that reads as a subtitle. */
+     the <h1>, at a size that reads as a subtitle. Owner's «тёмная» theme is
+     cyberpunk: cream there, brand indigo on the cream page, coral on indigo. */
   .nt-role {
     font-size: 1rem;
     font-weight: 500;
     color: var(--text-accent);
+  }
+
+  :global([data-theme='light']) .nt-role {
+    color: #1400c3;
+  }
+
+  :global([data-theme='cyberpunk']) .nt-role {
+    color: #f8f2d8;
   }
 
   .nt-ctas {

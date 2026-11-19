@@ -223,16 +223,16 @@
      the page). The light theme below restores the exact hex. */
   --kg-core-articles: #8d82ff;
 
-  /* Wallpaper — the honeycomb lattice behind every page (DESIGN.md). Alpha is
-     deliberately tiny: the grid is texture on the 60% surface, never a second
-     surface, so it must not read as a card or a panel. The colour follows the
-     dataviz teal, not the coral action accent, so the lattice stays in the
-     chart/graph language instead of promising interactivity. */
+  /* Wallpaper ink — the honeycomb lattice's colour. No longer painted behind
+     the pages: the page layer was removed on 2026-11-20. The token stays as
+     the one source of truth the OG banners transcribe (scripts/lib/og-render.mjs,
+     drift-tested in tests/lib/brand.test.ts) and it tints the `.graph-board`
+     dot grid. Alpha stays tiny so it reads as texture, never as a surface. */
   --wallpaper-line: rgba(78, 205, 196, 0.07);
 
   /* The repeat unit itself is theme-independent — the colour comes from
-     --wallpaper-line above via `mask`, so one tile serves all three themes
-     instead of three near-identical baked-in data URIs drifting apart.
+     --wallpaper-line above via `mask`. One tile serves the OG banners instead
+     of three near-identical baked-in data URIs drifting apart.
      Geometry is the nav-logo hexagon: flat top/bottom edges, vertices left and
      right, R = 14px, so the rectangular repeat unit is exactly 3R × √3R. */
   --wallpaper-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='24' viewBox='0 0 42 24'%3E%3Cpath d='M35 12 28 24 14 24 7 12 14 0 28 0Z' fill='none' stroke='%23fff'/%3E%3Cpath d='M0 12h7M35 12h7' fill='none' stroke='%23fff'/%3E%3C/svg%3E");
@@ -263,8 +263,7 @@
      secondary are one near-identical step apart in the dark theme, so a
      two-stop ramp was indistinguishable from the flat colour. No accent stop,
      so the accent-area budget sees nothing from this token. Stops are opaque,
-     which is why the separate `body::after` wash layer is gone — the wallpaper
-     lattice (`body::before`) now sits directly on it. Consumed by `html`;
+     so nothing is washed out by a layer above. Consumed by `html`;
      collapses flat under print / forced-colors / stronger contrast through its
      background-color companion. */
   --gradient-page: linear-gradient(
@@ -433,9 +432,8 @@
 }
 
 body {
-  /* Transparent on purpose: the page colour now sits on `html` so the
-     wallpaper layer below (`body::before`) is not painted over. Same value,
-     one level up — nothing moves. */
+  /* Transparent on purpose: the page colour sits on `html`, one level up, so
+     `body` never paints over it. Same value — nothing moves. */
   background-color: transparent;
   color: var(--text-normal);
   font-family: var(--font-sans);
@@ -2493,12 +2491,6 @@ footer p {
     color: black !important;
   }
 
-  /* Paper is the point of a printout; the lattice is screen texture. */
-  body::before,
-  body::after {
-    display: none !important;
-  }
-
   a {
     color: black !important;
     text-decoration: underline !important;
@@ -2512,117 +2504,6 @@ html {
      --background-primary as the colour (what print/forced-colors fall back to
      once --gradient-page collapses to `none`) plus the ramp as the image. */
   background: var(--gradient-page) var(--background-primary);
-}
-
-/* Wallpaper: a flat-top honeycomb lattice behind every page (DESIGN.md).
-   A fixed, pointer-transparent layer rather than a `background-attachment:
-   fixed` on `body`, because the latter repaints the whole pattern on every
-   scroll frame; this one is rasterised once and composited.
-   The hexagons share edges at this exact repeat unit, so the tiling is
-   seamless — proven by pixel-diffing the rendered tile against a
-   lattice-generated reference, not by eye (a 1px error here reads as a visible
-   seam every 42px across the whole site).
-   The lattice crawls in waves: two copies of the same honeycomb, offset in
-   phase and drifting at different speeds, so the pairs slide into and out of
-   register and the interference reads as a slow swell rolling across the
-   wallpaper — an effect the tile itself cannot give without distorting it.
-   `transform` on the layers, not `mask-position`, so the motion stays
-   compositor-only. One keyframe cycle is exactly one tile period (42px x 24px),
-   so the loops close without a visible reset, and the overscan is the room that
-   translation needs at the edges. Each copy carries half the ink, because where
-   they coincide they would otherwise double it. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: -64px;
-  z-index: var(--z-decor);
-  pointer-events: none;
-  animation: lattice-crawl 18s linear infinite;
-  background-color: var(--wallpaper-line);
-  -webkit-mask-image: var(--wallpaper-tile);
-  mask-image: var(--wallpaper-tile);
-  -webkit-mask-size: 42px 24px;
-  mask-size: 42px 24px;
-  -webkit-mask-repeat: repeat;
-  mask-repeat: repeat;
-  /* Centred, not top-left: the layer spans the whole viewport while the content
-     is a centred 1000px column, so an origin at 0 0 would phase the left and
-     right gutters differently. Centring makes the lattice symmetric about the
-     column it sits behind. */
-  -webkit-mask-position: center;
-  mask-position: center;
-}
-
-/* The second copy: same tile, its own clock and its own direction, so the two
-   never travel together and the wave keeps moving. */
-body::after {
-  content: "";
-  position: fixed;
-  inset: -64px;
-  z-index: var(--z-decor);
-  pointer-events: none;
-  animation: lattice-crawl-alt 31s linear infinite;
-  background-color: var(--wallpaper-line);
-  -webkit-mask-image: var(--wallpaper-tile);
-  mask-image: var(--wallpaper-tile);
-  -webkit-mask-size: 42px 24px;
-  mask-size: 42px 24px;
-  -webkit-mask-repeat: repeat;
-  mask-repeat: repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-}
-
-/* One tile period per cycle: the pattern maps onto itself at 100%, so the loop
-   restarts mid-stride instead of snapping back. The second copy travels the
-   other way at a different rate. */
-@keyframes lattice-crawl {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(42px, 24px, 0);
-  }
-}
-
-@keyframes lattice-crawl-alt {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-42px, -24px, 0);
-  }
-}
-
-/* A preference against motion is not a preference against texture: the lattice
-   stays, it just stops. Both copies freeze in different phases, so the
-   interference stands still instead of disappearing. */
-@media (prefers-reduced-motion: reduce) {
-  body::before,
-  body::after {
-    animation: none;
-  }
-}
-
-/* The page ground ramp (--gradient-page) is applied to `html`, not to a fixed
-   overlay: it is opaque now, so a layer above the lattice would paint the
-   honeycomb out. */
-
-/* Forced-colours drops background images but not masks — a tinted lattice over
-   a user-chosen high-contrast palette is noise, so opt out entirely. The same
-   reasoning covers a user who asked the OS for stronger contrast directly. */
-@media (forced-colors: active) {
-  body::before,
-  body::after {
-    display: none;
-  }
-}
-
-@media (prefers-contrast: more) {
-  body::before,
-  body::after {
-    display: none;
-  }
 }
 
 /* Selection color */
@@ -2643,8 +2524,9 @@ button:focus-visible {
    in-progress teaser, prev/next nav, generic secondary button)
    ============================================================ */
 
-/* Cyberpunk theme — neon-on-near-black, orange/magenta accents.
-   Same 60-30-10 roles; button fill shifts to magenta, text-accent stays coral.
+/* Cyberpunk theme — neon-on-near-black, orange accent, cream button.
+   Same 60-30-10 roles; the button fill is cream with near-black ink,
+   text-accent stays coral.
    Contrast verified by contrast-gate.js, which covers all three themes
    (see docs/prd-palette-60-30-10.md REQ-005). */
 [data-theme="cyberpunk"] {
@@ -2674,15 +2556,16 @@ button:focus-visible {
   --table-border: #4a4a57;
   --surface-secondary: #1e1e22;        /* large secondary surfaces (30% bucket) */
 
-  /* 10% — ACCENT: coral (interactive) + magenta (button fill) */
+  /* 10% — ACCENT: coral, interactive only. The button fill left this bucket:
+     it is cream, with near-black ink (see --button-bg below). */
   /* #ff8569 (was #ff6643): the darker accent fails 1.4.3 on accent-tinted
      backgrounds (skill-badge, topic-count, search-facet). Matches the dark
      theme's accent so the same tint recipes pass there and here. */
   --text-accent: #ff8569;
   --text-accent-hover: #ffbe99;
-  --button-bg: #ff2bd6;                      /* magenta fill, dark ink (5.44:1, AA) */
-  --button-bg-hover: #ff5ce0;
-  --button-ink: #1a1a1a;                     /* dark ink on magenta button (5.44:1, AA) */
+  --button-bg: #f8f2d8;                      /* cream fill, near-black ink (15.4:1, AA) */
+  --button-bg-hover: #fffdf5;
+  --button-ink: #171717;                     /* near-black ink on the cream button (15.4:1, AA) */
   /* Same coral accent as the dark theme, so the same dark ink (7.30:1). */
   --accent-ink: #1a1a1a;
   --border-active: #ff8569;

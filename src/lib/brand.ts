@@ -70,8 +70,8 @@ export const FIGURE_INK_LIGHT: BrandHex = '#f24a00';
  * The CTA fill (`--button-bg`, dark + light themes) — a near-black neutral,
  * deliberately not a brand hue. The button is the one control that must read
  * as *action* rather than as accent colour, so it left the 10% coral/orange
- * bucket for the neutral family on 2026-10-18. Cyberpunk still overrides the
- * fill with its magenta `#ff2bd6`.
+ * bucket for the neutral family on 2026-10-18. Cyberpunk overrides the fill
+ * with cream `#f8f2d8` and near-black ink since 2026-11-20.
  */
 export const BUTTON_FILL: BrandHex = '#171717';
 

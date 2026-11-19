@@ -323,9 +323,9 @@
      parity test sees one value, not two. */
   --text-accent: #ff8569;
   --text-accent-hover: #ffbe99;
-  --button-bg: #ff2bd6;
-  --button-bg-hover: #ff5ce0;
-  --button-ink: #1a1a1a;
+  --button-bg: #f8f2d8;
+  --button-bg-hover: #fffdf5;
+  --button-ink: #171717;
   --border-active: #ff8569;
   --text-accent-dataviz: #4ecdc4;
 

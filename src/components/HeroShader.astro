@@ -140,7 +140,7 @@
             },
           ]),
       // Sinks the corners so the fold's own text keeps its measured contrast
-      // against a moving ground, and the lattice above stays readable.
+      // against a moving ground.
       {
         type: 'Vignette',
         id: 'vignette',
@@ -267,8 +267,8 @@
 </script>
 
 <style>
-  /* Sits in the same fixed plane the CSS drift used (`z-index: -2`), i.e. under
-     the wallpaper lattice and above the page ground on `html`. */
+  /* Sits in the same fixed plane the CSS drift used (`z-index: -2`), above the
+     page ground on `html`. */
   .nt-shader {
     position: fixed;
     inset: 0;

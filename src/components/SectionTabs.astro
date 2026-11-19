@@ -236,7 +236,7 @@ const noScriptFallback =
   /* Page-level strip on a phone: the five page tabs keep wrapping (one row at
      390px, two at 320px), but the strip also pins under the site nav, so the
      dashboard's own navigation stays reachable at any depth of a long panel.
-     It must be opaque — the page has a honeycomb wallpaper behind it — and must
+     It must be opaque — page content scrolls underneath it — and must
      sit one layer *below* the nav, which is itself sticky at `top: 0` with
      `z-index: var(--z-dialog)` and `min-height: var(--nav-mobile-h)`; the nav's
      measured height and the token move together (Base.astro overwrites the
