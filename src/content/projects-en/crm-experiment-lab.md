@@ -7,7 +7,7 @@ star:
   action: "Simulator over 20,000 users and 12 campaigns: segment-stage randomization, a global control group, a send balancer, and the net effect of unsubscribes"
   result: "Segment-stage randomization holds SRM at p=0.266, GCG uplift is +0.9968 [0.9433, 1.0502], and the net effect is +50.5 per 1,000 treated — positive, but the unsubscribe guardrail breaches."
 track: experiments
-hero: images/crm-experiment-lab.webp
+hero: images/crm-experiment-lab.svg
 ogImage: /images/og/crm-experiment-lab.png
 bet: "The bet: randomize where the segment is built, not where the user first sees a send."
 impact:

@@ -83,8 +83,6 @@ const scalePoints = (points, factor) =>
 
 // --- Layout, shared by both locales -----------------------------------------
 const PANEL = { x: 56, y: 196, w: 692, h: 302 };
-const NAME = 'Nikita Boyarkin';
-const ROLE = 'PRODUCT / DATA ANALYST';
 const SITE_URL = 'NIKITABOYARKIN.GITHUB.IO';
 const LOGO = { cx: 113.5, cy: 101.5, r: 52.9 };
 // The right-hand cell: the old banner's halo + accent ring, pixelated.
@@ -162,16 +160,14 @@ const T = (text, x, y, size, fill, gap = 0) =>
   drawText(text, C(x), C(y), { scale: size * SS, fill, advanceGap: gap });
 
 // --- Gates: fixed strings first ---------------------------------------------
-for (const text of [NAME, ROLE, SITE_URL, 'NB']) assertCovered(text);
-fits(NAME, 186, 940, 2);
-fits(ROLE, 186, 940, 1, 1);
+for (const text of [SITE_URL, 'NB']) assertCovered(text);
 fits(SITE_URL, 56, 1150, 1, 1);
 
 function buildSvg(section, locale, accent) {
   const label = section.label[locale].toUpperCase();
   assertPaintable(label);
   // The caption is gated against the panel it sits on, not the canvas edge.
-  fits(label, PANEL.x, PANEL.x + PANEL.w, 1, 1);
+  fits(label, 186, PANEL.x + PANEL.w, 1, 1);
 
   const glyph = ICON[section.icon];
   if (!glyph) throw new Error(`section "${section.key}": unknown icon "${section.icon}"`);
@@ -190,10 +186,7 @@ function buildSvg(section, locale, accent) {
   <polygon points="${scalePoints(hexPointsFlat(LOGO.cx, LOGO.cy, LOGO.r), SS / b)}" fill="${accent}"/>
   <polygon points="${scalePoints(hexPointsFlat(LOGO.cx, LOGO.cy, LOGO.r - b * 1.6), SS / b)}" fill="${SURFACE}"/>
   ${glyphRects('NB', C(LOGO.cx - b * 5), C(LOGO.cy - b * 3.5), { scale: SS, fill: INK }).join('')}
-  ${T(NAME, 186, top(82, 2), 2, INK)}
-  ${T(ROLE, 186, 96, 1, INK, 1)}
-  ${R(186, 140, 110, 3, accent)}
-  ${T(label, PANEL.x, 150, 1, INK, 1)}
+  ${T(label, 186, 84, 1, INK, 1)}
   ${T(SITE_URL, PANEL.x, 550, 1, INK, 1)}
 </svg>`;
 }

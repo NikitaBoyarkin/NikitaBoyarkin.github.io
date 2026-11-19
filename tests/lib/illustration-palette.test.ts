@@ -60,7 +60,7 @@ describe('hero illustrations hold the cream regime', () => {
     // 14 labels, so the EN page gets its own file). This count is the ratchet
     // that notices a new cover arriving outside the palette: bump it together
     // with a new case, never on its own.
-    expect(svgs.length).toBe(31);
+    expect(svgs.length).toBe(32);
   });
 
   for (const file of svgs) {

@@ -242,25 +242,26 @@ describe('text fit', () => {
   const fitsColumn = (text: string, x: number, maxX: number, size: number, gap = 0) =>
     x + cellWidth(text, size, gap) * block <= maxX;
 
-  it('fits the fixed identity strings inside their generator columns', () => {
+  it('fits the section label and URL inside their generator columns', () => {
     const generator = fs.readFileSync(GENERATOR, 'utf8');
     // Anti-drift for the copied geometry: these are the generator's call sites.
     expect(generator).toContain('const PANEL = { x: 56,');
-    expect(generator).toContain('fits(NAME, 186, 940, 2)');
-    expect(generator).toContain('fits(ROLE, 186, 940, 1, 1)');
+    expect(generator).toContain('fits(upper, 186, PANEL.x + PANEL.w, 1, 1)');
     expect(generator).toContain('fits(SITE_URL, PANEL.x, 1150, 1, 1)');
+    // The identity stack is gone — no name, no role is drawn on the card.
+    expect(generator).not.toContain('PRODUCT / DATA ANALYST');
+    expect(generator).not.toContain("const NAME =");
 
     // Cell widths are exact: a glyph advance change moves these numbers.
-    expect(measure('Nikita Boyarkin')).toBe(73);
     expect(measure('PRODUCT / DATA ANALYST')).toBe(104);
     expect(measure('NIKITABOYARKIN.GITHUB.IO')).toBe(116);
 
-    expect(fitsColumn('Nikita Boyarkin', 186, 940, 2)).toBe(true);
-    expect(fitsColumn('PRODUCT / DATA ANALYST', 186, 940, 1, 1)).toBe(true);
+    expect(fitsColumn('ENGINEERING', 186, 56 + 692, 1, 1)).toBe(true);
     expect(fitsColumn('NIKITABOYARKIN.GITHUB.IO', 56, 1150, 1, 1)).toBe(true);
 
-    // Negative control: the same name at 3x overflows, so the gate has teeth.
-    expect(fitsColumn('Nikita Boyarkin', 186, 940, 3)).toBe(false);
+    // Negative control: the retired role line at 2x overflows the label column,
+    // so the gate has teeth.
+    expect(fitsColumn('PRODUCT / DATA ANALYST', 186, 56 + 692, 2, 1)).toBe(false);
   });
 
   it('has no card title whose widest word overflows the 130-cell title box', () => {

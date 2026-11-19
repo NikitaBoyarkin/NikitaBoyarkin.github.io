@@ -14,9 +14,9 @@
 // part in these cards.
 //
 // Composition is the graph banner's, one for one (generate-graph-og.mjs): top
-// accent bar, NB hexagon, identity stack (`Nikita Boyarkin` at 2x, role at 1x,
-// accent rule, label, URL footer at y=550) and the MUTED panel at
-// {56,196,692,302}. The panel's content is this card's own — the title.
+// accent bar, NB hexagon, the section label on the hexagon's centre line, the
+// URL footer at y=550 and the MUTED panel at {56,196,692,302}. The panel's
+// content is this card's own — the title.
 //
 // Title rules (the thing this generator exists for):
 //   • wrapped by words into at most two lines, each measured in CELLS and gated
@@ -103,8 +103,6 @@ const S = (v) => Math.round((v / b) * SS);
 const C = (v) => Math.round(v / b) * SS;
 const R = (x, y, rw, rh, fill) =>
   `<rect x="${C(x)}" y="${C(y)}" width="${C(rw)}" height="${C(rh)}" fill="${fill}"/>`;
-/** Bitmap text takes its origin at the TOP cell; the layout numbers are baselines. */
-const top = (baseline, size = 1) => baseline - 7 * size * b;
 const fits = (text, x, maxX, size, gap = 0) => {
   const px = x + (measure(text) + gap * (text.length - 1)) * size * b;
   if (px > maxX) throw new Error(`"${text}" is ${Math.round(px)}px, only ${maxX - x} available`);
@@ -182,8 +180,6 @@ const T = (text, x, y, size, fill, gap = 0) =>
 // --- Layout, copied from generate-graph-og.mjs ------------------------------
 const PANEL = { x: 56, y: 196, w: 692, h: 302 };
 const LOGO = { cx: 113.5, cy: 101.5, r: 52.9 };
-const NAME = 'Nikita Boyarkin';
-const ROLE = 'PRODUCT / DATA ANALYST';
 const SITE_URL = 'NIKITABOYARKIN.GITHUB.IO';
 
 // Title box: 130 cells of the panel's 138, leaving ~3.5 cells of clearance to
@@ -278,16 +274,14 @@ function titleRects(lines) {
 }
 
 // --- Fixed identity strings: coverage + width gates --------------------------
-for (const text of [NAME, ROLE, SITE_URL, 'NB']) assertCovered(text);
-fits(NAME, 186, 940, 2);
-fits(ROLE, 186, 940, 1, 1);
+for (const text of [SITE_URL, 'NB']) assertCovered(text);
 fits(SITE_URL, PANEL.x, 1150, 1, 1);
 
 function buildSvg(title, label) {
   const upper = String(label).toUpperCase();
   assertPaintable(upper);
   // The label is gated against the panel it sits on, not the canvas edge.
-  fits(upper, PANEL.x, PANEL.x + PANEL.w, 1, 1);
+  fits(upper, 186, PANEL.x + PANEL.w, 1, 1);
 
   const { lines, truncated } = wrapTitle(title);
 
@@ -299,10 +293,7 @@ function buildSvg(title, label) {
   <polygon points="${scalePoints(hexPointsFlat(LOGO.cx, LOGO.cy, LOGO.r), SS / b)}" fill="${ACCENT}"/>
   <polygon points="${scalePoints(hexPointsFlat(LOGO.cx, LOGO.cy, LOGO.r - b * 1.6), SS / b)}" fill="${SURFACE}"/>
   ${glyphRects('NB', C(LOGO.cx - b * 5), C(LOGO.cy - b * 3.5), { scale: SS, fill: INK }).join('')}
-  ${T(NAME, 186, top(82, 2), 2, INK)}
-  ${T(ROLE, 186, 96, 1, INK, 1)}
-  ${R(186, 140, 110, 3, ACCENT)}
-  ${T(upper, PANEL.x, 150, 1, INK, 1)}
+  ${T(upper, 186, 84, 1, INK, 1)}
   ${T(SITE_URL, PANEL.x, 550, 1, INK, 1)}
 </svg>`;
   return { svg, truncated };
