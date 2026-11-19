@@ -2494,7 +2494,8 @@ footer p {
   }
 
   /* Paper is the point of a printout; the lattice is screen texture. */
-  body::before {
+  body::before,
+  body::after {
     display: none !important;
   }
 
@@ -2520,13 +2521,23 @@ html {
    The hexagons share edges at this exact repeat unit, so the tiling is
    seamless — proven by pixel-diffing the rendered tile against a
    lattice-generated reference, not by eye (a 1px error here reads as a visible
-   seam every 42px across the whole site). */
+   seam every 42px across the whole site).
+   The lattice crawls in waves: two copies of the same honeycomb, offset in
+   phase and drifting at different speeds, so the pairs slide into and out of
+   register and the interference reads as a slow swell rolling across the
+   wallpaper — an effect the tile itself cannot give without distorting it.
+   `transform` on the layers, not `mask-position`, so the motion stays
+   compositor-only. One keyframe cycle is exactly one tile period (42px x 24px),
+   so the loops close without a visible reset, and the overscan is the room that
+   translation needs at the edges. Each copy carries half the ink, because where
+   they coincide they would otherwise double it. */
 body::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -64px;
   z-index: var(--z-decor);
   pointer-events: none;
+  animation: lattice-crawl 18s linear infinite;
   background-color: var(--wallpaper-line);
   -webkit-mask-image: var(--wallpaper-tile);
   mask-image: var(--wallpaper-tile);
@@ -2542,140 +2553,53 @@ body::before {
   mask-position: center;
 }
 
-/* Soft orbs: five out-of-focus colour fields drifting on the homepage. They sit
-   *under* `body::before`, so the honeycomb hairlines still read over the glow —
-   the same reason the crest before them borrowed `--wallpaper-tile` instead of
-   drawing its own hexagons.
-   Seam: every drift is a closed diamond (0% and 100% are the same transform) and
-   every duration divides the 12 s house loop (12, 6, 4, 3), so the field returns
-   to its opening pose and a recording of it loops with no crossfade.
-   The travel alone was too slow to read on 60vmax gradients (a soft blob moving
-   90px/s shows no edge), so each orb also breathes in density — opacity and
-   scale carry the motion the eye actually catches.
-   Only `transform` animates — composited and rasterised once. Animating
-   `background-position` here would repaint five viewport-sized gradients per
-   frame, which is the cost the lattice comment above already avoids. */
-.orbs {
+/* The second copy: same tile, its own clock and its own direction, so the two
+   never travel together and the wave keeps moving. */
+body::after {
+  content: "";
   position: fixed;
-  inset: 0;
-  z-index: calc(var(--z-decor) - 1);
+  inset: -64px;
+  z-index: var(--z-decor);
   pointer-events: none;
-  overflow: hidden;
+  animation: lattice-crawl-alt 31s linear infinite;
+  background-color: var(--wallpaper-line);
+  -webkit-mask-image: var(--wallpaper-tile);
+  mask-image: var(--wallpaper-tile);
+  -webkit-mask-size: 42px 24px;
+  mask-size: 42px 24px;
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
 }
 
-/* Falloff from gradient stops, not `filter: blur()`: a gradient is painted once,
-   a blur filter is re-rasterised whenever the orb scales. */
-.orbs i {
-  position: absolute;
-  border-radius: 50%;
-  will-change: transform;
-  animation: orb-drift var(--dur, 12s) ease-in-out var(--delay, 0s) infinite;
-}
-
-.orbs i:nth-child(1) {
-  --dx: 16vmax;
-  --dy: -12vmax;
-  --dur: 12s;
-  top: -20vmax;
-  left: -16vmax;
-  width: 68vmax;
-  height: 68vmax;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, var(--text-accent) 62%, transparent),
-    color-mix(in srgb, var(--text-accent) 22%, transparent) 48%,
-    transparent 74%
-  );
-}
-
-.orbs i:nth-child(2) {
-  --dx: -14vmax;
-  --dy: 10vmax;
-  --dur: 6s;
-  --delay: -2s;
-  top: 8vmax;
-  right: -18vmax;
-  width: 52vmax;
-  height: 52vmax;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, var(--text-accent-dataviz) 50%, transparent),
-    transparent 70%
-  );
-}
-
-.orbs i:nth-child(3) {
-  --dx: 10vmax;
-  --dy: 8vmax;
-  --dur: 4s;
-  --delay: -1s;
-  bottom: -12vmax;
-  left: 4vmax;
-  width: 34vmax;
-  height: 34vmax;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, var(--text-accent) 54%, transparent),
-    transparent 68%
-  );
-}
-
-.orbs i:nth-child(4) {
-  --dx: -12vmax;
-  --dy: -14vmax;
-  --dur: 12s;
-  --delay: -5s;
-  top: -10vmax;
-  left: 38%;
-  width: 22vmax;
-  height: 22vmax;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, var(--cream-surface) 42%, transparent),
-    transparent 66%
-  );
-}
-
-.orbs i:nth-child(5) {
-  --dx: 12vmax;
-  --dy: -8vmax;
-  --dur: 3s;
-  --delay: -0.5s;
-  bottom: -10vmax;
-  right: 6vmax;
-  width: 26vmax;
-  height: 26vmax;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, var(--text-accent-dataviz) 44%, transparent),
-    transparent 66%
-  );
-}
-
-@keyframes orb-drift {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(0.94);
-    opacity: 0.45;
+/* One tile period per cycle: the pattern maps onto itself at 100%, so the loop
+   restarts mid-stride instead of snapping back. The second copy travels the
+   other way at a different rate. */
+@keyframes lattice-crawl {
+  from {
+    transform: translate3d(0, 0, 0);
   }
-  25% {
-    transform: translate3d(var(--dx), calc(var(--dy) * -1), 0) scale(1.16);
-    opacity: 1;
-  }
-  50% {
-    transform: translate3d(0, var(--dy), 0) scale(0.92);
-    opacity: 0.55;
-  }
-  75% {
-    transform: translate3d(calc(var(--dx) * -1), 0, 0) scale(1.12);
-    opacity: 0.9;
+  to {
+    transform: translate3d(42px, 24px, 0);
   }
 }
 
-/* Drifting is what this preference asks not to have; the glow stays still
-   rather than disappearing. */
+@keyframes lattice-crawl-alt {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-42px, -24px, 0);
+  }
+}
+
+/* A preference against motion is not a preference against texture: the lattice
+   stays, it just stops. Both copies freeze in different phases, so the
+   interference stands still instead of disappearing. */
 @media (prefers-reduced-motion: reduce) {
-  .orbs i {
+  body::before,
+  body::after {
     animation: none;
   }
 }
@@ -2689,14 +2613,14 @@ body::before {
    reasoning covers a user who asked the OS for stronger contrast directly. */
 @media (forced-colors: active) {
   body::before,
-  .orbs {
+  body::after {
     display: none;
   }
 }
 
 @media (prefers-contrast: more) {
   body::before,
-  .orbs {
+  body::after {
     display: none;
   }
 }

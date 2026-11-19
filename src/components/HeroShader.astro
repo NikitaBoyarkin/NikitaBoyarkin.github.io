@@ -5,8 +5,12 @@
 // is alive; those stay in the markup and come back the moment the shader
 // declines, so the page never depends on the GPU. Decline paths, all silent:
 // no WebGPU, terminal GPU failure, reduced motion, stronger contrast,
-// forced colours, the light theme (an aurora over cream reads as a stain, not
-// as weather), or the module failing to load.
+// forced colours, or the module failing to load.
+//
+// The light theme runs the same stack with a different palette: cream ground,
+// the flow multiplied in rather than screened, and no aurora — a curtain light
+// enough to read against cream is a stain, not weather. Switching families
+// remounts the instance; a theme within a family only recolours it.
 //
 // Costs are kept off the critical path: the module is imported after `load`
 // and first idle, the preset uses four passes over generator layers, and the
@@ -28,6 +32,10 @@
   if (host && canvas) {
     let instance: ShaderInstance | null = null;
     let mounting = false;
+    // Which palette family the live instance was built for: light and dark
+    // differ by more than colour (the light stack has no aurora and blends its
+    // flow in with `multiply`), so a theme switch remounts instead of patching.
+    let mountedLight: boolean | null = null;
 
     const hex = (value: string): [number, number, number] | null => {
       const match = /^#([0-9a-f]{6})$/i.exec(value.trim());
@@ -50,6 +58,8 @@
     const palette = () => {
       const style = getComputedStyle(document.documentElement);
       const read = (name: string) => style.getPropertyValue(name).trim();
+      const theme = document.documentElement.dataset.theme;
+      const light = theme === 'light';
       const primary = read('--background-primary') || '#1400c3';
       const secondary = read('--background-secondary') || '#16009f';
       const card = read('--card-background') || '#0d0068';
@@ -58,11 +68,15 @@
       const ink = read('--text-normal') || '#f8f2da';
       // Cyberpunk's ground is near-black and its hairline is dark grey: a
       // lilac curtain would sink into both. That theme runs on coral instead.
-      const core =
-        document.documentElement.dataset.theme === 'cyberpunk'
+      // Cream has the mirror problem — a curtain light enough to read against
+      // it would be a stain — so the light theme carries the flow and no
+      // aurora, and its band is a washed sienna rather than a lifted hairline.
+      const core = light
+        ? lift(accent, card, 0.62)
+        : theme === 'cyberpunk'
           ? lift(accent, ink, 0.15)
           : lift(border, ink, 0.32);
-      return { primary, secondary, card, core };
+      return { light, primary, secondary, card, core };
     };
 
     const layers = (p: ReturnType<typeof palette>): ComponentConfig[] => [
@@ -78,33 +92,72 @@
           angle: 135,
         },
       },
+      // The ground's own movement: a second gradient whose bands drift across
+      // the static ramp above, screened over it rather than replacing it, so
+      // the contrast measured above the fold still belongs to the ground. The
+      // bands carry the palette's one light step (`core`) — the three ground
+      // stops are one near-identical step apart and would read as a brightness
+      // shift, not as colour flowing. `linear` colour space because the
+      // library's default `oklch` re-derives an opaque hex palette into
+      // shifted hues.
       {
-        type: 'Aurora',
-        id: 'aurora',
+        type: 'FlowingGradient',
+        id: 'flow',
         props: {
-          colorA: p.secondary,
-          colorB: p.core,
-          colorC: p.primary,
-          curtainCount: 4,
-          balance: 55,
-          intensity: 42,
-          waviness: 70,
-          rayDensity: 14,
-          height: 130,
-          center: { x: 0.5, y: 0 },
-          speed: 2,
-          opacity: 0.75,
+          colorA: p.card,
+          colorB: p.primary,
+          colorC: p.secondary,
+          colorD: p.core,
+          colorSpace: 'linear',
+          speed: 0.5,
+          distortion: 0.55,
+          // `screen` lifts a dark ground; against cream the same mode only
+          // bleaches it, so the light theme multiplies its band in instead.
+          opacity: p.light ? 0.7 : 0.25,
+          blendMode: p.light ? 'multiply' : 'screen',
         },
       },
+      ...(p.light
+        ? []
+        : [
+            {
+              type: 'Aurora',
+              id: 'aurora',
+              props: {
+                colorA: p.secondary,
+                colorB: p.core,
+                colorC: p.primary,
+                curtainCount: 4,
+                balance: 55,
+                intensity: 42,
+                waviness: 70,
+                rayDensity: 14,
+                height: 130,
+                center: { x: 0.5, y: 0 },
+                speed: 2,
+                opacity: 0.75,
+              },
+            },
+          ]),
       // Sinks the corners so the fold's own text keeps its measured contrast
       // against a moving ground, and the lattice above stays readable.
       {
         type: 'Vignette',
         id: 'vignette',
-        props: { color: p.card, radius: 0.85, falloff: 0.9, intensity: 0.5 },
+        props: {
+          color: p.card,
+          radius: 0.85,
+          falloff: 0.9,
+          intensity: p.light ? 0.3 : 0.5,
+        },
       },
       // Kills the banding a full-viewport smooth ramp shows on 8-bit output.
-      { type: 'FilmGrain', id: 'grain', props: { strength: 0.05, animated: false } },
+      // Cream shows the same grain as dirt, so the light theme gets less of it.
+      {
+        type: 'FilmGrain',
+        id: 'grain',
+        props: { strength: p.light ? 0.02 : 0.05, animated: false },
+      },
     ];
 
     // `createShader` statically imports the 200-component registry (~700 KB
@@ -119,12 +172,12 @@
       saveData === true ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
       window.matchMedia('(prefers-contrast: more)').matches ||
-      window.matchMedia('(forced-colors: active)').matches ||
-      document.documentElement.dataset.theme === 'light';
+      window.matchMedia('(forced-colors: active)').matches;
 
     const teardown = (): void => {
       instance?.destroy();
       instance = null;
+      mountedLight = null;
       delete host.dataset.state;
       delete root?.dataset.shader;
     };
@@ -135,9 +188,10 @@
       try {
         const { createShader, isWebGPUSupported } = await import('shaders/js');
         if (!isWebGPUSupported() || declined()) return;
+        const p = palette();
         instance = await createShader(
           canvas,
-          { components: layers(palette()) },
+          { components: layers(p) },
           {
             disableTelemetry: true,
             // Terminal reasons only — the library rebuilds itself on a lost
@@ -146,6 +200,7 @@
             onError: () => teardown(),
           },
         );
+        mountedLight = p.light;
         host.dataset.state = 'live';
         if (root) root.dataset.shader = 'on';
       } catch {
@@ -161,11 +216,16 @@
         teardown();
         return;
       }
+      const p = palette();
+      if (instance && mountedLight !== p.light) {
+        teardown();
+        void mount();
+        return;
+      }
       if (!instance) {
         void mount();
         return;
       }
-      const p = palette();
       instance.update('ground', {
         stops: [
           { color: p.primary, position: 0 },
@@ -173,7 +233,15 @@
           { color: p.card, position: 1 },
         ],
       });
-      instance.update('aurora', { colorA: p.secondary, colorB: p.core, colorC: p.primary });
+      instance.update('flow', {
+        colorA: p.card,
+        colorB: p.primary,
+        colorC: p.secondary,
+        colorD: p.core,
+      });
+      if (!p.light) {
+        instance.update('aurora', { colorA: p.secondary, colorB: p.core, colorC: p.primary });
+      }
       instance.update('vignette', { color: p.card });
     };
 
