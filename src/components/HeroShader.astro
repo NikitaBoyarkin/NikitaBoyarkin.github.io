@@ -1,0 +1,222 @@
+---
+// Hero shader — a WebGPU aurora ground behind the new-tab surface.
+//
+// It replaces the two CSS drift layers (`.newtab::before` / `::after`) while it
+// is alive; those stay in the markup and come back the moment the shader
+// declines, so the page never depends on the GPU. Decline paths, all silent:
+// no WebGPU, terminal GPU failure, reduced motion, stronger contrast,
+// forced colours, the light theme (an aurora over cream reads as a stain, not
+// as weather), or the module failing to load.
+//
+// Costs are kept off the critical path: the module is imported after `load`
+// and first idle, the preset uses four passes over generator layers, and the
+// canvas is a fixed background rather than an in-flow element, so it cannot
+// move the LCP text or the fold.
+---
+
+<div class="nt-shader" data-nt-shader aria-hidden="true">
+  <canvas class="nt-shader-canvas" data-nt-shader-canvas></canvas>
+</div>
+
+<script>
+  import type { ComponentConfig, ShaderInstance } from 'shaders/js';
+
+  const host = document.querySelector<HTMLElement>('[data-nt-shader]');
+  const canvas = host?.querySelector<HTMLCanvasElement>('[data-nt-shader-canvas]');
+  const root = document.querySelector<HTMLElement>('[data-nt]');
+
+  if (host && canvas) {
+    let instance: ShaderInstance | null = null;
+    let mounting = false;
+
+    const hex = (value: string): [number, number, number] | null => {
+      const match = /^#([0-9a-f]{6})$/i.exec(value.trim());
+      if (!match) return null;
+      const n = parseInt(match[1], 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    };
+
+    // Tokens are opaque hex in every theme, so a plain sRGB blend is enough to
+    // derive the one colour the palette does not ship: a curtain core brighter
+    // than the hairline but never as loud as the accent.
+    const lift = (a: string, b: string, t: number): string => {
+      const from = hex(a);
+      const to = hex(b);
+      if (!from || !to) return a;
+      const mixed = from.map((v, i) => Math.round(v + (to[i] - v) * t));
+      return `#${mixed.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+    };
+
+    const palette = () => {
+      const style = getComputedStyle(document.documentElement);
+      const read = (name: string) => style.getPropertyValue(name).trim();
+      const primary = read('--background-primary') || '#1400c3';
+      const secondary = read('--background-secondary') || '#16009f';
+      const card = read('--card-background') || '#0d0068';
+      const border = read('--border-color') || '#8076d7';
+      const accent = read('--text-accent') || '#ff8569';
+      const ink = read('--text-normal') || '#f8f2da';
+      // Cyberpunk's ground is near-black and its hairline is dark grey: a
+      // lilac curtain would sink into both. That theme runs on coral instead.
+      const core =
+        document.documentElement.dataset.theme === 'cyberpunk'
+          ? lift(accent, ink, 0.15)
+          : lift(border, ink, 0.32);
+      return { primary, secondary, card, core };
+    };
+
+    const layers = (p: ReturnType<typeof palette>): ComponentConfig[] => [
+      {
+        type: 'LinearGradient',
+        id: 'ground',
+        props: {
+          stops: [
+            { color: p.primary, position: 0 },
+            { color: p.secondary, position: 0.55 },
+            { color: p.card, position: 1 },
+          ],
+          angle: 135,
+        },
+      },
+      {
+        type: 'Aurora',
+        id: 'aurora',
+        props: {
+          colorA: p.secondary,
+          colorB: p.core,
+          colorC: p.primary,
+          curtainCount: 4,
+          balance: 55,
+          intensity: 42,
+          waviness: 70,
+          rayDensity: 14,
+          height: 130,
+          center: { x: 0.5, y: 0 },
+          speed: 2,
+          opacity: 0.75,
+        },
+      },
+      // Sinks the corners so the fold's own text keeps its measured contrast
+      // against a moving ground, and the lattice above stays readable.
+      {
+        type: 'Vignette',
+        id: 'vignette',
+        props: { color: p.card, radius: 0.85, falloff: 0.9, intensity: 0.5 },
+      },
+      // Kills the banding a full-viewport smooth ramp shows on 8-bit output.
+      { type: 'FilmGrain', id: 'grain', props: { strength: 0.05, animated: false } },
+    ];
+
+    // `createShader` statically imports the 200-component registry (~700 KB
+    // gzipped), so this layer is desktop-only: a phone keeps the CSS drift it
+    // already had instead of paying for decoration, and saves-data users are
+    // spared it too.
+    const desktop = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+
+    const declined = (): boolean =>
+      !desktop.matches ||
+      saveData === true ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      window.matchMedia('(prefers-contrast: more)').matches ||
+      window.matchMedia('(forced-colors: active)').matches ||
+      document.documentElement.dataset.theme === 'light';
+
+    const teardown = (): void => {
+      instance?.destroy();
+      instance = null;
+      delete host.dataset.state;
+      delete root?.dataset.shader;
+    };
+
+    const mount = async (): Promise<void> => {
+      if (instance || mounting || declined()) return;
+      mounting = true;
+      try {
+        const { createShader, isWebGPUSupported } = await import('shaders/js');
+        if (!isWebGPUSupported() || declined()) return;
+        instance = await createShader(
+          canvas,
+          { components: layers(palette()) },
+          {
+            disableTelemetry: true,
+            // Terminal reasons only — the library rebuilds itself on a lost
+            // device without our help. Anything terminal means: no GPU ground,
+            // keep the CSS one.
+            onError: () => teardown(),
+          },
+        );
+        host.dataset.state = 'live';
+        if (root) root.dataset.shader = 'on';
+      } catch {
+        // Module failed to load or the renderer threw while starting up.
+        teardown();
+      } finally {
+        mounting = false;
+      }
+    };
+
+    const sync = (): void => {
+      if (declined()) {
+        teardown();
+        return;
+      }
+      if (!instance) {
+        void mount();
+        return;
+      }
+      const p = palette();
+      instance.update('ground', {
+        stops: [
+          { color: p.primary, position: 0 },
+          { color: p.secondary, position: 0.55 },
+          { color: p.card, position: 1 },
+        ],
+      });
+      instance.update('aurora', { colorA: p.secondary, colorB: p.core, colorC: p.primary });
+      instance.update('vignette', { color: p.card });
+    };
+
+    const start = (): void => {
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(() => void mount(), { timeout: 2000 });
+      } else {
+        setTimeout(() => void mount(), 200);
+      }
+    };
+
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start, { once: true });
+
+    // The toggle writes `data-theme` on `<html>`; the palette follows it live.
+    new MutationObserver(sync).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+
+    window.addEventListener('pagehide', teardown, { once: true });
+  }
+</script>
+
+<style>
+  /* Sits in the same fixed plane the CSS drift used (`z-index: -2`), i.e. under
+     the wallpaper lattice and above the page ground on `html`. */
+  .nt-shader {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+  }
+
+  .nt-shader-canvas {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+
+  .nt-shader[data-state="live"] .nt-shader-canvas {
+    opacity: 1;
+  }
+</style>

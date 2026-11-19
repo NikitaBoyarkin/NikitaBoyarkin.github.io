@@ -26,6 +26,7 @@
 // query off to the Explorer surface, which already accepts `?q=`.
 import { ICON } from '../lib/icons';
 import { withBase } from '../lib/path';
+import HeroShader from './HeroShader.astro';
 
 interface Props {
   lang?: 'ru' | 'en';
@@ -86,6 +87,7 @@ const TELEGRAM_URL = 'https://t.me/lofinibo';
   data-type-part={isEn ? 'Module' : 'Модуль'}
   data-type-topic={isEn ? 'Topic' : 'Тема'}
 >
+  <HeroShader />
   <div class="nt-center">
     {/* The clock kept its `id` (the built gate reads it) but lost its scale: it
         is a status line now, saying "this page is live" above the identity
@@ -543,6 +545,15 @@ const TELEGRAM_URL = 'https://t.me/lofinibo';
     );
     opacity: 0.22;
     animation: nt-orbit-accent 34s linear infinite;
+  }
+
+  /* The GPU ground takes over the same plane once it is live: two drifting
+     sheets behind a shader would read as a fault, not as weather. Both layers
+     stay in the DOM so a shader that declines — no WebGPU, reduced motion, the
+     light theme — leaves exactly the page it found. */
+  .newtab[data-shader="on"]::before,
+  .newtab[data-shader="on"]::after {
+    display: none;
   }
 
   /* Same loop, reversed and slower: two constant speeds that never line up
