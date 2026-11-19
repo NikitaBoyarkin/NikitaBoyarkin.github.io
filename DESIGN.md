@@ -168,7 +168,9 @@ Contrast, measured: `#fe4e02` is 3.47:1 on the indigo page and 5.18:1 on a card 
 ## Brand source of truth
 
 `src/lib/brand.ts` holds the palette and the hexagon geometry that the site and the
-OG banners share. It exports two **contextual** accents, one cream, the signal blue,
+OG banners share. The pixel banner renderer (`scripts/lib/pixel-og.mjs`) derives an
+eight-step `RAMP` from these tokens — `#0a0070` shadow → `#f8f2d8` paper — and every
+banner pixel is quantised to it. The module exports two **contextual** accents, one cream, the signal blue,
 and the marketing-surface depth tints:
 
 | Export | Value | Where it lands |
@@ -186,6 +188,13 @@ and the marketing-surface depth tints:
 | `BANNER_INK_DEEP` | `#0a0070` | banner values and emphasis — 14.98:1 |
 | `BANNER_MUTED` | `#5b4fc4` | banner secondary labels — 5.56:1 |
 | `BANNER_ACCENT` | `#b8431f` | banner rules, rings, hexes — 4.84:1 |
+
+The eight-step `RAMP` keeps only its ends as brand tokens: `BANNER_INK_DEEP` →
+`BANNER_INK` → `BANNER_MUTED` → `BANNER_ACCENT` → `CREAM_SURFACE`, with the steps
+between them mixed from those tokens, so a generator still holds no hex of its own.
+Section colours come from an explicit `SECTION_RAMP` map in
+`scripts/generate-graph-og.mjs`: the site's teal and magenta are off-ramp, and
+without the map the quantiser would snap two sections to the same neighbour.
 
 The two site accents are deliberate, not drift: the high-chroma coral reads on the
 dark canvas, the burnt sienna carries the light cream page. They are separated by
@@ -242,11 +251,16 @@ sliced 79px off the top and bottom — 85 SVG units, enough to cut the axis labe
 ten of the 22 covers. Capping width at 900px keeps the same ceiling without losing a
 pixel.
 
-The banner generators gate themselves: `assertContrast()` in
-`scripts/lib/og-render.mjs` throws on any text token under 4.5:1 (3:1 for large text),
-so a missed ink is a hard failure. Decorative tokens are exempt and are the silent
-failure mode — the honeycomb lattice, frames and rings are checked by eye, and they
-invert with the surface (`#1400c3` at 0.10–0.18 rather than cream at 0.11–0.14).
+The pixel banner is built on a 240×126 grid of 5×5 px cells: the SVG is drawn in that
+grid, rasterised at `SS=4`, box-downsampled so each 4×4 square becomes one cell,
+quantised to `RAMP`, then nearest-upscaled to 1200×630. Typography is the 5×7 bitmap
+font in `scripts/lib/pixel-font.mjs` — `glyphRects()` merges each row of ink into
+`<rect>` runs, so there is no `<text>`, no TTF and nothing to anti-alias.
+`renderPixelBanner()` gates the result: `assertSource` checks the rasteriser returned
+the expected `SS` canvas and a bare-surface corner, `assertPalette` throws on any
+off-ramp pixel, and `assertBlocks` throws on any non-uniform 5×5 block. The font-set
+generators keep the separate `assertContrast()` gate in `scripts/lib/og-render.mjs`
+(4.5:1 for text, 3:1 for large text); their decorative tokens are still an eye check.
 
 
 

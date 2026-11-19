@@ -69,7 +69,13 @@ the reason this rule exists.
 
 ## Banner palette (OG PNGs)
 
-Sourced from `src/lib/brand.ts` — no bare hex in a generator.
+Sourced from `src/lib/brand.ts` — no bare hex in a generator. The PNG is not vector
+output: the renderer (`scripts/lib/pixel-og.mjs`) draws the SVG on a 240×126 grid of
+5×5 px cells, rasterises it at `SS=4`, box-downsamples each 4×4 square to one cell,
+quantises every cell to the eight-step `RAMP`, then nearest-upscales back to 1200×630.
+Type is the 5×7 bitmap font in `scripts/lib/pixel-font.mjs` — `<rect>` runs, no
+`<text>` and no TTF. The ratios below are the design targets; the quantiser can only
+emit ramp colours, so an ink off the ramp lands on its nearest step.
 
 | role | token | hex | contrast on `#f8f2d8` |
 |---|---|---|---|
@@ -78,6 +84,12 @@ Sourced from `src/lib/brand.ts` — no bare hex in a generator.
 | deep ink — values, emphasis | `BANNER_INK_DEEP` | `#0a0070` | **14.98:1** |
 | muted ink — role line, labels | `BANNER_MUTED` | `#5b4fc4` | **5.56:1** |
 | accent — rules, rings, hexes, top bar | `BANNER_ACCENT` | `#b8431f` | **4.84:1** |
+
+Ramp mapping: `BANNER_INK_DEEP` = `RAMP[0]`, `BANNER_INK` = `RAMP[1]`, `BANNER_MUTED` =
+`RAMP[3]`, `BANNER_ACCENT` = `RAMP[5]`, `CREAM_SURFACE` = `RAMP[7]`; steps 2, 4 and 6
+are mixes of those tokens. Section tints come from `SECTION_RAMP` in
+`scripts/generate-graph-og.mjs` — the site's teal and magenta are off-ramp, so the map
+keeps two sections from quantising to the same neighbour.
 
 Retired on cream: `CREAM`/`#f4efca` and `#f8f2da` as ink (1.04:1), `MUTED #bdb5ea`
 (1.70:1), `ACCENT_ON_BLUE #fe4e02` (2.96:1 — under the 3:1 graphics floor),
@@ -102,10 +114,12 @@ Retired on cream: `CREAM`/`#f4efca` and `#f8f2da` as ink (1.04:1), `MUTED #bdb5e
 | graph node hairline (was `BG` blue) | `#f8f2d8` on the fill, `#1400c3` when on the surface |
 | chart area fill `ORANGE @0.12` | `#b8431f @0.14` |
 
-The AA gate in `scripts/lib/og-render.mjs` must be re-pointed at `CREAM_SURFACE` in
-every generator; it throws, so a missed token is a hard failure, not a silent one.
-Decorative tokens are exempt and must be checked by eye — the lattice and rings are
-the ones that vanish silently.
+Contrast is gated two ways. The pixel renderer throws if any output pixel is off-ramp
+(`assertPalette`), if any 5×5 block is not uniform (`assertBlocks`), or if the
+rasteriser returned the wrong canvas or a non-surface corner (`assertSource`). The
+font-set generators keep `assertContrast()` in `scripts/lib/og-render.mjs`, re-pointed
+at `CREAM_SURFACE`; it throws on any text token under 4.5:1 (3:1 for large text), and
+their decorative tokens are still an eye check.
 
 ## Invariants (do not change)
 
@@ -113,7 +127,9 @@ the ones that vanish silently.
   `image-aspect-ratio` and the `global.css:1776` frame both depend on it.
 - Every filename stays put: `hero:` frontmatter, the `volta.svg` LCP preload and
   `tests/built/homepage-lcp.test.ts` bind them.
-- OG canvas stays `1200×630` (banner) / A4 595.276×841.89 pt (cover).
+- OG canvas stays `1200×630` (banner) / A4 595.276×841.89 pt (cover); the pixel
+  banner's intermediate grid is `240×126` (5×5 px cells) and the output is
+  nearest-upscaled from it.
 - `ogImage` paths stay put; the generator writes `volta-neobank-case-study.png` for
   the `volta` slug through an explicit override.
 - No `ogImage` may become `.svg` (`tests/lib/og-images.test.ts:80-88`).

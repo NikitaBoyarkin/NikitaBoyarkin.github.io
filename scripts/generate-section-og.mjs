@@ -1,42 +1,44 @@
-// Per-section OG banner generator.
-// Renders one 1200x630 cream banner per entry in src/lib/sections.ts, in each
-// locale, and writes it to the exact path sectionOgPath() returns, so the
-// registry and the files on disk cannot drift apart. Only the label is painted
-// as text; it comes from the registry, locale-resolved (`-en` suffix on the EN
-// files). The `description` field is deliberately unused — see below.
+// Per-section OG banner generator — pixel-art edition.
 //
-// Design: graphic-first, not a text block. The hero is the section's OWN icon —
-// `ICON[section.icon]` from src/lib/icons.ts, a 24x24 stroke glyph — scaled
-// 8.33x to a 200px mark and set left, with the site's honeycomb lattice and a
-// right-hand cell (halo hexagon, accent ring, three satellites) as the field
-// that balances it. Text shrinks to the uppercase label and the URL footer with
-// its coral rule. No description sentence.
-// Palette comes from src/lib/brand.ts only, so no brand hex lives here.
+// One 1200x630 banner per entry in src/lib/sections.ts, in each locale, written
+// to the exact path sectionOgPath() returns so the registry and the files on
+// disk cannot drift apart. The composition is the same one
+// `portfolio-graph-v2.png` ships: the SVG is drawn directly on the 240x126 cell
+// grid (gridOf(5), one cell = 5px) and handed to renderPixelBanner, which
+// supersamples it at SS=4, box-downsamples to cells, quantises to the RAMP and
+// nearest-upscales back to 1200x630. There is no live text element and no
+// system font stack anywhere in the SVG: typography is the 5x7 bitmap font
+// from lib/pixel-font.mjs and every shape is a whole number of cells.
 //
-// Composition is crop-safe by arithmetic, not by eye. /navigation/ shows the
-// banner in an aspect-ratio 2/1 box under `object-fit: cover`: the box is
-// *wider* than the 1200x630 canvas (1.905), so cover scales to the box width
-// and the canvas gives up (630 - 600) / 2 = 15px at the top and 15px at the
-// bottom. The visible band is y 15..615 at full width — no horizontal trim.
-// CROP below pins that band and the gate under it throws if any mark leaves it.
+// Composition (coordinates are 1200x630 px, snapped to cells by C()):
+//   • top accent bar, one cell tall, in the section's ramp hue;
+//   • NB logo hexagon top-left (hexPointsFlat), same box as the graph banner;
+//   • identity: `Nikita Boyarkin` at 2x, `PRODUCT / DATA ANALYST` at 1x, the
+//     accent rule under the role, the URL footer at the bottom;
+//   • a muted one-cell panel frame at {56,196,692,302} — the graph banner's
+//     stage, kept so the two banners read as one family;
+//   • the section's OWN icon inside that stage (ICON[section.icon]), drawn with
+//     shape-rendering="crispEdges" so the 1-cell stroke rasterises to hard
+//     pixel edges instead of an anti-aliased halo;
+//   • a lattice cell on the right: muted halo hexagon + the accent ring inside
+//     it, the pixel form of the old banner's decor field;
+//   • the section name in caps at y=150, directly above the frame.
 //
-// Balance: the left column is the mark plus three baselines (label, rule, URL).
-// The right field repeats the home banner's portrait framing — a faint halo
-// hexagon with an accent ring inside it — plus three faint satellites, so the
-// empty half reads as a cell of the lattice rather than as dead space. The ring
-// spans 132px against the glyph's 200px, so the mark still leads the frame.
+// Accent hues come from SECTION_RAMP, whose values are RAMP steps only. The
+// site's own teal/magenta tokens are not on the eight-step ramp, so the
+// quantiser would snap them to whichever neighbour is nearest and two sections
+// would come out the same colour. A section missing from the map falls back to
+// the brand accent.
 //
-// The stroke-width below is pre-scale: the transform multiplies it. 0.45 x
-// 8.333 lands at ~3.75px, inside the 3–4px band the 200px glyph needs to read
-// as a drawing rather than as a thick outline.
+// Text is gated before it is drawn: `fits()` throws if a string would leave the
+// column it owns, and every string is coverage-checked, so a label with a glyph
+// the bitmap font lacks fails here instead of shipping a hole.
 //
-// Fonts: the label and footer are Inter — vendored as static TTF in
-// scripts/og-fonts/ and resolved through FONTCONFIG_FILE +
-// PANGOCAIRO_BACKEND=fc (see scripts/lib/og-render.mjs for why the second var
-// is required on macOS). Requires `rsvg-convert` (librsvg) on PATH.
-//
-// Iteration follows the SECTIONS order, so a re-run is deterministic and the
-// only diff after a label edit is the banner it affected.
+// Font gap, composed not patched: lib/pixel-font.mjs carries OVER rows for Й/Ё
+// but no base glyph for either (the font is owned elsewhere and is not edited
+// here). `drawText` therefore paints Й/Ё as И/Е plus the OVER row the font
+// already ships. When the font gains the glyphs, the `ch in GLYPHS` branch
+// takes over automatically.
 //
 // Run: bun run og:sections
 // Not wired into the build — run manually when the registry changes; commit the PNGs.
@@ -46,130 +48,165 @@ import { fileURLToPath } from 'node:url';
 
 import { SECTIONS, sectionOgPath } from '../src/lib/sections.ts';
 import { ICON } from '../src/lib/icons.ts';
-import { BANNER_ACCENT, BANNER_INK, CREAM_SURFACE, hexPoints } from '../src/lib/brand.ts';
+import { hexPoints, hexPointsFlat } from '../src/lib/brand.ts';
 import {
-  FONT_SANS,
-  assertContrast,
-  esc,
-  honeycombLayer,
-  honeycombPattern,
-  renderSvgToPng,
-} from './lib/og-render.mjs';
+  GLYPHS,
+  OVER_ROWS,
+  assertCovered,
+  glyphRects,
+  measure,
+} from './lib/pixel-font.mjs';
+import { ACCENT, INK, MUTED, RAMP, SS, SURFACE, gridOf, renderPixelBanner } from './lib/pixel-og.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
-const SURFACE = CREAM_SURFACE;
-const INK = BANNER_INK;
-const ACCENT = BANNER_ACCENT;
+const GRID = gridOf(5); // 240x126 cells, one cell = 5px
+const { b, w, h } = GRID;
 
-const MARGIN = 80;
+/** px on the 1200x630 canvas -> supersampled user units */
+const S = (v) => Math.round((v / b) * SS);
+/** px -> whole cell, in supersampled user units */
+const C = (v) => Math.round(v / b) * SS;
+const R = (x, y, rw, rh, fill) =>
+  `<rect x="${C(x)}" y="${C(y)}" width="${C(rw)}" height="${C(rh)}" fill="${fill}"/>`;
+/** Bitmap text takes its origin at the TOP cell; the layout numbers are baselines. */
+const top = (baseline, size = 1) => baseline - 7 * size * b;
+const fits = (text, x, maxX, size, gap = 0) => {
+  const px = x + (measure(text) + gap * (text.length - 1)) * size * b;
+  if (px > maxX) throw new Error(`"${text}" is ${Math.round(px)}px, only ${maxX - x} available`);
+};
+const scalePoints = (points, factor) =>
+  points
+    .split(' ')
+    .map((p) => p.split(',').map((v) => Math.round(Number(v) * factor)).join(','))
+    .join(' ');
 
-// The rows the /navigation/ card keeps (see the header note). No mark may
-// leave this band, and the gate below enforces it.
-const CROP = { top: 15, bottom: 615 };
+// --- Layout, shared by both locales -----------------------------------------
+const PANEL = { x: 56, y: 196, w: 692, h: 302 };
+const NAME = 'Nikita Boyarkin';
+const ROLE = 'PRODUCT / DATA ANALYST';
+const SITE_URL = 'NIKITABOYARKIN.GITHUB.IO';
+const LOGO = { cx: 113.5, cy: 101.5, r: 52.9 };
+// The right-hand cell: the old banner's halo + accent ring, pixelated.
+const DECOR = { cx: 962, cy: 336, haloR: 150, ringR: 66 };
+// Section icon stage: a 240px box (48 cells) centred in the panel.
+const ICON_BOX = 240;
+const ICON_SCALE = ((ICON_BOX / b) * SS) / 24; // user units per icon unit
+const ICON_STROKE = SS / ICON_SCALE; // one cell wide
 
-// Hero glyph: a 24x24 icon scaled to a 200px mark, box at (80,132)-(280,332).
-const GLYPH = { size: 200, x: MARGIN, y: 132, stroke: 0.45 };
-
-// Two text pieces only: the uppercase label under the glyph, the URL footer.
-const LABEL = { size: 26, weight: 700, tracking: 6, y: 392, maxRight: 620 };
-const FOOTER = { size: 24, weight: 500, ruleY: 448, textY: 496, ruleW: 120 };
-
-// Right field: a lattice cell — the home banner's halo + accent ring framing,
-// plus three faint satellites. Sits right of the label's widest case and above
-// the card crop at every point.
-const DECOR = {
-  cx: 962,
-  cy: 336,
-  haloR: 150,
-  ringR: 66,
-  ringStroke: 3.5,
-  satellites: [
-    { cx: 1120, cy: 176, r: 32 },
-    { cx: 1124, cy: 502, r: 28 },
-    { cx: 748, cy: 168, r: 24 },
-  ],
+// Sections map onto four legible ramp steps. RAMP[3] (MUTED) is deliberately
+// excluded: it is the frame colour, so an accent on it would vanish into the
+// panel it is meant to stand against; RAMP[4]/[6] are half-tones that a
+// one-cell rule and a 5px caption cannot carry.
+const SECTION_RAMP = {
+  home: ACCENT,
+  navigation: RAMP[0],
+  projects: ACCENT,
+  demos: RAMP[0],
+  hire: RAMP[2],
+  about: INK,
+  glossary: RAMP[2],
+  graph: RAMP[0],
+  talks: INK,
+  library: RAMP[2],
+  writing: ACCENT,
+  explorer: RAMP[0],
+  topics: RAMP[2],
+  'repo-audit': INK,
 };
 
-// Crop gate: every mark, in canvas coordinates, against the visible band.
-const hexBox = (cx, cy, r) => {
-  const dx = (r * Math.sqrt(3)) / 2;
-  return { x0: cx - dx, x1: cx + dx, y0: cy - r, y1: cy + r };
-};
-const MARKS = [
-  ['glyph', { x0: GLYPH.x, x1: GLYPH.x + GLYPH.size, y0: GLYPH.y, y1: GLYPH.y + GLYPH.size }],
-  ['label', { x0: MARGIN, x1: LABEL.maxRight, y0: LABEL.y - LABEL.size, y1: LABEL.y }],
-  ['footer rule', { x0: MARGIN, x1: MARGIN + FOOTER.ruleW, y0: FOOTER.ruleY, y1: FOOTER.ruleY + 3 }],
-  ['footer url', { x0: MARGIN, x1: LABEL.maxRight, y0: FOOTER.textY - FOOTER.size, y1: FOOTER.textY }],
-  ['decor halo', hexBox(DECOR.cx, DECOR.cy, DECOR.haloR)],
-  ['decor ring', hexBox(DECOR.cx, DECOR.cy, DECOR.ringR)],
-  ...DECOR.satellites.map((s, i) => [`decor satellite ${i + 1}`, hexBox(s.cx, s.cy, s.r)]),
-];
-for (const [name, b] of MARKS) {
-  if (b.x0 < 0 || b.x1 > 1200 || b.y0 < CROP.top || b.y1 > CROP.bottom)
-    throw new Error(`${name} leaves the 2:1 card crop (y ${CROP.top}..${CROP.bottom}): ${JSON.stringify(b)}`);
-  if (name.startsWith('decor') && b.x0 <= LABEL.maxRight)
-    throw new Error(`${name} collides with the label column: x0=${b.x0} <= ${LABEL.maxRight}`);
+// --- Bitmap text with the Й/Ё composition described in the header -----------
+const COMPOSED = { Й: 'И', Ё: 'Е' };
+
+/** One 5-cell row of the OVER table as merged `<rect>` runs. */
+function rowRects(bits, x, y, scale, fill) {
+  const out = [];
+  for (let i = 0; i < bits.length; i++) {
+    if (bits[i] !== '#') continue;
+    let j = i;
+    while (j < bits.length && bits[j] === '#') j++;
+    out.push(`<rect x="${x + i * scale}" y="${y}" width="${(j - i) * scale}" height="${scale}" fill="${fill}"/>`);
+    i = j - 1;
+  }
+  return out;
 }
 
-assertContrast(
-  SURFACE,
-  [
-    { name: 'label', color: INK, size: LABEL.size, weight: LABEL.weight },
-    { name: 'url', color: INK, size: FOOTER.size, weight: FOOTER.weight },
-    { name: 'graphic: accent rule', color: ACCENT, decorative: true },
-  ],
-  'section OG banner',
-);
+/** Throws on a character neither the font nor the composition can paint. */
+function assertPaintable(text) {
+  for (const ch of String(text)) {
+    if (!(ch in GLYPHS) && !(ch in COMPOSED))
+      throw new Error(
+        `pixel font: no glyph for ${JSON.stringify(ch)} (U+${ch.codePointAt(0).toString(16).toUpperCase()})`,
+      );
+  }
+}
 
-function buildSvg(section, locale) {
+/** Same advance rules as pixel-font's glyphRects, plus the Й/Ё composition. */
+function drawText(text, x0, y0, { scale, fill, advanceGap = 0 } = {}) {
+  const out = [];
+  let pen = x0;
+  for (const ch of String(text)) {
+    if (ch in GLYPHS) {
+      out.push(...glyphRects(ch, pen, y0, { scale, fill, advanceGap }));
+    } else {
+      out.push(...glyphRects(COMPOSED[ch], pen, y0, { scale, fill, advanceGap }));
+      const over = OVER_ROWS[ch];
+      if (over) out.push(...rowRects(over, pen, y0 - scale, scale, fill));
+    }
+    pen += (measure(ch) + (ch === ' ' ? 0 : advanceGap)) * scale;
+  }
+  return out.join('');
+}
+
+const T = (text, x, y, size, fill, gap = 0) =>
+  drawText(text, C(x), C(y), { scale: size * SS, fill, advanceGap: gap });
+
+// --- Gates: fixed strings first ---------------------------------------------
+for (const text of [NAME, ROLE, SITE_URL, 'NB']) assertCovered(text);
+fits(NAME, 186, 940, 2);
+fits(ROLE, 186, 940, 1, 1);
+fits(SITE_URL, 56, 1150, 1, 1);
+
+function buildSvg(section, locale, accent) {
   const label = section.label[locale].toUpperCase();
+  assertPaintable(label);
+  // The caption is gated against the panel it sits on, not the canvas edge.
+  fits(label, PANEL.x, PANEL.x + PANEL.w, 1, 1);
+
   const glyph = ICON[section.icon];
   if (!glyph) throw new Error(`section "${section.key}": unknown icon "${section.icon}"`);
 
-  const scale = GLYPH.size / 24;
+  const iconX = PANEL.x + (PANEL.w - ICON_BOX) / 2;
+  const iconY = PANEL.y + (PANEL.h - ICON_BOX) / 2;
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" text-rendering="geometricPrecision">
-  <defs>
-    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="${ACCENT}" stop-opacity="0.07"/>
-      <stop offset="1" stop-color="${ACCENT}" stop-opacity="0"/>
-    </radialGradient>
-    ${honeycombPattern({ color: INK, opacity: 0.1 })}
-  </defs>
-
-  <rect width="1200" height="630" fill="${SURFACE}"/>
-  ${honeycombLayer()}
-  <ellipse cx="${DECOR.cx}" cy="${DECOR.cy}" rx="250" ry="200" fill="url(#glow)"/>
-
-  <!-- right field: a lattice cell, halo hexes then the accent ring inside it -->
-  <g fill="none" stroke="${INK}" stroke-width="2" opacity="0.15">
-    <polygon points="${hexPoints(DECOR.cx, DECOR.cy, DECOR.haloR)}"/>
-    ${DECOR.satellites.map((s) => `<polygon points="${hexPoints(s.cx, s.cy, s.r)}"/>`).join('\n    ')}
-  </g>
-  <polygon points="${hexPoints(DECOR.cx, DECOR.cy, DECOR.ringR)}" fill="none" stroke="${ACCENT}" stroke-width="${DECOR.ringStroke}" opacity="0.78"/>
-
-  <!-- hero glyph: the section's own icon, scaled into a 200px mark -->
-  <g transform="translate(${GLYPH.x} ${GLYPH.y}) scale(${scale})" fill="none" stroke="${INK}" color="${INK}" stroke-width="${GLYPH.stroke}" stroke-linecap="round" stroke-linejoin="round">${glyph}</g>
-
-  <text x="${MARGIN}" y="${LABEL.y}" font-family="${FONT_SANS}" font-size="${LABEL.size}" font-weight="${LABEL.weight}" letter-spacing="${LABEL.tracking}" fill="${INK}">${esc(label)}</text>
-
-  <rect x="${MARGIN}" y="${FOOTER.ruleY}" width="${FOOTER.ruleW}" height="3" fill="${ACCENT}"/>
-  <text x="${MARGIN}" y="${FOOTER.textY}" font-family="${FONT_SANS}" font-size="${FOOTER.size}" font-weight="${FOOTER.weight}" fill="${INK}">nikitaboyarkin.github.io</text>
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w * SS}" height="${h * SS}" viewBox="0 0 ${w * SS} ${h * SS}">
+  <rect width="${w * SS}" height="${h * SS}" fill="${SURFACE}"/>
+  ${R(0, 0, 1200, b, accent)}
+  <rect x="${S(PANEL.x)}" y="${S(PANEL.y)}" width="${S(PANEL.w)}" height="${S(PANEL.h)}" fill="none" stroke="${MUTED}" stroke-width="${S(b)}"/>
+  <g transform="translate(${C(iconX)} ${C(iconY)}) scale(${ICON_SCALE})" fill="none" stroke="${INK}" color="${INK}" stroke-width="${ICON_STROKE}" stroke-linecap="round" stroke-linejoin="round" shape-rendering="crispEdges">${glyph}</g>
+  <polygon points="${scalePoints(hexPoints(DECOR.cx, DECOR.cy, DECOR.haloR), SS / b)}" fill="none" stroke="${MUTED}" stroke-width="${S(b)}"/>
+  <polygon points="${scalePoints(hexPoints(DECOR.cx, DECOR.cy, DECOR.ringR), SS / b)}" fill="${accent}"/>
+  <polygon points="${scalePoints(hexPoints(DECOR.cx, DECOR.cy, DECOR.ringR - b * 1.6), SS / b)}" fill="${SURFACE}"/>
+  <polygon points="${scalePoints(hexPointsFlat(LOGO.cx, LOGO.cy, LOGO.r), SS / b)}" fill="${accent}"/>
+  <polygon points="${scalePoints(hexPointsFlat(LOGO.cx, LOGO.cy, LOGO.r - b * 1.6), SS / b)}" fill="${SURFACE}"/>
+  ${glyphRects('NB', C(LOGO.cx - b * 5), C(LOGO.cy - b * 3.5), { scale: SS, fill: INK }).join('')}
+  ${T(NAME, 186, top(82, 2), 2, INK)}
+  ${T(ROLE, 186, 96, 1, INK, 1)}
+  ${R(186, 140, 110, 3, accent)}
+  ${T(label, PANEL.x, 150, 1, INK, 1)}
+  ${T(SITE_URL, PANEL.x, 550, 1, INK, 1)}
 </svg>`;
-
-  return { svg };
 }
 
 let made = 0;
 for (const locale of ['ru', 'en']) {
   for (const section of SECTIONS) {
-    const { svg } = buildSvg(section, locale);
+    const accent = SECTION_RAMP[section.key] ?? ACCENT;
     const rel = sectionOgPath(section.key, locale);
-    renderSvgToPng(svg, join(ROOT, 'public', rel), { tmpName: `og-section-${section.key}-${locale}` });
+    const { bytes } = renderPixelBanner(buildSvg(section, locale, accent), GRID, join(ROOT, 'public', rel));
     made++;
-    console.log(`  OK  ${rel.split('/').pop()}`);
+    console.log(`  OK  ${rel.split('/').pop()} — ${(bytes / 1024).toFixed(0)} KB`);
   }
 }
 
-console.log(`\nGenerated ${made} section OG image(s) → public/images/og/`);
+console.log(`\nGenerated ${made} pixel section OG image(s) → public/images/og/`);
