@@ -26,8 +26,12 @@
      size therefore live on the same element (`.prose`, and `.post-content`,
      which is the column that wraps a post's header + body). */
   --prose-measure: 66ch;
-  --prose-size: 1.05rem;
-  --prose-lh: 1.5;
+  --prose-size: 1.125rem;
+  /* Declared because `tests/lib/prose-css.test.ts` binds the token set; the
+     value mirrors the line-height on `.prose` below. */
+  --prose-lh: 1.6;
+  /* Declared for the same binding. Nothing consumes it since the first-line
+     indent was replaced by a paragraph interval. */
   --prose-indent: 1.5em;
 }
 
@@ -35,7 +39,7 @@
   max-width: var(--prose-measure);
   margin-inline: auto;
   font-size: var(--prose-size);
-  line-height: var(--prose-lh);
+  line-height: 1.6;
   color: var(--text-normal);
 }
 
@@ -89,65 +93,23 @@
 
 /* ── Paragraphs ────────────────────────────────────────────────────────── */
 
-/* One separation signal, not two: the red line carries the break, so the
-   inter-paragraph margin goes to zero and only a hairline remains between
-   sibling paragraphs (enough to separate a paragraph from a following list
-   item's continuation, not enough to compete with the indent). */
+/* Ragged right, separated by an interval rather than a first-line indent: the
+   break between paragraphs is carried by the margin below, so every paragraph
+   opens flush with the column edge. `text-wrap: pretty` lets the last line
+   avoid a lone word without asking the engine to hyphenate. */
 .prose p {
   margin-block: 0;
-  text-align: justify;
-  text-indent: var(--prose-indent);
-  hyphens: auto;
-  -webkit-hyphens: auto;
-  /* `hyphens: auto` is the whole river fix — justified text needs *more* break
-     opportunities. A `hyphenate-limit-chars` only restricts them, and the value
-     this sheet first carried (`8 4 4`) is stricter than the UA default on every
-     one of its three numbers, so it suppressed breaks in ordinary Russian words
-     and fought the goal it was meant to serve. Left off.
-     Not verified: headless Chrome shows no measurable hyphenation here (an
-     8-line Russian paragraph renders 8 lines with `hyphens: none` too), so this
-     leans on the UA default rather than on a measurement. */
+  text-align: left;
+  text-indent: 0;
+  hyphens: manual;
+  text-wrap: pretty;
   overflow-wrap: break-word;
 }
 
+/* The interval replaces the indent: 0.9em reads as a paragraph break on its
+   own, without splitting a paragraph from the list that continues it. */
 .prose p + p {
-  margin-block-start: 0.25em;
-}
-
-/* The classic «красная строка» convention: no indent after a heading, at the
-   very start of the body, or anywhere the line is not a prose column. */
-.prose > p:first-child,
-.prose :is(h1, h2, h3, h4, h5, h6) + p,
-.prose :is(ul, ol, pre, table, figure, blockquote, details, hr) + p,
-.prose img + p,
-.prose li p,
-.prose blockquote p,
-.prose td p,
-.prose th p,
-.prose details > p:first-of-type,
-.prose summary + p {
-  text-indent: 0;
-}
-
-.prose li p,
-.prose td p,
-.prose th p {
-  text-align: left;
-}
-
-/* Justification stays on at phone width by request; the indent goes, because
-   at 320–640px a красная строка costs more line length than it buys clarity.
-   `hyphens: auto` on `.prose p` is what keeps the narrower column from
-   developing rivers — with it off, this breakpoint would read worse than
-   ragged right. */
-@media (max-width: 640px) {
-  .prose {
-    --prose-indent: 0;
-  }
-
-  .prose p {
-    text-align: justify;
-  }
+  margin-block-start: 0.9em;
 }
 
 /* ── Lists ─────────────────────────────────────────────────────────────── */
@@ -316,7 +278,7 @@
 }
 
 /* Cells hold plain text, but a raw-HTML cell can carry a <p> — keep the
-   «красная строка» and the justified tracking out of the grid. */
+   paragraph rhythm out of the grid. */
 .prose td p,
 .prose th p {
   margin-block: 0;

@@ -28,8 +28,8 @@ colors:
   text-accent-dataviz: "#4ecdc4"
 typography:
   sans:
-    fontFamily: Inter
-    fontSize: 16px
+    fontFamily: Rubik
+    fontSize: 18px
     lineHeight: 1.5
   display:
     fontFamily: Cormorant / Georgia / Times New Roman / Literata / Noto Serif / PT Serif
@@ -349,21 +349,19 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 
 ## Typography
 
-- Inter variable is the only sans face, self-hosted in four subsets covering RU + EN — do not add a second sans family.
+- **Rubik is the body and text face**, self-hosted as a variable font: four subsets (cyrillic-ext, cyrillic, latin-ext, latin) in normal and italic, i.e. eight `@font-face` blocks, each declaring the `300 900` weight axis as `woff2-variations`. `--font-sans` starts with `"Rubik"`. Do not add a second sans family; Cormorant is the display face, not a body alternative.
 - Base text is the `sans` scale; code uses the mono stack.
-- Display headings (hero name, page titles) use the `--font-display` serif stack for editorial contrast against Inter. The stack is system-native to avoid an extra font download and Cyrillic gaps in pilot; revisit with a hosted face if needed.
+- Display headings (hero name, page titles) use the self-hosted **Cormorant** serif (`--font-display`, variable weight 400–700, full Cyrillic) for editorial contrast against Rubik. It is display only — never body or UI text.
 - Headings use weight contrast and tight letter-spacing rather than size alone; the hero name is the most extreme of both.
-- Project and post prose is justified (`text-align: justify`) with automatic hyphenation (`hyphens: auto`) so the even right edge does not open word gaps.
-- Paragraphs separate by a first-line indent (`text-indent: 1.5em`) with only a tight vertical gap, not by extra air; the indent drops after a heading, at the start of a section, and inside lists and quotes.
-- Justification is turned off below 640px — in a narrow column it produces rivers and uneven spacing.
-- **The measure is 66ch on both reading surfaces**, project pages (`#project-content`) and posts (`.post-content`), set by `--prose-measure` in `src/styles/prose.css`. They used to disagree — projects ran to the full 736px column (≈84 characters per line) while posts were already capped (≈72) — which read as two different type systems rather than one. 66ch sits at the centre of the comfortable 45–75ch band; the earlier 75ch sat on its upper edge and made long case studies read as a wall at 1440px (PRD readability D24, 2026-10-20).
-- **Prose size is `1.05rem` (16.8px) wherever prose appears** — body paragraphs, list items, quotes, card descriptions. One role, one size; the previous 16px / 16.8px / 15.2px spread was drift, not hierarchy.
+- **Prose is ragged right, not justified.** `.prose p` sets `text-align: left`, `text-indent: 0`, `hyphens: manual` and `text-wrap: pretty`; paragraphs open flush with the column edge and are separated by an interval (`.prose p + p { margin-block-start: 0.9em }`) rather than a first-line indent. `.prose` runs at `line-height: 1.6`. Justification was rejected: at the 66ch measure it opened rivers in Russian text, and enabling hyphenation was not a remedy — a ragged edge removes the failure mode instead of compensating for it. `tests/lib/prose-setting.test.ts` binds the setting.
+- **The measure is 66ch on both reading surfaces**, project pages (`#project-content`) and posts (`.post-content`), set by `--prose-measure` in `src/styles/prose.css`. They used to disagree — projects ran to the full 736px column (≈84 characters per line) while posts were already capped (≈72) — which read as two different type systems rather than one. 66ch sits at the centre of the comfortable 45–75ch band; the earlier 75ch sat on its upper edge and made long case studies read as a wall at 1440px (PRD readability D24, 2026-10-20). `--prose-measure: 66ch` is deliberately unchanged by the Rubik switch. Because `ch` resolves against the element's own font-size, raising `--prose-size` to `1.125rem` widened the physical column while keeping the character count per line the same.
+- **Prose size is `1.125rem` (18px) wherever prose appears** — body paragraphs, list items, quotes, card descriptions. One role, one size; the previous 16px / 16.8px / 15.2px spread was drift, not hierarchy. The step from `1.05rem` to `1.125rem` was an explicit request to raise the whole site, not a side effect of the Rubik switch; `--text-body` and `body` moved with it.
 - **Outside the Markdown layer that value has a name: `--text-body`.** `--prose-size` stays on `.prose` because the measure is a `ch` value and must resolve against the element carrying it; every other prose role — card descriptions, chart takeaways, career bullets, search snippets, consent copy — consumes `--text-body` from `global.css`. They had drifted into seven literal sizes (0.85–0.98rem), i.e. 13.6–15.7px for the same role. Bound by `tests/lib/body-type-scale.test.ts`.
 - **A project card previews the Result, and only the Result.** `StarBlock` in `compact` mode drops Situation / Task / Actions; the full skeleton lives on the project page, where the reader has already committed to the case. The surviving sentence is never clamped: it used to be cut at 0.82rem / 2 lines — all 88 values at 390px, median 47% hidden — with no `title`. It now sits at 0.9375rem with `title`. The hero description is unclamped at every width (it cut 20 of 185 characters at 320px), and search snippets keep a two-line clamp with `title`, so the full text stays reachable.
 - **Placeholders are `--text-muted`, never the UA default.** `input::placeholder` painted `#757575`, which measured 2.41:1 on the dark panel, 4.19:1 light and 3.70:1 cyberpunk — the UA grey is not on any of the three palettes. It is the only label an empty field has, so it takes the muted ink, which clears AA on every input surface.
-- **The root font size is `1rem`, never `16px`.** At the browser default the two are identical, but `rem` honours a reader who has raised the default text size — a hard `16px` on `body` throws that setting away.
+- **Type sizes are set in `rem`, never in `px`.** `body` is `1.125rem`; at the browser default that is 18px, but `rem` honours a reader who has raised the default text size — a hard `18px` on `body` would throw that setting away.
 - **Micro-label floor is `0.72rem` (≈11.5px).** Badge and compact-label styles (`.strip-badge`, `.star-compact .star-label`) sat at 0.66–0.68rem (10.5–10.9px), below any legible floor.
-- **`-webkit-font-smoothing` is not applied.** Antialiasing thins light text on dark backgrounds — the opposite of what the dark theme needs. Weight and colour carry the compensation instead; the tracking compensation that light-on-dark usually wants is deliberately skipped because prose here is justified, and `letter-spacing` on justified text widens word gaps and makes rivers more visible, not less.
+- **`-webkit-font-smoothing` is not applied.** Antialiasing thins light text on dark backgrounds — the opposite of what the dark theme needs. Weight and colour carry the compensation instead.
 
 ## Layout
 
@@ -440,7 +438,7 @@ The standalone boards under `public/demos/<slug>/` load two shared files from th
 - `--dv-axis` deviates from `--border-color` on purpose: a hairline divides surfaces, where 1.5:1 is fine, but a chart axis is a graphical object with no text alternative, so 1.4.11 asks for 3:1. Same reasoning for `--dv-label`, which is not `--text-muted` — that fails 4.5:1 on `--background-tertiary`, where volta's tick labels sit.
 - `--dv-bad` is red rather than the coral action accent, and the two stay visibly distinct on purpose: a chart that warns is not a chart that invites a click. Keeping it in the `--dv-*` namespace means it can never be reached for as a button colour.
 - Canvas (`bayesian`) cannot be recoloured by CSS. `demo-theme.js` exposes `demoTokens()`, which returns the *specified text* of a custom property — so **no `--dv-*` may contain `var()` or `color-mix()`**, or that text reaches `ctx.strokeStyle` unparsable. Enforced by the test.
-- Two deliberate deviations from the prose scale: the base is 14px/1.5 rather than the site's 16px/1.6 (demos are dashboard-density panels in fixed-height iframes, and 16px clips every embed), and Cormorant is not loaded — demo headings are Inter.
+- Two deliberate deviations from the prose scale: the base is 14px/1.5 rather than the site's 18px/1.6 (demos are dashboard-density panels in fixed-height iframes, and the site size clips every embed), and Cormorant is not loaded — demo headings are Rubik.
 - Data colours reach the DOM through classes (`seq-3`, `cat-7`, `dv-s1`), never inline styles, so they re-resolve on a theme change with no JavaScript. Volta's 133 SVG presentation attributes were replaced by classes for the same reason, and so that "no colour literal in the demo HTML" is a claim a test can check.
 
 ## Canvas layer (homepage hero)

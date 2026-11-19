@@ -332,7 +332,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     />
 
     {
-      /* LCP: preload only the body face (Inter) — it is the face the LCP
+      /* LCP: preload only the body face (Rubik) — it is the face the LCP
          element is set in (the hero value paragraph on `/`), so it is the one
          that must not queue behind anything.
          Cormorant (display headings) is deliberately NOT preloaded any more.
@@ -345,11 +345,17 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
          enough in the document that the browser requests it on its own.
          On case pages the trim also drops a subset outright — `cormorant-
          cyrillic` (22 KB) is never fetched once nothing forces it.
-         Inter and Cormorant are variable fonts — one woff2 per subset covers
-         all weights. Latin is always needed ("Nikita Boyarkin"); add the
-         script subset for the active language. crossorigin is required for
-         font preloads. */
-      ['inter-latin.woff2', ...(isEn ? ['inter-latin-ext.woff2'] : ['inter-cyrillic.woff2'])].map(
+         Rubik and Cormorant are variable fonts — one woff2 per subset covers
+         all weights. Latin is always needed ("Nikita Boyarkin") and Cyrillic
+         carries the RU body copy, so RU pages preload latin + cyrillic; EN
+         pages swap the cyrillic file for latin-ext, which they do render.
+         crossorigin is required for font preloads. */
+      [
+        'rubik-latin-wght-normal.woff2',
+        ...(isEn
+          ? ['rubik-latin-ext-wght-normal.woff2']
+          : ['rubik-cyrillic-wght-normal.woff2']),
+      ].map(
         (f) => (
           <link
             rel="preload"

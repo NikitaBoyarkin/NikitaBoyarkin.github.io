@@ -69,7 +69,7 @@ const ROLES: Array<[file: string, selector: string]> = [
 describe('body type scale', () => {
   it('declares --text-body once, in the sheet every page loads', () => {
     const global = stripComments(read('src/styles/global.css'));
-    expect(global).toMatch(/--text-body:\s*1\.05rem;/);
+    expect(global).toMatch(/--text-body:\s*1\.125rem;/);
     // Once, not per theme: a per-theme body size would be a second type scale.
     expect(global.match(/--text-body:/g)).toHaveLength(1);
   });

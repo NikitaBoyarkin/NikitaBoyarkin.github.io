@@ -55,40 +55,41 @@ describe("estimateTextWidth", () => {
     expect(estimateTextWidth("Проекты", FONT)).toBeGreaterThanOrEqual(48.6);
   });
 
-  // Real rendered widths, measured with `getComputedTextLength()` on the built
-  // RU and EN graph pages (Inter 600 @ 11px, the face `.kg-label` sets). The
+  // Real rendered widths, measured with `getComputedTextLength()` on the RU and
+  // EN graph pages in Rubik 600 @ 11px — the family, weight and size `.kg-label`
+  // resolves to, and both pages agree to the sub-pixel. The
   // estimate must not fall short of any of them: a short estimate is what drew
   // `segmentation` across `career` on /en/graph/. These are the labels that sit
   // closest to (and, before the calibration, past) the estimate.
   const RENDERED: [label: string, px: number][] = [
-    ["Cohort", 36.7],
-    ["career", 34.3],
-    ["Python", 37.8],
-    ["Churn", 32.8],
-    ["North Star Metric", 91.8],
-    ["Бутстрап", 50.9],
-    ["Articles", 41.1],
-    ["Glossary", 47.2],
-    ["Карьера", 47.1],
-    ["SQL", 21.9],
-    ["ARPU", 30.4],
+    ["Cohort", 37.6],
+    ["career", 35.1],
+    ["Python", 39.3],
+    ["Churn", 33.3],
+    ["North Star Metric", 93.6],
+    ["Бутстрап", 51.8],
+    ["Articles", 42.3],
+    ["Glossary", 46.9],
+    ["Карьера", 46.4],
+    ["SQL", 21.4],
+    ["ARPU", 30.5],
     ["sql", 15.8],
-    ["segmentation", 73.0],
-    ["Metric design", 72.9],
-    ["metric-design", 75.0],
-    ["Отток (churn)", 74.3],
-    ["Segmentation", 74.1],
-    ["Time-to-convert", 88.1],
-    ["Cohort Analysis Dashboard", 145.6],
-    ["SQL Analytics Case Study", 138.2],
-    ["SRM — Sample Ratio Mismatch", 165.2],
-    ["Volta — Dormant 45+ Win-back", 168.7],
-    ["Product Analytics + A/B on Supabase", 198.9],
-    ["Volta — Сегментные premium-офферы", 212.7],
-    ["Browser Mini-Games — Analytics Arcade", 219.0],
-    ["Проактивность аналитика за рамками роли", 242.2],
-    ["Churn Prediction — Leakage-Free Retention Model", 269.0],
-    ["RAG Evaluation Harness — retrieval and generation metrics", 314.0],
+    ["segmentation", 75.3],
+    ["Metric design", 73.0],
+    ["metric-design", 76.8],
+    ["Отток (churn)", 75.3],
+    ["Segmentation", 76.5],
+    ["Time-to-convert", 90.2],
+    ["Cohort Analysis Dashboard", 145.9],
+    ["SQL Analytics Case Study", 137.6],
+    ["SRM — Sample Ratio Mismatch", 162.5],
+    ["Volta — Dormant 45+ Win-back", 164.2],
+    ["Product Analytics + A/B on Supabase", 200.8],
+    ["Volta — Сегментные premium-офферы", 210.7],
+    ["Browser Mini-Games — Analytics Arcade", 215.3],
+    ["Проактивность аналитика за рамками роли", 242.4],
+    ["Churn Prediction — Leakage-Free Retention Model", 269.9],
+    ["RAG Evaluation Harness — retrieval and generation metrics", 316.4],
   ];
 
   it("never falls short of the real rendered width", () => {
