@@ -73,6 +73,14 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # `tests/lib/pixel-og.test.ts` rasterises one sample banner through
+      # rsvg-convert twice to prove the pixel pipeline is deterministic. The
+      # generator scripts need the same binary, but only run on a dev machine —
+      # the runner image ships no librsvg, so install it rather than skip the
+      # gate (a skipped determinism check proves nothing).
+      - name: Install SVG rasteriser (pixel OG determinism gate)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq librsvg2-bin
+
       - name: GitHub ↔ portfolio drift check
         run: bun run sync:gh
         env:
