@@ -107,12 +107,13 @@ describe('TOC (built HTML, real inline script)', () => {
 });
 
 describe('the rail starts where its template says', () => {
-  it('is collapsed on first visit to a project page, expanded on a post', () => {
+  it('is collapsed on first visit to a project page and to a post', () => {
     if (!existsSync(resolve(DIST, 'projects/site/index.html'))) return; // needs `bun run build`
-    // Project pages pass `defaultHidden`: their case body is tabbed, so an open
-    // rail competes with the section tabs for the same right edge.
+    // Both templates pass `defaultHidden`: a project's case body is tabbed, and
+    // an article now has its own section tabs, so an open rail would be a second
+    // index competing with the first.
     expect(tocOf('projects/site/index.html').documentElement.classList.contains('toc-collapsed')).toBe(true);
-    expect(tocOf('posts/bayesian-ab-testing/index.html').documentElement.classList.contains('toc-collapsed')).toBe(false);
+    expect(tocOf('posts/bayesian-ab-testing/index.html').documentElement.classList.contains('toc-collapsed')).toBe(true);
   });
 
   it('remembers an explicit reveal on a page that starts collapsed', () => {
@@ -131,20 +132,22 @@ describe('the rail starts where its template says', () => {
 describe('the rail can be dismissed and restored (built inline script)', () => {
   const file = 'posts/bayesian-ab-testing/index.html';
 
-  it('hide collapses, restore brings the rail back', () => {
+  it('restore brings the rail back, hide collapses it again', () => {
     if (!existsSync(resolve(DIST, file))) return; // needs `bun run build`
     const doc = tocOf(file);
     const root = doc.documentElement;
     const hide = doc.getElementById('toc-hide')!;
     const restore = doc.getElementById('toc-restore')!;
 
-    expect(root.classList.contains('toc-collapsed')).toBe(false);
-    hide.click();
+    // The post template starts collapsed (see the block above), so the restore
+    // half of the round trip is where the test begins.
     expect(root.classList.contains('toc-collapsed')).toBe(true);
-    expect(hide.getAttribute('aria-expanded')).toBe('false');
     restore.click();
     expect(root.classList.contains('toc-collapsed')).toBe(false);
     expect(hide.getAttribute('aria-expanded')).toBe('true');
+    hide.click();
+    expect(root.classList.contains('toc-collapsed')).toBe(true);
+    expect(hide.getAttribute('aria-expanded')).toBe('false');
   });
 
   it('a remembered choice is applied on load', () => {

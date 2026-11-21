@@ -169,7 +169,15 @@ const isEn = lang === 'en';
     function updateActive() {
       const pos = window.scrollY + 160;
       let current = '';
-      for (const h of headers) if (h.offsetTop <= pos) current = h.id;
+      // A heading inside a hidden dashboard panel has no layout, so its
+      // `offsetTop` reads 0 and it would win the "above the fold" test — leaving
+      // the rail highlighting a section the reader cannot see. Only rendered
+      // headings can be current; the hidden ones stay in the list as jump
+      // targets (a click opens their panel, see `onTocClick`).
+      for (const h of headers) {
+        if (!h.getClientRects().length) continue;
+        if (h.offsetTop <= pos) current = h.id;
+      }
       document.querySelectorAll('#inner-toc a').forEach((a) => {
         const isActive = a.dataset.id === current;
         a.classList.toggle('active', isActive);
@@ -192,6 +200,25 @@ const isEn = lang === 'en';
       const target = document.getElementById(id);
       if (!target) return;
       e.preventDefault();
+
+      // A heading can live inside a collapsed dashboard panel (an article's
+      // section tabs, a project's case groups). The element is in the DOM but
+      // not rendered, so scrolling to it would land nowhere. Activating its
+      // panel through the controller's own tab click keeps the anchor map, the
+      // history hash and the rail in step instead of growing a second reveal
+      // path that can drift.
+      const hiddenPanel = target.closest('[data-panel][hidden]');
+      if (hiddenPanel) {
+        const panelId = hiddenPanel.getAttribute('data-panel');
+        const root = hiddenPanel.closest('[data-section-tabs]');
+        for (const tab of root ? root.querySelectorAll('[role="tab"]') : []) {
+          if (tab.dataset.tab === panelId) {
+            tab.click();
+            break;
+          }
+        }
+      }
+
       const offset = 110;
       const top = window.scrollY + target.getBoundingClientRect().top - offset;
       window.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });

@@ -29,6 +29,9 @@ interface TabDef {
   // Hash set in the URL on switch. Defaults to the tab id, which needs no
   // element of its own — the controller maps it back to the panel.
   anchor?: string;
+  // Untruncated label. Post sections carry long H2s, so the visible chip is a
+  // shortened form; the full title stays the accessible name and the tooltip.
+  full?: string;
 }
 interface Props {
   tabs: TabDef[];
@@ -75,6 +78,9 @@ const noScriptFallback =
           aria-controls={`panel-${tab.id}`}
           aria-selected={i === 0 ? 'true' : 'false'}
           tabindex={i === 0 ? '0' : '-1'}
+          {...(tab.full && tab.full !== tab.label
+            ? { title: tab.full, 'aria-label': tab.full }
+            : {})}
         >
           {tab.label}
         </button>

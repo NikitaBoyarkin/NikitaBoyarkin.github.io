@@ -19,6 +19,11 @@
 //     are passed through instead.
 // Passing neither falls back to the old script-filled block: correct, but it
 // pays that layout shift.
+//
+// Collapsed by default: both templates that render it (posts and Volta parts)
+// already show the fixed rail above 1100px and start that rail collapsed, so an
+// open in-flow list would be the one TOC the first paint pays for. The list still
+// ships pre-rendered, so opening it costs no hydration and no layout shift.
 interface TocHeading {
   id: string;
   text: string;
@@ -29,9 +34,11 @@ interface Props {
   lang?: 'ru' | 'en';
   html?: string;
   headings?: TocHeading[];
+  /** Opt in to an open block. No template does today. */
+  open?: boolean;
 }
 
-const { lang = 'ru', html = '', headings: given = [] } = Astro.props;
+const { lang = 'ru', html = '', headings: given = [], open = false } = Astro.props;
 const isEn = lang === 'en';
 
 // Ids are read out of the rendered HTML rather than recomputed, so the anchors
@@ -45,7 +52,7 @@ const parsed: TocHeading[] = [
 const headings = (given.length ? given : parsed).filter((h) => h.level === 2 || h.level === 3);
 ---
 
-<details class="inline-toc" id="inline-toc" open>
+<details class="inline-toc" id="inline-toc" open={open}>
   <summary>{isEn ? 'On this page' : 'Содержание'}</summary>
   <ol id="inline-toc-list">
     {headings.map((h) => (

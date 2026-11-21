@@ -10,6 +10,7 @@ import { caseSections } from "./src/lib/case-sections-hast.ts";
 import { figures } from "./src/lib/figures-mdast.ts";
 import { glossaryLinker } from "./src/lib/glossary-linker.ts";
 import { katexMath } from "./src/lib/katex-math.ts";
+import { postSections } from "./src/lib/post-sections-hast.ts";
 import { wikilinks } from "./src/lib/wikilink.ts";
 
 // github-dark paints comments `#6a737d` — 3.05:1 on the theme's own `#24292e`
@@ -133,7 +134,10 @@ export default defineConfig({
       mdastPlugins: [katexMath(), wikilinks(), glossaryLinker(), figures()],
       // Wraps a project case body's H2 runs into the panels of the nested
       // dashboard on the project page; a no-op on every other collection.
-      hastPlugins: [caseSections()],
+      // `postSections` is its post-body sibling — one panel per H2, so an
+      // article reads as a small dashboard too. Each plugin returns early on the
+      // other's files, so the order between them does not matter.
+      hastPlugins: [caseSections(), postSections()],
     }),
   },
   // Keep the OneWorks 3D hero out of the default page load.

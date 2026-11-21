@@ -2,6 +2,7 @@
 import Base from './Base.astro';
 import InnerTOC from '../components/InnerTOC.astro';
 import InlineTOC from '../components/InlineTOC.astro';
+import SectionTabs from '../components/SectionTabs.astro';
 import Backlinks from '../components/Backlinks.astro';
 import NextStep from '../components/NextStep.astro';
 import { formatDate, estimateReadTime } from '../lib/date';
@@ -30,6 +31,38 @@ interface Props {
 const { title, date, updated, category, excerpt, slug, image, related = [], backlinks = [], keywords = [], prev = null, next = null, lang = 'ru', counterpartHref } = Astro.props;
 const rendered = await Astro.slots.render('default');
 const readTime = estimateReadTime(rendered.replace(/<[^>]*>/g, ' '));
+
+// Section tabs: one per H2, matching the panels `postSections` cuts in the
+// markdown pipeline (`src/lib/post-sections-hast.ts`). Ids are read out of the
+// rendered HTML rather than recomputed from the collection's `headings`, so a tab
+// always controls the panel the body actually emitted — the same "the build's own
+// id wins" rule `InlineTOC` follows.
+//
+// Labels are shortened for the chip strip (an H2 can run 130 characters), but
+// the full heading stays the tab's accessible name and tooltip, so nothing is
+// lost to a screen reader or a hover.
+const decodeEntities = (text: string) =>
+  text
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&');
+
+const SECTION_LABEL_MAX = 42;
+function shortLabel(text: string): string {
+  if (text.length <= SECTION_LABEL_MAX) return text;
+  const cut = text.slice(0, SECTION_LABEL_MAX - 1);
+  const space = cut.lastIndexOf(' ');
+  const head = space > SECTION_LABEL_MAX * 0.5 ? cut.slice(0, space) : cut;
+  return `${head.replace(/[\s,;:.—–-]+$/, '')}…`;
+}
+
+const sections = [...rendered.matchAll(/<h2\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/g)].map((m) => {
+  const full = decodeEntities(m[2].replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+  return { id: m[1], full, label: shortLabel(full) };
+});
 const categoryDisplay = categoryLabel(category, lang);
 const dateModified = updated?.toISOString() ?? date.toISOString();
 const minLabel = lang === 'en' ? 'min read' : 'мин чтения';
@@ -96,7 +129,12 @@ const articleJsonLdGraph = { '@context': 'https://schema.org', '@graph': [articl
   jsonLd={articleJsonLdGraph}
   searchType="post"
 >
-  <InnerTOC selector="#post-content" lang={lang} />
+  {/* The rail and the in-flow block both start collapsed on an article, as they
+      already do on a project: the section tabs carry the same navigation, and a
+      permanently open TOC next to a tab strip asks the reader to choose between
+      two indexes of one page. An explicit «Содержание» click still opens it and
+      is remembered. */}
+  <InnerTOC selector="#post-content" lang={lang} defaultHidden />
 
   <div id="reading-progress" aria-hidden="true"></div>
 
@@ -114,7 +152,17 @@ const articleJsonLdGraph = { '@context': 'https://schema.org', '@graph': [articl
     <InlineTOC lang={lang} html={rendered} />
 
     <div class="post-body prose" id="post-content">
-      <slot />
+      {sections.length > 1 ? (
+        <SectionTabs
+          tabs={sections.map((s) => ({ id: s.id, label: s.label, anchor: s.id, full: s.full }))}
+          label={lang === 'en' ? 'Article sections' : 'Разделы статьи'}
+          size="sm"
+        >
+          <slot />
+        </SectionTabs>
+      ) : (
+        <slot />
+      )}
     </div>
 
     {related.length > 0 && (
