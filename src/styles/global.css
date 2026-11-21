@@ -3752,6 +3752,13 @@ html.bleed .nav-mobile {
   margin-inline: 0;
 }
 
+/* The trail is rendered by Base outside the page's own wrapper, so it cannot
+   inherit that wrapper's gutter: with body's padding gone it would sit on the
+   window's very edge while everything below it starts --page-pad in. */
+html.bleed .breadcrumbs {
+  padding-inline: var(--page-pad);
+}
+
 /* The board itself carries the dot texture and the vertical rhythm; the
    heading and the generator line keep the site's reading measure and gutter,
    so prose does not start at the window edge. */

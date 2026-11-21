@@ -47,8 +47,9 @@ const collectionJsonLd = {
   activeNav="demos"
   lang="ru"
   jsonLd={collectionJsonLd}
+  bleed
 >
-  <div class="container">
+  <div class="demos-board">
     <h1 class="page-title reveal">Демо</h1>
 
     <p class="demo-lead reveal">
@@ -89,6 +90,16 @@ const collectionJsonLd = {
 </Base>
 
 <style>
+  /* Full-bleed catalogue: `bleed` on Base lifts the body/main cap, so this
+     wrapper must not re-impose --content-max — the shelf of boards takes the
+     whole window and only the page gutter keeps the cards off the glass.
+     On a 1920px screen the grid simply fits more columns; the lead paragraph
+     keeps its own 68ch measure below, so nothing reads as a 200-character line. */
+  .demos-board {
+    max-width: none;
+    padding: 2rem var(--page-pad);
+  }
+
   .demo-lead {
     max-width: 68ch;
     margin: 0 0 var(--space-8);

@@ -367,6 +367,7 @@ The cyberpunk theme keeps the dark theme's accent so accent-tint recipes (badges
 
 - The body spans the viewport; at ≥1100px it reserves `--rail-total` on the inline start for the fixed nav rail, and the reading column stays centred at the `--content-max` measure inside the remaining space.
 - One container width site-wide: `.container` is `--content-max` (1180px), so every page — prose, case studies, card pages — shares the same frame. The reading measure is not stretched by it: the 66ch prose cap lives on the content elements, not on the container.
+- **The demos are the deliberate exception, at both layers.** The catalogue (`/demos/`, `/en/demos/`) passes `bleed` to `Base`, which lifts `body`'s and `main`'s cap and gutter so the card grid fills the window (4 columns at 1440px, 5 at 1920px); the standalone boards under `public/demos/` carry no width cap in the shared `demo.css`. Only the grid and the panels stretch — the catalogue's lead keeps its 68ch measure, and each board's prose and charts cap themselves (`.chart-wrap`, `.plot`, tables). `/graph/` + `/en/graph/` use the same `bleed` for the same reason.
 - Below 1100px the nav is an off-canvas drawer over a scrim, opened from a sticky top bar; the panel holds the page scroll only while it is open.
 - The kanban board is the only element that breaks out of the reading column, to a wider viewport-capped width — it centres on the content column, not the viewport, so it never slides under the rail.
 - Project grids use auto-fit with a minimum card width so cards reflow without media queries.

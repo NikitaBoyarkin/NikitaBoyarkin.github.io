@@ -49,8 +49,9 @@ const collectionJsonLd = {
   activeNav="demos"
   lang="en"
   jsonLd={collectionJsonLd}
+  bleed
 >
-  <div class="container demos-page">
+  <div class="demos-board demos-page">
     <h1 class="page-title reveal">Demos</h1>
 
     <p class="demo-lead reveal">
@@ -91,6 +92,14 @@ const collectionJsonLd = {
 </Base>
 
 <style>
+  /* Full-bleed catalogue, mirroring the RU hub: `bleed` lifts the body/main
+     cap, and this wrapper deliberately does not re-impose --content-max — the
+     grid fills the window, the copy keeps its own measure. */
+  .demos-board {
+    max-width: none;
+    padding: 2rem var(--page-pad);
+  }
+
   .demo-lead {
     max-width: 68ch;
     margin: 0 0 var(--space-3);

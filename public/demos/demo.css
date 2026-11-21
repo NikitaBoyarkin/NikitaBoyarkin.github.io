@@ -371,8 +371,11 @@ body {
   /* Deviation from the site's 16px/1.6 prose scale — see the header. */
   font-size: 14px;
   line-height: 1.5;
-  max-width: 1000px;
-  margin: 0 auto;
+  /* Full-width boards: these are dashboards, and a 1000px cap left a third of
+     a 1920px screen empty. The page gutter is the only inset; panels that need
+     a measure of their own cap themselves (`.chart-wrap`, `.plot`, tables). */
+  max-width: none;
+  margin: 0;
   padding: var(--page-pad);
   position: relative;
   -webkit-font-smoothing: antialiased;
