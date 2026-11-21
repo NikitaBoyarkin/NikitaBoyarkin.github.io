@@ -1,0 +1,73 @@
+---
+// Category navigation for the /demos/ hub: one tab per track instead of four
+// stacked sections.
+//
+// Why tabs and not the old `<h2>` + grid stack: the hub had grown to 25 boards
+// in four tracks, so a reader met twenty-five cards and three headings before
+// scrolling to the ones they wanted, and nothing on the page said how many
+// boards each track held. The tabs are the index.
+//
+// It is the site's existing dashboard (`SectionTabs.astro` +
+// `SectionPanel.astro` + `lib/section-tabs-controller.ts`), not a second tab
+// implementation: ARIA tablist, roving tabindex, Arrow/Home/End, `#hash`
+// deep links, the `<noscript>` reveal and the phone strip all come from there.
+//
+// Two properties this component is responsible for:
+//
+// 1. **The old anchors still resolve.** The tab id is the `id` the group's
+//    `<h2>` used to carry (`demo-group-analytics`), so a bookmarked
+//    `#demo-group-analytics` opens that panel instead of falling back to the
+//    first one — the controller maps a hash to a panel by id.
+// 2. **Every card is in the served HTML.** Panels are hidden with `hidden`,
+//    not removed, so a crawler and a no-JS reader still get all 25 boards, and
+//    the page's `ItemList` JSON-LD keeps agreeing with the rendered list.
+import SectionTabs from './SectionTabs.astro';
+import SectionPanel from './SectionPanel.astro';
+import DemoCard from './DemoCard.astro';
+import { withBase } from '../lib/path';
+import type { DemoGroup } from '../lib/demos';
+
+interface Props {
+  groups: DemoGroup[];
+  lang?: 'ru' | 'en';
+  /** Locale prefix for case links: `` on RU, `en/` on EN. */
+  linkPrefix?: string;
+}
+const { groups, lang = 'ru', linkPrefix = '' } = Astro.props;
+const isEn = lang === 'en';
+const label = isEn ? 'Demo categories' : 'Категории демо';
+
+// The count rides in the tab label because it is the whole reason to choose a
+// tab; the panel keeps a visually-hidden `<h2>` so the document outline still
+// names the section the tab switches to.
+const tabs = groups.map((group) => ({
+  id: `demo-group-${group.key}`,
+  label: `${group.label} · ${group.demos.length}`,
+}));
+---
+
+<SectionTabs tabs={tabs} label={label}>
+  {
+    groups.map((group, index) => (
+      <SectionPanel id={`demo-group-${group.key}`} active={index === 0}>
+        <h2 class="visually-hidden">
+          {group.label} <span class="filter-count">{group.demos.length}</span>
+        </h2>
+        <div class="project-grid">
+          {group.demos.map((demo) => (
+            <DemoCard
+              href={withBase(demo.href)}
+              title={demo.title}
+              description={demo.description}
+              caseHref={
+                demo.caseSlug ? withBase(`${linkPrefix}projects/${demo.caseSlug}/`) : undefined
+              }
+              caseTitle={demo.caseTitle ?? undefined}
+              lang={lang}
+            />
+          ))}
+        </div>
+      </SectionPanel>
+    ))
+  }
+</SectionTabs>

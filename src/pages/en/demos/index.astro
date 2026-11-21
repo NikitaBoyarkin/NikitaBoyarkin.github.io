@@ -6,7 +6,7 @@
 // "Case study" link and the group labels are the English ones — the project
 // slugs are identical in both collections, so the join is the same one.
 import Base from '../../../layouts/Base.astro';
-import DemoCard from '../../../components/DemoCard.astro';
+import DemoTabs from '../../../components/DemoTabs.astro';
 import { withBase } from '../../../lib/path';
 import { getCollection } from 'astro:content';
 import { attachCases, demoCaseMap, groupDemos, scanDemos } from '../../../lib/demos';
@@ -61,27 +61,10 @@ const collectionJsonLd = {
     <p class="demo-note reveal">The boards themselves are in Russian.</p>
 
     {
-      groups.map((group) => (
-        <section class="demo-group" aria-labelledby={`demo-group-${group.key}`}>
-          <h2 id={`demo-group-${group.key}`} class="demo-group-title">
-            {group.label}
-            <span class="filter-count">{group.demos.length}</span>
-          </h2>
-          <div class="project-grid">
-            {group.demos.map((demo) => (
-              <DemoCard
-                href={withBase(demo.href)}
-                title={demo.title}
-                description={demo.description}
-                caseHref={demo.caseSlug ? withBase(`en/projects/${demo.caseSlug}/`) : undefined}
-                caseTitle={demo.caseTitle ?? undefined}
-                lang="en"
-              />
-            ))}
-          </div>
-        </section>
-      ))
+      /* One tab per track. The shared component owns the ARIA tablist, the
+         panels and the count-in-label, so the RU and EN hubs cannot drift. */
     }
+    <DemoTabs groups={groups} lang="en" linkPrefix="en/" />
 
     <p class="demo-footer">
       <a href={withBase('en/projects/')}>The case studies behind these boards →</a>
@@ -116,23 +99,9 @@ const collectionJsonLd = {
     color: var(--text-muted);
   }
 
-  /* Same track-heading recipe as the RU page and the projects board: a group
-     marker at 1.0625rem, not a 1.9rem section title. */
-  .demo-group + .demo-group {
-    margin-top: var(--space-10);
-  }
-
-  .demo-group-title {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-3);
-    margin: 0 0 var(--space-4);
-    font-size: 1.0625rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    color: var(--text-normal);
-  }
-
+  /* The tab strip is SectionTabs' own, shared with the RU hub through
+     `DemoTabs.astro`: border, selected underline and the sticky phone strip all
+     come from there. */
   .demo-footer {
     margin: var(--space-10) 0 0;
     font-size: var(--text-body);

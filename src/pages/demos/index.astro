@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import DemoCard from '../../components/DemoCard.astro';
+import DemoTabs from '../../components/DemoTabs.astro';
 import { withBase } from '../../lib/path';
 import { getCollection } from 'astro:content';
 import { attachCases, demoCaseMap, groupDemos, scanDemos } from '../../lib/demos';
@@ -59,27 +59,11 @@ const collectionJsonLd = {
     </p>
 
     {
-      groups.map((group) => (
-        <section class="demo-group reveal" aria-labelledby={`demo-group-${group.key}`}>
-          <h2 id={`demo-group-${group.key}`} class="demo-group-title">
-            {group.label}
-            <span class="filter-count">{group.demos.length}</span>
-          </h2>
-          <div class="project-grid">
-            {group.demos.map((demo) => (
-              <DemoCard
-                href={withBase(demo.href)}
-                title={demo.title}
-                description={demo.description}
-                caseHref={demo.caseSlug ? withBase(`projects/${demo.caseSlug}/`) : undefined}
-                caseTitle={demo.caseTitle ?? undefined}
-                lang="ru"
-              />
-            ))}
-          </div>
-        </section>
-      ))
+      /* One tab per track, instead of four stacked `<h2>` + grid blocks: the
+         category is the navigation now, and the count in each tab says how
+         many boards sit behind it. */
     }
+    <DemoTabs groups={groups} lang="ru" />
 
     <p class="demo-footer">
       <a href={withBase('projects/')}>Кейсы, из которых эти доски собраны →</a>
@@ -107,24 +91,9 @@ const collectionJsonLd = {
     line-height: 1.6;
   }
 
-  /* The catalogue's track-heading recipe (`#project-list .project-group-heading`
-     in global.css): a group marker, not a section title. Four 1.9rem headings
-     down the page would read as four sections. */
-  .demo-group + .demo-group {
-    margin-top: var(--space-10);
-  }
-
-  .demo-group-title {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-3);
-    margin: 0 0 var(--space-4);
-    font-size: 1.0625rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    color: var(--text-normal);
-  }
-
+  /* The tab strip is SectionTabs' own; it already carries the border, the
+     selected underline and the sticky behaviour on a phone. Nothing to restyle
+     here — only the footer needs the gap the old group blocks used to give. */
   .demo-footer {
     margin: var(--space-10) 0 0;
     font-weight: 600;
