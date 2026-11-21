@@ -2,7 +2,14 @@
 // `/navigation/` — the index of every section, rendered straight from
 // `src/lib/sections.ts`. Nothing here is a second list: a new section appears on
 // this page, in the drawer and in the OG set from one registry entry.
+//
+// The cards are one horizontal snap row, not a wrapping grid: thirteen big
+// cards stacked into five rows ran ~1.8k px tall on a desktop, and the section
+// banners are previews — the reader scans titles, then opens one. `CarouselNav`
+// + `src/lib/carousel.ts` carry the arrows and dots, and the nav hides itself on
+// any width where the row happens not to overflow.
 import Base from '../../layouts/Base.astro';
+import CarouselNav from '../../components/CarouselNav.astro';
 import SectionCard from '../../components/SectionCard.astro';
 import { SECTIONS } from '../../lib/sections';
 import { withBase } from '../../lib/path';
@@ -14,7 +21,7 @@ const cards = SECTIONS.filter((section) => section.key !== 'navigation');
 
 <Base
   title="Навигация | Nikita Boyarkin"
-  description="Все разделы портфолио одной сеткой: проекты, демо, найм, граф знаний, библиотека, статьи, словарь."
+  description="Все разделы портфолио одной лентой: проекты, демо, найм, граф знаний, библиотека, статьи, словарь."
   canonical={withBase('navigation/')}
   activeNav="navigation"
   lang={lang}
@@ -25,7 +32,11 @@ const cards = SECTIONS.filter((section) => section.key !== 'navigation');
     <p class="sections-lead">
       {cards.length} разделов сайта: что где лежит и с чего начать. Каждая карточка ведёт в свой раздел.
     </p>
-    <ul class="sections-grid">
+    {/* Before the row, not after: thirteen cards are thirteen tab stops, and
+        controls placed behind them would be the last thing a keyboard reader
+        reaches. Same ordering as `/writing/` and the project boards. */}
+    <CarouselNav track="sections" label="Разделы" />
+    <ul class="sections-track" id="sections-track" data-carousel-track="sections">
       {
         cards.map((section) => (
           <SectionCard section={section} lang={lang} href={withBase(section.href.ru)} />
@@ -47,11 +58,36 @@ const cards = SECTIONS.filter((section) => section.key !== 'navigation');
     color: var(--text-secondary);
   }
 
-  .sections-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  /* The track itself is CSS-owned and fully usable without the module: touch,
+     trackpad and keyboard all scroll it, because every card is a link. The
+     scrollbar is dropped because the arrows and dots are the third and fourth
+     controls already — a native bar under the row would be a fifth, uglier one
+     (the same reasoning as `.blog-list` in `src/styles/blog.css`). */
+  .sections-track {
+    display: flex;
     gap: var(--space-4);
-    margin: var(--space-6) 0 0;
+    margin: var(--space-5) 0 0;
     padding: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .sections-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* A fixed basis, not a fraction of the row: the card keeps its size however
+     many sections the registry holds. Three fit at `--content-max`, with the
+     fourth peeking past the right edge — the affordance that the row continues.
+     `min(22rem, 84%)` still lets a card shrink on a 320px screen instead of
+     pushing its own edge out of view.
+
+     `:global()` is required and is the supported escape inside a scoped
+     `<style>`: the `<li>` is emitted by `SectionCard.astro`, so it carries that
+     component's scope attribute, never this page's. */
+  .sections-track > :global(.section-card-item) {
+    flex: 0 0 min(22rem, 84%);
+    scroll-snap-align: start;
   }
 </style>

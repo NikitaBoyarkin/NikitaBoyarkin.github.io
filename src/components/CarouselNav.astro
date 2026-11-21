@@ -59,7 +59,12 @@ const nextLabel = isEn ? 'Scroll forward' : 'Вперёд';
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
+    /* `nowrap`, not `wrap`: the dot *block* wraps inside itself, so both arrows
+       stay on one line at every width. With `wrap` a twelve-dot ladder on a
+       390px phone broke the row into three lines — «Назад» on the first, the
+       ladder over the next two, «Вперёд» alone at the bottom, 80px away from
+       its pair (measured on `/navigation/`, 13 cards). */
+    flex-wrap: nowrap;
     gap: var(--space-3);
     margin-top: var(--space-4);
   }
@@ -108,12 +113,15 @@ const nextLabel = isEn ? 'Scroll forward' : 'Вперёд';
 
   /* The dots carry up to twelve targets. At 24px apart they no longer fit on one
      line beside the two 36px arrows on a 390px phone, so they wrap instead of
-     pushing the row out of the viewport. */
+     pushing the row out of the viewport. `min-width: 0` is what lets that happen:
+     a flex item refuses to shrink below its content width by default, so without
+     it the block would widen the row and push the next arrow off-screen. */
   .carousel-dots {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
+    min-width: 0;
     gap: var(--space-1);
   }
 

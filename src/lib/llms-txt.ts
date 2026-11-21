@@ -134,7 +134,7 @@ export async function buildLlmsTxt(site: string): Promise<string> {
   add(`- [Library (EN)](${abs("en/library/")}): the English shelf index.`);
   add(`- [Explorer (RU)](${abs("explorer/")}): every project, article, glossary term, library source, Volta module and topic in one filterable list — with addressable filters and a relation panel.`);
   add(`- [Explorer (EN)](${abs("en/explorer/")}): the English content explorer.`);
-  add(`- [Navigation (RU)](${abs("navigation/")}): every section of the site in one grid.`);
+  add(`- [Navigation (RU)](${abs("navigation/")}): every section of the site in one row.`);
   add(`- [Navigation (EN)](${abs("en/navigation/")}): the English section index.`);
   add(`- [Hiring (RU)](${abs("hire/")}): three ways in — HR screening, manager impact, colleague method.`);
   add(`- [Hiring (EN)](${abs("en/hire/")}): the English hiring hub.`);

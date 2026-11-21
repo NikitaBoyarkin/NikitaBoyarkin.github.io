@@ -7,11 +7,12 @@
 // under it and the arrows kept pointing at the hidden one. All three are visual
 // facts, so this drives a real browser against the build.
 //
-// What is a track: `/writing/` (both locales). The catalogue board
-// (`/projects/`) is no longer one — it is a grid grouped by track, so its
-// arrows, dots and sort checks moved to `verify-project-views.mjs`, which drives
-// the lenses and the grouped grid. The role landings keep their own grid
-// (curated sequences, not browse surfaces) and are out of scope here.
+// What is a track: `/writing/` (both locales) and `/navigation/` (both
+// locales). The catalogue board (`/projects/`) is no longer one — it is a grid
+// grouped by track, so its arrows, dots and sort checks moved to
+// `verify-project-views.mjs`, which drives the lenses and the grouped grid. The
+// role landings keep their own grid (curated sequences, not browse surfaces) and
+// are out of scope here.
 //
 // Run against a served build (dist):
 //   bun run serve-dist &                      # http://localhost:4321
@@ -135,6 +136,68 @@ try {
     await page.close();
   }
 
+  // ---- Sections: `/navigation/` is one snap row in both locales ----------
+  // Thirteen cards can never fit a 390px or a 1440px viewport, so unlike the
+  // articles row this one always overflows: the nav must be visible, and it must
+  // actually move the row. The failure this catches is the one a markup grep
+  // cannot: `data-carousel-track` naming a track whose arrows point at nothing.
+  for (const [label, url, width] of [
+    ['nav ru desktop', 'navigation/', 1440],
+    ['nav ru phone', 'navigation/', 390],
+    ['nav en desktop', 'en/navigation/', 1440],
+    ['nav en phone', 'en/navigation/', 390],
+  ]) {
+    const page = await open(width);
+    await page.goto(`${baseUrl}${url}`, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(300);
+
+    const cards = await page.locator('#sections-track > .section-card-item').count();
+    check(`[${label}] renders every section but navigation`, cards === 13, `${cards} cards`);
+
+    const track = await metrics(page, '#sections-track');
+    check(`[${label}] track is a flex row`, track.display === 'flex', track.display);
+    check(
+      `[${label}] cards share one width`,
+      new Set(track.childWidths).size === 1,
+      `${[...new Set(track.childWidths)].join(', ')}px`,
+    );
+    check(`[${label}] the row overflows`, track.scrollWidth > track.clientWidth + 1, `${track.scrollWidth}px in ${track.clientWidth}px`);
+
+    const nav = page.locator('[data-carousel="sections"]');
+    check(`[${label}] nav is visible`, await nav.isVisible());
+
+    const prev = page.locator('[data-carousel="sections"] [data-carousel-prev]');
+    check(
+      `[${label}] prev is aria-disabled at the start`,
+      (await prev.getAttribute('aria-disabled')) === 'true',
+    );
+
+    const dots = await page.locator('[data-carousel="sections"] .carousel-dot').count();
+    check(`[${label}] dots rendered`, dots > 0, `${dots} dots`);
+
+    const before = track.scrollLeft;
+    await page.locator('[data-carousel="sections"] [data-carousel-next]').click();
+    await page.waitForTimeout(700);
+    const after = await page.$eval('#sections-track', (el) => el.scrollLeft);
+    check(`[${label}] next scrolls the row`, after > before, `${before} → ${after}`);
+    const snapped = await page.$eval('#sections-track', (el) => {
+      const box = el.getBoundingClientRect();
+      const first = Array.from(el.children)
+        .map((c) => c.getBoundingClientRect())
+        .filter((r) => r.left >= box.left - 1)
+        .sort((a, b) => a.left - b.left)[0];
+      return !first || (first.left >= box.left - 1 && first.right <= box.right + 1);
+    });
+    check(`[${label}] snap lands on a whole card`, snapped);
+    check(
+      `[${label}] active dot follows the scroll`,
+      (await page.locator('[data-carousel="sections"] .carousel-dot[aria-current="true"]').count()) === 1,
+    );
+
+    await page.screenshot({ path: `${SHOTS}/navigation-${width}.png`, fullPage: false });
+    await page.close();
+  }
+
   // ---- Articles: the filter replaces the track -------------------------
   {
     const page = await open(1440);
@@ -168,13 +231,20 @@ try {
   }
 
   // ---- Role landing: a curated order has no sort control -----------------
-  // `/manager/` renders 27 cards in a hand-picked sequence. The catalogue's
-  // `?sort=` used to re-sort it track by track, scrambling the interleaving the
-  // page exists to show, while "Reset order" sat there announcing a no-op.
+  // `/hire/#manager` renders the manager's cards in a hand-picked sequence. The
+  // catalogue's `?sort=` used to re-sort it track by track, scrambling the
+  // interleaving the page exists to show, while "Reset order" sat there
+  // announcing a no-op.
+  //
+  // The old `/manager/` URL is now a redirect into the manager tab panel
+  // (`astro.config.mjs` redirects, `id="manager-project-list"` names the board),
+  // so this check addresses the real page — pointing it at the redirect was
+  // measuring a 302 body and seeing zero cards.
   {
     const page = await open(1440);
-    const order = () => page.$$eval('#project-list .project', (els) => els.map((el) => el.dataset.slug));
-    await page.goto(`${baseUrl}manager/?sort=new`, { waitUntil: 'networkidle', timeout: 30000 });
+    const order = () =>
+      page.$$eval('#manager-project-list .project', (els) => els.map((el) => el.dataset.slug));
+    await page.goto(`${baseUrl}hire/?sort=new#manager`, { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForTimeout(300);
     const sorted = await order();
     // Without this the three checks below pass on a 404: `[]` has no select, no
@@ -187,7 +257,7 @@ try {
     const search = await page.evaluate(() => location.search);
     check('[manager] the ignored ?sort= is stripped from the address', !/[?&]sort=/.test(search), search || 'no query');
 
-    await page.goto(`${baseUrl}manager/`, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(`${baseUrl}hire/#manager`, { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForTimeout(300);
     check('[manager] ?sort=new does not reorder the board', (await order()).join() === sorted.join());
     await page.close();

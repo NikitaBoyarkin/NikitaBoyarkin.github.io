@@ -1,6 +1,8 @@
 ---
-// `/en/navigation/` — same registry, EN labels and EN hrefs.
+// `/en/navigation/` — same registry, EN labels and EN hrefs. Same snap row as
+// the RU page: both locales render one card per section and read as one surface.
 import Base from '../../../layouts/Base.astro';
+import CarouselNav from '../../../components/CarouselNav.astro';
 import SectionCard from '../../../components/SectionCard.astro';
 import { SECTIONS } from '../../../lib/sections';
 import { withBase } from '../../../lib/path';
@@ -11,7 +13,7 @@ const cards = SECTIONS.filter((section) => section.key !== 'navigation');
 
 <Base
   title="Navigation | Nikita Boyarkin"
-  description="Every section of the portfolio in one grid: projects, demos, hiring, knowledge graph, library, writing, glossary."
+  description="Every section of the portfolio in one row: projects, demos, hiring, knowledge graph, library, writing, glossary."
   canonical={withBase('en/navigation/')}
   activeNav="navigation"
   lang={lang}
@@ -22,7 +24,8 @@ const cards = SECTIONS.filter((section) => section.key !== 'navigation');
     <p class="sections-lead">
       {cards.length} sections: what lives where, and where to start. Every card opens its section.
     </p>
-    <ul class="sections-grid">
+    <CarouselNav track="sections" label="Sections" lang="en" />
+    <ul class="sections-track" id="sections-track" data-carousel-track="sections">
       {
         cards.map((section) => (
           <SectionCard section={section} lang={lang} href={withBase(section.href.en)} />
@@ -44,11 +47,24 @@ const cards = SECTIONS.filter((section) => section.key !== 'navigation');
     color: var(--text-secondary);
   }
 
-  .sections-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  .sections-track {
+    display: flex;
     gap: var(--space-4);
-    margin: var(--space-6) 0 0;
+    margin: var(--space-5) 0 0;
     padding: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .sections-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* `:global()` because the `<li>` comes from `SectionCard.astro` — see the RU
+     page for the full note. */
+  .sections-track > :global(.section-card-item) {
+    flex: 0 0 min(22rem, 84%);
+    scroll-snap-align: start;
   }
 </style>

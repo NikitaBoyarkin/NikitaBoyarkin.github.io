@@ -21,8 +21,9 @@
  *     (`/` vs `en/`); `topics` and `repo-audit` are RU-only route pairs, so both
  *     locales carry the same string — an EN visitor crosses to the one page that
  *     exists instead of landing on a 404.
- *   - `description` is one line, used verbatim as the card subtitle and the
- *     banner subtitle. It must fit two lines at 40px on a 1200x630 canvas.
+ *   - `description` is one line, used verbatim as the card subtitle on
+ *     `/navigation/`. It is NOT painted on the OG banner: `generate-section-og`
+ *     draws the pixel identity block, the icon and the label only.
  *   - `icon` is a NAME from `src/lib/icons.ts`, never a path.
  */
 import type { IconName } from './icons';
@@ -68,8 +69,8 @@ export const SECTIONS: readonly SectionDef[] = [
     href: { ru: 'navigation/', en: 'en/navigation/' },
     label: { ru: 'Навигация', en: 'Navigation' },
     description: {
-      ru: 'Все разделы сайта одной сеткой: что где лежит.',
-      en: 'Every section of the site in one grid: what lives where.',
+      ru: 'Все разделы сайта одной лентой: что где лежит.',
+      en: 'Every section of the site in one row: what lives where.',
     },
     // Reuses the existing 2x2 `grid` glyph: `/navigation/` is a grid of section
     // cards, and a second near-identical drawing would only drift from it.
