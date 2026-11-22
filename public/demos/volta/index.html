@@ -41,7 +41,14 @@
   .kpi-sub { color:var(--text-muted); font-size:10px; line-height:1.3;
     margin-top:var(--space-1); }
 
-  .chart { margin:var(--space-4) 0; }
+  /* One column per figure. The chart, its question line and its takeaway are
+     one block, so the block is capped rather than the plot inside it: capping
+     only `.plot` left the heading flush at the card's left edge and the figure
+     centred 270px to the right of it — three alignment axes in one card.
+     852 = demo.css's 820px plot cap + the card's own 16px padding, so the
+     capped plot fills the column exactly and the takeaway keeps a measure
+     instead of running 180 characters across a 1400px card. */
+  .chart { margin:var(--space-4) 0; max-width:852px; }
   .question { color:var(--text-muted); font-size:14px; margin:0 0 var(--space-3); }
   /* .demo-panel supplies the recessed surface and its border; this is the inset. */
   .plot { padding:var(--space-3); }
