@@ -1,0 +1,52 @@
+{
+  "schema": "rust-anything/bridge@1",
+  "root": "/Users/nikitaboarkin/Desktop/00 ide/00 portfolio/NikitaBoyarkin.github.io/monitoring/exporter",
+  "unit": "src/metrics.ts",
+  "language": "ts",
+  "kind": "wasm",
+  "crate_name": "metrics-rs",
+  "exports": [
+    {
+      "name": "resetAll",
+      "file": "src/metrics.ts",
+      "line": 112,
+      "params": [],
+      "returns": "void",
+      "is_async": false,
+      "is_generator": false,
+      "type_params": [],
+      "uses_instanceof": false
+    },
+    {
+      "name": "escapeLabel",
+      "file": "src/metrics.ts",
+      "line": 116,
+      "params": [
+        {
+          "name": "v",
+          "ts_type": "string",
+          "optional": false,
+          "rest": false
+        }
+      ],
+      "returns": "string",
+      "is_async": false,
+      "is_generator": false,
+      "type_params": [],
+      "uses_instanceof": false
+    },
+    {
+      "name": "render",
+      "file": "src/metrics.ts",
+      "line": 120,
+      "params": [],
+      "returns": "string",
+      "is_async": false,
+      "is_generator": false,
+      "type_params": [],
+      "uses_instanceof": false
+    }
+  ],
+  "classes": [],
+  "js_only": []
+}

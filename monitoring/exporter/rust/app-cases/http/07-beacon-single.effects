@@ -1,0 +1,15 @@
+db
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE beacon_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts INTEGER NOT NULL,
+      type TEXT,
+      path TEXT,
+      locale TEXT,
+      session_id TEXT,
+      payload TEXT NOT NULL
+    );
+INSERT INTO beacon_events VALUES(1,[..],'pageview','/','ru',NULL,'{"type":"pageview","path":"/","locale":"ru"}');
+INSERT INTO sqlite_sequence VALUES('beacon_events',1);
+COMMIT;

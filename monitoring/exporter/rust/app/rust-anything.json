@@ -1,0 +1,39 @@
+{
+  "schema": "rust-anything/front-door@1",
+  "name": "index",
+  "commands": [],
+  "units": [
+    {
+      "name": "metrics",
+      "crate": "metrics-rs",
+      "path": "../metrics-rs",
+      "commands": [],
+      "routes": [
+        "GET /metrics"
+      ],
+      "switch": "RUST_ANYTHING_UNIT_METRICS"
+    },
+    {
+      "name": "beacon",
+      "crate": "beacon-rs",
+      "path": "../beacon-rs",
+      "commands": [],
+      "routes": [
+        "POST /beacon"
+      ],
+      "switch": "RUST_ANYTHING_UNIT_BEACON"
+    }
+  ],
+  "kind": "http",
+  "routes": [
+    "GET /healthz",
+    "GET /metrics",
+    "GET /nope",
+    "HEAD /metrics",
+    "OPTIONS /beacon",
+    "POST /metrics",
+    "POST /beacon",
+    "GET /beacon",
+    "GET /rust-anything-missing"
+  ]
+}

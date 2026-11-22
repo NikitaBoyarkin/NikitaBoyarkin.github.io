@@ -1,0 +1,15 @@
+[request]
+method = "POST"
+path = "/beacon"
+body = '{"type": "pageview", "path": "/ct", "locale": "ru"}'
+
+[request.headers]
+content-type = "text/plain"
+
+[response]
+status = 204
+
+[response.headers]
+access-control-allow-headers = "*"
+access-control-allow-methods = "POST, OPTIONS"
+access-control-allow-origin = "*"

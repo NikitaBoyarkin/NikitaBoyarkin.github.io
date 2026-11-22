@@ -1,0 +1,6 @@
+{"fn":"parseBeacon","args":["{\"type\":\"pageview\",\"path\":\"/\"}"]}
+{"fn":"parseBeacon","args":["[{\"type\":\"pageview\",\"path\":\"/\"},{\"type\":\"error\"}]"]}
+{"fn":"parseBeacon","args":["not json"]}
+{"fn":"ingestEvent","args":[{"type":"pageview","path":"/","locale":"ru","session_id":"s1"}]}
+{"fn":"ingestEvent","args":[{"type":"error","path":"/x","error":{"type":"TypeError"}}]}
+{"fn":"ingestEvent","args":[{"type":"nope"}]}

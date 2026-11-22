@@ -1,0 +1,13 @@
+db
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE beacon_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts INTEGER NOT NULL,
+      type TEXT,
+      path TEXT,
+      locale TEXT,
+      session_id TEXT,
+      payload TEXT NOT NULL
+    );
+COMMIT;

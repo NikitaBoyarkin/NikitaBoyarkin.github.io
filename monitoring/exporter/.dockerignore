@@ -1,0 +1,9 @@
+# Build context for `Dockerfile.rust`: the crates only.
+#
+# Cargo's target directories are per crate (`rust/app/target`, `rust/<unit>/target`), they are
+# hundreds of megabytes, and none of them belong in an image.
+**/target/
+rust/**/.tmp/
+**/node_modules/
+*.sqlite
+.env

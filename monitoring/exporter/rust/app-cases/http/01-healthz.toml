@@ -1,0 +1,12 @@
+[request]
+method = "GET"
+path = "/healthz"
+
+[response]
+status = 200
+
+[response.headers]
+access-control-allow-headers = "*"
+access-control-allow-methods = "POST, OPTIONS"
+access-control-allow-origin = "*"
+content-type = "application/json;charset=utf-8"

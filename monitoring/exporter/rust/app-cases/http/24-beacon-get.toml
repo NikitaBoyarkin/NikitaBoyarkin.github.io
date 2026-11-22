@@ -1,0 +1,12 @@
+[request]
+method = "GET"
+path = "/beacon"
+
+[response]
+status = 404
+
+[response.headers]
+access-control-allow-headers = "*"
+access-control-allow-methods = "POST, OPTIONS"
+access-control-allow-origin = "*"
+content-type = "application/octet-stream"

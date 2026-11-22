@@ -1,0 +1,5 @@
+{"fn":"resetAll","args":[]}
+{"fn":"render","args":[]}
+{"fn":"escapeLabel","args":["/"]}
+{"fn":"escapeLabel","args":["ru"]}
+{"fn":"escapeLabel","args":["a\"b\\c\nd"]}

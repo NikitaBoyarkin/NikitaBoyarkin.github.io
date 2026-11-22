@@ -1,0 +1,4 @@
+**/target/
+rust/.tmp/
+*.sqlite
+.DS_Store

@@ -1,0 +1,35 @@
+{"fn":"queryPayload","args":["30m"],"ok":{"query":{"kind":"HogQLQuery","query":"\nSELECT\n  properties.$pathname AS path,\n  quantile(0.75)(properties.$web_vitals_LCP_value / 1000.0) AS lcp,\n  quantile(0.75)(properties.$web_vitals_INP_value / 1000.0) AS inp,\n  quantile(0.75)(properties.$web_vitals_CLS_value) AS cls,\n  quantile(0.75)(properties.$web_vitals_FCP_value / 1000.0) AS fcp\nFROM events\nWHERE event = '$web_vitals'\n  AND timestamp > now() - INTERVAL {window:raw}\nGROUP BY path\n","values":{"window":"30m"}}}}
+{"fn":"queryPayload","args":["1h"],"ok":{"query":{"kind":"HogQLQuery","query":"\nSELECT\n  properties.$pathname AS path,\n  quantile(0.75)(properties.$web_vitals_LCP_value / 1000.0) AS lcp,\n  quantile(0.75)(properties.$web_vitals_INP_value / 1000.0) AS inp,\n  quantile(0.75)(properties.$web_vitals_CLS_value) AS cls,\n  quantile(0.75)(properties.$web_vitals_FCP_value / 1000.0) AS fcp\nFROM events\nWHERE event = '$web_vitals'\n  AND timestamp > now() - INTERVAL {window:raw}\nGROUP BY path\n","values":{"window":"1h"}}}}
+{"fn":"queryPayload","args":[""],"ok":{"query":{"kind":"HogQLQuery","query":"\nSELECT\n  properties.$pathname AS path,\n  quantile(0.75)(properties.$web_vitals_LCP_value / 1000.0) AS lcp,\n  quantile(0.75)(properties.$web_vitals_INP_value / 1000.0) AS inp,\n  quantile(0.75)(properties.$web_vitals_CLS_value) AS cls,\n  quantile(0.75)(properties.$web_vitals_FCP_value / 1000.0) AS fcp\nFROM events\nWHERE event = '$web_vitals'\n  AND timestamp > now() - INTERVAL {window:raw}\nGROUP BY path\n","values":{"window":""}}}}
+{"fn":"queryPayload","args":["a} b"],"ok":{"query":{"kind":"HogQLQuery","query":"\nSELECT\n  properties.$pathname AS path,\n  quantile(0.75)(properties.$web_vitals_LCP_value / 1000.0) AS lcp,\n  quantile(0.75)(properties.$web_vitals_INP_value / 1000.0) AS inp,\n  quantile(0.75)(properties.$web_vitals_CLS_value) AS cls,\n  quantile(0.75)(properties.$web_vitals_FCP_value / 1000.0) AS fcp\nFROM events\nWHERE event = '$web_vitals'\n  AND timestamp > now() - INTERVAL {window:raw}\nGROUP BY path\n","values":{"window":"a} b"}}}}
+{"fn":"queryPayload","args":[" now() - 1"],"ok":{"query":{"kind":"HogQLQuery","query":"\nSELECT\n  properties.$pathname AS path,\n  quantile(0.75)(properties.$web_vitals_LCP_value / 1000.0) AS lcp,\n  quantile(0.75)(properties.$web_vitals_INP_value / 1000.0) AS inp,\n  quantile(0.75)(properties.$web_vitals_CLS_value) AS cls,\n  quantile(0.75)(properties.$web_vitals_FCP_value / 1000.0) AS fcp\nFROM events\nWHERE event = '$web_vitals'\n  AND timestamp > now() - INTERVAL {window:raw}\nGROUP BY path\n","values":{"window":" now() - 1"}}}}
+{"fn":"queryPayload","args":["3"],"ok":{"query":{"kind":"HogQLQuery","query":"\nSELECT\n  properties.$pathname AS path,\n  quantile(0.75)(properties.$web_vitals_LCP_value / 1000.0) AS lcp,\n  quantile(0.75)(properties.$web_vitals_INP_value / 1000.0) AS inp,\n  quantile(0.75)(properties.$web_vitals_CLS_value) AS cls,\n  quantile(0.75)(properties.$web_vitals_FCP_value / 1000.0) AS fcp\nFROM events\nWHERE event = '$web_vitals'\n  AND timestamp > now() - INTERVAL {window:raw}\nGROUP BY path\n","values":{"window":"3"}}}}
+{"fn":"queryPayload","args":["0m"],"ok":{"query":{"kind":"HogQLQuery","query":"\nSELECT\n  properties.$pathname AS path,\n  quantile(0.75)(properties.$web_vitals_LCP_value / 1000.0) AS lcp,\n  quantile(0.75)(properties.$web_vitals_INP_value / 1000.0) AS inp,\n  quantile(0.75)(properties.$web_vitals_CLS_value) AS cls,\n  quantile(0.75)(properties.$web_vitals_FCP_value / 1000.0) AS fcp\nFROM events\nWHERE event = '$web_vitals'\n  AND timestamp > now() - INTERVAL {window:raw}\nGROUP BY path\n","values":{"window":"0m"}}}}
+{"fn":"queryPayload","args":["'x'"],"ok":{"query":{"kind":"HogQLQuery","query":"\nSELECT\n  properties.$pathname AS path,\n  quantile(0.75)(properties.$web_vitals_LCP_value / 1000.0) AS lcp,\n  quantile(0.75)(properties.$web_vitals_INP_value / 1000.0) AS inp,\n  quantile(0.75)(properties.$web_vitals_CLS_value) AS cls,\n  quantile(0.75)(properties.$web_vitals_FCP_value / 1000.0) AS fcp\nFROM events\nWHERE event = '$web_vitals'\n  AND timestamp > now() - INTERVAL {window:raw}\nGROUP BY path\n","values":{"window":"'x'"}}}}
+{"fn":"parseVitals","args":[{"results":[["/",1.5,0.2,0.05,1.1]]}],"ok":{"/":{"lcp":1.5,"inp":0.2,"cls":0.05,"fcp":1.1}}}
+{"fn":"parseVitals","args":[{"results":{"results":[{"path":"/a","lcp":2}]}}],"ok":{"/a":{"lcp":2,"inp":{"$undefined":true},"cls":{"$undefined":true},"fcp":{"$undefined":true}}}}
+{"fn":"parseVitals","args":[{"results":"nope"}],"ok":{}}
+{"fn":"parseVitals","args":[{}],"ok":{}}
+{"fn":"parseVitals","args":[{"results":null}],"ok":{}}
+{"fn":"parseVitals","args":[{"results":[["",1],["/b",3]]}],"ok":{"/b":{"lcp":3,"inp":{"$undefined":true},"cls":{"$undefined":true},"fcp":{"$undefined":true}}}}
+{"fn":"parseVitals","args":[{"results":[[0,1]]}],"ok":{}}
+{"fn":"parseVitals","args":[{"results":[[null,1]]}],"ok":{}}
+{"fn":"parseVitals","args":[{"results":[["/c"]]}],"ok":{"/c":{"lcp":{"$undefined":true},"inp":{"$undefined":true},"cls":{"$undefined":true},"fcp":{"$undefined":true}}}}
+{"fn":"parseVitals","args":[{"results":[[42,1]]}],"ok":{"42":{"lcp":1,"inp":{"$undefined":true},"cls":{"$undefined":true},"fcp":{"$undefined":true}}}}
+{"fn":"parseVitals","args":[{"results":[{"path":"/d","lcp":null,"inp":0,"cls":"1.5"}]}],"ok":{"/d":{"lcp":null,"inp":0,"cls":"1.5","fcp":{"$undefined":true}}}}
+{"fn":"parseVitals","args":[{"results":[{"lcp":1}]}],"ok":{}}
+{"fn":"parseVitals","args":[{"results":[null]}],"error":"Cannot read properties of null (reading 'path')"}
+{"fn":"parseVitals","args":[{"results":[5]}],"ok":{}}
+{"fn":"parseVitals","args":[{"results":[]}],"ok":{}}
+{"fn":"parseVitals","args":[{"results":[["/e","2",true,null,3.25]]}],"ok":{"/e":{"lcp":"2","inp":true,"cls":null,"fcp":3.25}}}
+{"fn":"updateGauges","args":[{"/":{"lcp":1.5,"inp":0.2,"cls":0.1,"fcp":1.1}}],"ok":{"$undefined":true}}
+{"fn":"updateGauges","args":[{"/":{"lcp":0}}],"ok":{"$undefined":true}}
+{"fn":"updateGauges","args":[{"/":{"inp":null}}],"ok":{"$undefined":true}}
+{"fn":"updateGauges","args":[{}],"ok":{"$undefined":true}}
+{"fn":"updateGauges","args":[{"a":{"cls":"0.5"}}],"ok":{"$undefined":true}}
+{"fn":"updateGauges","args":[{"a":{"cls":true}}],"ok":{"$undefined":true}}
+{"fn":"postToPosthog","args":[{}],"error":"Failed to parse URL from undefined/api/projects/undefined/query"}
+{"fn":"postToPosthog","args":[{"posthogHost":"not a url"}],"error":"Failed to parse URL from not a url/api/projects/undefined/query"}
+{"fn":"postToPosthog","args":[{"posthogHost":"http://127.0.0.1:1","posthogProjectId":"1","posthogApiKey":"k"}],"error":"fetch failed"}
+{"fn":"pullOnce","args":[{}],"ok":{"$undefined":true}}
+{"fn":"pullOnce","args":[{"posthogHost":"http://127.0.0.1:1","posthogPullWindow":"30m"}],"ok":{"$undefined":true}}

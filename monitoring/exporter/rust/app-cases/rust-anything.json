@@ -1,0 +1,22 @@
+{
+  "schema": "rust-anything/app-cases@1",
+  "name": "index",
+  "run": [
+    "sh",
+    "-c",
+    "START_POLLER=1 POSTHOG_PULL_INTERVAL=3600 BEACON_DB=$PWD/rust/.tmp/beacon.sqlite BEACON_PORT=$PORT exec bun src/index.ts"
+  ],
+  "normalizers": {
+    "epoch": "[0-9]{13}"
+  },
+  "timeout_secs": 30,
+  "http": {},
+  "effects": {
+    "http": true,
+    "env": {
+      "POSTHOG_HOST": "http-url"
+    },
+    "db_reset": "rm -f rust/.tmp/beacon.sqlite",
+    "db_dump": "sqlite3 rust/.tmp/beacon.sqlite .dump"
+  }
+}

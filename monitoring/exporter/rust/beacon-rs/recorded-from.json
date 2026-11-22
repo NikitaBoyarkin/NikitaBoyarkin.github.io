@@ -1,0 +1,23 @@
+{
+  "unit": "src/beacon.ts",
+  "files": 1,
+  "fingerprint": "a415fcaa20e7cbd7",
+  "coverage": {
+    "lines": 137,
+    "reached": 105,
+    "files": [
+      {
+        "file": "src/beacon.ts",
+        "lines": 24,
+        "reached": 24,
+        "missed": ""
+      },
+      {
+        "file": "src/metrics.ts",
+        "lines": 113,
+        "reached": 81,
+        "missed": "37-38, 48-50, 52-54, 56-58, 60-62, 113-114, 117-118, 121-134"
+      }
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+db
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE beacon_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts INTEGER NOT NULL,
+      type TEXT,
+      path TEXT,
+      locale TEXT,
+      session_id TEXT,
+      payload TEXT NOT NULL
+    );
+INSERT INTO beacon_events VALUES(1,[..],'pageview','/','ru',NULL,'{"type":"pageview","path":"/","locale":"ru"}');
+INSERT INTO beacon_events VALUES(2,[..],'pageview','/a','ru',NULL,'{"type":"pageview","path":"/a","locale":"ru"}');
+INSERT INTO beacon_events VALUES(3,[..],'pageview','/b','en','s1','{"type":"pageview","path":"/b","locale":"en","session_id":"s1"}');
+INSERT INTO beacon_events VALUES(4,[..],'click','/c',NULL,NULL,'{"type":"click","path":"/c"}');
+INSERT INTO beacon_events VALUES(5,[..],'error','/x',NULL,NULL,'{"type":"error","path":"/x","error":{"type":"TypeError"}}');
+INSERT INTO beacon_events VALUES(6,[..],'error','/y',NULL,NULL,'{"type":"error","path":"/y","error":null}');
+INSERT INTO beacon_events VALUES(7,[..],'pageview',unistr('/a"b\\c\u000ad'),'ru',NULL,'{"type":"pageview","path":"/a\"b\\c\nd","locale":"ru"}');
+INSERT INTO beacon_events VALUES(8,[..],'pageview','/п/тест 🚀','unknown',NULL,'{"type":"pageview","path":"/п/тест 🚀","locale":"unknown"}');
+INSERT INTO beacon_events VALUES(9,[..],NULL,NULL,NULL,NULL,'42');
+INSERT INTO beacon_events VALUES(10,[..],'pageview','/ct','ru',NULL,'{"type":"pageview","path":"/ct","locale":"ru"}');
+INSERT INTO beacon_events VALUES(11,[..],'pageview','/dup2','ru',NULL,'{"type":"pageview","path":"/dup2","locale":"ru"}');
+INSERT INTO beacon_events VALUES(12,[..],'pageview','/nums',NULL,NULL,'{"type":"pageview","path":"/nums","n":[..]992,"m":1e+21,"f":1,"neg":0,"tiny":0.000001,"tinier":1e-7,"big":1.[..]568e+29}');
+INSERT INTO beacon_events VALUES(13,[..],'pageview','/deep',NULL,NULL,'{"type":"pageview","path":"/deep","o":{"b":1,"a":2},"arr":[1,2]}');
+INSERT INTO beacon_events VALUES(14,[..],NULL,NULL,NULL,NULL,'{"2":4,"10":3,"zebra":1,"apple":2,"é":5,"Apple":6}');
+INSERT INTO beacon_events VALUES(15,[..],NULL,NULL,NULL,NULL,'{"n":[..]992,"f":1e+21,"t":0.1,"neg":-7}');
+INSERT INTO beacon_events VALUES(16,[..],NULL,NULL,NULL,NULL,'{"2":4,"10":3,"zebra":1,"apple":2,"é":5,"Apple":6}');
+INSERT INTO beacon_events VALUES(17,[..],NULL,NULL,NULL,NULL,'{"n":[..]992,"f":1e+21,"t":0.1,"neg":-7}');
+INSERT INTO sqlite_sequence VALUES('beacon_events',17);
+COMMIT;

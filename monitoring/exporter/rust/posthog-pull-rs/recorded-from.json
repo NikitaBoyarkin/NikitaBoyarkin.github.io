@@ -1,0 +1,23 @@
+{
+  "unit": "src/posthog-pull.ts",
+  "files": 1,
+  "fingerprint": "26cd5780e06412cf",
+  "coverage": {
+    "lines": 223,
+    "reached": 191,
+    "files": [
+      {
+        "file": "src/metrics.ts",
+        "lines": 113,
+        "reached": 84,
+        "missed": "37-38, 52-54, 56-58, 60-62, 113-114, 117-118, 121-134"
+      },
+      {
+        "file": "src/posthog-pull.ts",
+        "lines": 110,
+        "reached": 107,
+        "missed": "53-54, 112"
+      }
+    ]
+  }
+}

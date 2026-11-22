@@ -1,0 +1,12 @@
+[request]
+method = "POST"
+path = "/beacon"
+body = '{"type":"pageview","path":"/nums","n":9007199254740993,"m":1e21,"f":1.0,"neg":-0,"tiny":0.000001,"tinier":1e-7,"big":123456789012345678901234567890}'
+
+[response]
+status = 204
+
+[response.headers]
+access-control-allow-headers = "*"
+access-control-allow-methods = "POST, OPTIONS"
+access-control-allow-origin = "*"

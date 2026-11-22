@@ -1,0 +1,12 @@
+[request]
+method = "GET"
+path = "/metrics?after=all"
+
+[response]
+status = 200
+
+[response.headers]
+access-control-allow-headers = "*"
+access-control-allow-methods = "POST, OPTIONS"
+access-control-allow-origin = "*"
+content-type = "text/plain; version=0.0.4; charset=utf-8"

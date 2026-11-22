@@ -1,0 +1,102 @@
+{
+  "schema": "rust-anything/bridge@1",
+  "root": "/Users/nikitaboarkin/Desktop/00 ide/00 portfolio/NikitaBoyarkin.github.io/monitoring/exporter",
+  "unit": "src/posthog-pull.ts",
+  "language": "ts",
+  "kind": "napi",
+  "crate_name": "posthog-pull-rs",
+  "exports": [
+    {
+      "name": "queryPayload",
+      "file": "src/posthog-pull.ts",
+      "line": 32,
+      "params": [
+        {
+          "name": "window",
+          "ts_type": "string",
+          "optional": false,
+          "rest": false
+        }
+      ],
+      "returns": "PosthogQueryPayload",
+      "is_async": false,
+      "is_generator": false,
+      "type_params": [],
+      "uses_instanceof": false
+    },
+    {
+      "name": "postToPosthog",
+      "file": "src/posthog-pull.ts",
+      "line": 42,
+      "params": [
+        {
+          "name": "settings",
+          "ts_type": "Settings",
+          "optional": false,
+          "rest": false
+        }
+      ],
+      "returns": "Promise<unknown>",
+      "is_async": true,
+      "is_generator": false,
+      "type_params": [],
+      "uses_instanceof": false
+    },
+    {
+      "name": "parseVitals",
+      "file": "src/posthog-pull.ts",
+      "line": 64,
+      "params": [
+        {
+          "name": "resp",
+          "ts_type": "unknown",
+          "optional": false,
+          "rest": false
+        }
+      ],
+      "returns": "Record<string, Vitals>",
+      "is_async": false,
+      "is_generator": false,
+      "type_params": [],
+      "uses_instanceof": false
+    },
+    {
+      "name": "updateGauges",
+      "file": "src/posthog-pull.ts",
+      "line": 99,
+      "params": [
+        {
+          "name": "vitals",
+          "ts_type": "Record<string, Vitals>",
+          "optional": false,
+          "rest": false
+        }
+      ],
+      "returns": "void",
+      "is_async": false,
+      "is_generator": false,
+      "type_params": [],
+      "uses_instanceof": false
+    },
+    {
+      "name": "pullOnce",
+      "file": "src/posthog-pull.ts",
+      "line": 108,
+      "params": [
+        {
+          "name": "settings",
+          "ts_type": "Settings",
+          "optional": false,
+          "rest": false
+        }
+      ],
+      "returns": "Promise<void>",
+      "is_async": true,
+      "is_generator": false,
+      "type_params": [],
+      "uses_instanceof": false
+    }
+  ],
+  "classes": [],
+  "js_only": []
+}

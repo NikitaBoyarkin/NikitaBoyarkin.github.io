@@ -1,0 +1,16 @@
+[request]
+method = "POST"
+path = "/metrics"
+body = """
+naïve café 👍🏽
+second line
+"""
+
+[response]
+status = 404
+
+[response.headers]
+access-control-allow-headers = "*"
+access-control-allow-methods = "POST, OPTIONS"
+access-control-allow-origin = "*"
+content-type = "application/octet-stream"

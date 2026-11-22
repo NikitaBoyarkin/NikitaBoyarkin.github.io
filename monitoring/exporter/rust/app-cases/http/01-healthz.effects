@@ -1,0 +1,17 @@
+http POST http://sink/api/projects//query
+content-type: application/json
+
+{"query":{"kind":"HogQLQuery","query":"\nSELECT\n  properties.$pathname AS path,\n  quantile(0.75)(properties.$web_vitals_LCP_value / 1000.0) AS lcp,\n  quantile(0.75)(properties.$web_vitals_INP_value / 1000.0) AS inp,\n  quantile(0.75)(properties.$web_vitals_CLS_value) AS cls,\n  quantile(0.75)(properties.$web_vitals_FCP_value / 1000.0) AS fcp\nFROM events\nWHERE event = '$web_vitals'\n  AND timestamp > now() - INTERVAL {window:raw}\nGROUP BY path\n","values":{"window":"30m"}}}
+db
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE beacon_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts INTEGER NOT NULL,
+      type TEXT,
+      path TEXT,
+      locale TEXT,
+      session_id TEXT,
+      payload TEXT NOT NULL
+    );
+COMMIT;

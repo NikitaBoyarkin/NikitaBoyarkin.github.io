@@ -1,0 +1,27 @@
+# red-exporter, Rust build (ADR-008). Build from this directory:
+#   docker build -f Dockerfile.rust -t red-exporter:rust .            # native (Apple Silicon / amd64 host)
+#   docker buildx build --platform linux/amd64 -f Dockerfile.rust -t red-exporter:rust .
+#
+# The build stage runs on the target platform, so musl links natively and no cross toolchain is
+# needed. The original Bun image (Dockerfile) is untouched until the cutover is approved.
+
+FROM --platform=$TARGETPLATFORM rust:1.99-alpine AS build
+
+# `rusqlite` with `bundled` compiles SQLite's C sources, and rustls' aws-lc provider builds its own
+# C and assembly: both need a full C toolchain, plus cmake and perl for aws-lc.
+RUN apk add --no-cache musl-dev gcc make cmake perl linux-headers
+
+WORKDIR /src
+COPY rust ./rust
+WORKDIR /src/rust/app
+RUN cargo build --release
+
+FROM alpine:3.21
+
+# The poller is on in the container, the way the Bun image sets it (ENV START_POLLER=1).
+RUN apk add --no-cache ca-certificates
+COPY --from=build /src/rust/app/target/release/index /usr/local/bin/red-exporter
+
+ENV START_POLLER=1
+EXPOSE 9100
+CMD ["/usr/local/bin/red-exporter"]

@@ -1,0 +1,21 @@
+db
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE beacon_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts INTEGER NOT NULL,
+      type TEXT,
+      path TEXT,
+      locale TEXT,
+      session_id TEXT,
+      payload TEXT NOT NULL
+    );
+INSERT INTO beacon_events VALUES(1,[..],'pageview','/','ru',NULL,'{"type":"pageview","path":"/","locale":"ru"}');
+INSERT INTO beacon_events VALUES(2,[..],'pageview','/a','ru',NULL,'{"type":"pageview","path":"/a","locale":"ru"}');
+INSERT INTO beacon_events VALUES(3,[..],'pageview','/b','en','s1','{"type":"pageview","path":"/b","locale":"en","session_id":"s1"}');
+INSERT INTO beacon_events VALUES(4,[..],'click','/c',NULL,NULL,'{"type":"click","path":"/c"}');
+INSERT INTO beacon_events VALUES(5,[..],'error','/x',NULL,NULL,'{"type":"error","path":"/x","error":{"type":"TypeError"}}');
+INSERT INTO beacon_events VALUES(6,[..],'error','/y',NULL,NULL,'{"type":"error","path":"/y","error":null}');
+INSERT INTO beacon_events VALUES(7,[..],'pageview',unistr('/a"b\\c\u000ad'),'ru',NULL,'{"type":"pageview","path":"/a\"b\\c\nd","locale":"ru"}');
+INSERT INTO sqlite_sequence VALUES('beacon_events',7);
+COMMIT;

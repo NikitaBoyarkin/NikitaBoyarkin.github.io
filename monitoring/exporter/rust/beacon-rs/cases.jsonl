@@ -1,0 +1,34 @@
+{"fn":"parseBeacon","args":[""],"error":"Unexpected end of JSON input"}
+{"fn":"parseBeacon","args":["not json"],"error":"Unexpected token 'o', \"not json\" is not valid JSON"}
+{"fn":"parseBeacon","args":["null"],"ok":[null]}
+{"fn":"parseBeacon","args":["42"],"ok":[42]}
+{"fn":"parseBeacon","args":["\"str\""],"ok":["str"]}
+{"fn":"parseBeacon","args":["[1,2]"],"ok":[1,2]}
+{"fn":"parseBeacon","args":["{\"type\":\"pageview\"}"],"ok":[{"type":"pageview"}]}
+{"fn":"parseBeacon","args":["{\"type\":\"pageview\",\"path\":\"/п/🚀\"}"],"ok":[{"type":"pageview","path":"/п/🚀"}]}
+{"fn":"parseBeacon","args":["{\"type\":\"pageview\",\"path\":\"/a\",\"path\":\"/b\"}"],"ok":[{"type":"pageview","path":"/b"}]}
+{"fn":"parseBeacon","args":["{\"type\":\"pageview\",\"n\":9007199254740993}"],"ok":[{"type":"pageview","n":9007199254740992}]}
+{"fn":"parseBeacon","args":["﻿{}"],"error":"Unexpected token '﻿', \"﻿{}\" is not valid JSON"}
+{"fn":"parseBeacon","args":["[]"],"ok":[]}
+{"fn":"ingestEvent","args":[null],"error":"Cannot read properties of null (reading 'type')"}
+{"fn":"ingestEvent","args":[42],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":["str"],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[[]],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":null}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":"pageview"}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":"pageview","path":42,"locale":5}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":"error"}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":"error","error":{}}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":"error","error":"x"}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":"error","error":null}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":"error","error":{"type":5}}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":"pageview","path":"/","session_id":""}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":"pageview","path":"/","session_id":0}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":["pageview"]}],"ok":{"$undefined":true}}
+{"fn":"parseBeacon","args":["{\"type\":\"pageview\",\"path\":\"/\"}"],"ok":[{"type":"pageview","path":"/"}]}
+{"fn":"parseBeacon","args":["[{\"type\":\"pageview\",\"path\":\"/\"},{\"type\":\"error\"}]"],"ok":[{"type":"pageview","path":"/"},{"type":"error"}]}
+{"fn":"parseBeacon","args":["not json"],"error":"Unexpected token 'o', \"not json\" is not valid JSON"}
+{"fn":"ingestEvent","args":[{"type":"pageview","path":"/","locale":"ru","session_id":"s1"}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":"error","path":"/x","error":{"type":"TypeError"}}],"ok":{"$undefined":true}}
+{"fn":"ingestEvent","args":[{"type":"nope"}],"ok":{"$undefined":true}}

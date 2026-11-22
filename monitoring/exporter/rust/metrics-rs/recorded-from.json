@@ -1,0 +1,17 @@
+{
+  "unit": "src/metrics.ts",
+  "files": 1,
+  "fingerprint": "1cb80901e92634c0",
+  "coverage": {
+    "lines": 113,
+    "reached": 86,
+    "files": [
+      {
+        "file": "src/metrics.ts",
+        "lines": 113,
+        "reached": 86,
+        "missed": "31-32, 34-46, 48-50, 52-54, 126-131"
+      }
+    ]
+  }
+}

@@ -1,0 +1,2 @@
+{"fn":"getSettings","args":[{}]}
+{"fn":"getSettings","args":[{"POSTHOG_HOST":"https://eu.posthog.com","POSTHOG_PULL_INTERVAL":"30","POSTHOG_PULL_WINDOW":"1h","SITE_ORIGIN":"https://nikitaboyarkin.github.io","BEACON_PORT":"9101","BEACON_DB":"/data/beacon.sqlite","START_POLLER":"1"}]}

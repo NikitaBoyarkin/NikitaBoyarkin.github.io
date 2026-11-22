@@ -1,0 +1,29 @@
+# HELP portfolio_pageviews_total Total pageviews
+# TYPE portfolio_pageviews_total counter
+portfolio_pageviews_total{path="/",locale="ru"} 1
+# HELP portfolio_sessions_total Total sessions
+# TYPE portfolio_sessions_total counter
+# HELP portfolio_active_sessions Active sessions
+# TYPE portfolio_active_sessions gauge
+# HELP portfolio_js_errors_total JS errors
+# TYPE portfolio_js_errors_total counter
+# HELP portfolio_beacon_failures_total Beacon ingestion failures
+# TYPE portfolio_beacon_failures_total counter
+# HELP portfolio_lcp_seconds LCP p75 (seconds)
+# TYPE portfolio_lcp_seconds gauge
+# HELP portfolio_inp_seconds INP p75 (seconds)
+# TYPE portfolio_inp_seconds gauge
+# HELP portfolio_cls CLS p75
+# TYPE portfolio_cls gauge
+# HELP portfolio_fcp_seconds FCP p75 (seconds)
+# TYPE portfolio_fcp_seconds gauge
+# HELP portfolio_posthog_pageviews_30d PostHog pageviews last 30d
+# TYPE portfolio_posthog_pageviews_30d gauge
+# HELP portfolio_posthog_pull_errors_total PostHog pull errors
+# TYPE portfolio_posthog_pull_errors_total counter
+# HELP portfolio_posthog_pull_duration_seconds PostHog pull duration (s)
+# TYPE portfolio_posthog_pull_duration_seconds gauge
+portfolio_posthog_pull_duration_seconds 0.[..]
+# HELP portfolio_exporter_up Exporter up
+# TYPE portfolio_exporter_up gauge
+portfolio_exporter_up 1

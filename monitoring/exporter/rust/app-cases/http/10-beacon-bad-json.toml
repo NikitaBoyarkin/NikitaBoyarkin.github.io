@@ -1,0 +1,12 @@
+[request]
+method = "POST"
+path = "/beacon"
+body = "{bad"
+
+[response]
+status = 400
+
+[response.headers]
+access-control-allow-headers = "*"
+access-control-allow-methods = "POST, OPTIONS"
+access-control-allow-origin = "*"

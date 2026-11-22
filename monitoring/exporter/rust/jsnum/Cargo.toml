@@ -1,0 +1,12 @@
+[package]
+name = "jsnum"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "JavaScript number semantics the red-exporter port needs (Number(), Number::toString)"
+
+[dependencies]
+serde_json = "1"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }

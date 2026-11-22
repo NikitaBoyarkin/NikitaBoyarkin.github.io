@@ -1,0 +1,12 @@
+[request]
+method = "GET"
+path = "/metrics?after=%F0%9F%91%A8%E2%80%8D%F0%9F%91%A9%E2%80%8D%F0%9F%91%A7%20family"
+
+[response]
+status = 200
+
+[response.headers]
+access-control-allow-headers = "*"
+access-control-allow-methods = "POST, OPTIONS"
+access-control-allow-origin = "*"
+content-type = "text/plain; version=0.0.4; charset=utf-8"
