@@ -83,3 +83,115 @@ describe('figure ink: one declaration, at the large-text threshold', () => {
     expect(rulesIn(shrunk)[0].body).not.toContain('18.75px');
   });
 });
+
+// ---------------------------------------------------------------------------
+// The same claim, for every *other* rule that paints with the figure ink.
+// `.figure` is the documented home of that ink, but four components use it
+// directly, and nothing bound their size until /projects/volta/ failed
+// Lighthouse (run 44641509229): `.ps-value` resolved to 18.47px at 412px —
+// 0.19px under 14pt — so it was judged as normal text and its 3.25:1 orange
+// had to clear 4.5:1. A rule may not paint with this ink below the large-text
+// floor, whatever its selector.
+// ---------------------------------------------------------------------------
+
+const FLOOR_PX = 18.66; // 14pt bold: WCAG's large-text threshold.
+const INK_RULES = [
+  'src/components/ProofStrip.astro',
+  'src/components/about/ValueOffers.astro',
+  'src/components/KeyFigures.astro',
+  'src/components/GithubActivity.astro',
+];
+
+/** Every rule in a stylesheet, not just the ones matching `.figure`. */
+const anyRulesIn = (source: string) =>
+  [...cssOf(source).matchAll(/([^{}\n]*)\{([^}]*)\}/g)].map((m) => ({
+    selector: m[1].trim(),
+    body: m[2],
+  }));
+
+/** Split a CSS function's arguments on top-level commas only. */
+const args = (list: string): string[] => {
+  const out: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const ch of list) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (ch === ',' && depth === 0) {
+      out.push(current);
+      current = '';
+      continue;
+    }
+    current += ch;
+  }
+  out.push(current);
+  return out;
+};
+
+/** Smallest px a `font-size` declaration guarantees at any viewport. */
+const sizeFloor = (declaration: string): number => {
+  const floorOf = (expr: string): number => {
+    const e = expr.trim();
+    const max = e.match(/^max\(([\s\S]*)\)$/);
+    if (max) return Math.max(...args(max[1]).map(floorOf));
+    // clamp(MIN, PREFERRED, MAX): only the first argument is a guarantee.
+    const clamp = e.match(/^clamp\(([\s\S]*)\)$/);
+    if (clamp) return floorOf(args(clamp[1])[0]);
+    const single = e.match(/^([\d.]+)(px|rem|em)$/);
+    if (!single) return Number.NaN;
+    const n = Number(single[1]);
+    // `em` is resolved against the 16px root: the only rule using it here
+    // (`.figure`) sits on that base, and its `max()` makes the floor explicit.
+    return single[2] === 'px' ? n : n * 16;
+  };
+  const match = declaration.match(/font-size:\s*([^;]+);/);
+  if (!match) return Number.NaN;
+  // A bare value ends at the first token; a function must be read whole.
+  const value = match[1].trim();
+  return floorOf(/^(max|clamp)\(/.test(value) ? value : value.split(/\s+/)[0]);
+};
+
+// ---------------------------------------------------------------------------
+// The same claim, for every *other* rule that paints with the figure ink.
+// `.figure` is the documented home of that ink, but four components use it
+// directly, and nothing bound their size until /projects/volta/ failed
+// Lighthouse (run 44641509229): `.ps-value` resolved to 18.47px at 412px —
+// 0.19px under 14pt — so it was judged as normal text and its 3.25:1 orange
+// had to clear 4.5:1. A rule may not paint with this ink below the large-text
+// floor, whatever its selector.
+// ---------------------------------------------------------------------------
+describe('figure ink: every rule that paints with it clears the size floor', () => {
+  it('finds the component rules (a scan that finds nothing proves nothing)', () => {
+    const painted = INK_RULES.flatMap((rel) =>
+      anyRulesIn(read(rel)).filter((r) => r.body.includes('color: var(--text-accent-figure)')),
+    );
+    expect(painted.map((r) => r.selector)).toEqual([
+      '.ps-value',
+      '.value-metric b',
+      '.kf-value',
+      '.gh-stat-value',
+    ]);
+  });
+
+  it('keeps each of them at or above 14pt bold', () => {
+    for (const rel of INK_RULES) {
+      const painted = anyRulesIn(read(rel)).filter((r) =>
+        r.body.includes('color: var(--text-accent-figure)'),
+      );
+      for (const rule of painted) {
+        expect(sizeFloor(rule.body), `${rel} ${rule.selector}`).toBeGreaterThanOrEqual(FLOOR_PX);
+      }
+    }
+  });
+
+  it('bites on the declaration that shipped 18.47px', () => {
+    const before =
+      '.ps-value { color: var(--text-accent-figure); font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem); }';
+    expect(sizeFloor(before)).toBeLessThan(FLOOR_PX);
+    expect(sizeFloor(before)).toBeCloseTo(18.4, 1);
+
+    const after =
+      '.ps-value { color: var(--text-accent-figure); font-size: max(18.75px, clamp(1.15rem, 1rem + 0.6vw, 1.5rem)); }';
+    expect(sizeFloor(after)).toBeGreaterThanOrEqual(FLOOR_PX);
+  });
+});

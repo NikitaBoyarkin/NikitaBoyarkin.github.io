@@ -2261,10 +2261,13 @@ function initGraph(root: HTMLElement, data: any) {
   }
   /* Pressed state was border + text colour only, which read as "hovered", not
      "on". A tinted fill separates the two at a glance; the plain background
-     first is a fallback for engines without `color-mix`. */
+     first is a fallback for engines without `color-mix`. 12% and not 16%: at
+     16% the light theme's fill (#e8d1ae over the cream page) left the sienna
+     label at 4.49:1 against a 4.5:1 floor — Lighthouse failed /graph/ on it in
+     run 44641509229, by 0.01. 12% measures 4.76:1 and still reads as pressed. */
   .kg-btn-toggle[aria-pressed='true'] {
     background: var(--background-secondary);
-    background: color-mix(in srgb, var(--text-accent) 16%, var(--background-primary));
+    background: color-mix(in srgb, var(--text-accent) 12%, var(--background-primary));
     border-color: var(--text-accent);
     color: var(--text-accent);
   }

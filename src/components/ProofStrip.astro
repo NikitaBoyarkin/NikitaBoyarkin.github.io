@@ -154,7 +154,13 @@ const PROVENANCE = new Set(['measured', 'cited', 'derived']);
 
   .ps-value {
     font-family: var(--font-display);
-    font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
+    /* Same floor as `.figure`: this value is painted with the figure ink, whose
+       light-theme #f24a00 clears only the 3:1 large-text bar (3.25:1 on a card).
+       At 412px the clamp alone resolved to 18.47px — 0.19px under 14pt — so
+       Lighthouse read it as normal text and demanded 4.5:1 (run 44641509229,
+       /projects/volta/). `max()` keeps the responsive ramp but never lets the
+       value fall below the threshold the ink is documented against. */
+    font-size: max(18.75px, clamp(1.15rem, 1rem + 0.6vw, 1.5rem));
     font-weight: 700;
     line-height: 1.1;
     letter-spacing: -0.01em;
