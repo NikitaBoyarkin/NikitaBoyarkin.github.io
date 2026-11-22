@@ -320,7 +320,7 @@ ROI считается к стоимости разработки €15K без 
 
 Тот же кейс собран вторым способом — декларативным бордом [dbt-charts](https://dbtcharts.com): 20 чартов в 5 вкладках (онбординг, KYC A/B с SRM и guardrail-метриками, retention, causal DiD, сегментация) и живые фильтры по устройству, возрасту и каналу привлечения. Борд описан одним YAML-файлом `charts/volta-core.yml`, а каждый чарт — обычный SQL к тем же CSV.
 
-<iframe src="/demos/volta-board/index.html" title="Volta — декларативный dbt-charts борд: 20 чартов в 5 вкладках, фильтры по устройству, возрасту и каналу" height="720" loading="lazy" style="width:100%;border:0;border-radius:10px"></iframe>
+<iframe src="/demos/volta-board/index.html" title="Volta — декларативный dbt-charts борд: 20 чартов в 5 вкладках, фильтры по устройству, возрасту и каналу" height="720" loading="lazy" data-demo-fit style="width:100%;border:0;border-radius:10px"></iframe>
 
 [Открыть борд на весь экран →](/demos/volta-board/index.html)
 

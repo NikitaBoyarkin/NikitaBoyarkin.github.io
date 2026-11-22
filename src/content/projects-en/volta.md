@@ -292,7 +292,7 @@ ROI is computed against a €15K dev cost without subtracting margin, so it is a
 
 The same case, built a second way — as a declarative [dbt-charts](https://dbtcharts.com) board: 20 charts across 5 tabs (onboarding, KYC A/B with SRM and guardrail metrics, retention, causal DiD, segmentation) and live filters by device, age and acquisition channel. The board is a single YAML file (`charts/volta-core.yml`), and every chart is plain SQL over the same CSVs.
 
-<iframe src="/demos/volta-board/index.html" title="Volta — declarative dbt-charts board: 20 charts in 5 tabs, filters by device, age and channel" height="720" loading="lazy" style="width:100%;border:0;border-radius:10px"></iframe>
+<iframe src="/demos/volta-board/index.html" title="Volta — declarative dbt-charts board: 20 charts in 5 tabs, filters by device, age and channel" height="720" loading="lazy" data-demo-fit style="width:100%;border:0;border-radius:10px"></iframe>
 
 [Open the board full-screen →](/demos/volta-board/index.html)
 

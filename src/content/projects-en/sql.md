@@ -140,7 +140,7 @@ The same SQL layer at a different scale: a local Trino coordinator holds this pr
 
 The table on the board is a single `UNION ALL` statement over two catalogs, not two results stitched together in code — nothing was exported, Trino opens both files read-only in place. Catalogs are declared as static `.properties`, so adding a source is a file plus a coordinator restart, not a pipeline change.
 
-<iframe src="/demos/trino-federation/index.html" title="Trino federation — one SQL endpoint over two DuckDB marts: per-catalog row counts, event mix and promo profit by category" height="720" loading="lazy" style="width:100%;border:0;border-radius:10px"></iframe>
+<iframe src="/demos/trino-federation/index.html" title="Trino federation — one SQL endpoint over two DuckDB marts: per-catalog row counts, event mix and promo profit by category" height="720" loading="lazy" data-demo-fit style="width:100%;border:0;border-radius:10px"></iframe>
 
 [Open the board full screen →](/demos/trino-federation/index.html)
 

@@ -24,6 +24,13 @@
 // The frame is not a substitute for the numbers — `ChartsSection` still renders
 // the static, build-time chart set for slugs that have one. The board is the
 // interactive view; the charts are the greppable, crawlable one.
+//
+// 3. The frame is as tall as the board, not as tall as a guess. `height="680"`
+//    below is the SSR fallback only; `lib/demo-frame-fit` measures the
+//    same-origin board on load and after every change it makes to its own
+//    height, so the reader gets the whole dashboard instead of a scrollbar
+//    inside a scrollbar. Measured at the embed width the boards run 322–2052px,
+//    which is why one number could never have fit them all.
 import { withBase } from '../lib/path';
 
 interface Props {
@@ -79,6 +86,13 @@ const t = isEn
     )
   }
 </section>
+
+{/* One bundled module per page sizes every frame on it to its board's own
+    height. Not `is:inline`: Astro emits one module per imported URL, so a page
+    that frames two boards still measures them from one copy. */}
+<script>
+  import '../lib/demo-frame-fit';
+</script>
 
 <style>
   .project-demo {

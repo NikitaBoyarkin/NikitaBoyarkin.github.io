@@ -140,7 +140,7 @@ Runner печатает вопрос кейса, выполняет SQL прот
 
 Таблица на борде — одна инструкция `UNION ALL` по двум каталогам, а не два результата, склеенных в коде: файлы никуда не выгружались, Trino открывает их read-only на месте. Каталоги описаны статическими `.properties`, поэтому новый источник — это файл плюс рестарт координатора, а не изменение пайплайна.
 
-<iframe src="/demos/trino-federation/index.html" title="Trino federation — один SQL-эндпоинт над двумя DuckDB-мартами: счётчики строк по каталогам, микс событий и прибыль промо по категориям" height="720" loading="lazy" style="width:100%;border:0;border-radius:10px"></iframe>
+<iframe src="/demos/trino-federation/index.html" title="Trino federation — один SQL-эндпоинт над двумя DuckDB-мартами: счётчики строк по каталогам, микс событий и прибыль промо по категориям" height="720" loading="lazy" data-demo-fit style="width:100%;border:0;border-radius:10px"></iframe>
 
 [Открыть борд на весь экран →](/demos/trino-federation/index.html)
 
