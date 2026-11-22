@@ -27,10 +27,6 @@
     background:var(--background-tertiary)}
   .ctrl:focus-visible{outline:2px solid var(--text-accent);outline-offset:2px}
 
-  .kpis{display:grid;gap:var(--space-3);
-    grid-template-columns:repeat(auto-fit,minmax(132px,1fr))}
-  .kpi{display:flex;flex-direction:column;gap:2px}
-
   /* demo.css's shared `.dv-s1` is a `fill` utility — the SVG series class. The
      funnel bars here are HTML boxes, so the series token is re-applied to
      `background` in one declaration instead of an inline colour per bar. */
@@ -81,7 +77,6 @@
     .cols{grid-template-columns:1fr}
     .stage{grid-template-columns:92px 1fr}
     .lab{font-size:11px}
-    .kpis{grid-template-columns:repeat(auto-fit,minmax(112px,1fr))}
   }
 </style>
 <meta name="description" content="Снимок Streamlit-приложения: KPI-борд продуктовой аналитики на 8 000 пользователей — MRR, рост, удержание, конверсия.">

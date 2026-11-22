@@ -19,9 +19,8 @@
   .note--tight{margin-top:var(--space-2)}
   .gap-top{margin-top:var(--space-5)}
 
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));
-    gap:var(--space-3);margin-bottom:var(--space-4)}
-  .kpi{display:flex;flex-direction:column;gap:2px}
+  /* The shelf grid is demo.css's (`.kpis`); only the space below it is local. */
+  .kpis{margin-bottom:var(--space-4)}
 
   /* Bars: name | track | value text. Width and marker position are set in JS;
      colour is always a class, never an inline style. */

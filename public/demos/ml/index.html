@@ -44,7 +44,6 @@
            whole ramp lives in the light half of the luminance range. */
         color:var(--dv-cell-ink)}
   .cell span{font-size:10px; font-weight:600; letter-spacing:.02em}
-  .kpis{display:grid; grid-template-columns:repeat(5,1fr); gap:var(--space-3) var(--space-3)}
   .demo-kpi-value{font-size:1.05rem; display:block}
   .caps{font-size:11px; color:var(--dv-label); font-weight:600; margin-bottom:var(--space-2)}
   .note{margin:var(--space-3) 0 0; font-size:12px; color:var(--text-muted)}
@@ -62,7 +61,7 @@
        хотя в разметке идёт после таблиц: порядок здесь чисто визуальный. */
     .grid>.stack{order:2} .grid>section{order:1} }
   @media (max-width:520px){ th,td{padding:4px 2px} table{font-size:11px}
-    .kpis{grid-template-columns:repeat(3,1fr)} .cell{min-height:64px; font-size:17px} }
+    .cell{min-height:64px; font-size:17px} }
 </style>
 <meta name="description" content="Сравнение моделей оттока на 800 клиентах и кластеры клиентов: метрики моделей рядом с профилями сегментов.">
 <link rel="canonical" href="https://nikitaboyarkin.github.io/demos/ml/">

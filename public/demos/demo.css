@@ -699,17 +699,79 @@ body::before {
   box-shadow: inset 0 0 0 1px var(--border-color);
 }
 
-/* KPI readout — mirrors the site's `.bento-metric-value`. */
+/* ─────────────────────────────────────────────────────────────────────────
+   KPI shelf — the bento strip of metric tiles at the top of a board.
+
+   One recipe, declared here, not thirteen times inline. Before this, every
+   board carried its own `.kpis` grid: eight different `minmax` floors (102 /
+   104 / 112 / 118 / 132 / 168px), `repeat(3,1fr)`, `repeat(5,1fr)` and two
+   different gaps — the same component read differently on every page, and
+   nothing kept the copies from drifting further.
+   `tests/lib/demo-kpi-shelf.test.ts` now fails if a board re-declares that
+   grid, and keeps the value/label scale from creeping back up.
+
+   Two tracks, because the two contexts are different:
+   • the default fills the panel it sits in (every strip but one is inside a
+     `.demo-card`) — the panel's width IS the design there, and capping would
+     leave half a 1390px card empty (measured on sales-calls);
+   • `.kpis--shelf` is for a strip with no panel around it, where the viewport
+     is the container. That one is capped at 150px, because a fractional track
+     lets a tile grow with the window: at 1920px a 19px number sat in a 450px
+     box and the strip read as four billboards. `auto-fill` counts repetitions
+     from a definite max, so the shelf packs at a 162px pitch and the leftover
+     width stays empty on purpose. Rows stretch to the tallest tile, so a long
+     label never leaves its row ragged.
+   ───────────────────────────────────────────────────────────────────────── */
+.kpis {
+  display: grid;
+  /* The count follows the 84px floor, not the ceiling, so five readouts share
+     one row in a narrow column (ml, serp-rank) instead of wrapping to two. */
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: var(--space-2) var(--space-3);
+}
+
+/* The page-level shelf — see the two-track note above. */
+.kpis--shelf {
+  grid-template-columns: repeat(auto-fill, minmax(84px, 150px));
+}
+
+/* Phone: the shelf drops its ceiling and splits the row three ways. Six volta
+   tiles at 150px meant three rows and 266px of chrome before the first chart;
+   at the 84px floor they take two. */
+@media (max-width: 520px) {
+  .kpis--shelf {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  }
+}
+
+/* A tile is a column: value over label. Declared for both spellings the boards
+   use — a `.kpi` element (garden, python, churn, rag, …) and a bare child
+   (ml's plain `<div>`) — so one rule serves every strip. */
+.kpis > *,
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* Mirrors the site's `.bento-metric-value`, one step down: a metric tile is a
+   readout, not a hero, and 24px inside an 84–150px track is what made six tiles
+   wrap onto a second row. */
 .demo-kpi-value {
   font-family: var(--font-mono);
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 700;
+  line-height: 1.15;
   color: var(--text-accent-dataviz);
 }
 
+/* Text, so it must clear AA — the label keeps --text-muted and its 4.5:1, and
+   only the size moves (12px -> 11px). */
 .demo-kpi-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
+  line-height: 1.35;
   color: var(--text-muted);
 }
 

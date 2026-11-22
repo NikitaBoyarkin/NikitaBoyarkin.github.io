@@ -148,9 +148,11 @@ geometry, and the local classes that map values onto `--dv-*` tokens.
 
 Use the shared components instead of re-inventing them: `.demo-title`, `.demo-lede`,
 `.demo-card`, `.demo-panel`, `.demo-tooltip` (+ `.is-visible`), `.demo-flag`
-(+ `.demo-flag--ok`), `.demo-legend` / `.demo-swatch`, `.demo-kpi-value` /
-`.demo-kpi-label`, `.demo-axis-label`, and the SVG utilities `.dv-ink`, `.dv-label`,
-`.dv-muted` / `.dv-muted-line`, `.dv-axis`, `.dv-s1` / `.dv-s1-line`, `.dv-dataviz`.
+(+ `.demo-flag--ok`), `.demo-legend` / `.demo-swatch`, the KPI strip `.kpis` (add
+`.kpis--shelf` when it sits on the page rather than inside a card; never re-declare
+its grid), `.demo-kpi-value` / `.demo-kpi-label`, `.demo-axis-label`, and the SVG
+utilities `.dv-ink`, `.dv-label`, `.dv-muted` / `.dv-muted-line`, `.dv-axis`,
+`.dv-s1` / `.dv-s1-line`, `.dv-dataviz`.
 
 `padding` on `body` already comes from `var(--page-pad)`.
 
