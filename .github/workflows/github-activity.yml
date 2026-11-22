@@ -16,6 +16,7 @@ concurrency:
 
 permissions:
   contents: write
+  pull-requests: write # master is protected: the sync lands as a PR, not a push
 
 jobs:
   sync:
@@ -24,6 +25,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
@@ -51,8 +54,44 @@ jobs:
           # fallback on purpose: a louder failure beats a quietly wrong chart.
           GITHUB_TOKEN: ${{ secrets.STREAK_PAT }}
 
-      - name: Commit payload
-        uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403
-        with:
-          commit_message: 'chore: sync GitHub activity charts [skip ci]'
-          file_pattern: 'src/data/github-activity.json'
+      - name: Open PR if the payload changed
+        # master requires a PR, one review and a green `build` check, so the old
+        # `git-auto-commit-action` push to master died with
+        #   GH006: Protected branch update failed … Changes must be made
+        #   through a pull request. Required status check "build" is expected.
+        # on every scheduled run (2026-11-20, 2026-11-21) and the charts froze.
+        # Same shape as sync-github.yml: commit to a fixed bot branch, let a PR
+        # carry it through the gate. No `[skip ci]` — the PR needs the `build`
+        # run it is required to have.
+        run: |
+          if git diff --quiet -- src/data/github-activity.json; then
+            echo "Activity payload unchanged — nothing to sync."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Fixed branch name: usually already there from the previous run, so
+          # `-B` moves it, and force-with-lease replaces the stale commit. A
+          # plain push would be non-fast-forward and abort the workflow.
+          git fetch origin --prune
+          git checkout -B sync/github-activity
+          git add src/data/github-activity.json
+          git commit -m "chore: sync GitHub activity charts"
+          if git ls-remote --exit-code --heads origin sync/github-activity >/dev/null 2>&1; then
+            git push --force-with-lease origin HEAD:sync/github-activity
+          else
+            git push origin HEAD:sync/github-activity
+          fi
+
+          # Pushing an open PR's branch already updates it; `gh pr create` would
+          # error out and fail the run.
+          if [ -z "$(gh pr list --head sync/github-activity --state open --json number -q '.[0].number')" ]; then
+            gh pr create --base master --head sync/github-activity \
+              --title "chore: sync GitHub activity charts" \
+              --body "Daily sync of \`src/data/github-activity.json\` from the GitHub contributions API."
+          else
+            echo "PR for sync/github-activity is already open — branch updated."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

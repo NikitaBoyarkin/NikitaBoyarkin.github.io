@@ -188,7 +188,15 @@ jobs:
         # so it is the loader, not the board's SQL. 0.9.1 renders the same
         # file green; drop the pin once upstream fixes the arrow ingest path.
         run: |
-          pipx install --force dbt-charts==0.9.1
+          # pipx only discovers interpreters that are already on PATH, and the
+          # runner's default python is 3.14+ — outside dbt-charts 0.9.1's
+          # `<3.14,>=3.10` window. On image 20261116.202.1 that made `pipx
+          # install` abort with "none of the interpreters on this system does",
+          # even though the image ships 3.11-3.13 in a toolcache pipx cannot
+          # see. Hand pipx a 3.13 that uv provisions on demand (the same uv the
+          # CSV step above already uses) instead of trusting PATH to hold one.
+          uv python install 3.13
+          pipx install --force --python "$(uv python find 3.13)" dbt-charts==0.9.1
           BIN_DIR="$(pipx environment --value PIPX_BIN_DIR 2>/dev/null || echo "$HOME/.local/bin")"
           export PATH="$BIN_DIR:$PATH"
           dct --version

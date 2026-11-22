@@ -68,13 +68,25 @@ jobs:
       # which `--strict` turns into a failed workflow. The board is validated
       # against 0.9.1 (the same pin deploy.yml uses to render it). Fails the run rather than letting a
       # silently-stale charts/web-vitals.yml outlive the data it describes.
-      # pipx ships with the ubuntu runner image; swap for `uvx --from dbt-charts`
-      # if that ever stops being true.
+      # pipx resolves interpreters from PATH only, and the runner's default
+      # python is 3.14+ — outside 0.9.1's `<3.14,>=3.10` window — so the old
+      # `pipx run --spec` died with "No matching distribution found" (run
+      # 44641509229) and the board was never validated. Provision a 3.13 through
+      # uv and point pipx at it, exactly like deploy.yml does.
+      - name: Setup uv (dbt-charts interpreter)
+        if: always()
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
       - name: Rebuild and validate the web-vitals board
         if: always()
         run: |
           bun run scripts/build-lh-table.mjs
-          pipx run --spec dbt-charts==0.9.1 dct validate charts/web-vitals.yml --strict
+          uv python install 3.13
+          pipx install --force --python "$(uv python find 3.13)" dbt-charts==0.9.1
+          BIN_DIR="$(pipx environment --value PIPX_BIN_DIR 2>/dev/null || echo "$HOME/.local/bin")"
+          export PATH="$BIN_DIR:$PATH"
+          dct --version
+          dct validate charts/web-vitals.yml --strict
 
       - name: Upload Lighthouse reports
         if: always()
