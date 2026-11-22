@@ -120,8 +120,8 @@ const labels = isEn
         const icon = document.createElement('img');
         icon.className = 'site-tab-icon';
         icon.src = withBase(faviconForPath(tab.href));
-        icon.width = 14;
-        icon.height = 14;
+        icon.width = 18;
+        icon.height = 18;
         icon.alt = '';
         icon.decoding = 'async';
         const label = document.createElement('span');
@@ -271,13 +271,15 @@ const labels = isEn
     text-decoration: none;
   }
 
-  /* `flex: none` keeps the 14px box when the label is squeezed at the strip's
-     15rem cap; the label — not the whole link — carries the ellipsis. */
+  /* `flex: none` keeps the 18px box when the label is squeezed at the strip's
+     15rem cap; the label — not the whole link — carries the ellipsis. The glyph
+     is deliberately larger than the 13px label: these are brand marks, and at
+     14px the section shapes inside the hexagon turned to mush. */
   :global(.site-tab-icon) {
     flex: none;
     display: block;
-    inline-size: 14px;
-    block-size: 14px;
+    inline-size: 18px;
+    block-size: 18px;
   }
 
   :global(.site-tab-label) {
