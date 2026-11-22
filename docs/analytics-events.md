@@ -109,7 +109,7 @@ These keep their historical names (they are the slider for the "hard naming" cas
 | `bento_notes`, `bento_shelf`, `bento_writing` | `RoleLanding.astro` — colleague role pages (`bento_notes` RU only) |
 | `telegram_deeplink`, `telegram_footer`, `telegram_header`, `telegram_hero` | `contact.astro`, `Base.astro` nav chips, `HomeNewTab.astro` hero. There is **no** `telegram_contact` event — dashboards must OR these four |
 | `linkedin_contact`, `linkedin_footer` | `contact.astro`, `Base.astro` nav chips |
-| `github_footer`, `linkedin_footer` | `Base.astro` nav chips (moved out of the footer 2026-10-10; the `_footer` suffix is kept so the PostHog series does not split) |
+| `github_footer`, `linkedin_footer`, `huggingface_footer`, `community_footer` | `Base.astro` nav chips — the top bar and the drawer's phone copy (moved out of the footer 2026-10-10; the `_footer` suffix is kept so the PostHog series does not split). `huggingface_footer` → `huggingface.co/lofinibo`; `community_footer` → the Telegram community `t.me/nbxplay`, deliberately a separate series from `telegram_footer` (the direct-message chip) |
 | `value_cta`, `work_with_me_cta`, `whois_cta` | `about/{ru,en}.mdx` via `TelegramCta.astro`, in the `/about` tab panels — `value_cta` → `#value`, `work_with_me_cta` → `#work`, `whois_cta` → `#stack` |
 | `value_github` | `ValueOffers.astro` on `/about#value` |
 | `search_open` | `SearchBox.astro` |

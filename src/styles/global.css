@@ -1010,6 +1010,16 @@ nav ul.links a[aria-current="page"] {
     border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* A leading or trailing glyph inside any `.button` variant. `display: block`
+   kills the inline descender gap, `flex: none` holds the 16px box while the
+   label wraps or the button is squeezed by a flex row. One rule for the whole
+   family, so a glyph in a page-level CTA is sized by the same contract as one
+   in the nav rail. */
+.btn-icon {
+  display: block;
+  flex: none;
+}
+
 /* `:not(:disabled)` so a disabled button never takes the hover fill. The
    variant hovers below are bumped the same way to keep their original
    specificity order (see the button states block at the end of the file). */

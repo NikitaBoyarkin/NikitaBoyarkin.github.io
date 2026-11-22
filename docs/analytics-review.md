@@ -44,7 +44,7 @@
 
 ## 4. Контактные события
 
-Какие каналы контакта сработали за неделю (полный футер-набор: три чипа в `Base.astro` + каналы на `/contact/`):
+Какие каналы контакта сработали за неделю (полный футер-набор: пять чипов в `Base.astro` + каналы на `/contact/`):
 
 | Канал | События |
 |---|---|
@@ -52,6 +52,8 @@
 | Telegram | `telegram_contact`, `telegram_deeplink`, `telegram_footer` |
 | LinkedIn | `linkedin_contact`, `linkedin_footer` |
 | GitHub | `github_footer` |
+| Hugging Face | `huggingface_footer` |
+| Комьюнити (Telegram-чат) | `community_footer` |
 | Запись звонка | `booking_click` |
 
 > `telegram_header`, `linkedin_hero`, `github_hero`, `hero_projects`, `bento_graph`,

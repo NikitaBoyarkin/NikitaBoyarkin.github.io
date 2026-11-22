@@ -6,6 +6,7 @@
 //
 // The invite token and role arrive in the URL (`?t=…&r=…`) because the page is
 // static: the script, not the build, fills the hidden token field.
+import Icon from './Icon.astro';
 import {
   FEEDBACK_ENDPOINT,
   FEEDBACK_HONEYPOT_FIELD,
@@ -98,7 +99,10 @@ const clientI18n = {
       <input id="fb-website" name={FEEDBACK_HONEYPOT_FIELD} type="text" tabindex="-1" autocomplete="off" />
     </div>
 
-    <button class="button fb-submit" id="feedback-submit" type="submit">{t.submit}</button>
+    <button class="button fb-submit" id="feedback-submit" type="submit">
+      <Icon name="send" size={16} class="btn-icon" />
+      <span class="btn-label">{t.submit}</span>
+    </button>
     <p class="fb-status" id="feedback-status" role="status" aria-live="polite"></p>
   </form>
 
@@ -292,7 +296,10 @@ const clientI18n = {
     function setBusy(busy: boolean): void {
       if (submit) {
         submit.setAttribute('aria-disabled', busy ? 'true' : 'false');
-        submit.textContent = busy ? i18n.sending : i18n.submit;
+        // The glyph is a sibling of the label — `textContent` on the button
+        // would delete it, so only the label span is rewritten.
+        const label = submit.querySelector<HTMLElement>('.btn-label');
+        if (label) label.textContent = busy ? i18n.sending : i18n.submit;
       }
       form.setAttribute('aria-busy', busy ? 'true' : 'false');
     }

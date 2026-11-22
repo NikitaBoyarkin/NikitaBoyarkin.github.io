@@ -2,6 +2,7 @@
 // `/en/hire/` — see `src/pages/hire/index.astro` for why the three bodies share
 // one page and why every id a body writes is namespaced.
 import Base from '../../../layouts/Base.astro';
+import Icon from '../../../components/Icon.astro';
 import RoleLanding from '../../../components/RoleLanding.astro';
 import RoleTabs from '../../../components/RoleTabs.astro';
 import { AUDIENCES } from '../../../lib/projects';
@@ -48,6 +49,7 @@ const lang = 'en' as const;
   <aside class="hire-feedback">
     <p>Worked with me? Five questions about where I help and where I get in the way.</p>
     <a class="button" href={withBase('en/feedback/')} data-analytics="feedback_page_click">
+      <Icon name="message" size={16} class="btn-icon" />
       Answer five questions
     </a>
   </aside>

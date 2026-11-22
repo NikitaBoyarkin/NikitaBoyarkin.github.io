@@ -33,6 +33,7 @@ import {
   type FacetKey,
 } from '../lib/explorer';
 import { withBase } from '../lib/path';
+import Icon from './Icon.astro';
 import ExplorerFacets from './ExplorerFacets.astro';
 import ExplorerRelations from './ExplorerRelations.astro';
 
@@ -158,7 +159,8 @@ const dirGlyph = pageDefaults.dir === 'asc' ? '↑' : '↓';
         {dirGlyph}
       </button>
       <button type="button" class="button button-secondary" data-xp-reset>
-        {fill(i18n.reset, { n: activeFilterCount(pageDefaults) })}
+        <Icon name="reset" size={16} class="btn-icon" />
+        <span class="btn-label">{fill(i18n.reset, { n: activeFilterCount(pageDefaults) })}</span>
       </button>
       <p class="xp-count" id="xp-count" aria-live="polite">
         {fill(i18n.count, { shown: matched.length, total: index.records.length, ms: '0.0' })}
@@ -462,7 +464,10 @@ const dirGlyph = pageDefaults.dir === 'asc' ? '↑' : '↓';
         dirEl.textContent = asc ? "↑" : "↓";
         dirEl.setAttribute("aria-label", asc ? t.dirAsc || "" : t.dirDesc || "");
       }
-      if (resetEl) resetEl.textContent = fill(t.reset || "Reset ({n})", { n: activeFilterCount(state) });
+      if (resetEl) {
+        const label = resetEl.querySelector<HTMLElement>(".btn-label");
+        if (label) label.textContent = fill(t.reset || "Reset ({n})", { n: activeFilterCount(state) });
+      }
     }
 
     function syncCount(matched: number, elapsed: number): void {

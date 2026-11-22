@@ -124,9 +124,49 @@ const assetVersion = (rel: string) =>
 const fullOgImage = ogImage.startsWith('http')
   ? ogImage
   : `${siteUrl}${withBase(ogImage)}?v=${assetVersion(ogImage)}`;
-const faviconUrl = `${withBase('favicon.svg')}?v=${assetVersion('favicon.svg')}`;
+/* The tab icon follows the section, not the page: a strip with a dozen open
+   tabs shows five or six of this site's, and identical glyphs there tell the
+   reader nothing. `sectionForPath` is the same registry that picks the OG
+   banner, so `/projects/`, `/en/projects/volta/ab/` and their twins resolve to
+   one icon rather than drifting apart. The three route groups that are pages
+   without a drawer entry (contact, search, feedback) fall back to their own
+   glyph here; everything else — the home page first among them — keeps the NB
+   lettermark, which is the one tab where the brand is the identity.
+   `scripts/generate-icons.mjs` draws these files; `tests/lib/icons.test.ts`
+   fails if a registered section has no file. */
+const extraFaviconKey = (() => {
+  const p = Astro.url.pathname.replace(/^\/+|\/+$/g, '');
+  if (p === 'contact' || p === 'en/contact') return 'contact';
+  /* Article permalinks live at `/posts/<slug>/` while the section route is
+     `/writing/`, so `sectionForPath` has no prefix to match — without this the
+     tab of every article would fall back to the brand mark. */
+  if (p === 'posts' || p.startsWith('posts/') || p === 'en/posts' || p.startsWith('en/posts/')) {
+    return 'writing';
+  }
+  /* `/notes/` and `/notes/guides/` are the RU-only note and guide indexes — the
+     same article family as `/writing/`, with no registry entry of their own. */
+  if (p === 'notes' || p.startsWith('notes/')) return 'writing';
+  if (p === 'search' || p.startsWith('search/') || p === 'en/search' || p.startsWith('en/search/')) {
+    return 'search';
+  }
+  if (p === 'feedback' || p.startsWith('feedback/') || p === 'en/feedback' || p.startsWith('en/feedback/')) {
+    return 'feedback';
+  }
+  return null;
+})();
+const faviconKey = sectionKey ?? extraFaviconKey;
+const sectionFavicon = faviconKey ? `icons/favicon-${faviconKey}.svg` : null;
+/* `assetVersion` hashes the file, so a missing one would fail the build. The
+   guard degrades to the base mark the way the OG-image guard above does. */
+const faviconFile =
+  sectionFavicon && existsSync(path.join(process.cwd(), 'public', sectionFavicon))
+    ? sectionFavicon
+    : 'favicon.svg';
+const faviconUrl = `${withBase(faviconFile)}?v=${assetVersion(faviconFile)}`;
+/* iOS reads one home-screen icon for the whole site, so this one stays the
+   shared mark: a per-section apple-touch-icon would only pick whatever page the
+   reader happened to add to the home screen. */
 const appleTouchIconUrl = `${withBase('apple-touch-icon.png')}?v=${assetVersion('apple-touch-icon.png')}`;
-
 // Search-result snippet: clamped to ~160 characters on a word boundary. The
 // authored `description:` is 120–200 chars (PRD D12) and stays full for
 // og/twitter, but Google truncates near 155–160, so an untruncated long line was
@@ -491,6 +531,20 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         href={isEn ? withBase('en/hire/') : withBase('hire/')}
         aria-current={isNavCurrent('hire') ? 'page' : undefined}
       >
+        <svg
+          class="btn-icon"
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+          set:html={ICON.briefcase}
+        />
         {isEn ? 'Hiring' : 'Найм'}
       </a>
       {/* Inline site navigation, from the measured cutover (see the <style>
@@ -524,9 +578,10 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
       {/* The site's off-site links live in the top bar, next to the brand they
           belong to. The event names keep their `_footer` suffix: PostHog series
           (`github_footer` in the B3 repo-click rate) are read over time, and a
-          rename would silently split them. From 1200px up the chips drop their
-          visible labels (icon only, name kept visually hidden) to pay for
-          `.nav-inline`. */}
+          rename would silently split them. Five chips cannot carry their labels
+          on one row at any desktop width, so the bar is icon-only everywhere and
+          the label is the anchor's visually hidden accessible name; the drawer's
+          phone copy (`.nav-social`, below 768px) shows the words. */}
       <div class="nav-chips">
         <a class="nav-chip" href="https://github.com/NikitaBoyarkin" data-analytics="github_footer">
           <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.github} />
@@ -539,6 +594,14 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         <a class="nav-chip" href="https://t.me/lofinibo" data-analytics="telegram_footer">
           <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.telegram} />
           <span class="nav-chip-label">Telegram</span></a
+        >
+        <a class="nav-chip" href="https://huggingface.co/lofinibo" data-analytics="huggingface_footer">
+          <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.huggingface} />
+          <span class="nav-chip-label">Hugging Face</span></a
+        >
+        <a class="nav-chip" href="https://t.me/nbxplay" data-analytics="community_footer">
+          <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.community} />
+          <span class="nav-chip-label">{isEn ? 'Community' : 'Комьюнити'}</span></a
         >
       </div>
 
@@ -659,6 +722,14 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         <a class="nav-chip" href="https://t.me/lofinibo" data-analytics="telegram_footer">
           <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.telegram} />
           <span class="nav-chip-label">Telegram</span></a
+        >
+        <a class="nav-chip" href="https://huggingface.co/lofinibo" data-analytics="huggingface_footer">
+          <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.huggingface} />
+          <span class="nav-chip-label">Hugging Face</span></a
+        >
+        <a class="nav-chip" href="https://t.me/nbxplay" data-analytics="community_footer">
+          <svg class="chip-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false" set:html={BRAND_ICON.community} />
+          <span class="nav-chip-label">{isEn ? 'Community' : 'Комьюнити'}</span></a
         >
       </div>
 
@@ -1020,23 +1091,9 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
           outline-offset: 2px;
           border-radius: var(--radius-sm);
         }
-        /* Icon-only chips, ≥1200px: the identity glyphs are recognisable on
-           their own and the label stays visually hidden, so each anchor keeps
-           its accessible name. This rule has always shared `.nav-inline`'s
-           breakpoint (it is the same media block) because the icon-only chips
-           are what paid for the inline links; with one link the pair moves down
-           to 1200px together. */
-        .nav-chip-label {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          margin: -1px;
-          padding: 0;
-          overflow: hidden;
-          clip-path: inset(50%);
-          white-space: nowrap;
-          border: 0;
-        }
+        /* The chips are icon-only here too — see the `.nav-chip-label` rule in
+           the chip block: the bar never has room for five labels at any desktop
+           width, with or without `.nav-inline`. */
       }
 
       /* The single hiring entry point the bar carries in place of the three
@@ -1047,6 +1104,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: var(--space-1);
         padding: var(--space-1) var(--space-3);
         border: 1px solid var(--border-color);
         border-radius: var(--radius-md);
@@ -1127,6 +1185,27 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         display: block;
       }
 
+      /* The chips are icon-only above the phone bar. Five outbound services
+         (GitHub, LinkedIn, Telegram, Hugging Face, the community chat) carry
+         ~500px of labels on their own; with the brand, the hiring chip and the
+         bar's action they wrap the row even at 1199px, and a wrapped bar grows
+         past `--nav-mobile-h` — the token the drawer, the projects filter bar and
+         the graph overlay pin themselves to. Visually hidden rather than
+         `display: none`, so every anchor keeps its accessible name (the glyph
+         beside it is `aria-hidden`); the drawer's phone copy restores the words
+         below 768px. */
+      .nav-chip-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+      }
+
       .nav-chip:hover {
         color: var(--text-accent);
         border-color: var(--text-accent);
@@ -1155,14 +1234,10 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         }
       }
 
-      /* A leading glyph on the three `.button` CTAs (drawer contact, drawer CV,
-         footer contact). Same reason as `.nav-chip svg`: `display: block` kills
-         the inline descender gap, `flex: none` holds the 16px box while the
-         label wraps or the button is squeezed. */
-      .btn-icon {
-        display: block;
-        flex: none;
-      }
+      /* The leading glyph on the three `.button` CTAs (drawer contact, footer
+         contact, bar Telegram) is sized by the global `.btn-icon` rule in
+         `global.css` — one contract for every variant on every page, not a
+         Base-local copy that other components cannot inherit. */
 
       /* `--border-active` is the only stroke that clears the 3:1 non-text floor
          in all three themes; `outline-offset` keeps the ring on the drawer
@@ -1286,23 +1361,10 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
         }
       }
 
-      /* The chips need the wider cutover. With the hiring entry point and the
-         theme toggle sharing the bar, brand + three labelled chips + two
-         controls no longer fit below 1024px, so the chip labels go
-         icon-only there. Visually hidden, not `display: none`, so each anchor
-         keeps its accessible name (the glyph beside it is `aria-hidden`). */
-      @media (max-width: 1023px) {
-        .nav-chip-label {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          margin: -1px;
-          padding: 0;
-          overflow: hidden;
-          clip-path: inset(50%);
-          white-space: nowrap;
-          border: 0;
-        }
+      /* Compact chips wherever the label is hidden: the bar pays for the density
+         with a smaller gap and padding, and the drawer inherits the same pair on
+         a phone. */
+      @media (max-width: 1199px) {
         .nav-chips {
           gap: var(--space-1);
         }

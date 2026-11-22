@@ -224,7 +224,18 @@ export function sectionForPath(pathname: string): SectionKey | null {
   for (const section of SECTIONS) {
     for (const locale of ['ru', 'en'] as const) {
       const href = stripSlashes(section.href[locale]);
-      const matches = href === '' ? target === '' : target === href || target.startsWith(`${href}/`);
+      /* `home` is exact-match only, in BOTH locales. The RU href is the empty
+         string and the EN one is `en`, so a prefix rule would let `en` claim
+         every EN route the registry does not name (`/en/contact/`, `/en/search/`,
+         `/en/posts/<slug>/`) and hand them the home banner and the home tab
+         icon. A section that answers for routes it does not own is worse than
+         no match at all. */
+      const matches =
+        section.key === 'home'
+          ? target === href
+          : href === ''
+            ? target === ''
+            : target === href || target.startsWith(`${href}/`);
       if (!matches) continue;
       if (!best || href.length > best.length) best = { key: section.key, length: href.length };
     }

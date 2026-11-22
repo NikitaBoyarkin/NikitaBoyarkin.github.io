@@ -9,6 +9,7 @@
 // `locale` is stamped as a data attribute instead of using `define:vars`, which
 // would force the script to be inlined and give up the type-checked bundled
 // build (the same trade-off `AskMe.astro` makes).
+import Icon from './Icon.astro';
 import { CONTACT_ENDPOINT, CONTACT_HONEYPOT_FIELD, CONTACT_LIMITS } from '../lib/contact';
 
 interface Props {
@@ -153,7 +154,8 @@ const clientI18n = {
     </div>
 
     <button class="button contact-submit" id="contact-submit" type="submit">
-      {t.submit}
+      <Icon name="send" size={16} class="btn-icon" />
+      <span class="btn-label">{t.submit}</span>
     </button>
 
     {/* Kept in the DOM and always rendered: a live region that is display:none
@@ -384,7 +386,10 @@ const clientI18n = {
         // the control focusable, keeps the hint, and the submit guard below
         // still blocks a second send.
         submit.setAttribute('aria-disabled', busy ? 'true' : 'false');
-        submit.textContent = busy ? i18n.sending : i18n.submit;
+        // The glyph is a sibling of the label, so setting `textContent` on the
+        // button would delete the icon on the first send. Update only the span.
+        const label = submit.querySelector<HTMLElement>('.btn-label');
+        if (label) label.textContent = busy ? i18n.sending : i18n.submit;
       }
       form.setAttribute('aria-busy', busy ? 'true' : 'false');
     }

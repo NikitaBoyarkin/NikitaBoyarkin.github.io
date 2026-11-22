@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import ContactForm from '../components/ContactForm.astro';
+import Icon from '../components/Icon.astro';
 import { withBase } from '../lib/path';
 import { CAL_BOOKING_URL, CONTACT_FORM_ENABLED } from '../lib/contact';
 
@@ -37,7 +38,10 @@ const LINKEDIN_URL = 'https://www.linkedin.com/in/nikita-boyarkin';
           target="_blank"
           rel="noopener noreferrer"
           data-analytics="booking_click"
-          data-analytics-surface="contact_cta">Выбрать свободный слот</a
+          data-analytics-surface="contact_cta"
+        >
+          <Icon name="calendar" size={16} class="btn-icon" />
+          Выбрать свободный слот</a
         >
         <a
           href={tgDeepLink}
@@ -45,7 +49,10 @@ const LINKEDIN_URL = 'https://www.linkedin.com/in/nikita-boyarkin';
           target="_blank"
           rel="noopener noreferrer"
           data-analytics="telegram_deeplink"
-          data-analytics-surface="contact_cta">Написать в Telegram →</a
+          data-analytics-surface="contact_cta"
+        >
+          <Icon name="telegram" size={16} class="btn-icon" />
+          Написать в Telegram</a
         >
         <a
           href={LINKEDIN_URL}

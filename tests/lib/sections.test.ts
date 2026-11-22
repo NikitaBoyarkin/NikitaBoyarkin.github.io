@@ -128,5 +128,11 @@ describe('section registry (src/lib/sections.ts)', () => {
     expect(sectionForPath('/en')).toBe('home');
     expect(sectionForPath('/unknown-route/')).toBeNull();
     expect(sectionForPath('/projects/')).not.toBe('home');
+    // The EN twin of the trap: home's EN href is `en`, so a prefix rule let it
+    // claim every unnamed EN route and gave those pages the home banner and the
+    // home tab icon.
+    expect(sectionForPath('/en/contact/')).toBeNull();
+    expect(sectionForPath('/en/search/')).toBeNull();
+    expect(sectionForPath('/en/posts/a-post/')).toBeNull();
   });
 });

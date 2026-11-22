@@ -2,10 +2,13 @@
 // Both CTAs on /about open Telegram with a pre-filled message. The link is built
 // here rather than in the .mdx body so the copy stays editable: percent-encoding
 // a Russian sentence by hand inside MDX breaks silently — no test reads it back.
+import { BRAND_ICON } from '../../lib/icons';
+
 interface Props {
   text: string;
   analytics: string;
 }
+
 const { text, analytics } = Astro.props;
 const href = `https://t.me/lofinibo?text=${encodeURIComponent(text)}`;
 ---
@@ -18,6 +21,16 @@ const href = `https://t.me/lofinibo?text=${encodeURIComponent(text)}`;
     target="_blank"
     rel="noopener noreferrer"
   >
+    <svg
+      class="btn-icon"
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="currentColor"
+      aria-hidden="true"
+      focusable="false"
+      set:html={BRAND_ICON.telegram}
+    />
     <slot />
   </a>
 </p>

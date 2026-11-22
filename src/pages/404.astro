@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
 import { withBase } from '../lib/path';
 import { getCollection } from 'astro:content';
 
@@ -64,7 +65,10 @@ const index = [...projects, ...posts];
       style="list-style: none; padding: 0; margin: 1.5rem auto 0; max-width: 600px; text-align: left;"
     ></ul>
     <p style="margin-top: 2.5rem;">
-      <a id="nf-home" class="button" href={withBase('/')}>← На главную</a>
+      <a id="nf-home" class="button" href={withBase('/')}>
+        <Icon name="home" size={16} class="btn-icon" />
+        На главную
+      </a>
       &nbsp;·&nbsp;
       <a id="nf-writing" href={withBase('writing/')} style="color: var(--text-accent);">Все записи</a>
     </p>

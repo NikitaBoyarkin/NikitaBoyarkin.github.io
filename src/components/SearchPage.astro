@@ -22,6 +22,7 @@
  *     above — they are what the filter links and the sitemap point at.
  */
 import Base from "../layouts/Base.astro";
+import Icon from "./Icon.astro";
 import { withBase } from "../lib/path";
 import { buildSearchIndex } from "../lib/search-index";
 import {
@@ -219,7 +220,10 @@ const jsonLd = {
           spellcheck="false"
           placeholder={copy.placeholder}
         />
-        <button class="button button-secondary" type="submit">{copy.submit}</button>
+        <button class="button button-secondary" type="submit">
+          <Icon name="search" size={16} class="btn-icon" />
+          {copy.submit}
+        </button>
       </div>
       <p class="srch-hint">{copy.hint}</p>
     </form>

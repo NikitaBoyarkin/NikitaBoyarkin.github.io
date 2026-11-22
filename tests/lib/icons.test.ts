@@ -19,10 +19,11 @@
 // those, `astro check` is the mechanism, because the maps are `as const` and a
 // missing key is a type error.
 import { describe, it, expect } from 'bun:test';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 import { ICON, BRAND_ICON } from '../../src/lib/icons';
+import { SECTIONS } from '../../src/lib/sections';
 
 const SRC = resolve(__dirname, '../../src');
 
@@ -46,6 +47,36 @@ const stripComments = (source: string) =>
 /** `ICON.name` | `ICON['name']` | `<Icon name="name"` — literal forms only. */
 const REFERENCE =
   /ICON\.([A-Za-z_$][\w$]*)|ICON\[\s*['"]([^'"]+)['"]\s*\]|<Icon[^>]*\bname="([^"]+)"/g;
+
+describe('section tab icons (src/lib/sections.ts ↔ public/icons/)', () => {
+  // Every section's favicon is a GENERATED file: `scripts/generate-icons.mjs`
+  // draws it from the section's nav glyph. The failure this guards is silent —
+  // Base.astro falls back to the NB mark when a file is missing, so a section
+  // that was added to the registry without re-running `bun run icons` would just
+  // keep the wrong tab icon forever, and nothing in the build would complain.
+  const ICONS = resolve(__dirname, '../../public/icons');
+  const EXTRA = ['contact', 'search', 'feedback', 'games', 'board', 'diagram'];
+
+  it('has a generated favicon for every registered section but home', () => {
+    const missing = SECTIONS.filter((s) => s.key !== 'home')
+      .map((s) => `favicon-${s.key}.svg`)
+      .filter((f) => !existsSync(join(ICONS, f)));
+    expect(missing, `run \`bun run icons\``).toEqual([]);
+  });
+
+  it('has a favicon for every page group outside the registry', () => {
+    const missing = EXTRA.map((k) => `favicon-${k}.svg`).filter((f) => !existsSync(join(ICONS, f)));
+    expect(missing, `run \`bun run icons\``).toEqual([]);
+  });
+
+  it('every generated icon is a 100×100 svg with the hexagon fill', () => {
+    for (const file of readdirSync(ICONS).filter((f) => f.endsWith('.svg'))) {
+      const svg = readFileSync(join(ICONS, file), 'utf8');
+      expect(svg, file).toContain('viewBox="0 0 100 100"');
+      expect(svg, file).toContain('M96 50');
+    }
+  });
+});
 
 describe('icon contract (src/lib/icons.ts ↔ src/)', () => {
   it('declares every glyph as non-empty markup', () => {

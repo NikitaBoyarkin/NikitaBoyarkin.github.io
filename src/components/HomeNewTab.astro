@@ -24,7 +24,7 @@
 // (`#search-toggle`, `#search-panel`), so a second instance on the same page
 // would collide. This one reads the same `search-index.json` and hands a longer
 // query off to the Explorer surface, which already accepts `?q=`.
-import { ICON } from '../lib/icons';
+import { BRAND_ICON, ICON } from '../lib/icons';
 import { withBase } from '../lib/path';
 import HeroShader from './HeroShader.astro';
 
@@ -122,7 +122,19 @@ const TELEGRAM_URL = 'https://t.me/lofinibo';
     </div>
 
     <div class="nt-ctas">
-      <a class="button" href={TELEGRAM_URL} data-analytics="telegram_hero"> Telegram </a>
+      <a class="button" href={TELEGRAM_URL} data-analytics="telegram_hero">
+        <svg
+          class="btn-icon"
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="currentColor"
+          aria-hidden="true"
+          focusable="false"
+          set:html={BRAND_ICON.telegram}
+        />
+        Telegram
+      </a>
     </div>
 
     <form class="nt-form" id="nt-form" role="search" aria-label={t.searchLabel} autocomplete="off">

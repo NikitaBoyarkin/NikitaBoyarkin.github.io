@@ -15,6 +15,7 @@
 // `surface` is what makes the event readable: «дочитал кейс и ушёл в контакт»
 // must stay separable from a click in the header or the footer.
 import { withBase } from '../lib/path';
+import Icon from './Icon.astro';
 
 export interface Props {
   lang: 'ru' | 'en';
@@ -63,21 +64,21 @@ const copy = {
     text: isEn
       ? 'Tell me the role and the problems in it — I reply within a day. Need this reasoning applied to your data rather than a hire? That works too.'
       : 'Напишите, что за роль и какие в ней задачи — отвечу в течение дня. Нужен разбор на ваших данных, а не найм? Это тоже сюда.',
-    cta: isEn ? 'Send a request →' : 'Оставить запрос →',
+    cta: isEn ? 'Send a request' : 'Оставить запрос',
   },
   catalog: {
     title: isEn ? 'No case matches your task?' : 'Не нашли подходящий кейс?',
     text: isEn
       ? "Tell me the task — I'll point to the closest case and come back with a plan: what data it needs, what we test, and how long it takes."
       : 'Расскажите задачу — подскажу, какой разбор ближе, и вернусь с планом: какие данные нужны, что проверяем и за какой срок.',
-    cta: isEn ? 'Discuss a task →' : 'Обсудить задачу →',
+    cta: isEn ? 'Discuss a task' : 'Обсудить задачу',
   },
   writing: {
     title: isEn ? "Your question isn't covered here?" : 'Не нашли нужный разбор?',
     text: isEn
       ? "Tell me what you're working through — I'll say whether there is a write-up on it, and answer the question itself either way."
       : 'Скажите, какой вопрос разбираете, — отвечу, есть ли разбор по нему, и в любом случае отвечу по существу.',
-    cta: isEn ? 'Ask a question →' : 'Задать вопрос →',
+    cta: isEn ? 'Ask a question' : 'Задать вопрос',
   },
 }[variant];
 
@@ -99,7 +100,8 @@ const cta = ctaProp ?? copy.cta;
     data-analytics="contact_page_click"
     data-analytics-surface={surface}
   >
-    {cta}
+    <span class="btn-label">{cta}</span>
+    <Icon name="arrow-right" size={16} class="btn-icon" />
   </a>
 </section>
 

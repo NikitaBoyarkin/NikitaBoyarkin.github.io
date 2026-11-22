@@ -10,10 +10,10 @@
 | 2 | ~~Hero (index, RU+EN)~~ — **удалено 2026-10-24** | — | — | — |
 | 3 | Featured card (index) | «Разбор проекта» / «Демо» / «GitHub» | `featured_project` / `featured_demo` / `featured_github` | внутренний + внешние |
 | 4 | ~~Header nav — чип CV + рейл ≥1860px~~ — **удалено 2026-10-24** | — | — | — |
-| 5 | Header nav (чипы у бренда) — **переехало из футера 2026-10-10** | GitHub · LinkedIn · Telegram | `github_footer` / `linkedin_footer` / `telegram_footer` | внешние |
+| 5 | Header nav (чипы у бренда) — **переехало из футера 2026-10-10**; Hugging Face и комьюнити — 2026-11-22 | GitHub · LinkedIn · Telegram · Hugging Face · Комьюнити | `github_footer` / `linkedin_footer` / `telegram_footer` / `huggingface_footer` / `community_footer` | внешние |
 | 6 | ~~HomeBoard (главная)~~ — **удалён 2026-09-27** | — | `telegram_board` / `github_board` / `linkedin_board` — 0 вхождений в `src/` и `public/` | — |
 | 7 | contact.astro | «Telegram: @lofinibo» | `telegram_contact` | `t.me/lofinibo` |
-| 8 | contact.astro | «Написать с контекстом →» | `telegram_deeplink` | tg deep-link |
+| 8 | contact.astro | «Написать в Telegram» | `telegram_deeplink` | tg deep-link |
 | 9 | ~~contact.astro — «CV»~~ — **удалено 2026-10-24** | — | — | — |
 | 10 | ValueOffers.astro (`/about#value`) | «Написать в Telegram →» | `value_cta` | tg deep-link |
 | 11 | ValueOffers.astro (`/about#value`) | «GitHub →» | `value_github` | `github.com/NikitaBoyarkin` |
@@ -26,11 +26,11 @@
 | 18 | ProjectCard | «Смотреть» / «Demo» / «GitHub» | `project_viewed` {`slug`, `surface: "card"`} (через `data-analytics-project`) / `project_demo_<slug>` / `project_github_<slug>` | внутренние + внешние |
 | 19 | HeadlineCases (главная, PRD v6 S2.6) | 3 кейса + сжатый список 14 | `headline_demo_<slug>` / `headline_github_<slug>` / `headline_all_projects` / `more_project_<slug>` | внутренние проекты + внешние артефакты |
 | 20 | contact.astro (форма, RU+EN) | «Отправить» / «Send» | `contact_submit` (успех); `contact_form_error` с `reason` при отказе | `POST {CONTACT_ENDPOINT}` (Supabase Edge Function `contact`) |
-| 21 | contact.astro (под формой, RU+EN) | «Записаться на 30 минут» / «Book 30 minutes» | `booking_click` | `CAL_BOOKING_URL` (Cal.com) |
+| 21 | contact.astro (под формой, RU+EN) | «Выбрать свободный слот» / «Pick a free slot» | `booking_click` | `CAL_BOOKING_URL` (Cal.com) |
 | 22 | ~~Header nav (Base.astro, RU+EN)~~ — **удалён 2026-10-10** | — | `booking_click` — остаётся только строка 21 (`/contact`) | — |
 | 23 | Боковая навигация (drawer `nav ul.links`, Base.astro, RU+EN) | Главная · Проекты · Обо мне · Словарь · Граф · Библиотека · **Статьи** · **Обозреватель** · **Темы** · Аудит репозиториев (2026-10-18) | — (без `data-analytics`, как у остальных ссылок drawer'а) | внутренние |
 | 24 | Drawer CTA + футер (Base.astro, RU+EN) | «Контакты» / «Contact» — кнопка в `nav .nav-aux` и кнопка `footer-contact` | `contact_page_click` {`surface`: `nav` \| `footer`} | `/contact/`, `/en/contact/` (2026-10-31) |
-| 25 | Конец кейса, конца главы Volta и конца статьи (`NextStep.astro`) | «Оставить запрос →» / «Send a request →» (кейс и глава Volta — «Нужен аналитик, который так работает?»; статья — «Не нашли нужный разбор?») | `contact_page_click` {`surface`: `case_next_step` \| `volta_part_next_step` \| `post_next_step`} | `/contact/`, `/en/contact/` (2026-10-31; формулировка кейса — 2026-11-04) |
+| 25 | Конец кейса, конца главы Volta и конца статьи (`NextStep.astro`) | «Оставить запрос» / «Send a request» (кейс и глава Volta — «Нужен аналитик, который так работает?»; статья — «Не нашли нужный разбор?»). Стрелка в подписи заменена иконкой `arrow-right` 2026-11-22 | `contact_page_click` {`surface`: `case_next_step` \| `volta_part_next_step` \| `post_next_step`} | `/contact/`, `/en/contact/` (2026-10-31; формулировка кейса — 2026-11-04) |
 | 26 | `/about`, блок ссылок под дашбордом (`about/{ru,en}.mdx`) | «Контакты» / «Contact» в строке ссылок | `contact_page_click` {`surface`: `about_links`} | `/contact/`, `/en/contact/` (2026-10-31) |
 
 > **Поправка, 2026-10-18 (важно).** Инлайн-бар больше не несёт шесть ссылок: `Проекты`,

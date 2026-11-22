@@ -10,6 +10,7 @@
 // and the three bodies write `intro`, `projects`, `projects-heading`, the filter
 // status span and the year headings. `idPrefix` is what keeps them apart.
 import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
 import RoleLanding from '../../components/RoleLanding.astro';
 import RoleTabs from '../../components/RoleTabs.astro';
 import { AUDIENCES } from '../../lib/projects';
@@ -64,6 +65,7 @@ const DEFAULT = 'colleague';
   <aside class="hire-feedback">
     <p>Работали со мной? Пять вопросов о том, где я полезен и где мешаю.</p>
     <a class="button" href={withBase('feedback/')} data-analytics="feedback_page_click">
+      <Icon name="message" size={16} class="btn-icon" />
       Ответить на пять вопросов
     </a>
   </aside>
