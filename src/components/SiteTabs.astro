@@ -32,6 +32,9 @@ const labels = isEn
 </nav>
 
 <script>
+  import { faviconForPath } from '../lib/favicon';
+  import { withBase } from '../lib/path';
+
   function init() {
     const strip = document.getElementById('site-tabs');
     const track = document.getElementById('site-tabs-track');
@@ -111,7 +114,20 @@ const labels = isEn
         const a = document.createElement('a');
         a.className = 'site-tab-link';
         a.href = tab.href;
-        a.textContent = tab.label;
+        /* The same icon the browser tab shows for that page — one rule
+           (`faviconForPath`), so the strip and the tab strip above the page
+           never disagree about which section a page belongs to. */
+        const icon = document.createElement('img');
+        icon.className = 'site-tab-icon';
+        icon.src = withBase(faviconForPath(tab.href));
+        icon.width = 14;
+        icon.height = 14;
+        icon.alt = '';
+        icon.decoding = 'async';
+        const label = document.createElement('span');
+        label.className = 'site-tab-label';
+        label.textContent = tab.label;
+        a.append(icon, label);
         if (isActive) a.setAttribute('aria-current', 'page');
 
         const close = document.createElement('button');
@@ -244,15 +260,30 @@ const labels = isEn
   }
 
   :global(.site-tab-link) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
     flex: 1;
     min-inline-size: 0;
     padding-block: var(--space-2);
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     color: var(--text-muted);
     font-size: 0.8125rem;
     text-decoration: none;
+  }
+
+  /* `flex: none` keeps the 14px box when the label is squeezed at the strip's
+     15rem cap; the label — not the whole link — carries the ellipsis. */
+  :global(.site-tab-icon) {
+    flex: none;
+    display: block;
+    inline-size: 14px;
+    block-size: 14px;
+  }
+
+  :global(.site-tab-label) {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   :global(.site-tab.is-active .site-tab-link) {

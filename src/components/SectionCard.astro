@@ -17,7 +17,7 @@ const open = lang === 'en' ? 'Open →' : 'Открыть →';
 ---
 
 <li class="section-card-item">
-  <a class="section-card" href={href}>
+  <a class="section-card" href={href} data-tab-label={section.label[lang]}>
     <img
       class="section-card-banner"
       src={withBase(sectionOgPath(section.key, lang))}

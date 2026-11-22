@@ -10,6 +10,7 @@ import '../styles/global.css';
 // which 15 render blog cards, 100 render `.prose` and 30 contain a formula.
 import { BRAND_ICON, ICON } from '../lib/icons';
 import { withBase } from '../lib/path';
+import { faviconForPath } from '../lib/favicon';
 import { SECTIONS, sectionForPath, sectionOgPath } from '../lib/sections';
 import Analytics from '../components/Analytics.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
@@ -126,42 +127,18 @@ const fullOgImage = ogImage.startsWith('http')
   : `${siteUrl}${withBase(ogImage)}?v=${assetVersion(ogImage)}`;
 /* The tab icon follows the section, not the page: a strip with a dozen open
    tabs shows five or six of this site's, and identical glyphs there tell the
-   reader nothing. `sectionForPath` is the same registry that picks the OG
-   banner, so `/projects/`, `/en/projects/volta/ab/` and their twins resolve to
-   one icon rather than drifting apart. The three route groups that are pages
-   without a drawer entry (contact, search, feedback) fall back to their own
-   glyph here; everything else — the home page first among them — keeps the NB
-   lettermark, which is the one tab where the brand is the identity.
-   `scripts/generate-icons.mjs` draws these files; `tests/lib/icons.test.ts`
-   fails if a registered section has no file. */
-const extraFaviconKey = (() => {
-  const p = Astro.url.pathname.replace(/^\/+|\/+$/g, '');
-  if (p === 'contact' || p === 'en/contact') return 'contact';
-  /* Article permalinks live at `/posts/<slug>/` while the section route is
-     `/writing/`, so `sectionForPath` has no prefix to match — without this the
-     tab of every article would fall back to the brand mark. */
-  if (p === 'posts' || p.startsWith('posts/') || p === 'en/posts' || p.startsWith('en/posts/')) {
-    return 'writing';
-  }
-  /* `/notes/` and `/notes/guides/` are the RU-only note and guide indexes — the
-     same article family as `/writing/`, with no registry entry of their own. */
-  if (p === 'notes' || p.startsWith('notes/')) return 'writing';
-  if (p === 'search' || p.startsWith('search/') || p === 'en/search' || p.startsWith('en/search/')) {
-    return 'search';
-  }
-  if (p === 'feedback' || p.startsWith('feedback/') || p === 'en/feedback' || p.startsWith('en/feedback/')) {
-    return 'feedback';
-  }
-  return null;
+   reader nothing. The rule itself is `src/lib/favicon.ts`, shared with
+   `SiteTabs` so the strip and the browser tab cannot disagree; everything it
+   does not name — the home page first among them — keeps the NB lettermark,
+   which is the one tab where the brand is the identity.
+   `scripts/generate-icons.mjs` draws the files. */
+const faviconFile = (() => {
+  const rel = faviconForPath(Astro.url.pathname).replace(/^\//, '');
+  /* `assetVersion` hashes the file, so a missing one would fail the build. The
+     guard degrades to the base mark the way the OG-image guard above does —
+     `tests/lib/icons.test.ts` is what fails when a section has no icon. */
+  return existsSync(path.join(process.cwd(), 'public', rel)) ? rel : 'favicon.svg';
 })();
-const faviconKey = sectionKey ?? extraFaviconKey;
-const sectionFavicon = faviconKey ? `icons/favicon-${faviconKey}.svg` : null;
-/* `assetVersion` hashes the file, so a missing one would fail the build. The
-   guard degrades to the base mark the way the OG-image guard above does. */
-const faviconFile =
-  sectionFavicon && existsSync(path.join(process.cwd(), 'public', sectionFavicon))
-    ? sectionFavicon
-    : 'favicon.svg';
 const faviconUrl = `${withBase(faviconFile)}?v=${assetVersion(faviconFile)}`;
 /* iOS reads one home-screen icon for the whole site, so this one stays the
    shared mark: a per-section apple-touch-icon would only pick whatever page the
