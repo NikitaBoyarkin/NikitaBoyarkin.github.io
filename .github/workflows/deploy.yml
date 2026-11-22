@@ -162,11 +162,23 @@ jobs:
           # there first, then here.
           uv run --no-project --with pandas==2.3.3 python scripts/build_charts_data.py
 
-      - name: Render Volta board demo
+      - name: Render Volta board demo (all five tabs)
         # Regenerate public/demos/volta-board/index.html from the board in
-        # vendor/volta-banking. `--output` resolves relative to --project-dir,
-        # not the cwd, so the target must be absolute. Runs before the Astro
-        # build so public/ carries the fresh render into dist/.
+        # vendor/volta-banking. Runs before the Astro build so public/ carries
+        # the fresh render into dist/.
+        #
+        # Why a script and not a bare `dct render`: a static html export carries
+        # ONE tab — dbt-charts scopes the render to the tab its layout shows and
+        # draws the rest of the bar as links to `?…_tab_<board>=<tab>`, which
+        # only a live `dct serve` host answers. On Pages a click reloaded the
+        # same tab, so the board's five views never switched and the artifact
+        # shipped 2 charts of 20. `scripts/build-volta-board.mjs` renders every
+        # tab (the list comes from `dct describe --json`, so a tab added to the
+        # YAML is rendered instead of dropped), folds them into one page, and
+        # reapplies the site-owned head — description, canonical and OG block
+        # live in the committed copy, and without them the /demos/ card renders
+        # blank (tests/lib/demos.test.ts:192) and the page ships with no
+        # description, which is what the bare render did on run 42446109157.
         #
         # Pinned, not floating: dbt-charts 0.10.0 makes every `type: csv` file
         # source unreadable — `ERR-FILE-SOURCE-UNSUPPORTED-TYPE: reading the
@@ -176,22 +188,13 @@ jobs:
         # so it is the loader, not the board's SQL. 0.9.1 renders the same
         # file green; drop the pin once upstream fixes the arrow ingest path.
         run: |
-          mkdir -p public/demos/volta-board
-          pipx run --spec dbt-charts==0.9.1 dct render charts/volta-core.yml \
-            --project-dir vendor/volta-banking \
-            --format html \
-            --output "$RUNNER_TEMP/volta-board.html"
-          # The render carries charset, viewport and <title> only. The
-          # description, canonical and OG block are site-owned — they live in
-          # the committed copy — so put them back before the Astro build copies
-          # public/ into dist/. Without this the /demos/ card for this board
-          # renders blank (tests/lib/demos.test.ts) and the page ships with no
-          # description or canonical, which is what the bare render did on run
-          # 42446109157.
-          bun run scripts/reapply-demo-head.mjs \
-            "$RUNNER_TEMP/volta-board.html" \
-            public/demos/volta-board/index.html \
-            public/demos/volta-board/index.html
+          pipx install --force dbt-charts==0.9.1
+          BIN_DIR="$(pipx environment --value PIPX_BIN_DIR 2>/dev/null || echo "$HOME/.local/bin")"
+          export PATH="$BIN_DIR:$PATH"
+          dct --version
+          bun run scripts/build-volta-board.mjs \
+            --board "$GITHUB_WORKSPACE/vendor/volta-banking/charts/volta-core.yml" \
+            --out "$GITHUB_WORKSPACE/public/demos/volta-board/index.html"
 
       - name: Build & validate site
         # Build then run the single gate. `make check` depends on `build`, so
