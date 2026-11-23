@@ -26,7 +26,7 @@ tools:
   - pytest
   - uv
 date: 2026-10-20
-updated: 2026-11-01
+updated: 2026-11-06
 bet: "Ranking by expected effect is not a decision: money appears where the model answers not 'who ranks higher' but 'what is it worth'."
 rejected:
   - option: "Reporting ROI as 'lift × margin'"

@@ -24,7 +24,7 @@ demo: https://nikitaboyarkin.github.io/mm-program-page/
 related:
   - /projects/site/
 date: 2026-11-03
-updated: 2026-11-03
+updated: 2026-11-17
 ---
 
 ▶ [Live replica](https://nikitaboyarkin.github.io/mm-program-page/) — runs on any static host, no build, no install.
