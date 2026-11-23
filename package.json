@@ -29,6 +29,7 @@
     "og:home:watch": "bun run --watch scripts/generate-home-og.mjs",
     "og:graph": "bun run scripts/generate-graph-og.mjs",
     "og:sections": "bun run scripts/generate-section-og.mjs",
+    "og:community": "bun run scripts/generate-community-og.mjs",
     "icons": "bun run scripts/generate-icons.mjs",
     "sync:gh": "bun run scripts/sync-github-projects.mjs",
     "sync:gh:apply": "bun run scripts/sync-github-projects.mjs --apply",

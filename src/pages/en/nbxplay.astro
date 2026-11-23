@@ -1,0 +1,21 @@
+---
+// EN twin of `/nbxplay/` — see the RU page for why this route exists.
+import Base from '../../layouts/Base.astro';
+import CommunityPage from '../../components/CommunityPage.astro';
+import { withBase } from '../../lib/path';
+---
+
+<Base
+  title="NBxPlay — Telegram community"
+  description="The NBxPlay community on Telegram: EST. 2026 · Let’s play. Open the chat and join."
+  ogTitle="NBxPlay — Telegram community"
+  ogImage="/images/og/community-nbxplay.png"
+  ogImageAlt="NBxPlay banner: a pixel-art play button and the tagline Let’s play."
+  canonical={withBase('en/nbxplay/')}
+  activeNav={null}
+  lang="en"
+  counterpartHref={withBase('nbxplay/')}
+  preloadImage={withBase('images/og/community-nbxplay.png')}
+>
+  <CommunityPage lang="en" />
+</Base>

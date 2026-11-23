@@ -1,0 +1,166 @@
+---
+/**
+ * The shared body of `/nbxplay/` and `/en/nbxplay/` — a share landing, not a
+ * content page: the banner that social crawlers pick up as the OG card, then
+ * one obvious way into the chat.
+ *
+ * The banner is the same PNG the page declares as `og:image`, so the card a
+ * reader sees in Telegram/LinkedIn and the page they land on carry one image,
+ * not two near-duplicates that drift.
+ */
+import Icon from './Icon.astro';
+import { withBase } from '../lib/path';
+
+interface Props {
+  lang?: 'ru' | 'en';
+}
+
+const { lang = 'ru' } = Astro.props;
+const isEn = lang === 'en';
+
+const t = {
+  kicker: isEn ? 'Telegram community · EST. 2026' : 'Telegram-сообщество · EST. 2026',
+  lead: isEn
+    ? 'Let’s play. This is the NBxPlay chat on Telegram — open it and join.'
+    : 'Let’s play. Это чат NBxPlay в Telegram — открой и присоединяйся.',
+  cta: isEn ? 'Open in Telegram' : 'Открыть в Telegram',
+  note: isEn
+    ? 'The invite opens in Telegram. If the app is not installed, Telegram Web opens.'
+    : 'Приглашение открывается в Telegram. Если приложения нет — откроется Telegram Web.',
+  bannerAlt: isEn
+    ? 'NBxPlay banner: a pixel-art play button and the tagline Let’s play.'
+    : 'Баннер NBxPlay: пиксельная кнопка play и подпись «Let’s play».',
+  bannerLabel: isEn ? 'Open the NBxPlay community in Telegram' : 'Открыть сообщество NBxPlay в Telegram',
+};
+
+const TG_URL = 'https://t.me/nbxplay';
+const BANNER = withBase('images/og/community-nbxplay.png');
+---
+
+<section class="container community-page">
+  <div class="community-card">
+    <a
+      class="community-banner"
+      href={TG_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={t.bannerLabel}
+      data-analytics="community_join"
+      data-analytics-surface="community_page"
+    >
+      <img
+        src={BANNER}
+        width="1200"
+        height="630"
+        alt={t.bannerAlt}
+        fetchpriority="high"
+        decoding="async"
+      />
+    </a>
+
+    <div class="community-body">
+      <p class="community-kicker">{t.kicker}</p>
+      <h1 class="page-title">NBxPlay</h1>
+      <p class="community-lead">{t.lead}</p>
+
+      <div class="cta-row community-cta">
+        <a
+          class="button"
+          href={TG_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-analytics="community_join"
+          data-analytics-surface="community_page"
+        >
+          <Icon name="telegram" size={16} class="btn-icon" />
+          {t.cta}
+        </a>
+        <span class="community-handle">t.me/nbxplay</span>
+      </div>
+
+      <p class="community-note">{t.note}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .community-page {
+    padding-top: var(--space-4);
+    padding-bottom: 4rem;
+  }
+
+  .community-card {
+    max-width: 920px;
+    margin: 0 auto;
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgb(0 0 0 / 28%);
+  }
+
+  /* The banner is cream on every theme; the card edge is what separates it
+     from the page ground. `line-height: 0` removes the inline-image descender
+     gap so the image meets the card's top corners exactly. */
+  .community-banner {
+    display: block;
+    line-height: 0;
+    background: #f8f2d8;
+  }
+
+  .community-banner img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .community-banner:focus-visible {
+    outline: 2px solid var(--border-active);
+    outline-offset: -4px;
+  }
+
+  .community-body {
+    padding: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  .community-kicker {
+    margin: 0 0 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .community-lead {
+    max-width: 58ch;
+    margin: 0.75rem 0 1.25rem;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+  }
+
+  .community-cta {
+    margin-top: 0;
+  }
+
+  .community-handle {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+
+  .community-note {
+    margin: 1rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 600px) {
+    .community-page {
+      padding-bottom: 2.5rem;
+    }
+
+    .community-card {
+      border-radius: var(--radius-md);
+    }
+  }
+</style>

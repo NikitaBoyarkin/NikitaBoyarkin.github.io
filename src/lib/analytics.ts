@@ -130,6 +130,11 @@ export interface AnalyticsEventMap {
   // Click on the survey CTA in `/hire/`. The delegated handler sends `path`,
   // so the reader's entry page is attributable without a bespoke emitter.
   feedback_page_click: { path: string };
+  // The `/nbxplay/` share landing (RU + EN). The banner and the join button are
+  // one series; `surface` names the placement, and the delegated handler adds
+  // `path`, so the two entry points stay distinguishable without a bespoke
+  // emitter. Deliberately separate from `community_footer` (the nav chip).
+  community_join: { path: string; surface?: string };
   // `source` is the surface the choice came from. `header`/`menu` were the bar
   // and drawer variants of the role buttons (`NavRoles.astro`, since replaced by
   // one «Найм» link) — they were shipped before

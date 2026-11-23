@@ -1,0 +1,23 @@
+---
+// Share landing for the NBxPlay Telegram community. The URL exists so a link
+// can carry a custom OG card: Telegram's own `t.me/nbxplay` preview is owned by
+// Telegram, so `og:image` here is the only way to put the banner on the card.
+import Base from '../layouts/Base.astro';
+import CommunityPage from '../components/CommunityPage.astro';
+import { withBase } from '../lib/path';
+---
+
+<Base
+  title="NBxPlay — сообщество в Telegram"
+  description="Сообщество NBxPlay в Telegram: EST. 2026 · Let’s play. Открыть чат и присоединиться."
+  ogTitle="NBxPlay — сообщество в Telegram"
+  ogImage="/images/og/community-nbxplay.png"
+  ogImageAlt="Баннер NBxPlay: пиксельная кнопка play и подпись «Let’s play»."
+  canonical={withBase('nbxplay/')}
+  activeNav={null}
+  lang="ru"
+  counterpartHref={withBase('en/nbxplay/')}
+  preloadImage={withBase('images/og/community-nbxplay.png')}
+>
+  <CommunityPage lang="ru" />
+</Base>

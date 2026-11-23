@@ -23,6 +23,13 @@ import Ingest from '../components/Ingest.astro';
 interface Props {
   title: string;
   description?: string;
+  /**
+   * Social-card title, when it must differ from the document title. The EN twin
+   * of a page carries a `· EN` marker in `<title>` for SERP disambiguation;
+   * a link preview does not need that marker, so a share card can drop it.
+   * Defaults to the document title (including the marker).
+   */
+  ogTitle?: string;
   keywords?: string[];
   ogType?: 'website' | 'article';
   ogImage?: string;
@@ -44,7 +51,8 @@ interface Props {
     | 'explorer'
     | 'topics'
     | 'navigation'
-    | 'hire';
+    | 'hire'
+    | null;
   jsonLd?: Record<string, unknown>;
   lang?: 'ru' | 'en';
   counterpartHref?: string;
@@ -80,6 +88,7 @@ interface Props {
 const {
   title,
   description = 'Nikita Boyarkin — Data Analyst / Product Analyst portfolio. SQL, Python, Visualization, A/B Testing.',
+  ogTitle,
   keywords = [],
   ogType = 'website',
   ogImage: ogImageProp,
@@ -164,6 +173,7 @@ const isEn = lang === 'en';
 // measured 2026-10-31). Only the EN copy carries the marker — the RU page is
 // the canonical default and keeps its SERP text unchanged.
 const displayTitle = isEn && counterpartHref ? `${title} · EN` : title;
+const ogDisplayTitle = ogTitle ?? displayTitle;
 const aboutHref = isEn ? withBase('en/about/') : withBase('about/');
 const contactHref = isEn ? withBase('en/contact/') : withBase('contact/');
 // Every other section href now comes from `src/lib/sections.ts` — see `navLinks`
@@ -183,7 +193,11 @@ const urlActiveNav = /^\/(?:en\/)?explorer\/?$/.test(Astro.url.pathname)
     : /^\/topics(?:\/|$)/.test(Astro.url.pathname)
       ? 'topics'
       : null;
-const isNavCurrent = (key: string) => (urlActiveNav ?? activeNav) === key;
+/* `null` is for routes that belong to no section (the `/nbxplay/` share
+   landing): highlighting «Главная» there would claim the reader is somewhere
+   they are not. A URL-derived key still wins, as before. */
+const isNavCurrent = (key: string) =>
+  activeNav !== null && (urlActiveNav ?? activeNav) === key;
 
 // The new-tab homepage prints the owner's name and role as its own `<h1>`, so
 // the top bar drops the role there rather than repeating it 350px away. The
@@ -398,7 +412,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <meta id="theme-color" name="theme-color" content="#1400c3" />
 
     <meta property="og:site_name" content="Nikita Boyarkin" />
-    <meta property="og:title" content={displayTitle} />
+    <meta property="og:title" content={ogDisplayTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={pageUrl} />
@@ -418,7 +432,7 @@ const NAV_CLOSE = 'M6 6l12 12M6 18L18 6';
     <meta property="og:image:alt" content={ogImageAlt} />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={displayTitle} />
+    <meta name="twitter:title" content={ogDisplayTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={fullOgImage} />
 
