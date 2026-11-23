@@ -35,7 +35,7 @@ tools:
   - Matplotlib / Seaborn
   - uv + ruff
 github: https://github.com/NikitaBoyarkin/volta-banking
-updated: 2026-11-01
+updated: 2026-11-15
 bet: "KYC loss is form friction, not distrust: people leave because the flow is long. If distrust were the cause, splitting KYC into steps with a progress bar would have changed nothing."
 insight: "KYC is the onboarding bottleneck: 56.6% step conversion, the largest relative drop-off. People leave because the form is long, not because they distrust it."
 recommendation: "Split KYC into steps with a progress bar, ship only at lift ≥ MDE +5pp with no SRM: +5.72pp conversion and 13.9× ROI over 12 months."

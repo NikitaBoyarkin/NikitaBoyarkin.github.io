@@ -25,7 +25,7 @@ tools:
   - Pagefind
   - uv
 date: 2026-11-01
-updated: 2026-11-01
+updated: 2026-11-06
 github: https://github.com/NikitaBoyarkin/oss-catalog
 bet: "The catalog has to be a projection of machine data rather than a hand-kept table: otherwise cards and GitHub drift apart and nobody notices the divergence."
 failureBar: "The build is accepted only if the validator passes on every page, a repeated render leaves the file unchanged, and a field absent from the source never reaches the frontmatter."

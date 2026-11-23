@@ -22,7 +22,7 @@ tools:
   - duckdb
   - superset
 date: 2026-10-25
-updated: 2026-11-07
+updated: 2026-11-08
 github: https://github.com/NikitaBoyarkin/delivery-control-tower
 demo: https://nikitaboyarkin.github.io/delivery-control-tower/
 sources: []
