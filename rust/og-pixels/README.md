@@ -33,15 +33,15 @@ The script calls it for you. To build or rebuild it by hand:
 cargo build --release --manifest-path rust/og-pixels/Cargo.toml
 ```
 
-`scripts/lib/pixel-og.mjs` builds it on first use when the binary is missing and
-`cargo` is on PATH; otherwise it falls back to the JS engine (with a warning) so
-a checkout without Rust still renders cards.
+`scripts/lib/pixel-og.mjs` uses the binary when it is already built and the JS
+engine otherwise. The build is never implicit — an automatic `cargo build` inside
+the first render call put a cold, network-bound compile inside a unit test with a
+5 s timeout and took a CI run down (run 45738388730). Build it explicitly:
 
 | Env var | Effect |
 | --- | --- |
 | `OG_PIXELS=rust` | Require the binary; throw instead of falling back |
 | `OG_PIXELS=js` | Pin the JavaScript engine |
-| `OG_PIXELS_BUILD=0` | Never attempt a build from the script |
 
 ## CLI
 

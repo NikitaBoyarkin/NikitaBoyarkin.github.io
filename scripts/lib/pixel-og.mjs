@@ -208,12 +208,18 @@ export function assertBlocks(png, block) {
  * passes spread over every core; it exists because the JS version spent ~116 ms
  * of each card walking 756 000 pixels through `Buffer.slice` + a template
  * string, and a full OG run touches ~55 cards. `OG_PIXELS=js` pins the old path,
- * `OG_PIXELS=rust` refuses to fall back, and the default probes the binary and
- * falls back with one warning so a checkout without cargo still renders cards.
+ * `OG_PIXELS=rust` refuses to fall back, and the default uses the binary when it
+ * is already built and the JS engine otherwise.
+ *
+ * The build is deliberately NOT implicit. An automatic `cargo build` here meant a
+ * cold, network-bound compile inside the first `renderPixelBanner` call — which,
+ * inside a unit test with bun's 5 s default timeout, killed `cargo` mid-build and
+ * then `rsvg-convert`, and took the CI run down with it (run 45738388730). Build
+ * with `bun run og:pixels:build`; this module only ever checks whether the binary
+ * exists.
  */
 let renderSeq = 0;
 
-const CRATE_DIR = fileURLToPath(new URL('../../rust/og-pixels/', import.meta.url));
 const RUST_BIN = fileURLToPath(
   new URL('../../rust/og-pixels/target/release/og-pixels', import.meta.url),
 );
@@ -221,17 +227,7 @@ const RUST_BIN = fileURLToPath(
 /** undefined = not probed, string = binary path, null = JS engine. */
 let autoEngine;
 
-function buildIfMissing(mode) {
-  if (!existsSync(RUST_BIN) && process.env.OG_PIXELS_BUILD !== '0') {
-    const build = spawnSync('cargo', ['build', '--release', '--quiet'], {
-      cwd: CRATE_DIR,
-      encoding: 'utf8',
-    });
-    if (build.status !== 0) {
-      const reason = (build.error?.message ?? build.stderr ?? 'unknown error').trim();
-      console.warn(`[pixel-og] cargo build failed (${reason}); using the JS engine`);
-    }
-  }
+function resolveEngine(mode) {
   if (existsSync(RUST_BIN)) return RUST_BIN;
   if (mode === 'rust')
     throw new Error(
@@ -242,14 +238,14 @@ function buildIfMissing(mode) {
 }
 
 /**
- * Which engine renders: `auto` (probe, one build attempt, fall back to JS),
- * `js`, or `rust` (refuse to fall back). The per-call choice exists so the
- * parity test can render one SVG through both engines in the same process.
+ * Which engine renders: `auto` (the binary when present, JS otherwise), `js`,
+ * or `rust` (refuse to fall back). The per-call choice exists so the parity test
+ * can render one SVG through both engines in the same process.
  */
 function rustEngine(mode = process.env.OG_PIXELS ?? 'auto') {
   if (mode === 'js') return null;
-  if (mode === 'rust') return buildIfMissing('rust');
-  if (autoEngine === undefined) autoEngine = buildIfMissing('auto');
+  if (mode === 'rust') return resolveEngine('rust');
+  if (autoEngine === undefined) autoEngine = resolveEngine('auto');
   return autoEngine;
 }
 

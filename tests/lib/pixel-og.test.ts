@@ -323,7 +323,7 @@ describe('banner determinism', () => {
     expect(bytesFirst.equals(bytesSecond)).toBe(true);
     expect(first.bytes).toBe(second.bytes);
     expect(first.bytes).toBe(bytesFirst.length);
-  });
+  }, { timeout: 60_000 });
 });
 
 // --- 5: glyph coverage -------------------------------------------------------

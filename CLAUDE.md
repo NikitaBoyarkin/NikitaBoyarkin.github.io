@@ -60,8 +60,9 @@ bun run sync:activity
 > `PANGOCAIRO_BACKEND=fc` (macOS PangoCairo defaults to the CoreText backend, which
 > ignores fontconfig). Both are set by `scripts/lib/og-render.mjs`; the scripts need
 > `rsvg-convert` on PATH. The pixel passes after rasterisation run in
-> `rust/og-pixels` (`bun run og:pixels:build`); `OG_PIXELS=js` pins the JavaScript
-> fallback, which the script also uses when cargo is absent.
+> `rust/og-pixels` (`bun run og:pixels:build` first — the build is never implicit);
+> `OG_PIXELS=js` pins the JavaScript fallback, which the script also uses when the
+> binary is not built.
 
 ## Project Structure
 
