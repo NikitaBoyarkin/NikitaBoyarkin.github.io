@@ -59,7 +59,9 @@ bun run sync:activity
 > `scripts/og-fonts/`, wired via `FONTCONFIG_FILE=scripts/og-fonts/fonts.conf` **and**
 > `PANGOCAIRO_BACKEND=fc` (macOS PangoCairo defaults to the CoreText backend, which
 > ignores fontconfig). Both are set by `scripts/lib/og-render.mjs`; the scripts need
-> `rsvg-convert` on PATH.
+> `rsvg-convert` on PATH. The pixel passes after rasterisation run in
+> `rust/og-pixels` (`bun run og:pixels:build`); `OG_PIXELS=js` pins the JavaScript
+> fallback, which the script also uses when cargo is absent.
 
 ## Project Structure
 
@@ -120,6 +122,8 @@ bun run sync:activity
 │   └── lib/og-render.mjs    # shared rsvg spawn + WCAG AA contrast assert
 ├── .github/workflows/
 │   └── deploy.yml           # builds, lighthouse CI, deploys dist/ to GitHub Pages
+├── rust/og-pixels/          # Rust rasteriser for the OG cards (the JS passes at 1/3.6 the wall time)
+│   └── src/main.rs          # box-downsample · ramp quantise · nearest upscale · palette/block asserts
 └── .claude/
     ├── settings.json
     └── hooks/               # contrast-gate.js, portfolio-category-guard.js

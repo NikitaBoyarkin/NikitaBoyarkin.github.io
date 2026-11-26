@@ -12,7 +12,9 @@
 // cream surface, the ink type and the coral rings free of speckle while the
 // photo, the glow and the vignette get the 4x4 Bayer screen.
 
-import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, writeFileSync, unlinkSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { PNG } from 'pngjs';
 
 import {
@@ -200,14 +202,99 @@ export function assertBlocks(png, block) {
 /**
  * Full pipeline. `svg` must already be drawn at grid.w*SS x grid.h*SS with every
  * non-photo primitive snapped to multiples of SS.
+ *
+ * Two engines, one behaviour. The Rust binary (`rust/og-pixels`) runs the same
+ * box-downsample, ramp quantise, nearest upscale and two assertions, with the
+ * passes spread over every core; it exists because the JS version spent ~116 ms
+ * of each card walking 756 000 pixels through `Buffer.slice` + a template
+ * string, and a full OG run touches ~55 cards. `OG_PIXELS=js` pins the old path,
+ * `OG_PIXELS=rust` refuses to fall back, and the default probes the binary and
+ * falls back with one warning so a checkout without cargo still renders cards.
  */
 let renderSeq = 0;
 
-export function renderPixelBanner(svg, grid, outPath) {
+const CRATE_DIR = fileURLToPath(new URL('../../rust/og-pixels/', import.meta.url));
+const RUST_BIN = fileURLToPath(
+  new URL('../../rust/og-pixels/target/release/og-pixels', import.meta.url),
+);
+
+/** undefined = not probed, string = binary path, null = JS engine. */
+let autoEngine;
+
+function buildIfMissing(mode) {
+  if (!existsSync(RUST_BIN) && process.env.OG_PIXELS_BUILD !== '0') {
+    const build = spawnSync('cargo', ['build', '--release', '--quiet'], {
+      cwd: CRATE_DIR,
+      encoding: 'utf8',
+    });
+    if (build.status !== 0) {
+      const reason = (build.error?.message ?? build.stderr ?? 'unknown error').trim();
+      console.warn(`[pixel-og] cargo build failed (${reason}); using the JS engine`);
+    }
+  }
+  if (existsSync(RUST_BIN)) return RUST_BIN;
+  if (mode === 'rust')
+    throw new Error(
+      `OG_PIXELS=rust but ${RUST_BIN} is missing — ` +
+        'run: cargo build --release --manifest-path rust/og-pixels/Cargo.toml',
+    );
+  return null;
+}
+
+/**
+ * Which engine renders: `auto` (probe, one build attempt, fall back to JS),
+ * `js`, or `rust` (refuse to fall back). The per-call choice exists so the
+ * parity test can render one SVG through both engines in the same process.
+ */
+function rustEngine(mode = process.env.OG_PIXELS ?? 'auto') {
+  if (mode === 'js') return null;
+  if (mode === 'rust') return buildIfMissing('rust');
+  if (autoEngine === undefined) autoEngine = buildIfMissing('auto');
+  return autoEngine;
+}
+
+/** The Rust engine. Returns the written file's byte length. */
+function renderInRust(bin, src, grid, outPath) {
+  const res = spawnSync(
+    bin,
+    [
+      '--src', src,
+      '--out', outPath,
+      '--block', String(grid.b),
+      '--ss', String(SS),
+      '--surface', SURFACE,
+      '--ramp', RAMP.join(','),
+    ],
+    { encoding: 'utf8' },
+  );
+  if (res.status !== 0)
+    throw new Error(`og-pixels failed: ${(res.stderr || res.stdout || '').trim()}`);
+  return statSync(outPath).size;
+}
+
+export function renderPixelBanner(
+  svg,
+  grid,
+  outPath,
+  { engine = process.env.OG_PIXELS ?? 'auto' } = {},
+) {
   const src = `${outPath}.src.png`;
   // Unique per process+call: a fixed tmp name lets concurrent generators (og, og:home,
   // og:sections) rasterise each other's SVG into the wrong PNG.
   renderSvgToPng(svg, src, { tmpName: `pixel-og-src-${process.pid}-${++renderSeq}` });
+
+  const bin = rustEngine(engine);
+  if (bin) {
+    try {
+      const bytes = renderInRust(bin, src, grid, outPath);
+      return { png: null, bytes, engine: 'rust' };
+    } finally {
+      try {
+        unlinkSync(src);
+      } catch {}
+    }
+  }
+
   const png = PNG.sync.read(readFileSync(src));
   assertSource(png, grid);
 
@@ -223,5 +310,5 @@ export function renderPixelBanner(svg, grid, outPath) {
   try {
     unlinkSync(src);
   } catch {}
-  return { png: big, bytes: bytes.length };
+  return { png: big, bytes: bytes.length, engine: 'js' };
 }

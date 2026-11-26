@@ -25,6 +25,7 @@
     "board:volta": "bun run scripts/build-volta-board.mjs --board ../volta-banking/charts/volta-core.yml",
     "og": "bun run scripts/generate-og.mjs",
     "og:watch": "bun run --watch scripts/generate-og.mjs",
+    "og:pixels:build": "cargo build --release --manifest-path rust/og-pixels/Cargo.toml",
     "og:home": "bun run scripts/generate-home-og.mjs",
     "og:home:watch": "bun run --watch scripts/generate-home-og.mjs",
     "og:graph": "bun run scripts/generate-graph-og.mjs",
