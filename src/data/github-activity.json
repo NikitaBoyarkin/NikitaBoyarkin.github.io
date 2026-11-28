@@ -1,13 +1,13 @@
 {
   "slug": "github",
-  "source": "GitHub API · updated 2026-11-03",
-  "updatedAt": "2026-11-03T12:24:40.667Z",
+  "source": "GitHub API · updated 2026-11-28",
+  "updatedAt": "2026-11-28T13:40:32.171Z",
   "stats": {
-    "contributions": 25256,
-    "publicRepos": 55,
-    "followers": 433,
-    "currentStreak": 97,
-    "longestStreak": 97,
+    "contributions": 23256,
+    "publicRepos": 56,
+    "followers": 460,
+    "currentStreak": 122,
+    "longestStreak": 122,
     "activeSince": 2019
   },
   "charts": [
@@ -32,71 +32,71 @@
       },
       "data": {
         "categories": [
-          "05.10",
-          "06.10",
-          "07.10",
-          "08.10",
-          "09.10",
-          "10.10",
-          "11.10",
-          "12.10",
-          "13.10",
-          "14.10",
-          "15.10",
-          "16.10",
-          "17.10",
-          "18.10",
-          "19.10",
-          "20.10",
-          "21.10",
-          "22.10",
-          "23.10",
-          "24.10",
-          "25.10",
-          "26.10",
-          "27.10",
-          "28.10",
-          "29.10",
           "30.10",
           "31.10",
           "01.11",
           "02.11",
-          "03.11"
+          "03.11",
+          "04.11",
+          "05.11",
+          "06.11",
+          "07.11",
+          "08.11",
+          "09.11",
+          "10.11",
+          "11.11",
+          "12.11",
+          "13.11",
+          "14.11",
+          "15.11",
+          "16.11",
+          "17.11",
+          "18.11",
+          "19.11",
+          "20.11",
+          "21.11",
+          "22.11",
+          "23.11",
+          "24.11",
+          "25.11",
+          "26.11",
+          "27.11",
+          "28.11"
         ],
         "series": [
           {
             "name": "Contributions",
             "values": [
-              21,
-              38,
-              41,
-              17,
-              63,
-              66,
-              77,
-              160,
-              72,
-              48,
-              2,
-              17,
-              18,
-              89,
-              30,
-              79,
-              17,
-              2,
-              2,
-              61,
-              136,
-              69,
-              39,
-              49,
-              45,
               54,
               18,
               82,
-              36,
-              54
+              38,
+              72,
+              71,
+              20,
+              48,
+              39,
+              56,
+              38,
+              61,
+              22,
+              40,
+              48,
+              13,
+              15,
+              23,
+              18,
+              18,
+              14,
+              11,
+              9,
+              33,
+              7,
+              32,
+              13,
+              8,
+              1,
+              1
             ]
           }
         ]
@@ -104,12 +104,12 @@
       "labelEvery": 5,
       "conclusions": [
         {
-          "ru": "За последние 30 дней — 1502 вкладов, в среднем 50.1 в день.",
-          "en": "Over the last 30 days: 1502 contributions, averaging 50.1 per day."
+          "ru": "За последние 30 дней — 923 вкладов, в среднем 30.8 в день.",
+          "en": "Over the last 30 days: 923 contributions, averaging 30.8 per day."
         },
         {
-          "ru": "Пик активности — 160 вкладов за один день.",
-          "en": "Peak activity: 160 contributions in a single day."
+          "ru": "Пик активности — 82 вкладов за один день.",
+          "en": "Peak activity: 82 contributions in a single day."
         }
       ]
     },
@@ -161,20 +161,20 @@
               171,
               2010,
               1201,
-              1455,
-              172
+              1463,
+              851
             ]
           }
         ]
       },
       "conclusions": [
         {
-          "ru": "За 12 месяцев — 22125 вкладов.",
-          "en": "Over 12 months: 22125 contributions."
+          "ru": "За 12 месяцев — 22812 вкладов.",
+          "en": "Over 12 months: 22812 contributions."
         },
         {
-          "ru": "Сильнейший месяц — Apr с 3873 вкладами (17.5% годового объёма).",
-          "en": "The strongest month is Apr with 3873 contributions (17.5% of the annual total)."
+          "ru": "Сильнейший месяц — Apr с 3873 вкладами (17% годового объёма).",
+          "en": "The strongest month is Apr with 3873 contributions (17% of the annual total)."
         }
       ]
     },
@@ -199,9 +199,6 @@
       },
       "data": {
         "categories": [
-          "03.11",
-          "10.11",
-          "17.11",
           "24.11",
           "01.12",
           "08.12",
@@ -251,15 +248,15 @@
           "12.10",
           "19.10",
           "26.10",
-          "02.11"
+          "02.11",
+          "09.11",
+          "16.11",
+          "23.11"
         ],
         "series": [
           {
             "name": "Contributions",
             "values": [
-              957,
-              952,
-              778,
               444,
               520,
               894,
@@ -308,8 +305,11 @@
               323,
               406,
               327,
-              356,
-              90
+              364,
+              344,
+              237,
+              126,
+              62
             ]
           }
         ]
@@ -317,8 +317,8 @@
       "labelEvery": 6,
       "conclusions": [
         {
-          "ru": "Активных недель — 50 из 53, в среднем 476.5 вкладов в неделю.",
-          "en": "Active weeks: 50 of 53, averaging 476.5 contributions per week."
+          "ru": "Активных недель — 50 из 53, в среднем 438.8 вкладов в неделю.",
+          "en": "Active weeks: 50 of 53, averaging 438.8 contributions per week."
         },
         {
           "ru": "Самая продуктивная неделя — 1186 вкладов.",
@@ -356,8 +356,8 @@
           {
             "name": "Contributions",
             "values": [
-              25184,
-              2,
+              23180,
+              4,
               10,
               2
             ]
@@ -366,12 +366,12 @@
       },
       "conclusions": [
         {
-          "ru": "Всего 25198 вкладов за год.",
-          "en": "25198 contributions in total over the year."
+          "ru": "Всего 23196 вкладов за год.",
+          "en": "23196 contributions in total over the year."
         },
         {
-          "ru": "Основной тип — Commits (25184, 99.9% вкладов).",
-          "en": "The dominant type is Commits (25184, 99.9% of contributions)."
+          "ru": "Основной тип — Commits (23180, 99.9% вкладов).",
+          "en": "The dominant type is Commits (23180, 99.9% of contributions)."
         }
       ]
     },
@@ -399,38 +399,38 @@
           "Python",
           "HTML",
           "TypeScri…",
-          "Jupyter …",
           "Astro",
-          "CSS",
+          "Jupyter …",
           "JavaScri…",
-          "SCSS",
+          "CSS",
+          "Rust",
           "Other"
         ],
         "series": [
           {
             "name": "%",
             "values": [
-              35.9,
-              22.6,
-              15.3,
-              10.8,
-              7.7,
+              31.9,
+              22,
+              18.5,
+              9.3,
+              8.8,
+              3.8,
               3.2,
-              3,
-              0.4,
-              1
+              1.3,
+              1.2
             ]
           }
         ]
       },
       "conclusions": [
         {
-          "ru": "Основной язык — Python с долей 35.9% от 11242970 байт кода.",
-          "en": "The primary language is Python at 35.9% of 11242970 bytes of code."
+          "ru": "Основной язык — Python с долей 31.9% от 13785543 байт кода.",
+          "en": "The primary language is Python at 31.9% of 13785543 bytes of code."
         },
         {
-          "ru": "Всего в профиле 14 языков, из них 9 показаны на графике.",
-          "en": "The profile uses 14 languages in total; 9 are shown in the chart."
+          "ru": "Всего в профиле 15 языков, из них 9 показаны на графике.",
+          "en": "The profile uses 15 languages in total; 9 are shown in the chart."
         }
       ]
     }
